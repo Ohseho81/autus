@@ -18,7 +18,7 @@ class DevPackRunner:
             raise ValueError("OPENAI_API_KEY 필요")
         
         self.client = OpenAI(api_key=self.api_key)
-        self.packs_dir = Path("02_packs/dev")
+        self.packs_dir = Path("packs/development")
     
     def load_pack(self, pack_name: str) -> Dict[str, Any]:
         pack_path = self.packs_dir / f"{pack_name}.yaml"
