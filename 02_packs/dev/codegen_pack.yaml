@@ -1,0 +1,46 @@
+name: dev_codegen
+version: 1.0.0
+description: Code generation pack
+author: AUTUS
+
+metadata:
+  category: development
+  requires_llm: true
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  temperature: 0.2
+  max_tokens: 4000
+
+cells:
+  - name: generate_code
+    prompt: |
+      Generate Python code for this file specification:
+      
+      File: {file_path}
+      Purpose: {purpose}
+      
+      Use Python 3.11+, type hints, docstrings, error handling.
+      Output complete Python code only.
+    output: generated_code
+
+  - name: validate_syntax
+    input: generated_code
+    prompt: |
+      Validate and fix this Python code:
+      
+      {generated_code}
+      
+      Fix any syntax errors. Output corrected code.
+    output: validated_code
+
+  - name: add_docstrings
+    input: validated_code
+    prompt: |
+      Add Google-style docstrings to this code:
+      
+      {validated_code}
+      
+      Output code with complete docstrings.
+    output: documented_code

@@ -1,0 +1,122 @@
+name: dev_testgen
+version: 1.0.0
+description: "Python 코드를 분석하여 완전한 pytest 테스트 생성"
+author: "AUTUS Core"
+
+metadata:
+  category: development
+  tags: [testing, pytest, quality]
+  requires_llm: true
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  temperature: 0.2
+  max_tokens: 12000
+
+cells:
+  - name: analyze_code
+    description: "코드를 분석하여 테스트할 함수/클래스 추출"
+    prompt: |
+      다음 Python 코드를 분석하세요:
+      
+      파일: {source_file}
+      
+      {source_code}
+      
+      추출할 정보:
+      1. 모든 public 함수 (underscore 시작 제외)
+      2. 모든 클래스와 메서드
+      3. 각 함수의 파라미터와 반환 타입
+      4. 예외 처리 부분
+      
+      JSON 형식으로 출력:
+      {
+        "functions": [
+          {
+            "name": "generate_core",
+            "params": ["seed: bytes"],
+            "returns": "FormData",
+            "raises": ["ValueError"],
+            "complexity": "medium"
+          }
+        ],
+        "classes": []
+      }
+    output: code_analysis
+
+  - name: generate_test_cases
+    description: "각 함수에 대한 테스트 케이스 생성"
+    input: code_analysis
+    prompt: |
+      다음 코드 분석 결과를 바탕으로 테스트 케이스를 설계하세요:
+      
+      {code_analysis}
+      
+      각 함수마다:
+      1. 정상 케이스 (happy path)
+      2. 경계값 테스트 (edge cases)
+      3. 에러 케이스 (예외 발생)
+      4. 타입 검증
+      
+      JSON 형식으로 출력:
+      {
+        "test_cases": [
+          {
+            "function": "generate_core",
+            "tests": [
+              {
+                "name": "test_generate_core_valid_seed",
+                "type": "happy_path",
+                "setup": "seed = secrets.token_bytes(32)",
+                "assertion": "assert result.vertices is not None"
+              }
+            ]
+          }
+        ]
+      }
+    output: test_cases
+
+  - name: generate_test_code
+    description: "실제 pytest 코드 생성"
+    input: test_cases
+    prompt: |
+      다음 테스트 케이스를 pytest 코드로 변환하세요:
+      
+      {test_cases}
+      
+      원본 파일: {source_file}
+      
+      pytest 표준:
+      1. import pytest
+      2. fixtures 사용 (필요시)
+      3. parametrize 사용 (반복 테스트)
+      4. 명확한 테스트 이름
+      5. Given-When-Then 구조
+      6. assert 문 명확하게
+      7. 에러 테스트는 pytest.raises 사용
+      
+      완전한 pytest 코드를 생성하세요:
+    output: test_code
+
+output:
+  format: text
+  content: "{test_code}"
+
+actions:
+  - type: write_file
+    path: "tests/test_{module_name}.py"
+    content: "{test_code}"
+    create_dirs: true
+    
+  - type: run_command
+    command: "pytest tests/test_{module_name}.py -v --tb=short"
+    description: "테스트 실행"
+    
+  - type: log
+    message: "✓ 테스트 생성 완료: tests/test_{module_name}.py"
+    level: info
+
+error_handling:
+  retry_count: 2
+  on_error: "log_and_skip"

@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+.venv*/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Autus specific
+logs/**/*.log
+logs/**/*.jsonl
+cache/**/*.json
+.autus_server.pid
+
+# Keep structure
+!logs/.gitkeep
+!cache/.gitkeep
+
+# Environment
+.env
+.env.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Documentation builds
+docs/_build/
+
+# Cloud data (if sensitive)
+cloud/data/*.json
+!cloud/data/.gitkeep
+
+# AutusGalaxyVision build artifacts
+AutusGalaxyVision/.build/
+AutusGalaxyVision/*.xcworkspace/xcuserdata/
+AutusGalaxyVision/*.xcodeproj/xcuserdata/
+AutusGalaxyVision/*.xcodeproj/project.xcworkspace/xcuserdata/
