@@ -7,6 +7,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import uvicorn
+from pathlib import Path
+
+try:
+    import sys
+    ROOT = Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(ROOT))
+    from config import (
+        PACKS_DEVELOPMENT_DIR,
+        PACKS_EXAMPLES_DIR,
+        LOGS_DIR,
+        CELL_LOGS_DIR
+    )
+except ImportError:
+    # fallback
+    PACKS_DEVELOPMENT_DIR = Path("packs/development")
+    PACKS_EXAMPLES_DIR = Path("packs/examples")
+    LOGS_DIR = Path("logs")
+    CELL_LOGS_DIR = LOGS_DIR / "cells" if LOGS_DIR.exists() else None
 
 # Lifespan 이벤트 핸들러
 @asynccontextmanager
@@ -56,14 +74,10 @@ async def health():
     return {
         "status": "healthy",
         "layers": {
-            "00_system": "OK",
-            "01_core": "OK",
-            "02_packs": "OK",
-            "03_adapters": "OK",
-            "04_ops": "OK",
-            "05_hud": "OK",
-            "06_twin": "Ready",
-            "07_memory": "OK"
+            "core": "OK",
+            "packs": "OK",
+            "protocols": "OK",
+            "server": "OK"
         },
         "features": {
             "cell_system": "active",
@@ -75,17 +89,15 @@ async def health():
 @app.get("/api/cells")
 async def list_cells():
     """Cell 목록 조회"""
-    from pathlib import Path
     cells = []
-    
-    cell_logs = Path("logs/cells")
-    if cell_logs.exists():
-        for log_file in cell_logs.glob("*.jsonl"):
+
+    if CELL_LOGS_DIR and CELL_LOGS_DIR.exists():
+        for log_file in CELL_LOGS_DIR.glob("*.jsonl"):
             cells.append({
                 "name": log_file.stem,
                 "log_file": str(log_file)
             })
-    
+
     return {
         "status": "success",
         "count": len(cells),
@@ -95,18 +107,26 @@ async def list_cells():
 @app.get("/api/packs")
 async def list_packs():
     """Pack 목록 조회"""
-    from pathlib import Path
     packs = []
-    
-    pack_dir = Path("02_packs/builtin")
-    if pack_dir.exists():
-        for pack_file in pack_dir.glob("*_pack.py"):
+
+    # Development packs 스캔
+    if PACKS_DEVELOPMENT_DIR.exists():
+        for pack_file in PACKS_DEVELOPMENT_DIR.glob("*.yaml"):
             packs.append({
                 "name": pack_file.stem,
                 "path": str(pack_file),
-                "type": "builtin"
+                "type": "development"
             })
-    
+
+    # Example packs 스캔
+    if PACKS_EXAMPLES_DIR.exists():
+        for pack_file in PACKS_EXAMPLES_DIR.glob("*.yaml"):
+            packs.append({
+                "name": pack_file.stem,
+                "path": str(pack_file),
+                "type": "example"
+            })
+
     return {
         "status": "success",
         "count": len(packs),

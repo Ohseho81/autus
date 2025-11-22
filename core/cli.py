@@ -10,6 +10,29 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+# 경로 설정 import
+try:
+    import sys
+    sys.path.insert(0, str(ROOT))
+    from config import (
+        PROJECT_ROOT,
+        CORE_DIR,
+        PACKS_DIR,
+        PACKS_DEVELOPMENT_DIR,
+        PACKS_EXAMPLES_DIR,
+        PACKS_INTEGRATION_DIR,
+        AUTUS_CONFIG_FILE
+    )
+except ImportError:
+    # fallback (개발 중일 때)
+    PROJECT_ROOT = ROOT
+    CORE_DIR = ROOT / "core"
+    PACKS_DIR = ROOT / "packs"
+    PACKS_DEVELOPMENT_DIR = PACKS_DIR / "development"
+    PACKS_EXAMPLES_DIR = PACKS_DIR / "examples"
+    PACKS_INTEGRATION_DIR = PACKS_DIR / "integration"
+    AUTUS_CONFIG_FILE = ROOT / ".autus"
+
 # 동적 import로 경로 문제 해결
 import importlib.util
 
@@ -22,12 +45,12 @@ def _load_module(module_path, module_name):
     spec.loader.exec_module(module)
     return module
 
-# autusfile 모듈 로드
-_autusfile_path = ROOT / "01_core" / "autusfile.py"
+# autusfile 모듈 로드 (선택적 - 없어도 동작)
+_autusfile_path = CORE_DIR / "autusfile.py"
 autusfile = _load_module(_autusfile_path, "autusfile")
 
-# dsl 모듈 로드
-_dsl_path = ROOT / "01_core" / "dsl.py"
+# dsl 모듈 로드 (선택적 - 없어도 동작)
+_dsl_path = CORE_DIR / "dsl.py"
 dsl = _load_module(_dsl_path, "dsl")
 
 def main():
@@ -42,7 +65,15 @@ def main():
     if command == "init":
         # 프로젝트 초기화
         project = sys.argv[2] if len(sys.argv) > 2 else "my_project"
-        autusfile.create(project)
+        if autusfile and hasattr(autusfile, "create"):
+            autusfile.create(project)
+        else:
+            # 간단한 .autus 파일 생성
+            with open(AUTUS_CONFIG_FILE, 'w', encoding='utf-8') as f:
+                f.write(f"project: {project}\n")
+                f.write("cells: {}\n")
+                f.write("context: {}\n")
+            print(f"✅ .autus 파일 생성: {project}")
 
     elif command == "run":
         # Cell 실행
@@ -55,22 +86,33 @@ def main():
 
         # .autus 있으면 context 로드
         context = {}
-        if (ROOT / ".autus").exists():
+        if AUTUS_CONFIG_FILE.exists():
             try:
-                if autusfile:
+                if autusfile and hasattr(autusfile, "parse"):
                     config = autusfile.parse()
                     context = config.get("context", {})
+                else:
+                    # 간단한 YAML 파싱
+                    with open(AUTUS_CONFIG_FILE, 'r', encoding='utf-8') as f:
+                        config = yaml.safe_load(f) or {}
+                        context = config.get("context", {})
             except Exception as e:
                 print(f"⚠️  .autus 파일 로드 실패: {e}")
 
         print(f"🚀 실행: {cmd}\n")
         try:
-            if dsl:
+            if dsl and hasattr(dsl, "run"):
                 result = dsl.run(cmd, context)
                 print(f"\n✅ 결과:")
                 print(json.dumps(result, indent=2, ensure_ascii=False))
             else:
-                print("❌ DSL 모듈을 로드할 수 없습니다")
+                # 간단한 DSL 실행 (PER Loop 사용)
+                from core.engine.per_loop import PERLoop
+                loop = PERLoop()
+                review = loop.run(cmd)
+                print(f"\n✅ 실행 완료:")
+                print(f"  성공률: {review.get('success_rate', 0):.1%}")
+                print(f"  요약: {review.get('summary', 'N/A')}")
         except Exception as e:
             print(f"\n❌ 실행 실패: {e}")
             import traceback
@@ -83,8 +125,9 @@ def main():
             return
 
         try:
-            _llm_path = ROOT / "01_core" / "llm.py"
-            llm = _load_module(_llm_path, "llm")
+            # LLM 모듈 직접 import
+            from core.llm.llm import generate_cell
+            llm = type('obj', (object,), {'generate_cell': generate_cell})()
 
             if llm and hasattr(llm, "generate_cell"):
                 description = " ".join(sys.argv[2:])
@@ -99,26 +142,38 @@ def main():
 
     elif command == "list":
         # Cell 목록
-        if not Path(".autus").exists():
+        if not AUTUS_CONFIG_FILE.exists():
             print("❌ .autus 파일 없음")
             return
 
-        config = autusfile.parse()
-        print(f"📦 프로젝트: {config['project']}\n")
-        print("Cells:")
-        autusfile.list_cells(config)
+        try:
+            if autusfile and hasattr(autusfile, "parse"):
+                config = autusfile.parse()
+            else:
+                with open(AUTUS_CONFIG_FILE, 'r', encoding='utf-8') as f:
+                    config = yaml.safe_load(f) or {}
+
+            print(f"📦 프로젝트: {config.get('project', 'unknown')}\n")
+            cells = config.get("cells", {})
+            if cells:
+                print("Cells:")
+                for name, cell in cells.items():
+                    desc = cell.get("description", cell.get("command", ""))
+                    print(f"  - {name}: {desc}")
+            else:
+                print("Cells: 없음")
+        except Exception as e:
+            print(f"❌ .autus 파일 읽기 실패: {e}")
 
     elif command == "packs":
         # Pack 목록 (YAML 직접 읽기)
-        pack_dir = ROOT / "02_packs"
-
-        if not pack_dir.exists():
+        if not PACKS_DIR.exists():
             print("📦 Pack 디렉터리 없음")
             return
 
         packs = []
-        # YAML 파일 스캔
-        for pack_file in pack_dir.glob("*.yaml"):
+        # 루트 YAML 파일 스캔
+        for pack_file in PACKS_DIR.glob("*.yaml"):
             try:
                 with open(pack_file, 'r', encoding='utf-8') as f:
                     pack_data = yaml.safe_load(f)
@@ -131,19 +186,19 @@ def main():
             except Exception as e:
                 print(f"⚠️  {pack_file.name} 로드 실패: {e}")
 
-        # Python Pack도 스캔 (builtin, autogen)
-        for pack_subdir in ["builtin", "autogen"]:
-            pack_subdir_path = pack_dir / pack_subdir
+        # 하위 디렉토리 스캔
+        for pack_subdir_path in [PACKS_DEVELOPMENT_DIR, PACKS_EXAMPLES_DIR, PACKS_INTEGRATION_DIR]:
             if pack_subdir_path.exists():
-                for pack_file in pack_subdir_path.glob("*_pack.py"):
+                for pack_file in pack_subdir_path.glob("*.yaml"):
                     try:
-                        # 파일명에서 pack 이름 추출
-                        pack_name = pack_file.stem.replace("_pack", "")
-                        packs.append({
-                            "name": pack_name,
-                            "version": "1.0.0",
-                            "description": f"{pack_subdir} pack"
-                        })
+                        with open(pack_file, 'r', encoding='utf-8') as f:
+                            pack_data = yaml.safe_load(f)
+                            if pack_data:
+                                packs.append({
+                                    "name": pack_data.get("name") or pack_data.get("pack_name", pack_file.stem),
+                                    "version": pack_data.get("version", "1.0.0"),
+                                    "description": pack_data.get("metadata", {}).get("description", f"{pack_subdir} pack")
+                                })
                     except Exception:
                         pass
 

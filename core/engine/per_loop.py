@@ -10,7 +10,7 @@ from pathlib import Path
 import json
 import importlib.util
 
-# DSL 모듈 동적 로드
+# DSL 모듈 동적 로드 (선택적)
 _DSL_PATH = Path(__file__).parent / "dsl.py"
 _dsl_module = None
 
@@ -23,6 +23,62 @@ def _load_dsl():
             _dsl_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(_dsl_module)
     return _dsl_module
+
+def _simple_dsl_run(command: str, context: dict) -> dict:
+    """간단한 DSL 실행 (dsl 모듈이 없을 때 사용)"""
+    import requests
+    import subprocess
+
+    cmd_lower = command.lower().strip()
+
+    # HTTP GET 요청
+    if cmd_lower.startswith("get "):
+        url = command[4:].strip()
+        # 변수 치환
+        for key, value in context.items():
+            url = url.replace(f"${key}", str(value))
+        try:
+            response = requests.get(url)
+            return {
+                "status": response.status_code,
+                "data": response.json() if response.headers.get("content-type", "").startswith("application/json") else response.text
+            }
+        except Exception as e:
+            return {"error": str(e)}
+
+    # HTTP POST 요청
+    elif cmd_lower.startswith("post "):
+        parts = command[5:].strip().split(" ", 1)
+        url = parts[0]
+        data = json.loads(parts[1]) if len(parts) > 1 else {}
+        try:
+            response = requests.post(url, json=data)
+            return {
+                "status": response.status_code,
+                "data": response.json() if response.headers.get("content-type", "").startswith("application/json") else response.text
+            }
+        except Exception as e:
+            return {"error": str(e)}
+
+    # 파이프라인 처리
+    elif "|" in command:
+        parts = [p.strip() for p in command.split("|")]
+        result = None
+        for part in parts:
+            result = _simple_dsl_run(part, {**context, "previous": result})
+        return result
+
+    # 기본 명령어 실행
+    else:
+        try:
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            return {
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "returncode": result.returncode
+            }
+        except Exception as e:
+            return {"error": str(e)}
 
 
 class PERLoop:
@@ -102,22 +158,20 @@ class PERLoop:
                 command = step.get("command", "")
                 if command:
                     # DSL 실행
-                    if hasattr(self.dsl, "run"):
+                    if self.dsl and hasattr(self.dsl, "run"):
                         result = self.dsl.run(command, context)
-                        results.append({
-                            "step": step.get("action"),
-                            "status": "success",
-                            "result": result
-                        })
-                        # 다음 단계를 위한 context 업데이트
-                        if isinstance(result, dict):
-                            context.update(result)
                     else:
-                        results.append({
-                            "step": step.get("action"),
-                            "status": "error",
-                            "error": "DSL.run() 메서드 없음"
-                        })
+                        # 간단한 DSL 실행
+                        result = _simple_dsl_run(command, context)
+
+                    results.append({
+                        "step": step.get("action"),
+                        "status": "success" if "error" not in result else "error",
+                        "result": result
+                    })
+                    # 다음 단계를 위한 context 업데이트
+                    if isinstance(result, dict) and "error" not in result:
+                        context.update(result)
             except Exception as e:
                 results.append({
                     "step": step.get("action"),
@@ -224,5 +278,3 @@ if __name__ == "__main__":
     print(f"  요약: {review['summary']}\n")
 
     print(f"✅ 총 {len(loop.history)}개 사이클 실행됨")
-
-

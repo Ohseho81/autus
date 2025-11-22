@@ -114,12 +114,16 @@ echo 'ANTHROPIC_API_KEY=your-key-here' > .env
 ### First Run: Meta-Circular Development
 ```bash
 # Let AUTUS plan a feature
-python core/pack/openai_runner.py architect_pack \
+python core/pack/runner.py architect_pack \
   '{"feature_description": "3D Identity System"}'
 
 # Generate actual code
-python core/pack/openai_runner.py codegen_pack \
+python core/pack/runner.py codegen_pack \
   '{"file_path": "protocols/identity/surface.py", "purpose": "Evolving identity surface"}'
+
+# Provider 선택 (기본: auto)
+python core/pack/runner.py architect_pack \
+  '{"feature_description": "..."}' --provider anthropic
 ```
 
 **AUTUS just developed AUTUS.** 🎉
@@ -183,7 +187,7 @@ AUTUS includes **meta-circular development packs**:
 
 ### Example: Auto-Generate Feature
 ```bash
-python core/pack/openai_runner.py architect_pack \
+python core/pack/runner.py architect_pack \
   '{"feature_description": "User preference learning system"}'
 ```
 
