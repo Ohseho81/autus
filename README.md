@@ -1,189 +1,292 @@
-# AUTUS - 개인 AI 자동화 OS
+# AUTUS
 
-## 소개
+> The Protocol for Personal AI Operating Systems
 
-"공기같은 독점" - 투명하고 확장 가능한 AI 자동화 시스템
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-AUTUS는 최소한의 코어로 시작하여 Pack 기반으로 무한히 확장 가능한 개인 AI 자동화 운영체제입니다.
+---
 
-## 특징
+## 🎯 What is AUTUS?
 
-- **최소 코어** (300줄) - 핵심만 담은 경량 아키텍처
-- **Pack 기반 무한 확장** - YAML로 정의된 Pack으로 기능 추가
-- **DSL 기반 Cell 실행** - 간단한 DSL로 복잡한 작업 자동화
-- **Galaxy HUD 3D 시각화** - 프로젝트 구조를 3D로 시각화
-- **.autus 표준 프로토콜** - 표준화된 설정 파일 형식
+AUTUS is not an app. **AUTUS is a protocol.**
 
-## 설치
+Like HTTP for the web, AUTUS becomes the **standard protocol for personal AI automation** - where every company must integrate to remain competitive.
 
+### The Vision
+```
+"공기같은 독점"
+(Air-like Monopoly)
+
+Everywhere
+Essential
+Invisible
+Unownable
+Impossible to replace
+```
+
+---
+
+## 🏛️ Constitution
+
+AUTUS is built on **5 Immutable Principles**:
+
+### Article I: Zero Identity
+- No login system
+- No user accounts
+- 3D Living Form Identity (local-only)
+- Privacy by impossibility, not policy
+
+### Article II: Privacy by Architecture
+- No `user_id`, `email`, `name` in databases
+- All personal data: Local device only
+- GDPR compliant by design
+
+### Article III: Meta-Circular Development
+- **AUTUS develops AUTUS**
+- Development Packs generate code
+- Self-evolving system
+- AI-speed development
+
+### Article IV: Minimal Core, Infinite Extension
+- Core: < 500 lines
+- Everything else: Packs
+- LEGO-like modularity
+- Open ecosystem
+
+### Article V: Network Effect as Moat
+- Protocol monopoly through necessity
+- Companies must integrate AUTUS
+- Becomes the HTTP of personal AI
+
+[Read Full Constitution →](CONSTITUTION.md)
+
+---
+
+## 🏗️ Architecture
+```
+autus/
+├── core/              # Minimal Core Engine
+│   ├── engine/       # PER Loop (Plan-Execute-Review)
+│   ├── pack/         # Pack System
+│   └── llm/          # LLM Integration
+│
+├── protocols/         # AUTUS Protocols ⭐
+│   ├── workflow/     # Workflow Graph Standard
+│   ├── memory/       # Local Memory OS
+│   ├── identity/     # Zero Identity (3D Core)
+│   └── auth/         # Zero Auth Protocol
+│
+├── packs/            # Pack Ecosystem
+│   ├── development/  # Meta-Circular Dev Packs
+│   ├── integration/  # SaaS Connectors
+│   └── examples/     # Sample Packs
+│
+└── server/           # API Server
+```
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- OpenAI API Key or Anthropic API Key
+
+### Installation
 ```bash
-cd ~/Desktop/autus
-python3 -m venv .venv314
-source .venv314/bin/activate
-pip install requests pyyaml fastapi uvicorn pydantic
+# Clone
+git clone https://github.com/yourusername/autus.git
+cd autus
+
+# Setup
+python -m venv .venv311
+source .venv311/bin/activate  # On Windows: .venv311\Scripts\activate
+pip install -r requirements.txt
+
+# Configure
+echo 'OPENAI_API_KEY=your-key-here' > .env
+# or
+echo 'ANTHROPIC_API_KEY=your-key-here' > .env
 ```
 
-## 빠른 시작
-
-### 기본 사용
-
+### First Run: Meta-Circular Development
 ```bash
-# GitHub 사용자 조회
-./autus run 'GET https://api.github.com/users/$username'
+# Let AUTUS plan a feature
+python core/pack/openai_runner.py architect_pack \
+  '{"feature_description": "3D Identity System"}'
 
-# 파이프라인 실행
-./autus run "echo hello | parse"
-
-# Pack 목록 확인
-./autus packs
+# Generate actual code
+python core/pack/openai_runner.py codegen_pack \
+  '{"file_path": "protocols/identity/surface.py", "purpose": "Evolving identity surface"}'
 ```
 
-### Galaxy HUD 실행
+**AUTUS just developed AUTUS.** 🎉
 
-```bash
-cd 05_hud/galaxy
-python3 -m http.server 8080
-# 브라우저: http://localhost:8080/index.html
-```
+---
 
-또는:
+## 🔌 Core Protocols
 
-```bash
-cd 05_hud/galaxy
-./run_galaxy.sh
-```
+### 1. Workflow Graph Standard
 
-## 프로젝트 구조
-
-```
-~/Desktop/autus/
-├── 00_system/        # 시스템 설정 및 정책
-├── 01_core/          # 코어 시스템
-│   ├── api/          # FastAPI 엔드포인트
-│   ├── engine/        # 실행 엔진
-│   ├── pack/          # Pack 시스템
-│   └── cell/          # Cell 시스템
-├── 02_packs/          # Pack 저장소
-│   ├── builtin/       # 내장 Pack
-│   ├── autogen/       # 자동 생성 Pack
-│   └── base/          # 기본 Pack
-├── 03_adapters/       # 어댑터
-├── 04_ops/            # 운영 도구
-├── 05_hud/            # HUD 시각화
-│   └── galaxy/        # Galaxy 3D HUD
-├── 06_twin/           # 디지털 트윈
-├── 07_memory/         # 메모리/캐시
-└── main.py            # FastAPI 엔트리포인트
-```
-
-## Pack 만들기
-
-### YAML 형식
-
-`02_packs/my_pack.yaml`:
-
+Personal behavior pattern format that all SaaS must support.
 ```yaml
-name: my_pack
-version: 1.0.0
-description: "My custom pack"
-
-cells:
-  - name: hello
-    command: "echo Hello from my pack"
-    description: "Simple hello cell"
+# .autus.graph.json
+{
+  "user_intent": "automate_emails",
+  "pattern": "morning_routine",
+  "nodes": [...],
+  "edges": [...]
+}
 ```
 
-### Python 형식
+### 2. Local Memory OS
 
-`02_packs/builtin/my_pack.py`:
+100% local-first personal memory engine.
+```yaml
+# .autus.memory.yaml
+preferences:
+  timezone: "Asia/Seoul"
+  language: "ko"
+patterns:
+  work_hours: "09:00-18:00"
+```
 
+### 3. Zero Identity
+
+3D identity with immutable core, evolving surface.
 ```python
-from 02_packs.base.base_pack import BasePack
+from protocols.identity.core import IdentityCore
 
-class MyPack(BasePack):
-    def __init__(self):
-        super().__init__(
-            name="my_pack",
-            version="1.0.0",
-            description="My custom pack"
-        )
-
-    async def execute(self, input_data: dict) -> dict:
-        return {
-            "status": "success",
-            "result": input_data
-        }
+seed = secrets.token_bytes(32)
+identity = IdentityCore(seed)
+# Returns: 3D coordinates (X, Y, Z)
 ```
 
-## 아키텍처
+### 4. Zero Auth Protocol
 
-### 핵심 개념
+QR-based device sync without accounts.
 
-1. **Pack**: 기능 단위, YAML 또는 Python으로 정의
-2. **Cell**: 실행 단위, Pack 내부의 개별 작업
-3. **DSL**: Domain Specific Language, 간단한 명령어로 복잡한 작업 수행
-4. **Galaxy**: 프로젝트 구조의 3D 시각화
+---
 
-### 실행 흐름
+## 📦 Development Packs
 
-```
-사용자 입력 → CLI → DSL 파서 → Pack 선택 → Cell 실행 → 결과 반환
-```
+AUTUS includes **meta-circular development packs**:
 
-### API 엔드포인트
+| Pack | Purpose | Status |
+|------|---------|--------|
+| `architect_pack` | Generate development plans | ✅ Working |
+| `codegen_pack` | Generate Python code | ✅ Working |
+| `testgen_pack` | Generate pytest tests | ✅ Working |
+| `pipeline_pack` | Orchestrate full workflow | ✅ Working |
 
-- `GET /health` - 헬스 체크
-- `GET /dev/summary` - 시스템 요약
-- `GET /dev/galaxy` - Galaxy 데이터
-- `GET /hud/galaxy` - Galaxy HUD 페이지
-- `POST /cell/run/{name}` - Cell 실행
-
-## 개발
-
-### 환경 설정
-
+### Example: Auto-Generate Feature
 ```bash
-source .venv314/bin/activate
-export PYTHONPATH="$PWD:$PYTHONPATH"
+python core/pack/openai_runner.py architect_pack \
+  '{"feature_description": "User preference learning system"}'
 ```
 
-### 서버 실행
+Output:
+- Complete file plan
+- Implementation phases
+- Dependency analysis
+- Estimated complexity
 
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8016 --reload
+---
+
+## 🎯 Roadmap
+
+### Phase 1: Protocol Foundation (Current)
+- [x] Constitution
+- [x] Meta-Circular Development
+- [x] Protocol-First Architecture
+- [ ] Workflow Graph Standard
+- [ ] Local Memory Engine
+- [ ] Zero Auth Protocol
+
+### Phase 2: Core Features
+- [ ] 3D Identity Visualizer (Three.js)
+- [ ] PER Loop Engine Enhancement
+- [ ] Pack Validation System
+
+### Phase 3: Ecosystem
+- [ ] Pack Marketplace
+- [ ] AUTUS SDK (Python, JavaScript)
+- [ ] Company Integration Templates
+
+---
+
+## 🤝 Contributing
+
+AUTUS follows the **Constitution**. Any contribution that violates the 5 Principles will be rejected.
+
+1. Fork the repository
+2. Create your feature branch
+3. Ensure it aligns with Constitution
+4. Submit a Pull Request
+
+---
+
+## 📖 Documentation
+
+- [Constitution](CONSTITUTION.md) - 5 Immutable Principles
+- [Protocols](docs/protocols/) - Technical Specs
+- [Pack Development](docs/guides/pack-development.md) - Create Packs
+- [API Reference](docs/api/) - Complete API Docs
+
+---
+
+## 🌟 Philosophy
+
+### Not Just Software
+
+AUTUS is:
+- A **protocol**, not a product
+- A **standard**, not a service
+- A **movement**, not a company
+
+### The Meta-Circular Loop
+```
+User Intent
+    ↓
+AUTUS analyzes
+    ↓
+Pack generates code
+    ↓
+Code becomes part of AUTUS
+    ↓
+AUTUS evolves
 ```
 
-### 테스트
+**AUTUS develops AUTUS develops AUTUS...**
 
-```bash
-# 구조 검증
-python -m 04_ops.tools.autus_doctor_cli --mode struct
+This is the future of software.
 
-# 전체 검증
-python -m 04_ops.tools.autus_doctor_cli --mode all
+---
 
-# 단위 테스트
-pytest tests/unit/ -v
-```
+## 📜 License
 
-## 도구
+MIT License - See [LICENSE](LICENSE) file
 
-### Pack 생성기
+---
 
-```bash
-python tools/cli/autus_pack_generator.py my_pack --type builtin
-```
+## 🔗 Links
 
-### Galaxy 매퍼
+- Website: [autus.ai](https://autus.ai) (Coming Soon)
+- Documentation: [docs.autus.ai](https://docs.autus.ai) (Coming Soon)
+- Discord: [discord.gg/autus](https://discord.gg/autus) (Coming Soon)
 
-```bash
-python 05_hud/3d_view/auto_galaxy_mapper.py
-```
+---
 
-## 라이선스
+## 💬 Contact
 
-MIT
+- Issues: [GitHub Issues](https://github.com/yourusername/autus/issues)
+- Email: hello@autus.ai
 
-## 기여
+---
 
-이슈와 PR을 환영합니다!
+<p align="center">
+  <strong>AUTUS: The Protocol for Personal AI Operating Systems</strong><br>
+  Built with ❤️ following the Constitution
+</p>
