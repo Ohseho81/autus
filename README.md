@@ -294,3 +294,22 @@ MIT License - See [LICENSE](LICENSE) file
   <strong>AUTUS: The Protocol for Personal AI Operating Systems</strong><br>
   Built with ❤️ following the Constitution
 </p>
+
+---
+
+## 🧪 Prototype Demo (Week 0)
+
+### Quick Start
+```bash
+# Run the prototype demo
+./prototype_demo.sh
+```
+
+This is a **rapid prototype** to validate the core concept.
+Goal: Prove the "wow factor" in 4 minutes.
+
+### Feedback Collection
+
+After watching the demo, please fill out `feedback.md`
+
+---
