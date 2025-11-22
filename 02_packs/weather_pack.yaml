@@ -1,0 +1,21 @@
+pack_name: weather_pack
+version: 1.0.0
+
+metadata:
+  author: AUTUS
+  description: OpenWeatherMap API utilities
+
+cells:
+  current_weather:
+    command: "GET https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$api_key&units=metric"
+    description: "Get current weather for a city"
+
+  forecast:
+    command: "GET https://api.openweathermap.org/data/2.5/forecast?q=$city&appid=$api_key&units=metric"
+    description: "Get 5-day weather forecast"
+
+defaults:
+  city: Seoul
+  api_key: YOUR_API_KEY_HERE
+
+

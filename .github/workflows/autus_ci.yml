@@ -1,0 +1,41 @@
+name: Autus CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv311
+          source .venv311/bin/activate
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+          pip install pytest
+
+      - name: Run Autus Doctor (struct)
+        run: |
+          source .venv311/bin/activate
+          python -m 04_ops.tools.autus_doctor_cli --mode struct
+
+      - name: Run structure pytest
+        run: |
+          source .venv311/bin/activate
+          pytest 04_ops/tests/test_autus_structure.py -q
+
+      - name: Run full pytest
+        run: |
+          source .venv311/bin/activate
+          pytest -v
+

@@ -1,0 +1,90 @@
+[project]
+name = "autus"
+version = "0.1.0"
+description = "Autus - 자동화된 셀 기반 실행 플랫폼"
+requires-python = ">=3.11"
+
+[tool.ruff]
+# Ruff 설정
+line-length = 100
+target-version = "py311"
+exclude = [
+    ".git",
+    ".venv*",
+    "__pycache__",
+    "*.pyc",
+    "build",
+    "dist",
+    ".pytest_cache",
+    ".mypy_cache",
+    "node_modules",
+]
+
+[tool.ruff.lint]
+# 활성화할 린트 규칙
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "routers", "packs", "tools"]
+
+[tool.ruff.format]
+# 포맷터 설정
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.black]
+# Black 설정 (Ruff와 호환)
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | \.venv311
+  | __pycache__
+  | build
+  | dist
+  | \.pytest_cache
+  | \.mypy_cache
+)/
+'''
+
+[tool.mypy]
+# mypy 설정 (선택사항)
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "packs.*",
+    "tools.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+

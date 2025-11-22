@@ -1,0 +1,17 @@
+pack_name: animal_pack
+version: 1.0.0
+
+metadata:
+  author: seho
+  description: Random animal images
+
+cells:
+  random_dog:
+    command: "GET https://dog.ceo/api/breeds/image/random"
+    description: "Get random dog image"
+  
+  random_cat:
+    command: "GET https://api.thecatapi.com/v1/images/search"
+    description: "Get random cat image"
+
+defaults: {}
