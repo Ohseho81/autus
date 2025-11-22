@@ -47,11 +47,15 @@ def _load_module(module_path, module_name):
 
 # autusfile 모듈 로드 (선택적 - 없어도 동작)
 _autusfile_path = CORE_DIR / "autusfile.py"
-autusfile = _load_module(_autusfile_path, "autusfile")
+autusfile = None
+if _autusfile_path.exists():
+    autusfile = _load_module(_autusfile_path, "autusfile")
 
 # dsl 모듈 로드 (선택적 - 없어도 동작)
 _dsl_path = CORE_DIR / "dsl.py"
-dsl = _load_module(_dsl_path, "dsl")
+dsl = None
+if _dsl_path.exists():
+    dsl = _load_module(_dsl_path, "dsl")
 
 def main():
     """CLI 메인"""

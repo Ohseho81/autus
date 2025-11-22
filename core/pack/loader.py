@@ -63,16 +63,17 @@ def list_packs():
     # 루트 디렉토리 스캔
     if PACKS_DIR.exists():
         for pack_file in PACKS_DIR.glob("*.yaml"):
-        try:
-            with open(pack_file) as f:
-                pack = yaml.safe_load(f)
-                packs.append({
-                    "name": pack.get("pack_name"),
-                    "version": pack.get("version"),
-                    "description": pack.get("metadata", {}).get("description")
-                })
-        except:
-                    pass
+            try:
+                with open(pack_file, 'r', encoding='utf-8') as f:
+                    pack = yaml.safe_load(f)
+                    if pack:
+                        packs.append({
+                            "name": pack.get("name") or pack.get("pack_name", pack_file.stem),
+                            "version": pack.get("version", "1.0.0"),
+                            "description": pack.get("metadata", {}).get("description", "No description")
+                        })
+            except Exception:
+                pass
 
     # 하위 디렉토리 스캔
     for pack_subdir in list_pack_dirs():
