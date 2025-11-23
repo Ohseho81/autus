@@ -60,19 +60,27 @@ class PIIValidator:
     VALUE_PATTERNS = [
         # 이메일
         r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
-        # 전화번호 (다양한 형식)
-        r"\+?\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}",
-        r"\d{3}[-.\s]?\d{3,4}[-.\s]?\d{4}",
-        # 주민번호 (한국)
+        # 전화번호 (더 구체적인 패턴 - 시간 형식 제외)
+        r"\+?\d{1,3}[-.\s]?\(?\d{3,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{4,9}",  # 최소 10자리
+        r"\d{3}[-.\s]?\d{3,4}[-.\s]?\d{4}",  # 10-11자리 전화번호
+        # 주민번호 (한국) - 6-7 형식만
         r"\d{6}-\d{7}",
-        # SSN (미국)
+        # SSN (미국) - 3-2-4 형식만
         r"\d{3}-\d{2}-\d{4}",
-        # 신용카드 (간단한 패턴)
+        # 신용카드 (간단한 패턴) - 16자리
         r"\d{4}[-.\s]?\d{4}[-.\s]?\d{4}[-.\s]?\d{4}",
         # IP 주소
         r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}",
         # MAC 주소
         r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
+    ]
+    
+    # 허용된 패턴 (PII가 아닌 것들)
+    ALLOWED_PATTERNS = [
+        r"\d{2}:\d{2}",  # 시간 형식 (HH:MM)
+        r"\d{2}:\d{2}-\d{2}:\d{2}",  # 시간 범위 (HH:MM-HH:MM)
+        r"UTC",  # 타임존
+        r"[A-Z][a-z]+/[A-Z][a-z]+",  # 타임존 (Asia/Seoul)
     ]
 
     # 문자 대체 패턴 (우회 시도 탐지)
@@ -132,19 +140,25 @@ class PIIValidator:
     def contains_pii_in_value(cls, value: Any) -> Tuple[bool, str]:
         """
         값에 PII 패턴이 포함되어 있는지 확인
-
+        
         Args:
             value: 검사할 값
-
+        
         Returns:
             (is_pii, reason) 튜플
         """
         value_str = str(value)
-
+        
+        # 허용된 패턴 먼저 체크
+        for allowed_pattern in cls.ALLOWED_PATTERNS:
+            if re.search(allowed_pattern, value_str):
+                return False, ""  # 허용된 패턴이면 PII 아님
+        
+        # PII 패턴 체크
         for pattern in cls.VALUE_PATTERNS:
             if re.search(pattern, value_str):
                 return True, f"Suspicious value pattern detected: '{pattern}'"
-
+        
         return False, ""
 
     @classmethod

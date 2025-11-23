@@ -1,7 +1,10 @@
 # AUTUS Local Memory OS Protocol
 
-> **Article II: Privacy by Architecture**
+> **Article II: Privacy by Architecture**  
 > 모든 개인 데이터는 로컬 디바이스에만 저장됩니다. 서버 동기화 없음. GDPR 자동 준수.
+
+**Status**: ✅ Complete (100%)  
+**Last Updated**: 2024-11-23
 
 ---
 
@@ -472,6 +475,73 @@ value = json.loads(json_value)
 
 ---
 
+## MemoryOS 클래스 (High-level Interface)
+
+### 개요
+
+`MemoryOS`는 `MemoryStore`를 래핑하는 상위 레벨 인터페이스입니다. 벡터 검색 및 의미 기반 검색 기능을 제공합니다.
+
+### 사용법
+
+```python
+from protocols.memory.memory_os import MemoryOS
+
+# 초기화
+memory = MemoryOS()
+
+# 선호도 설정
+memory.set_preference("timezone", "Asia/Seoul", "system")
+memory.set_preference("language", "ko", "system")
+
+# 패턴 학습
+memory.learn_pattern("interaction_style", {
+    "response_time": "fast",
+    "verbosity": "medium"
+})
+
+# 검색
+results = memory.search("timezone", limit=5)
+for r in results:
+    print(f"{r['id']}: {r['score']:.3f}")
+
+# 의미 검색
+results = memory.semantic_search("언어 설정", limit=5)
+
+# 벡터 검색
+results = memory.vector_search("system preferences", limit=5)
+
+# 메모리 요약
+summary = memory.get_memory_summary()
+print(f"Total: {summary['total']}")
+
+# Context manager 사용
+with MemoryOS() as memory:
+    memory.set_preference("key", "value", "cat")
+    # 자동으로 연결 닫힘
+```
+
+---
+
+## 벡터 검색
+
+### TF-IDF 기반 검색
+
+현재는 TF-IDF (Term Frequency-Inverse Document Frequency) 기반 검색으로 구현되어 있습니다.
+
+**특징**:
+- 로컬 우선: 외부 API 없이 작동
+- 빠른 검색: 인메모리 인덱스
+- 한글 지원: 한글 토큰화 포함
+
+### 향후 확장
+
+나중에 임베딩 모델을 통합하여 실제 벡터 검색이 가능합니다:
+- `sentence-transformers` (로컬 모델)
+- `all-MiniLM-L6-v2` (경량 모델)
+- DuckDB 벡터 확장
+
+---
+
 ## 참고 자료
 
 - [AUTUS Constitution](../CONSTITUTION.md) - Article II: Privacy by Architecture
@@ -486,6 +556,6 @@ AUTUS Protocol은 오픈 소스 프로토콜입니다. 자유롭게 사용하고
 
 ---
 
-**Last Updated**: 2024-11-22
-**Version**: 0.5.0
-**Status**: ✅ Core Complete (50%)
+**Last Updated**: 2024-11-23  
+**Version**: 1.0.0  
+**Status**: ✅ Complete (100%)
