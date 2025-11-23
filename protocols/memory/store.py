@@ -81,7 +81,7 @@ class MemoryStore:
     def transaction(self):
         """
         트랜잭션 컨텍스트 매니저
-        
+
         사용 예:
             with store.transaction():
                 store.store_preference("key1", "value1")
@@ -104,7 +104,7 @@ class MemoryStore:
             key (str): The preference key (e.g., 'timezone', 'language')
             value (Any): The preference value (will be JSON serialized)
             category (str): Category of preference (e.g., 'ui', 'behavior')
-        
+
         Raises:
             PIIViolationError: PII가 감지된 경우
         """

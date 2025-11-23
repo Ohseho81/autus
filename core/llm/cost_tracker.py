@@ -18,10 +18,10 @@ class CostLimitExceeded(Exception):
 class CostTracker:
     """
     API 비용 추적 클래스
-    
+
     일일/월간 비용을 추적하고 한도를 설정할 수 있습니다.
     """
-    
+
     # 모델별 토큰당 비용 (USD)
     # 출처: OpenAI & Anthropic 공식 가격 (2024-11 기준)
     COSTS = {
@@ -52,7 +52,7 @@ class CostTracker:
             "output": 0.00125 / 1000
         }
     }
-    
+
     def __init__(
         self,
         daily_limit: float = 10.0,
@@ -61,7 +61,7 @@ class CostTracker:
     ):
         """
         CostTracker 초기화
-        
+
         Args:
             daily_limit: 일일 비용 한도 (USD)
             monthly_limit: 월간 비용 한도 (USD)
@@ -70,7 +70,7 @@ class CostTracker:
         self.daily_limit = daily_limit
         self.monthly_limit = monthly_limit
         self.storage_path = storage_path or Path(".autus/cost_tracking.json")
-        
+
         # 사용량 데이터
         self.usage: Dict[str, Dict] = defaultdict(lambda: {
             "input_tokens": 0,
@@ -78,10 +78,10 @@ class CostTracker:
             "calls": 0,
             "cost": 0.0
         })
-        
+
         # 저장된 데이터 로드
         self._load_usage()
-    
+
     def _load_usage(self):
         """저장된 사용량 데이터 로드"""
         if self.storage_path.exists():
@@ -93,7 +93,7 @@ class CostTracker:
                         self.usage[date_str] = data
             except Exception as e:
                 print(f"⚠️ Failed to load cost tracking: {e}")
-    
+
     def _save_usage(self):
         """사용량 데이터 저장"""
         try:
@@ -102,7 +102,7 @@ class CostTracker:
                 json.dump(dict(self.usage), f, indent=2)
         except Exception as e:
             print(f"⚠️ Failed to save cost tracking: {e}")
-    
+
     def track(
         self,
         model: str,
@@ -112,16 +112,16 @@ class CostTracker:
     ) -> float:
         """
         API 사용량 추적
-        
+
         Args:
             model: 모델 이름
             input_tokens: 입력 토큰 수
             output_tokens: 출력 토큰 수
             save: 저장 여부
-        
+
         Returns:
             이번 호출의 비용 (USD)
-        
+
         Raises:
             CostLimitExceeded: 비용 한도 초과 시
         """
@@ -132,51 +132,51 @@ class CostTracker:
             print(f"⚠️ Unknown model '{model}', using default costs")
         else:
             model_costs = self.COSTS[model]
-        
+
         # 비용 계산
         cost = (
             input_tokens * model_costs["input"] +
             output_tokens * model_costs["output"]
         )
-        
+
         # 일일 사용량 업데이트
         today = datetime.now().strftime("%Y-%m-%d")
         self.usage[today]["input_tokens"] += input_tokens
         self.usage[today]["output_tokens"] += output_tokens
         self.usage[today]["calls"] += 1
         self.usage[today]["cost"] += cost
-        
+
         # 일일 한도 체크
         daily_cost = self.usage[today]["cost"]
         if daily_cost > self.daily_limit:
             raise CostLimitExceeded(
                 f"Daily cost limit exceeded: ${daily_cost:.2f} / ${self.daily_limit:.2f}"
             )
-        
+
         # 월간 한도 체크
         monthly_cost = self.get_monthly_cost()
         if monthly_cost > self.monthly_limit:
             raise CostLimitExceeded(
                 f"Monthly cost limit exceeded: ${monthly_cost:.2f} / ${self.monthly_limit:.2f}"
             )
-        
+
         # 저장
         if save:
             self._save_usage()
-        
+
         return cost
-    
+
     def get_daily_cost(self, date: Optional[str] = None) -> float:
         """
         특정 날짜의 비용 조회
-        
+
         Args:
             date: 날짜 (YYYY-MM-DD), None이면 오늘
         """
         if date is None:
             date = datetime.now().strftime("%Y-%m-%d")
         return self.usage[date]["cost"]
-    
+
     def get_monthly_cost(self) -> float:
         """현재 월의 총 비용"""
         month_start = datetime.now().replace(day=1).strftime("%Y-%m-%d")
@@ -185,7 +185,7 @@ class CostTracker:
             for date, day in self.usage.items()
             if date >= month_start
         )
-    
+
     def get_usage_summary(self) -> Dict:
         """사용량 요약"""
         today = datetime.now().strftime("%Y-%m-%d")
@@ -208,7 +208,7 @@ class CostTracker:
                 "monthly": self.monthly_limit
             }
         }
-    
+
     def reset_daily(self):
         """일일 사용량 초기화 (테스트용)"""
         today = datetime.now().strftime("%Y-%m-%d")
@@ -231,4 +231,3 @@ def get_cost_tracker() -> CostTracker:
     if _global_tracker is None:
         _global_tracker = CostTracker()
     return _global_tracker
-
