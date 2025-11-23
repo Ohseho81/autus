@@ -1,35 +1,36 @@
-name: dev_architect
-version: 1.0.0
-description: Pack
 author: AUTUS
+cells:
+- name: analyze_feature
+  output: analysis
+  prompt: 'Analyze this feature: {feature_description}
 
+    Output JSON with feature_name, complexity, dependencies, new_modules, estimated_files.
+
+    '
+- input: analysis
+  name: create_file_plan
+  output: file_plan
+  prompt: 'Create file plan from: {analysis}
+
+    Output JSON with file details.
+
+    '
+- input: file_plan
+  name: create_implementation_order
+  output: implementation_plan
+  prompt: 'Create implementation order from: {file_plan}
+
+    Output JSON with phases.
+
+    '
+description: Pack
+llm:
+  max_tokens: 4096
+  model: gpt-4-turbo-preview
+  provider: anthropic
+  temperature: 0.3
 metadata:
   category: development
   requires_llm: true
-  
-llm:
-  provider: anthropic
-  model: claude-sonnet-4-20250514
-  temperature: 0.3
-  max_tokens: 8000
-
-cells:
-  - name: analyze_feature
-    prompt: |
-      Analyze this feature: {feature_description}
-      Output JSON with feature_name, complexity, dependencies, new_modules, estimated_files.
-    output: analysis
-
-  - name: create_file_plan
-    input: analysis
-    prompt: |
-      Create file plan from: {analysis}
-      Output JSON with file details.
-    output: file_plan
-
-  - name: create_implementation_order
-    input: file_plan
-    prompt: |
-      Create implementation order from: {file_plan}
-      Output JSON with phases.
-    output: implementation_plan
+name: dev_architect
+version: 1.0.0

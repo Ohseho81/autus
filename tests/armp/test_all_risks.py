@@ -138,7 +138,7 @@ class TestRiskMethods:
         assert hasattr(risk, 'detection')
         assert hasattr(risk, 'response')
         assert hasattr(risk, 'recovery')
-        
+
         assert callable(risk.prevention)
         assert callable(risk.detection)
         assert callable(risk.response)
@@ -235,10 +235,10 @@ class TestRiskEnforcement:
     def test_risk_categories_covered(self):
         """Test that all categories have risks"""
         categories = {r.category for r in enforcer.risks}
-        
+
         # Should have multiple categories
         assert len(categories) >= 4
-        
+
         # Security should have risks
         security_risks = [r for r in enforcer.risks if r.category == RiskCategory.SECURITY]
         assert len(security_risks) > 0
@@ -246,11 +246,10 @@ class TestRiskEnforcement:
     def test_severity_distribution(self):
         """Test severity distribution"""
         severities = {r.severity for r in enforcer.risks}
-        
+
         # Should have multiple severity levels
         assert len(severities) >= 3
-        
+
         # Should have critical risks
         critical_risks = [r for r in enforcer.risks if r.severity == Severity.CRITICAL]
         assert len(critical_risks) > 0
-

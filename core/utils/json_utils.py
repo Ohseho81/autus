@@ -12,10 +12,10 @@ from pathlib import Path
 def load_json_safe(file_path: Union[str, Path]) -> Optional[Any]:
     """
     Safely load JSON file
-    
+
     Args:
         file_path: Path to JSON file
-    
+
     Returns:
         Parsed JSON data or None if error
     """
@@ -34,13 +34,13 @@ def save_json_safe(
 ) -> bool:
     """
     Safely save JSON file
-    
+
     Args:
         file_path: Path to JSON file
         data: Data to save
         indent: JSON indentation
         create_dirs: Create parent directories if needed
-    
+
     Returns:
         True if successful, False otherwise
     """
@@ -48,7 +48,7 @@ def save_json_safe(
         path = Path(file_path)
         if create_dirs:
             path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=indent, ensure_ascii=False)
         return True
@@ -59,10 +59,10 @@ def save_json_safe(
 def parse_json_safe(json_str: str) -> Optional[Any]:
     """
     Safely parse JSON string
-    
+
     Args:
         json_str: JSON string
-    
+
     Returns:
         Parsed data or None if error
     """
@@ -75,11 +75,11 @@ def parse_json_safe(json_str: str) -> Optional[Any]:
 def to_json_safe(data: Any, indent: Optional[int] = None) -> Optional[str]:
     """
     Safely convert data to JSON string
-    
+
     Args:
         data: Data to convert
         indent: JSON indentation (None for compact)
-    
+
     Returns:
         JSON string or None if error
     """
@@ -87,4 +87,3 @@ def to_json_safe(data: Any, indent: Optional[int] = None) -> Optional[str]:
         return json.dumps(data, indent=indent, ensure_ascii=False)
     except Exception:
         return None
-

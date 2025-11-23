@@ -15,20 +15,20 @@ def example_basic_workflow():
         {'id': 'process', 'type': 'action', 'name': 'Process'},
         {'id': 'end', 'type': 'end', 'name': 'End'}
     ]
-    
+
     # Create edges
     edges = [
         {'source': 'start', 'target': 'process'},
         {'source': 'process', 'target': 'end'}
     ]
-    
+
     # Create workflow
     graph = WorkflowGraph(nodes, edges)
-    
+
     # Validate
     if graph.validate():
         print("Workflow is valid")
-    
+
     # Export
     json_str = graph.to_json()
     print(f"Workflow JSON: {json_str}")
@@ -49,7 +49,7 @@ def example_complex_workflow():
         {'id': 'output', 'type': 'action'},
         {'id': 'end', 'type': 'end'}
     ]
-    
+
     # Create edges (DAG)
     edges = [
         {'source': 'start', 'target': 'validate'},
@@ -64,7 +64,7 @@ def example_complex_workflow():
         {'source': 'validate2', 'target': 'output'},
         {'source': 'output', 'target': 'end'}
     ]
-    
+
     # Create and validate
     graph = WorkflowGraph(nodes, edges)
     assert graph.validate() is True
@@ -81,15 +81,15 @@ def example_workflow_serialization():
     edges = [
         {'source': 'start', 'target': 'end'}
     ]
-    
+
     graph1 = WorkflowGraph(nodes, edges)
-    
+
     # Serialize
     json_str = graph1.to_json()
-    
+
     # Deserialize
     graph2 = WorkflowGraph.from_json(json_str)
-    
+
     # Verify
     assert len(graph2.nodes) == len(graph1.nodes)
     assert len(graph2.edges) == len(graph1.edges)
@@ -106,7 +106,7 @@ def example_parallel_branches():
         {'id': 'merge', 'type': 'action'},
         {'id': 'end', 'type': 'end'}
     ]
-    
+
     edges = [
         {'source': 'start', 'target': 'branch1'},
         {'source': 'start', 'target': 'branch2'},
@@ -116,7 +116,7 @@ def example_parallel_branches():
         {'source': 'branch3', 'target': 'merge'},
         {'source': 'merge', 'target': 'end'}
     ]
-    
+
     graph = WorkflowGraph(nodes, edges)
     assert graph.validate() is True
     print("Parallel branches workflow created")
@@ -129,13 +129,12 @@ def example_linear_workflow():
     ]
     nodes.insert(0, {'id': 'start', 'type': 'trigger'})
     nodes.append({'id': 'end', 'type': 'end'})
-    
+
     edges = [
         {'source': nodes[i]['id'], 'target': nodes[i+1]['id']}
         for i in range(len(nodes) - 1)
     ]
-    
+
     graph = WorkflowGraph(nodes, edges)
     assert graph.validate() is True
     print(f"Linear workflow created with {len(nodes)} nodes")
-

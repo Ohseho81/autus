@@ -11,7 +11,7 @@ from core.pack.loader import load_pack, list_packs
 def example_list_packs():
     """List available packs"""
     packs = list_packs()
-    
+
     print(f"Available Packs ({len(packs)}):")
     for pack in packs:
         print(f"  - {pack['name']} v{pack['version']}")
@@ -31,14 +31,14 @@ def example_load_pack():
 def example_run_pack():
     """Run a development pack"""
     runner = DevPackRunner(provider="auto")
-    
+
     # Run pack
     inputs = {
         "task": "Create a REST API endpoint",
         "language": "python",
         "framework": "fastapi"
     }
-    
+
     try:
         results = runner.run_pack("architect_pack", inputs)
         print("Pack execution completed")
@@ -50,16 +50,16 @@ def example_run_pack():
 def example_execute_cell():
     """Execute a single cell"""
     runner = DevPackRunner(provider="auto")
-    
+
     # Load pack
     pack = runner.load_pack("codegen_pack")
-    
+
     # Execute specific cell
     inputs = {
         "file_path": "example.py",
         "purpose": "Create a simple calculator class"
     }
-    
+
     try:
         result = runner.execute_cell(pack, "generate_code", inputs)
         print("Cell executed successfully")
@@ -72,12 +72,11 @@ def example_custom_provider():
     """Use specific LLM provider"""
     # Use Anthropic
     runner_anthropic = DevPackRunner(provider="anthropic")
-    
+
     # Use OpenAI
     runner_openai = DevPackRunner(provider="openai")
-    
+
     # Auto-detect (default)
     runner_auto = DevPackRunner(provider="auto")
-    
-    print("Runners initialized with different providers")
 
+    print("Runners initialized with different providers")

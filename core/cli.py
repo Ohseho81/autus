@@ -216,6 +216,66 @@ def main() -> None:
             print(f"  {p['name']} v{p['version']}")
             print(f"  └─ {p['description']}\n")
 
+    elif command.startswith("armp:"):
+        # ARMP commands
+        try:
+            from core.cli.commands.armp import armp_commands
+            handlers = armp_commands()
+            subcommand = command
+            args = sys.argv[2:] if len(sys.argv) > 2 else []
+
+            if subcommand in handlers:
+                if subcommand == "armp:monitor":
+                    handlers[subcommand](args)
+                else:
+                    handlers[subcommand]()
+            else:
+                print(f"❌ Unknown ARMP command: {subcommand}")
+                print("Available: armp:status, armp:prevent, armp:detect, armp:monitor, armp:risks, armp:incidents")
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            import traceback
+            traceback.print_exc()
+
+    elif command.startswith("protocol:"):
+        # Protocol commands
+        try:
+            from core.cli.commands.protocol import protocol_commands
+            handlers = protocol_commands()
+            subcommand = command
+            args = sys.argv[2:] if len(sys.argv) > 2 else []
+
+            if subcommand in handlers:
+                handlers[subcommand](args)
+            else:
+                print(f"❌ Unknown protocol command: {subcommand}")
+                print("Available: protocol:list, protocol:status, protocol:test")
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            import traceback
+            traceback.print_exc()
+
+    elif command.startswith("memory:"):
+        # Memory commands
+        try:
+            from core.cli.commands.memory import memory_commands
+            handlers = memory_commands()
+            subcommand = command
+            args = sys.argv[2:] if len(sys.argv) > 2 else []
+
+            if subcommand in handlers:
+                if subcommand == "memory:clear":
+                    handlers[subcommand]()
+                else:
+                    handlers[subcommand](args)
+            else:
+                print(f"❌ Unknown memory command: {subcommand}")
+                print("Available: memory:status, memory:get, memory:set, memory:search, memory:export, memory:clear")
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            import traceback
+            traceback.print_exc()
+
     else:
         print_help()
 
@@ -232,13 +292,33 @@ def print_help():
   autus list                     Cell 목록
   autus packs                    Pack 목록
 
+ARMP Commands:
+  autus armp:status              ARMP 상태
+  autus armp:prevent             예방 조치 실행
+  autus armp:detect              위반 감지
+  autus armp:monitor [start|stop|status]  모니터링 제어
+  autus armp:risks               리스크 목록
+  autus armp:incidents           최근 사고
+
+Protocol Commands:
+  autus protocol:list            프로토콜 목록
+  autus protocol:status <name>   프로토콜 상태
+  autus protocol:test <name>     프로토콜 테스트
+
+Memory Commands:
+  autus memory:status            메모리 상태
+  autus memory:get <key>         선호도 조회
+  autus memory:set <key> <value> [category]  선호도 설정
+  autus memory:search <query>    메모리 검색
+  autus memory:export [path]     메모리 내보내기
+  autus memory:clear             메모리 삭제 (주의!)
+
 예시:
   autus init weather-bot
   autus run "GET https://api.github.com/users/github"
-  autus run "echo hello | parse"
-  autus create "서울 날씨 조회"
-  autus list
-  autus packs
+  autus armp:status
+  autus memory:set theme dark
+  autus protocol:list
 
 더 많은 정보: README.md 참조
 """)

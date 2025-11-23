@@ -222,7 +222,7 @@ Create load tests:
 
 ### Edge Cases per Protocol
 
-**Files**: 
+**Files**:
 
 - `tests/protocols/memory/test_edge_cases.py`
 
@@ -1167,4 +1167,3 @@ Automate the repeatable,
 Perfect the patterns.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-

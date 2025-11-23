@@ -214,4 +214,3 @@ with MemoryOS() as memory:
 
 - `PIIViolationError`: Raised when PII is detected
 - `MemoryError`: Raised on database errors
-

@@ -36,7 +36,7 @@ class IdentityCore:
 
         Uses SHA256 for deterministic hashing
         """
-        return hashlib.sha256(seed.encode()).hexdigest()
+        return hashlib.sha256(seed).hexdigest()
 
     def get_core_hash(self) -> str:
         """Get the core identity hash"""

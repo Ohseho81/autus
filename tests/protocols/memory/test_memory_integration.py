@@ -38,33 +38,33 @@ class TestMemoryOSFullWorkflow:
         """Test complete workflow: initialize → store → search → export"""
         # 1. Initialize
         assert memory_os is not None
-        
+
         # 2. Store preferences
         memory_os.set_preference("theme", "dark")
         memory_os.set_preference("language", "python")
         memory_os.set_preference("editor", "vscode")
-        
+
         # 3. Store patterns
         memory_os.learn_pattern("coding", {"language": "python", "framework": "django"})
         memory_os.learn_pattern("meeting", {"type": "standup", "duration": 15})
-        
+
         # 4. Store context
         memory_os.set_context("work", {"project": "autus", "status": "active"})
-        
+
         # 5. Search
         results = memory_os.search("python")
         assert len(results) > 0
-        
+
         # 6. Vector search
         vector_results = memory_os.vector_search("coding language")
         assert len(vector_results) > 0
-        
+
         # 7. Export (to file, then read)
         import tempfile
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
             export_path = f.name
         memory_os.export_memory(export_path)
-        
+
         # Verify file exists
         from pathlib import Path
         assert Path(export_path).exists()
@@ -78,7 +78,7 @@ class TestMemoryOSLargeDataset:
         """Test storing 100+ preferences"""
         for i in range(100):
             memory_os.set_preference(f"key_{i}", f"value_{i}")
-        
+
         # Verify all stored
         for i in range(100):
             value = memory_os.get_preference(f"key_{i}")
@@ -88,7 +88,7 @@ class TestMemoryOSLargeDataset:
         """Test storing 1000+ patterns"""
         for i in range(1000):
             memory_os.learn_pattern(f"pattern_{i}", {"index": i, "data": f"data_{i}"})
-        
+
         # Verify count
         summary = memory_os.get_memory_summary()
         assert summary.get("patterns", 0) >= 1000
@@ -99,12 +99,12 @@ class TestMemoryOSLargeDataset:
         for i in range(500):
             memory_os.set_preference(f"item_{i}", f"description of item {i}")
             memory_os.learn_pattern(f"pattern_{i}", {"content": f"pattern content {i}"})
-        
+
         # Search
         start = time.time()
         results = memory_os.search("item")
         duration = time.time() - start
-        
+
         assert len(results) > 0
         assert duration < 1.0  # Should be fast
 
@@ -117,12 +117,12 @@ class TestMemoryOSConcurrentAccess:
         def store_preference(index):
             memory_os.set_preference(f"concurrent_{index}", f"value_{index}")
             return memory_os.get_preference(f"concurrent_{index}")
-        
+
         # Store from 10 threads
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(store_preference, i) for i in range(100)]
             results = [f.result() for f in as_completed(futures)]
-        
+
         # Verify all stored
         assert len(results) == 100
         for i in range(100):
@@ -134,15 +134,15 @@ class TestMemoryOSConcurrentAccess:
         # Setup data
         for i in range(100):
             memory_os.set_preference(f"search_{i}", f"content {i}")
-        
+
         def search(query):
             return memory_os.search(query)
-        
+
         # Search from multiple threads
         with ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(search, "content") for _ in range(20)]
             results = [f.result() for f in as_completed(futures)]
-        
+
         # All searches should succeed
         assert len(results) == 20
         assert all(len(r) > 0 for r in results)
@@ -155,7 +155,7 @@ class TestMemoryOSErrorRecovery:
         """Test recovery from corrupted database"""
         # Create corrupted database (empty file)
         Path(temp_db).write_text("")
-        
+
         # Should handle gracefully
         try:
             memory_os = MemoryOS(db_path=temp_db)
@@ -170,7 +170,7 @@ class TestMemoryOSErrorRecovery:
         # Delete database
         if Path(temp_db).exists():
             Path(temp_db).unlink()
-        
+
         # Should create new database
         memory_os = MemoryOS(db_path=temp_db)
         memory_os.store_preference("test", "value")
@@ -181,7 +181,7 @@ class TestMemoryOSErrorRecovery:
         # Should handle None or empty keys
         with pytest.raises((ValueError, TypeError)):
             memory_os.set_preference(None, "value")
-        
+
         with pytest.raises((ValueError, TypeError)):
             memory_os.set_preference("", "value")
 
@@ -194,9 +194,9 @@ class TestMemoryOSMemoryLimits:
         # Store some data
         for i in range(10):
             memory_os.set_preference(f"key_{i}", f"value_{i}")
-        
+
         summary = memory_os.get_memory_summary()
-        
+
         assert "preferences" in summary
         assert "patterns" in summary
         assert "context" in summary
@@ -208,13 +208,13 @@ class TestMemoryOSMemoryLimits:
         for i in range(200):
             memory_os.set_preference(f"key_{i}", f"value_{i}")
             memory_os.learn_pattern(f"pattern_{i}", {"data": f"data_{i}"})
-        
+
         # Export should succeed (to file)
         import tempfile
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
             export_path = f.name
         memory_os.export_memory(export_path)
-        
+
         # Verify file exists and has content
         from pathlib import Path
         assert Path(export_path).exists()
@@ -230,21 +230,21 @@ class TestMemoryOSIntegration:
         """Test storing identity-related patterns"""
         from protocols.identity.core import IdentityCore
         from protocols.identity.pattern_tracker import BehavioralPatternTracker
-        
+
         # Create identity
         identity = IdentityCore("test_device")
         tracker = BehavioralPatternTracker(identity)
-        
+
         # Track pattern
         tracker.track_workflow_completion("test_workflow", "node_1", {
             "execution_time": 1.5,
             "success": True
         })
-        
+
         # Store in memory
         pattern_data = tracker.get_pattern_summary()
         memory_os.learn_pattern("identity_pattern", pattern_data)
-        
+
         # Verify stored
         results = memory_os.search("identity")
         assert len(results) > 0
@@ -252,18 +252,17 @@ class TestMemoryOSIntegration:
     def test_memory_with_workflow_data(self, memory_os):
         """Test storing workflow execution data"""
         from protocols.workflow.graph import WorkflowGraph
-        
+
         # Create workflow
         graph = WorkflowGraph()
         graph.add_node("start", {"type": "start"})
         graph.add_node("process", {"type": "process"})
         graph.add_edge("start", "process")
-        
+
         # Store workflow metadata
         workflow_data = graph.to_dict()
         memory_os.set_context("workflow_execution", workflow_data)
-        
+
         # Verify stored
         results = memory_os.search("workflow")
         assert len(results) > 0
-

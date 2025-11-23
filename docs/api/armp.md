@@ -159,4 +159,3 @@ if monitor.is_running():
     metrics = monitor.get_metrics()
     print(f"Monitor active: {metrics}")
 ```
-
