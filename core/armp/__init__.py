@@ -18,6 +18,7 @@ from core.armp import risks_api_external  # noqa: F401
 from core.armp import risks_data_management  # noqa: F401
 from core.armp import risks_performance_monitoring  # noqa: F401
 from core.armp import risks_protocol_compliance  # noqa: F401
+from core.armp import risks_final  # noqa: F401
 
 __all__ = [
     'enforcer',
