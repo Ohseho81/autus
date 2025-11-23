@@ -11,6 +11,9 @@ from core.armp.performance import PerformanceBudget, PerformanceBudgetExceeded
 # 모든 리스크 자동 등록
 from core.armp import risks  # noqa: F401
 from core.armp import risks_security_advanced  # noqa: F401
+from core.armp import risks_files_network  # noqa: F401
+from core.armp import risks_data_integrity  # noqa: F401
+from core.armp import risks_performance_advanced  # noqa: F401
 
 __all__ = [
     'enforcer',
