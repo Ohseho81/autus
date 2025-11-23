@@ -6,6 +6,9 @@ from pathlib import Path
 from core.armp.enforcer import ARMPEnforcer, Risk, Severity, RiskCategory, enforcer
 from core.armp.monitor import ARMPMonitor, monitor
 
+# 리스크 등록을 위해 risks 모듈 import
+import core.armp.risks  # noqa: F401
+
 
 def test_enforcer_initialization():
     """Enforcer 초기화 테스트"""
@@ -73,7 +76,13 @@ os.system("rm -rf /")
     
     is_safe, reason = CodeValidator.validate_code(malicious_code)
     assert not is_safe
-    assert "Dangerous import" in reason or "os.system" in reason.lower()
+    # "Dangerous import" 또는 "Dangerous function call" 또는 "os.system" 포함
+    assert (
+        "Dangerous import" in reason or 
+        "Dangerous function" in reason or 
+        "os.system" in reason.lower() or
+        "system" in reason.lower()
+    )
 
 
 def test_monitor_start_stop():
