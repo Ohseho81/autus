@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 class PathTraversalRisk(Risk):
     """
     Path Traversal Attack Risk
-    
+
     Detects path traversal vulnerabilities (../ attacks)
     """
-    
+
     def __init__(self):
         super().__init__(
             name="Path Traversal Attack",
@@ -31,7 +31,7 @@ class PathTraversalRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent path traversal"""
         logger.info("🛡️  Path Traversal Prevention:")
@@ -39,13 +39,13 @@ class PathTraversalRisk(Risk):
         logger.info("   - Use Path.resolve() to normalize")
         logger.info("   - Restrict to allowed directories")
         logger.info("   - Never trust user input for paths")
-    
+
     def detect(self) -> bool:
         """Detect path traversal patterns"""
         logger.info("🔍 Scanning for path traversal patterns...")
-        
+
         violations = []
-        
+
         # Dangerous patterns
         patterns = [
             r'\.\./+',  # ../ sequences
@@ -53,29 +53,29 @@ class PathTraversalRisk(Risk):
             r'open\s*\([^)]*\+',  # String concatenation in open()
             r'Path\s*\([^)]*\+',  # String concatenation in Path()
         ]
-        
+
         for py_file in Path("protocols").rglob("*.py"):
             if "test" in str(py_file):
                 continue
-            
+
             try:
                 with open(py_file, 'r') as f:
                     content = f.read()
-                
+
                 for pattern in patterns:
                     if re.search(pattern, content):
                         violations.append(str(py_file))
                         break
             except Exception:
                 pass
-        
+
         if violations:
             logger.error(f"❌ Path traversal risks: {violations}")
             return True
-        
+
         logger.info("✅ No path traversal patterns detected")
         return False
-    
+
     def respond(self) -> None:
         """Respond to path traversal"""
         logger.warning("⚠️  Path Traversal Response:")
@@ -83,7 +83,7 @@ class PathTraversalRisk(Risk):
         logger.warning("   2. Add path validation")
         logger.warning("   3. Use safe path operations")
         logger.warning("   4. Test with malicious inputs")
-    
+
     def recover(self) -> None:
         """Recover from path traversal"""
         logger.info("🔧 Path Traversal Recovery:")
@@ -96,10 +96,10 @@ class PathTraversalRisk(Risk):
 class UnauthorizedFileAccessRisk(Risk):
     """
     Unauthorized File Access Risk
-    
+
     Detects potential unauthorized file access
     """
-    
+
     def __init__(self):
         super().__init__(
             name="Unauthorized File Access",
@@ -111,7 +111,7 @@ class UnauthorizedFileAccessRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent unauthorized file access"""
         logger.info("🛡️  File Access Prevention:")
@@ -119,24 +119,24 @@ class UnauthorizedFileAccessRisk(Risk):
         logger.info("   - Validate access rights")
         logger.info("   - Use principle of least privilege")
         logger.info("   - Log all file access")
-    
+
     def detect(self) -> bool:
         """Detect unauthorized file access"""
         logger.info("🔍 Checking file access patterns...")
-        
+
         # Check for files outside allowed directories
         allowed_dirs = ['protocols', 'core', 'packs', 'tests']
         violations = []
-        
+
         for py_file in Path("protocols").rglob("*.py"):
             try:
                 with open(py_file, 'r') as f:
                     content = f.read()
-                
+
                 # Check for absolute path access
                 if re.search(r'open\s*\(\s*["\']/', content):
                     violations.append(f"{py_file}: absolute path access")
-                
+
                 # Check for /etc, /var, etc access
                 dangerous_paths = ['/etc', '/var', '/root', '/home']
                 for dpath in dangerous_paths:
@@ -144,14 +144,14 @@ class UnauthorizedFileAccessRisk(Risk):
                         violations.append(f"{py_file}: access to {dpath}")
             except Exception:
                 pass
-        
+
         if violations:
             logger.warning(f"⚠️  Suspicious file access: {violations}")
             return True
-        
+
         logger.info("✅ No unauthorized file access detected")
         return False
-    
+
     def respond(self) -> None:
         """Respond to unauthorized access"""
         logger.warning("⚠️  Unauthorized Access Response:")
@@ -159,7 +159,7 @@ class UnauthorizedFileAccessRisk(Risk):
         logger.warning("   2. Add permission checks")
         logger.warning("   3. Restrict to allowed directories")
         logger.warning("   4. Enable access logging")
-    
+
     def recover(self) -> None:
         """Recover from unauthorized access"""
         logger.info("🔧 File Access Recovery:")
@@ -172,10 +172,10 @@ class UnauthorizedFileAccessRisk(Risk):
 class NetworkConnectivityRisk(Risk):
     """
     Network Connectivity Loss Risk
-    
+
     Handles network failures and connectivity issues
     """
-    
+
     def __init__(self):
         super().__init__(
             name="Network Connectivity Loss",
@@ -187,7 +187,7 @@ class NetworkConnectivityRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent network issues"""
         logger.info("🛡️  Network Connectivity Prevention:")
@@ -195,11 +195,11 @@ class NetworkConnectivityRisk(Risk):
         logger.info("   - Add timeout handling")
         logger.info("   - Use connection pooling")
         logger.info("   - Cache when possible")
-    
+
     def detect(self) -> bool:
         """Detect network issues"""
         logger.info("🔍 Checking network connectivity...")
-        
+
         # Simple connectivity check
         import socket
         try:
@@ -209,7 +209,7 @@ class NetworkConnectivityRisk(Risk):
         except OSError:
             logger.error("❌ Network connectivity issue detected")
             return True
-    
+
     def respond(self) -> None:
         """Respond to network failure"""
         logger.warning("⚠️  Network Failure Response:")
@@ -217,7 +217,7 @@ class NetworkConnectivityRisk(Risk):
         logger.warning("   2. Queue operations for later")
         logger.warning("   3. Notify user")
         logger.warning("   4. Use cached data")
-    
+
     def recover(self) -> None:
         """Recover from network failure"""
         logger.info("🔧 Network Connectivity Recovery:")
@@ -230,10 +230,10 @@ class NetworkConnectivityRisk(Risk):
 class SSLCertificateRisk(Risk):
     """
     SSL Certificate Invalid Risk
-    
+
     Detects SSL/TLS certificate issues
     """
-    
+
     def __init__(self):
         super().__init__(
             name="SSL Certificate Invalid",
@@ -245,7 +245,7 @@ class SSLCertificateRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent SSL issues"""
         logger.info("🛡️  SSL Certificate Prevention:")
@@ -253,31 +253,31 @@ class SSLCertificateRisk(Risk):
         logger.info("   - Keep certificate bundle updated")
         logger.info("   - Monitor expiration dates")
         logger.info("   - Use certificate pinning")
-    
+
     def detect(self) -> bool:
         """Detect SSL issues"""
         logger.info("🔍 Checking SSL certificate handling...")
-        
+
         violations = []
-        
+
         # Check for verify=False in requests
         for py_file in Path("protocols").rglob("*.py"):
             try:
                 with open(py_file, 'r') as f:
                     content = f.read()
-                
+
                 if re.search(r'verify\s*=\s*False', content):
                     violations.append(f"{py_file}: SSL verification disabled")
             except Exception:
                 pass
-        
+
         if violations:
             logger.error(f"❌ SSL verification disabled: {violations}")
             return True
-        
+
         logger.info("✅ SSL certificate handling OK")
         return False
-    
+
     def respond(self) -> None:
         """Respond to SSL issues"""
         logger.warning("⚠️  SSL Certificate Response:")
@@ -285,7 +285,7 @@ class SSLCertificateRisk(Risk):
         logger.warning("   2. Update certificate bundle")
         logger.warning("   3. Check certificate validity")
         logger.warning("   4. Use secure connections only")
-    
+
     def recover(self) -> None:
         """Recover from SSL issues"""
         logger.info("🔧 SSL Certificate Recovery:")
@@ -302,4 +302,3 @@ enforcer.register_risk(NetworkConnectivityRisk())
 enforcer.register_risk(SSLCertificateRisk())
 
 logger.info("✅ File & Network security risks registered")
-

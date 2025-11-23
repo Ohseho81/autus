@@ -40,14 +40,14 @@ class TestMemoryOS:
     def test_set_get_preference(self, memory):
         """Test preference setting and getting"""
         memory.set_preference("test_key", "test_value", "test")
-        
+
         result = memory.get_preference("test_key")
         assert result == "test_value"
 
     def test_learn_get_patterns(self, memory):
         """Test pattern learning and retrieval"""
         memory.learn_pattern("test_pattern", {"data": "value"})
-        
+
         patterns = memory.get_patterns("test_pattern")
         assert len(patterns) == 1
         assert patterns[0]["type"] == "test_pattern"
@@ -55,7 +55,7 @@ class TestMemoryOS:
     def test_set_get_context(self, memory):
         """Test context setting and getting"""
         memory.set_context("test_context", "test_value")
-        
+
         result = memory.get_context("test_context")
         assert result == "test_value"
 
@@ -63,7 +63,7 @@ class TestMemoryOS:
         """Test search functionality"""
         memory.set_preference("timezone", "Asia/Seoul", "system")
         memory.set_preference("language", "ko", "system")
-        
+
         results = memory.search("timezone", limit=5)
         assert len(results) > 0
         assert any("timezone" in r.get("id", "") for r in results)
@@ -71,14 +71,14 @@ class TestMemoryOS:
     def test_vector_search(self, memory):
         """Test vector search"""
         memory.set_preference("test_key", "test value", "category")
-        
+
         results = memory.vector_search("test", limit=5)
         assert isinstance(results, list)
 
     def test_semantic_search(self, memory):
         """Test semantic search"""
         memory.set_preference("work_hours", "09:00-18:00", "behavior")
-        
+
         results = memory.semantic_search("work", limit=5)
         assert isinstance(results, list)
 
@@ -87,7 +87,7 @@ class TestMemoryOS:
         memory.set_preference("key1", "value1", "cat1")
         memory.learn_pattern("pattern1", {"data": 1})
         memory.set_context("context1", "value1")
-        
+
         summary = memory.get_memory_summary()
         assert "preferences" in summary
         assert "patterns" in summary
@@ -99,10 +99,10 @@ class TestMemoryOS:
     def test_export_memory(self, memory, tmp_path):
         """Test memory export"""
         memory.set_preference("key1", "value1", "cat1")
-        
+
         yaml_path = tmp_path / "memory.yaml"
         memory.export_memory(str(yaml_path))
-        
+
         assert yaml_path.exists()
 
     def test_context_manager(self, temp_db):
@@ -118,11 +118,10 @@ class TestMemoryOS:
         memory.set_preference("timezone", "Asia/Seoul", "system")
         memory.set_preference("language", "ko", "system")
         memory.set_preference("theme", "dark", "ui")
-        
+
         results = memory.search("system", limit=10)
         assert len(results) >= 2  # timezone과 language는 system 카테고리
 
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

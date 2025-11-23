@@ -80,15 +80,15 @@ class TestMemoryStore:
     def test_store_preference_pii_blocked(self, store):
         """Test that PII storage is blocked"""
         from protocols.memory.pii_validator import PIIViolationError
-        
+
         # email 키워드 차단
         with pytest.raises(PIIViolationError):
             store.store_preference("email", "test@example.com", "contact")
-        
+
         # name 키워드 차단
         with pytest.raises(PIIViolationError):
             store.store_preference("user_name", "John Doe", "profile")
-        
+
         # user_id 키워드 차단
         with pytest.raises(PIIViolationError):
             store.store_preference("user_id", "12345", "system")

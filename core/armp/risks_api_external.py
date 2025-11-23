@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 class APIResponseTimeoutRisk(Risk):
     """
     API Response Timeout Risk
-    
+
     Handles API timeout scenarios
     """
-    
+
     def __init__(self):
         super().__init__(
             name="API Response Timeout",
@@ -32,7 +32,7 @@ class APIResponseTimeoutRisk(Risk):
             recovery=self.recover
         )
         self.timeout_threshold_seconds = 30
-    
+
     def prevent(self) -> None:
         """Prevent API timeouts"""
         logger.info("🛡️  API Timeout Prevention:")
@@ -40,33 +40,33 @@ class APIResponseTimeoutRisk(Risk):
         logger.info("   - Implement retry logic")
         logger.info("   - Use async operations")
         logger.info("   - Monitor API performance")
-    
+
     def detect(self) -> bool:
         """Detect timeout configurations"""
         logger.info("🔍 Checking API timeout settings...")
-        
+
         violations = []
-        
+
         # Check for requests without timeout
         for py_file in Path("protocols").rglob("*.py"):
             try:
                 with open(py_file, 'r') as f:
                     content = f.read()
-                
+
                 # Look for requests.get/post without timeout
                 if 'requests.get' in content or 'requests.post' in content:
                     if 'timeout=' not in content:
                         violations.append(f"{py_file}: missing timeout")
             except Exception:
                 pass
-        
+
         if violations:
             logger.warning(f"⚠️  API calls without timeout: {len(violations)}")
             return True
-        
+
         logger.info("✅ API timeout handling OK")
         return False
-    
+
     def respond(self) -> None:
         """Respond to timeout"""
         logger.warning("⚠️  API Timeout Response:")
@@ -74,7 +74,7 @@ class APIResponseTimeoutRisk(Risk):
         logger.warning("   2. Retry with backoff")
         logger.warning("   3. Use cached data if available")
         logger.warning("   4. Log timeout event")
-    
+
     def recover(self) -> None:
         """Recover from timeout"""
         logger.info("🔧 API Timeout Recovery:")
@@ -87,10 +87,10 @@ class APIResponseTimeoutRisk(Risk):
 class ExternalServiceFailureRisk(Risk):
     """
     External Service Failure Risk
-    
+
     Handles external service unavailability
     """
-    
+
     def __init__(self):
         super().__init__(
             name="External Service Failure",
@@ -102,7 +102,7 @@ class ExternalServiceFailureRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent service failures"""
         logger.info("🛡️  Service Failure Prevention:")
@@ -110,34 +110,34 @@ class ExternalServiceFailureRisk(Risk):
         logger.info("   - Implement fallbacks")
         logger.info("   - Cache responses")
         logger.info("   - Monitor service status")
-    
+
     def detect(self) -> bool:
         """Detect service failures"""
         logger.info("🔍 Checking external service health...")
-        
+
         # In a real system, would check actual service health
         # For now, just validate that error handling exists
-        
+
         violations = []
         for py_file in Path("protocols").rglob("*.py"):
             try:
                 with open(py_file, 'r') as f:
                     content = f.read()
-                
+
                 # Check for external calls without error handling
                 if any(x in content for x in ['requests.', 'http.client', 'urllib']):
                     if 'except' not in content:
                         violations.append(f"{py_file}: missing error handling")
             except Exception:
                 pass
-        
+
         if violations:
             logger.warning(f"⚠️  Missing error handling: {len(violations)}")
             return True
-        
+
         logger.info("✅ Service error handling OK")
         return False
-    
+
     def respond(self) -> None:
         """Respond to service failure"""
         logger.warning("⚠️  Service Failure Response:")
@@ -145,7 +145,7 @@ class ExternalServiceFailureRisk(Risk):
         logger.warning("   2. Use cached data")
         logger.warning("   3. Queue requests for retry")
         logger.warning("   4. Notify monitoring")
-    
+
     def recover(self) -> None:
         """Recover from service failure"""
         logger.info("🔧 Service Failure Recovery:")
@@ -158,10 +158,10 @@ class ExternalServiceFailureRisk(Risk):
 class APIVersionMismatchRisk(Risk):
     """
     API Version Mismatch Risk
-    
+
     Detects API version incompatibilities
     """
-    
+
     def __init__(self):
         super().__init__(
             name="API Version Mismatch",
@@ -173,7 +173,7 @@ class APIVersionMismatchRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent version mismatches"""
         logger.info("🛡️  Version Mismatch Prevention:")
@@ -181,33 +181,33 @@ class APIVersionMismatchRisk(Risk):
         logger.info("   - Check version compatibility")
         logger.info("   - Maintain backwards compatibility")
         logger.info("   - Document breaking changes")
-    
+
     def detect(self) -> bool:
         """Detect version issues"""
         logger.info("🔍 Checking API versions...")
-        
+
         # Check for version handling in API calls
         violations = []
-        
+
         for py_file in Path("protocols").rglob("*.py"):
             try:
                 with open(py_file, 'r') as f:
                     content = f.read()
-                
+
                 # Look for API calls without version
                 if '/v1/' in content or '/api/' in content:
                     if 'version' not in content.lower():
                         violations.append(f"{py_file}: no version check")
             except Exception:
                 pass
-        
+
         if violations:
             logger.warning(f"⚠️  Missing version checks: {len(violations)}")
             return True
-        
+
         logger.info("✅ API versioning OK")
         return False
-    
+
     def respond(self) -> None:
         """Respond to version mismatch"""
         logger.warning("⚠️  Version Mismatch Response:")
@@ -215,7 +215,7 @@ class APIVersionMismatchRisk(Risk):
         logger.warning("   2. Upgrade if needed")
         logger.warning("   3. Use compatibility layer")
         logger.warning("   4. Log version info")
-    
+
     def recover(self) -> None:
         """Recover from version mismatch"""
         logger.info("🔧 Version Mismatch Recovery:")
@@ -231,4 +231,3 @@ enforcer.register_risk(ExternalServiceFailureRisk())
 enforcer.register_risk(APIVersionMismatchRisk())
 
 logger.info("✅ API & External service risks registered")
-

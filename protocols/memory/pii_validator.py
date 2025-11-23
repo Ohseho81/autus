@@ -74,7 +74,7 @@ class PIIValidator:
         # MAC 주소
         r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
     ]
-    
+
     # 허용된 패턴 (PII가 아닌 것들)
     ALLOWED_PATTERNS = [
         r"\d{2}:\d{2}",  # 시간 형식 (HH:MM)
@@ -140,25 +140,25 @@ class PIIValidator:
     def contains_pii_in_value(cls, value: Any) -> Tuple[bool, str]:
         """
         값에 PII 패턴이 포함되어 있는지 확인
-        
+
         Args:
             value: 검사할 값
-        
+
         Returns:
             (is_pii, reason) 튜플
         """
         value_str = str(value)
-        
+
         # 허용된 패턴 먼저 체크
         for allowed_pattern in cls.ALLOWED_PATTERNS:
             if re.search(allowed_pattern, value_str):
                 return False, ""  # 허용된 패턴이면 PII 아님
-        
+
         # PII 패턴 체크
         for pattern in cls.VALUE_PATTERNS:
             if re.search(pattern, value_str):
                 return True, f"Suspicious value pattern detected: '{pattern}'"
-        
+
         return False, ""
 
     @classmethod

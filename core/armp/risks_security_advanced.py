@@ -17,10 +17,10 @@ logger = logging.getLogger(__name__)
 class SQLInjectionRisk(Risk):
     """
     SQL Injection Attack Risk
-    
+
     Detects potential SQL injection vulnerabilities
     """
-    
+
     def __init__(self):
         super().__init__(
             name="SQL Injection Attack",
@@ -32,7 +32,7 @@ class SQLInjectionRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent SQL injection"""
         logger.info("🛡️  SQL Injection Prevention:")
@@ -40,41 +40,41 @@ class SQLInjectionRisk(Risk):
         logger.info("   - Avoid string concatenation in SQL")
         logger.info("   - Use ORM (SQLAlchemy, etc)")
         logger.info("   - Validate all user inputs")
-    
+
     def detect(self) -> bool:
         """Detect SQL injection patterns"""
         logger.info("🔍 Scanning for SQL injection patterns...")
-        
+
         violations = []
-        
+
         # Scan all Python files
         for py_file in Path("protocols").rglob("*.py"):
             try:
                 with open(py_file, 'r') as f:
                     content = f.read()
-                
+
                 # Dangerous patterns
                 patterns = [
                     r'execute\s*\(\s*["\'].*%s.*["\']',  # String formatting in execute
                     r'execute\s*\(\s*.*\+.*\)',  # String concatenation
                     r'execute\s*\(\s*f["\']',  # F-string in execute
                 ]
-                
+
                 for pattern in patterns:
                     if re.search(pattern, content, re.IGNORECASE):
                         violations.append(str(py_file))
                         break
-            
+
             except Exception as e:
                 pass
-        
+
         if violations:
             logger.error(f"❌ SQL injection risks found in: {violations}")
             return True
-        
+
         logger.info("✅ No SQL injection patterns detected")
         return False
-    
+
     def respond(self) -> None:
         """Respond to SQL injection risk"""
         logger.warning("⚠️  SQL Injection Risk Response:")
@@ -82,7 +82,7 @@ class SQLInjectionRisk(Risk):
         logger.warning("   2. Replace with parameterized queries")
         logger.warning("   3. Add input validation")
         logger.warning("   4. Run security audit")
-    
+
     def recover(self) -> None:
         """Recover from SQL injection"""
         logger.info("🔧 SQL Injection Recovery:")
@@ -95,10 +95,10 @@ class SQLInjectionRisk(Risk):
 class MaliciousPackageRisk(Risk):
     """
     Malicious Package Import Risk
-    
+
     Detects imports of potentially dangerous packages
     """
-    
+
     def __init__(self):
         super().__init__(
             name="Malicious Package Import",
@@ -110,20 +110,20 @@ class MaliciousPackageRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-        
+
         # Known dangerous packages (examples)
         self.dangerous_packages = [
             'pickle',  # Can execute arbitrary code
             'marshal',  # Similar to pickle
             'shelve',  # Uses pickle
         ]
-        
+
         # Suspicious patterns
         self.suspicious_packages = [
             'ctypes',  # Can call C functions
             'subprocess',  # Already covered but reinforcing
         ]
-    
+
     def prevent(self) -> None:
         """Prevent malicious package imports"""
         logger.info("🛡️  Malicious Package Prevention:")
@@ -131,18 +131,18 @@ class MaliciousPackageRisk(Risk):
         logger.info("   - Review all imports")
         logger.info("   - Use virtual environments")
         logger.info("   - Check package signatures")
-    
+
     def detect(self) -> bool:
         """Detect dangerous package imports"""
         logger.info("🔍 Scanning for dangerous package imports...")
-        
+
         violations = []
-        
+
         for py_file in Path("protocols").rglob("*.py"):
             try:
                 with open(py_file, 'r') as f:
                     tree = ast.parse(f.read())
-                
+
                 for node in ast.walk(tree):
                     if isinstance(node, ast.Import):
                         for alias in node.names:
@@ -152,7 +152,7 @@ class MaliciousPackageRisk(Risk):
                                     'package': alias.name,
                                     'line': node.lineno
                                 })
-                    
+
                     elif isinstance(node, ast.ImportFrom):
                         if node.module in self.dangerous_packages:
                             violations.append({
@@ -160,19 +160,19 @@ class MaliciousPackageRisk(Risk):
                                 'package': node.module,
                                 'line': node.lineno
                             })
-            
+
             except Exception as e:
                 pass
-        
+
         if violations:
             logger.error("❌ Dangerous package imports found:")
             for v in violations:
                 logger.error(f"   {v['file']}:{v['line']} - {v['package']}")
             return True
-        
+
         logger.info("✅ No dangerous package imports detected")
         return False
-    
+
     def respond(self) -> None:
         """Respond to malicious package risk"""
         logger.warning("⚠️  Malicious Package Response:")
@@ -180,7 +180,7 @@ class MaliciousPackageRisk(Risk):
         logger.warning("   2. Replace with safe alternatives")
         logger.warning("   3. Add to blacklist")
         logger.warning("   4. Audit dependencies")
-    
+
     def recover(self) -> None:
         """Recover from malicious package"""
         logger.info("🔧 Malicious Package Recovery:")
@@ -193,10 +193,10 @@ class MaliciousPackageRisk(Risk):
 class CredentialExposureRisk(Risk):
     """
     Credential Exposure Risk
-    
+
     Detects hardcoded credentials in code
     """
-    
+
     def __init__(self):
         super().__init__(
             name="Credential Exposure",
@@ -208,7 +208,7 @@ class CredentialExposureRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent credential exposure"""
         logger.info("🛡️  Credential Exposure Prevention:")
@@ -216,13 +216,13 @@ class CredentialExposureRisk(Risk):
         logger.info("   - Never commit credentials")
         logger.info("   - Use secrets management")
         logger.info("   - Rotate credentials regularly")
-    
+
     def detect(self) -> bool:
         """Detect hardcoded credentials"""
         logger.info("🔍 Scanning for hardcoded credentials...")
-        
+
         violations = []
-        
+
         # Patterns for credentials
         patterns = [
             r'password\s*=\s*["\'][^"\']{3,}["\']',
@@ -231,39 +231,39 @@ class CredentialExposureRisk(Risk):
             r'token\s*=\s*["\'][^"\']{10,}["\']',
             r'auth\s*=\s*["\'][^"\']{10,}["\']',
         ]
-        
+
         for py_file in Path("protocols").rglob("*.py"):
             try:
                 with open(py_file, 'r') as f:
                     content = f.read()
-                
+
                 for pattern in patterns:
                     matches = re.finditer(pattern, content, re.IGNORECASE)
                     for match in matches:
                         # Skip if it's clearly a placeholder
                         value = match.group()
-                        if any(placeholder in value.lower() for placeholder in 
+                        if any(placeholder in value.lower() for placeholder in
                                ['your_', 'example', 'test', 'dummy', 'placeholder', 'xxx']):
                             continue
-                        
+
                         violations.append({
                             'file': str(py_file),
                             'pattern': pattern,
                             'match': value[:50]  # First 50 chars
                         })
-            
+
             except Exception as e:
                 pass
-        
+
         if violations:
             logger.error("❌ Potential credential exposure found:")
             for v in violations:
                 logger.error(f"   {v['file']}: {v['match']}")
             return True
-        
+
         logger.info("✅ No hardcoded credentials detected")
         return False
-    
+
     def respond(self) -> None:
         """Respond to credential exposure"""
         logger.warning("⚠️  Credential Exposure Response:")
@@ -271,7 +271,7 @@ class CredentialExposureRisk(Risk):
         logger.warning("   2. Rotate exposed credentials")
         logger.warning("   3. Move to environment variables")
         logger.warning("   4. Review git history")
-    
+
     def recover(self) -> None:
         """Recover from credential exposure"""
         logger.info("🔧 Credential Exposure Recovery:")
@@ -287,4 +287,3 @@ enforcer.register_risk(MaliciousPackageRisk())
 enforcer.register_risk(CredentialExposureRisk())
 
 logger.info("✅ Advanced security risks registered")
-

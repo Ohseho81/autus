@@ -1,6 +1,6 @@
 # Next Session Options
 
-**Date**: 2024-11-23  
+**Date**: 2024-11-23
 **Current Status**: ARMP v1.0 완료
 
 ---
@@ -90,4 +90,3 @@
 ---
 
 **다음 세션 시작 시 이 문서를 참고하세요.**
-

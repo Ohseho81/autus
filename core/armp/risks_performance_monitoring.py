@@ -20,10 +20,10 @@ except ImportError:
 class CPUThresholdRisk(Risk):
     """
     CPU Threshold Exceeded Risk
-    
+
     Monitors CPU usage
     """
-    
+
     def __init__(self):
         super().__init__(
             name="CPU Threshold Exceeded",
@@ -36,7 +36,7 @@ class CPUThresholdRisk(Risk):
             recovery=self.recover
         )
         self.cpu_threshold_percent = 80
-    
+
     def prevent(self) -> None:
         """Prevent CPU overuse"""
         logger.info("🛡️  CPU Threshold Prevention:")
@@ -44,24 +44,24 @@ class CPUThresholdRisk(Risk):
         logger.info("   - Use async operations")
         logger.info("   - Implement rate limiting")
         logger.info("   - Monitor CPU usage")
-    
+
     def detect(self) -> bool:
         """Detect high CPU usage"""
         logger.info("🔍 Checking CPU usage...")
-        
+
         if not PSUTIL_AVAILABLE:
             logger.info("ℹ️  psutil not available, skipping CPU check")
             return False
-        
+
         cpu_percent = psutil.cpu_percent(interval=1)
-        
+
         if cpu_percent >= self.cpu_threshold_percent:
             logger.warning(f"⚠️  CPU usage high: {cpu_percent}%")
             return True
-        
+
         logger.info(f"✅ CPU usage OK: {cpu_percent}%")
         return False
-    
+
     def respond(self) -> None:
         """Respond to high CPU"""
         logger.warning("⚠️  High CPU Response:")
@@ -69,7 +69,7 @@ class CPUThresholdRisk(Risk):
         logger.warning("   2. Queue low-priority tasks")
         logger.warning("   3. Profile CPU usage")
         logger.warning("   4. Optimize hot paths")
-    
+
     def recover(self) -> None:
         """Recover from high CPU"""
         logger.info("🔧 CPU Usage Recovery:")
@@ -82,10 +82,10 @@ class CPUThresholdRisk(Risk):
 class ResponseTimeDegradationRisk(Risk):
     """
     Response Time Degradation Risk
-    
+
     Monitors response time performance
     """
-    
+
     def __init__(self):
         super().__init__(
             name="Response Time Degradation",
@@ -98,7 +98,7 @@ class ResponseTimeDegradationRisk(Risk):
             recovery=self.recover
         )
         self.response_threshold_ms = 1000
-    
+
     def prevent(self) -> None:
         """Prevent response time issues"""
         logger.info("🛡️  Response Time Prevention:")
@@ -106,26 +106,26 @@ class ResponseTimeDegradationRisk(Risk):
         logger.info("   - Use caching")
         logger.info("   - Monitor latency")
         logger.info("   - Profile performance")
-    
+
     def detect(self) -> bool:
         """Detect response time degradation"""
         logger.info("🔍 Checking response times...")
-        
+
         # Simple test: measure a basic operation
         start = time.time()
-        
+
         # Simulate some work
         _ = [i**2 for i in range(1000)]
-        
+
         duration_ms = (time.time() - start) * 1000
-        
+
         if duration_ms > self.response_threshold_ms:
             logger.warning(f"⚠️  Response time high: {duration_ms:.0f}ms")
             return True
-        
+
         logger.info(f"✅ Response time OK: {duration_ms:.2f}ms")
         return False
-    
+
     def respond(self) -> None:
         """Respond to slow response"""
         logger.warning("⚠️  Response Time Response:")
@@ -133,7 +133,7 @@ class ResponseTimeDegradationRisk(Risk):
         logger.warning("   2. Add caching")
         logger.warning("   3. Optimize queries")
         logger.warning("   4. Scale resources")
-    
+
     def recover(self) -> None:
         """Recover from degradation"""
         logger.info("🔧 Response Time Recovery:")
@@ -148,4 +148,3 @@ enforcer.register_risk(CPUThresholdRisk())
 enforcer.register_risk(ResponseTimeDegradationRisk())
 
 logger.info("✅ Performance monitoring risks registered")
-

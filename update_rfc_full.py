@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+"""RFC 상세 버전 생성 (안전한 방식)"""
+
+import os
+
+def create_detailed_rfcs():
+    """상세한 RFC 문서 생성"""
+    
+    # RFC-0002: Workflow Graph (상세 버전)
+    rfc2_lines = [
+        "# RFC 0002: Workflow Graph Protocol\n",
+        "\n",
+        "Status: Proposed Standard\n",
+        "Version: 1.0.0\n",
+        "Published: 2024-11-23\n",
+        "\n",
+        "## Abstract\n",
+        "Defines standard format for personal behavior patterns.\n",
+        "\n",
+        "## 1. Purpose\n",
+        "Universal format for workflow patterns:\n",
+        "- Standardizes behavior representation\n",
+        "- Enables cross-platform compatibility\n",
+        "- Ensures data portability\n",
+        "\n",
+        "## 2. Format\n",
+        "- Extension: .autus.graph.json\n",
+        "- Encoding: UTF-8\n",
+        "- Structure: JSON\n",
+        "\n",
+        "## 3. Schema\n",
+        "nodes: [id, type, name, metadata]\n",
+        "edges: [source, target, type]\n",
+        "\n",
+        "## 4. Examples\n",
+        "- Morning routines\n",
+        "- Code style patterns\n",
+        "- Work habits\n",
+        "\n",
+        "## 5. Implementation\n",
+        "See: protocols/workflow.md\n",
+        "Reference: standard.py\n",
+        "\n",
+        "---\n",
+        "Version: 1.0.0\n"
+    ]
+    
+    # RFC-0003: Local Memory (상세 버전)
+    rfc3_lines = [
+        "# RFC 0003: Local Memory OS Protocol\n",
+        "\n",
+        "Status: Proposed Standard\n",
+        "Version: 1.0.0\n",
+        "Published: 2024-11-23\n",
+        "\n",
+        "## Abstract\n",
+        "100% local storage for AI personalization.\n",
+        "\n",
+        "## 1. Purpose\n",
+        "Local storage system that:\n",
+        "- Guarantees 100% local storage\n",
+        "- Prevents server data collection\n",
+        "- Enables AI personalization\n",
+        "- Maintains privacy by design\n",
+        "\n",
+        "## 2. Storage\n",
+        "Directory: ~/.autus/\n",
+        "- memory/patterns.yaml\n",
+        "- memory/preferences.yaml\n",
+        "- sessions/{id}.json\n",
+        "- identity/core.encrypted\n",
+        "\n",
+        "## 3. Privacy\n",
+        "Never stored: name, email, phone, address\n",
+        "Only stored: patterns, preferences, sessions\n",
+        "\n",
+        "## 4. Requirements\n",
+        "MUST: Store locally, encrypt sensitive data\n",
+        "MUST NOT: Transmit to servers, share with 3rd parties\n",
+        "\n",
+        "## 5. Implementation\n",
+        "See: protocols/memory.md\n",
+        "\n",
+        "---\n",
+        "Version: 1.0.0\n"
+    ]
+    
+    # RFC-0004: Zero Identity (상세 버전)
+    rfc4_lines = [
+        "# RFC 0004: Zero Identity Protocol\n",
+        "\n",
+        "Status: Proposed Standard\n",
+        "Version: 1.0.0\n",
+        "Published: 2024-11-23\n",
+        "\n",
+        "## Abstract\n",
+        "3D behavioral identity without PII.\n",
+        "\n",
+        "## 1. Purpose\n",
+        "Identity system that:\n",
+        "- Requires no login/accounts\n",
+        "- Stores no PII\n",
+        "- Uses 3D coordinates\n",
+        "- Remains 100% local\n",
+        "\n",
+        "## 2. Architecture\n",
+        "- Core: 32-byte cryptographic seed\n",
+        "- Representation: SHA256(seed) -> (X,Y,Z)\n",
+        "- Surface: Behavioral characteristics\n",
+        "- Storage: Local device only\n",
+        "\n",
+        "## 3. Generation\n",
+        "seed = secrets.token_bytes(32)\n",
+        "hash = sha256(seed)\n",
+        "x, y, z = coordinates from hash\n",
+        "\n",
+        "## 4. Properties\n",
+        "- Deterministic: Same seed -> Same coords\n",
+        "- Unique: Different seeds -> Different coords\n",
+        "- Irreversible: Cannot derive seed from coords\n",
+        "\n",
+        "## 5. Storage\n",
+        "identity.yaml: Core coordinates + surface\n",
+        "core.encrypted: Seed (AES-256-GCM)\n",
+        "\n",
+        "## 6. Privacy\n",
+        "Never stored: name, email, phone\n",
+        "Only stored: (X,Y,Z), characteristics, patterns\n",
+        "\n",
+        "## 7. Implementation\n",
+        "See: protocols/identity.md\n",
+        "Reference: protocols/identity/core.py\n",
+        "\n",
+        "---\n",
+        "Version: 1.0.0\n"
+    ]
+    
+    # RFC-0005: Zero Auth (상세 버전)
+    rfc5_lines = [
+        "# RFC 0005: Zero Auth Protocol\n",
+        "\n",
+        "Status: Proposed Standard\n",
+        "Version: 1.0.0\n",
+        "Published: 2024-11-23\n",
+        "\n",
+        "## Abstract\n",
+        "QR-based device sync without accounts.\n",
+        "\n",
+        "## 1. Purpose\n",
+        "Authentication system that:\n",
+        "- Requires no servers\n",
+        "- Uses no accounts/passwords\n",
+        "- Operates on local network\n",
+        "- Enables secure device sync\n",
+        "\n",
+        "## 2. Flow\n",
+        "1. Generate pairing code\n",
+        "2. Display QR code\n",
+        "3. Scan QR on new device\n",
+        "4. Establish TLS channel\n",
+        "5. Transfer identity\n",
+        "6. Verify transfer\n",
+        "\n",
+        "## 3. Pairing Code\n",
+        "Components:\n",
+        "- Device ID\n",
+        "- Timestamp\n",
+        "- Nonce (16 bytes)\n",
+        "- HMAC signature\n",
+        "\n",
+        "Expiration:\n",
+        "- Time: 5 minutes\n",
+        "- Uses: 1 successful pairing\n",
+        "- Failures: Max 3 attempts\n",
+        "\n",
+        "## 4. Security\n",
+        "- TLS 1.3 minimum\n",
+        "- Mutual authentication\n",
+        "- AES-256-GCM encryption\n",
+        "- Local network only\n",
+        "\n",
+        "## 5. Protected Against\n",
+        "- MITM: TLS + signatures\n",
+        "- Replay: Time-limited + nonce\n",
+        "- Brute force: Rate limiting\n",
+        "- Sniffing: End-to-end encryption\n",
+        "\n",
+        "## 6. Requirements\n",
+        "MUST: TLS 1.3+, expire codes, encrypt data\n",
+        "MUST NOT: Use internet, store codes, bypass auth\n",
+        "\n",
+        "## 7. Network\n",
+        "Allowed: WiFi, Bluetooth, USB, Ethernet\n",
+        "Not allowed: Internet, cloud, remote servers\n",
+        "\n",
+        "## 8. Implementation\n",
+        "See: protocols/auth.md\n",
+        "\n",
+        "---\n",
+        "Version: 1.0.0\n"
+    ]
+    
+    # 파일 쓰기
+    files = {
+        'docs/rfc/RFC-0002-WORKFLOW-GRAPH.md': rfc2_lines,
+        'docs/rfc/RFC-0003-LOCAL-MEMORY.md': rfc3_lines,
+        'docs/rfc/RFC-0004-ZERO-IDENTITY.md': rfc4_lines,
+        'docs/rfc/RFC-0005-ZERO-AUTH.md': rfc5_lines
+    }
+    
+    for filepath, lines in files.items():
+        with open(filepath, 'w') as f:
+            f.writelines(lines)
+        size = os.path.getsize(filepath)
+        print(f"✅ Updated: {filepath} ({size} bytes)")
+    
+    print("\n🎉 RFC 0002~0005 상세 버전 업데이트 완료!")
+
+if __name__ == '__main__':
+    create_detailed_rfcs()

@@ -16,7 +16,7 @@ class SyncConflictResolver:
     """
     Resolve conflicts when syncing identities from multiple devices
     """
-    
+
     @staticmethod
     def resolve_position_conflict(
         pos1: Tuple[float, float, float],
@@ -25,12 +25,12 @@ class SyncConflictResolver:
     ) -> Tuple[float, float, float]:
         """
         Resolve position conflicts
-        
+
         Args:
             pos1: Position from device 1
             pos2: Position from device 2
             strategy: 'average', 'weighted_average', 'newer', 'older'
-        
+
         Returns:
             Resolved position
         """
@@ -51,7 +51,7 @@ class SyncConflictResolver:
             return pos2  # Assume pos2 is newer
         else:  # older
             return pos1
-    
+
     @staticmethod
     def merge_evolution_histories(
         history1: List[Dict],
@@ -60,19 +60,19 @@ class SyncConflictResolver:
     ) -> List[Dict]:
         """
         Merge evolution histories from two devices
-        
+
         Args:
             history1: History from device 1
             history2: History from device 2
             max_size: Maximum history size
-        
+
         Returns:
             Merged and sorted history
         """
         # Combine and sort by timestamp
         combined = history1 + history2
         combined.sort(key=lambda x: x.get('timestamp', ''))
-        
+
         # Remove duplicates (same timestamp and pattern_type)
         seen = set()
         unique = []
@@ -81,10 +81,10 @@ class SyncConflictResolver:
             if key not in seen:
                 seen.add(key)
                 unique.append(item)
-        
+
         # Return last N items
         return unique[-max_size:]
-    
+
     @staticmethod
     def resolve_radius_conflict(
         radius1: float,
@@ -94,19 +94,19 @@ class SyncConflictResolver:
     ) -> float:
         """
         Resolve radius conflicts (stability)
-        
+
         Args:
             radius1: Radius from device 1
             radius2: Radius from device 2
             pattern_count1: Pattern count from device 1
             pattern_count2: Pattern count from device 2
-        
+
         Returns:
             Resolved radius
         """
         # Use the larger radius (more stable)
         return max(radius1, radius2)
-    
+
     @staticmethod
     def resolve_texture_conflict(
         texture1: float,
@@ -114,16 +114,16 @@ class SyncConflictResolver:
     ) -> float:
         """
         Resolve texture conflicts (diversity)
-        
+
         Args:
             texture1: Texture from device 1
             texture2: Texture from device 2
-        
+
         Returns:
             Resolved texture (average)
         """
         return (texture1 + texture2) / 2
-    
+
     @staticmethod
     def resolve_color_conflict(
         color1: List[float],
@@ -131,11 +131,11 @@ class SyncConflictResolver:
     ) -> List[float]:
         """
         Resolve color conflicts (emotional tone)
-        
+
         Args:
             color1: Color from device 1 [R, G, B]
             color2: Color from device 2 [R, G, B]
-        
+
         Returns:
             Resolved color (weighted average)
         """
@@ -150,11 +150,11 @@ class SyncHistory:
     """
     Track synchronization history
     """
-    
+
     def __init__(self, storage_path: str = ".autus/auth/sync_history.json"):
         """
         Initialize sync history
-        
+
         Args:
             storage_path: Path to store sync history
         """
@@ -162,7 +162,7 @@ class SyncHistory:
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)
         self.history: List[Dict] = []
         self._load_history()
-    
+
     def _load_history(self) -> None:
         """Load history from file"""
         if self.storage_path.exists():
@@ -173,7 +173,7 @@ class SyncHistory:
                 self.history = []
         else:
             self.history = []
-    
+
     def _save_history(self) -> None:
         """Save history to file"""
         try:
@@ -181,7 +181,7 @@ class SyncHistory:
                 json.dump(self.history, f, indent=2)
         except Exception:
             pass
-    
+
     def record_sync(
         self,
         source_device: str,
@@ -192,7 +192,7 @@ class SyncHistory:
     ) -> None:
         """
         Record a sync event
-        
+
         Args:
             source_device: Source device identifier
             target_device: Target device identifier
@@ -208,19 +208,19 @@ class SyncHistory:
             'success': success,
             'metadata': metadata or {}
         }
-        
+
         self.history.append(record)
-        
+
         # Keep only last 1000 records
         if len(self.history) > 1000:
             self.history = self.history[-1000:]
-        
+
         self._save_history()
-    
+
     def get_sync_summary(self) -> Dict:
         """
         Get sync summary statistics
-        
+
         Returns:
             Dictionary with sync statistics
         """
@@ -233,15 +233,15 @@ class SyncHistory:
                 'sync_types': {},
                 'recent_syncs': []
             }
-        
+
         successful = sum(1 for h in self.history if h.get('success', False))
         failed = len(self.history) - successful
-        
+
         sync_types = {}
         for h in self.history:
             stype = h.get('sync_type', 'unknown')
             sync_types[stype] = sync_types.get(stype, 0) + 1
-        
+
         return {
             'total_syncs': len(self.history),
             'successful_syncs': successful,
@@ -250,14 +250,14 @@ class SyncHistory:
             'sync_types': sync_types,
             'recent_syncs': self.history[-10:]  # Last 10
         }
-    
+
     def get_device_syncs(self, device_id: str) -> List[Dict]:
         """
         Get all syncs for a specific device
-        
+
         Args:
             device_id: Device identifier
-        
+
         Returns:
             List of sync records
         """
@@ -271,11 +271,11 @@ class AdvancedDeviceSync(DeviceSync):
     """
     Advanced device sync with conflict resolution and history tracking
     """
-    
+
     def __init__(self, identity_core: IdentityCore, device_id: Optional[str] = None):
         """
         Initialize advanced device sync
-        
+
         Args:
             identity_core: IdentityCore instance
             device_id: Device identifier (optional, uses hash if not provided)
@@ -284,20 +284,20 @@ class AdvancedDeviceSync(DeviceSync):
         self.device_id = device_id or identity_core.get_core_hash()[:16]
         self.conflict_resolver = SyncConflictResolver()
         self.sync_history = SyncHistory()
-    
+
     def sync_from_qr_bytes(self, qr_image_bytes: bytes, source_device_id: Optional[str] = None) -> Tuple[bool, Dict]:
         """
         Sync identity from QR code bytes with conflict resolution
-        
+
         Args:
             qr_image_bytes: PNG image bytes
             source_device_id: Source device identifier
-        
+
         Returns:
             Tuple of (success, sync_metadata)
         """
         identity_data = self.qr_scanner.scan_from_bytes(qr_image_bytes)
-        
+
         if identity_data is None:
             self.sync_history.record_sync(
                 source_device_id or 'unknown',
@@ -307,17 +307,17 @@ class AdvancedDeviceSync(DeviceSync):
                 {'error': 'failed_to_scan'}
             )
             return False, {'error': 'failed_to_scan'}
-        
+
         # Import identity
         try:
             synced_identity = self.identity_core.from_dict(identity_data)
-            
+
             sync_metadata = {
                 'source_pattern_count': synced_identity.surface.pattern_count if synced_identity.surface else 0,
                 'target_pattern_count': self.identity_core.surface.pattern_count if self.identity_core.surface else 0,
                 'conflicts_resolved': []
             }
-            
+
             # Merge surfaces if both exist
             if synced_identity.surface and self.identity_core.surface:
                 # Resolve conflicts
@@ -325,7 +325,7 @@ class AdvancedDeviceSync(DeviceSync):
                 pos2 = synced_identity.surface.position
                 resolved_pos = self.conflict_resolver.resolve_position_conflict(pos1, pos2)
                 sync_metadata['conflicts_resolved'].append('position')
-                
+
                 radius1 = self.identity_core.surface.radius
                 radius2 = synced_identity.surface.radius
                 resolved_radius = self.conflict_resolver.resolve_radius_conflict(
@@ -334,36 +334,36 @@ class AdvancedDeviceSync(DeviceSync):
                     synced_identity.surface.pattern_count
                 )
                 sync_metadata['conflicts_resolved'].append('radius')
-                
+
                 texture1 = self.identity_core.surface.texture
                 texture2 = synced_identity.surface.texture
                 resolved_texture = self.conflict_resolver.resolve_texture_conflict(texture1, texture2)
                 sync_metadata['conflicts_resolved'].append('texture')
-                
+
                 color1 = self.identity_core.surface.color
                 color2 = synced_identity.surface.color
                 resolved_color = self.conflict_resolver.resolve_color_conflict(color1, color2)
                 sync_metadata['conflicts_resolved'].append('color')
-                
+
                 # Merge evolution histories
                 merged_history = self.conflict_resolver.merge_evolution_histories(
                     self.identity_core.surface.evolution_history,
                     synced_identity.surface.evolution_history
                 )
-                
+
                 # Apply resolved values
                 self.identity_core.surface.position = resolved_pos
                 self.identity_core.surface.radius = resolved_radius
                 self.identity_core.surface.texture = resolved_texture
                 self.identity_core.surface.color = resolved_color
                 self.identity_core.surface.evolution_history = merged_history
-                
+
                 # Update pattern count (sum)
                 self.identity_core.surface.pattern_count = max(
                     self.identity_core.surface.pattern_count,
                     synced_identity.surface.pattern_count
                 )
-            
+
             # Record successful sync
             self.sync_history.record_sync(
                 source_device_id or 'unknown',
@@ -372,9 +372,9 @@ class AdvancedDeviceSync(DeviceSync):
                 True,
                 sync_metadata
             )
-            
+
             return True, sync_metadata
-            
+
         except Exception as e:
             self.sync_history.record_sync(
                 source_device_id or 'unknown',
@@ -384,22 +384,21 @@ class AdvancedDeviceSync(DeviceSync):
                 {'error': str(e)}
             )
             return False, {'error': str(e)}
-    
+
     def get_sync_statistics(self) -> Dict:
         """
         Get sync statistics
-        
+
         Returns:
             Dictionary with sync statistics
         """
         return self.sync_history.get_sync_summary()
-    
+
     def get_device_syncs(self) -> List[Dict]:
         """
         Get all syncs for this device
-        
+
         Returns:
             List of sync records
         """
         return self.sync_history.get_device_syncs(self.device_id)
-

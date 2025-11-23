@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 class ProtocolVersionIncompatibleRisk(Risk):
     """
     Protocol Version Incompatible Risk
-    
+
     Detects protocol version incompatibilities
     """
-    
+
     def __init__(self):
         super().__init__(
             name="Protocol Version Incompatible",
@@ -30,7 +30,7 @@ class ProtocolVersionIncompatibleRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent version incompatibilities"""
         logger.info("🛡️  Protocol Version Prevention:")
@@ -38,14 +38,14 @@ class ProtocolVersionIncompatibleRisk(Risk):
         logger.info("   - Maintain compatibility")
         logger.info("   - Document breaking changes")
         logger.info("   - Use semantic versioning")
-    
+
     def detect(self) -> bool:
         """Detect version issues"""
         logger.info("🔍 Checking protocol versions...")
-        
+
         # Check for version definitions in protocols
         protocol_dirs = ['workflow', 'memory', 'identity', 'auth']
-        
+
         for pdir in protocol_dirs:
             protocol_path = Path(f"protocols/{pdir}")
             if protocol_path.exists():
@@ -55,10 +55,10 @@ class ProtocolVersionIncompatibleRisk(Risk):
                         content = f.read()
                         if '__version__' not in content:
                             logger.warning(f"⚠️  {pdir}: no version defined")
-        
+
         logger.info("✅ Protocol versions OK")
         return False
-    
+
     def respond(self) -> None:
         """Respond to version incompatibility"""
         logger.warning("⚠️  Protocol Version Response:")
@@ -66,7 +66,7 @@ class ProtocolVersionIncompatibleRisk(Risk):
         logger.warning("   2. Upgrade if possible")
         logger.warning("   3. Use compatibility mode")
         logger.warning("   4. Log version mismatch")
-    
+
     def recover(self) -> None:
         """Recover from incompatibility"""
         logger.info("🔧 Protocol Version Recovery:")
@@ -79,10 +79,10 @@ class ProtocolVersionIncompatibleRisk(Risk):
 class InvalidProtocolMessageRisk(Risk):
     """
     Invalid Protocol Message Risk
-    
+
     Detects malformed protocol messages
     """
-    
+
     def __init__(self):
         super().__init__(
             name="Invalid Protocol Message",
@@ -94,7 +94,7 @@ class InvalidProtocolMessageRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent invalid messages"""
         logger.info("🛡️  Invalid Message Prevention:")
@@ -102,33 +102,33 @@ class InvalidProtocolMessageRisk(Risk):
         logger.info("   - Use schema validation")
         logger.info("   - Sanitize inputs")
         logger.info("   - Handle errors gracefully")
-    
+
     def detect(self) -> bool:
         """Detect invalid messages"""
         logger.info("🔍 Checking message validation...")
-        
+
         # Check for validation code in protocols
         violations = []
-        
+
         for py_file in Path("protocols").rglob("*.py"):
             try:
                 with open(py_file, 'r') as f:
                     content = f.read()
-                
+
                 # Look for JSON parsing without validation
                 if 'json.loads' in content or 'json.load' in content:
                     if 'validate' not in content.lower() and 'schema' not in content.lower():
                         violations.append(str(py_file))
             except Exception:
                 pass
-        
+
         if violations:
             logger.warning(f"⚠️  Missing validation: {len(violations)} files")
             return True
-        
+
         logger.info("✅ Message validation OK")
         return False
-    
+
     def respond(self) -> None:
         """Respond to invalid message"""
         logger.warning("⚠️  Invalid Message Response:")
@@ -136,7 +136,7 @@ class InvalidProtocolMessageRisk(Risk):
         logger.warning("   2. Log validation error")
         logger.warning("   3. Return error to sender")
         logger.warning("   4. Don't process further")
-    
+
     def recover(self) -> None:
         """Recover from invalid messages"""
         logger.info("🔧 Invalid Message Recovery:")
@@ -149,10 +149,10 @@ class InvalidProtocolMessageRisk(Risk):
 class ProtocolStateCorruptionRisk(Risk):
     """
     Protocol State Corruption Risk
-    
+
     Detects protocol state corruption
     """
-    
+
     def __init__(self):
         super().__init__(
             name="Protocol State Corruption",
@@ -164,7 +164,7 @@ class ProtocolStateCorruptionRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    
+
     def prevent(self) -> None:
         """Prevent state corruption"""
         logger.info("🛡️  State Corruption Prevention:")
@@ -172,21 +172,21 @@ class ProtocolStateCorruptionRisk(Risk):
         logger.info("   - Use atomic operations")
         logger.info("   - Implement state machine")
         logger.info("   - Add state checksums")
-    
+
     def detect(self) -> bool:
         """Detect state corruption"""
         logger.info("🔍 Checking protocol states...")
-        
+
         # Check for state files
         state_files = list(Path("protocols").rglob("*.state"))
-        
+
         if state_files:
             logger.info(f"ℹ️  Found {len(state_files)} state files")
             # In real implementation, would validate state integrity
-        
+
         logger.info("✅ Protocol states OK")
         return False
-    
+
     def respond(self) -> None:
         """Respond to corruption"""
         logger.warning("⚠️  State Corruption Response:")
@@ -194,7 +194,7 @@ class ProtocolStateCorruptionRisk(Risk):
         logger.warning("   2. Validate state integrity")
         logger.warning("   3. Restore from backup")
         logger.warning("   4. Reset if necessary")
-    
+
     def recover(self) -> None:
         """Recover from corruption"""
         logger.info("🔧 State Corruption Recovery:")
@@ -210,4 +210,3 @@ enforcer.register_risk(InvalidProtocolMessageRisk())
 enforcer.register_risk(ProtocolStateCorruptionRisk())
 
 logger.info("✅ Protocol compliance risks registered")
-
