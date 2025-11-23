@@ -24,17 +24,17 @@ def detect_pii() -> bool:
     """PII 감지"""
     try:
         from protocols.memory.store import MemoryStore
-        
+
         # 간단한 감지: 최근 저장된 데이터 스캔
         store = MemoryStore()
-        
+
         # preferences 테이블 스캔
         results = store.conn.execute(
             "SELECT key, value FROM preferences ORDER BY updated_at DESC LIMIT 100"
         ).fetchall()
-        
+
         from protocols.memory.pii_validator import PIIValidator
-        
+
         for key, value in results:
             try:
                 PIIValidator.validate(key, value)
@@ -42,7 +42,7 @@ def detect_pii() -> bool:
                 # PII 발견
                 logger.warning(f"PII detected in stored data: key={key}")
                 return True
-        
+
         return False
     except Exception as e:
         logger.error(f"PII detection error: {e}")
@@ -61,11 +61,11 @@ def respond_to_pii():
 def recover_from_pii():
     """PII 복구"""
     logger.info("Recovering from PII violation...")
-    
+
     try:
         from protocols.memory.recovery import RecoveryManager
         from pathlib import Path
-        
+
         # 최신 체크포인트에서 복구
         checkpoints = RecoveryManager.list_checkpoints()
         if checkpoints:
@@ -108,10 +108,10 @@ def detect_code_injection() -> bool:
     """Code Injection 감지"""
     try:
         from core.pack.code_validator import CodeValidator
-        
+
         # 최근 생성된 파일 스캔 (protocols, core)
         suspicious_files = []
-        
+
         for pattern in ["protocols/**/*.py", "core/**/*.py"]:
             for py_file in Path(".").glob(pattern):
                 # 최근 1시간 내 수정된 파일만
@@ -124,7 +124,7 @@ def detect_code_injection() -> bool:
                             logger.warning(f"Unsafe code in {py_file}: {reason}")
                     except Exception as e:
                         logger.debug(f"Could not validate {py_file}: {e}")
-        
+
         return len(suspicious_files) > 0
     except Exception as e:
         logger.error(f"Code injection detection error: {e}")
@@ -185,15 +185,15 @@ def detect_rate_limit() -> bool:
     """Rate Limit 감지"""
     try:
         from core.llm.cost_tracker import get_cost_tracker, CostLimitExceeded
-        
+
         tracker = get_cost_tracker()
-        
+
         # 일일 한도 80% 초과 시 경고
         daily_cost = tracker.get_daily_cost()
         if daily_cost > tracker.daily_limit * 0.8:
             logger.warning(f"Rate limit approaching: ${daily_cost:.2f} / ${tracker.daily_limit:.2f}")
             return True
-        
+
         return False
     except CostLimitExceeded:
         return True
@@ -246,11 +246,11 @@ def detect_db_corruption() -> bool:
     try:
         import duckdb
         from pathlib import Path
-        
+
         db_path = Path(".autus/memory/memory.db")
         if not db_path.exists():
             return False
-        
+
         try:
             conn = duckdb.connect(str(db_path))
             # 간단한 무결성 체크
@@ -277,11 +277,11 @@ def respond_to_db_corruption():
 def recover_from_db_corruption():
     """DB 손상 복구"""
     logger.info("Recovering from database corruption...")
-    
+
     try:
         from protocols.memory.recovery import RecoveryManager
         from pathlib import Path
-        
+
         # 최신 체크포인트에서 복구
         checkpoints = RecoveryManager.list_checkpoints()
         if checkpoints:
@@ -324,19 +324,19 @@ def detect_performance_violation() -> bool:
     """성능 예산 위반 감지"""
     try:
         from core.armp.performance import PerformanceBudget
-        
+
         # 메모리 체크
         memory_mb = PerformanceBudget.check_memory_usage()
         if memory_mb and memory_mb > PerformanceBudget.MEMORY_MAX:
             logger.warning(f"Memory budget exceeded: {memory_mb:.1f}MB > {PerformanceBudget.MEMORY_MAX}MB")
             return True
-        
+
         # 디스크 체크
         disk_free = PerformanceBudget.check_disk_usage()
         if disk_free and disk_free < PerformanceBudget.DISK_MAX:
             logger.warning(f"Disk space low: {disk_free:.1f}MB < {PerformanceBudget.DISK_MAX}MB")
             return True
-        
+
         return False
     except Exception as e:
         logger.error(f"Performance violation detection error: {e}")

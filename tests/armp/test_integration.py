@@ -39,11 +39,11 @@ def test_monitor_lifecycle():
     # 시작
     monitor.start()
     assert monitor.running
-    
+
     # 상태 확인
     status = monitor.get_status()
     assert 'uptime_seconds' in status
-    
+
     # 중지
     monitor.stop()
     assert not monitor.running
@@ -66,4 +66,3 @@ def test_response_and_recovery():
     """대응 및 복구"""
     # 실제 위반 필요
     pass
-

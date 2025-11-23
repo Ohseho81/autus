@@ -155,6 +155,6 @@ Every commit must pass:
 
 ---
 
-*Version: 1.0*  
-*Last Updated: 2024-11-23*  
+*Version: 1.0*
+*Last Updated: 2024-11-23*
 *This is a living document.*

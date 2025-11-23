@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class CodeScanner:
     """코드 보안 스캐너"""
-    
+
     DANGEROUS_IMPORTS = [
         "os.system",
         "subprocess.call",
@@ -24,7 +24,7 @@ class CodeScanner:
         "__import__",
         "compile"
     ]
-    
+
     DANGEROUS_FUNCTIONS = [
         "eval",
         "exec",
@@ -32,22 +32,22 @@ class CodeScanner:
         "execfile",
         "__import__"
     ]
-    
+
     @classmethod
     def scan_file(cls, file_path: Path) -> List[Tuple[int, str]]:
         """파일에서 위험한 코드 패턴 찾기"""
         violations = []
-        
+
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 code = f.read()
-            
+
             # AST 파싱
             try:
                 tree = ast.parse(code)
             except SyntaxError:
                 return []  # 문법 오류는 다른 도구가 처리
-            
+
             # AST 순회
             for node in ast.walk(tree):
                 # Import 체크
@@ -58,7 +58,7 @@ class CodeScanner:
                                 node.lineno,
                                 f"Dangerous import: {alias.name}"
                             ))
-                
+
                 # ImportFrom 체크
                 elif isinstance(node, ast.ImportFrom):
                     if node.module:
@@ -68,7 +68,7 @@ class CodeScanner:
                                     node.lineno,
                                     f"Dangerous import from: {node.module}"
                                 ))
-                
+
                 # 함수 호출 체크
                 elif isinstance(node, ast.Call):
                     if isinstance(node.func, ast.Name):
@@ -77,32 +77,32 @@ class CodeScanner:
                                 node.lineno,
                                 f"Dangerous function call: {node.func.id}"
                             ))
-        
+
         except Exception as e:
             logger.error(f"Error scanning {file_path}: {e}")
-        
+
         return violations
-    
+
     @classmethod
     def scan_directory(cls, directory: Path) -> dict:
         """디렉토리 전체 스캔"""
         results = {}
-        
+
         for py_file in directory.rglob("*.py"):
             violations = cls.scan_file(py_file)
             if violations:
                 results[str(py_file)] = violations
-        
+
         return results
-    
+
     @classmethod
     def check_compliance(cls) -> bool:
         """코드 보안 확인"""
         logger.info("🔍 Scanning for dangerous code patterns...")
-        
+
         # protocols/ 스캔
         violations = cls.scan_directory(Path("protocols"))
-        
+
         if violations:
             logger.error("❌ Dangerous code patterns found:")
             for file_path, file_violations in violations.items():
@@ -110,7 +110,7 @@ class CodeScanner:
                 for line_num, message in file_violations:
                     logger.error(f"    Line {line_num}: {message}")
             return False
-        
+
         logger.info("✅ No dangerous code patterns found")
         return True
 
@@ -118,7 +118,6 @@ class CodeScanner:
 if __name__ == "__main__":
     # CLI 실행
     import sys
-    
+
     if not CodeScanner.check_compliance():
         sys.exit(1)
-

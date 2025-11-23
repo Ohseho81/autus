@@ -332,7 +332,7 @@ if violations:
 ARMP automatically runs on every commit:
 
 1. PII Scanner
-2. Code Security Scanner  
+2. Code Security Scanner
 3. Constitution Checker
 4. Security Scan (Bandit)
 5. Dependency Check (Safety)
