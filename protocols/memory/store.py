@@ -17,13 +17,13 @@ import yaml
 class MemoryStore:
     """
     MemoryStore class for local-first memory storage with DuckDB backend.
-    
+
     Stores only non-PII data:
     - Preferences (timezone, language, work_hours, etc.)
     - Behavioral patterns (interaction_style, response_time, etc.)
     - Workflow context (anonymous patterns only)
     """
-    
+
     def __init__(self, db_path: str = ".autus/memory/memory.db") -> None:
         """
         Initialize a new instance of the MemoryStore class.
@@ -33,7 +33,7 @@ class MemoryStore:
         """
         # 디렉토리 생성
         Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-        
+
         try:
             self.conn = duckdb.connect(db_path)
             self._init_schema()
@@ -51,7 +51,7 @@ class MemoryStore:
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        
+
         # Patterns 테이블 (행동 패턴, PII 없음)
         # pattern_type을 PRIMARY KEY로 사용 (중복 방지)
         self.conn.execute("""
@@ -63,7 +63,7 @@ class MemoryStore:
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        
+
         # Context 테이블 (익명 컨텍스트, PII 없음)
         # context_key를 PRIMARY KEY로 사용
         self.conn.execute("""
@@ -88,7 +88,7 @@ class MemoryStore:
         pii_keywords = ['email', 'name', 'phone', 'address', 'user_id', 'id']
         if any(pii in key.lower() for pii in pii_keywords):
             raise ValueError(f"PII storage prohibited: '{key}' contains PII keyword")
-        
+
         try:
             value_str = json.dumps(value) if not isinstance(value, str) else value
             # DuckDB는 ON CONFLICT를 다르게 처리
@@ -114,7 +114,7 @@ class MemoryStore:
                 "SELECT value FROM preferences WHERE key = ?",
                 (key,)
             ).fetchone()
-            
+
             if result:
                 value_str = result[0]
                 try:
@@ -164,7 +164,7 @@ class MemoryStore:
                 results = self.conn.execute(
                     "SELECT pattern_type, pattern_data, frequency FROM patterns"
                 ).fetchall()
-            
+
             patterns = []
             for row in results:
                 try:
@@ -215,7 +215,7 @@ class MemoryStore:
                 "AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)",
                 (context_key,)
             ).fetchone()
-            
+
             if result:
                 value_str = result[0]
                 try:
@@ -277,25 +277,24 @@ class MemoryStore:
 if __name__ == "__main__":
     # 테스트
     store = MemoryStore()
-    
+
     # Preference 저장
     store.store_preference("timezone", "Asia/Seoul", "system")
     store.store_preference("language", "ko", "system")
     store.store_preference("work_hours", "09:00-18:00", "behavior")
-    
+
     # Pattern 저장
     store.store_pattern("interaction_style", {
         "response_time": "fast",
         "verbosity": "medium"
     })
-    
+
     # 조회
     print("Timezone:", store.get_preference("timezone"))
     print("Patterns:", store.get_patterns())
-    
+
     # YAML로 내보내기
     store.export_to_yaml()
     print("✅ Exported to .autus/memory.yaml")
-    
-    store.close()
 
+    store.close()
