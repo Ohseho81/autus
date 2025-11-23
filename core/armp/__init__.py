@@ -14,6 +14,10 @@ from core.armp import risks_security_advanced  # noqa: F401
 from core.armp import risks_files_network  # noqa: F401
 from core.armp import risks_data_integrity  # noqa: F401
 from core.armp import risks_performance_advanced  # noqa: F401
+from core.armp import risks_api_external  # noqa: F401
+from core.armp import risks_data_management  # noqa: F401
+from core.armp import risks_performance_monitoring  # noqa: F401
+from core.armp import risks_protocol_compliance  # noqa: F401
 
 __all__ = [
     'enforcer',

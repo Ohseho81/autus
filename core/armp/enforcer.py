@@ -31,6 +31,7 @@ class RiskCategory(Enum):
     PERFORMANCE = "performance"
     COLLABORATION = "collaboration"
     OPERATIONS = "operations"
+    PROTOCOL = "protocol"
 
 
 @dataclass
