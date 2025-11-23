@@ -22,7 +22,7 @@ except ImportError:
 class DevPackRunner:
     """Development Pack 실행 엔진 (통합 버전)"""
 
-    def __init__(self, provider: str = "auto", api_key: str = None):
+    def __init__(self, provider: str = "auto", api_key: Optional[str] = None) -> None:
         """
         초기화
 
@@ -41,38 +41,29 @@ class DevPackRunner:
             if os.getenv("ANTHROPIC_API_KEY"):
                 self.provider = "anthropic"
             elif os.getenv("OPENAI_API_KEY"):
-                self.provider = "openai"
+                self.provider = "anthropic"
             else:
                 raise ValueError("API 키를 찾을 수 없습니다. ANTHROPIC_API_KEY 또는 OPENAI_API_KEY를 설정하세요.")
 
         # LLM 클라이언트 초기화
         self._init_client()
 
-    def _init_client(self):
-        """LLM 클라이언트 초기화"""
+    def _init_client(self) -> None:
+        """Initialize the appropriate LLM client"""
         if self.provider == "anthropic":
             try:
-                import anthropic
-                self.api_key = self.api_key or os.getenv("ANTHROPIC_API_KEY")
-                if not self.api_key:
-                    raise ValueError("ANTHROPIC_API_KEY 필요")
-                self.client = anthropic.Anthropic(api_key=self.api_key)
+                from anthropic import Anthropic
+                self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
             except ImportError:
                 raise ImportError("anthropic 패키지가 필요합니다: pip install anthropic")
-
         elif self.provider == "openai":
             try:
                 from openai import OpenAI
-                self.api_key = self.api_key or os.getenv("OPENAI_API_KEY")
-                if not self.api_key:
-                    raise ValueError("OPENAI_API_KEY 필요")
-                self.client = OpenAI(api_key=self.api_key)
+                self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             except ImportError:
                 raise ImportError("openai 패키지가 필요합니다: pip install openai")
-
         else:
-            raise ValueError(f"지원하지 않는 provider: {self.provider}")
-
+            raise ValueError(f"Unsupported provider: {self.provider}")
     def load_pack(self, pack_name: str) -> Dict[str, Any]:
         """
         Pack YAML 로드
@@ -97,7 +88,7 @@ class DevPackRunner:
         self,
         pack: Dict[str, Any],
         cell_name: str,
-        inputs: Dict[str, Any] = None
+        inputs: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Cell 실행 (LLM API 호출)

@@ -5,6 +5,7 @@ import sys
 import json
 import yaml
 from pathlib import Path
+from typing import Dict, Any, Optional
 
 # 프로젝트 루트를 sys.path에 추가
 ROOT = Path(__file__).resolve().parent.parent
@@ -36,7 +37,7 @@ except ImportError:
 # 동적 import로 경로 문제 해결
 import importlib.util
 
-def _load_module(module_path, module_name):
+def _load_module(module_path: Path, module_name: str) -> Optional[Any]:
     """모듈 동적 로드"""
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     if spec is None or spec.loader is None:
@@ -57,7 +58,7 @@ dsl = None
 if _dsl_path.exists():
     dsl = _load_module(_dsl_path, "dsl")
 
-def main():
+def main() -> None:
     """CLI 메인"""
 
     if len(sys.argv) < 2:

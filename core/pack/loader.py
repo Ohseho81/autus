@@ -24,7 +24,7 @@ except ImportError:
     PACKS_EXAMPLES_DIR = PACKS_DIR / "examples"
     PACKS_INTEGRATION_DIR = PACKS_DIR / "integration"
 
-    def get_pack_path(pack_name: str, category: str = None) -> Path:
+    def get_pack_path(pack_name: str, category: Optional[str] = None) -> Path:
         if category:
             return PACKS_DIR / category / f"{pack_name}.yaml"
         for cat_dir in [PACKS_DEVELOPMENT_DIR, PACKS_EXAMPLES_DIR, PACKS_INTEGRATION_DIR]:
@@ -33,10 +33,10 @@ except ImportError:
                 return pack_path
         raise FileNotFoundError(f"Pack 없음: {pack_name}")
 
-    def list_pack_dirs():
+    def list_pack_dirs() -> List[Path]:
         return [PACKS_DEVELOPMENT_DIR, PACKS_EXAMPLES_DIR, PACKS_INTEGRATION_DIR]
 
-def load_pack(pack_name: str, pack_dir: str = None):
+def load_pack(pack_name: str, pack_dir: Optional[str] = None) -> Dict[str, Any]:
     """Pack YAML 로드"""
     try:
         pack_path = get_pack_path(pack_name, pack_dir)
@@ -55,7 +55,7 @@ def load_pack(pack_name: str, pack_dir: str = None):
 
     return pack
 
-def list_packs():
+def list_packs() -> List[Dict[str, Any]]:
     """사용 가능한 Pack 목록"""
 
     packs = []
@@ -93,7 +93,7 @@ def list_packs():
 
     return packs
 
-def get_cell_from_pack(pack_name: str, cell_name: str):
+def get_cell_from_pack(pack_name: str, cell_name: str) -> Optional[Dict[str, Any]]:
     """Pack에서 특정 Cell 가져오기"""
     pack = load_pack(pack_name)
     cells = pack.get("cells", {})
