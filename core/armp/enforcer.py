@@ -8,9 +8,9 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Callable, Optional
 from datetime import datetime
-import logging
+from core.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class Severity(Enum):

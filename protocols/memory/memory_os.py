@@ -8,9 +8,9 @@ from typing import Any, Dict, Optional, List
 from protocols.memory.store import MemoryStore
 from protocols.memory.pii_validator import PIIValidator, PIIViolationError
 from protocols.memory.vector_search import VectorSearch
-import logging
+from core.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MemoryOS:

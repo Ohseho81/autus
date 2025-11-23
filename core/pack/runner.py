@@ -43,7 +43,7 @@ class DevPackRunner:
             elif os.getenv("OPENAI_API_KEY"):
                 self.provider = "anthropic"
             else:
-                raise ValueError("API 키를 찾을 수 없습니다. ANTHROPIC_API_KEY 또는 OPENAI_API_KEY를 설정하세요.")
+                raise LLMProviderError("API 키를 찾을 수 없습니다. ANTHROPIC_API_KEY 또는 OPENAI_API_KEY를 설정하세요.")
 
         # LLM 클라이언트 초기화
         self._init_client()
@@ -55,15 +55,15 @@ class DevPackRunner:
                 from anthropic import Anthropic
                 self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
             except ImportError:
-                raise ImportError("anthropic 패키지가 필요합니다: pip install anthropic")
+                raise LLMProviderError("anthropic 패키지가 필요합니다: pip install anthropic")
         elif self.provider == "openai":
             try:
                 from openai import OpenAI
                 self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             except ImportError:
-                raise ImportError("openai 패키지가 필요합니다: pip install openai")
+                raise LLMProviderError("openai 패키지가 필요합니다: pip install openai")
         else:
-            raise ValueError(f"Unsupported provider: {self.provider}")
+            raise LLMProviderError(f"Unsupported provider: {self.provider}")
     def load_pack(self, pack_name: str) -> Dict[str, Any]:
         """
         Pack YAML 로드
@@ -77,7 +77,7 @@ class DevPackRunner:
         pack_path = self.packs_dir / f"{pack_name}.yaml"
 
         if not pack_path.exists():
-            raise FileNotFoundError(f"Pack not found: {pack_name} at {pack_path}")
+            raise PackNotFoundError(f"Pack not found: {pack_name} at {pack_path}")
 
         with open(pack_path, 'r', encoding='utf-8') as f:
             pack = yaml.safe_load(f)

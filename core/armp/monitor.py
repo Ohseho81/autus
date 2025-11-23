@@ -7,9 +7,9 @@ ARMP Monitor
 import threading
 import time
 from datetime import datetime
-import logging
+from core.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ARMPMonitor:

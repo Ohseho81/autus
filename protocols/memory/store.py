@@ -14,6 +14,7 @@ from typing import Any, Dict, Optional, List
 from contextlib import contextmanager
 import yaml
 from protocols.memory.pii_validator import PIIValidator, PIIViolationError
+from core.utils.paths import ensure_dir
 
 
 class MemoryStore:
@@ -34,13 +35,13 @@ class MemoryStore:
             db_path (str): The path to the DuckDB database file.
         """
         # 디렉토리 생성
-        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        ensure_dir(Path(db_path).parent)
 
         try:
             self.conn = duckdb.connect(db_path)
             self._init_schema()
         except Exception as e:
-            raise Exception(f"Failed to connect to the database: {e}")
+            raise MemoryError(f"Failed to connect to the database: {e}") from e
 
     def _init_schema(self) -> None:
         """Initialize database schema if not exists."""

@@ -48,7 +48,7 @@ def load_pack(pack_name: str, pack_dir: Optional[str] = None) -> Dict[str, Any]:
             pack_path = PACKS_DIR / f"{pack_name}.yaml"
 
         if not pack_path.exists():
-            raise FileNotFoundError(f"Pack 없음: {pack_name}")
+            raise PackNotFoundError(f"Pack 없음: {pack_name}")
 
     with open(pack_path, 'r', encoding='utf-8') as f:
         pack = yaml.safe_load(f)
