@@ -44,8 +44,8 @@ class TestCompleteWorkflow:
     def test_identity_core_creation(self, identity_core):
         """Test IdentityCore creation from seed"""
         assert identity_core is not None
-        assert identity_core.get_core_hash() is not None
-        assert len(identity_core.get_core_hash()) == 64  # SHA256 hex digest
+        assert identity_core.seed_hash is not None
+        assert len(identity_core.seed_hash) == 64  # SHA256 hex digest
 
     def test_identity_surface_initialization(self, identity_core):
         """Test IdentitySurface initialization"""
@@ -59,31 +59,34 @@ class TestCompleteWorkflow:
 
     def test_behavioral_pattern_tracker_setup(self, identity_core):
         """Test BehavioralPatternTracker setup"""
+        # Ensure surface exists
+        if identity_core.surface is None:
+            from protocols.identity.surface import IdentitySurface
+            identity_core.surface = IdentitySurface(identity_core.seed_hash)
         tracker = BehavioralPatternTracker(identity_core)
         assert tracker is not None
-        assert tracker.identity_core == identity_core
-        assert tracker.surface is not None
+        assert tracker.identity == identity_core
+        assert tracker.identity.surface is not None
 
     def test_complete_workflow_sequence(self, identity_core):
         """Test complete workflow sequence"""
         # 1. Create identity
-        assert identity_core.get_core_hash() is not None
-
+        assert identity_core.seed_hash is not None
+        
         # 2. Create surface
-        surface = identity_core.create_surface()
+        if identity_core.surface is None:
+            from protocols.identity.surface import IdentitySurface
+            identity_core.surface = IdentitySurface(identity_core.seed_hash)
+        surface = identity_core.surface
         assert surface is not None
-
+        
         # 3. Create tracker
         tracker = BehavioralPatternTracker(identity_core)
         assert tracker is not None
-
+        
         # 4. Track patterns
-        tracker.track_workflow_completion("test_workflow", {
-            "nodes_executed": ["node1", "node2", "node3", "node4", "node5"],
-            "duration_seconds": 10.5,
-            "success": True
-        })
-
+        tracker.track_workflow_completion("test_workflow", ["node1"], 10.5, True)
+        
         # 5. Verify evolution
         assert surface.pattern_count >= 1
 
@@ -99,11 +102,7 @@ class TestSurfaceEvolution:
 
         # Track 100 patterns
         for i in range(100):
-            pattern_tracker.track_workflow_completion(f"workflow_{i}", {
-                "nodes_executed": [f"node_{i}"],
-                "duration_seconds": float(i + 1) * 10,
-                "success": True
-            })
+            pattern_tracker.track_workflow_completion(f"workflow_{i}", [f"node_{i}"], float(i + 1) * 10, True)
 
         # Verify evolution
         final_state = pattern_tracker.surface.get_state()
@@ -119,11 +118,7 @@ class TestSurfaceEvolution:
 
         # Track patterns and record states
         for i in range(50):
-            pattern_tracker.track_workflow_completion(f"wf_{i}", {
-                "nodes_executed": [f"node_{i}"],
-                "duration_seconds": 1.0,
-                "success": True
-            })
+            pattern_tracker.track_workflow_completion(f"wf_{i}", [f"node_{i}"], 1.0, True)
             states.append(pattern_tracker.surface.get_state())
 
         # Pattern count should increase consistently
@@ -187,7 +182,11 @@ class TestContextBasedIdentity:
     def test_context_identity_consistency(self, pattern_tracker):
         """Test that context identity is consistent"""
         # Get same context twice
-        surface = pattern_tracker.identity.get_surface()
+        surface = pattern_tracker.identity.surface
+        if surface is None:
+            from protocols.identity.surface import IdentitySurface
+            pattern_tracker.identity.surface = IdentitySurface(pattern_tracker.identity.seed_hash)
+            surface = pattern_tracker.identity.surface
         rep1 = surface.get_context_representation("work")
         rep2 = surface.get_context_representation("work")
 
@@ -198,18 +197,18 @@ class TestContextBasedIdentity:
     def test_context_identity_evolution(self, pattern_tracker):
         """Test that context identity evolves with patterns"""
         # Get initial context representation
-        surface = pattern_tracker.identity.get_surface()
+        surface = pattern_tracker.identity.surface
+        if surface is None:
+            from protocols.identity.surface import IdentitySurface
+            pattern_tracker.identity.surface = IdentitySurface(pattern_tracker.identity.seed_hash)
+            surface = pattern_tracker.identity.surface
         initial_rep = surface.get_context_representation("work")
         initial_pos = initial_rep['position']
-
+        
         # Track many patterns
         for i in range(100):
-            pattern_tracker.track_workflow_completion(f"work_{i}", {
-                "nodes_executed": [f"node_{i}"],
-                "duration_seconds": 1.0,
-                "success": True
-            })
-
+            pattern_tracker.track_workflow_completion(f"work_{i}", [f"node_{i}"], 1.0, True)
+        
         # Get updated context representation
         updated_rep = surface.get_context_representation("work")
         updated_pos = updated_rep['position']
@@ -242,11 +241,11 @@ class TestExportImportCycle:
         # Import
         imported = IdentityCore.from_dict(exported)
         assert imported is not None
-        assert imported.get_core_hash() == identity_core.get_core_hash()
-
+        assert imported.seed_hash == identity_core.seed_hash
+        
         # Surface should be restored
-        imported_surface = imported.get_surface()
-        original_surface = identity_core.get_surface()
+        imported_surface = imported.surface
+        original_surface = identity_core.surface
 
         if imported_surface and original_surface:
             assert imported_surface.pattern_count == original_surface.pattern_count
@@ -254,21 +253,24 @@ class TestExportImportCycle:
     def test_export_import_with_surface(self, identity_core):
         """Test export/import with surface data"""
         # Create surface and evolve
-        surface = identity_core.create_surface()
-
+        if identity_core.surface is None:
+            from protocols.identity.surface import IdentitySurface
+            identity_core.surface = IdentitySurface(identity_core.seed_hash)
+        surface = identity_core.surface
+        
         for i in range(20):
             identity_core.evolve_surface({
                 "type": "test_pattern",
                 "data": f"data_{i}"
             })
-
+        
         # Export
         exported = identity_core.export_to_dict()
         assert exported['surface'] is not None
-
+        
         # Import
         imported = IdentityCore.from_dict(exported)
-        imported_surface = imported.get_surface()
+        imported_surface = imported.surface
 
         assert imported_surface is not None
         assert imported_surface.pattern_count == surface.pattern_count
@@ -354,11 +356,7 @@ class TestWorkflowGraphIntegration:
         graph = WorkflowGraph(nodes, edges)
 
         # Track workflow pattern (using available method)
-        pattern_tracker.track_workflow_completion("test_workflow", {
-            "nodes_executed": ["process"],
-            "duration_seconds": 1.5,
-            "success": True
-        })
+        pattern_tracker.track_workflow_completion("test_workflow", ["process"], 1.5, True)
 
         # Verify tracking
         assert len(pattern_tracker.patterns) >= 1
@@ -366,11 +364,7 @@ class TestWorkflowGraphIntegration:
     def test_identity_with_workflow_completion(self, pattern_tracker):
         """Test identity tracking workflow completion"""
         # Track workflow completion
-        pattern_tracker.track_workflow_completion("test_workflow", {
-            "nodes_executed": ["node1", "node2", "node3", "node4", "node5"],
-            "duration_seconds": 10.5,
-            "success": True
-        })
+        pattern_tracker.track_workflow_completion("test_workflow", ["node1", "node2", "node3", "node4", "node5"], 10.5, True)
 
         # Verify tracking
         assert len(pattern_tracker.patterns) >= 1
@@ -396,12 +390,7 @@ class TestPatternTracking:
         pattern_tracker.track_preference_update("editor", "vscode", {"category": "tools"})
 
         # Track context switch (simulate with workflow)
-        pattern_tracker.track_workflow_completion("context_switch", {
-            "nodes_executed": [],
-            "duration_seconds": 0,
-            "success": True,
-            "context": {"from": "work", "to": "personal"}
-        })
+        pattern_tracker.track_context_switch("work", "personal")
 
         # Verify all tracked
         assert len(pattern_tracker.patterns) >= 3
@@ -433,11 +422,7 @@ class TestIdentityPersistence:
         tracker = BehavioralPatternTracker(identity_core)
 
         for i in range(30):
-            tracker.track_workflow_completion(f"wf_{i}", {
-                "nodes_executed": [f"node_{i}"],
-                "duration_seconds": 1.0,
-                "success": True
-            })
+            tracker.track_workflow_completion(f"wf_{i}", [f"node_{i}"], 1.0, True)
 
         # Export
         exported = identity_core.export_to_dict()
@@ -460,23 +445,19 @@ class TestIdentityPersistence:
         tracker = BehavioralPatternTracker(identity_core)
 
         for i in range(200):
-            tracker.track_workflow_completion(f"wf_{i}", {
-                "nodes_executed": [f"node_{i}"],
-                "duration_seconds": float(i + 1) * 10,
-                "success": True
-            })
-
+            tracker.track_workflow_completion(f"wf_{i}", [f"node_{i}"], float(i + 1) * 10, True)
+        
         # Export
         exported = identity_core.export_to_dict()
-
+        
         # Restore
         restored = IdentityCore.from_dict(exported)
-
+        
         # Verify
-        assert restored.get_core_hash() == identity_core.get_core_hash()
-
-        restored_surface = restored.get_surface()
-        original_surface = identity_core.get_surface()
+        assert restored.seed_hash == identity_core.seed_hash
+        
+        restored_surface = restored.surface
+        original_surface = identity_core.surface
 
         if restored_surface and original_surface:
             # Pattern count should match
@@ -502,11 +483,7 @@ class TestPerformance:
         # Track 100 patterns and measure time
         start = time.time()
         for i in range(100):
-            pattern_tracker.track_workflow_completion(f"wf_{i}", {
-                "nodes_executed": [f"node_{i}"],
-                "duration_seconds": 1.0,
-                "success": True
-            })
+            pattern_tracker.track_workflow_completion(f"wf_{i}", [f"node_{i}"], 1.0, True)
         duration = (time.time() - start) * 1000  # Convert to ms
 
         # Should be fast (< 1 second for 100 patterns)
@@ -521,7 +498,11 @@ class TestPerformance:
         import time
 
         # Get context representation multiple times
-        surface = pattern_tracker.identity.get_surface()
+        surface = pattern_tracker.identity.surface
+        if surface is None:
+            from protocols.identity.surface import IdentitySurface
+            pattern_tracker.identity.surface = IdentitySurface(pattern_tracker.identity.seed_hash)
+            surface = pattern_tracker.identity.surface
         start = time.time()
         for _ in range(100):
             surface.get_context_representation("work")

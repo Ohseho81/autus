@@ -585,9 +585,9 @@ class TestARMPIntegration:
         for _, r in all_risks:
             cat_value = r.category.value if hasattr(r.category, 'value') else r.category
             categories.add(cat_value)
-        expected_categories = {'security', 'api', 'data', 'performance', 'protocol', 'external', 
+        expected_categories = {'security', 'api', 'data', 'performance', 'protocol', 'external',
                               'SECURITY', 'API', 'DATA', 'PERFORMANCE', 'PROTOCOL', 'EXTERNAL'}
-        
+
         # At least some categories should be present
         assert len(categories) > 0, "No categories found"
         assert len(categories.intersection(expected_categories)) > 0, \
@@ -599,9 +599,9 @@ class TestARMPIntegration:
         for _, r in all_risks:
             sev_value = r.severity.value if hasattr(r.severity, 'value') else r.severity
             severities.add(sev_value)
-        expected_severities = {'critical', 'high', 'medium', 'low', 
+        expected_severities = {'critical', 'high', 'medium', 'low',
                                'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'}
-        
+
         # At least some severities should be present
         assert len(severities) > 0, "No severities found"
         assert len(severities.intersection(expected_severities)) > 0, \
