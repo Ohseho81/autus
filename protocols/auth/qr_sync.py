@@ -216,7 +216,18 @@ class DeviceSync:
         Returns:
             PIL Image with QR code
         """
-        identity_data = self.identity_core.export_to_dict()
+        # Export identity for QR sync
+        # IdentityCore only has export_for_sync() which returns base64 string
+        # We need to create a dict with the sync data
+        sync_data = self.identity_core.export_for_sync()
+        identity_data = {
+            'seed_hash': hashlib.sha256(self.identity_core.seed).hexdigest(),
+            'sync_data': sync_data,
+            'created_at': datetime.now().isoformat()
+        }
+        # If surface exists, include it
+        if hasattr(self.identity_core, 'surface') and self.identity_core.surface:
+            identity_data['surface'] = self.identity_core.surface.export_to_dict()
         return self.qr_generator.generate_identity_qr(identity_data, expiration_minutes)
 
     def sync_from_qr(self, qr_image_path: str) -> bool:

@@ -281,7 +281,10 @@ class AdvancedDeviceSync(DeviceSync):
             device_id: Device identifier (optional, uses hash if not provided)
         """
         super().__init__(identity_core)
-        self.device_id = device_id or identity_core.get_core_hash()[:16]
+        # Use seed hash for device ID
+        import hashlib
+        seed_hash = hashlib.sha256(identity_core.seed).hexdigest()
+        self.device_id = device_id or seed_hash[:16]
         self.conflict_resolver = SyncConflictResolver()
         self.sync_history = SyncHistory()
 
@@ -310,7 +313,20 @@ class AdvancedDeviceSync(DeviceSync):
 
         # Import identity
         try:
-            synced_identity = self.identity_core.from_dict(identity_data)
+            # IdentityCore uses import_from_sync() for base64 sync data
+            if 'sync_data' in identity_data:
+                synced_identity = IdentityCore.import_from_sync(identity_data['sync_data'])
+            else:
+                # Fallback: try to create from seed_hash if available
+                if 'seed_hash' in identity_data:
+                    synced_identity = IdentityCore(identity_data['seed_hash'].encode())
+                else:
+                    raise ValueError("No sync_data or seed_hash in identity_data")
+            
+            # Restore surface if present
+            if 'surface' in identity_data and identity_data.get('surface'):
+                from protocols.identity.surface import IdentitySurface
+                synced_identity.surface = IdentitySurface.from_dict(identity_data['surface'])
 
             sync_metadata = {
                 'source_pattern_count': synced_identity.surface.pattern_count if synced_identity.surface else 0,
