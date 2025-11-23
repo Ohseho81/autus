@@ -5,6 +5,7 @@ Common hashing operations
 """
 
 import hashlib
+from pathlib import Path
 from typing import Union, Optional
 
 
@@ -58,7 +59,6 @@ def hash_file(file_path: Union[str, Path], algorithm: str = "sha256") -> Optiona
         Hex digest or None if error
     """
     try:
-        from pathlib import Path
         path = Path(file_path)
         if not path.exists():
             return None
