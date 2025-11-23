@@ -426,6 +426,143 @@ pytest tests/protocols/identity/test_identity.py -v
 
 ---
 
-**Version**: 1.0.0
-**Status**: Production Ready
+## Advanced Usage Examples
+
+### Complete Workflow Integration
+
+```python
+from protocols.identity import IdentityCore, BehavioralPatternTracker
+from protocols.identity.pattern_tracker import WorkflowIntegration, MemoryIntegration
+
+# 1. Create identity
+identity = IdentityCore("my_device_id")
+tracker = BehavioralPatternTracker(identity)
+
+# 2. Track daily workflow
+tracker.track_workflow_completion(
+    workflow_id="daily_coding",
+    nodes_executed=["setup", "code", "test", "commit"],
+    duration_seconds=3600,
+    success=True,
+    context={"language": "python", "project": "autus"}
+)
+
+# 3. Track preferences
+tracker.track_preference_update(
+    preference_key="editor",
+    preference_value="vscode",
+    context={"category": "tools"}
+)
+
+# 4. Track context switches
+tracker.track_context_switch("work", "personal")
+
+# 5. Get context-specific identity
+work_identity = tracker.get_context_identity("work")
+print(f"Work position: {work_identity['position']}")
+
+# 6. Get pattern summary
+summary = tracker.get_pattern_summary()
+print(f"Total patterns: {summary['total_patterns']}")
+```
+
+### Multi-Context Identity
+
+```python
+from protocols.identity import IdentityCore
+
+identity = IdentityCore("user_device")
+identity.create_surface()
+
+# Get different representations for different contexts
+contexts = {
+    'work': identity.surface.get_context_representation('work'),
+    'personal': identity.surface.get_context_representation('personal'),
+    'creative': identity.surface.get_context_representation('creative')
+}
+
+for ctx_name, ctx_rep in contexts.items():
+    print(f"{ctx_name}: position={ctx_rep['position']}, radius={ctx_rep['radius']}")
+```
+
+### Identity Persistence
+
+```python
+from protocols.identity import IdentityCore, BehavioralPatternTracker
+
+# Create and evolve
+identity = IdentityCore("persistent_device")
+tracker = BehavioralPatternTracker(identity)
+
+# Track patterns
+for i in range(10):
+    tracker.track_workflow_completion(f"wf_{i}", [], float(i), True)
+
+# Export
+exported = identity.export_to_dict()
+
+# Save to file (example)
+import json
+with open('identity_backup.json', 'w') as f:
+    json.dump(exported, f, indent=2)
+
+# Restore later
+with open('identity_backup.json', 'r') as f:
+    data = json.load(f)
+    restored = IdentityCore.from_dict(data)
+
+assert restored.get_core_hash() == identity.get_core_hash()
+```
+
+### Identity Similarity
+
+```python
+from protocols.identity import IdentityCore
+
+# Create two identities
+identity1 = IdentityCore("user_a")
+identity2 = IdentityCore("user_b")
+
+surface1 = identity1.create_surface()
+surface2 = identity2.create_surface()
+
+# Calculate distance (similarity metric)
+distance = surface1.get_distance_to(surface2)
+print(f"Identity distance: {distance}")
+
+# Closer distance = more similar behavioral patterns
+```
+
+### Privacy Validation
+
+```python
+from protocols.identity import IdentityCore, BehavioralPatternTracker
+from protocols.memory.pii_validator import PIIViolationError
+
+identity = IdentityCore("safe_device")
+tracker = BehavioralPatternTracker(identity)
+
+# Safe pattern (no PII)
+tracker.track_workflow_completion(
+    workflow_id="safe_workflow",
+    nodes_executed=["node1"],
+    duration_seconds=100,
+    success=True,
+    context={"type": "coding"}  # Safe
+)
+
+# PII attempt (will be blocked)
+try:
+    tracker.track_preference_update(
+        preference_key="user_email",
+        preference_value="user@example.com"
+    )
+except PIIViolationError as e:
+    print(f"PII blocked: {e}")
+```
+
+---
+
+**Version**: 1.0.0  
+**Status**: Production Ready (100% Complete) ✅  
 **Last Updated**: 2024-11-23
