@@ -5,8 +5,13 @@ High-impact performance risks
 """
 
 from core.armp.enforcer import Risk, Severity, RiskCategory, enforcer
-import psutil
 import logging
+
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +47,10 @@ class MemoryLeakRisk(Risk):
     def detect(self) -> bool:
         """Detect memory leaks"""
         logger.info("🔍 Checking memory usage...")
+        
+        if not PSUTIL_AVAILABLE:
+            logger.warning("⚠️  psutil not available, skipping memory check")
+            return False
         
         process = psutil.Process()
         memory_mb = process.memory_info().rss / 1024 / 1024
@@ -101,6 +110,10 @@ class DiskSpaceRisk(Risk):
     def detect(self) -> bool:
         """Detect low disk space"""
         logger.info("🔍 Checking disk space...")
+        
+        if not PSUTIL_AVAILABLE:
+            logger.warning("⚠️  psutil not available, skipping disk check")
+            return False
         
         disk = psutil.disk_usage('/')
         usage_percent = disk.percent
