@@ -36,23 +36,23 @@ Identity is the root of surveillance capitalism. By eliminating identity at the 
 ## Article II: Privacy by Architecture
 
 ### Principle
-**Privacy is not a feature—it is the foundation.**
+**Privacy is not a featureâ€”it is the foundation.**
 
 ### Database Design
 **Prohibited Fields:**
-- ❌ `user_id`
-- ❌ `email`
-- ❌ `name`
-- ❌ `phone`
-- ❌ `address`
-- ❌ Any personally identifiable information
+- âŒ `user_id`
+- âŒ `email`
+- âŒ `name`
+- âŒ `phone`
+- âŒ `address`
+- âŒ Any personally identifiable information
 
 **Allowed Fields:**
-- ✅ Behavioral characteristics
-- ✅ Preference patterns
-- ✅ Workflow data
-- ✅ Anonymous metrics
-- ✅ Capability profiles
+- âœ… Behavioral characteristics
+- âœ… Preference patterns
+- âœ… Workflow data
+- âœ… Anonymous metrics
+- âœ… Capability profiles
 
 ### Data Storage
 - All personal data: Local device
@@ -81,9 +81,9 @@ Traditional systems add privacy features after building surveillance infrastruct
 ### Process
 ```
 User: "Add 3D Identity System"
-↓
-AUTUS: Architect → Code → Test → Deploy
-↓
+â†“
+AUTUS: Architect â†’ Code â†’ Test â†’ Deploy
+â†“
 Feature: Complete in minutes, not weeks
 ```
 
@@ -111,11 +111,11 @@ The only way to compete with billion-dollar companies is to eliminate developmen
 - Minimal orchestration
 
 **Everything Else (Packs):**
-- Identity system → Pack
-- Database → Pack
-- UI components → Pack
-- API integrations → Pack
-- Business logic → Pack
+- Identity system â†’ Pack
+- Database â†’ Pack
+- UI components â†’ Pack
+- API integrations â†’ Pack
+- Business logic â†’ Pack
 
 ### Pack Philosophy
 - Each Pack: Single responsibility
@@ -154,10 +154,10 @@ Monolithic systems die from their own weight. AUTUS stays alive by staying minim
 
 ### Network Effect
 ```
-1 company integrates → 0 value
-10 companies integrate → Small value
-1000 companies integrate → Companies must integrate
-10000 companies integrate → Standard achieved
+1 company integrates â†’ 0 value
+10 companies integrate â†’ Small value
+1000 companies integrate â†’ Companies must integrate
+10000 companies integrate â†’ Standard achieved
 ```
 
 ### Open Standard
@@ -216,7 +216,7 @@ But they cannot contradict the five fundamental principles.
 ## Philosophy
 
 ### The Air Monopoly
-AUTUS aims to be "공기같은 독점" (Air-like monopoly):
+AUTUS aims to be "ê³µê¸°ê°™ì€ ë…ì " (Air-like monopoly):
 - Everywhere
 - Essential
 - Invisible
@@ -255,9 +255,9 @@ Status: Immutable
 
 | Principle | Core Rule | Verification |
 |-----------|-----------|--------------|
-| **Zero Identity** | No login, no accounts | `grep -r "user_id\|email" → Must be empty` |
-| **Privacy by Architecture** | No PII in databases | `grep -r "CREATE TABLE.*email" → Must fail` |
+| **Zero Identity** | No login, no accounts | `grep -r "user_id\|email" â†’ Must be empty` |
+| **Privacy by Architecture** | No PII in databases | `grep -r "CREATE TABLE.*email" â†’ Must fail` |
 | **Meta-Circular** | AUTUS develops AUTUS | `./autus run dev_pipeline` must work |
-| **Minimal Core** | Core < 500 lines | `wc -l 01_core/*.py → Must be < 500` |
+| **Minimal Core** | Core < 500 lines | `wc -l 01_core/*.py â†’ Must be < 500` |
 | **Network Effect** | Standard protocol | `.autus.*` files must be readable by any implementation |
 

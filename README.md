@@ -7,7 +7,7 @@
 
 ---
 
-## 🎯 What is AUTUS?
+## ðŸŽ¯ What is AUTUS?
 
 AUTUS is not an app. **AUTUS is a protocol.**
 
@@ -15,7 +15,7 @@ Like HTTP for the web, AUTUS becomes the **standard protocol for personal AI aut
 
 ### The Vision
 ```
-"공기같은 독점"
+"ê³µê¸°ê°™ì€ ë…ì "
 (Air-like Monopoly)
 
 Everywhere
@@ -27,7 +27,7 @@ Impossible to replace
 
 ---
 
-## 🏛️ Constitution
+## ðŸ›ï¸ Constitution
 
 AUTUS is built on **5 Immutable Principles**:
 
@@ -59,35 +59,35 @@ AUTUS is built on **5 Immutable Principles**:
 - Companies must integrate AUTUS
 - Becomes the HTTP of personal AI
 
-[Read Full Constitution →](CONSTITUTION.md)
+[Read Full Constitution â†’](CONSTITUTION.md)
 
 ---
 
-## 🏗️ Architecture
+## ðŸ—ï¸ Architecture
 ```
 autus/
-├── core/              # Minimal Core Engine
-│   ├── engine/       # PER Loop (Plan-Execute-Review)
-│   ├── pack/         # Pack System
-│   └── llm/          # LLM Integration
-│
-├── protocols/         # AUTUS Protocols ⭐
-│   ├── workflow/     # Workflow Graph Standard
-│   ├── memory/       # Local Memory OS
-│   ├── identity/     # Zero Identity (3D Core)
-│   └── auth/         # Zero Auth Protocol
-│
-├── packs/            # Pack Ecosystem
-│   ├── development/  # Meta-Circular Dev Packs
-│   ├── integration/  # SaaS Connectors
-│   └── examples/     # Sample Packs
-│
-└── server/           # API Server
+â”œâ”€â”€ core/              # Minimal Core Engine
+â”‚   â”œâ”€â”€ engine/       # PER Loop (Plan-Execute-Review)
+â”‚   â”œâ”€â”€ pack/         # Pack System
+â”‚   â””â”€â”€ llm/          # LLM Integration
+â”‚
+â”œâ”€â”€ protocols/         # AUTUS Protocols â­
+â”‚   â”œâ”€â”€ workflow/     # Workflow Graph Standard
+â”‚   â”œâ”€â”€ memory/       # Local Memory OS
+â”‚   â”œâ”€â”€ identity/     # Zero Identity (3D Core)
+â”‚   â””â”€â”€ auth/         # Zero Auth Protocol
+â”‚
+â”œâ”€â”€ packs/            # Pack Ecosystem
+â”‚   â”œâ”€â”€ development/  # Meta-Circular Dev Packs
+â”‚   â”œâ”€â”€ integration/  # SaaS Connectors
+â”‚   â””â”€â”€ examples/     # Sample Packs
+â”‚
+â””â”€â”€ server/           # API Server
 ```
 
 ---
 
-## 🚀 Quick Start
+## ðŸš€ Quick Start
 
 ### Prerequisites
 
@@ -121,16 +121,16 @@ python core/pack/runner.py architect_pack \
 python core/pack/runner.py codegen_pack \
   '{"file_path": "protocols/identity/surface.py", "purpose": "Evolving identity surface"}'
 
-# Provider 선택 (기본: auto)
+# Provider ì„ íƒ (ê¸°ë³¸: auto)
 python core/pack/runner.py architect_pack \
   '{"feature_description": "..."}' --provider anthropic
 ```
 
-**AUTUS just developed AUTUS.** 🎉
+**AUTUS just developed AUTUS.** ðŸŽ‰
 
 ---
 
-## 🔌 Core Protocols
+## ðŸ”Œ Core Protocols
 
 ### 1. Workflow Graph Standard
 
@@ -174,16 +174,16 @@ QR-based device sync without accounts.
 
 ---
 
-## 📦 Development Packs
+## ðŸ“¦ Development Packs
 
 AUTUS includes **meta-circular development packs**:
 
 | Pack | Purpose | Status |
 |------|---------|--------|
-| `architect_pack` | Generate development plans | ✅ Working |
-| `codegen_pack` | Generate Python code | ✅ Working |
-| `testgen_pack` | Generate pytest tests | ✅ Working |
-| `pipeline_pack` | Orchestrate full workflow | ✅ Working |
+| `architect_pack` | Generate development plans | âœ… Working |
+| `codegen_pack` | Generate Python code | âœ… Working |
+| `testgen_pack` | Generate pytest tests | âœ… Working |
+| `pipeline_pack` | Orchestrate full workflow | âœ… Working |
 
 ### Example: Auto-Generate Feature
 ```bash
@@ -199,7 +199,7 @@ Output:
 
 ---
 
-## 🎯 Roadmap
+## ðŸŽ¯ Roadmap
 
 ### Phase 1: Protocol Foundation (Current)
 - [x] Constitution
@@ -221,7 +221,7 @@ Output:
 
 ---
 
-## 🤝 Contributing
+## ðŸ¤ Contributing
 
 AUTUS follows the **Constitution**. Any contribution that violates the 5 Principles will be rejected.
 
@@ -232,7 +232,7 @@ AUTUS follows the **Constitution**. Any contribution that violates the 5 Princip
 
 ---
 
-## 📖 Documentation
+## ðŸ“– Documentation
 
 - [Constitution](CONSTITUTION.md) - 5 Immutable Principles
 - [Protocols](docs/protocols/) - Technical Specs
@@ -241,7 +241,7 @@ AUTUS follows the **Constitution**. Any contribution that violates the 5 Princip
 
 ---
 
-## 🌟 Philosophy
+## ðŸŒŸ Philosophy
 
 ### Not Just Software
 
@@ -253,13 +253,13 @@ AUTUS is:
 ### The Meta-Circular Loop
 ```
 User Intent
-    ↓
+    â†“
 AUTUS analyzes
-    ↓
+    â†“
 Pack generates code
-    ↓
+    â†“
 Code becomes part of AUTUS
-    ↓
+    â†“
 AUTUS evolves
 ```
 
@@ -269,13 +269,13 @@ This is the future of software.
 
 ---
 
-## 📜 License
+## ðŸ“œ License
 
 MIT License - See [LICENSE](LICENSE) file
 
 ---
 
-## 🔗 Links
+## ðŸ”— Links
 
 - Website: [autus.ai](https://autus.ai) (Coming Soon)
 - Documentation: [docs.autus.ai](https://docs.autus.ai) (Coming Soon)
@@ -283,7 +283,7 @@ MIT License - See [LICENSE](LICENSE) file
 
 ---
 
-## 💬 Contact
+## ðŸ’¬ Contact
 
 - Issues: [GitHub Issues](https://github.com/yourusername/autus/issues)
 - Email: hello@autus.ai
@@ -292,70 +292,5 @@ MIT License - See [LICENSE](LICENSE) file
 
 <p align="center">
   <strong>AUTUS: The Protocol for Personal AI Operating Systems</strong><br>
-  Built with ❤️ following the Constitution
+  Built with â¤ï¸ following the Constitution
 </p>
-
----
-
-## 🛡️ ARMP: Risk Management
-
-AUTUS includes a comprehensive Risk Management Policy (ARMP).
-
-### Key Features
-
-- **Zero Trust Architecture**: Everything is verified
-- **Constitution Compliance**: Automatic enforcement of 5 principles
-- **Real-time Monitoring**: Continuous risk detection
-- **Automatic Response**: Instant mitigation and recovery
-
-### Usage
-
-```python
-from core.armp import enforcer, monitor
-
-# Start monitoring
-monitor.start()
-
-# Check status
-status = monitor.get_status()
-print(f"Risks monitored: {len(enforcer.risks)}")
-
-# Manual check
-violations = enforcer.detect_violations()
-if violations:
-    for risk in violations:
-        enforcer.respond_to(risk)
-```
-
-### CI/CD Integration
-
-ARMP automatically runs on every commit:
-
-1. PII Scanner
-2. Code Security Scanner
-3. Constitution Checker
-4. Security Scan (Bandit)
-5. Dependency Check (Safety)
-
-### Documentation
-
-See [ARMP.md](ARMP.md) for complete policy documentation.
-
----
-
-## 🧪 Prototype Demo (Week 0)
-
-### Quick Start
-```bash
-# Run the prototype demo
-./prototype_demo.sh
-```
-
-This is a **rapid prototype** to validate the core concept.
-Goal: Prove the "wow factor" in 4 minutes.
-
-### Feedback Collection
-
-After watching the demo, please fill out `feedback.md`
-
----

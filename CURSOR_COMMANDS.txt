@@ -1228,7 +1228,7 @@ Day 1: 테스트 생성
 
 □ Memory OS 통합 테스트
 
-□ Identity 통합 테스트  
+□ Identity 통합 테스트
 
 □ Auth 통합 테스트
 

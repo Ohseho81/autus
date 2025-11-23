@@ -69,26 +69,26 @@ import re
 try:
     with open('test_results.txt', 'r') as f:
         content = f.read()
-    
+
     # pytest 결과 파싱
     passed = len(re.findall(r'PASSED', content))
     failed = len(re.findall(r'FAILED', content))
     skipped = len(re.findall(r'SKIPPED', content))
     errors = len(re.findall(r'ERROR', content))
-    
+
     total = passed + failed + skipped + errors
-    
+
     print(f"총 테스트: {total}")
     print(f"✅ 통과: {passed}")
     print(f"❌ 실패: {failed}")
     print(f"⏭️  스킵: {skipped}")
     print(f"💥 에러: {errors}")
     print()
-    
+
     if total > 0:
         success_rate = (passed / total) * 100
         print(f"성공률: {success_rate:.1f}%")
-        
+
         if success_rate == 100:
             print("🎉 모든 테스트 통과!")
         elif success_rate >= 90:
@@ -97,7 +97,7 @@ try:
             print("⚠️  일부 테스트 실패")
         else:
             print("❗ 많은 테스트 실패 - 수정 필요")
-    
+
 except FileNotFoundError:
     print("테스트 결과 파일을 찾을 수 없습니다.")
 except Exception as e:
@@ -116,4 +116,3 @@ echo "open htmlcov/index.html (Mac)"
 echo "xdg-open htmlcov/index.html (Linux)"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-

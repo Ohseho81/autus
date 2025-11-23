@@ -206,11 +206,11 @@ def test_memory(memory_os):
 def test_no_pii_stored():
     """Ensure no PII is stored"""
     memory = MemoryOS()
-    
+
     # Try to store PII
     with pytest.raises(PIIViolationError):
         memory.set_preference("email", "user@example.com")
-    
+
     # Verify nothing stored
     assert memory.get_preference("email") is None
 ```
@@ -256,14 +256,14 @@ def set_preference_safe(key: str, value: Any):
     # Validate key
     if not key or not isinstance(key, str):
         raise ValueError("Invalid key")
-    
+
     # Validate value
     if value is None:
         raise ValueError("Value cannot be None")
-    
+
     # Check PII
     PIIValidator.validate(key, value)
-    
+
     # Store
     memory.set_preference(key, value)
 ```
@@ -276,18 +276,18 @@ def set_preference_safe(key: str, value: Any):
 def complex_function(param1: str, param2: int) -> Dict[str, Any]:
     """
     Complex function that does something important.
-    
+
     Args:
         param1: Description of param1
         param2: Description of param2
-    
+
     Returns:
         Dictionary with results
-    
+
     Raises:
         ValueError: If param1 is invalid
         TypeError: If param2 is wrong type
-    
+
     Example:
         >>> result = complex_function("test", 42)
         >>> print(result['status'])
@@ -388,4 +388,3 @@ json_str = graph.to_json()
 5. **Document APIs**: Help other developers
 6. **Follow ARMP**: Register risks, monitor
 7. **Keep It Simple**: Simple code is maintainable code
-

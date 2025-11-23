@@ -72,21 +72,21 @@ class TestCompleteWorkflow:
         """Test complete workflow sequence"""
         # 1. Create identity
         assert identity_core.seed_hash is not None
-        
+
         # 2. Create surface
         if identity_core.surface is None:
             from protocols.identity.surface import IdentitySurface
             identity_core.surface = IdentitySurface(identity_core.seed_hash)
         surface = identity_core.surface
         assert surface is not None
-        
+
         # 3. Create tracker
         tracker = BehavioralPatternTracker(identity_core)
         assert tracker is not None
-        
+
         # 4. Track patterns
         tracker.track_workflow_completion("test_workflow", ["node1"], 10.5, True)
-        
+
         # 5. Verify evolution
         assert surface.pattern_count >= 1
 
@@ -204,11 +204,11 @@ class TestContextBasedIdentity:
             surface = pattern_tracker.identity.surface
         initial_rep = surface.get_context_representation("work")
         initial_pos = initial_rep['position']
-        
+
         # Track many patterns
         for i in range(100):
             pattern_tracker.track_workflow_completion(f"work_{i}", [f"node_{i}"], 1.0, True)
-        
+
         # Get updated context representation
         updated_rep = surface.get_context_representation("work")
         updated_pos = updated_rep['position']
@@ -242,7 +242,7 @@ class TestExportImportCycle:
         imported = IdentityCore.from_dict(exported)
         assert imported is not None
         assert imported.seed_hash == identity_core.seed_hash
-        
+
         # Surface should be restored
         imported_surface = imported.surface
         original_surface = identity_core.surface
@@ -257,17 +257,17 @@ class TestExportImportCycle:
             from protocols.identity.surface import IdentitySurface
             identity_core.surface = IdentitySurface(identity_core.seed_hash)
         surface = identity_core.surface
-        
+
         for i in range(20):
             identity_core.evolve_surface({
                 "type": "test_pattern",
                 "data": f"data_{i}"
             })
-        
+
         # Export
         exported = identity_core.export_to_dict()
         assert exported['surface'] is not None
-        
+
         # Import
         imported = IdentityCore.from_dict(exported)
         imported_surface = imported.surface
@@ -446,16 +446,16 @@ class TestIdentityPersistence:
 
         for i in range(200):
             tracker.track_workflow_completion(f"wf_{i}", [f"node_{i}"], float(i + 1) * 10, True)
-        
+
         # Export
         exported = identity_core.export_to_dict()
-        
+
         # Restore
         restored = IdentityCore.from_dict(exported)
-        
+
         # Verify
         assert restored.seed_hash == identity_core.seed_hash
-        
+
         restored_surface = restored.surface
         original_surface = identity_core.surface
 

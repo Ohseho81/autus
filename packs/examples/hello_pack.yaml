@@ -1,0 +1,16 @@
+name: hello_pack
+version: 1.0.0
+description: Simple hello world pack
+
+cells:
+  - name: greet
+    prompt: "Say hello to the user in a creative way"
+    output: greeting
+  
+  - name: info
+    prompt: "Provide a fun fact about programming"
+    output: fact
+
+actions:
+  - type: log
+    message: "Hello pack executed successfully"

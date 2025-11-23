@@ -1,3 +1,14 @@
-#!/bin/bash
-cd ~/Desktop/autus
-python3 -m core.cli "$@"
+#!/usr/bin/env python3
+"""AUTUS - The Protocol for Personal AI Operating Systems"""
+
+import sys
+from pathlib import Path
+
+# Add project to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+# Run CLI
+from core.cli import main
+
+if __name__ == "__main__":
+    main()

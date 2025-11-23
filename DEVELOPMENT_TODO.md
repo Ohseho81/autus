@@ -1,13 +1,13 @@
 # 🎯 AUTUS 개발 TODO 리스트
 
-**생성일:** 2024-11-23  
+**생성일:** 2024-11-23
 **목적:** Cursor/VS Code로 개발할 필요가 있는 모든 작업 정리
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## 📊 현재 상태
 
-**완료율:** 85%  
+**완료율:** 85%
 **남은 작업:** 약 15%
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -17,9 +17,9 @@
 ### 1. 테스트 커버리지 개선
 
 #### 1.1 Edge Case 테스트 추가
-**파일:** `tests/protocols/*/test_edge_cases.py`  
-**우선순위:** HIGH  
-**예상 시간:** 2시간  
+**파일:** `tests/protocols/*/test_edge_cases.py`
+**우선순위:** HIGH
+**예상 시간:** 2시간
 **도구:** Cursor
 
 ```
@@ -32,9 +32,9 @@
 ```
 
 #### 1.2 통합 테스트 보완
-**파일:** `tests/integration/test_full_workflow.py`  
-**우선순위:** HIGH  
-**예상 시간:** 1.5시간  
+**파일:** `tests/integration/test_full_workflow.py`
+**우선순위:** HIGH
+**예상 시간:** 1.5시간
 **도구:** Cursor
 
 ```
@@ -48,9 +48,9 @@
 ### 2. 코드 품질 개선
 
 #### 2.1 Docstring 개선 (Google Style)
-**파일:** 모든 `.py` 파일  
-**우선순위:** HIGH  
-**예상 시간:** 3시간  
+**파일:** 모든 `.py` 파일
+**우선순위:** HIGH
+**예상 시간:** 3시간
 **도구:** Cursor
 
 ```
@@ -70,9 +70,9 @@
 - `core/armp/enforcer.py`
 
 #### 2.2 타입 힌트 보완
-**파일:** 일부 `.py` 파일  
-**우선순위:** HIGH  
-**예상 시간:** 1시간  
+**파일:** 일부 `.py` 파일
+**우선순위:** HIGH
+**예상 시간:** 1시간
 **도구:** Cursor
 
 ```
@@ -85,9 +85,9 @@
 ### 3. 에러 처리 강화
 
 #### 3.1 예외 메시지 개선
-**파일:** `core/exceptions.py` 및 사용처  
-**우선순위:** HIGH  
-**예상 시간:** 1시간  
+**파일:** `core/exceptions.py` 및 사용처
+**우선순위:** HIGH
+**예상 시간:** 1시간
 **도구:** Cursor
 
 ```
@@ -98,9 +98,9 @@
 ```
 
 #### 3.2 에러 복구 로직
-**파일:** 각 프로토콜 모듈  
-**우선순위:** HIGH  
-**예상 시간:** 2시간  
+**파일:** 각 프로토콜 모듈
+**우선순위:** HIGH
+**예상 시간:** 2시간
 **도구:** Cursor
 
 ```
@@ -117,9 +117,9 @@
 ### 4. 성능 최적화
 
 #### 4.1 벡터 검색 최적화
-**파일:** `protocols/memory/vector_search.py`  
-**우선순위:** MEDIUM  
-**예상 시간:** 2시간  
+**파일:** `protocols/memory/vector_search.py`
+**우선순위:** MEDIUM
+**예상 시간:** 2시간
 **도구:** Cursor
 
 ```
@@ -131,9 +131,9 @@
 ```
 
 #### 4.2 데이터베이스 쿼리 최적화
-**파일:** `protocols/memory/store.py`  
-**우선순위:** MEDIUM  
-**예상 시간:** 1.5시간  
+**파일:** `protocols/memory/store.py`
+**우선순위:** MEDIUM
+**예상 시간:** 1.5시간
 **도구:** Cursor
 
 ```
@@ -147,9 +147,9 @@
 ### 5. 기능 확장
 
 #### 5.1 Memory OS 기능 추가
-**파일:** `protocols/memory/memory_os.py`  
-**우선순위:** MEDIUM  
-**예상 시간:** 2시간  
+**파일:** `protocols/memory/memory_os.py`
+**우선순위:** MEDIUM
+**예상 시간:** 2시간
 **도구:** Cursor
 
 ```
@@ -161,9 +161,9 @@
 ```
 
 #### 5.2 Identity Surface 시각화
-**파일:** `protocols/identity/visualizer.py` (신규)  
-**우선순위:** MEDIUM  
-**예상 시간:** 3시간  
+**파일:** `protocols/identity/visualizer.py` (신규)
+**우선순위:** MEDIUM
+**예상 시간:** 3시간
 **도구:** Cursor
 
 ```
@@ -175,9 +175,9 @@
 ```
 
 #### 5.3 Workflow 실행 엔진
-**파일:** `protocols/workflow/executor.py` (신규)  
-**우선순위:** MEDIUM  
-**예상 시간:** 4시간  
+**파일:** `protocols/workflow/executor.py` (신규)
+**우선순위:** MEDIUM
+**예상 시간:** 4시간
 **도구:** Cursor
 
 ```
@@ -192,9 +192,9 @@ Workflow 실행 엔진:
 ### 6. ARMP 강화
 
 #### 6.1 리스크 상관관계 분석
-**파일:** `core/armp/correlation.py` (신규)  
-**우선순위:** MEDIUM  
-**예상 시간:** 2시간  
+**파일:** `core/armp/correlation.py` (신규)
+**우선순위:** MEDIUM
+**예상 시간:** 2시간
 **도구:** Cursor
 
 ```
@@ -205,9 +205,9 @@ Workflow 실행 엔진:
 ```
 
 #### 6.2 ARMP 대시보드
-**파일:** `core/armp/dashboard.py` (신규)  
-**우선순위:** MEDIUM  
-**예상 시간:** 3시간  
+**파일:** `core/armp/dashboard.py` (신규)
+**우선순위:** MEDIUM
+**예상 시간:** 3시간
 **도구:** Cursor
 
 ```
@@ -225,9 +225,9 @@ CLI 기반 대시보드:
 ### 7. 유틸리티 확장
 
 #### 7.1 Configuration Manager
-**파일:** `core/config/manager.py` (신규)  
-**우선순위:** LOW  
-**예상 시간:** 2시간  
+**파일:** `core/config/manager.py` (신규)
+**우선순위:** LOW
+**예상 시간:** 2시간
 **도구:** Cursor
 
 ```
@@ -239,9 +239,9 @@ CLI 기반 대시보드:
 ```
 
 #### 7.2 Cache Manager
-**파일:** `core/cache/manager.py` (신규)  
-**우선순위:** LOW  
-**예상 시간:** 2시간  
+**파일:** `core/cache/manager.py` (신규)
+**우선순위:** LOW
+**예상 시간:** 2시간
 **도구:** Cursor
 
 ```
@@ -253,9 +253,9 @@ CLI 기반 대시보드:
 ```
 
 #### 7.3 Event System
-**파일:** `core/events/system.py` (신규)  
-**우선순위:** LOW  
-**예상 시간:** 2시간  
+**파일:** `core/events/system.py` (신규)
+**우선순위:** LOW
+**예상 시간:** 2시간
 **도구:** Cursor
 
 ```
@@ -269,9 +269,9 @@ CLI 기반 대시보드:
 ### 8. 문서화
 
 #### 8.1 Architecture Guide
-**파일:** `docs/guides/architecture.md`  
-**우선순위:** LOW  
-**예상 시간:** 2시간  
+**파일:** `docs/guides/architecture.md`
+**우선순위:** LOW
+**예상 시간:** 2시간
 **도구:** Cursor
 
 ```
@@ -283,9 +283,9 @@ CLI 기반 대시보드:
 ```
 
 #### 8.2 CHANGELOG 생성
-**파일:** `CHANGELOG.md`  
-**우선순위:** LOW  
-**예상 시간:** 1시간  
+**파일:** `CHANGELOG.md`
+**우선순위:** LOW
+**예상 시간:** 1시간
 **도구:** Cursor
 
 ```
@@ -296,9 +296,9 @@ Git 커밋에서 CHANGELOG 자동 생성:
 ```
 
 #### 8.3 API Coverage Report
-**파일:** `docs/api_coverage.md`  
-**우선순위:** LOW  
-**예상 시간:** 1시간  
+**파일:** `docs/api_coverage.md`
+**우선순위:** LOW
+**예상 시간:** 1시간
 **도구:** Cursor
 
 ```
@@ -312,9 +312,9 @@ API 커버리지 리포트:
 ### 9. 개발 도구
 
 #### 9.1 개발 스크립트
-**파일:** `tools/dev_*.py`  
-**우선순위:** LOW  
-**예상 시간:** 1시간  
+**파일:** `tools/dev_*.py`
+**우선순위:** LOW
+**예상 시간:** 1시간
 **도구:** Cursor
 
 ```
@@ -326,9 +326,9 @@ API 커버리지 리포트:
 ```
 
 #### 9.2 Pre-commit Hooks
-**파일:** `.pre-commit-config.yaml`  
-**우선순위:** LOW  
-**예상 시간:** 30분  
+**파일:** `.pre-commit-config.yaml`
+**우선순위:** LOW
+**예상 시간:** 30분
 **도구:** Cursor
 
 ```
@@ -426,4 +426,3 @@ Pre-commit hooks:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 **마지막 업데이트:** 2024-11-23
-

@@ -267,11 +267,11 @@ for risk in violations:
 # Check safe mode
 if enforcer.safe_mode:
     print("In safe mode")
-    
+
     # Check incidents
     critical = [i for i in enforcer.incidents if i.get('severity') == 'critical']
     print(f"Critical incidents: {len(critical)}")
-    
+
     # Resolve and exit (if safe)
     # enforcer.safe_mode = False  # Only if resolved
 ```
@@ -436,4 +436,3 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Now all operations will log details
 ```
-

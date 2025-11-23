@@ -41,7 +41,7 @@ def evolved_identity():
     if identity.surface is None:
         from protocols.identity.surface import IdentitySurface
         identity.surface = IdentitySurface(identity.seed_hash)
-    
+
     # Evolve surface with patterns
     for i in range(50):
         identity.evolve_surface({
@@ -49,7 +49,7 @@ def evolved_identity():
             "data": f"pattern_{i}",
             "timestamp": datetime.now().isoformat()
         })
-    
+
     return identity
 
 
@@ -135,7 +135,7 @@ class TestCompleteQRSyncWorkflow:
             if scanned_data:
                 assert scanned_data.get('seed_hash') == identity_data.get('seed_hash')
                 assert scanned_data.get('created_at') == identity_data.get('created_at')
-                
+
                 # Verify surface if exists
                 if identity_data.get('surface'):
                     assert scanned_data.get('surface') is not None
@@ -370,9 +370,9 @@ class TestConflictResolution:
         radius2 = 2.0
         pattern_count1 = 10
         pattern_count2 = 20
-        
+
         resolved = SyncConflictResolver.resolve_radius_conflict(radius1, radius2, pattern_count1, pattern_count2)
-        
+
         # Should take max
         assert resolved == 2.0
 
@@ -442,7 +442,7 @@ class TestSyncHistory:
             history.record_sync("device_001", "device_002", "push", True)
             history.record_sync("device_002", "device_003", "pull", True)
             history.record_sync("device_001", "device_003", "merge", False)
-            
+
             # Verify
             summary = history.get_sync_summary()
             assert summary['total_syncs'] == 3
@@ -484,7 +484,7 @@ class TestSyncHistory:
             history.record_sync("device_001", "device_002", "push", True)
             history.record_sync("device_001", "device_003", "pull", True)
             history.record_sync("device_002", "device_003", "merge", True)
-            
+
             # Get device-specific syncs
             device_syncs = history.get_device_syncs("device_001")
             assert len(device_syncs) >= 2
@@ -501,10 +501,10 @@ class TestSyncHistory:
 
             # Record syncs
             history.record_sync("device_001", "device_002", "push", True)
-            
+
             # Verify file exists
             assert history_path.exists()
-            
+
             # Verify content
             import json
             with open(history_path, 'r') as f:

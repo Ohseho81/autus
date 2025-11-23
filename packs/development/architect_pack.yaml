@@ -1,36 +1,39 @@
-author: AUTUS
-cells:
-- name: analyze_feature
-  output: analysis
-  prompt: 'Analyze this feature: {feature_description}
+name: architect_pack
+version: 1.0.0
+description: Analyzes features and generates development plans
 
-    Output JSON with feature_name, complexity, dependencies, new_modules, estimated_files.
-
-    '
-- input: analysis
-  name: create_file_plan
-  output: file_plan
-  prompt: 'Create file plan from: {analysis}
-
-    Output JSON with file details.
-
-    '
-- input: file_plan
-  name: create_implementation_order
-  output: implementation_plan
-  prompt: 'Create implementation order from: {file_plan}
-
-    Output JSON with phases.
-
-    '
-description: Pack
-llm:
-  max_tokens: 4096
-  model: gpt-4-turbo-preview
-  provider: anthropic
-  temperature: 0.3
 metadata:
   category: development
   requires_llm: true
-name: dev_architect
-version: 1.0.0
+
+cells:
+  - name: analyze_feature
+    prompt: |
+      Analyze this feature request: {feature_description}
+      
+      Provide:
+      1. Feature breakdown
+      2. Required components
+      3. Implementation complexity
+      
+      Be concise and practical.
+    output: feature_analysis
+
+  - name: create_plan
+    prompt: |
+      Based on: {feature_analysis}
+      
+      Create a development plan with:
+      - File structure
+      - Implementation phases
+      - Key functions
+    input: feature_analysis
+    output: development_plan
+
+actions:
+  - type: write_file
+    path: outputs/plan_{feature_description}.txt
+    content: |
+      Feature: {feature_description}
+      Analysis: {feature_analysis}
+      Plan: {development_plan}
