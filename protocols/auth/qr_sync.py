@@ -247,7 +247,20 @@ class DeviceSync:
 
         # Import identity
         try:
-            synced_identity = self.identity_core.from_dict(identity_data)
+            # IdentityCore uses import_from_sync() for base64 sync data
+            if 'sync_data' in identity_data:
+                synced_identity = IdentityCore.import_from_sync(identity_data['sync_data'])
+            else:
+                # Fallback: try to create from seed_hash if available
+                if 'seed_hash' in identity_data:
+                    synced_identity = IdentityCore(identity_data['seed_hash'].encode())
+                else:
+                    raise ValueError("No sync_data or seed_hash in identity_data")
+            
+            # Restore surface if present
+            if 'surface' in identity_data and identity_data.get('surface'):
+                from protocols.identity.surface import IdentitySurface
+                synced_identity.surface = IdentitySurface.from_dict(identity_data['surface'])
 
             # Merge surfaces if both exist
             if synced_identity.surface and self.identity_core.surface:
@@ -289,7 +302,20 @@ class DeviceSync:
 
         # Import identity
         try:
-            synced_identity = self.identity_core.from_dict(identity_data)
+            # IdentityCore uses import_from_sync() for base64 sync data
+            if 'sync_data' in identity_data:
+                synced_identity = IdentityCore.import_from_sync(identity_data['sync_data'])
+            else:
+                # Fallback: try to create from seed_hash if available
+                if 'seed_hash' in identity_data:
+                    synced_identity = IdentityCore(identity_data['seed_hash'].encode())
+                else:
+                    raise ValueError("No sync_data or seed_hash in identity_data")
+            
+            # Restore surface if present
+            if 'surface' in identity_data and identity_data.get('surface'):
+                from protocols.identity.surface import IdentitySurface
+                synced_identity.surface = IdentitySurface.from_dict(identity_data['surface'])
 
             # Merge surfaces if both exist
             if synced_identity.surface and self.identity_core.surface:
