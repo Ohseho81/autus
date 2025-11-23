@@ -20,9 +20,9 @@ class TestWorkflowGraph:
         edges = [
             {'source': '1', 'target': '2', 'type': 'sequence'}
         ]
-        
+
         graph = WorkflowGraph(nodes, edges)
-        
+
         assert graph.nodes == nodes
         assert graph.edges == edges
         assert len(graph.nodes) == 2
@@ -37,7 +37,7 @@ class TestWorkflowGraph:
         edges = [
             {'source': '1', 'target': '2', 'type': 'sequence'}
         ]
-        
+
         graph = WorkflowGraph(nodes, edges)
         assert graph.validate() is True
 
@@ -50,7 +50,7 @@ class TestWorkflowGraph:
         edges = [
             {'source': '1', 'target': '2', 'type': 'sequence'}
         ]
-        
+
         graph = WorkflowGraph(nodes, edges)
         assert graph.validate() is False
 
@@ -63,7 +63,7 @@ class TestWorkflowGraph:
         edges = [
             {'source': '1', 'target': '2', 'type': 'sequence'}
         ]
-        
+
         graph = WorkflowGraph(nodes, edges)
         assert graph.validate() is False
 
@@ -76,7 +76,7 @@ class TestWorkflowGraph:
         edges = [
             {'target': '2', 'type': 'sequence'}  # Missing 'source'
         ]
-        
+
         graph = WorkflowGraph(nodes, edges)
         assert graph.validate() is False
 
@@ -89,7 +89,7 @@ class TestWorkflowGraph:
         edges = [
             {'source': '1', 'type': 'sequence'}  # Missing 'target'
         ]
-        
+
         graph = WorkflowGraph(nodes, edges)
         assert graph.validate() is False
 
@@ -102,10 +102,10 @@ class TestWorkflowGraph:
         edges = [
             {'source': '1', 'target': '2', 'type': 'sequence'}
         ]
-        
+
         graph = WorkflowGraph(nodes, edges)
         json_str = graph.to_json()
-        
+
         assert isinstance(json_str, str)
         data = json.loads(json_str)
         assert 'nodes' in data
@@ -125,9 +125,9 @@ class TestWorkflowGraph:
             ]
         }
         json_str = json.dumps(json_data)
-        
+
         graph = WorkflowGraph.from_json(json_str)
-        
+
         assert isinstance(graph, WorkflowGraph)
         assert len(graph.nodes) == 2
         assert len(graph.edges) == 1
@@ -145,11 +145,11 @@ class TestWorkflowGraph:
             {'source': '1', 'target': '2', 'type': 'sequence'},
             {'source': '2', 'target': '3', 'type': 'conditional'}
         ]
-        
+
         original_graph = WorkflowGraph(nodes, edges)
         json_str = original_graph.to_json()
         restored_graph = WorkflowGraph.from_json(json_str)
-        
+
         assert len(restored_graph.nodes) == len(original_graph.nodes)
         assert len(restored_graph.edges) == len(original_graph.edges)
         assert restored_graph.nodes[0]['id'] == original_graph.nodes[0]['id']
@@ -158,7 +158,7 @@ class TestWorkflowGraph:
     def test_empty_graph(self):
         """Test WorkflowGraph with empty nodes and edges"""
         graph = WorkflowGraph([], [])
-        
+
         assert graph.nodes == []
         assert graph.edges == []
         assert graph.validate() is True  # Empty graph is valid
@@ -178,13 +178,13 @@ class TestWorkflowGraph:
             {'source': '3', 'target': '4', 'type': 'if_true'},
             {'source': '3', 'target': '5', 'type': 'if_false'}
         ]
-        
+
         graph = WorkflowGraph(nodes, edges)
-        
+
         assert graph.validate() is True
         assert len(graph.nodes) == 5
         assert len(graph.edges) == 4
-        
+
         json_str = graph.to_json()
         restored = WorkflowGraph.from_json(json_str)
         assert len(restored.nodes) == 5
@@ -193,4 +193,3 @@ class TestWorkflowGraph:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

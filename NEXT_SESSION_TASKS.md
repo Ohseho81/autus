@@ -1,6 +1,6 @@
 # 다음 세션 작업 (프로젝트 방에서)
 
-> 작성일: 2024-11-22  
+> 작성일: 2024-11-22
 > 목표: Workflow Graph 완성 및 Local Memory OS 시작
 
 ---
@@ -304,6 +304,5 @@ Week: <날짜>
 
 ---
 
-*Last Updated: 2024-11-22*  
+*Last Updated: 2024-11-22*
 *Next Session: Workflow Graph Completion*
-

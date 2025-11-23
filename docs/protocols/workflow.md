@@ -196,6 +196,5 @@ pytest tests/protocols/workflow/test_workflow.py --cov=protocols/workflow
 
 ---
 
-*Last Updated: 2024-11-22*  
+*Last Updated: 2024-11-22*
 *Version: 1.0.0*
-

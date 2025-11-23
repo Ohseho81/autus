@@ -1,6 +1,6 @@
 # AUTUS Local Memory OS Protocol
 
-> **Article II: Privacy by Architecture**  
+> **Article II: Privacy by Architecture**
 > 모든 개인 데이터는 로컬 디바이스에만 저장됩니다. 서버 동기화 없음. GDPR 자동 준수.
 
 ---
@@ -486,7 +486,6 @@ AUTUS Protocol은 오픈 소스 프로토콜입니다. 자유롭게 사용하고
 
 ---
 
-**Last Updated**: 2024-11-22  
-**Version**: 0.5.0  
+**Last Updated**: 2024-11-22
+**Version**: 0.5.0
 **Status**: ✅ Core Complete (50%)
-

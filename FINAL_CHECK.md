@@ -175,7 +175,6 @@ e8eae54 feat: AUTUS Workflow Graph Standard protocol
 
 ---
 
-*Last Updated: 2024-11-22*  
-*Version: v0.35.0*  
+*Last Updated: 2024-11-22*
+*Version: v0.35.0*
 *Next: Workflow Graph Protocol Completion*
-

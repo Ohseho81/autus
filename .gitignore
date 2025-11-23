@@ -41,7 +41,11 @@ cache/**/*.json
 
 # Environment
 .env
-.env.local
+.env.*
+!.env.example
+.env.development
+.env.production
+.env.test
 
 # Temporary files
 tmp/
@@ -64,6 +68,27 @@ docs/_build/
 # Cloud data (if sensitive)
 cloud/data/*.json
 !cloud/data/.gitkeep
+
+# Data & Database
+.autus/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.db.backup
+
+# Backups & Checkpoints
+.autus/backups/
+.autus/checkpoints/
+*.backup
+
+# Cache
+.mypy_cache/
+.ruff_cache/
+
+# Logs
+*.log
+logs/
 
 # AutusGalaxyVision build artifacts
 AutusGalaxyVision/.build/

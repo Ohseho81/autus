@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 from typing import Dict, Any
 from openai import OpenAI
+from core.llm.retry import retry_with_backoff
+from core.llm.cost_tracker import get_cost_tracker, CostLimitExceeded
 
 class DevPackRunner:
     """Development Pack 실행 엔진 (OpenAI)"""
@@ -19,6 +21,7 @@ class DevPackRunner:
         
         self.client = OpenAI(api_key=self.api_key)
         self.packs_dir = Path("packs/development")
+        self.cost_tracker = get_cost_tracker()
     
     def load_pack(self, pack_name: str) -> Dict[str, Any]:
         pack_path = self.packs_dir / f"{pack_name}.yaml"
@@ -54,6 +57,18 @@ class DevPackRunner:
         
         print(f"🤖 Calling OpenAI GPT-4 for cell: {cell_name}")
         
+        # Rate limit 재시도와 비용 추적이 포함된 호출
+        response = self._call_with_retry_and_tracking(prompt)
+        
+        result = response.choices[0].message.content
+        
+        print(f"✅ Cell completed: {cell_name}")
+        
+        return result
+    
+    @retry_with_backoff(max_retries=5, base_delay=60, max_delay=300)
+    def _call_with_retry_and_tracking(self, prompt: str):
+        """재시도 로직과 비용 추적이 포함된 API 호출"""
         response = self.client.chat.completions.create(
             model="gpt-4",
             messages=[
@@ -66,11 +81,19 @@ class DevPackRunner:
             max_tokens=4000
         )
         
-        result = response.choices[0].message.content
+        # 비용 추적
+        try:
+            cost = self.cost_tracker.track(
+                model="gpt-4",
+                input_tokens=response.usage.prompt_tokens,
+                output_tokens=response.usage.completion_tokens
+            )
+            print(f"💰 Cost: ${cost:.4f} (Daily: ${self.cost_tracker.get_daily_cost():.2f})")
+        except CostLimitExceeded as e:
+            print(f"⚠️ {e}")
+            raise
         
-        print(f"✅ Cell completed: {cell_name}")
-        
-        return result
+        return response
     
     def execute_pack(
         self, 

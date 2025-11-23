@@ -11,7 +11,9 @@ import duckdb
 import json
 from pathlib import Path
 from typing import Any, Dict, Optional, List
+from contextlib import contextmanager
 import yaml
+from protocols.memory.pii_validator import PIIValidator, PIIViolationError
 
 
 class MemoryStore:
@@ -75,6 +77,25 @@ class MemoryStore:
             )
         """)
 
+    @contextmanager
+    def transaction(self):
+        """
+        트랜잭션 컨텍스트 매니저
+        
+        사용 예:
+            with store.transaction():
+                store.store_preference("key1", "value1")
+                store.store_preference("key2", "value2")
+        """
+        try:
+            yield self
+            # DuckDB는 자동 커밋이지만 명시적으로 커밋
+            self.conn.execute("COMMIT")
+        except Exception as e:
+            # 롤백 (DuckDB는 자동 롤백)
+            self.conn.execute("ROLLBACK")
+            raise
+
     def store_preference(self, key: str, value: Any, category: str = "general") -> None:
         """
         Store a preference (non-PII only).
@@ -83,11 +104,12 @@ class MemoryStore:
             key (str): The preference key (e.g., 'timezone', 'language')
             value (Any): The preference value (will be JSON serialized)
             category (str): Category of preference (e.g., 'ui', 'behavior')
+        
+        Raises:
+            PIIViolationError: PII가 감지된 경우
         """
-        # PII 검증 (간단한 체크)
-        pii_keywords = ['email', 'name', 'phone', 'address', 'user_id', 'id']
-        if any(pii in key.lower() for pii in pii_keywords):
-            raise ValueError(f"PII storage prohibited: '{key}' contains PII keyword")
+        # 강화된 PII 검증
+        PIIValidator.validate(key, value)
 
         try:
             value_str = json.dumps(value) if not isinstance(value, str) else value
@@ -96,6 +118,8 @@ class MemoryStore:
                 "INSERT OR REPLACE INTO preferences (key, value, category, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
                 (key, value_str, category)
             )
+        except PIIViolationError:
+            raise
         except Exception as e:
             raise Exception(f"Failed to store preference: {e}")
 

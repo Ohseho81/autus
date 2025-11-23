@@ -238,7 +238,6 @@ PROTOCOLS_DIR = PROJECT_ROOT / "protocols"
 
 ---
 
-*Last Updated: 2024-11-22*  
-*Status: Immutable*  
+*Last Updated: 2024-11-22*
+*Status: Immutable*
 *Version: 1.0.0*
-

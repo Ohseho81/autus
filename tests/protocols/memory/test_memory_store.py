@@ -44,7 +44,7 @@ class TestMemoryStore:
     def test_init_creates_schema(self, temp_db):
         """Test that schema is created on initialization"""
         store = MemoryStore(db_path=temp_db)
-        
+
         # Check if tables exist by trying to query them
         try:
             store.conn.execute("SELECT * FROM preferences LIMIT 1")
@@ -53,15 +53,15 @@ class TestMemoryStore:
             schema_created = True
         except Exception:
             schema_created = False
-        
+
         assert schema_created is True
-        
+
         store.close()
 
     def test_store_preference(self, store):
         """Test storing a preference"""
         store.store_preference("timezone", "Asia/Seoul", "system")
-        
+
         result = store.get_preference("timezone")
         assert result == "Asia/Seoul"
 
@@ -69,10 +69,10 @@ class TestMemoryStore:
         """Test storing preference with category"""
         store.store_preference("language", "ko", "system")
         store.store_preference("work_hours", "09:00-18:00", "behavior")
-        
+
         timezone = store.get_preference("timezone")
         work_hours = store.get_preference("work_hours")
-        
+
         # timezone는 없으므로 None
         assert timezone is None
         assert work_hours == "09:00-18:00"
@@ -82,11 +82,11 @@ class TestMemoryStore:
         # email 키워드 차단
         with pytest.raises(ValueError, match="PII storage prohibited"):
             store.store_preference("email", "test@example.com", "contact")
-        
+
         # name 키워드 차단
         with pytest.raises(ValueError, match="PII storage prohibited"):
             store.store_preference("user_name", "John Doe", "profile")
-        
+
         # user_id 키워드 차단
         with pytest.raises(ValueError, match="PII storage prohibited"):
             store.store_preference("user_id", "12345", "system")
@@ -99,7 +99,7 @@ class TestMemoryStore:
             "notifications": True
         }
         store.store_preference("ui_settings", complex_value, "ui")
-        
+
         result = store.get_preference("ui_settings")
         assert result == complex_value
         assert result["theme"] == "dark"
@@ -116,7 +116,7 @@ class TestMemoryStore:
             "verbosity": "medium"
         }
         store.store_pattern("interaction_style", pattern_data)
-        
+
         patterns = store.get_patterns("interaction_style")
         assert len(patterns) == 1
         assert patterns[0]["type"] == "interaction_style"
@@ -127,7 +127,7 @@ class TestMemoryStore:
         pattern_data = {"test": "data"}
         store.store_pattern("test_pattern", pattern_data)
         store.store_pattern("test_pattern", pattern_data)
-        
+
         patterns = store.get_patterns("test_pattern")
         assert len(patterns) == 1
         # Frequency는 내부적으로 증가하지만 조회 시 확인 필요
@@ -136,7 +136,7 @@ class TestMemoryStore:
         """Test retrieving all patterns"""
         store.store_pattern("pattern1", {"data": 1})
         store.store_pattern("pattern2", {"data": 2})
-        
+
         all_patterns = store.get_patterns()
         assert len(all_patterns) == 2
         pattern_types = [p["type"] for p in all_patterns]
@@ -147,7 +147,7 @@ class TestMemoryStore:
         """Test retrieving patterns filtered by type"""
         store.store_pattern("work_hours", {"start": "09:00"})
         store.store_pattern("interaction_style", {"fast": True})
-        
+
         work_patterns = store.get_patterns("work_hours")
         assert len(work_patterns) == 1
         assert work_patterns[0]["type"] == "work_hours"
@@ -155,7 +155,7 @@ class TestMemoryStore:
     def test_store_context(self, store):
         """Test storing temporary context"""
         store.store_context("current_task", "implementing_memory")
-        
+
         result = store.get_context("current_task")
         assert result == "implementing_memory"
 
@@ -163,9 +163,9 @@ class TestMemoryStore:
         """Test storing context with expiration"""
         from datetime import datetime, timedelta
         expires = (datetime.now() + timedelta(hours=1)).isoformat()
-        
+
         store.store_context("temp_key", "temp_value", expires)
-        
+
         result = store.get_context("temp_key")
         assert result == "temp_value"
 
@@ -180,19 +180,19 @@ class TestMemoryStore:
         store.store_preference("timezone", "Asia/Seoul", "system")
         store.store_preference("language", "ko", "system")
         store.store_pattern("work_hours", {"start": "09:00", "end": "18:00"})
-        
+
         # YAML로 내보내기
         yaml_path = tmp_path / "memory.yaml"
         store.export_to_yaml(str(yaml_path))
-        
+
         # 파일 존재 확인
         assert yaml_path.exists()
-        
+
         # YAML 내용 확인
         import yaml
         with open(yaml_path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
-        
+
         assert 'preferences' in data
         assert 'patterns' in data
         assert data['preferences']['timezone'] == "Asia/Seoul"
@@ -209,7 +209,7 @@ class TestMemoryStore:
         """Test updating existing preference"""
         store.store_preference("test_key", "value1", "test")
         assert store.get_preference("test_key") == "value1"
-        
+
         store.store_preference("test_key", "value2", "test")
         assert store.get_preference("test_key") == "value2"
 
@@ -221,14 +221,13 @@ class TestMemoryStore:
             "theme": "dark",
             "notifications": True
         }
-        
+
         for key, value in preferences.items():
             store.store_preference(key, value, "user")
-        
+
         for key, expected_value in preferences.items():
             assert store.get_preference(key) == expected_value
 
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-
