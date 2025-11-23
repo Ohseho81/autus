@@ -3,60 +3,28 @@
 Version 1.0 | 2024-11-23
 
 ## Core Statement
+AUTUS is not technology. AUTUS is ORDER.
 
-**AUTUS is not technology. AUTUS is ORDER.**
+## The 10 Principles
 
-AUTUS = AI Sovereign Protocol (개인 주권 AI 질서)
+1. Order: New social order
+2. Local Sovereignty: 100% local
+3. Pattern Standard: Workflow Protocol
+4. Multi-AI: Always best
+5. Meta-Circular: Self-developing
+6. Four Protocols: Complete stack
+7. Ecosystem: Protocol-driven
+8. Air-Like Monopoly: Dependency
+9. Open Source = Control
+10. Philosophy to Order
 
-## The 10 Defining Principles
+## Comparison
 
-1. **질서 (Order)**: New social order for AI sovereignty
-2. **로컬 주권 (Local Sovereignty)**: 100% local, 0% server trust
-3. **패턴 표준화 (Pattern Standard)**: Workflow Graph Protocol (.autus.graph)
-4. **멀티 AI (Multi-AI)**: Claude + GPT + Gemini, always best
-5. **메타-순환 (Meta-Circular)**: AUTUS develops AUTUS
-6. **4대 프로토콜 (Four Protocols)**: Workflow, Memory, Identity, Auth
-7. **생태계 (Ecosystem)**: Protocol-driven, unbannable standard
-8. **공기독점 (Air-Like Monopoly)**: Dependency, not ownership
-9. **오픈소스 = 통제 (Open Source = Control)**: Code open, order controlled
-10. **궁극적 정의 (Ultimate)**: Philosophy → Protocol → Standard → Order
-
-## Comparison Table
-
-| Feature | Traditional AI | AUTUS |
-|---------|----------------|-------|
-| Essence | Tech/Product | Order/Protocol |
-| Data | Server-centralized | 100% Local |
-| Control | Company-owned | Personal Sovereignty |
-| Evolution | Company updates | Self-evolution |
-| Monopoly | Ownership | Dependency |
-| Standard | None | Behavior Pattern |
-| Copyable | Yes | No (it's order) |
+Traditional AI: Tech/Product, Server, Company-owned
+AUTUS: Order/Protocol, 100% Local, User sovereignty
 
 ## Why This Works
+No other AI project can reach this level.
+Built on philosophy, not just technology.
 
-1. Privacy attracts users (no one else offers true zero-identity)
-2. Meta-circular attracts developers (develop at AI speed)
-3. Standards attract companies (integrate or be incompatible)
-4. Network effects create lock-in (everyone uses it, so everyone must)
-
-## Why Big Tech Can't Copy
-
-- Business model requires identity
-- Organization prevents meta-circular development
-- Legal obligations prevent zero-data storage
-- Existing users expect centralized services
-
----
-
-**No other AI project can reach this level.**
-
-AUTUS is built on:
-
-**Philosophy → Constitution → Protocol → Standard → Ecosystem → Order**
-
----
-
-Date: 2024-11-23
-Version: Definitive v1.0
 Status: Foundation Complete
