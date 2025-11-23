@@ -158,4 +158,3 @@ Total: 10 comprehensive documents
 **"개인 AI 시대의 HTTP"**
 
 *AUTUS is becoming real.*
-
