@@ -10,9 +10,17 @@ from protocols.auth.qr_sync import (
     QRCodeScanner,
     DeviceSync
 )
+from protocols.auth.sync_manager import (
+    SyncConflictResolver,
+    SyncHistory,
+    AdvancedDeviceSync
+)
 
 __all__ = [
     'QRCodeGenerator',
     'QRCodeScanner',
-    'DeviceSync'
+    'DeviceSync',
+    'SyncConflictResolver',
+    'SyncHistory',
+    'AdvancedDeviceSync'
 ]
