@@ -73,7 +73,7 @@ def large_workflow():
     """50+ nodes workflow"""
     nodes = []
     edges = []
-    
+
     # Create 50 nodes
     for i in range(50):
         nodes.append({
@@ -81,7 +81,7 @@ def large_workflow():
             "type": "process",
             "name": f"Node {i}"
         })
-    
+
     # Create linear chain with some parallel branches
     for i in range(49):
         edges.append({
@@ -89,7 +89,7 @@ def large_workflow():
             "target": f"node_{i+1}",
             "type": "sequence"
         })
-    
+
     # Add some parallel branches
     for i in range(0, 40, 10):
         edges.append({
@@ -97,7 +97,7 @@ def large_workflow():
             "target": f"node_{i+5}",
             "type": "sequence"
         })
-    
+
     return WorkflowGraph(nodes, edges)
 
 
@@ -116,12 +116,12 @@ def execute_and_verify(workflow: WorkflowGraph, expected_order: List[str] = None
     """Helper: Validate workflow and verify structure"""
     is_valid = workflow.validate()
     assert is_valid is True
-    
+
     if expected_order:
         # Verify all expected nodes exist
         node_ids = {node['id'] for node in workflow.nodes}
         assert set(expected_order).issubset(node_ids)
-    
+
     return {"success": is_valid, "nodes": workflow.nodes, "edges": workflow.edges}
 
 
@@ -130,7 +130,7 @@ def assert_execution_order(actual: List[str], expected: List[str], workflow: Wor
     # Verify all expected nodes exist in workflow
     node_ids = {node['id'] for node in workflow.nodes}
     assert set(expected).issubset(node_ids)
-    
+
     # For now, just verify nodes exist (execution order would require executor)
     assert set(expected).issubset(set(actual))
 

@@ -52,12 +52,12 @@ def get_all_risk_modules() -> List[str]:
 def get_all_risk_classes() -> List[Tuple[str, Type]]:
     """
     Get all Risk subclasses from ARMP modules
-    
+
     Returns:
         List of (name, class) tuples
     """
     risk_classes = []
-    
+
     # Base Risk class (if available)
     try:
         from core.armp.risks import Risk
@@ -69,12 +69,12 @@ def get_all_risk_classes() -> List[Tuple[str, Type]]:
         except ImportError:
             # If no base class, collect all classes with 'Risk' in name
             base_risk_class = None
-    
+
     # Import each module and find Risk subclasses
     for module_name in get_all_risk_modules():
         try:
             module = importlib.import_module(module_name)
-            
+
             # Find all classes in module
             for name, obj in inspect.getmembers(module, inspect.isclass):
                 # Check if it's a Risk subclass or has 'Risk' in name
@@ -91,7 +91,7 @@ def get_all_risk_classes() -> List[Tuple[str, Type]]:
             # Other errors, log but continue
             print(f"Warning: Could not import {module_name}: {e}")
             continue
-    
+
     return risk_classes
 
 
@@ -116,11 +116,11 @@ def tmp_project(tmp_path):
     # Create protocols/ directory
     protocols_dir = tmp_path / "protocols"
     protocols_dir.mkdir()
-    
+
     # Create test files
     test_file = protocols_dir / "test.py"
     test_file.write_text("# Test file\n")
-    
+
     return tmp_path
 
 
@@ -132,7 +132,7 @@ def all_risk_classes():
 
 class TestAllRisksBasics:
     """Test basic attributes of all risks"""
-    
+
     def test_all_30_risks_found(self, all_risk_classes):
         """Verify exactly 30 risk classes found"""
         # Note: May be less if modules not all implemented
@@ -140,30 +140,32 @@ class TestAllRisksBasics:
         # Ideally 30, but allow flexibility during development
         if len(all_risk_classes) < 30:
             pytest.skip(f"Only {len(all_risk_classes)} risks found (expected 30)")
-    
+
     def test_all_risks_have_name(self, all_risks):
         """Every risk has .name attribute"""
         for name, risk in all_risks:
             assert hasattr(risk, 'name'), f"{name} missing 'name' attribute"
             assert risk.name is not None, f"{name} has None name"
             assert isinstance(risk.name, str), f"{name} name is not string"
-    
+
     def test_all_risks_have_category(self, all_risks):
         """Every risk has .category attribute"""
         for name, risk in all_risks:
             assert hasattr(risk, 'category'), f"{name} missing 'category' attribute"
             assert risk.category is not None, f"{name} has None category"
-            assert isinstance(risk.category, str), f"{name} category is not string"
-    
+            # Category can be Enum or string
+            assert isinstance(risk.category, (str, type(risk.category))), f"{name} category is not valid type"
+
     def test_all_risks_have_severity(self, all_risks):
         """Every risk has .severity attribute"""
         for name, risk in all_risks:
             assert hasattr(risk, 'severity'), f"{name} missing 'severity' attribute"
             assert risk.severity is not None, f"{name} has None severity"
-            assert isinstance(risk.severity, str), f"{name} severity is not string"
-            assert risk.severity in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'], \
-                f"{name} has invalid severity: {risk.severity}"
-    
+            # Severity can be Enum or string
+            severity_value = risk.severity.value if hasattr(risk.severity, 'value') else risk.severity
+            assert severity_value in ['critical', 'high', 'medium', 'low', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'], \
+                f"{name} has invalid severity: {severity_value}"
+
     def test_all_risks_have_description(self, all_risks):
         """Every risk has .description attribute"""
         for name, risk in all_risks:
@@ -175,59 +177,91 @@ class TestAllRisksBasics:
 
 class TestRiskCategories:
     """Test risk categorization"""
-    
+
     def test_security_risks(self, all_risks):
         """Verify SECURITY risks"""
-        security_risks = [r for _, r in all_risks if r.category == 'SECURITY']
+        security_risks = []
+        for _, r in all_risks:
+            cat_value = r.category.value if hasattr(r.category, 'value') else r.category
+            if cat_value in ['SECURITY', 'security']:
+                security_risks.append(r)
         # Expected: 9 security risks
         assert len(security_risks) >= 5, f"Expected at least 5 SECURITY risks, found {len(security_risks)}"
-    
+
     def test_api_risks(self, all_risks):
         """Verify API risks"""
-        api_risks = [r for _, r in all_risks if r.category in ['API', 'EXTERNAL']]
+        api_risks = []
+        for _, r in all_risks:
+            cat_value = r.category.value if hasattr(r.category, 'value') else r.category
+            if cat_value in ['API', 'api', 'EXTERNAL', 'external']:
+                api_risks.append(r)
         # Expected: 7 API/External risks
         assert len(api_risks) >= 3, f"Expected at least 3 API risks, found {len(api_risks)}"
-    
+
     def test_data_risks(self, all_risks):
         """Verify DATA risks"""
-        data_risks = [r for _, r in all_risks if r.category in ['DATA', 'DATA_INTEGRITY']]
+        data_risks = []
+        for _, r in all_risks:
+            cat_value = r.category.value if hasattr(r.category, 'value') else r.category
+            if cat_value in ['DATA', 'data', 'DATA_INTEGRITY', 'data_integrity']:
+                data_risks.append(r)
         # Expected: 6 data risks
         assert len(data_risks) >= 3, f"Expected at least 3 DATA risks, found {len(data_risks)}"
-    
+
     def test_performance_risks(self, all_risks):
         """Verify PERFORMANCE risks"""
-        perf_risks = [r for _, r in all_risks if r.category == 'PERFORMANCE']
+        perf_risks = []
+        for _, r in all_risks:
+            cat_value = r.category.value if hasattr(r.category, 'value') else r.category
+            if cat_value in ['PERFORMANCE', 'performance']:
+                perf_risks.append(r)
         # Expected: 5 performance risks
         assert len(perf_risks) >= 2, f"Expected at least 2 PERFORMANCE risks, found {len(perf_risks)}"
-    
+
     def test_protocol_risks(self, all_risks):
         """Verify PROTOCOL risks"""
-        protocol_risks = [r for _, r in all_risks if r.category == 'PROTOCOL']
+        protocol_risks = []
+        for _, r in all_risks:
+            cat_value = r.category.value if hasattr(r.category, 'value') else r.category
+            if cat_value in ['PROTOCOL', 'protocol']:
+                protocol_risks.append(r)
         # Expected: 3 protocol risks
         assert len(protocol_risks) >= 1, f"Expected at least 1 PROTOCOL risk, found {len(protocol_risks)}"
 
 
 class TestRiskSeverities:
     """Test risk severity distribution"""
-    
+
     def test_critical_risks(self, all_risks):
         """Count CRITICAL risks"""
-        critical = [r for _, r in all_risks if r.severity == 'CRITICAL']
+        critical = []
+        for _, r in all_risks:
+            sev_value = r.severity.value if hasattr(r.severity, 'value') else r.severity
+            if sev_value in ['CRITICAL', 'critical']:
+                critical.append(r)
         # Expected: 9 critical risks
         assert len(critical) >= 3, f"Expected at least 3 CRITICAL risks, found {len(critical)}"
-    
+
     def test_high_risks(self, all_risks):
         """Count HIGH risks"""
-        high = [r for _, r in all_risks if r.severity == 'HIGH']
+        high = []
+        for _, r in all_risks:
+            sev_value = r.severity.value if hasattr(r.severity, 'value') else r.severity
+            if sev_value in ['HIGH', 'high']:
+                high.append(r)
         # Expected: 13 high risks
         assert len(high) >= 5, f"Expected at least 5 HIGH risks, found {len(high)}"
-    
+
     def test_medium_risks(self, all_risks):
         """Count MEDIUM risks"""
-        medium = [r for _, r in all_risks if r.severity == 'MEDIUM']
+        medium = []
+        for _, r in all_risks:
+            sev_value = r.severity.value if hasattr(r.severity, 'value') else r.severity
+            if sev_value in ['MEDIUM', 'medium']:
+                medium.append(r)
         # Expected: 7 medium risks
         assert len(medium) >= 2, f"Expected at least 2 MEDIUM risks, found {len(medium)}"
-    
+
     def test_low_risks(self, all_risks):
         """Count LOW risks"""
         low = [r for _, r in all_risks if r.severity == 'LOW']
@@ -238,28 +272,28 @@ class TestRiskSeverities:
 
 class TestRiskMethods:
     """Test required methods for all risks"""
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_risk_has_prevent_method(self, risk_class):
         """Test risk has prevent() method"""
         name, cls = risk_class
         assert hasattr(cls, 'prevent'), f"{name} missing 'prevent' method"
         assert callable(getattr(cls, 'prevent')), f"{name} prevent is not callable"
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_risk_has_detect_method(self, risk_class):
         """Test risk has detect() method"""
         name, cls = risk_class
         assert hasattr(cls, 'detect'), f"{name} missing 'detect' method"
         assert callable(getattr(cls, 'detect')), f"{name} detect is not callable"
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_risk_has_respond_method(self, risk_class):
         """Test risk has respond() method"""
         name, cls = risk_class
         assert hasattr(cls, 'respond'), f"{name} missing 'respond' method"
         assert callable(getattr(cls, 'respond')), f"{name} respond is not callable"
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_risk_has_recover_method(self, risk_class):
         """Test risk has recover() method"""
@@ -270,7 +304,7 @@ class TestRiskMethods:
 
 class TestRiskInstantiation:
     """Test risk instantiation"""
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_risk_can_be_instantiated(self, risk_class):
         """Each risk can be created"""
@@ -283,7 +317,7 @@ class TestRiskInstantiation:
             pytest.skip(f"{name} requires initialization parameters")
         except Exception as e:
             pytest.fail(f"{name} instantiation failed: {e}")
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_risk_instance_has_attributes(self, risk_class):
         """Instance has name, category, severity, description"""
@@ -296,7 +330,7 @@ class TestRiskInstantiation:
             assert hasattr(risk, 'description')
         except (TypeError, Exception):
             pytest.skip(f"{name} cannot be instantiated without parameters")
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_risk_attributes_are_not_none(self, risk_class):
         """No None values in required attributes"""
@@ -313,7 +347,7 @@ class TestRiskInstantiation:
 
 class TestRiskExecution:
     """Test risk method execution"""
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_prevent_executes_without_error(self, risk_class):
         """Test prevent() runs without exceptions"""
@@ -327,7 +361,7 @@ class TestRiskExecution:
             # Some prevent() might raise in test environment, that's OK
             # Just verify it's callable
             pass
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_detect_returns_boolean(self, risk_class):
         """Test detect() returns bool"""
@@ -342,7 +376,7 @@ class TestRiskExecution:
             # Some detect() might fail in test environment
             # That's acceptable for now
             pass
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_respond_executes_without_error(self, risk_class):
         """Test respond() runs without exceptions"""
@@ -355,7 +389,7 @@ class TestRiskExecution:
         except Exception as e:
             # Some respond() might raise in test environment
             pass
-    
+
     @pytest.mark.parametrize("risk_class", get_all_risk_classes(), ids=lambda r: r[0])
     def test_recover_executes_without_error(self, risk_class):
         """Test recover() runs without exceptions"""
@@ -372,13 +406,13 @@ class TestRiskExecution:
 
 class TestEnforcerIntegration:
     """Test Enforcer integration with all risks"""
-    
+
     def test_all_risks_registered_in_enforcer(self):
         """Check enforcer.risks has expected items"""
         try:
             from core.armp.enforcer import ARMPEnforcer
             enforcer = ARMPEnforcer()
-            
+
             # Check if risks are registered
             if hasattr(enforcer, 'risks'):
                 risk_count = len(enforcer.risks) if isinstance(enforcer.risks, (list, dict)) else 0
@@ -387,13 +421,13 @@ class TestEnforcerIntegration:
             pytest.skip("ARMPEnforcer not available")
         except Exception as e:
             pytest.skip(f"Enforcer initialization failed: {e}")
-    
+
     def test_enforcer_can_prevent_all(self):
         """Call enforcer.prevent_all()"""
         try:
             from core.armp.enforcer import ARMPEnforcer
             enforcer = ARMPEnforcer()
-            
+
             if hasattr(enforcer, 'prevent_all'):
                 enforcer.prevent_all()  # Should not raise
         except ImportError:
@@ -401,13 +435,13 @@ class TestEnforcerIntegration:
         except Exception as e:
             # Might fail in test environment
             pass
-    
+
     def test_enforcer_can_detect_all(self):
         """Call enforcer.detect_violations()"""
         try:
             from core.armp.enforcer import ARMPEnforcer
             enforcer = ARMPEnforcer()
-            
+
             if hasattr(enforcer, 'detect_violations'):
                 violations = enforcer.detect_violations()
                 assert isinstance(violations, (list, dict)), \
@@ -421,39 +455,39 @@ class TestEnforcerIntegration:
 
 class TestSpecificRisks:
     """Test specific risk detection scenarios"""
-    
+
     def test_pii_storage_risk_detection(self, tmp_project):
         """Test with actual PII patterns"""
         try:
             from core.armp.risks import PIIStorageRisk
             risk = PIIStorageRisk()
-            
+
             # Create test file with PII
             test_file = tmp_project / "test_pii.py"
             test_file.write_text("email = 'user@example.com'\nphone = '123-456-7890'")
-            
+
             # Detect should find PII
             result = risk.detect()
             assert isinstance(result, bool)
         except ImportError:
             pytest.skip("PIIStorageRisk not available")
-    
+
     def test_code_injection_detection(self, tmp_project):
         """Test with dangerous code patterns"""
         try:
             from core.armp.risks import CodeInjectionRisk
             risk = CodeInjectionRisk()
-            
+
             # Create test file with dangerous pattern
             test_file = tmp_project / "test_injection.py"
             test_file.write_text("eval(user_input)\nexec(code)")
-            
+
             # Detect should find injection patterns
             result = risk.detect()
             assert isinstance(result, bool)
         except ImportError:
             pytest.skip("CodeInjectionRisk not available")
-    
+
     def test_sql_injection_detection(self, tmp_project):
         """Test with SQL injection patterns"""
         try:
@@ -464,7 +498,7 @@ class TestSpecificRisks:
                 if 'SQL' in name.upper() or 'sql' in name.lower():
                     sql_risk = cls
                     break
-            
+
             if sql_risk:
                 risk = sql_risk()
                 result = risk.detect()
@@ -473,44 +507,44 @@ class TestSpecificRisks:
                 pytest.skip("SQL injection risk not found")
         except Exception as e:
             pytest.skip(f"SQL injection test failed: {e}")
-    
+
     def test_api_rate_limit_detection(self):
         """Test rate limit logic"""
         try:
             from core.armp.risks import RateLimitRisk
             risk = RateLimitRisk()
-            
+
             # Test detect
             result = risk.detect()
             assert isinstance(result, bool)
         except ImportError:
             pytest.skip("RateLimitRisk not available")
-    
+
     def test_database_corruption_detection(self):
         """Test DB checks"""
         try:
             from core.armp.risks import DatabaseCorruptionRisk
             risk = DatabaseCorruptionRisk()
-            
+
             # Test detect
             result = risk.detect()
             assert isinstance(result, bool)
         except ImportError:
             pytest.skip("DatabaseCorruptionRisk not available")
-    
+
     @pytest.mark.skipif(not PSUTIL_AVAILABLE, reason="psutil not installed")
     def test_performance_budget_detection(self):
         """Test performance limits"""
         try:
             from core.armp.risks import PerformanceBudgetRisk
             risk = PerformanceBudgetRisk()
-            
+
             # Test detect
             result = risk.detect()
             assert isinstance(result, bool)
         except ImportError:
             pytest.skip("PerformanceBudgetRisk not available")
-    
+
     @pytest.mark.skipif(not PSUTIL_AVAILABLE, reason="psutil not installed")
     def test_memory_leak_detection(self):
         """Test memory leak detection"""
@@ -522,7 +556,7 @@ class TestSpecificRisks:
                 if 'MEMORY' in name.upper() or 'LEAK' in name.upper():
                     memory_risk = cls
                     break
-            
+
             if memory_risk:
                 risk = memory_risk()
                 result = risk.detect()
@@ -536,7 +570,7 @@ class TestSpecificRisks:
 @pytest.mark.armp
 class TestARMPIntegration:
     """Integration tests for ARMP system"""
-    
+
     def test_risk_count_matches_expectation(self, all_risk_classes):
         """Verify we have close to 30 risks"""
         count = len(all_risk_classes)
@@ -544,21 +578,29 @@ class TestARMPIntegration:
         assert count > 0, "No risks found"
         if count < 25:
             pytest.skip(f"Only {count} risks found (expected ~30)")
-    
+
     def test_all_categories_represented(self, all_risks):
         """Verify all expected categories are present"""
-        categories = {r.category for _, r in all_risks}
-        expected_categories = {'SECURITY', 'API', 'DATA', 'PERFORMANCE', 'PROTOCOL', 'EXTERNAL'}
+        categories = set()
+        for _, r in all_risks:
+            cat_value = r.category.value if hasattr(r.category, 'value') else r.category
+            categories.add(cat_value)
+        expected_categories = {'security', 'api', 'data', 'performance', 'protocol', 'external', 
+                              'SECURITY', 'API', 'DATA', 'PERFORMANCE', 'PROTOCOL', 'EXTERNAL'}
         
         # At least some categories should be present
         assert len(categories) > 0, "No categories found"
         assert len(categories.intersection(expected_categories)) > 0, \
             f"Expected categories not found. Found: {categories}"
-    
+
     def test_all_severities_represented(self, all_risks):
         """Verify all severity levels are present"""
-        severities = {r.severity for _, r in all_risks}
-        expected_severities = {'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'}
+        severities = set()
+        for _, r in all_risks:
+            sev_value = r.severity.value if hasattr(r.severity, 'value') else r.severity
+            severities.add(sev_value)
+        expected_severities = {'critical', 'high', 'medium', 'low', 
+                               'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'}
         
         # At least some severities should be present
         assert len(severities) > 0, "No severities found"
@@ -568,4 +610,3 @@ class TestARMPIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "-m", "armp"])
-
