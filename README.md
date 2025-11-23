@@ -297,6 +297,52 @@ MIT License - See [LICENSE](LICENSE) file
 
 ---
 
+## 🛡️ ARMP: Risk Management
+
+AUTUS includes a comprehensive Risk Management Policy (ARMP).
+
+### Key Features
+
+- **Zero Trust Architecture**: Everything is verified
+- **Constitution Compliance**: Automatic enforcement of 5 principles
+- **Real-time Monitoring**: Continuous risk detection
+- **Automatic Response**: Instant mitigation and recovery
+
+### Usage
+
+```python
+from core.armp import enforcer, monitor
+
+# Start monitoring
+monitor.start()
+
+# Check status
+status = monitor.get_status()
+print(f"Risks monitored: {len(enforcer.risks)}")
+
+# Manual check
+violations = enforcer.detect_violations()
+if violations:
+    for risk in violations:
+        enforcer.respond_to(risk)
+```
+
+### CI/CD Integration
+
+ARMP automatically runs on every commit:
+
+1. PII Scanner
+2. Code Security Scanner  
+3. Constitution Checker
+4. Security Scan (Bandit)
+5. Dependency Check (Safety)
+
+### Documentation
+
+See [ARMP.md](ARMP.md) for complete policy documentation.
+
+---
+
 ## 🧪 Prototype Demo (Week 0)
 
 ### Quick Start
