@@ -1,327 +1,252 @@
+#!/usr/bin/env python3
 """
 AUTUS CLI
+The main command-line interface for AUTUS protocol.
 """
+
+from __future__ import annotations
+
+import os
 import sys
 import json
-import yaml
+import argparse
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-# 프로젝트 루트를 sys.path에 추가
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# 경로 설정 import
-try:
-    import sys
-    sys.path.insert(0, str(ROOT))
-    from config import (
-        PROJECT_ROOT,
-        CORE_DIR,
-        PACKS_DIR,
-        PACKS_DEVELOPMENT_DIR,
-        PACKS_EXAMPLES_DIR,
-        PACKS_INTEGRATION_DIR,
-        AUTUS_CONFIG_FILE
-    )
-except ImportError:
-    # fallback (개발 중일 때)
-    PROJECT_ROOT = ROOT
-    CORE_DIR = ROOT / "core"
-    PACKS_DIR = ROOT / "packs"
-    PACKS_DEVELOPMENT_DIR = PACKS_DIR / "development"
-    PACKS_EXAMPLES_DIR = PACKS_DIR / "examples"
-    PACKS_INTEGRATION_DIR = PACKS_DIR / "integration"
-    AUTUS_CONFIG_FILE = ROOT / ".autus"
+# Configuration
+AUTUS_DIR = Path.cwd()
+AUTUS_CONFIG_FILE = AUTUS_DIR / '.autus.config.json'
 
-# 동적 import로 경로 문제 해결
-import importlib.util
 
-def _load_module(module_path: Path, module_name: str) -> Optional[Any]:
-    """모듈 동적 로드"""
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
-    if spec is None or spec.loader is None:
-        return None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+def load_config() -> Dict[str, Any]:
+    """Load AUTUS configuration."""
+    if AUTUS_CONFIG_FILE.exists():
+        try:
+            with open(AUTUS_CONFIG_FILE, 'r') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
 
-# autusfile 모듈 로드 (선택적 - 없어도 동작)
-_autusfile_path = CORE_DIR / "autusfile.py"
-autusfile = None
-if _autusfile_path.exists():
-    autusfile = _load_module(_autusfile_path, "autusfile")
 
-# dsl 모듈 로드 (선택적 - 없어도 동작)
-_dsl_path = CORE_DIR / "dsl.py"
-dsl = None
-if _dsl_path.exists():
-    dsl = _load_module(_dsl_path, "dsl")
+def save_config(config: Dict[str, Any]) -> None:
+    """Save AUTUS configuration."""
+    with open(AUTUS_CONFIG_FILE, 'w') as f:
+        json.dump(config, f, indent=2)
+
+
+def cmd_init(args: argparse.Namespace) -> None:
+    """Initialize AUTUS project."""
+    print("🚀 Initializing AUTUS Project")
+    
+    # Create directories
+    dirs = ['outputs', 'cache', 'packs/examples', 'packs/development']
+    for dir_path in dirs:
+        Path(dir_path).mkdir(parents=True, exist_ok=True)
+    
+    # Create config
+    config = {
+        'version': '1.0.0',
+        'project_name': args.name or 'my_project',
+        'initialized': True
+    }
+    save_config(config)
+    
+    # Create identity
+    from protocols.identity.core import IdentityCore
+    identity = IdentityCore()
+    identity_file = AUTUS_DIR / '.autus.identity'
+    with open(identity_file, 'w') as f:
+        f.write(identity.export_for_sync())
+    
+    print(f"✅ Project initialized: {config['project_name']}")
+
+
+def cmd_list(args: argparse.Namespace) -> None:
+    """List packs."""
+    from core.pack.loader import PackLoader
+    
+    loader = PackLoader()
+    packs = loader.list_packs()
+    
+    if not packs:
+        print("No packs found.")
+        return
+    
+    print(f"\n📦 Available Packs ({len(packs)}):\n")
+    
+    # Group by category
+    by_category = {}
+    for pack in packs:
+        category = pack.get('category', 'uncategorized')
+        if category not in by_category:
+            by_category[category] = []
+        by_category[category].append(pack['name'])
+    
+    for category, pack_names in sorted(by_category.items()):
+        print(f"  [{category}]")
+        for name in sorted(pack_names):
+            print(f"    • {name}")
+        print()
+
+
+def cmd_run(args: argparse.Namespace) -> None:
+    """Run a pack."""
+    if not args.pack:
+        print("❌ Please specify a pack with --pack")
+        return
+    
+    from core.pack.loader import PackLoader
+    from core.engine.per_loop import PERLoop
+    
+    print(f"🚀 Running pack: {args.pack}")
+    
+    # Parse inputs
+    inputs = {}
+    if args.inputs:
+        try:
+            inputs = json.loads(args.inputs)
+        except:
+            print(f"⚠️  Invalid JSON inputs, using empty inputs")
+    
+    try:
+        # Try to load and execute pack
+        loader = PackLoader()
+        pack = loader.load_pack(args.pack)
+        
+        # Simple execution
+        per_loop = PERLoop()
+        goal = pack.get('description', f"Execute {args.pack}")
+        result = per_loop.run(goal, context=inputs, max_cycles=1)
+        
+        print(f"✅ Success rate: {result['best_success_rate']*100:.1f}%")
+        
+    except Exception as e:
+        print(f"❌ Error: {e}")
+
+
+def cmd_create(args: argparse.Namespace) -> None:
+    """Create a new pack."""
+    from core.pack.loader import PackLoader
+    
+    pack_name = args.name
+    print(f"📝 Creating pack: {pack_name}")
+    
+    loader = PackLoader()
+    template = loader.create_pack_template(pack_name, args.type)
+    
+    # Parse template
+    import yaml
+    pack_data = yaml.safe_load(template)
+    
+    # Save pack
+    pack_file = loader.save_pack(pack_name, pack_data, 'examples')
+    print(f"✅ Pack created: {pack_file}")
+
+
+def cmd_info(args: argparse.Namespace) -> None:
+    """Show project info."""
+    config = load_config()
+    
+    print("\n📊 AUTUS Project Info")
+    print("=" * 40)
+    
+    if config:
+        print(f"Project: {config.get('project_name', 'Unknown')}")
+        print(f"Version: {config.get('version', 'Unknown')}")
+        print(f"Status: {'Initialized' if config.get('initialized') else 'Not initialized'}")
+    else:
+        print("Project not initialized. Run: ./autus init")
+    
+    # Check identity
+    identity_file = AUTUS_DIR / '.autus.identity'
+    if identity_file.exists():
+        from protocols.identity.core import IdentityCore
+        with open(identity_file, 'r') as f:
+            sync_data = f.read()
+        identity = IdentityCore.import_from_sync(sync_data)
+        print(f"Identity: {identity}")
+    
+    # Count packs
+    from core.pack.loader import PackLoader
+    loader = PackLoader()
+    packs = loader.list_packs()
+    print(f"Packs: {len(packs)} available")
+    
+    print("=" * 40)
+
 
 def main() -> None:
-    """CLI 메인"""
-
-    if len(sys.argv) < 2:
-        print_help()
-        return
-
-    command = sys.argv[1]
-
-    if command == "init":
-        # 프로젝트 초기화
-        project = sys.argv[2] if len(sys.argv) > 2 else "my_project"
-        if autusfile and hasattr(autusfile, "create"):
-            autusfile.create(project)
-        else:
-            # 간단한 .autus 파일 생성
-            with open(AUTUS_CONFIG_FILE, 'w', encoding='utf-8') as f:
-                f.write(f"project: {project}\n")
-                f.write("cells: {}\n")
-                f.write("context: {}\n")
-            print(f"✅ .autus 파일 생성: {project}")
-
-    elif command == "run":
-        # Cell 실행
-        if len(sys.argv) < 3:
-            print("❌ 사용법: autus run <command>")
-            print("   예시: autus run 'GET https://api.github.com/users/github'")
-            return
-
-        cmd = sys.argv[2]
-
-        # .autus 있으면 context 로드
-        context = {}
-        if AUTUS_CONFIG_FILE.exists():
-            try:
-                if autusfile and hasattr(autusfile, "parse"):
-                    config = autusfile.parse()
-                    context = config.get("context", {})
-                else:
-                    # 간단한 YAML 파싱
-                    with open(AUTUS_CONFIG_FILE, 'r', encoding='utf-8') as f:
-                        config = yaml.safe_load(f) or {}
-                        context = config.get("context", {})
-            except Exception as e:
-                print(f"⚠️  .autus 파일 로드 실패: {e}")
-
-        print(f"🚀 실행: {cmd}\n")
+    """Main CLI entry point."""
+    # Check if config exists, create if not
+    if not AUTUS_CONFIG_FILE.exists() and len(sys.argv) > 1 and sys.argv[1] != 'init':
+        print("⚠️  Project not initialized. Initializing...")
+        config = {
+            'version': '1.0.0',
+            'project_name': 'my_project',
+            'initialized': True
+        }
+        save_config(config)
+        print(f"✅ Created config: {config['project_name']}")
+    
+    parser = argparse.ArgumentParser(
+        description='AUTUS - The Protocol for Personal AI Operating Systems'
+    )
+    
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
+    
+    # Init command
+    init_parser = subparsers.add_parser('init', help='Initialize project')
+    init_parser.add_argument('--name', help='Project name')
+    
+    # List command
+    list_parser = subparsers.add_parser('list', help='List packs')
+    
+    # Run command
+    run_parser = subparsers.add_parser('run', help='Run pack')
+    run_parser.add_argument('--pack', required=True, help='Pack name')
+    run_parser.add_argument('--inputs', help='JSON inputs')
+    
+    # Create command
+    create_parser = subparsers.add_parser('create', help='Create pack')
+    create_parser.add_argument('name', help='Pack name')
+    create_parser.add_argument('--type', default='generic', help='Pack type')
+    
+    # Info command
+    info_parser = subparsers.add_parser('info', help='Show project info')
+    
+    args = parser.parse_args()
+    
+    if not args.command:
+        # Default to list if no command
+        args.command = 'list'
+    
+    # Execute command
+    commands = {
+        'init': cmd_init,
+        'list': cmd_list,
+        'run': cmd_run,
+        'create': cmd_create,
+        'info': cmd_info,
+    }
+    
+    handler = commands.get(args.command)
+    if handler:
         try:
-            if dsl and hasattr(dsl, "run"):
-                result = dsl.run(cmd, context)
-                print(f"\n✅ 결과:")
-                print(json.dumps(result, indent=2, ensure_ascii=False))
-            else:
-                # 간단한 DSL 실행 (PER Loop 사용)
-                from core.engine.per_loop import PERLoop
-                loop = PERLoop()
-                review = loop.run(cmd)
-                print(f"\n✅ 실행 완료:")
-                print(f"  성공률: {review.get('success_rate', 0):.1%}")
-                print(f"  요약: {review.get('summary', 'N/A')}")
-        except Exception as e:
-            print(f"\n❌ 실행 실패: {e}")
-            import traceback
-            traceback.print_exc()
-
-    elif command == "create":
-        # Cell 생성
-        if len(sys.argv) < 3:
-            print("❌ 사용법: autus create <description>")
-            return
-
-        try:
-            # LLM 모듈 직접 import
-            from core.llm.llm import generate_cell
-            llm = type('obj', (object,), {'generate_cell': generate_cell})()
-
-            if llm and hasattr(llm, "generate_cell"):
-                description = " ".join(sys.argv[2:])
-                print(f"🤖 Cell 생성 중: {description}\n")
-
-                cell = llm.generate_cell(description)
-                print(f"✅ 생성된 Cell:\n  {cell}")
-            else:
-                print("⚠️  LLM 모듈을 사용할 수 없습니다")
-        except Exception as e:
-            print(f"❌ Cell 생성 실패: {e}")
-
-    elif command == "list":
-        # Cell 목록
-        if not AUTUS_CONFIG_FILE.exists():
-            print("❌ .autus 파일 없음")
-            return
-
-        try:
-            if autusfile and hasattr(autusfile, "parse"):
-                config = autusfile.parse()
-            else:
-                with open(AUTUS_CONFIG_FILE, 'r', encoding='utf-8') as f:
-                    config = yaml.safe_load(f) or {}
-
-            print(f"📦 프로젝트: {config.get('project', 'unknown')}\n")
-            cells = config.get("cells", {})
-            if cells:
-                print("Cells:")
-                for name, cell in cells.items():
-                    desc = cell.get("description", cell.get("command", ""))
-                    print(f"  - {name}: {desc}")
-            else:
-                print("Cells: 없음")
-        except Exception as e:
-            print(f"❌ .autus 파일 읽기 실패: {e}")
-
-    elif command == "packs":
-        # Pack 목록 (YAML 직접 읽기)
-        if not PACKS_DIR.exists():
-            print("📦 Pack 디렉터리 없음")
-            return
-
-        packs = []
-        # 루트 YAML 파일 스캔
-        for pack_file in PACKS_DIR.glob("*.yaml"):
-            try:
-                with open(pack_file, 'r', encoding='utf-8') as f:
-                    pack_data = yaml.safe_load(f)
-                    if pack_data:
-                        packs.append({
-                            "name": pack_data.get("pack_name", pack_file.stem),
-                            "version": pack_data.get("version", "1.0.0"),
-                            "description": pack_data.get("metadata", {}).get("description", "No description")
-                        })
-            except Exception as e:
-                print(f"⚠️  {pack_file.name} 로드 실패: {e}")
-
-        # 하위 디렉토리 스캔
-        for pack_subdir_path in [PACKS_DEVELOPMENT_DIR, PACKS_EXAMPLES_DIR, PACKS_INTEGRATION_DIR]:
-            if pack_subdir_path.exists():
-                for pack_file in pack_subdir_path.glob("*.yaml"):
-                    try:
-                        with open(pack_file, 'r', encoding='utf-8') as f:
-                            pack_data = yaml.safe_load(f)
-                            if pack_data:
-                                packs.append({
-                                    "name": pack_data.get("name") or pack_data.get("pack_name", pack_file.stem),
-                                    "version": pack_data.get("version", "1.0.0"),
-                                    "description": pack_data.get("metadata", {}).get("description", f"{pack_subdir} pack")
-                                })
-                    except Exception:
-                        pass
-
-        if not packs:
-            print("📦 Pack 없음")
-            return
-
-        print("📦 사용 가능한 Packs:\n")
-        for p in sorted(packs, key=lambda x: x['name']):
-            print(f"  {p['name']} v{p['version']}")
-            print(f"  └─ {p['description']}\n")
-
-    elif command.startswith("armp:"):
-        # ARMP commands
-        try:
-            from core.cli.commands.armp import armp_commands
-            handlers = armp_commands()
-            subcommand = command
-            args = sys.argv[2:] if len(sys.argv) > 2 else []
-
-            if subcommand in handlers:
-                if subcommand == "armp:monitor":
-                    handlers[subcommand](args)
-                else:
-                    handlers[subcommand]()
-            else:
-                print(f"❌ Unknown ARMP command: {subcommand}")
-                print("Available: armp:status, armp:prevent, armp:detect, armp:monitor, armp:risks, armp:incidents")
+            handler(args)
+        except KeyboardInterrupt:
+            print("\n⚠️  Interrupted")
         except Exception as e:
             print(f"❌ Error: {e}")
-            import traceback
-            traceback.print_exc()
-
-    elif command.startswith("protocol:"):
-        # Protocol commands
-        try:
-            from core.cli.commands.protocol import protocol_commands
-            handlers = protocol_commands()
-            subcommand = command
-            args = sys.argv[2:] if len(sys.argv) > 2 else []
-
-            if subcommand in handlers:
-                handlers[subcommand](args)
-            else:
-                print(f"❌ Unknown protocol command: {subcommand}")
-                print("Available: protocol:list, protocol:status, protocol:test")
-        except Exception as e:
-            print(f"❌ Error: {e}")
-            import traceback
-            traceback.print_exc()
-
-    elif command.startswith("memory:"):
-        # Memory commands
-        try:
-            from core.cli.commands.memory import memory_commands
-            handlers = memory_commands()
-            subcommand = command
-            args = sys.argv[2:] if len(sys.argv) > 2 else []
-
-            if subcommand in handlers:
-                if subcommand == "memory:clear":
-                    handlers[subcommand]()
-                else:
-                    handlers[subcommand](args)
-            else:
-                print(f"❌ Unknown memory command: {subcommand}")
-                print("Available: memory:status, memory:get, memory:set, memory:search, memory:export, memory:clear")
-        except Exception as e:
-            print(f"❌ Error: {e}")
-            import traceback
-            traceback.print_exc()
-
+            if os.getenv('DEBUG'):
+                import traceback
+                traceback.print_exc()
     else:
-        print_help()
+        print(f"❌ Unknown command: {args.command}")
 
-def print_help():
-    """도움말"""
-    print("""
-🌌 AUTUS CLI v1.0
-개인 AI 자동화 OS
-
-사용법:
-  autus init [project]           .autus 파일 생성
-  autus run <command>            Cell 실행 (DSL)
-  autus create <description>     Cell 생성 (LLM)
-  autus list                     Cell 목록
-  autus packs                    Pack 목록
-
-ARMP Commands:
-  autus armp:status              ARMP 상태
-  autus armp:prevent             예방 조치 실행
-  autus armp:detect              위반 감지
-  autus armp:monitor [start|stop|status]  모니터링 제어
-  autus armp:risks               리스크 목록
-  autus armp:incidents           최근 사고
-
-Protocol Commands:
-  autus protocol:list            프로토콜 목록
-  autus protocol:status <name>   프로토콜 상태
-  autus protocol:test <name>     프로토콜 테스트
-
-Memory Commands:
-  autus memory:status            메모리 상태
-  autus memory:get <key>         선호도 조회
-  autus memory:set <key> <value> [category]  선호도 설정
-  autus memory:search <query>    메모리 검색
-  autus memory:export [path]     메모리 내보내기
-  autus memory:clear             메모리 삭제 (주의!)
-
-예시:
-  autus init weather-bot
-  autus run "GET https://api.github.com/users/github"
-  autus armp:status
-  autus memory:set theme dark
-  autus protocol:list
-
-더 많은 정보: README.md 참조
-""")
 
 if __name__ == "__main__":
     main()

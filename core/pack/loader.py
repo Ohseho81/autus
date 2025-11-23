@@ -1,122 +1,169 @@
 """
-Pack 시스템
+AUTUS Pack Loader
+Loads and manages Pack YAML files for infinite extensibility.
 """
-from typing import Dict, Any, Optional, List
+
+from __future__ import annotations
+
+import os
 import yaml
+import json
 from pathlib import Path
+from typing import Dict, List, Any, Optional
 
-try:
-    import sys
-    from pathlib import Path
-    ROOT = Path(__file__).resolve().parent.parent.parent
-    sys.path.insert(0, str(ROOT))
-    from config import (
-        PACKS_DIR,
-        PACKS_DEVELOPMENT_DIR,
-        PACKS_EXAMPLES_DIR,
-        PACKS_INTEGRATION_DIR,
-        get_pack_path,
-        list_pack_dirs
-    )
-except ImportError:
-    # fallback
-    PACKS_DIR = Path("packs")
-    PACKS_DEVELOPMENT_DIR = PACKS_DIR / "development"
-    PACKS_EXAMPLES_DIR = PACKS_DIR / "examples"
-    PACKS_INTEGRATION_DIR = PACKS_DIR / "integration"
 
-    def get_pack_path(pack_name: str, category: Optional[str] = None) -> Path:
-        if category:
-            return PACKS_DIR / category / f"{pack_name}.yaml"
-        for cat_dir in [PACKS_DEVELOPMENT_DIR, PACKS_EXAMPLES_DIR, PACKS_INTEGRATION_DIR]:
-            pack_path = cat_dir / f"{pack_name}.yaml"
-            if pack_path.exists():
-                return pack_path
-        raise FileNotFoundError(f"Pack 없음: {pack_name}")
-
-    def list_pack_dirs() -> List[Path]:
-        return [PACKS_DEVELOPMENT_DIR, PACKS_EXAMPLES_DIR, PACKS_INTEGRATION_DIR]
-
-def load_pack(pack_name: str, pack_dir: Optional[str] = None) -> Dict[str, Any]:
-    """Pack YAML 로드"""
-    try:
-        pack_path = get_pack_path(pack_name, pack_dir)
-    except FileNotFoundError:
-        # 하위 호환성: 직접 경로 시도
-        if pack_dir:
-            pack_path = PACKS_DIR / pack_dir / f"{pack_name}.yaml"
+class PackLoader:
+    """
+    Pack Loader for AUTUS Pack System
+    Handles loading, validation, and management of Pack YAML files.
+    """
+    
+    def __init__(self, pack_dirs: Optional[List[str]] = None):
+        """Initialize Pack Loader."""
+        if pack_dirs is None:
+            # Default pack directories
+            base_path = Path(__file__).parent.parent.parent
+            self.pack_dirs = [
+                base_path / 'packs' / 'development',
+                base_path / 'packs' / 'examples',
+                base_path / 'packs' / 'integration',
+                base_path / 'packs',
+            ]
         else:
-            pack_path = PACKS_DIR / f"{pack_name}.yaml"
+            self.pack_dirs = [Path(d) for d in pack_dirs]
+        
+        self._pack_cache = {}
+    
+    def list_packs(self) -> List[Dict[str, str]]:
+        """List all available packs."""
+        packs = []
+        
+        for pack_dir in self.pack_dirs:
+            if not pack_dir.exists():
+                continue
+            
+            # Look for YAML files
+            for pack_file in pack_dir.glob('*.yaml'):
+                packs.append({
+                    'name': pack_file.stem,
+                    'path': str(pack_file),
+                    'category': pack_dir.name if pack_dir.name != 'packs' else 'root'
+                })
+            
+            # Also check .yml extension
+            for pack_file in pack_dir.glob('*.yml'):
+                packs.append({
+                    'name': pack_file.stem,
+                    'path': str(pack_file),
+                    'category': pack_dir.name if pack_dir.name != 'packs' else 'root'
+                })
+        
+        return packs
+    
+    def load_pack(self, pack_name: str) -> Dict[str, Any]:
+        """Load a Pack by name."""
+        # Check cache first
+        if pack_name in self._pack_cache:
+            return self._pack_cache[pack_name]
+        
+        # Search for pack file
+        pack_file = None
+        for pack_dir in self.pack_dirs:
+            if not pack_dir.exists():
+                continue
+            
+            # Try .yaml
+            test_file = pack_dir / f"{pack_name}.yaml"
+            if test_file.exists():
+                pack_file = test_file
+                break
+            
+            # Try .yml
+            test_file = pack_dir / f"{pack_name}.yml"
+            if test_file.exists():
+                pack_file = test_file
+                break
+            
+            # Search subdirectories
+            for sub_file in pack_dir.rglob(f"{pack_name}.yaml"):
+                pack_file = sub_file
+                break
+            
+            if pack_file:
+                break
+        
+        if not pack_file:
+            raise FileNotFoundError(f"Pack '{pack_name}' not found")
+        
+        # Load and parse YAML
+        try:
+            with open(pack_file, 'r') as f:
+                pack_data = yaml.safe_load(f) or {}
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML in pack '{pack_name}': {e}")
+        
+        # Add metadata
+        pack_data['_file_path'] = str(pack_file)
+        pack_data['_loaded_from'] = pack_file.parent.name
+        
+        # Cache the pack
+        self._pack_cache[pack_name] = pack_data
+        
+        return pack_data
+    
+    def get_cell_from_pack(self, pack_name: str, cell_name: str) -> Optional[Dict[str, Any]]:
+        """Get a specific cell from a pack."""
+        pack = self.load_pack(pack_name)
+        
+        for cell in pack.get('cells', []):
+            if cell.get('name') == cell_name:
+                return cell
+        
+        return None
+    
+    def create_pack_template(self, pack_name: str, pack_type: str = 'generic') -> str:
+        """Create a pack template YAML."""
+        templates = {
+            'generic': {
+                'name': pack_name,
+                'version': '1.0.0',
+                'description': f'Pack for {pack_name}',
+                'cells': [
+                    {
+                        'name': 'main_cell',
+                        'prompt': f'Execute task for {pack_name}',
+                        'output': 'result'
+                    }
+                ]
+            }
+        }
+        
+        template = templates.get(pack_type, templates['generic'])
+        template['name'] = pack_name
+        
+        return yaml.dump(template, default_flow_style=False, sort_keys=False)
+    
+    def save_pack(self, pack_name: str, pack_data: Dict[str, Any], category: str = 'examples') -> str:
+        """Save a pack to file."""
+        pack_dir = Path(__file__).parent.parent.parent / 'packs' / category
+        pack_dir.mkdir(parents=True, exist_ok=True)
+        
+        pack_file = pack_dir / f"{pack_name}.yaml"
+        
+        with open(pack_file, 'w') as f:
+            yaml.dump(pack_data, f, default_flow_style=False, sort_keys=False)
+        
+        return str(pack_file)
 
-        if not pack_path.exists():
-            raise PackNotFoundError(f"Pack 없음: {pack_name}")
 
-    with open(pack_path, 'r', encoding='utf-8') as f:
-        pack = yaml.safe_load(f)
+# Backward compatibility
+PackManager = PackLoader  # Alias for compatibility
 
-    return pack
-
-def list_packs() -> List[Dict[str, Any]]:
-    """사용 가능한 Pack 목록"""
-
-    packs = []
-
-    # 루트 디렉토리 스캔
-    if PACKS_DIR.exists():
-        for pack_file in PACKS_DIR.glob("*.yaml"):
-            try:
-                with open(pack_file, 'r', encoding='utf-8') as f:
-                    pack = yaml.safe_load(f)
-                    if pack:
-                        packs.append({
-                            "name": pack.get("name") or pack.get("pack_name", pack_file.stem),
-                            "version": pack.get("version", "1.0.0"),
-                            "description": pack.get("metadata", {}).get("description", "No description")
-                        })
-            except Exception:
-                pass
-
-    # 하위 디렉토리 스캔
-    for pack_subdir in list_pack_dirs():
-        if pack_subdir.exists():
-            for pack_file in pack_subdir.glob("*.yaml"):
-                try:
-                    with open(pack_file, 'r', encoding='utf-8') as f:
-                        pack = yaml.safe_load(f)
-                        if pack:
-                            packs.append({
-                                "name": pack.get("name") or pack.get("pack_name", pack_file.stem),
-                                "version": pack.get("version", "1.0.0"),
-                                "description": pack.get("metadata", {}).get("description", "No description")
-                            })
-                except Exception:
-                    pass
-
-    return packs
-
-def get_cell_from_pack(pack_name: str, cell_name: str) -> Optional[Dict[str, Any]]:
-    """Pack에서 특정 Cell 가져오기"""
-    pack = load_pack(pack_name)
-    cells = pack.get("cells", {})
-
-    if cell_name not in cells:
-        raise ValueError(f"Cell 없음: {cell_name}")
-
-    cell = cells[cell_name]
-    return cell.get("command")
-
-# 테스트
+# Test the module
 if __name__ == "__main__":
-    print("🧪 Pack 시스템 테스트\n")
-
-    # Pack 목록
-    packs = list_packs()
-    print("사용 가능한 Packs:")
-    for pack in packs:
-        print(f"  - {pack['name']} v{pack['version']}")
-        print(f"    {pack['description']}\n")
-
-    # Cell 가져오기
-    if packs:
-        cmd = get_cell_from_pack("github_pack", "user_info")
-        print(f"✅ Cell 명령어: {cmd}")
+    print("Testing PackLoader...")
+    loader = PackLoader()
+    packs = loader.list_packs()
+    print(f"✅ Found {len(packs)} packs")
+    for pack in packs[:3]:
+        print(f"  - {pack['name']} ({pack['category']})")
