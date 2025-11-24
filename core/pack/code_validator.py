@@ -195,3 +195,4 @@ class CodeValidator:
             return cls.validate_code(code)
         except Exception as e:
             return False, f"Failed to read file: {e}"
+

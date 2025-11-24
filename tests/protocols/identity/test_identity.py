@@ -345,3 +345,5 @@ class TestIntegration:
         # Export
         exported = tracker.export_tracking_data()
         assert exported['pattern_count'] == 3
+
+

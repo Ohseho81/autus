@@ -231,3 +231,4 @@ def get_cost_tracker() -> CostTracker:
     if _global_tracker is None:
         _global_tracker = CostTracker()
     return _global_tracker
+

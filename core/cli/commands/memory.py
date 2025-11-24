@@ -144,3 +144,4 @@ def cmd_memory_clear() -> None:
             print("ℹ️  No memory database found")
     except Exception as e:
         print(f"❌ Error: {e}")
+

@@ -153,3 +153,4 @@ if __name__ == "__main__":
 
     if not ConstitutionChecker.check_all():
         sys.exit(1)
+

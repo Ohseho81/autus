@@ -241,3 +241,5 @@ class TestIntegration:
                 assert stats2['total_syncs'] >= 1
         except ImportError:
             pytest.skip("pyzbar not available")
+
+

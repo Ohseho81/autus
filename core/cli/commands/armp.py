@@ -140,3 +140,4 @@ def cmd_armp_incidents() -> None:
         print(f"   Time: {incident.get('timestamp', 'Unknown')}")
         print(f"   Status: {incident.get('status', 'Unknown')}")
         print()
+

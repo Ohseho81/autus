@@ -255,3 +255,4 @@ class IdentitySurface:
         surface.created_at = datetime.fromisoformat(data['created_at'])
         surface.evolution_history = data.get('evolution_history', [])
         return surface
+

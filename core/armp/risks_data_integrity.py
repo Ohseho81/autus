@@ -221,3 +221,4 @@ enforcer.register_risk(DataMigrationRisk())
 enforcer.register_risk(TransactionRollbackRisk())
 
 logger.info("✅ Data integrity risks registered")
+

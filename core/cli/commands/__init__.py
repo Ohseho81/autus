@@ -13,3 +13,4 @@ __all__ = [
     "protocol_commands",
     "memory_commands",
 ]
+

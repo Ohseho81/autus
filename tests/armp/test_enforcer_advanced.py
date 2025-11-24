@@ -322,3 +322,5 @@ class TestEnforcerErrorHandling:
                     assert True
         finally:
             enforcer.risks.remove(failing_risk)
+
+

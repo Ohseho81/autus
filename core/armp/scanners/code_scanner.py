@@ -121,3 +121,4 @@ if __name__ == "__main__":
 
     if not CodeScanner.check_compliance():
         sys.exit(1)
+

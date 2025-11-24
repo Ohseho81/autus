@@ -219,3 +219,5 @@ class TestPerformanceBudgets:
         if disk_free:
             # Should have free space
             assert disk_free > PerformanceBudget.DISK_MAX
+
+

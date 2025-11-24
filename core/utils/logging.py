@@ -35,3 +35,4 @@ def get_logger(name: str, level: Optional[int] = None) -> logging.Logger:
         logger.addHandler(handler)
 
     return logger
+

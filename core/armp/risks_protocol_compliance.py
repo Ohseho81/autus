@@ -210,3 +210,4 @@ enforcer.register_risk(InvalidProtocolMessageRisk())
 enforcer.register_risk(ProtocolStateCorruptionRisk())
 
 logger.info("✅ Protocol compliance risks registered")
+

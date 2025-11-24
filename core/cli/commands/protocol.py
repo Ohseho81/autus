@@ -113,3 +113,4 @@ def cmd_protocol_test(args: list) -> None:
         print("✅ All tests passed")
     else:
         print("❌ Some tests failed")
+

@@ -287,3 +287,4 @@ enforcer.register_risk(MaliciousPackageRisk())
 enforcer.register_risk(CredentialExposureRisk())
 
 logger.info("✅ Advanced security risks registered")
+

@@ -208,3 +208,4 @@ def test_workflow_integration_safe():
     assert len(tracker.patterns) >= 1
     summary = tracker.get_pattern_summary()
     assert 'workflow_pattern' in summary['pattern_types']
+

@@ -129,3 +129,5 @@ def test_export_import():
     assert 'patterns' in exported
     assert 'pattern_summary' in exported
     assert len(exported['patterns']) >= 1
+
+

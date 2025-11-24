@@ -299,3 +299,5 @@ class TestNetworkFailures:
                 assert True  # Correctly handled expiration
         except ImportError:
             pytest.skip("pyzbar not available")
+
+

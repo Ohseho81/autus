@@ -42,3 +42,4 @@ def safe_path(path: Union[str, Path], must_exist: bool = False) -> Path:
         raise FileNotFoundError(f"Path does not exist: {path_obj}")
 
     return path_obj
+

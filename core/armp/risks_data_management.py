@@ -74,3 +74,4 @@ class SchemaVersionMismatchRisk(Risk):
 enforcer.register_risk(SchemaVersionMismatchRisk())
 
 logger.info("✅ Data management risks registered")
+

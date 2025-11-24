@@ -87,3 +87,4 @@ def to_json_safe(data: Any, indent: Optional[int] = None) -> Optional[str]:
         return json.dumps(data, indent=indent, ensure_ascii=False)
     except Exception:
         return None
+

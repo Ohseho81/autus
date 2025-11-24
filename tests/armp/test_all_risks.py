@@ -60,7 +60,7 @@ class TestAllRisksDetection:
                 # That's okay, we just verify the method exists and runs
                 assert True
 
-    @pytest.mark.parametrize("risk", [r for r in enforcer.risks if risk.severity == Severity.CRITICAL])
+    @pytest.mark.parametrize("risk", [r for r in enforcer.risks if r.severity == Severity.CRITICAL])
     def test_critical_risks_detection(self, risk):
         """Test critical risks detection more thoroughly"""
         # Critical risks should have robust detection
@@ -253,3 +253,5 @@ class TestRiskEnforcement:
         # Should have critical risks
         critical_risks = [r for r in enforcer.risks if r.severity == Severity.CRITICAL]
         assert len(critical_risks) > 0
+
+

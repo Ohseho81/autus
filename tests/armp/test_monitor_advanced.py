@@ -315,3 +315,5 @@ class TestMonitorLongRunning:
             assert call_count['count'] >= 3
         finally:
             enforcer.detect_violations = original_detect
+
+

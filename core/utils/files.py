@@ -157,3 +157,4 @@ def find_files(
             return list(dir_path.glob(pattern))
     except Exception:
         return []
+
