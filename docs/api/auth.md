@@ -245,3 +245,7 @@ Merge and deduplicate evolution histories.
 - **No Authentication**: QR codes are temporary and expire
 - **No PII**: Only identity hashes, no personal information
 - **Expiration**: QR codes expire after specified time
+
+
+
+

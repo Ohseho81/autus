@@ -122,3 +122,5 @@ def create_resilient_session():
         # requests가 없으면 None 반환
         return None
 
+
+

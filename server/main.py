@@ -133,6 +133,60 @@ async def list_packs():
         "packs": packs
     }
 
+
+# ============================================
+# Auto-generated routers (AUTUS Meta-Circular)
+# ============================================
+try:
+    from server.routes.hello import router as hello_router
+    from server.routes.identity_core import router as identity_core_router
+    from server.routes.pattern_learner import router as pattern_learner_router
+    from server.routes.saas_adapter import router as saas_adapter_router
+    
+    app.include_router(hello_router, tags=["autogen"])
+    app.include_router(identity_core_router, tags=["autogen"])
+    app.include_router(pattern_learner_router, tags=["autogen"])
+    app.include_router(saas_adapter_router, tags=["autogen"])
+    print("✅ Autogen routers loaded")
+except ImportError as e:
+    print(f"⚠️ Some autogen routers not loaded: {e}")
+
+
+# Project-specific routers
+try:
+    from server.routes.emo_cmms import router as emo_cmms_router
+    from server.routes.jeju_school import router as jeju_school_router
+    from server.routes.nba_atb import router as nba_atb_router
+    
+    app.include_router(emo_cmms_router, tags=["projects"])
+    app.include_router(jeju_school_router, tags=["projects"])
+    app.include_router(nba_atb_router, tags=["projects"])
+    print("✅ Project routers loaded")
+except ImportError as e:
+    print(f"⚠️ Project routers not loaded: {e}")
+
+
+# ============================================
+# 6 Core Endpoints (MVP Loop)
+# ============================================
+try:
+    from server.routes.emo_cmms import router as emo_cmms_router
+    from server.routes.jeju_school import router as jeju_school_router
+    from server.routes.nba_atb import router as nba_atb_router
+    from server.routes.local_memory import router as local_memory_router
+    from server.routes.style_analyzer import router as style_analyzer_router
+    from server.routes.zero_identity import router as zero_identity_router
+    
+    app.include_router(emo_cmms_router, tags=["projects"])
+    app.include_router(jeju_school_router, tags=["projects"])
+    app.include_router(nba_atb_router, tags=["projects"])
+    app.include_router(local_memory_router, tags=["core"])
+    app.include_router(style_analyzer_router, tags=["core"])
+    app.include_router(zero_identity_router, tags=["core"])
+    print("✅ 6 Core Endpoints loaded")
+except ImportError as e:
+    print(f"⚠️ Some endpoints not loaded: {e}")
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",

@@ -1,0 +1,7 @@
+{
+  "name": "local_memory",
+  "description": "Auto-generated cell stub for local_memory",
+  "target_axis": "self_gen",
+  "inputs": [],
+  "outputs": []
+}

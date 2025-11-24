@@ -1,0 +1,7 @@
+{
+  "name": "device_bridge",
+  "description": "Auto-generated cell stub for device_bridge",
+  "target_axis": "self_gen",
+  "inputs": [],
+  "outputs": []
+}

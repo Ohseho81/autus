@@ -301,3 +301,5 @@ class TestNetworkFailures:
             pytest.skip("pyzbar not available")
 
 
+
+

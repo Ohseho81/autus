@@ -243,3 +243,5 @@ class TestIntegration:
             pytest.skip("pyzbar not available")
 
 
+
+

@@ -141,3 +141,5 @@ def cmd_armp_incidents() -> None:
         print(f"   Status: {incident.get('status', 'Unknown')}")
         print()
 
+
+

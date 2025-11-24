@@ -103,3 +103,7 @@ def example_armp_risk_list():
         print(f"   Severity: {risk.severity.value}")
         print(f"   Description: {risk.description[:60]}...")
         print()
+
+
+
+

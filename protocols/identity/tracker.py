@@ -269,3 +269,5 @@ class BehavioralPatternTracker:
             'last_pattern_time': self.last_pattern_time.isoformat() if self.last_pattern_time else None
         }
 
+
+

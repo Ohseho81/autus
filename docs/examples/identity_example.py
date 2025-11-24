@@ -118,3 +118,7 @@ def example_context_switching():
     # Get context identity
     work_identity = tracker.get_context_identity("work")
     print(f"Work context identity: {work_identity['position']}")
+
+
+
+

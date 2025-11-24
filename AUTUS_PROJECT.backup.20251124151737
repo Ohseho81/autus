@@ -1,0 +1,123 @@
+version: 3.0
+project: autus-core
+core:
+  version: "3.0"
+  description: "AI Sovereign OS Core"
+axes:
+  - id: self_gen
+    name: "Self-Generation"
+    description: "AUTUS가 AUTUS를 만드는 자기생성 축"
+    status: "alpha"
+  - id: sovereign
+    name: "Sovereign"
+    description: "로컬 주권·데이터 소유를 보장하는 축"
+    status: "alpha"
+  - id: identity_3d
+    name: "3D Identity"
+    description: "사용자/시스템 상태를 3D로 표현하는 축"
+    status: "alpha"
+  - id: self_learning
+    name: "Self-Learning"
+    description: "반복 사용을 통해 스스로 학습·개선하는 축"
+    status: "alpha"
+  - id: adapter
+    name: "Adapter"
+    description: "ERP/SAAS/로컬앱 등 모든 외부 시스템과 연결하는 축"
+    status: "alpha"
+  - id: control_core
+    name: "Control Core"
+    description: "가장 작은 통제권과 전체 런타임 제어 축"
+    status: "alpha"
+modules:
+  - id: identity_core
+    axis: identity_3d
+    kind: core
+    description: "3D 아이덴티티의 중심 좌표/표면 정의"
+  - id: history_timeline
+    axis: identity_3d
+    kind: view
+    description: "시간에 따른 행동·결정의 궤적"
+  - id: preference_vector
+    axis: identity_3d
+    kind: model
+    description: "선호·스타일·결정 패턴"
+  - id: local_memory
+    axis: sovereign
+    kind: storage
+    description: "로컬 메모리/히스토리 저장"
+  - id: privacy_guard
+    axis: sovereign
+    kind: policy
+    description: "데이터 유출 불가 아키텍처 정책"
+  - id: zero_identity
+    axis: sovereign
+    kind: protocol
+    description: "PII 없는 제로 아이덴티티 프로토콜"
+  - id: autogen_cells
+    axis: self_gen
+    kind: engine
+    description: "셀(JSON) 기반 코드 자동생성 엔진"
+  - id: pack_factory
+    axis: self_gen
+    kind: builder
+    description: "Pack/Test/Docs/Router를 조립하는 팩 팩토리"
+  - id: meta_tester
+    axis: self_gen
+    kind: tester
+    description: "AUTUS가 AUTUS를 테스트하는 메타 테스트러"
+  - id: pattern_learner
+    axis: self_learning
+    kind: engine
+    description: "사용자/시스템 패턴 학습"
+  - id: style_analyzer
+    axis: self_learning
+    kind: analyzer
+    description: "스타일/톤/선호 분석"
+  - id: habit_tracker
+    axis: self_learning
+    kind: tracker
+    description: "반복 행동/습관 추적"
+  - id: saas_adapter
+    axis: adapter
+    kind: adapter
+    description: "Notion/Jira/Slack 등과 연결"
+  - id: erp_adapter
+    axis: adapter
+    kind: adapter
+    description: "ERP/CMMS/WorkOS 등과 연결"
+  - id: device_bridge
+    axis: adapter
+    kind: bridge
+    description: "맥/패드/모바일/서버 간 브리지"
+  - id: runtime_controller
+    axis: control_core
+    kind: controller
+    description: "전체 루프와 우선순위를 통제하는 코어"
+  - id: risk_monitor
+    axis: control_core
+    kind: monitor
+    description: "리스크/이상 징후 모니터링"
+  - id: flow_orchestrator
+    axis: control_core
+    kind: orchestrator
+    description: "Pack/Workflow 실행 순서를 조율"
+  - id: 3d_shell
+    axis: control_core
+    kind: ui
+    description: "3D Force-Directed 셸(UI)"
+autogen:
+  enabled: true
+  generate:
+    pack: true
+    test: true
+    docs: true
+    router: true
+folders:
+  core: "core/"
+  packs: "packs/"
+  routers: "server/routes/"
+  docs: "docs/"
+  cells: "docs/cells/"
+  registry: "core/registry/"
+  scripts: "scripts/"
+  tests: "tests/"

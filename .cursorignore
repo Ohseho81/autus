@@ -1,0 +1,13 @@
+# AUTUS 헌법/코어 영역 - Cursor는 읽기만 (가능하면 수정 금지)
+core/**
+protocols/**
+tests/**
+.autus/**
+.venv/**
+.git/**
+
+# 에디터가 집중해서 작업해도 되는 영역
+# (ignore에는 넣지 않지만, "여기만 작업" 원칙으로 운용)
+# packs/**
+# server/**
+# docs/**

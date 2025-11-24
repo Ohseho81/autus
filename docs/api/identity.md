@@ -257,3 +257,7 @@ print(f"Total patterns: {summary['total_patterns']}")
 - **No PII**: Seed is hashed immediately, never stored
 - **Anonymous**: Only behavioral patterns, no personal information
 - **Deterministic**: Same seed produces same hash, but no reverse lookup
+
+
+
+
