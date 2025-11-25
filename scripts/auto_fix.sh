@@ -1,13 +1,15 @@
 #!/bin/bash
 
+echo "❌ Max attempts reached"
 TEST_FILE=$1
 MAX_ATTEMPTS=3
+PYTHON_BIN="/Users/ohseho/Desktop/autus/.venv/bin/python"
 
 for i in $(seq 1 $MAX_ATTEMPTS); do
     echo "🔧 Attempt $i/$MAX_ATTEMPTS..."
     
     # Run test
-    ERROR=$(python -m pytest "$TEST_FILE" --tb=short 2>&1)
+    ERROR=$($PYTHON_BIN -m pytest "$TEST_FILE" --tb=short 2>&1)
     
     if [ $? -eq 0 ]; then
         echo "✅ Tests passed!"
@@ -21,7 +23,15 @@ for i in $(seq 1 $MAX_ATTEMPTS); do
     echo "📊 Error: $ERROR_TYPE - $ERROR_MSG"
     
     # Call fixer pack
-    python core/pack/openai_runner.py fixer_pack "{\n        \"error_message\": \"$ERROR_MSG\",\n        \"test_file\": \"$TEST_FILE\"\n    }"
+    # 모듈명 추출 (예: tests/test_validator.py -> validator)
+    MODULE_NAME=$(basename "$TEST_FILE" | sed -E 's/^test_(.*)\.py$/\1/')
+    CODE_FILE="packs/${MODULE_NAME}_autogen.py"
+    CODE_CONTENT=""
+    if [ -f "$CODE_FILE" ]; then
+        CODE_CONTENT=$(cat "$CODE_FILE")
+    fi
+    JSON_INPUT=$(jq -nc --arg msg "$ERROR_MSG" --arg test "$TEST_FILE" --arg code "$CODE_CONTENT" '{error_message: $msg, test: $test, code: $code}')
+    PYTHONPATH="$(pwd)" $PYTHON_BIN core/pack/openai_runner.py fixer_pack "$JSON_INPUT"
 done
 
 echo "❌ Max attempts reached"
