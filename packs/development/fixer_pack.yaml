@@ -1,0 +1,34 @@
+name: fixer_pack
+cells:
+  - name: analyze_error
+    prompt: |
+      Error: {error_message}
+      Code: {code}
+      Test: {test}
+      
+      Analyze the root cause.
+    output: root_cause
+  
+  - name: generate_fix
+    input: root_cause
+    prompt: |
+      Root cause: {root_cause}
+      
+      Generate corrected code.
+    output: fixed_code
+  
+  - name: verify_fix
+    input: fixed_code
+    prompt: |
+      Original error: {error_message}
+      Fixed code: {fixed_code}
+      
+      Will this fix solve the problem?
+    output: verification
+
+actions:
+  - type: write_file
+    path: "{original_file_path}"
+    content: "{fixed_code}"
+  - type: log
+    message: "Fixed: {original_file_path}"

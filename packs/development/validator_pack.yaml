@@ -1,0 +1,23 @@
+name: validator_pack
+cells:
+  - name: syntax_check
+    prompt: "Check Python syntax for: {code}"
+    output: syntax_result
+  
+  - name: import_check
+    prompt: "Verify all imports work: {code}"
+    output: import_result
+  
+  - name: test_generation_check
+    prompt: "Check if tests cover the code: {code} {test}"
+    output: coverage_result
+  
+  - name: final_verdict
+    input: [syntax_result, import_result, coverage_result]
+    prompt: "Give pass/fail verdict with reasons"
+    output: verdict
+
+actions:
+  - type: write_file
+    path: ".autus/validation/{module_name}_report.json"
+    content: "{verdict}"

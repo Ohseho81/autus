@@ -1,0 +1,37 @@
+name: analyzer_pack
+cells:
+  - name: parse_pytest_output
+    prompt: |
+      Pytest output: {pytest_output}
+      
+      Extract:
+      1. Failed test names
+      2. Error types (AttributeError, ImportError, etc)
+      3. Error messages
+      4. Affected files
+    output: parsed_errors
+  
+  - name: categorize_errors
+    input: parsed_errors
+    prompt: |
+      Categorize errors into:
+      - Missing attributes/methods
+      - Import errors
+      - Type mismatches
+      - Logic errors
+      - Test isolation issues
+    output: categorized_errors
+  
+  - name: prioritize_fixes
+    input: categorized_errors
+    prompt: |
+      Prioritize fixes by:
+      1. Impact (how many tests affected)
+      2. Difficulty (easy to hard)
+      3. Dependencies (what depends on what)
+    output: fix_priority
+
+actions:
+  - type: write_file
+    path: ".autus/analysis/error_report.json"
+    content: "{fix_priority}"
