@@ -77,6 +77,15 @@ app.include_router(weather_api_router, tags=["weather_api"])
 from server.routes.payment import router as payment_router
 app.include_router(payment_router, tags=["payment"])
 
+
+# Auto-generated: analytics, notification, scheduler
+from server.routes.analytics import router as analytics_router
+from server.routes.notification import router as notification_router
+from server.routes.scheduler import router as scheduler_router
+app.include_router(analytics_router, tags=["analytics"])
+app.include_router(notification_router, tags=["notification"])
+app.include_router(scheduler_router, tags=["scheduler"])
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server.main:app", host="127.0.0.1", port=8000, reload=True)
