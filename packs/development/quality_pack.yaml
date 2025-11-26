@@ -1,0 +1,21 @@
+name: quality_pack
+description: Code quality and coverage analysis
+cells:
+  - name: analyze_coverage
+    prompt: |
+      Analyze test coverage gaps in: {test_output}
+      
+      Identify:
+      1. Uncovered code paths
+      2. Missing edge cases
+      3. Untested functions
+    output: coverage_gaps
+  - name: suggest_tests
+    input: coverage_gaps
+    prompt: |
+      Generate test cases for: {coverage_gaps}
+    output: new_tests
+actions:
+  - type: write_file
+    path: "tests/auto/test_{module}_coverage.py"
+    content: "{new_tests}"

@@ -1,0 +1,26 @@
+name: migration_pack
+description: AI-based code migration and refactoring
+cells:
+  - name: analyze_legacy
+    prompt: |
+      Analyze legacy code: {code}
+      
+      Identify:
+      1. Deprecated patterns
+      2. Migration opportunities
+      3. Modernization needs
+    output: analysis
+  - name: generate_migration_plan
+    input: analysis
+    prompt: |
+      Create step-by-step migration plan for: {analysis}
+    output: plan
+  - name: generate_migrated_code
+    input: plan
+    prompt: |
+      Generate migrated code following: {plan}
+    output: migrated_code
+actions:
+  - type: write_file
+    path: ".autus/migrations/{file_name}_migrated.py"
+    content: "{migrated_code}"

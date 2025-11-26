@@ -1,0 +1,21 @@
+name: recommender_pack
+description: AI-based code and test recommendations
+cells:
+  - name: analyze_project
+    prompt: |
+      Analyze project structure: {project_structure}
+      
+      Recommend:
+      1. Missing components
+      2. Best practices to apply
+      3. Useful patterns
+    output: recommendations
+  - name: generate_recommendations
+    input: recommendations
+    prompt: |
+      Create detailed implementation guide for: {recommendations}
+    output: guide
+actions:
+  - type: write_file
+    path: "docs/recommendations.md"
+    content: "{guide}"

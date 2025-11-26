@@ -1,0 +1,22 @@
+name: testgen_advanced_pack
+description: Advanced AI test scenario generation
+cells:
+  - name: identify_edge_cases
+    prompt: |
+      For this code: {code}
+      
+      Identify:
+      1. Boundary conditions
+      2. Edge cases
+      3. Error scenarios
+      4. Race conditions
+    output: edge_cases
+  - name: generate_scenarios
+    input: edge_cases
+    prompt: |
+      Generate pytest test scenarios for: {edge_cases}
+    output: test_scenarios
+actions:
+  - type: write_file
+    path: "tests/scenarios/test_{module}_scenarios.py"
+    content: "{test_scenarios}"

@@ -1,75 +1,35 @@
-name: Autus CI
+name: AUTUS CI/CD
 
 on:
   push:
+    branches: [master, main]
   pull_request:
+    branches: [master, main]
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
-
+          python-version: '3.11'
       - name: Install dependencies
-        run: |
-          python -m venv .venv311
-          source .venv311/bin/activate
-          if [ -f "requirements.txt" ]; then
-            pip install -r requirements.txt
-          fi
-          pip install pytest
-
-      - name: Run Autus Doctor (struct)
-        run: |
-          source .venv311/bin/activate
-          python -m 04_ops.tools.autus_doctor_cli --mode struct
-
-      - name: Run structure pytest
-        run: |
-          source .venv311/bin/activate
-          pytest 04_ops/tests/test_autus_structure.py -q
-
-
-      - name: Run infinite loop (1회)
-        run: |
-          source .venv311/bin/activate
-          bash ./scripts/autus_infinite_loop.sh || true
-
-      - name: Generate status report
-        run: |
-          source .venv311/bin/activate
-          bash ./scripts/generate_status_report.sh
-
-      - name: Generate coverage report
-        run: |
-          source .venv311/bin/activate
-          bash ./scripts/generate_coverage_report.sh
-
-      - name: Suggest new tests
-        run: |
-          source .venv311/bin/activate
-          bash ./scripts/suggest_new_tests.sh
-
-      - name: Upload reports as artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: autus-reports
-          path: reports/
-
-      - name: (Optional) Send Slack alert
-        if: always()
-        run: |
-          source .venv311/bin/activate
-          bash ./scripts/send_slack_alert.sh || true
-
-      - name: (Optional) Create auto PR
-        if: github.event_name == 'push'
-        run: |
-          source .venv311/bin/activate
-          bash ./scripts/create_autogen_pr.sh || true
-
+        run: pip install -r requirements.txt
+      - name: Run tests
+        run: python -m pytest -q --tb=no
+      - name: Security check
+        run: ./scripts/security_check.sh || true
+      - name: AI Code Review
+        run: ./scripts/ai_code_review.sh || true
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy
+        run: ./scripts/deploy_zero_downtime.sh
