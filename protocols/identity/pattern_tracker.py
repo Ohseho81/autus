@@ -34,6 +34,11 @@ class BehavioralPatternTracker:
         if self.identity.get_surface() is None:
             self.identity.create_surface()
 
+    @property
+    def surface(self) -> "IdentitySurface":
+        """테스트 호환용 surface 속성"""
+        return self.identity.get_surface()
+
     def track_workflow_completion(
         self,
         workflow_id: str,

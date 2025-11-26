@@ -72,6 +72,11 @@ app.include_router(saas_adapter_router)
 from server.routes.weather_api import router as weather_api_router
 app.include_router(weather_api_router, tags=["weather_api"])
 
+
+# Auto-generated: payment
+from server.routes.payment import router as payment_router
+app.include_router(payment_router, tags=["payment"])
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server.main:app", host="127.0.0.1", port=8000, reload=True)
