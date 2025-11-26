@@ -12,9 +12,17 @@ ITERATION=0
 SUCCESS_COUNT=0
 FAIL_COUNT=0
 
-# 실패 테스트 목록 가져오기
+
+# 실패 테스트 목록 가져오기 (junitxml 기반, heredoc 사용)
 echo "📊 Getting failed tests..."
-python -m pytest --collect-only -q 2>&1 | grep "FAILED" | head -20 > .autus/failed_tests.txt
+pytest --maxfail=20 --disable-warnings --tb=short --junitxml=.autus/pytest_failures.xml > /dev/null 2>&1
+python3 <<EOF > .autus/failed_tests.txt
+import xml.etree.ElementTree as ET
+root = ET.parse('.autus/pytest_failures.xml').getroot()
+for tc in root.iter('testcase'):
+    if tc.find('failure') is not None or tc.find('error') is not None:
+        print(f"{tc.attrib.get('file','')}::{tc.attrib['name']}")
+EOF
 
 while [ $ITERATION -lt $MAX_ITERATIONS ]; do
     ITERATION=$((ITERATION + 1))
@@ -57,11 +65,15 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
         # 3. 수정 시도 (여기서는 로그만 - 실제 수정은 수동)
         echo "  🔧 Fix analysis saved to .autus/logs/analysis_${ITERATION}_${ATTEMPT}.json"
         
-        # 실패로 카운트
+        # 실패로 카운트 및 자동 복구/AI 생성 연동
         if [ $ATTEMPT -eq 3 ]; then
             echo "  ❌ Max attempts reached"
             FAIL_COUNT=$((FAIL_COUNT + 1))
             sed -i '' '1d' .autus/failed_tests.txt
+            # 1. 커버리지 리포트 자동 생성
+            ./scripts/generate_coverage_report.sh
+            # 2. AI 기반 신규 테스트 자동 생성
+            ./scripts/ai_autogen_test.sh
         fi
         
         # 비용 절약: 짧은 대기

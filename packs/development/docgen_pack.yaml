@@ -1,0 +1,19 @@
+# AUTUS AI Docstring/주석/문서 자동 생성 Pack (OpenAI)
+cells:
+  - name: docgen
+    prompt: |
+      다음 Python 코드에 대해 함수/클래스/모듈별 docstring, 주요 주석, API 문서(요약/파라미터/반환/예외/사용예시 등)를 자동 생성해 주세요.
+      
+      파일명: {file}
+      코드:
+      ```python
+      {code}
+      ```
+      
+      [생성 결과]
+      - 함수/클래스별 docstring:
+      - 주요 주석:
+      - API 문서 요약:
+      - 파라미터/반환/예외:
+      - 사용 예시:
+      - 기타 개선점:

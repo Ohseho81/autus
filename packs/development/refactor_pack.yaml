@@ -1,0 +1,16 @@
+# AUTUS AI Refactor Pack (OpenAI)
+cells:
+  - name: refactor
+    prompt: |
+      다음 Python 코드를 품질, 보안, 스타일, 성능, 문서화 관점에서 리팩터링해 주세요.
+      
+      파일명: {file}
+      코드:
+      ```python
+      {code}
+      ```
+      
+      [리팩터링 결과]
+      - 개선된 코드:
+      - 주요 변경점 설명:
+      - 추가 권장사항:

@@ -34,8 +34,42 @@ jobs:
           source .venv311/bin/activate
           pytest 04_ops/tests/test_autus_structure.py -q
 
-      - name: Run full pytest
+
+      - name: Run infinite loop (1회)
         run: |
           source .venv311/bin/activate
-          pytest -v
+          bash ./scripts/autus_infinite_loop.sh || true
+
+      - name: Generate status report
+        run: |
+          source .venv311/bin/activate
+          bash ./scripts/generate_status_report.sh
+
+      - name: Generate coverage report
+        run: |
+          source .venv311/bin/activate
+          bash ./scripts/generate_coverage_report.sh
+
+      - name: Suggest new tests
+        run: |
+          source .venv311/bin/activate
+          bash ./scripts/suggest_new_tests.sh
+
+      - name: Upload reports as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: autus-reports
+          path: reports/
+
+      - name: (Optional) Send Slack alert
+        if: always()
+        run: |
+          source .venv311/bin/activate
+          bash ./scripts/send_slack_alert.sh || true
+
+      - name: (Optional) Create auto PR
+        if: github.event_name == 'push'
+        run: |
+          source .venv311/bin/activate
+          bash ./scripts/create_autogen_pr.sh || true
 
