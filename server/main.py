@@ -86,6 +86,15 @@ app.include_router(analytics_router, tags=["analytics"])
 app.include_router(notification_router, tags=["notification"])
 app.include_router(scheduler_router, tags=["scheduler"])
 
+
+# Auto-generated: chat, billing, report
+from server.routes.chat import router as chat_router
+from server.routes.billing import router as billing_router
+from server.routes.report import router as report_router
+app.include_router(chat_router, tags=["chat"])
+app.include_router(billing_router, tags=["billing"])
+app.include_router(report_router, tags=["report"])
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server.main:app", host="127.0.0.1", port=8000, reload=True)

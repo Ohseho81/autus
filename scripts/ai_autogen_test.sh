@@ -15,6 +15,8 @@ mkdir -p "$AUTOGEN_DIR" "$REPORT_DIR"
 
 deficit_files=$(awk '/^core\// || /^protocols\// || /^server\// || /^standard\// || /^packs\// { if ($(NF-1)+0 < 80) print $1 }' "$COV_LOG")
 
+# python 경로 고정
+PYTHON="/Users/ohseho/Desktop/autus/.venv/bin/python"
 for f in $deficit_files; do
   abs_path="$(pwd)/$f"
   base=$(basename "$f" .py)

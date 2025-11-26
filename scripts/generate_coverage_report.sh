@@ -11,7 +11,7 @@ COV_REPORT_FILE="$REPORT_DIR/autus_coverage_report_$DATE.md"
 mkdir -p "$REPORT_DIR"
 
 # 1. 전체 커버리지 측정 (pytest-cov 필요)
-pytest --cov=core --cov=protocols --cov=server --cov=standard --cov=packs --cov-report=term-missing:skip-covered > "$REPORT_DIR/last_cov.log" 2>&1
+/Users/ohseho/Desktop/autus/.venv/bin/python -m pytest --cov=core --cov=protocols --cov=server --cov=standard --cov=packs --cov-report=term-missing:skip-covered > "$REPORT_DIR/last_cov.log" 2>&1
 
 # 2. 80% 미만 파일 추출
 deficit=$(awk '/^core\// || /^protocols\// || /^server\// || /^standard\// || /^packs\// { if ($(NF-1)+0 < 80) print $0 }' "$REPORT_DIR/last_cov.log")

@@ -47,7 +47,7 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
         echo "  📍 Attempt $ATTEMPT/3"
         
         # 1. 테스트 실행
-        ERROR_OUTPUT=$($PYTHON_BIN -m pytest "$TEST_NAME" --tb=short 2>&1)
+            ERROR_OUTPUT=$(/Users/ohseho/Desktop/autus/.venv/bin/python -m pytest "$TEST_NAME" --tb=short 2>&1)
         
         if echo "$ERROR_OUTPUT" | grep -q "passed"; then
             echo "  ✅ Test passed!"
@@ -83,7 +83,7 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
     # 10회마다 전체 테스트
     if [ $((ITERATION % 10)) -eq 0 ]; then
         echo "🧪 Running full test suite..."
-        python -m pytest -q --tb=no 2>&1 | tee .autus/logs/full_test_$ITERATION.log
+            /Users/ohseho/Desktop/autus/.venv/bin/python -m pytest -q --tb=no 2>&1 | tee .autus/logs/full_test_$ITERATION.log
         tail -5 .autus/logs/full_test_$ITERATION.log
     fi
 done

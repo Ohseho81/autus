@@ -87,4 +87,10 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
 
+# 커스텀 마크 등록 (경고 제거)
+markers = [
+    "armp: ARMP 관련 테스트",
+    "benchmark: 벤치마크 테스트"
+]
+
 
