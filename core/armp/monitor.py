@@ -24,7 +24,10 @@ class ARMPMonitor:
             "check_count": self.check_count,
             "violation_count": self.violation_count,
             "running": self.running,
-            "check_interval": self.check_interval
+            "check_interval": self.check_interval,
+            "timestamp": datetime.now().isoformat(),
+            "risks_checked": getattr(self.enforcer, 'risks', []),
+            "violations_found": getattr(self.enforcer, 'incidents', [])
         }
     """실시간 리스크 모니터링"""
 

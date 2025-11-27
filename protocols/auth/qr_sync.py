@@ -54,6 +54,18 @@ class QRCodeGenerator:
             PIL Image with QR code
         """
         # Add expiration timestamp
+        # Limit evolution_history in identity_data['surface'] if present
+        identity_data = dict(identity_data)  # shallow copy
+        if 'surface' in identity_data and isinstance(identity_data['surface'], dict):
+            surf = identity_data['surface']
+            # Only keep core_hash and the last evolution entry
+            minimized_surface = {
+                'core_hash': surf.get('core_hash')
+            }
+            if 'evolution_history' in surf and isinstance(surf['evolution_history'], list) and len(surf['evolution_history']) > 0:
+                minimized_surface['evolution_history'] = [surf['evolution_history'][-1]]
+            identity_data['surface'] = minimized_surface
+
         sync_data = {
             'identity': identity_data,
             'expires_at': (datetime.now() + timedelta(minutes=expiration_minutes)).isoformat(),
@@ -61,9 +73,11 @@ class QRCodeGenerator:
             'version': '1.0'
         }
 
-        # Encode to JSON and base64
+        # Encode to JSON, compress with zlib, then base64 encode
+        import zlib
         json_str = json.dumps(sync_data, sort_keys=True)
-        encoded = base64.b64encode(json_str.encode('utf-8')).decode('utf-8')
+        compressed = zlib.compress(json_str.encode('utf-8'), level=9)
+        encoded = base64.b64encode(compressed).decode('utf-8')
 
         # Dynamically select QR version up to 40
         for version in range(1, 41):
@@ -77,6 +91,9 @@ class QRCodeGenerator:
                 qr.add_data(encoded)
                 qr.make(fit=True)
                 img = qr.make_image(fill_color="black", back_color="white")
+                # Always return a true PIL.Image.Image
+                if hasattr(img, 'get_image'):
+                    return img.get_image()
                 return img
             except Exception as e:
                 if "Invalid version" in str(e) or "data too large" in str(e):
