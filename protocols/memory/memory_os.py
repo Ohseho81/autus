@@ -59,6 +59,10 @@ class MemoryOS:
         )
         logger.debug(f"Preference set: {key} = {value}")
 
+    def store_preference(self, key: str, value: Any, category: str = "general") -> None:
+        """Alias for set_preference (테스트 호환용)"""
+        return self.set_preference(key, value, category)
+
     def get_preference(self, key: str) -> Optional[Any]:
         """
         선호도 조회

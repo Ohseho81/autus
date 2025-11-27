@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Development Pack Runner (OpenAI 버전)
 임시로 OpenAI GPT-4를 사용

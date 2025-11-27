@@ -27,6 +27,11 @@ class MemoryStore:
     - Workflow context (anonymous patterns only)
     """
 
+    @property
+    def db_path(self):
+        """테스트 호환용 db_path"""
+        return getattr(self, '_db_path', ".autus/memory/memory.db")
+
     def __init__(self, db_path: str = ".autus/memory/memory.db") -> None:
         """
         Initialize a new instance of the MemoryStore class.
@@ -37,6 +42,7 @@ class MemoryStore:
         # 디렉토리 생성
         ensure_dir(Path(db_path).parent)
 
+        self._db_path = db_path
         try:
             self.conn = duckdb.connect(db_path)
             self._init_schema()

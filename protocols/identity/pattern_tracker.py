@@ -42,9 +42,9 @@ class BehavioralPatternTracker:
     def track_workflow_completion(
         self,
         workflow_id: str,
-        nodes_executed: List[str],
-        duration_seconds: float,
-        success: bool,
+        nodes_executed: List[str] = None,
+        duration_seconds: float = 0.0,
+        success: bool = True,
         context: Optional[Dict] = None
     ) -> None:
         """

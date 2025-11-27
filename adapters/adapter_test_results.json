@@ -1,132 +1,38 @@
 [
   {
-    "adapter": "ERPAdapter",
-    "method": "run",
-    "args": {
-      "command": "",
-      "args": {
-        "url": "http://example.com/api",
-        "payload": {}
-      }
-    },
-    "result": {
-      "success": false,
-      "output": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api\" on this server.<P>\nReference&#32;&#35;18&#46;f577d917&#46;1764196223&#46;16e9ce0c\n<P>https&#58;&#47;&#47;errors&#46;edgesuite&#46;net&#47;18&#46;f577d917&#46;1764196223&#46;16e9ce0c</P>\n</BODY>\n</HTML>\n",
-      "status_code": 403
-    }
+    "adapter": "webhook_adapter",
+    "error": "Import error: No module named 'adapters'"
   },
   {
-    "adapter": "ERPAdapter",
-    "method": "rollback",
-    "args": {
-      "rollback_url": "http://example.com/rollback",
-      "rollback_payload": {}
-    },
-    "error": "ERPAdapter.rollback() got an unexpected keyword argument 'rollback_url'"
+    "adapter": "erp_adapter",
+    "error": "Import error: No module named 'adapters'"
   },
   {
-    "adapter": "ERPAdapter",
-    "method": "status",
-    "args": {
-      "status_url": "http://example.com/status"
-    },
-    "error": "ERPAdapter.status() got an unexpected keyword argument 'status_url'"
+    "adapter": "github_adapter",
+    "error": "Import error: No module named 'adapters'"
   },
   {
-    "adapter": "ShellAdapter",
-    "method": "run",
-    "args": {
-      "command": "echo \"hello\""
-    },
-    "result": {
-      "success": true,
-      "output": "hello\n",
-      "error": "",
-      "returncode": 0
-    }
+    "adapter": "adapter_template",
+    "error": "Import error: No module named 'adapters'"
   },
   {
-    "adapter": "ShellAdapter",
-    "method": "rollback",
-    "args": {
-      "rollback_cmd": "echo \"rollback\""
-    },
-    "error": "ShellAdapter.rollback() got an unexpected keyword argument 'rollback_cmd'"
+    "adapter": "saas_adapter",
+    "error": "Import error: No module named 'adapters'"
   },
   {
-    "adapter": "ShellAdapter",
-    "method": "status",
-    "args": {},
-    "error": "ShellAdapter.status() missing 1 required positional argument: 'context'"
+    "adapter": "homepage_adapter",
+    "error": "Import error: No module named 'adapters'"
   },
   {
-    "adapter": "SaaSAdapter",
-    "method": "run",
-    "args": {
-      "command": "",
-      "args": {
-        "url": "http://example.com/api",
-        "payload": {},
-        "headers": {}
-      }
-    },
-    "result": {
-      "success": false,
-      "output": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;example&#46;com&#47;api\" on this server.<P>\nReference&#32;&#35;18&#46;f577d917&#46;1764196224&#46;16e9e4df\n<P>https&#58;&#47;&#47;errors&#46;edgesuite&#46;net&#47;18&#46;f577d917&#46;1764196224&#46;16e9e4df</P>\n</BODY>\n</HTML>\n",
-      "status_code": 403
-    }
+    "adapter": "db_adapter",
+    "error": "Import error: No module named 'adapters'"
   },
   {
-    "adapter": "SaaSAdapter",
-    "method": "rollback",
-    "args": {
-      "rollback_url": "http://example.com/rollback",
-      "rollback_payload": {},
-      "headers": {}
-    },
-    "error": "SaaSAdapter.rollback() got an unexpected keyword argument 'rollback_url'"
+    "adapter": "slack_adapter",
+    "error": "Import error: No module named 'adapters'"
   },
   {
-    "adapter": "SaaSAdapter",
-    "method": "status",
-    "args": {
-      "status_url": "http://example.com/status",
-      "headers": {}
-    },
-    "error": "SaaSAdapter.status() got an unexpected keyword argument 'status_url'"
-  },
-  {
-    "adapter": "HomepageAdapter",
-    "method": "run",
-    "args": {
-      "command": "",
-      "args": {
-        "url": "http://example.com",
-        "method": "GET",
-        "payload": {}
-      }
-    },
-    "result": {
-      "success": true,
-      "output": "<!doctype html><html lang=\"en\"><head><title>Example Domain</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><style>body{background:#eee;width:60vw;margin:15vh auto;font-family:system-ui,sans-serif}h1{font-size:1.5em}div{opacity:0.8}a:link,a:visited{color:#348}</style><body><div><h1>Example Domain</h1><p>This domain is for use in documentation examples without needing permission. Avoid use in operations.<p><a href=\"https://iana.org/domains/example\">Learn more</a></div></body></html>\n",
-      "status_code": 200
-    }
-  },
-  {
-    "adapter": "HomepageAdapter",
-    "method": "rollback",
-    "args": {
-      "rollback_url": "http://example.com/rollback",
-      "rollback_payload": {}
-    },
-    "error": "HomepageAdapter.rollback() got an unexpected keyword argument 'rollback_url'"
-  },
-  {
-    "adapter": "HomepageAdapter",
-    "method": "status",
-    "args": {
-      "status_url": "http://example.com/status"
-    },
-    "error": "HomepageAdapter.status() got an unexpected keyword argument 'status_url'"
+    "adapter": "jira_adapter",
+    "error": "Import error: No module named 'adapters'"
   }
 ]

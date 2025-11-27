@@ -3,9 +3,14 @@ AUTUS 무한 순환/자가치유 자동화 루프
 - 어댑터/테스트/보안/정책/배포 등 전체 파이프라인을 무한 루프로 순환
 - 오류/실패 감지 시 자동 수정/복구/재실행/고도화
 """
+
+import sys
+import os
 import time
 import subprocess
-import os
+
+# 프로젝트 루트 경로를 sys.path에 추가 (core 모듈 import 오류 방지)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 LOOP_INTERVAL = 10  # 초 단위, 필요시 조정
 
