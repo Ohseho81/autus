@@ -12,6 +12,9 @@ from unittest.mock import Mock, patch
 from core.armp.enforcer import enforcer, Risk, Severity, RiskCategory, ARMPEnforcer
 
 
+
+
+
 class TestEnforcerRiskRegistration:
     """Test risk registration"""
 

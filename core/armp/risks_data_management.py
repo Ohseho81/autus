@@ -71,9 +71,10 @@ class SchemaVersionMismatchRisk(Risk):
 
 
 # Register risks
-enforcer.register_risk(SchemaVersionMismatchRisk())
 
-logger.info("✅ Data management risks registered")
+def register_data_management_risks():
+    enforcer.register_risk(SchemaVersionMismatchRisk())
+    logger.info("✅ Data management risks registered")
 
 
 

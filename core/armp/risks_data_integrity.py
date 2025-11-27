@@ -216,11 +216,12 @@ class TransactionRollbackRisk(Risk):
 
 
 # Register risks
-enforcer.register_risk(BackupFailureRisk())
-enforcer.register_risk(DataMigrationRisk())
-enforcer.register_risk(TransactionRollbackRisk())
 
-logger.info("✅ Data integrity risks registered")
+def register_data_integrity_risks():
+    enforcer.register_risk(BackupFailureRisk())
+    enforcer.register_risk(DataMigrationRisk())
+    enforcer.register_risk(TransactionRollbackRisk())
+    logger.info("✅ Data integrity risks registered")
 
 
 

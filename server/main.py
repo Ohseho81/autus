@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 # Core 9 packs
@@ -103,13 +104,9 @@ from server.routes.validator import router as validator_router
 from server.routes.auth import router as auth_router
 from server.routes.visualizer import router as visualizer_router
 from server.routes.nodes import router as nodes_router
-from server.websocket import websocket_endpoint
 app.include_router(analyzer_router, tags=["analyzer"])
 app.include_router(fixer_router, tags=["fixer"])
 app.include_router(validator_router, tags=["validator"])
-@app.websocket("/stream")
-async def stream(websocket):
-    await websocket_endpoint(websocket)
 
 app.include_router(nodes_router, tags=["3d-nodes"])
 app.include_router(visualizer_router, tags=["visualizer"])
@@ -127,3 +124,20 @@ register_recommend_api(app)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server.main:app", host="127.0.0.1", port=8000, reload=True)
+
+
+# Static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+# WebSocket endpoint
+@app.websocket("/stream")
+async def websocket_stream(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        await websocket.send_json({"type": "connected", "message": "AUTUS 3D Stream"})
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_json({"type": "ack", "data": data})
+    except Exception as e:
+        print(f"WS closed: {e}")

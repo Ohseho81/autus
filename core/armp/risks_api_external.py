@@ -226,9 +226,14 @@ class APIVersionMismatchRisk(Risk):
 
 
 # Register risks
-enforcer.register_risk(APIResponseTimeoutRisk())
-enforcer.register_risk(ExternalServiceFailureRisk())
-enforcer.register_risk(APIVersionMismatchRisk())
+
+def register_api_external_risks():
+    enforcer.register_risk(APIResponseTimeoutRisk())
+    enforcer.register_risk(ExternalServiceFailureRisk())
+    enforcer.register_risk(APIVersionMismatchRisk())
+    logger.info("\u2705 API & External service risks registered")
+
+register_api_external_risks()
 
 logger.info("✅ API & External service risks registered")
 

@@ -287,12 +287,13 @@ class WebhookFailureRisk(Risk):
 
 
 # Register risks
-enforcer.register_risk(ConstitutionViolationRisk())
-enforcer.register_risk(APIKeyExposureRisk())
-enforcer.register_risk(DataLossEventRisk())
-enforcer.register_risk(WebhookFailureRisk())
 
-logger.info("✅ Final risks registered")
+def register_final_risks():
+    enforcer.register_risk(ConstitutionViolationRisk())
+    enforcer.register_risk(APIKeyExposureRisk())
+    enforcer.register_risk(DataLossEventRisk())
+    enforcer.register_risk(WebhookFailureRisk())
+    logger.info("✅ Final risks registered")
 
 
 

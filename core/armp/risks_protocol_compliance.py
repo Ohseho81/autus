@@ -205,9 +205,14 @@ class ProtocolStateCorruptionRisk(Risk):
 
 
 # Register risks
-enforcer.register_risk(ProtocolVersionIncompatibleRisk())
-enforcer.register_risk(InvalidProtocolMessageRisk())
-enforcer.register_risk(ProtocolStateCorruptionRisk())
+
+def register_protocol_compliance_risks():
+    enforcer.register_risk(ProtocolVersionIncompatibleRisk())
+    enforcer.register_risk(InvalidProtocolMessageRisk())
+    enforcer.register_risk(ProtocolStateCorruptionRisk())
+    logger.info("\u2705 Protocol compliance risks registered")
+
+register_protocol_compliance_risks()
 
 logger.info("✅ Protocol compliance risks registered")
 

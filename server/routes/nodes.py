@@ -1,27 +1,18 @@
 """
 AUTUS 3D Node API
 - /api/state/<node_type> - 노드 상태 조회
-- /api/nodes - 전체 노드 조회
+- /api/trigger - 실시간 업데이트 트리거
 """
-from fastapi import APIRouter
-from typing import Dict, Any, Optional
+from fastapi import APIRouter, BackgroundTasks
+from typing import Dict, Any
+import asyncio
+import random
 from protocols.identity.visualizer import generate_demo_data
-from protocols.workflow.standard import WorkflowGraph
 
 router = APIRouter(prefix="/api", tags=["3D Nodes"])
 
-# 간단한 인메모리 상태 (실제는 NodeManager 사용)
-_state = {
-    "identity": None,
-    "workflow": None,
-    "patterns": [],
-    "risks": [],
-    "packs": []
-}
-
 @router.get("/state/identity")
 async def get_identity_state():
-    """Identity Surface 상태"""
     data = generate_demo_data()
     core = data.get("core", {})
     return {
@@ -38,20 +29,20 @@ async def get_identity_state():
 
 @router.get("/state/workflow")
 async def get_workflow_state():
-    """Workflow Orbit 상태"""
-    # 데모 워크플로우
     import math
     nodes = []
     for i in range(5):
         angle = (i / 5) * 2 * math.pi
+        # 약간의 랜덤 움직임 추가
+        jitter = random.uniform(-0.1, 0.1)
         nodes.append({
             "update": "workflow_state",
             "node_id": f"workflow_{i}",
-            "position": [3 * math.cos(angle), 0, 3 * math.sin(angle)],
+            "position": [3 * math.cos(angle) + jitter, jitter, 3 * math.sin(angle) + jitter],
             "properties": {
                 "color": "#00ff88" if i == 2 else "#4488ff",
                 "state": "running" if i == 2 else "idle",
-                "progress": 0.6 if i == 2 else 0,
+                "progress": random.uniform(0.3, 0.9) if i == 2 else 0,
                 "label": f"Task {i+1}"
             }
         })
@@ -59,15 +50,14 @@ async def get_workflow_state():
 
 @router.get("/state/memory")
 async def get_memory_state():
-    """Memory Galaxy 상태"""
     import hashlib
     patterns = [
         {"name": "morning_routine", "category": "habit", "count": 15},
         {"name": "code_review", "category": "workflow", "count": 8},
         {"name": "meeting_prep", "category": "schedule", "count": 5},
     ]
-    nodes = []
     colors = {"workflow": "#4CAF50", "schedule": "#2196F3", "habit": "#9C27B0"}
+    nodes = []
     for i, p in enumerate(patterns):
         h = hashlib.md5(p["name"].encode()).digest()
         nodes.append({
@@ -84,12 +74,11 @@ async def get_memory_state():
 
 @router.get("/state/risk")
 async def get_risk_state():
-    """Risk Nebula 상태"""
     risks = [
-        {"article": "article_1", "level": 0.2, "active": False},
-        {"article": "article_2", "level": 0.1, "active": False},
+        {"article": "article_1", "level": random.uniform(0.1, 0.5), "active": False},
+        {"article": "article_2", "level": random.uniform(0.05, 0.3), "active": False},
     ]
-    colors = {"article_1": "#ff0000", "article_2": "#ff8800", "article_3": "#ffff00"}
+    colors = {"article_1": "#ff0000", "article_2": "#ff8800"}
     nodes = []
     for i, r in enumerate(risks):
         nodes.append({
@@ -107,7 +96,6 @@ async def get_risk_state():
 
 @router.get("/state/packs")
 async def get_packs_state():
-    """Pack Universe 상태"""
     import math
     packs = [
         {"name": "architect", "category": "development"},
@@ -121,7 +109,7 @@ async def get_packs_state():
         angle = (i / len(packs)) * 2 * math.pi
         nodes.append({
             "update": "pack_state",
-            "node_id": f"pack_{p["name"]}",
+            "node_id": f"pack_{p['name']}",
             "position": [8*math.cos(angle), 2, 8*math.sin(angle)],
             "properties": {
                 "color": colors.get(p["category"], "#888"),
@@ -133,7 +121,6 @@ async def get_packs_state():
 
 @router.get("/nodes/all")
 async def get_all_nodes():
-    """전체 노드 상태"""
     identity = await get_identity_state()
     workflow = await get_workflow_state()
     memory = await get_memory_state()
@@ -149,12 +136,53 @@ async def get_all_nodes():
 
 @router.post("/event")
 async def handle_3d_event(event: Dict[str, Any]):
-    """3D -> OS 이벤트 처리"""
-    event_type = event.get("event")
-    node_id = event.get("node_id")
-    action = event.get("action")
-    
-    # 이벤트 로깅 (실제로는 처리 로직)
-    print(f"3D Event: {event_type} on {node_id} -> {action}")
-    
+    print(f"3D Event: {event}")
     return {"status": "ok", "received": event}
+
+@router.post("/trigger/update")
+async def trigger_update(node_id: str = "workflow_2", color: str = "#ff0000"):
+    """실시간 업데이트 트리거 (테스트용)"""
+    from server.websocket import manager
+    
+    update = {
+        "type": "node_update",
+        "node": {
+            "node_id": node_id,
+            "position": [random.uniform(-2, 2), random.uniform(-1, 1), random.uniform(-2, 2)],
+            "properties": {
+                "color": color,
+                "scale": random.uniform(0.8, 1.5),
+                "state": "running"
+            }
+        }
+    }
+    
+    await manager.broadcast(update)
+    return {"status": "ok", "broadcast": update}
+
+@router.post("/trigger/random")
+async def trigger_random_update():
+    """랜덤 노드 업데이트 (테스트용)"""
+    from server.websocket import manager
+    
+    node_types = ["workflow", "pattern", "risk", "pack"]
+    colors = ["#ff0000", "#00ff00", "#0088ff", "#ff8800", "#9C27B0"]
+    
+    node_type = random.choice(node_types)
+    node_id = f"{node_type}_{random.randint(0, 4)}"
+    
+    update = {
+        "type": "node_update",
+        "node": {
+            "node_id": node_id,
+            "position": [random.uniform(-5, 5), random.uniform(-2, 2), random.uniform(-5, 5)],
+            "properties": {
+                "color": random.choice(colors),
+                "scale": random.uniform(0.5, 2.0),
+                "state": random.choice(["idle", "running", "complete"])
+            }
+        }
+    }
+    
+    await manager.broadcast(update)
+    return {"status": "ok", "broadcast": update}

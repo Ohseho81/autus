@@ -144,10 +144,13 @@ class ResponseTimeDegradationRisk(Risk):
 
 
 # Register risks
-enforcer.register_risk(CPUThresholdRisk())
-enforcer.register_risk(ResponseTimeDegradationRisk())
 
-logger.info("✅ Performance monitoring risks registered")
+def register_performance_monitoring_risks():
+    enforcer.register_risk(CPUThresholdRisk())
+    enforcer.register_risk(ResponseTimeDegradationRisk())
+    logger.info("✅ Performance monitoring risks registered")
+
+register_performance_monitoring_risks()
 
 
 

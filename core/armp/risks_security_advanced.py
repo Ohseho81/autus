@@ -281,12 +281,19 @@ class CredentialExposureRisk(Risk):
         logger.info("   4. Add pre-commit hooks")
 
 
-# Register risks
-enforcer.register_risk(SQLInjectionRisk())
-enforcer.register_risk(MaliciousPackageRisk())
-enforcer.register_risk(CredentialExposureRisk())
 
-logger.info("✅ Advanced security risks registered")
+def register_security_advanced_risks():
+    """Advanced security risks 등록 (중복 방지)"""
+    registered = set(r.name for r in enforcer.risks)
+    risks = [
+        SQLInjectionRisk(),
+        MaliciousPackageRisk(),
+        CredentialExposureRisk(),
+    ]
+    for risk in risks:
+        if risk.name not in registered:
+            enforcer.register_risk(risk)
+    logger.info("✅ Advanced security risks registered")
 
 
 

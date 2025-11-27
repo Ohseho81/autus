@@ -296,12 +296,13 @@ class SSLCertificateRisk(Risk):
 
 
 # Register risks
-enforcer.register_risk(PathTraversalRisk())
-enforcer.register_risk(UnauthorizedFileAccessRisk())
-enforcer.register_risk(NetworkConnectivityRisk())
-enforcer.register_risk(SSLCertificateRisk())
 
-logger.info("✅ File & Network security risks registered")
+def register_files_network_risks():
+    enforcer.register_risk(PathTraversalRisk())
+    enforcer.register_risk(UnauthorizedFileAccessRisk())
+    enforcer.register_risk(NetworkConnectivityRisk())
+    enforcer.register_risk(SSLCertificateRisk())
+    logger.info("✅ File & Network security risks registered")
 
 
 

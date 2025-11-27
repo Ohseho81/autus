@@ -143,7 +143,10 @@ class DiskSpaceRisk(Risk):
 
 
 # Register risks
-enforcer.register_risk(MemoryLeakRisk())
-enforcer.register_risk(DiskSpaceRisk())
 
-logger.info("✅ Advanced performance risks registered")
+def register_performance_advanced_risks():
+    enforcer.register_risk(MemoryLeakRisk())
+    enforcer.register_risk(DiskSpaceRisk())
+    logger.info("✅ Advanced performance risks registered")
+
+register_performance_advanced_risks()
