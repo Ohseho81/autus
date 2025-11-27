@@ -1,6 +1,3 @@
-# AUTUS 추천 API 라우터 등록
-from server.routes.recommend import register_recommend_api
-register_recommend_api(app)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -106,6 +103,15 @@ from server.routes.validator import router as validator_router
 app.include_router(analyzer_router, tags=["analyzer"])
 app.include_router(fixer_router, tags=["fixer"])
 app.include_router(validator_router, tags=["validator"])
+
+
+# AUTUS LLM API 라우터 등록
+from server.routes.llm import register_llm_api
+register_llm_api(app)
+
+# AUTUS 추천 API 라우터 등록
+from server.routes.recommend import register_recommend_api
+register_recommend_api(app)
 
 if __name__ == "__main__":
     import uvicorn

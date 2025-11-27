@@ -1,3 +1,7 @@
+<div class="card"><h2>추천/생성</h2>
+    <div><b>추천 명령</b><button onclick="loadRecommendations()">새로고침</button></div>
+    <div id="recommendations">Loading...</div>
+    <div style="margin-top:10px"><b>LLM 생성</b> <input id="llm-prompt" style="width:60%" placeholder="프롬프트 입력..."><button onclick="runLLM()">실행</button></div><div id="llm-result"></div>
 # Serve the unified dashboard HTML at root
 @dash_app.get("/", response_class=HTMLResponse)
 async def dashboard_root():
@@ -159,6 +163,37 @@ async function filterStats(type, value) {
 update();
 setInterval(update, 5000);
 startEventStream();
+// 추천 명령 불러오기
+async function loadRecommendations() {
+    document.getElementById('recommendations').innerHTML = 'Loading...';
+    try {
+        const resp = await fetch('/api/recommend?topk=5');
+        const data = await resp.json();
+        let html = '<table style="width:100%;color:#eee;"><tr><th>user</th><th>action</th><th>count</th></tr>';
+        for(const r of data.recommendations){
+            html += `<tr><td>${r.user}</td><td>${r.action}</td><td>${r.count}</td></tr>`;
+        }
+        html += '</table>';
+        document.getElementById('recommendations').innerHTML = html;
+    } catch(e) {
+        document.getElementById('recommendations').innerHTML = '[추천 API 오류]';
+    }
+}
+// LLM 생성 실행
+async function runLLM() {
+    let prompt = document.getElementById('llm-prompt').value;
+    if (!prompt) { alert('프롬프트를 입력하세요!'); return; }
+    document.getElementById('llm-result').innerHTML = '실행 중...';
+    try {
+        const resp = await fetch('/api/llm?prompt=' + encodeURIComponent(prompt), {method:'POST'});
+        const data = await resp.json();
+        document.getElementById('llm-result').innerHTML = `<pre>${data.result}</pre>`;
+    } catch(e) {
+        document.getElementById('llm-result').innerHTML = '[LLM API 오류]';
+    }
+}
+// 대시보드 진입 시 자동 추천 로딩
+loadRecommendations();
 </script>
 </body>
 </html>
