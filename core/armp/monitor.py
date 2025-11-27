@@ -35,7 +35,8 @@ class ARMPMonitor:
         self.enforcer = enforcer
         self.running = False
         self.thread = None
-        self.check_interval = 60  # 1분마다
+        self.check_interval = 60  # 1분마다 (legacy)
+        self.interval = None  # If set, overrides check_interval for test control
         self.start_time = None
         self.check_count = 0
         self.violation_count = 0
@@ -84,8 +85,9 @@ class ARMPMonitor:
                 # 3. 메트릭 수집
                 self._collect_metrics()
 
-                # 4. 대기
-                time.sleep(self.check_interval)
+                # 4. 대기 (use interval if set, else check_interval)
+                sleep_time = self.interval if self.interval is not None else self.check_interval
+                time.sleep(sleep_time)
 
             except Exception as e:
                 logger.error(f"Monitor loop error: {e}")

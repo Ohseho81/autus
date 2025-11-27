@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AUTUS Triple Sphere OS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
+        #renderCanvas { width: 100%; height: 100vh; display: block; }
+        
+        #info {
+            position: absolute; top: 20px; left: 20px;
+            color: #0ff; background: rgba(0,0,0,0.7);
+            padding: 15px 20px; border-radius: 10px;
+            border: 1px solid #0ff; min-width: 200px;
+        }
+        #info h1 { font-size: 18px; margin-bottom: 10px; }
+        #info .stat { display: flex; justify-content: space-between; margin: 5px 0; font-size: 14px; }
+        #info .stat .value { color: #0f0; }
+        
+        #legend {
+            position: absolute; bottom: 20px; left: 20px;
+            color: #fff; background: rgba(0,0,0,0.7);
+            padding: 15px; border-radius: 10px;
+            border: 1px solid #444;
+        }
+        #legend h3 { margin-bottom: 10px; color: #0ff; }
+        .layer-item { display: flex; align-items: center; margin: 8px 0; font-size: 13px; }
+        .layer-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 10px; }
+        
+        #detail {
+            position: absolute; top: 20px; right: 20px;
+            color: #fff; background: rgba(0,20,0,0.85);
+            padding: 20px; border-radius: 10px;
+            border: 1px solid #0f0; width: 280px;
+            display: none;
+        }
+        #detail h2 { color: #0f0; margin-bottom: 15px; font-size: 16px; }
+        #detail .row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 13px; }
+        #detail .label { color: #888; }
+        #detail .close { position: absolute; top: 10px; right: 15px; cursor: pointer; color: #888; }
+        #detail .close:hover { color: #fff; }
+        
+        #controls {
+            position: absolute; bottom: 20px; right: 20px;
+            color: #fff; background: rgba(0,0,0,0.7);
+            padding: 15px; border-radius: 10px;
+            border: 1px solid #444;
+        }
+        #controls button {
+            background: #333; color: #0ff; border: 1px solid #0ff;
+            padding: 8px 15px; margin: 5px; border-radius: 5px; cursor: pointer;
+        }
+        #controls button:hover { background: #0ff; color: #000; }
+    </style>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    
+    <div id="info">
+        <h1>🌐 AUTUS Triple Sphere</h1>
+        <div class="stat"><span>Layer 1 (Core)</span><span class="value" id="l1Count">-</span></div>
+        <div class="stat"><span>Layer 2 (Protocol)</span><span class="value" id="l2Count">-</span></div>
+        <div class="stat"><span>Layer 3 (Pack)</span><span class="value" id="l3Count">-</span></div>
+        <div class="stat" style="border-top: 1px solid #444; padding-top: 8px; margin-top: 8px;">
+            <span>Total Nodes</span><span class="value" id="totalCount">-</span>
+        </div>
+    </div>
+    
+    <div id="legend">
+        <h3>Layers</h3>
+        <div class="layer-item"><div class="layer-dot" style="background: #ffff00;"></div>Layer 1: OS Core (헌법)</div>
+        <div class="layer-item"><div class="layer-dot" style="background: #00ffff;"></div>Layer 2: Protocol (규칙)</div>
+        <div class="layer-item"><div class="layer-dot" style="background: #00ff00;"></div>Layer 3: Pack (앱)</div>
+    </div>
+    
+    <div id="detail">
+        <span class="close" onclick="closeDetail()">✕</span>
+        <h2 id="detailTitle">Node</h2>
+        <div class="row"><span class="label">ID</span><span id="detailId">-</span></div>
+        <div class="row"><span class="label">Type</span><span id="detailType">-</span></div>
+        <div class="row"><span class="label">Layer</span><span id="detailLayer">-</span></div>
+        <div class="row"><span class="label">Status</span><span id="detailStatus">-</span></div>
+        <div class="row"><span class="label">Position</span><span id="detailPos">-</span></div>
+    </div>
+    
+    <div id="controls">
+        <button onclick="toggleLayer(1)">Toggle Core</button>
+        <button onclick="toggleLayer(2)">Toggle Protocol</button>
+        <button onclick="toggleLayer(3)">Toggle Pack</button>
+        <button onclick="resetCamera()">Reset View</button>
+    </div>
+
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script>
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+        
+        let scene, camera;
+        let sphereLayers = {};
+        let nodeMeshes = {};
+        let linkLines = [];
+        let stateData = null;
+        
+        const API_BASE = "http://127.0.0.1:8000/api/3d";
+        
+        // 색상 맵
+        const LAYER_COLORS = {
+            1: new BABYLON.Color3(1, 1, 0),      // 노랑
+            2: new BABYLON.Color3(0, 1, 1),      // 시안
+            3: new BABYLON.Color3(0, 1, 0)       // 초록
+        };
+        
+        async function fetchState() {
+            try {
+                const res = await fetch(`${API_BASE}/state`);
+                stateData = await res.json();
+                updateStats();
+                return stateData;
+            } catch (e) {
+                console.error("API Error:", e);
+                return null;
+            }
+        }
+        
+        function updateStats() {
+            if (!stateData) return;
+            document.getElementById("l1Count").textContent = stateData.stats.layer1;
+            document.getElementById("l2Count").textContent = stateData.stats.layer2;
+            document.getElementById("l3Count").textContent = stateData.stats.layer3;
+            document.getElementById("totalCount").textContent = stateData.stats.total;
+        }
+        
+        function createScene() {
+            scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color4(0.02, 0.02, 0.05, 1);
+            
+            // 카메라
+            camera = new BABYLON.ArcRotateCamera("cam", Math.PI/4, Math.PI/3, 25, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true);
+            camera.lowerRadiusLimit = 8;
+            camera.upperRadiusLimit = 50;
+            camera.wheelPrecision = 20;
+            
+            // 조명
+            new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.6;
+            new BABYLON.PointLight("light2", new BABYLON.Vector3(0, 0, 0), scene).intensity = 0.4;
+            
+            // 글로우
+            const gl = new BABYLON.GlowLayer("glow", scene);
+            gl.intensity = 0.5;
+            
+            // 별 배경
+            for (let i = 0; i < 500; i++) {
+                const star = BABYLON.MeshBuilder.CreateSphere("star" + i, {diameter: 0.05}, scene);
+                star.position = new BABYLON.Vector3(
+                    (Math.random() - 0.5) * 100,
+                    (Math.random() - 0.5) * 100,
+                    (Math.random() - 0.5) * 100
+                );
+                const mat = new BABYLON.StandardMaterial("starMat" + i, scene);
+                mat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+                star.material = mat;
+            }
+            
+            return scene;
+        }
+        
+        function createSphereLayer(layerId, radius, color, opacity) {
+            const sphere = BABYLON.MeshBuilder.CreateSphere(`layer${layerId}`, {diameter: radius * 2, segments: 32}, scene);
+            const mat = new BABYLON.StandardMaterial(`layerMat${layerId}`, scene);
+            mat.diffuseColor = color;
+            mat.alpha = opacity;
+            mat.wireframe = true;
+            sphere.material = mat;
+            sphereLayers[layerId] = sphere;
+            return sphere;
+        }
+        
+        function createNode(node, layerId) {
+            const pos = node.position || {x: 0, y: 0, z: 0};
+            
+            // 노드 크기 (Layer별 차등)
+            const sizes = {1: 0.4, 2: 0.3, 3: 0.2};
+            const size = sizes[layerId] || 0.2;
+            
+            // 노드 형태 (Layer별 차등)
+            let mesh;
+            if (layerId === 1) {
+                mesh = BABYLON.MeshBuilder.CreatePolyhedron(node.id, {type: 1, size: size}, scene);
+            } else if (layerId === 2) {
+                mesh = BABYLON.MeshBuilder.CreateTorus(node.id, {diameter: size * 2, thickness: size * 0.4}, scene);
+            } else {
+                mesh = BABYLON.MeshBuilder.CreateSphere(node.id, {diameter: size * 2}, scene);
+            }
+            
+            mesh.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
+            
+            // 재질
+            const mat = new BABYLON.StandardMaterial(`mat_${node.id}`, scene);
+            const color = BABYLON.Color3.FromHexString(node.color || "#ffffff");
+            mat.diffuseColor = color;
+            mat.emissiveColor = color.scale(0.5);
+            mesh.material = mat;
+            
+            // 메타데이터
+            mesh.metadata = {...node, layerId};
+            nodeMeshes[node.id] = mesh;
+            
+            return mesh;
+        }
+        
+        function createLink(source, target, color) {
+            const srcMesh = nodeMeshes[source];
+            const tgtMesh = nodeMeshes[target];
+            if (!srcMesh || !tgtMesh) return null;
+            
+            const points = [srcMesh.position, tgtMesh.position];
+            const line = BABYLON.MeshBuilder.CreateLines(`link_${source}_${target}`, {points}, scene);
+            line.color = BABYLON.Color3.FromHexString(color || "#ffffff");
+            line.alpha = 0.3;
+            linkLines.push(line);
+            return line;
+        }
+        
+        async function buildTripleSphere() {
+            const data = await fetchState();
+            if (!data || !data.layers) {
+                console.error("No data");
+                return;
+            }
+            
+            // 3개 레이어 구 생성
+            data.layers.forEach(layer => {
+                createSphereLayer(layer.id, layer.radius, LAYER_COLORS[layer.id], layer.opacity || 0.1);
+                
+                // 노드 생성
+                layer.nodes.forEach(node => {
+                    createNode(node, layer.id);
+                });
+            });
+            
+            // 링크 생성 (있으면)
+            if (data.links) {
+                data.links.forEach(link => {
+                    createLink(link.source, link.target, link.color);
+                });
+            }
+        }
+        
+        function toggleLayer(layerId) {
+            const sphere = sphereLayers[layerId];
+            if (sphere) {
+                sphere.isVisible = !sphere.isVisible;
+            }
+            // 해당 레이어 노드도 토글
+            Object.values(nodeMeshes).forEach(mesh => {
+                if (mesh.metadata && mesh.metadata.layerId === layerId) {
+                    mesh.isVisible = !mesh.isVisible;
+                }
+            });
+        }
+        
+        function resetCamera() {
+            camera.alpha = Math.PI / 4;
+            camera.beta = Math.PI / 3;
+            camera.radius = 25;
+            camera.target = BABYLON.Vector3.Zero();
+        }
+        
+        function showDetail(node) {
+            document.getElementById("detail").style.display = "block";
+            document.getElementById("detailTitle").textContent = node.name || node.id;
+            document.getElementById("detailId").textContent = node.id;
+            document.getElementById("detailType").textContent = node.type || "-";
+            document.getElementById("detailLayer").textContent = `Layer ${node.layerId}`;
+            document.getElementById("detailStatus").textContent = node.status || "active";
+            const pos = node.position || {};
+            document.getElementById("detailPos").textContent = `(${(pos.x||0).toFixed(1)}, ${(pos.y||0).toFixed(1)}, ${(pos.z||0).toFixed(1)})`;
+        }
+        
+        function closeDetail() {
+            document.getElementById("detail").style.display = "none";
+        }
+        
+        // 클릭 이벤트
+        canvas.addEventListener("click", (e) => {
+            const pick = scene.pick(e.clientX, e.clientY);
+            if (pick.hit && pick.pickedMesh && pick.pickedMesh.metadata) {
+                showDetail(pick.pickedMesh.metadata);
+                
+                // 하이라이트
+                const mat = pick.pickedMesh.material;
+                const orig = mat.emissiveColor.clone();
+                mat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+                setTimeout(() => { mat.emissiveColor = orig; }, 300);
+            } else {
+                closeDetail();
+            }
+        });
+        
+        // 애니메이션 루프
+        function animate() {
+            const time = performance.now() * 0.001;
+            
+            // 레이어 구 회전
+            Object.entries(sphereLayers).forEach(([id, sphere]) => {
+                sphere.rotation.y += 0.001 * id;
+            });
+            
+            // 노드 애니메이션
+            Object.values(nodeMeshes).forEach(mesh => {
+                if (!mesh.metadata) return;
+                const layerId = mesh.metadata.layerId;
+                
+                // Layer 1: 천천히 회전
+                if (layerId === 1) {
+                    mesh.rotation.y += 0.01;
+                }
+                // Layer 2: 흔들림
+                if (layerId === 2) {
+                    mesh.rotation.x = Math.sin(time * 2) * 0.1;
+                }
+                // Layer 3: 펄스
+                if (layerId === 3 && mesh.metadata.status === "active") {
+                    const scale = 1 + Math.sin(time * 3) * 0.1;
+                    mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+                }
+            });
+        }
+        
+        // 초기화
+        createScene();
+        buildTripleSphere();
+        
+        engine.runRenderLoop(() => {
+            animate();
+            scene.render();
+        });
+        
+        window.addEventListener("resize", () => engine.resize());
+    </script>
+</body>
+</html>
