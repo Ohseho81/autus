@@ -1,3 +1,6 @@
+# AUTUS 추천 API 라우터 등록
+from server.routes.recommend import register_recommend_api
+register_recommend_api(app)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -94,6 +97,15 @@ from server.routes.report import router as report_router
 app.include_router(chat_router, tags=["chat"])
 app.include_router(billing_router, tags=["billing"])
 app.include_router(report_router, tags=["report"])
+
+
+# Auto-generated: analyzer, fixer, validator
+from server.routes.analyzer import router as analyzer_router
+from server.routes.fixer import router as fixer_router
+from server.routes.validator import router as validator_router
+app.include_router(analyzer_router, tags=["analyzer"])
+app.include_router(fixer_router, tags=["fixer"])
+app.include_router(validator_router, tags=["validator"])
 
 if __name__ == "__main__":
     import uvicorn

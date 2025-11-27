@@ -16,7 +16,7 @@ from protocols.identity.core import IdentityCore
 from protocols.identity.surface import IdentitySurface
 from protocols.identity.pattern_tracker import BehavioralPatternTracker
 from protocols.memory.memory_os import MemoryOS
-from protocols.workflow.standard import WorkflowGraph
+from protocols.workflow import WorkflowGraph
 
 
 @pytest.fixture
