@@ -1,3 +1,5 @@
+# 무한 루프 방지: 스냅샷 디렉토리 제외
+snapshots/
 # Python
 __pycache__/
 *.py[cod]
