@@ -3,6 +3,9 @@
 import sys
 import os
 import asyncio
+import pytest
+
+pytestmark = pytest.mark.asyncio
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from core.connector.anthropic_connector import AnthropicConnector

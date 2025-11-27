@@ -3,6 +3,9 @@
 """
 
 import asyncio
+import pytest
+
+pytestmark = pytest.mark.asyncio
 import logging
 import sys
 import os

@@ -36,10 +36,18 @@ class ARMPMonitor:
         self.running = False
         self.thread = None
         self.check_interval = 60  # 1분마다 (legacy)
-        self.interval = None  # If set, overrides check_interval for test control
+        self._interval = None  # If set, overrides check_interval for test control
         self.start_time = None
         self.check_count = 0
         self.violation_count = 0
+
+    @property
+    def interval(self):
+        return self._interval if self._interval is not None else self.check_interval
+
+    @interval.setter
+    def interval(self, value):
+        self._interval = value
 
     def start(self):
         """모니터링 시작"""
@@ -58,6 +66,7 @@ class ARMPMonitor:
         self.running = False
         if self.thread and self.thread.is_alive():
             self.thread.join(timeout=5)
+        self._interval = None  # Reset interval after stop for test isolation
         logger.info("⏹️  ARMP Monitor stopped")
 
     def _monitor_loop(self):
@@ -85,9 +94,8 @@ class ARMPMonitor:
                 # 3. 메트릭 수집
                 self._collect_metrics()
 
-                # 4. 대기 (use interval if set, else check_interval)
-                sleep_time = self.interval if self.interval is not None else self.check_interval
-                time.sleep(sleep_time)
+                # 4. 대기 (always use self.interval property)
+                time.sleep(self.interval)
 
             except Exception as e:
                 logger.error(f"Monitor loop error: {e}")

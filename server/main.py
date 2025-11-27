@@ -2,7 +2,9 @@ from fastapi import FastAPI, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
+
 # Core 9 packs
+from server.routes.triple_sphere import router as triple_sphere_router
 from server.routes.emo_cmms import router as emo_cmms_router
 from server.routes.jeju_school import router as jeju_school_router
 from server.routes.nba_atb import router as nba_atb_router
@@ -45,6 +47,7 @@ async def root():
     return {"status": "ok", "service": "AUTUS", "version": "0.3.1", "endpoints": 22}
 
 # Core 9 packs
+app.include_router(triple_sphere_router)
 app.include_router(emo_cmms_router)
 app.include_router(jeju_school_router)
 app.include_router(nba_atb_router)
@@ -108,6 +111,7 @@ from server.routes.validator import router as validator_router
 from server.routes.auth import router as auth_router
 from server.routes.visualizer import router as visualizer_router
 from server.routes.nodes import router as nodes_router
+from server.routes.triple_sphere import router as triple_sphere_router
 app.include_router(analyzer_router, tags=["analyzer"])
 app.include_router(fixer_router, tags=["fixer"])
 app.include_router(validator_router, tags=["validator"])
