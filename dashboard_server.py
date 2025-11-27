@@ -1,3 +1,5 @@
+<div class="card"><h2>Stats/통계</h2><div id="stats">Loading...</div><div id="stats-filters"></div><div id="stats-table"></div></div>
+<div class="card"><h2>루프별 테스트 효율성</h2><canvas id="loopStatsChart" height="80"></canvas></div>
 <div class="card"><h2>추천/생성</h2>
     <div><b>추천 명령</b><button onclick="loadRecommendations()">새로고침</button></div>
     <div id="recommendations">Loading...</div>
@@ -71,6 +73,7 @@ button { background: #818cf8; color: #fff; border: none; border-radius: 5px; pad
 <div id=\"popup\" class=\"popup\"><span class=\"popup-close\" onclick=\"closePopup()\">[닫기]</span><pre id=\"popup-content\"></pre></div>
 <script>
 let timelineChart = null;
+let loopStatsChart = null;
 // 실시간 알림/이벤트 SSE
 function startEventStream() {
     const evt = new EventSource('/api/events');
@@ -163,6 +166,44 @@ async function filterStats(type, value) {
 update();
 setInterval(update, 5000);
 startEventStream();
+// 루프별 효율성 그래프
+async function drawLoopStats() {
+    try {
+        const resp = await fetch('/static/.autus/loop_stats.json');
+        const stats = await resp.json();
+        const labels = stats.map(s => `#${s.iteration}`);
+        const passed = stats.map(s => s.passed);
+        const failed = stats.map(s => s.failed);
+        const error = stats.map(s => s.error);
+        const total = stats.map(s => s.total);
+        const successRate = stats.map(s => Math.round(100 * s.passed / s.total));
+        let ctx = document.getElementById('loopStatsChart').getContext('2d');
+        if (loopStatsChart) loopStatsChart.destroy();
+        loopStatsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: '성공', data: passed, borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.2)', yAxisID: 'y' },
+                    { label: '실패', data: failed, borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.2)', yAxisID: 'y' },
+                    { label: '에러', data: error, borderColor: '#facc15', backgroundColor: 'rgba(250,204,21,0.2)', yAxisID: 'y' },
+                    { label: '성공률(%)', data: successRate, borderColor: '#818cf8', backgroundColor: 'rgba(129,140,248,0.2)', yAxisID: 'y2', type: 'line', fill: false }
+                ]
+            },
+            options: {
+                plugins: { legend: { display: true } },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: '테스트 수' } },
+                    y2: { beginAtZero: true, position: 'right', title: { display: true, text: '성공률(%)' }, min: 0, max: 100, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    } catch(e) {
+        document.getElementById('loopStatsChart').parentElement.innerHTML += '<div style="color:#f87171">[loop_stats.json 로드 오류]</div>';
+    }
+}
+drawLoopStats();
+setInterval(drawLoopStats, 10000);
 // 추천 명령 불러오기
 async function loadRecommendations() {
     document.getElementById('recommendations').innerHTML = 'Loading...';

@@ -13,6 +13,19 @@ logger = get_logger(__name__)
 
 
 class ARMPMonitor:
+    def is_running(self):
+        """모니터가 실행 중인지 반환"""
+        return self.running
+
+    def get_metrics(self):
+        """현재 모니터링 메트릭 반환"""
+        return {
+            "uptime_seconds": self._get_uptime(),
+            "check_count": self.check_count,
+            "violation_count": self.violation_count,
+            "running": self.running,
+            "check_interval": self.check_interval
+        }
     """실시간 리스크 모니터링"""
 
     def __init__(self, enforcer):

@@ -100,9 +100,20 @@ app.include_router(report_router, tags=["report"])
 from server.routes.analyzer import router as analyzer_router
 from server.routes.fixer import router as fixer_router
 from server.routes.validator import router as validator_router
+from server.routes.auth import router as auth_router
+from server.routes.visualizer import router as visualizer_router
+from server.routes.nodes import router as nodes_router
+from server.websocket import websocket_endpoint
 app.include_router(analyzer_router, tags=["analyzer"])
 app.include_router(fixer_router, tags=["fixer"])
 app.include_router(validator_router, tags=["validator"])
+@app.websocket("/stream")
+async def stream(websocket):
+    await websocket_endpoint(websocket)
+
+app.include_router(nodes_router, tags=["3d-nodes"])
+app.include_router(visualizer_router, tags=["visualizer"])
+app.include_router(auth_router, tags=["auth"])
 
 
 # AUTUS LLM API 라우터 등록

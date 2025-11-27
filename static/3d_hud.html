@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AUTUS 3D HUD - Universe OS</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+        #renderCanvas { width: 100%; height: 100%; }
+        #info { position: absolute; top: 10px; left: 10px; color: #0f0; font: 14px monospace; }
+        #modules { position: absolute; top: 10px; right: 10px; color: #fff; font: 12px sans-serif; }
+        .module-btn { display: block; margin: 5px 0; padding: 8px 16px; background: #222; 
+                      border: 1px solid #444; color: #0f0; cursor: pointer; }
+        .module-btn:hover { background: #333; border-color: #0f0; }
+        .module-btn.active { background: #0a3; }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <div id="info">AUTUS 3D HUD - Loading...</div>
+    <div id="modules">
+        <button class="module-btn active" data-module="all">All</button>
+        <button class="module-btn" data-module="identity">Identity Surface</button>
+        <button class="module-btn" data-module="workflow">Workflow Orbit</button>
+        <button class="module-btn" data-module="memory">Memory Galaxy</button>
+        <button class="module-btn" data-module="risk">Risk Nebula</button>
+        <button class="module-btn" data-module="packs">Pack Universe</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+        const API_BASE = "http://127.0.0.1:8000/api";
+        
+        // 노드 저장소
+        const nodes = {};
+        let currentModule = "all";
+        
+        // 씬 생성
+        const createScene = () => {
+            const scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color4(0.02, 0.02, 0.05, 1);
+            
+            // 카메라
+            const camera = new BABYLON.ArcRotateCamera(
+                "camera", Math.PI/4, Math.PI/3, 20, 
+                BABYLON.Vector3.Zero(), scene
+            );
+            camera.attachControl(canvas, true);
+            camera.lowerRadiusLimit = 5;
+            camera.upperRadiusLimit = 50;
+            
+            // 조명
+            const light = new BABYLON.HemisphericLight(
+                "light", new BABYLON.Vector3(0, 1, 0), scene
+            );
+            light.intensity = 0.7;
+            
+            // 별 배경
+            createStars(scene);
+            
+            return scene;
+        };
+        
+        // 별 생성
+        const createStars = (scene) => {
+            const starMaterial = new BABYLON.StandardMaterial("starMat", scene);
+            starMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+            
+            for (let i = 0; i < 500; i++) {
+                const star = BABYLON.MeshBuilder.CreateSphere(
+                    "star" + i, {diameter: 0.05}, scene
+                );
+                star.position = new BABYLON.Vector3(
+                    (Math.random() - 0.5) * 100,
+                    (Math.random() - 0.5) * 100,
+                    (Math.random() - 0.5) * 100
+                );
+                star.material = starMaterial;
+            }
+        };
+        
+        // 노드 생성 함수
+        const createNode = (scene, data) => {
+            const id = data.node_id;
+            const pos = data.position;
+            const props = data.properties || {};
+            
+            // 기존 노드 제거
+            if (nodes[id]) {
+                nodes[id].dispose();
+            }
+            
+            // 메쉬 생성
+            let mesh;
+            const shape = props.shape || "sphere";
+            const scale = props.scale || 1;
+            
+            if (shape === "icosahedron") {
+                mesh = BABYLON.MeshBuilder.CreatePolyhedron(id, {type: 3, size: scale}, scene);
+            } else if (shape === "dodecahedron") {
+                mesh = BABYLON.MeshBuilder.CreatePolyhedron(id, {type: 2, size: scale}, scene);
+            } else {
+                mesh = BABYLON.MeshBuilder.CreateSphere(id, {diameter: scale * 2}, scene);
+            }
+            
+            mesh.position = new BABYLON.Vector3(pos[0], pos[1], pos[2]);
+            
+            // 머티리얼
+            const mat = new BABYLON.StandardMaterial(id + "_mat", scene);
+            const color = BABYLON.Color3.FromHexString(props.color || "#ffffff");
+            mat.diffuseColor = color;
+            mat.emissiveColor = color.scale(0.3);
+            
+            if (props.state === "running") {
+                mat.emissiveColor = color.scale(0.8);
+            }
+            
+            mesh.material = mat;
+            nodes[id] = mesh;
+            
+            // 클릭 이벤트
+            mesh.actionManager = new BABYLON.ActionManager(scene);
+            mesh.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickTrigger,
+                    () => sendEvent("node_click", id, "open_details")
+                )
+            );
+            
+            return mesh;
+        };
+        
+        // API에서 데이터 로드
+        const loadModule = async (module) => {
+            try {
+                let url = `${API_BASE}/state/${module}`;
+                if (module === "all") {
+                    url = `${API_BASE}/nodes/all`;
+                }
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                return data;
+            } catch (e) {
+                console.error("Load error:", e);
+                return null;
+            }
+        };
+        
+        // 모듈 렌더링
+        const renderModule = async (scene, module) => {
+            // 기존 노드 제거
+            Object.values(nodes).forEach(n => n.dispose());
+            Object.keys(nodes).forEach(k => delete nodes[k]);
+            
+            if (module === "all") {
+                const data = await loadModule("all");
+                if (!data) return;
+                
+                // Identity
+                if (data.identity) createNode(scene, data.identity);
+                
+                // Workflow
+                (data.workflow || []).forEach(n => createNode(scene, n));
+                
+                // Memory
+                (data.memory || []).forEach(n => createNode(scene, n));
+                
+                // Risk
+                (data.risk || []).forEach(n => createNode(scene, n));
+                
+                // Packs
+                (data.packs || []).forEach(n => createNode(scene, n));
+                
+            } else if (module === "identity") {
+                const data = await loadModule("identity");
+                if (data) createNode(scene, data);
+                
+            } else {
+                const data = await loadModule(module);
+                if (data && data.nodes) {
+                    data.nodes.forEach(n => createNode(scene, n));
+                }
+            }
+            
+            updateInfo(module);
+        };
+        
+        // 이벤트 전송
+        const sendEvent = async (event, nodeId, action) => {
+            try {
+                await fetch(`${API_BASE}/event`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({event, node_id: nodeId, action})
+                });
+            } catch (e) {
+                console.error("Event error:", e);
+            }
+        };
+        
+        // 정보 업데이트
+        const updateInfo = (module) => {
+            const count = Object.keys(nodes).length;
+            document.getElementById("info").textContent = 
+                `AUTUS 3D HUD | Module: ${module} | Nodes: ${count}`;
+        };
+        
+        // 버튼 이벤트
+        document.querySelectorAll(".module-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".module-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                currentModule = btn.dataset.module;
+                renderModule(scene, currentModule);
+            });
+        });
+        
+        // 메인
+        const scene = createScene();
+        
+        engine.runRenderLoop(() => {
+            // 애니메이션: running 노드 펄스
+            Object.entries(nodes).forEach(([id, mesh]) => {
+                if (mesh.material && mesh.material.emissiveColor) {
+                    const time = performance.now() / 1000;
+                    const pulse = 0.3 + Math.sin(time * 3) * 0.2;
+                    // mesh.material.emissiveColor = mesh.material.diffuseColor.scale(pulse);
+                }
+            });
+            scene.render();
+        });
+        
+        window.addEventListener("resize", () => engine.resize());
+        
+        // 초기 로드
+        renderModule(scene, "all");
+    </script>
+</body>
+</html>
