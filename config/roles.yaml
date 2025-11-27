@@ -1,0 +1,10 @@
+roles:
+  admin:
+    - manage_users
+    - view_reports
+    - configure_system
+  auditor:
+    - view_reports
+    - export_data
+  user:
+    - view_dashboard

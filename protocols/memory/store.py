@@ -18,6 +18,11 @@ from core.utils.paths import ensure_dir
 
 
 class MemoryStore:
+    def set_preference(self, key: str, value: Any, category: str = "general") -> None:
+        """
+        Alias for store_preference (for test compatibility)
+        """
+        return self.store_preference(key, value, category)
     """
     MemoryStore class for local-first memory storage with DuckDB backend.
 

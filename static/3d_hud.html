@@ -14,25 +14,24 @@
         .module-btn:hover { background: #333; border-color: #0f0; }
         .module-btn.active { background: #0a3; }
         #eventLog { position: absolute; bottom: 40px; left: 10px; color: #888; font: 10px monospace; 
-                    max-height: 150px; overflow-y: auto; width: 300px; }
-        .log-entry { padding: 2px 0; border-bottom: 1px solid #333; }
+                    max-height: 100px; overflow-y: auto; width: 300px; }
+        .log-entry { padding: 2px 0; }
         .log-entry.update { color: #0f0; }
-        .log-entry.error { color: #f00; }
     </style>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
 </head>
 <body>
     <canvas id="renderCanvas"></canvas>
     <div id="info">AUTUS 3D HUD | Loading...</div>
-    <div id="wsStatus">WebSocket: Disconnected</div>
+    <div id="wsStatus">WebSocket: Connecting...</div>
     <div id="eventLog"></div>
     <div id="modules">
-        <button class="module-btn active" data-module="all">All</button>
-        <button class="module-btn" data-module="identity">Identity Surface</button>
-        <button class="module-btn" data-module="workflow">Workflow Orbit</button>
-        <button class="module-btn" data-module="memory">Memory Galaxy</button>
-        <button class="module-btn" data-module="risk">Risk Nebula</button>
-        <button class="module-btn" data-module="packs">Pack Universe</button>
+        <button class="module-btn active" data-module="all">전체</button>
+        <button class="module-btn" data-module="identity">정체성 표면</button>
+        <button class="module-btn" data-module="workflow">워크플로 궤도</button>
+        <button class="module-btn" data-module="memory">기억의 은하계</button>
+        <button class="module-btn" data-module="risk">위험 성운</button>
+        <button class="module-btn" data-module="packs">팩 유니버스</button>
     </div>
 
     <script>
@@ -42,96 +41,76 @@
         const WS_URL = "ws://127.0.0.1:8000/stream";
         
         const nodes = {};
+        const nodeData = {};  // 노드 메타데이터 저장
         let currentModule = "all";
         let ws = null;
         let scene = null;
+        let time = 0;
         
-        // 로그 함수
+        // 로그
         const log = (msg, type = "info") => {
             const logEl = document.getElementById("eventLog");
             const entry = document.createElement("div");
             entry.className = "log-entry " + type;
             entry.textContent = new Date().toLocaleTimeString() + " " + msg;
             logEl.insertBefore(entry, logEl.firstChild);
-            if (logEl.children.length > 20) logEl.removeChild(logEl.lastChild);
+            if (logEl.children.length > 10) logEl.removeChild(logEl.lastChild);
         };
         
-        // WebSocket 연결
+        // WebSocket
         const connectWebSocket = () => {
             ws = new WebSocket(WS_URL);
-            
             ws.onopen = () => {
-                document.getElementById("wsStatus").textContent = "WebSocket: Connected ✓";
+                document.getElementById("wsStatus").textContent = "WebSocket: 연결됨 ✓";
                 document.getElementById("wsStatus").style.color = "#0f0";
-                log("WebSocket connected", "update");
+                log("WebSocket 연결됨", "update");
             };
-            
             ws.onclose = () => {
-                document.getElementById("wsStatus").textContent = "WebSocket: Disconnected";
+                document.getElementById("wsStatus").textContent = "WebSocket: 연결 끊김";
                 document.getElementById("wsStatus").style.color = "#f00";
-                log("WebSocket disconnected", "error");
-                // 재연결 시도
                 setTimeout(connectWebSocket, 3000);
             };
-            
-            ws.onerror = (err) => {
-                log("WebSocket error", "error");
-            };
-            
             ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    handleServerUpdate(data);
-                } catch (e) {
-                    log("Parse error: " + e.message, "error");
-                }
+                    if (data.type === "node_update" && data.node) {
+                        updateNode(scene, data.node);
+                        log("노드 업데이트: " + data.node.node_id, "update");
+                    }
+                } catch (e) {}
             };
         };
         
-        // 서버 업데이트 처리
-        const handleServerUpdate = (data) => {
-            log("Update: " + (data.type || data.update || "unknown"), "update");
-            
-            if (data.type === "node_update" && data.node) {
-                updateNode(scene, data.node);
-            } else if (data.type === "state_change") {
-                // 전체 상태 새로고침
-                renderModule(scene, currentModule);
-            } else if (data.update) {
-                // 단일 노드 업데이트
-                updateNode(scene, data);
-            }
-        };
-        
-        // 노드 업데이트/생성
+        // 노드 업데이트
         const updateNode = (scene, data) => {
             const id = data.node_id;
             const pos = data.position;
             const props = data.properties || {};
             
             if (nodes[id]) {
-                // 기존 노드 업데이트 (애니메이션)
                 const mesh = nodes[id];
+                // 부드러운 이동 애니메이션
                 BABYLON.Animation.CreateAndStartAnimation(
-                    "move", mesh, "position", 30, 15,
+                    "move", mesh, "position", 60, 30,
                     mesh.position,
                     new BABYLON.Vector3(pos[0], pos[1], pos[2]),
                     BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
                 );
-                
-                // 색상 업데이트
                 if (props.color && mesh.material) {
                     const newColor = BABYLON.Color3.FromHexString(props.color);
                     mesh.material.diffuseColor = newColor;
-                    mesh.material.emissiveColor = newColor.scale(0.3);
+                    mesh.material.emissiveColor = newColor.scale(0.4);
                 }
-                
-                // 스케일 업데이트
                 if (props.scale) {
-                    mesh.scaling = new BABYLON.Vector3(props.scale, props.scale, props.scale);
+                    BABYLON.Animation.CreateAndStartAnimation(
+                        "scale", mesh, "scaling", 60, 20,
+                        mesh.scaling,
+                        new BABYLON.Vector3(props.scale, props.scale, props.scale),
+                        BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+                    );
                 }
+                nodeData[id] = { ...nodeData[id], ...props };
             } else {
-                // 새 노드 생성
                 createNode(scene, data);
             }
         };
@@ -139,39 +118,67 @@
         // 씬 생성
         const createScene = () => {
             const scene = new BABYLON.Scene(engine);
-            scene.clearColor = new BABYLON.Color4(0.02, 0.02, 0.05, 1);
+            scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.03, 1);
             
             const camera = new BABYLON.ArcRotateCamera(
-                "camera", Math.PI/4, Math.PI/3, 20, 
+                "camera", Math.PI/4, Math.PI/3, 25, 
                 BABYLON.Vector3.Zero(), scene
             );
             camera.attachControl(canvas, true);
             camera.lowerRadiusLimit = 5;
-            camera.upperRadiusLimit = 50;
+            camera.upperRadiusLimit = 60;
             
-            const light = new BABYLON.HemisphericLight(
-                "light", new BABYLON.Vector3(0, 1, 0), scene
-            );
-            light.intensity = 0.7;
+            // 조명
+            const light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+            light1.intensity = 0.6;
+            const light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(0, 5, 0), scene);
+            light2.intensity = 0.4;
+            
+            // 글로우 효과
+            const gl = new BABYLON.GlowLayer("glow", scene);
+            gl.intensity = 0.5;
             
             createStars(scene);
+            createOrbitRings(scene);
             return scene;
         };
         
+        // 별 배경
         const createStars = (scene) => {
-            const starMaterial = new BABYLON.StandardMaterial("starMat", scene);
-            starMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-            for (let i = 0; i < 500; i++) {
-                const star = BABYLON.MeshBuilder.CreateSphere("star" + i, {diameter: 0.05}, scene);
+            const starMat = new BABYLON.StandardMaterial("starMat", scene);
+            starMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+            starMat.disableLighting = true;
+            
+            for (let i = 0; i < 800; i++) {
+                const star = BABYLON.MeshBuilder.CreateSphere("star" + i, {diameter: 0.03 + Math.random() * 0.05}, scene);
                 star.position = new BABYLON.Vector3(
-                    (Math.random() - 0.5) * 100,
-                    (Math.random() - 0.5) * 100,
-                    (Math.random() - 0.5) * 100
+                    (Math.random() - 0.5) * 150,
+                    (Math.random() - 0.5) * 150,
+                    (Math.random() - 0.5) * 150
                 );
-                star.material = starMaterial;
+                star.material = starMat;
             }
         };
         
+        // 궤도 링
+        const createOrbitRings = (scene) => {
+            const ringMat = new BABYLON.StandardMaterial("ringMat", scene);
+            ringMat.emissiveColor = new BABYLON.Color3(0.1, 0.2, 0.3);
+            ringMat.alpha = 0.3;
+            ringMat.disableLighting = true;
+            
+            [3, 5, 8, 12].forEach(radius => {
+                const ring = BABYLON.MeshBuilder.CreateTorus("ring" + radius, {
+                    diameter: radius * 2,
+                    thickness: 0.02,
+                    tessellation: 64
+                }, scene);
+                ring.rotation.x = Math.PI / 2;
+                ring.material = ringMat;
+            });
+        };
+        
+        // 노드 생성
         const createNode = (scene, data) => {
             const id = data.node_id;
             const pos = data.position;
@@ -184,11 +191,13 @@
             const scale = props.scale || 1;
             
             if (shape === "icosahedron") {
-                mesh = BABYLON.MeshBuilder.CreatePolyhedron(id, {type: 3, size: scale}, scene);
+                mesh = BABYLON.MeshBuilder.CreatePolyhedron(id, {type: 3, size: scale * 0.8}, scene);
             } else if (shape === "dodecahedron") {
-                mesh = BABYLON.MeshBuilder.CreatePolyhedron(id, {type: 2, size: scale}, scene);
+                mesh = BABYLON.MeshBuilder.CreatePolyhedron(id, {type: 2, size: scale * 0.8}, scene);
+            } else if (shape === "octahedron") {
+                mesh = BABYLON.MeshBuilder.CreatePolyhedron(id, {type: 1, size: scale * 0.8}, scene);
             } else {
-                mesh = BABYLON.MeshBuilder.CreateSphere(id, {diameter: scale * 2}, scene);
+                mesh = BABYLON.MeshBuilder.CreateSphere(id, {diameter: scale * 2, segments: 32}, scene);
             }
             
             mesh.position = new BABYLON.Vector3(pos[0], pos[1], pos[2]);
@@ -196,7 +205,8 @@
             const mat = new BABYLON.StandardMaterial(id + "_mat", scene);
             const color = BABYLON.Color3.FromHexString(props.color || "#ffffff");
             mat.diffuseColor = color;
-            mat.emissiveColor = color.scale(0.3);
+            mat.emissiveColor = color.scale(0.4);
+            mat.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
             
             if (props.state === "running") {
                 mat.emissiveColor = color.scale(0.8);
@@ -204,15 +214,34 @@
             
             mesh.material = mat;
             nodes[id] = mesh;
+            nodeData[id] = { type: id.split("_")[0], state: props.state || "idle", ...props };
             
-            // 클릭 이벤트
+            // 클릭
             mesh.actionManager = new BABYLON.ActionManager(scene);
             mesh.actionManager.registerAction(
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     () => {
-                        sendEvent("node_click", id, "open_details");
-                        log("Clicked: " + id);
+                        log("클릭: " + id);
+                        // 클릭 시 확대 효과
+                        BABYLON.Animation.CreateAndStartAnimation(
+                            "click", mesh, "scaling", 60, 10,
+                            mesh.scaling,
+                            mesh.scaling.scale(1.3),
+                            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+                            null,
+                            () => {
+                                BABYLON.Animation.CreateAndStartAnimation(
+                                    "click2", mesh, "scaling", 60, 10,
+                                    mesh.scaling,
+                                    mesh.scaling.scale(1/1.3),
+                                    BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+                                );
+                            }
+                        );
+                        if (ws && ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify({event: "node_click", node_id: id}));
+                        }
                     }
                 )
             );
@@ -220,13 +249,13 @@
             return mesh;
         };
         
+        // API 로드
         const loadModule = async (module) => {
             try {
-                let url = module === "all" ? `${API_BASE}/nodes/all` : `${API_BASE}/state/${module}`;
+                const url = module === "all" ? `${API_BASE}/nodes/all` : `${API_BASE}/state/${module}`;
                 const res = await fetch(url);
                 return await res.json();
             } catch (e) {
-                log("Load error: " + e.message, "error");
                 return null;
             }
         };
@@ -250,33 +279,16 @@
                 const data = await loadModule(module);
                 if (data && data.nodes) data.nodes.forEach(n => createNode(scene, n));
             }
-            
             updateInfo(module);
         };
         
-        const sendEvent = async (event, nodeId, action) => {
-            // REST API로 전송
-            try {
-                await fetch(`${API_BASE}/event`, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({event, node_id: nodeId, action})
-                });
-            } catch (e) {}
-            
-            // WebSocket으로도 전송
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({event, node_id: nodeId, action}));
-            }
-        };
-        
         const updateInfo = (module) => {
-            const count = Object.keys(nodes).length;
+            const moduleNames = {all: "전체", identity: "정체성", workflow: "워크플로", memory: "기억", risk: "위험", packs: "팩"};
             document.getElementById("info").textContent = 
-                `AUTUS 3D HUD | Module: ${module} | Nodes: ${count}`;
+                `AUTUS 3D HUD | 모듈: ${moduleNames[module] || module} | 노드: ${Object.keys(nodes).length}`;
         };
         
-        // 버튼 이벤트
+        // 버튼
         document.querySelectorAll(".module-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 document.querySelectorAll(".module-btn").forEach(b => b.classList.remove("active"));
@@ -289,22 +301,56 @@
         // 초기화
         scene = createScene();
         
+        // 렌더 루프 - 애니메이션
         engine.runRenderLoop(() => {
-            // 애니메이션: 노드 부드러운 회전
-            Object.values(nodes).forEach(mesh => {
-                if (mesh.name.includes("workflow")) {
+            time += 0.016;
+            
+            Object.entries(nodes).forEach(([id, mesh]) => {
+                const data = nodeData[id] || {};
+                const type = data.type || "";
+                
+                // 워크플로 노드: 궤도 회전
+                if (type === "workflow") {
+                    mesh.rotation.y += 0.01;
+                    // running 상태면 펄스
+                    if (data.state === "running" && mesh.material) {
+                        const pulse = 0.4 + Math.sin(time * 5) * 0.3;
+                        mesh.material.emissiveColor = mesh.material.diffuseColor.scale(pulse);
+                    }
+                }
+                
+                // Identity: 천천히 회전 + 호흡
+                if (type === "identity") {
                     mesh.rotation.y += 0.005;
+                    mesh.rotation.x += 0.002;
+                    const breathe = 1 + Math.sin(time * 2) * 0.05;
+                    mesh.scaling = new BABYLON.Vector3(breathe, breathe, breathe);
+                }
+                
+                // Pack: 자전
+                if (type === "pack") {
+                    mesh.rotation.y += 0.008;
+                }
+                
+                // Pattern: 부유
+                if (type === "pattern") {
+                    mesh.position.y += Math.sin(time * 3 + mesh.position.x) * 0.002;
+                }
+                
+                // Risk: 경고 시 점멸
+                if (type === "risk" && data.level > 0.3 && mesh.material) {
+                    const blink = 0.5 + Math.sin(time * 8) * 0.4;
+                    mesh.material.emissiveColor = mesh.material.diffuseColor.scale(blink);
                 }
             });
+            
             scene.render();
         });
         
         window.addEventListener("resize", () => engine.resize());
         
-        // 초기 로드
+        // 시작
         renderModule(scene, "all");
-        
-        // WebSocket 연결
         connectWebSocket();
     </script>
 </body>

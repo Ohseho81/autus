@@ -283,7 +283,7 @@ class AdvancedDeviceSync(DeviceSync):
         super().__init__(identity_core)
         # Use seed hash for device ID
         import hashlib
-        seed_hash = hashlib.sha256(identity_core.seed).hexdigest()
+        seed_hash = hashlib.sha256(identity_core.seed.encode('utf-8') if isinstance(identity_core.seed, str) else identity_core.seed).hexdigest()
         self.device_id = device_id or seed_hash[:16]
         self.conflict_resolver = SyncConflictResolver()
         self.sync_history = SyncHistory()

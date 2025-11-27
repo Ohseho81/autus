@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import qrcode
 from io import BytesIO
 from PIL import Image
+import hashlib
 
 try:
     from pyzbar import pyzbar
@@ -64,18 +65,25 @@ class QRCodeGenerator:
         json_str = json.dumps(sync_data, sort_keys=True)
         encoded = base64.b64encode(json_str.encode('utf-8')).decode('utf-8')
 
-        # Generate QR code
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=self.error_correction,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(encoded)
-        qr.make(fit=True)
-
-        img = qr.make_image(fill_color="black", back_color="white")
-        return img
+        # Dynamically select QR version up to 40
+        for version in range(1, 41):
+            try:
+                qr = qrcode.QRCode(
+                    version=version,
+                    error_correction=self.error_correction,
+                    box_size=10,
+                    border=4,
+                )
+                qr.add_data(encoded)
+                qr.make(fit=True)
+                img = qr.make_image(fill_color="black", back_color="white")
+                return img
+            except Exception as e:
+                if "Invalid version" in str(e) or "data too large" in str(e):
+                    continue
+                else:
+                    raise
+        raise ValueError("Data too large to fit in a QR code (max version 40). Consider reducing payload size.")
 
     def save_qr_image(self, qr_image: Image.Image, filepath: str) -> None:
         """
@@ -221,7 +229,7 @@ class DeviceSync:
         # We need to create a dict with the sync data
         sync_data = self.identity_core.export_for_sync()
         identity_data = {
-            'seed_hash': hashlib.sha256(self.identity_core.seed).hexdigest(),
+            'seed_hash': hashlib.sha256(self.identity_core.seed.encode('utf-8') if isinstance(self.identity_core.seed, str) else self.identity_core.seed).hexdigest(),
             'sync_data': sync_data,
             'created_at': datetime.now().isoformat()
         }

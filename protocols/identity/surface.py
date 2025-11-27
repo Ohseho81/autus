@@ -26,6 +26,10 @@ class IdentitySurface:
     - Color: Emotional tone
     """
 
+    def to_dict(self) -> Dict:
+        """Alias for export_to_dict for compatibility."""
+        return self.export_to_dict()
+
     def __init__(self, core_hash: str):
         """
         Initialize surface from core hash

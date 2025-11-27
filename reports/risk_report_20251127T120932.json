@@ -1,0 +1,12 @@
+{
+  "generated_at": "2025-11-27T12:09:32.740808Z",
+  "risk_count": 1,
+  "risks": [
+    {
+      "name": "SQL Injection Attack",
+      "category": "security",
+      "severity": "critical",
+      "description": "Detects SQL injection attempts in user input."
+    }
+  ]
+}

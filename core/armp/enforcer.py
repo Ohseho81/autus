@@ -180,5 +180,17 @@ class ARMPEnforcer:
         }
 
 
+
+    def get_risk(self, risk_name: str):
+        """Get risk by name"""
+        for risk in self.risks:
+            if hasattr(risk, "name") and risk.name == risk_name:
+                return risk
+        return None
+
+    def get_all_risks(self):
+        """Get all registered risks"""
+        return self.risks
+
 # 전역 Enforcer
 enforcer = ARMPEnforcer()

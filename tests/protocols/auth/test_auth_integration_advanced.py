@@ -178,10 +178,10 @@ class TestConflictResolution:
         resolver = SyncConflictResolver()
 
         # Should take max
-        resolved = resolver.resolve_radius_conflict(1.0, 2.0)
+        resolved = resolver.resolve_radius_conflict(1.0, 2.0, 10, 20)
         assert resolved == 2.0
 
-        resolved = resolver.resolve_radius_conflict(3.0, 2.0)
+        resolved = resolver.resolve_radius_conflict(3.0, 2.0, 30, 20)
         assert resolved == 3.0
 
     def test_evolution_history_merge(self):
@@ -197,7 +197,7 @@ class TestConflictResolution:
             {"timestamp": "2024-01-01T00:02:00", "pattern_type": "type4"}
         ]
 
-        merged = resolver.merge_evolution_histories(history1, history2, max_entries=100)
+        merged = resolver.merge_evolution_histories(history1, history2, max_size=100)
 
         assert len(merged) == 4
         # Should be sorted by timestamp

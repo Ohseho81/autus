@@ -11,7 +11,9 @@ from server.routes.style_analyzer import router as style_analyzer_router
 from server.routes.zero_identity import router as zero_identity_router
 from server.routes.autogen_cells import router as autogen_cells_router
 from server.routes.pack_factory import router as pack_factory_router
+
 from server.routes.meta_tester import router as meta_tester_router
+from server.routes.api import router as api_router
 
 # 13 additional packs (19 modules)
 from server.routes.device_bridge import router as device_bridge_router
@@ -51,7 +53,9 @@ app.include_router(style_analyzer_router)
 app.include_router(zero_identity_router)
 app.include_router(autogen_cells_router)
 app.include_router(pack_factory_router)
+
 app.include_router(meta_tester_router)
+app.include_router(api_router, prefix="/api", tags=["api"])
 
 # 13 additional packs
 app.include_router(device_bridge_router)

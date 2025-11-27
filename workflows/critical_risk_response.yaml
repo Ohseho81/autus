@@ -1,0 +1,8 @@
+trigger: risk_detected
+condition: severity == "critical"
+actions:
+  - type: notify
+    channel: slack
+    message: "Critical risk detected: {{risk_id}}"
+  - type: execute_script
+    script: scripts/auto_patch.sh

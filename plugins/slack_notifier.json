@@ -1,0 +1,7 @@
+{
+  "name": "slack_notifier",
+  "version": "1.2.0",
+  "description": "슬랙 알림 플러그인",
+  "permissions": ["network"],
+  "entrypoint": "SlackNotifier"
+}
