@@ -6,8 +6,8 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from core.learning.pattern_learner import PatternLearner
-from core.learning.base import StyleProfile, LearningContext, ContentType, PatternType
+from packs.ai.pattern_learner import PatternLearner
+from packs.ai.base import StyleProfile, LearningContext, ContentType, PatternType
 from datetime import datetime
 
 def test_code_patterns():

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from typing import Any, Dict
-from core.runtime.controller import RuntimeController
+from packs.utils.controller import RuntimeController
 from packs.payment_autogen import run as pack_run
 router = APIRouter()
 @router.post("/pack/payment")

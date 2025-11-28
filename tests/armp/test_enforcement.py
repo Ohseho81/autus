@@ -7,7 +7,7 @@ from core.armp.enforcer import ARMPEnforcer, Risk, Severity, RiskCategory, enfor
 from core.armp.monitor import ARMPMonitor, monitor
 
 # 리스크 등록을 위해 risks 모듈 import
-import core.armp.risks  # noqa: F401
+import packs.security.risks  # noqa: F401
 
 
 def test_enforcer_initialization():

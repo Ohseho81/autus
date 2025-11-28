@@ -17,7 +17,7 @@ async def benchmark():
     print("⚡ AUTUS Performance Benchmark")
     print("="*60)
     
-    from core.connector.selector import IntelligentSelector
+    from packs.integration.selector import IntelligentSelector
     
     selector = IntelligentSelector()
     

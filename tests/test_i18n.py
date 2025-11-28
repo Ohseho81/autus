@@ -1,5 +1,5 @@
 import pytest
-from core.utils.i18n import I18N
+from packs.utils.i18n import I18N
 
 def test_i18n_ko():
     i18n = I18N(locale_dir="locales", default_lang="ko")

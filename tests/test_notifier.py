@@ -1,4 +1,4 @@
-from core.utils.notifier import Notifier
+from packs.utils.notifier import Notifier
 
 def test_notify_console_output(capsys):
     notifier = Notifier(template_dir="templates")

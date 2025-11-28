@@ -6,9 +6,9 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from core.learning.pattern_learner import PatternLearner
-from core.learning.personalizer import Personalizer
-from core.learning.base import StyleProfile, LearningContext, ContentType
+from packs.ai.pattern_learner import PatternLearner
+from packs.ai.personalizer import Personalizer
+from packs.ai.base import StyleProfile, LearningContext, ContentType
 from datetime import datetime
 
 def test_code_personalization():

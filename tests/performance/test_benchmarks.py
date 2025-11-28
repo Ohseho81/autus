@@ -511,7 +511,7 @@ class TestARMPBenchmarks:
         Rationale: Risk detection must complete quickly for real-time monitoring
         """
         try:
-            from core.armp.enforcer import ARMPEnforcer
+            from packs.security.enforcer import ARMPEnforcer
 
             enforcer = ARMPEnforcer()
 
@@ -536,7 +536,7 @@ class TestARMPBenchmarks:
         Rationale: Prevention measures must be fast to not impact performance
         """
         try:
-            from core.armp.enforcer import ARMPEnforcer
+            from packs.security.enforcer import ARMPEnforcer
 
             enforcer = ARMPEnforcer()
 
@@ -561,7 +561,7 @@ class TestARMPBenchmarks:
         Rationale: Risk registration happens at startup
         """
         try:
-            from core.armp.enforcer import ARMPEnforcer, Risk, RiskCategory, Severity
+            from packs.security.enforcer import ARMPEnforcer, Risk, RiskCategory, Severity
 
             def register_risk():
                 import time

@@ -1,0 +1,5 @@
+[
+  {"name": "SQL Injection Attack", "severity": "critical"},
+  {"name": "API Rate Limit", "severity": "high"},
+  {"name": "Disk Space Critical", "severity": "high"}
+]

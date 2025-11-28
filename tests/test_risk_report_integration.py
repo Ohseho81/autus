@@ -1,5 +1,5 @@
 def test_risk_report_integration():
-    from core.armp import risks_security, risk_reporter, enforcer
+    from packs.security import risks_security, risk_reporter, enforcer
     enforcer.risks.clear()
     risks_security.register_security_risks()
     path = risk_reporter.generate_risk_report()

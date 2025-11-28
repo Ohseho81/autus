@@ -16,7 +16,7 @@ from typing import Any, Dict, Optional, List
 from contextlib import contextmanager
 import yaml
 from protocols.memory.pii_validator import PIIValidator, PIIViolationError
-from core.utils.paths import ensure_dir
+from packs.utils.paths import ensure_dir
 
 
 class MemoryStore:

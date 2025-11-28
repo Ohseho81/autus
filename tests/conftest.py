@@ -1,30 +1,43 @@
+import os
+
+# 모든 테스트에서 환경변수 의존성 제거용 fixture
 import pytest
-from core.armp.enforcer import enforcer
-from core.armp.risks import register_core_risks
-from core.armp.risks_security_advanced import register_security_advanced_risks
-from core.armp.risks_data_integrity import register_data_integrity_risks
-from core.armp.risks_performance_monitoring import register_performance_monitoring_risks
-from core.armp.risks_api_external import register_api_external_risks
-from core.armp.risks_final import register_final_risks
-from core.armp.risks_files_network import register_files_network_risks
-from core.armp.risks_data_management import register_data_management_risks
-from core.armp.risks_performance_advanced import register_performance_advanced_risks
-from core.armp.risks_protocol_compliance import register_protocol_compliance_risks
 
 @pytest.fixture(autouse=True)
-def register_all_risks():
-    """
-    pytest fixture: 모든 테스트 시작 전 enforcer.risks를 clear하고 30개 리스크를 명시적으로 등록
-    중복 등록 방지 및 테스트 간 격리 보장
-    """
-    enforcer.risks.clear()
-    register_core_risks()
-    register_security_advanced_risks()
-    register_data_integrity_risks()
-    register_performance_monitoring_risks()
-    register_api_external_risks()
-    register_final_risks()
-    register_files_network_risks()
-    register_data_management_risks()
-    register_performance_advanced_risks()
-    register_protocol_compliance_risks()
+def patch_env_vars(monkeypatch):
+    # 여기에 프로젝트에서 자주 쓰는 환경변수를 안전한 값으로 지정
+    monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-anthropic-key")
+    monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+    monkeypatch.setenv("ENV", "test")
+    # 필요시 추가 환경변수 패치
+    yield
+"""AUTUS Test Configuration - Minimal"""
+import pytest
+import sys
+from pathlib import Path
+
+# 프로젝트 루트 추가
+root = Path(__file__).parent.parent
+sys.path.insert(0, str(root))
+
+# core.utils 호환성 (packs/utils로 리다이렉트)
+class UtilsModule:
+    pass
+
+utils_module = UtilsModule()
+sys.modules['core.utils'] = utils_module
+
+# core.armp 호환성 (packs/security로 리다이렉트)
+try:
+    sys.path.insert(0, str(root / "packs"))
+    from packs import security
+    sys.modules['core.armp'] = security
+    sys.modules['core.armp.enforcer'] = __import__('packs.security.enforcer', fromlist=[''])
+    sys.modules['core.armp.risks'] = __import__('packs.security.risks', fromlist=[''])
+except Exception as e:
+    print(f"ARMP redirect failed: {e}")
+
+@pytest.fixture
+def temp_dir(tmp_path):
+    return tmp_path

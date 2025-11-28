@@ -20,7 +20,7 @@ async def test_smart_select():
     print("🧠 Smart Select Test")
     print("="*60)
     
-    from core.connector.selector import IntelligentSelector, SelectionStrategy
+    from packs.integration.selector import IntelligentSelector, SelectionStrategy
     
     selector = IntelligentSelector()
     
@@ -50,7 +50,7 @@ async def test_priority_cascade():
     print("🎯 Priority Cascade Test")
     print("="*60)
     
-    from core.connector.selector import IntelligentSelector, SelectionStrategy
+    from packs.integration.selector import IntelligentSelector, SelectionStrategy
     
     selector = IntelligentSelector()
     

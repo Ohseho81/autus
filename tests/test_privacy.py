@@ -1,4 +1,4 @@
-from core.utils.privacy import mask_pii
+from packs.utils.privacy import mask_pii
 
 def test_mask_email():
     assert mask_pii("user@example.com") == "***@example.com"

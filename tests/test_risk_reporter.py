@@ -1,5 +1,5 @@
 def test_generate_risk_report(tmp_path):
-    from core.armp import risk_reporter, enforcer
+    from packs.security import risk_reporter, enforcer
     # 리스크가 최소 1개 이상 등록되어 있다고 가정
     path = risk_reporter.generate_risk_report()
     assert path.endswith('.json')

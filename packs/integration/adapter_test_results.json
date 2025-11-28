@@ -1,0 +1,38 @@
+[
+  {
+    "adapter": "webhook_adapter",
+    "error": "Import error: No module named 'adapters'"
+  },
+  {
+    "adapter": "erp_adapter",
+    "error": "Import error: No module named 'adapters'"
+  },
+  {
+    "adapter": "github_adapter",
+    "error": "Import error: No module named 'adapters'"
+  },
+  {
+    "adapter": "adapter_template",
+    "error": "Import error: No module named 'adapters'"
+  },
+  {
+    "adapter": "saas_adapter",
+    "error": "Import error: No module named 'adapters'"
+  },
+  {
+    "adapter": "homepage_adapter",
+    "error": "Import error: No module named 'adapters'"
+  },
+  {
+    "adapter": "db_adapter",
+    "error": "Import error: No module named 'adapters'"
+  },
+  {
+    "adapter": "slack_adapter",
+    "error": "Import error: No module named 'adapters'"
+  },
+  {
+    "adapter": "jira_adapter",
+    "error": "Import error: No module named 'adapters'"
+  }
+]

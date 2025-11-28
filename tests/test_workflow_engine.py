@@ -1,5 +1,5 @@
 def test_execute_workflow_notify(monkeypatch):
-    from core.workflows import engine
+    from packs.workflows import engine
     # print을 가로채서 결과 확인
     printed = []
     monkeypatch.setattr('builtins.print', lambda *a, **k: printed.append(a))

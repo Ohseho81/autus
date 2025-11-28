@@ -4,31 +4,25 @@ Comprehensive Integration Tests for MemoryOS
 Tests full workflow, large datasets, concurrent access, and error recovery.
 """
 
+
 import pytest
 import threading
 import time
 from pathlib import Path
 from typing import List, Dict, Any
-import tempfile
 import shutil
 
 from protocols.memory.memory_os import MemoryOS
 from protocols.memory.pii_validator import PIIViolationError
 
 
-@pytest.fixture
-def temp_memory_os():
-    """Create MemoryOS instance with temporary database"""
-    temp_dir = tempfile.mkdtemp()
-    db_path = Path(temp_dir) / "test_memory.db"
-
+@pytest.fixture(scope="function")
+def temp_memory_os(tmp_path):
+    """Create MemoryOS instance with temporary database (pytest tmp_path 기반, 자동 cleanup)"""
+    db_path = tmp_path / "test_memory.db"
     memory = MemoryOS(db_path=str(db_path))
-
     yield memory
-
-    # Cleanup
     memory.close()
-    shutil.rmtree(temp_dir)
 
 
 @pytest.fixture
@@ -41,7 +35,7 @@ def cleanup_memory():
 class TestFullWorkflow:
     """Test complete MemoryOS workflow"""
 
-    def test_initialize_store_search_export(self, temp_memory_os):
+    def test_initialize_store_search_export(self, temp_memory_os, tmp_path):
         """Test full workflow: initialize → store → search → export"""
         memory = temp_memory_os
 
@@ -69,12 +63,9 @@ class TestFullWorkflow:
         assert len(results) > 0
 
         # 5. Export
-        export_path = Path(tempfile.mkdtemp()) / "export.yaml"
+        export_path = tmp_path / "export.yaml"
         memory.export_memory(str(export_path))
         assert export_path.exists()
-
-        # Cleanup
-        shutil.rmtree(export_path.parent)
 
 
 class TestLargeDatasets:
@@ -351,7 +342,7 @@ class TestErrorRecovery:
 class TestExportImportCycle:
     """Test export/import cycle integrity"""
 
-    def test_export_import_integrity(self, temp_memory_os):
+    def test_export_import_integrity(self, temp_memory_os, tmp_path):
         """Test that export/import maintains data integrity"""
         memory = temp_memory_os
 
@@ -361,25 +352,16 @@ class TestExportImportCycle:
         memory.learn_pattern("export_pattern", {"data": "test_data"})
 
         # Export
-        export_path = Path(tempfile.mkdtemp()) / "export.yaml"
+        export_path = tmp_path / "export.yaml"
         memory.export_memory(str(export_path))
-
-        # Verify export file exists
         assert export_path.exists()
-
-        # Create new memory instance and import
-        # (Note: Import functionality would need to be implemented)
-        # For now, verify export file is valid YAML
         import yaml
         with open(export_path, 'r') as f:
             data = yaml.safe_load(f)
             assert data is not None
             assert 'preferences' in data or 'memory' in data or isinstance(data, dict)
 
-        # Cleanup
-        shutil.rmtree(export_path.parent)
-
-    def test_export_large_dataset(self, temp_memory_os):
+    def test_export_large_dataset(self, temp_memory_os, tmp_path):
         """Test exporting large dataset"""
         memory = temp_memory_os
 
@@ -388,17 +370,12 @@ class TestExportImportCycle:
             memory.set_preference(f"large_{i}", f"value_{i}", "test")
 
         # Export
-        export_path = Path(tempfile.mkdtemp()) / "large_export.yaml"
+        export_path = tmp_path / "large_export.yaml"
         start = time.time()
         memory.export_memory(str(export_path))
         export_time = time.time() - start
-
-        # Should complete in reasonable time (< 5 seconds)
         assert export_time < 5, f"Export took {export_time}s"
         assert export_path.exists()
-
-        # Cleanup
-        shutil.rmtree(export_path.parent)
 
 
 class TestMemoryLimits:

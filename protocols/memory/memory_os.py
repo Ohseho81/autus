@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional, List
 from protocols.memory.store import MemoryStore
 from protocols.memory.pii_validator import PIIValidator, PIIViolationError
 from protocols.memory.vector_search import VectorSearch
-from core.utils.logging import get_logger
+from packs.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

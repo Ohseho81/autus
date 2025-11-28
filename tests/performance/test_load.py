@@ -202,7 +202,7 @@ class TestPerformanceBudgets:
 
     def test_memory_budget(self, temp_db):
         """Test memory budget compliance"""
-        from core.armp.performance import PerformanceBudget
+        from packs.security.performance import PerformanceBudget
 
         memory_mb = PerformanceBudget.check_memory_usage()
 
@@ -212,7 +212,7 @@ class TestPerformanceBudgets:
 
     def test_disk_budget(self, temp_db):
         """Test disk budget compliance"""
-        from core.armp.performance import PerformanceBudget
+        from packs.security.performance import PerformanceBudget
 
         disk_free = PerformanceBudget.check_disk_usage()
 

@@ -23,7 +23,7 @@ async def main():
     print()
     
     try:
-        from core.connector.selector import IntelligentSelector, SelectionStrategy
+        from packs.integration.selector import IntelligentSelector, SelectionStrategy
         
         selector = IntelligentSelector()
         
