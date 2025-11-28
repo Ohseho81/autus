@@ -2,7 +2,7 @@ import os
 import re
 
 class SimpleRuleEngine:
-    def __init__(self, rule_dir="rules"):
+    def __init__(self, rule_dir="rules") -> None:
         self.rule_dir = rule_dir
         self.rules = []
         self.load_rules()

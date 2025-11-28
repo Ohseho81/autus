@@ -370,6 +370,7 @@ class TestWorkflowGraphIntegration:
         assert len(pattern_tracker.patterns) >= 1
 
         # Check pattern types
+        summary = pattern_tracker.get_pattern_summary()
         pattern_types = summary.get('pattern_types', {})
         assert 'workflow_completion' in pattern_types or len(pattern_types) > 0
 

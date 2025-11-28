@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 ARMP - Final Risks
 
 Constitution compliance and low-priority risks
@@ -19,7 +21,7 @@ class ConstitutionViolationRisk(Risk):
     Detects violations of AUTUS Constitution principles
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Constitution Violation",
             category=RiskCategory.SECURITY,
@@ -82,7 +84,7 @@ class APIKeyExposureRisk(Risk):
     Detects exposed API keys in code or logs
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="API Key Exposure",
             category=RiskCategory.SECURITY,
@@ -167,7 +169,7 @@ class DataLossEventRisk(Risk):
     Detects and responds to data loss
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Data Loss Event",
             category=RiskCategory.DATA,
@@ -239,7 +241,7 @@ class WebhookFailureRisk(Risk):
     Handles webhook delivery failures
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Webhook Failure",
             category=RiskCategory.API,

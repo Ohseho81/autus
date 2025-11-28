@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 Behavioral Pattern Tracker
 
 Connects Identity Surface with Workflow Graph and Memory OS.
@@ -6,7 +8,7 @@ Tracks behavioral patterns and evolves identity accordingly.
 """
 
 from typing import Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from protocols.identity.core import IdentityCore
 from protocols.identity.surface import IdentitySurface
 
@@ -20,7 +22,7 @@ class BehavioralPatternTracker:
     - Memory OS: Preference and context patterns
     """
 
-    def __init__(self, identity_core: IdentityCore):
+    def __init__(self, identity_core: IdentityCore) -> None:
         """
         Initialize tracker with identity core
 
@@ -38,6 +40,11 @@ class BehavioralPatternTracker:
     def surface(self) -> "IdentitySurface":
         """테스트 호환용 surface 속성"""
         return self.identity.get_surface()
+
+    @property
+    def identity_core(self) -> "IdentityCore":
+        """테스트 호환용 identity_core 속성"""
+        return self.identity
 
     def track_workflow_completion(
         self,
@@ -222,6 +229,72 @@ class BehavioralPatternTracker:
             'pattern_summary': self.get_pattern_summary()
         }
 
+
+
+    def get_context_identity(self, context: str) -> Dict:
+        """Get identity representation for a specific context"""
+        context_patterns = [
+            p for p in self.patterns
+            if p.get("context", {}).get("name") == context or
+               p.get("context", {}).get("type") == context
+        ]
+        
+        ctx_hash = hash(context) % 1000
+        pattern_count = len(self.patterns)  # Total patterns, not context-specific
+        
+        return {
+            "context": context,
+            "pattern_count": pattern_count,
+            "patterns": context_patterns[-10:],
+            "surface_snapshot": self.identity.get_core_hash()[:16] if self.identity else None,
+            "position": {
+                "x": (ctx_hash % 100) / 100.0,
+                "y": pattern_count / 10.0 if pattern_count else 0.5,
+                "z": 0.5
+            },
+            "base_state": {
+                "pattern_count": pattern_count,
+                "energy": 0.5 + (ctx_hash % 50) / 100.0,
+                "focus": pattern_count / 20.0 if pattern_count else 0.3,
+                "stability": 0.8
+            },
+            "radius": 0.3 + (pattern_count / 50.0) if pattern_count else 0.3
+        }
+
+
+    def export_tracking_data(self) -> Dict:
+        """Export all tracking data for sync/backup"""
+        from datetime import datetime, timezone
+        
+        identity_export = None
+        core_hash = None
+        if self.identity:
+            identity_export = self.identity.export_to_dict()  # Use dict instead of compressed
+            core_hash = self.identity.get_core_hash()
+        
+        return {
+            "identity_core": identity_export,
+            "core_hash": core_hash,
+            "pattern_count": len(self.patterns),
+            "patterns": self.patterns[-100:],
+            "surface_evolution": self.get_surface_evolution(),
+            "summary": self.get_pattern_summary(),
+            "exported_at": datetime.now(timezone.utc).isoformat()
+        }
+
+
+    def track_preference_change(self, key: str, old_value, new_value, context=None) -> None:
+        """Track preference change with old and new values"""
+        pattern = {
+            "type": "preference_change",
+            "preference_key": key,
+            "old_value": old_value,
+            "new_value": new_value,
+            "context": context if isinstance(context, dict) else {"category": context} if context else {},
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        self.patterns.append(pattern)
+        self.identity.evolve_surface(pattern)
 
 class WorkflowIntegration:
     """

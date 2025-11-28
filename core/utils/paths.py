@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 Path utilities
 
 Common path operations

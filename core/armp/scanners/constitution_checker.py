@@ -4,6 +4,7 @@ Constitution Checker
 AUTUS Constitution 5개 원칙 준수 확인
 """
 
+from __future__ import annotations
 from pathlib import Path
 import logging
 
@@ -25,7 +26,7 @@ class ConstitutionChecker:
             return True  # 아직 구현 안 됨
 
         # No login, No accounts 확인
-        violations = []
+        violations: List[str] = []
         for py_file in identity_path.rglob("*.py"):
             with open(py_file) as f:
                 content = f.read().lower()
@@ -120,7 +121,7 @@ class ConstitutionChecker:
         logger.info("CONSTITUTION COMPLIANCE CHECK")
         logger.info("=" * 50)
 
-        results = {
+        results: Dict[str, bool] = {
             "Article I": cls.check_article_i_zero_identity(),
             "Article II": cls.check_article_ii_privacy(),
             "Article III": cls.check_article_iii_metacircular(),

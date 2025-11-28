@@ -4,9 +4,11 @@ ARMP Enforcement System
 모든 리스크 정책을 자동으로 강제합니다.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Dict, Any
 from datetime import datetime
 from core.utils.logging import get_logger
 
@@ -41,10 +43,10 @@ class Risk:
     category: RiskCategory
     severity: Severity
     description: str
-    prevention: Callable
-    detection: Callable
-    response: Callable
-    recovery: Callable
+    prevention: Callable[[], None]
+    detection: Callable[[], bool]
+    response: Callable[[], None]
+    recovery: Callable[[], None]
 
 
 class ConstitutionViolationError(Exception):
@@ -57,16 +59,16 @@ class ARMPEnforcer:
 
     def __init__(self):
         self.risks: List[Risk] = []
-        self.incidents = []
+        self.incidents: List[Dict[str, Any]] = []
         self.safe_mode = False
         logger.info("ARMP Enforcer initialized")
 
-    def register_risk(self, risk: Risk):
+    def register_risk(self, risk: Risk) -> None:
         """리스크 등록"""
         self.risks.append(risk)
         logger.info(f"Risk registered: {risk.name} ({risk.severity.value})")
 
-    def prevent_all(self):
+    def prevent_all(self) -> None:
         """모든 예방 조치 실행"""
         logger.info("Running all prevention measures...")
 
@@ -79,7 +81,7 @@ class ARMPEnforcer:
 
     def detect_violations(self) -> List[Risk]:
         """위반 감지"""
-        violations = []
+        violations: List[Risk] = []
 
         for risk in self.risks:
             try:
@@ -91,7 +93,7 @@ class ARMPEnforcer:
 
         return violations
 
-    def respond_to(self, risk: Risk):
+    def respond_to(self, risk: Risk) -> None:
         """리스크 대응"""
         logger.info(f"Responding to: {risk.name}")
 
@@ -100,7 +102,7 @@ class ARMPEnforcer:
             risk.response()
 
             # 2. 인시던트 기록
-            incident = {
+            incident: Dict[str, Any] = {
                 "risk": risk.name,
                 "category": risk.category.value,
                 "severity": risk.severity.value,
@@ -118,7 +120,7 @@ class ARMPEnforcer:
             logger.critical(f"❌ Response failed for {risk.name}: {e}")
             raise
 
-    def recover_from(self, risk: Risk):
+    def recover_from(self, risk: Risk) -> None:
         """복구"""
         logger.info(f"Recovering from: {risk.name}")
 
@@ -129,7 +131,7 @@ class ARMPEnforcer:
             logger.critical(f"❌ Recovery failed for {risk.name}: {e}")
             raise
 
-    def _handle_critical(self, risk: Risk):
+    def _handle_critical(self, risk: Risk) -> None:
         """Critical 리스크 특별 처리"""
         logger.critical(f"🚨 CRITICAL ALERT: {risk.name}")
 
@@ -142,25 +144,25 @@ class ARMPEnforcer:
         # 3. 자동 백업
         self._create_emergency_backup()
 
-    def _send_alert(self, risk: Risk):
+    def _send_alert(self, risk: Risk) -> None:
         """알림 전송"""
         logger.critical(f"🚨 ALERT: {risk.name} - {risk.description}")
         # TODO: Slack/Email/SMS 통합
 
-    def _enter_safe_mode(self):
+    def _enter_safe_mode(self) -> None:
         """안전 모드"""
         if not self.safe_mode:
             logger.warning("⚠️  Entering safe mode...")
             self.safe_mode = True
             # TODO: Core 기능만 유지
 
-    def exit_safe_mode(self):
+    def exit_safe_mode(self) -> None:
         """안전 모드 해제"""
         if self.safe_mode:
             logger.info("Exiting safe mode...")
             self.safe_mode = False
 
-    def _create_emergency_backup(self):
+    def _create_emergency_backup(self) -> None:
         """긴급 백업"""
         logger.info("💾 Creating emergency backup...")
         try:
@@ -170,7 +172,7 @@ class ARMPEnforcer:
         except Exception as e:
             logger.error(f"Emergency backup failed: {e}")
 
-    def get_status(self) -> dict:
+    def get_status(self) -> Dict[str, Any]:
         """현재 상태"""
         return {
             "total_risks": len(self.risks),
@@ -181,14 +183,14 @@ class ARMPEnforcer:
 
 
 
-    def get_risk(self, risk_name: str):
+    def get_risk(self, risk_name: str) -> Optional[Risk]:
         """Get risk by name"""
         for risk in self.risks:
             if hasattr(risk, "name") and risk.name == risk_name:
                 return risk
         return None
 
-    def get_all_risks(self):
+    def get_all_risks(self) -> List[Risk]:
         """Get all registered risks"""
         return self.risks
 

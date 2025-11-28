@@ -1,0 +1,29 @@
+name: codegen_pack
+version: 1.0.0
+description: Python 코드 생성
+
+llm:
+  provider: auto
+  model: gpt-4o
+  temperature: 0.3
+  max_tokens: 4000
+
+cells:
+  - name: generate_code
+    prompt: |
+      Generate Python code for: {purpose}
+      File: {file_path}
+      
+      Requirements:
+      - Follow PEP 8
+      - Include docstrings
+      - Type hints
+      - No PII (Article II)
+      
+      Output ONLY the Python code.
+    output: generated_code
+
+actions:
+  - type: write_file
+    path: "{file_path}"
+    content: "{generated_code}"

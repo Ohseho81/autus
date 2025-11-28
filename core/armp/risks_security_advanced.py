@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 ARMP - Advanced Security Risks
 
 Critical security risks beyond basic PII and code injection
@@ -21,7 +23,7 @@ class SQLInjectionRisk(Risk):
     Detects potential SQL injection vulnerabilities
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="SQL Injection Attack",
             category=RiskCategory.SECURITY,
@@ -99,7 +101,7 @@ class MaliciousPackageRisk(Risk):
     Detects imports of potentially dangerous packages
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Malicious Package Import",
             category=RiskCategory.SECURITY,
@@ -197,7 +199,7 @@ class CredentialExposureRisk(Risk):
     Detects hardcoded credentials in code
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Credential Exposure",
             category=RiskCategory.SECURITY,

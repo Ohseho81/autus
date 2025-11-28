@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 Identity Surface
 
 3D Identity Surface that evolves based on behavioral patterns.
@@ -30,7 +32,7 @@ class IdentitySurface:
         """Alias for export_to_dict for compatibility."""
         return self.export_to_dict()
 
-    def __init__(self, core_hash: str):
+    def __init__(self, core_hash: str) -> None:
         """
         Initialize surface from core hash
 

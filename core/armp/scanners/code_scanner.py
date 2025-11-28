@@ -4,10 +4,11 @@ Code Scanner
 AI 생성 코드의 악의적 패턴을 탐지합니다.
 """
 
+from __future__ import annotations
 import ast
 from pathlib import Path
 from typing import List, Tuple
-import logging
+import loggi, Dictng
 
 logger = logging.getLogger(__name__)
 
@@ -84,9 +85,9 @@ class CodeScanner:
         return violations
 
     @classmethod
-    def scan_directory(cls, directory: Path) -> dict:
+    def scan_directory(cls, directory: Path) -> Dict[str, List[Tuple[int, str]]]:
         """디렉토리 전체 스캔"""
-        results = {}
+        results: Dict[str, List[Tuple[int, str]]] = {}
 
         for py_file in directory.rglob("*.py"):
             violations = cls.scan_file(py_file)

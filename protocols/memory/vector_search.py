@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 Vector Search for Local Memory OS
 
 로컬 우선 원칙에 따라 외부 API 없이 작동하는 벡터 검색
@@ -19,7 +21,7 @@ class VectorIndex:
     나중에 임베딩 모델 통합 가능
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.documents = []
         self.term_frequency = {}
         self.document_frequency = {}
@@ -164,7 +166,7 @@ class VectorSearch:
     나중에 임베딩 기반으로 확장 가능
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.index = VectorIndex()
         self.embedding_provider = None  # 나중에 초기화
 

@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 Zero Auth Protocol - QR Code Sync
 
 Device-to-device synchronization without servers.
@@ -14,6 +16,8 @@ from io import BytesIO
 from PIL import Image
 import hashlib
 
+from protocols.identity.core import IdentityCore
+
 try:
     from pyzbar import pyzbar
     ZBAR_AVAILABLE = True
@@ -28,7 +32,7 @@ class QRCodeGenerator:
     QR codes contain encrypted identity data (no PII)
     """
 
-    def __init__(self, error_correction: str = 'M'):
+    def __init__(self, error_correction: str = 'M') -> None:
         """
         Initialize QR code generator
 
@@ -187,10 +191,14 @@ class QRCodeScanner:
         if not ZBAR_AVAILABLE:
             raise ImportError("pyzbar not available. Install with: pip install pyzbar")
 
-        from PIL import Image
-
-        img = Image.open(BytesIO(image_bytes))
-        decoded_objects = pyzbar.decode(img)
+        from PIL import Image, UnidentifiedImageError
+        try:
+            img = Image.open(BytesIO(image_bytes))
+            decoded_objects = pyzbar.decode(img)
+        except UnidentifiedImageError:
+            return None
+        except Exception:
+            return None
 
         if not decoded_objects:
             return None
@@ -202,7 +210,7 @@ class QRCodeScanner:
         try:
             json_str = base64.b64decode(qr_data).decode('utf-8')
             sync_data = json.loads(json_str)
-        except Exception as e:
+        except Exception:
             return None
 
         # Check expiration
@@ -220,7 +228,7 @@ class DeviceSync:
     No servers, no authentication, only local QR code exchange
     """
 
-    def __init__(self, identity_core):
+    def __init__(self, identity_core) -> None:
         """
         Initialize device sync
 
@@ -307,7 +315,7 @@ class DeviceSync:
                 )
 
             return True
-        except Exception as e:
+        except Exception:
             return False
 
     def sync_from_qr_bytes(self, qr_image_bytes: bytes) -> bool:
@@ -361,5 +369,5 @@ class DeviceSync:
                 )
 
             return True
-        except Exception as e:
+        except Exception:
             return False

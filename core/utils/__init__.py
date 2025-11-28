@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 Core utilities
 
 Common utilities used across AUTUS

@@ -1,0 +1,27 @@
+name: testgen_pack
+version: 1.0.0
+description: pytest 테스트 생성
+
+llm:
+  provider: auto
+  model: gpt-4o
+  temperature: 0.3
+  max_tokens: 4000
+
+cells:
+  - name: generate_tests
+    prompt: |
+      Generate pytest tests for: {file_path}
+      
+      Requirements:
+      - Use pytest fixtures
+      - Test edge cases
+      - Mock external dependencies
+      
+      Output ONLY the test code.
+    output: test_code
+
+actions:
+  - type: write_file
+    path: "tests/test_{file_name}"
+    content: "{test_code}"

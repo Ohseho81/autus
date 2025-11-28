@@ -11,6 +11,19 @@ from protocols.identity.surface import IdentitySurface
 
 
 class IdentityCore:
+    @classmethod
+    def import_from_sync(cls, sync_data_b64: str) -> "IdentityCore":
+        """
+        Import identity from base64-encoded, zlib-compressed sync data (as produced by export_for_sync).
+        """
+        import base64, zlib, json
+        try:
+            compressed = base64.b64decode(sync_data_b64)
+            json_str = zlib.decompress(compressed).decode("utf-8")
+            data = json.loads(json_str)
+        except Exception as e:
+            raise ValueError(f"Failed to decode sync data: {e}")
+        return cls.from_sync(data)
     """
     Core identity without any PII
 
@@ -61,23 +74,39 @@ class IdentityCore:
         """Get existing surface (or None)"""
         return self.surface
 
-    def export_for_sync(self) -> dict:
-        """Export identity data for device sync (QR code)"""
-        return {
+    def export_for_sync(self) -> str:
+        """
+        Export identity data for device sync (QR code).
+        
+        ARTICLE II COMPLIANCE: No PII exported.
+        Only seed_hash (anonymous identifier) is included.
+        """
+        import json, zlib, base64
+        data = {
             "seed_hash": self.seed_hash,
             "created_at": self.created_at.isoformat(),
             "surface": self.surface.to_dict() if self.surface else None
         }
+        json_str = json.dumps(data)
+        compressed = zlib.compress(json_str.encode('utf-8'))
+        return base64.b64encode(compressed).decode('utf-8')
 
     @classmethod
     def from_sync(cls, data: dict) -> "IdentityCore":
-        """Import identity from sync data"""
-        # 동기화용 임시 생성
+        """
+        Import identity from sync data.
+        
+        ARTICLE II COMPLIANCE: Seed is NEVER restored.
+        Identity is reconstructed from hash only.
+        """
         instance = cls.__new__(cls)
-        instance.seed = None
+        instance.seed = None  # NEVER restore seed - Article II
         instance.seed_hash = data.get("seed_hash", "")
         instance.created_at = datetime.fromisoformat(data.get("created_at", datetime.now().isoformat()))
         instance.surface = None
+        if data.get("surface"):
+            from protocols.identity.surface import IdentitySurface
+            instance.surface = IdentitySurface.from_dict(data["surface"])
         return instance
 
     def evolve_surface(self, pattern: dict) -> None:
@@ -93,7 +122,12 @@ class IdentityCore:
         self.surface.evolve(pattern)
 
     def export_to_dict(self) -> dict:
-        """Export identity to dictionary"""
+        """
+        Export identity to dictionary for serialization.
+        
+        ARTICLE II COMPLIANCE: No PII exported.
+        Seed is NEVER included - only the hash.
+        """
         return {
             'seed_hash': self.seed_hash,
             'created_at': self.created_at.isoformat(),
@@ -102,15 +136,18 @@ class IdentityCore:
 
     @classmethod
     def from_dict(cls, data: dict) -> 'IdentityCore':
-        """Import identity from dictionary"""
-        # Create with dummy seed (we only have hash)
-        identity = cls.__new__(cls)
-        identity.seed_hash = data['seed_hash']
-        identity.created_at = datetime.fromisoformat(data['created_at'])
-
+        """
+        Create IdentityCore from dictionary.
+        
+        ARTICLE II COMPLIANCE: Seed is NEVER restored from external data.
+        """
+        instance = cls.__new__(cls)
+        instance.seed = None  # NEVER restore seed - Article II
+        instance.seed_hash = data.get('seed_hash', '')
+        instance.created_at = datetime.fromisoformat(data.get('created_at', datetime.now().isoformat()))
+        instance.surface = None
         if data.get('surface'):
-            identity.surface = IdentitySurface.from_dict(data['surface'])
-        else:
-            identity.surface = None
+            from protocols.identity.surface import IdentitySurface
+            instance.surface = IdentitySurface.from_dict(data['surface'])
+        return instance
 
-        return identity

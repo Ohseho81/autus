@@ -1,0 +1,23 @@
+name: pipeline_pack
+version: 1.0.0
+description: 개발 파이프라인 오케스트레이션
+
+llm:
+  provider: auto
+  model: gpt-4o
+  temperature: 0.2
+  max_tokens: 2000
+
+cells:
+  - name: plan_pipeline
+    prompt: |
+      Create development pipeline for: {feature_description}
+      
+      Steps:
+      1. Architect (plan)
+      2. Codegen (implement)
+      3. Testgen (test)
+      4. Validate (verify)
+      
+      Output JSON with steps.
+    output: pipeline_plan

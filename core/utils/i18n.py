@@ -2,7 +2,7 @@ import json
 import os
 
 class I18N:
-    def __init__(self, locale_dir="locales", default_lang="ko"):
+    def __init__(self, locale_dir="locales", default_lang="ko") -> None:
         self.locale_dir = locale_dir
         self.default_lang = default_lang
         self.cache = {}

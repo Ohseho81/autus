@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 File utilities
 
 Common file operations

@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 class JSONLineLogger:
-    def __init__(self, log_dir="logs", log_file="autus.log"):
+    def __init__(self, log_dir="logs", log_file="autus.log") -> None:
         self.log_dir = log_dir
         self.log_file = log_file
         os.makedirs(log_dir, exist_ok=True)

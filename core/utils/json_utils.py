@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 JSON utilities
 
 Common JSON operations

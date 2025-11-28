@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 ARMP - Protocol Compliance Risks
 
 Medium-priority protocol compliance risks
@@ -19,7 +21,7 @@ class ProtocolVersionIncompatibleRisk(Risk):
     Detects protocol version incompatibilities
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Protocol Version Incompatible",
             category=RiskCategory.PROTOCOL,
@@ -83,7 +85,7 @@ class InvalidProtocolMessageRisk(Risk):
     Detects malformed protocol messages
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Invalid Protocol Message",
             category=RiskCategory.PROTOCOL,
@@ -153,7 +155,7 @@ class ProtocolStateCorruptionRisk(Risk):
     Detects protocol state corruption
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Protocol State Corruption",
             category=RiskCategory.PROTOCOL,

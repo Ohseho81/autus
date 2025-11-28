@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 AI 생성 코드 보안 검증 시스템
 
 LLM이 생성한 코드의 안전성을 검증하여 악의적 코드 실행을 방지합니다.

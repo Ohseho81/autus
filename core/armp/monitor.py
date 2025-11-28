@@ -4,20 +4,23 @@ ARMP Monitor
 실시간 리스크 모니터링 시스템
 """
 
+from __future__ import annotations
+
 import threading
 import time
 from datetime import datetime
+from typing import Optional, Dict, Any
 from core.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class ARMPMonitor:
-    def is_running(self):
+    def is_running(self) -> bool:
         """모니터가 실행 중인지 반환"""
         return self.running
 
-    def get_metrics(self):
+    def get_metrics(self) -> Dict[str, Any]:
         """현재 모니터링 메트릭 반환"""
         return {
             "uptime_seconds": self._get_uptime(),
@@ -31,25 +34,25 @@ class ARMPMonitor:
         }
     """실시간 리스크 모니터링"""
 
-    def __init__(self, enforcer):
+    def __init__(self, enforcer: Any) -> None:
         self.enforcer = enforcer
-        self.running = False
-        self.thread = None
-        self.check_interval = 60  # 1분마다 (legacy)
-        self._interval = None  # If set, overrides check_interval for test control
-        self.start_time = None
-        self.check_count = 0
-        self.violation_count = 0
+        self.running: bool = False
+        self.thread: Optional[threading.Thread] = None
+        self.check_interval: int = 60  # 1분마다 (legacy)
+        self._interval: Optional[int] = None  # If set, overrides check_interval for test control
+        self.start_time: Optional[datetime] = None
+        self.check_count: int = 0
+        self.violation_count: int = 0
 
     @property
-    def interval(self):
+    def interval(self) -> int:
         return self._interval if self._interval is not None else self.check_interval
 
     @interval.setter
-    def interval(self, value):
+    def interval(self, value: int) -> None:
         self._interval = value
 
-    def start(self):
+    def start(self) -> None:
         """모니터링 시작"""
         if self.running:
             logger.warning("Monitor already running")
@@ -61,15 +64,15 @@ class ARMPMonitor:
         self.thread.start()
         logger.info("✅ ARMP Monitor started")
 
-    def stop(self):
+    def stop(self) -> None:
         """모니터링 중지"""
-        self.running = False
+        self.running: bool = False
         if self.thread and self.thread.is_alive():
             self.thread.join(timeout=5)
-        self._interval = None  # Reset interval after stop for test isolation
+        self._interval: Optional[int] = None  # Reset interval after stop for test isolation
         logger.info("⏹️  ARMP Monitor stopped")
 
-    def _monitor_loop(self):
+    def _monitor_loop(self) -> None:
         """모니터링 루프"""
         logger.info("🔍 Monitor loop starting...")
 
@@ -101,10 +104,10 @@ class ARMPMonitor:
                 logger.error(f"Monitor loop error: {e}")
                 time.sleep(10)  # 에러 시 짧은 대기 후 재시도
 
-    def _collect_metrics(self):
+    def _collect_metrics(self) -> None:
         """메트릭 수집"""
         try:
-            metrics = {
+            metrics: Dict[str, Any] = {
                 "timestamp": datetime.now().isoformat(),
                 "total_risks": len(self.enforcer.risks),
                 "incidents_count": len(self.enforcer.incidents),
@@ -127,7 +130,7 @@ class ARMPMonitor:
             return (datetime.now() - self.start_time).total_seconds()
         return 0.0
 
-    def get_status(self) -> dict:
+    def get_status(self) -> Dict[str, Any]:
         """모니터 상태 반환"""
         return {
             "running": self.running,

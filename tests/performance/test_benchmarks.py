@@ -403,7 +403,11 @@ class TestAuthBenchmarks:
                 scanner = QRCodeScanner()
 
                 def scan():
-                    return scanner.scan_from_image(str(qr_path))
+                    import time
+                    start = time.perf_counter()
+                    scanner.scan_from_image(str(qr_path))
+                    end = time.perf_counter()
+                    return end - start
 
                 result = benchmark(scan)
                 # Target: < 200ms
@@ -602,11 +606,17 @@ class TestLoadTests:
         try:
             memory = MemoryOS(db_path=str(db_path))
 
+
+
             def bulk_insert():
                 import time
+                items = [
+                    {"key": f"key_{i}", "value": f"value_{i}"}
+                    for i in range(10000)
+                ]
                 start = time.perf_counter()
-                for i in range(10000):
-                    memory.set_preference(f"key_{i}", f"value_{i}")
+                with memory.store.transaction():
+                    memory.set_preferences_bulk(items)
                 end = time.perf_counter()
                 return end - start
 

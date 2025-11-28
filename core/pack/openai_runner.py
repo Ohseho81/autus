@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """
+from __future__ import annotations
+
 Development Pack Runner (OpenAI 버전)
 임시로 OpenAI GPT-4를 사용
 """
@@ -15,7 +17,7 @@ from core.llm.cost_tracker import get_cost_tracker, CostLimitExceeded
 class DevPackRunner:
     """Development Pack 실행 엔진 (OpenAI)"""
 
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None) -> None:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY 필요")

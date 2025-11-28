@@ -3,7 +3,7 @@ import datetime
 import os
 
 class Notifier:
-    def __init__(self, template_dir="templates"):
+    def __init__(self, template_dir="templates") -> None:
         self.env = Environment(loader=FileSystemLoader(template_dir))
 
     def render(self, template_name, context):

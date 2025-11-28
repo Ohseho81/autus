@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 ARMP - Advanced Performance Risks
 
 High-impact performance risks
@@ -23,7 +25,7 @@ class MemoryLeakRisk(Risk):
     Detects potential memory leaks
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Memory Leak Detected",
             category=RiskCategory.PERFORMANCE,
@@ -86,7 +88,7 @@ class DiskSpaceRisk(Risk):
     Monitors disk space availability
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Disk Space Critical",
             category=RiskCategory.PERFORMANCE,

@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 ARMP - File & Network Security Risks
 
 High-impact risks related to file access and network operations
@@ -20,7 +22,7 @@ class PathTraversalRisk(Risk):
     Detects path traversal vulnerabilities (../ attacks)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Path Traversal Attack",
             category=RiskCategory.SECURITY,
@@ -100,7 +102,7 @@ class UnauthorizedFileAccessRisk(Risk):
     Detects potential unauthorized file access
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Unauthorized File Access",
             category=RiskCategory.SECURITY,
@@ -176,7 +178,7 @@ class NetworkConnectivityRisk(Risk):
     Handles network failures and connectivity issues
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Network Connectivity Loss",
             category=RiskCategory.API,
@@ -234,7 +236,7 @@ class SSLCertificateRisk(Risk):
     Detects SSL/TLS certificate issues
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="SSL Certificate Invalid",
             category=RiskCategory.API,

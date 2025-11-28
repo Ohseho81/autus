@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 Hash utilities
 
 Common hashing operations

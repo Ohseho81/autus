@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 ARMP - Performance Monitoring Risks
 
 Medium-priority performance monitoring risks
@@ -24,7 +26,7 @@ class CPUThresholdRisk(Risk):
     Monitors CPU usage
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="CPU Threshold Exceeded",
             category=RiskCategory.PERFORMANCE,
@@ -86,7 +88,7 @@ class ResponseTimeDegradationRisk(Risk):
     Monitors response time performance
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Response Time Degradation",
             category=RiskCategory.PERFORMANCE,

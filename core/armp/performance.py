@@ -3,10 +3,12 @@
 
 Performance Budget을 체크하고 위반 시 경고합니다.
 """
+from __future__ import annotations
+
 import logging
 import time
 from functools import wraps
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +40,7 @@ class PerformanceBudget:
     DISK_MAX = 1000
 
     @classmethod
-    def check_api_response_time(cls, duration_ms: float):
+    def check_api_response_time(cls, duration_ms: float) -> None:
         """API 응답 시간 체크"""
         if duration_ms > cls.API_P99:
             logger.warning(f"⚠️ API slow: {duration_ms:.1f}ms > {cls.API_P99}ms")
@@ -46,13 +48,13 @@ class PerformanceBudget:
             logger.debug(f"API response: {duration_ms:.1f}ms")
 
     @classmethod
-    def check_db_query_time(cls, duration_ms: float):
+    def check_db_query_time(cls, duration_ms: float) -> None:
         """DB 쿼리 시간 체크"""
         if duration_ms > cls.DB_QUERY_MAX:
             logger.warning(f"⚠️ DB slow: {duration_ms:.1f}ms > {cls.DB_QUERY_MAX}ms")
 
     @classmethod
-    def check_pack_execution_time(cls, duration_seconds: float):
+    def check_pack_execution_time(cls, duration_seconds: float) -> None:
         """Pack 실행 시간 체크"""
         if duration_seconds > cls.PACK_EXECUTION_MAX:
             raise PerformanceBudgetExceeded(
@@ -60,7 +62,7 @@ class PerformanceBudget:
             )
 
     @classmethod
-    def check_memory_usage(cls):
+    def check_memory_usage(cls) -> Optional[float]:
         """메모리 사용 체크"""
         try:
             import psutil
@@ -79,12 +81,10 @@ class PerformanceBudget:
             return None
 
     @classmethod
-    def check_disk_usage(cls, path: str = "."):
+    def check_disk_usage(cls, path: str = ".") -> Optional[float]:
         """디스크 사용 체크"""
         try:
             import shutil
-            from pathlib import Path
-
             stat = shutil.disk_usage(Path(path))
             free_mb = stat.free / 1024 / 1024
 

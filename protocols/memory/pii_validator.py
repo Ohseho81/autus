@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 강화된 PII (Personally Identifiable Information) 검증 시스템
 
 Article II: Privacy by Architecture 준수

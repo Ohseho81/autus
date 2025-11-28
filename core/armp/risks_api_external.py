@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 ARMP - API & External Service Risks
 
 Medium-priority risks related to API and external services
@@ -20,7 +22,7 @@ class APIResponseTimeoutRisk(Risk):
     Handles API timeout scenarios
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="API Response Timeout",
             category=RiskCategory.API,
@@ -91,7 +93,7 @@ class ExternalServiceFailureRisk(Risk):
     Handles external service unavailability
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="External Service Failure",
             category=RiskCategory.API,
@@ -162,7 +164,7 @@ class APIVersionMismatchRisk(Risk):
     Detects API version incompatibilities
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="API Version Mismatch",
             category=RiskCategory.API,

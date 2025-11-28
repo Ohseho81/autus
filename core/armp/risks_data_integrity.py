@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 ARMP - Data Integrity Risks
 
 High-impact risks related to data management
@@ -20,7 +22,7 @@ class BackupFailureRisk(Risk):
     Detects backup system failures
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Backup Failure",
             category=RiskCategory.DATA,
@@ -93,7 +95,7 @@ class DataMigrationRisk(Risk):
     Detects data migration issues
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Data Migration Error",
             category=RiskCategory.DATA,
@@ -152,7 +154,7 @@ class TransactionRollbackRisk(Risk):
     Detects database transaction rollback failures
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Transaction Rollback Failure",
             category=RiskCategory.DATA,

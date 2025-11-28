@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 MemoryOS - High-level interface for Local Memory OS
 
 MemoryStore를 래핑하는 상위 레벨 인터페이스
@@ -14,6 +16,15 @@ logger = get_logger(__name__)
 
 
 class MemoryOS:
+    def set_preferences_bulk(self, items: List[Dict[str, Any]], category: str = "general") -> None:
+        """
+        Bulk set preferences for performance (used in benchmarks).
+
+        Args:
+            items: List of dicts with 'key' and 'value'.
+            category: Category for all preferences.
+        """
+        self.store.store_preferences_bulk(items, category)
     """
     MemoryOS - Local Memory Operating System
 
@@ -21,7 +32,7 @@ class MemoryOS:
     벡터 검색 및 의미 기반 검색 기능을 제공합니다.
     """
 
-    def __init__(self, db_path: str = ".autus/memory/memory.db"):
+    def __init__(self, db_path: str = ".autus/memory/memory.db") -> None:
         """
         MemoryOS 초기화
 
@@ -86,7 +97,7 @@ class MemoryOS:
         self.store.store_pattern(pattern_type, data)
         # 벡터 인덱스 업데이트
         import json
-        pattern_text = json.dumps(data)
+        pattern_text = f"{pattern_type.replace('_', ' ')} {json.dumps(data)}"
         self._vector_search_engine.index.add_document(
             doc_id=f"pattern:{pattern_type}",
             text=pattern_text,

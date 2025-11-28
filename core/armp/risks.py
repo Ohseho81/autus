@@ -3,7 +3,7 @@
 from core.armp.enforcer import Risk, RiskCategory, Severity, enforcer, ConstitutionViolationError
 # 핵심 Risk 클래스 직접 정의 (최소 골격)
 class PIIStorageRisk(Risk):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="PII Storage Attempt",
             category=RiskCategory.SECURITY,
@@ -14,13 +14,13 @@ class PIIStorageRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    def prevent(self): pass
-    def detect(self): return False
-    def respond(self): pass
-    def recover(self): pass
+    def prevent(self) -> None: pass
+    def detect(self) -> bool: return False
+    def respond(self) -> None: pass
+    def recover(self) -> None: pass
 
 class CodeInjectionRisk(Risk):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Code Injection Attack",
             category=RiskCategory.SECURITY,
@@ -31,14 +31,14 @@ class CodeInjectionRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    def prevent(self): pass
-    def detect(self): return False
-    def respond(self): pass
-    def recover(self): pass
+    def prevent(self) -> None: pass
+    def detect(self) -> bool: return False
+    def respond(self) -> None: pass
+    def recover(self) -> None: pass
 
 # --- 추가: RateLimitRisk, DatabaseCorruptionRisk, PerformanceBudgetRisk ---
 class RateLimitRisk(Risk):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="API Rate Limit",
             category=RiskCategory.API,
@@ -49,13 +49,13 @@ class RateLimitRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    def prevent(self): pass
-    def detect(self): return False
-    def respond(self): pass
-    def recover(self): pass
+    def prevent(self) -> None: pass
+    def detect(self) -> bool: return False
+    def respond(self) -> None: pass
+    def recover(self) -> None: pass
 
 class DatabaseCorruptionRisk(Risk):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Database Corruption",
             category=RiskCategory.DATA,
@@ -66,13 +66,13 @@ class DatabaseCorruptionRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    def prevent(self): pass
-    def detect(self): return False
-    def respond(self): pass
-    def recover(self): pass
+    def prevent(self) -> None: pass
+    def detect(self) -> bool: return False
+    def respond(self) -> None: pass
+    def recover(self) -> None: pass
 
 class PerformanceBudgetRisk(Risk):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Performance Budget Exceeded",
             category=RiskCategory.PERFORMANCE,
@@ -83,16 +83,18 @@ class PerformanceBudgetRisk(Risk):
             response=self.respond,
             recovery=self.recover
         )
-    def prevent(self): pass
-    def detect(self): return False
-    def respond(self): pass
-    def recover(self): pass
+    def prevent(self) -> None: pass
+    def detect(self) -> bool: return False
+    def respond(self) -> None: pass
+    def recover(self) -> None: pass
 
 
 from pathlib import Path
 import logging
 
 """
+from __future__ import annotations
+
 AUTUS 핵심 리스크 정의
 
 Constitution을 지키는 5개 Critical 리스크

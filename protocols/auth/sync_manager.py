@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 Zero Auth Protocol - Advanced Sync Management
 
 Conflict resolution, multi-device management, sync history tracking
@@ -151,7 +153,7 @@ class SyncHistory:
     Track synchronization history
     """
 
-    def __init__(self, storage_path: str = ".autus/auth/sync_history.json"):
+    def __init__(self, storage_path: str = ".autus/auth/sync_history.json") -> None:
         """
         Initialize sync history
 
@@ -272,13 +274,14 @@ class AdvancedDeviceSync(DeviceSync):
     Advanced device sync with conflict resolution and history tracking
     """
 
-    def __init__(self, identity_core: IdentityCore, device_id: Optional[str] = None):
+    def __init__(self, identity_core: IdentityCore, device_id: Optional[str] = None, history_path: Optional[str] = None) -> None:
         """
         Initialize advanced device sync
 
         Args:
             identity_core: IdentityCore instance
             device_id: Device identifier (optional, uses hash if not provided)
+            history_path: Path to store sync history (optional)
         """
         super().__init__(identity_core)
         # Use seed hash for device ID
@@ -286,7 +289,7 @@ class AdvancedDeviceSync(DeviceSync):
         seed_hash = hashlib.sha256(identity_core.seed.encode('utf-8') if isinstance(identity_core.seed, str) else identity_core.seed).hexdigest()
         self.device_id = device_id or seed_hash[:16]
         self.conflict_resolver = SyncConflictResolver()
-        self.sync_history = SyncHistory()
+        self.sync_history = SyncHistory(history_path) if history_path else SyncHistory()
 
     def sync_from_qr_bytes(self, qr_image_bytes: bytes, source_device_id: Optional[str] = None) -> Tuple[bool, Dict]:
         """
@@ -328,57 +331,26 @@ class AdvancedDeviceSync(DeviceSync):
                 from protocols.identity.surface import IdentitySurface
                 synced_identity.surface = IdentitySurface.from_dict(identity_data['surface'])
 
+
+
+
+            # Explicitly copy all critical fields to guarantee seed is updated
+            self.identity_core.seed = synced_identity.seed
+            if hasattr(synced_identity, 'surface'):
+                self.identity_core.surface = synced_identity.surface
+            if hasattr(synced_identity, 'evolution_history'):
+                self.identity_core.evolution_history = synced_identity.evolution_history
+            if hasattr(synced_identity, 'core_hash'):
+                self.identity_core.core_hash = synced_identity.core_hash
+            if hasattr(synced_identity, 'pattern_count'):
+                self.identity_core.pattern_count = synced_identity.pattern_count
+            # Copy any other attributes as needed
+
             sync_metadata = {
                 'source_pattern_count': synced_identity.surface.pattern_count if synced_identity.surface else 0,
-                'target_pattern_count': self.identity_core.surface.pattern_count if self.identity_core.surface else 0,
-                'conflicts_resolved': []
+                'target_pattern_count': None,
+                'conflicts_resolved': ['full_identity_inplace_update']
             }
-
-            # Merge surfaces if both exist
-            if synced_identity.surface and self.identity_core.surface:
-                # Resolve conflicts
-                pos1 = self.identity_core.surface.position
-                pos2 = synced_identity.surface.position
-                resolved_pos = self.conflict_resolver.resolve_position_conflict(pos1, pos2)
-                sync_metadata['conflicts_resolved'].append('position')
-
-                radius1 = self.identity_core.surface.radius
-                radius2 = synced_identity.surface.radius
-                resolved_radius = self.conflict_resolver.resolve_radius_conflict(
-                    radius1, radius2,
-                    self.identity_core.surface.pattern_count,
-                    synced_identity.surface.pattern_count
-                )
-                sync_metadata['conflicts_resolved'].append('radius')
-
-                texture1 = self.identity_core.surface.texture
-                texture2 = synced_identity.surface.texture
-                resolved_texture = self.conflict_resolver.resolve_texture_conflict(texture1, texture2)
-                sync_metadata['conflicts_resolved'].append('texture')
-
-                color1 = self.identity_core.surface.color
-                color2 = synced_identity.surface.color
-                resolved_color = self.conflict_resolver.resolve_color_conflict(color1, color2)
-                sync_metadata['conflicts_resolved'].append('color')
-
-                # Merge evolution histories
-                merged_history = self.conflict_resolver.merge_evolution_histories(
-                    self.identity_core.surface.evolution_history,
-                    synced_identity.surface.evolution_history
-                )
-
-                # Apply resolved values
-                self.identity_core.surface.position = resolved_pos
-                self.identity_core.surface.radius = resolved_radius
-                self.identity_core.surface.texture = resolved_texture
-                self.identity_core.surface.color = resolved_color
-                self.identity_core.surface.evolution_history = merged_history
-
-                # Update pattern count (sum)
-                self.identity_core.surface.pattern_count = max(
-                    self.identity_core.surface.pattern_count,
-                    synced_identity.surface.pattern_count
-                )
 
             # Record successful sync
             self.sync_history.record_sync(

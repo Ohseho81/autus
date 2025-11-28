@@ -1,4 +1,6 @@
 """
+from __future__ import annotations
+
 ARMP - Data Management Risks
 
 Medium-priority data management risks
@@ -18,7 +20,7 @@ class SchemaVersionMismatchRisk(Risk):
     Detects database schema version issues
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="Schema Version Mismatch",
             category=RiskCategory.DATA,

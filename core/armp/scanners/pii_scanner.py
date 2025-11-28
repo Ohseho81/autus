@@ -4,10 +4,11 @@ PII Scanner
 모든 코드에서 PII 저장 시도를 탐지합니다.
 """
 
+from __future__ import annotations
 import re
 from pathlib import Path
 from typing import List, Tuple
-import logging
+import loggi, Dictng
 
 logger = logging.getLogger(__name__)
 
@@ -101,9 +102,9 @@ class PIIScanner:
         return violations
 
     @classmethod
-    def scan_directory(cls, directory: Path) -> dict:
+    def scan_directory(cls, directory: Path) -> Dict[str, List[Tuple[int, str]]]:
         """디렉토리 전체 스캔"""
-        results = {}
+        results: Dict[str, List[Tuple[int, str]]] = {}
 
         # 제외할 파일 패턴 (검증 파일, 스캐너 파일 등)
         exclude_patterns = [
