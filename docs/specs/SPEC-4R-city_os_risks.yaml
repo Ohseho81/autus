@@ -1,0 +1,16 @@
+domain: city_os
+version: 0.1
+
+risks:
+  - id: R001
+    name: citizen_tracking
+    article: "Article I: Zero Identity"
+    description: 시민 개인 추적 금지
+    response:
+      - action: block
+
+  - id: R002
+    name: critical_incident_unhandled
+    description: CRITICAL 사건 30분 미대응
+    response:
+      - action: auto_escalate

@@ -159,3 +159,12 @@ try:
     print("✅ EMO Hub routes registered")
 except ImportError as e:
     print(f"⚠️ EMO Hub routes not loaded: {e}")
+
+# Auto-generated domain routes
+for domain in ['city_os', 'battery_factory']:
+    try:
+        module = __import__(f'packs.generated.{domain}.routes', fromlist=['router'])
+        app.include_router(module.router, prefix="/api")
+        print(f"✅ {domain} routes registered")
+    except ImportError as e:
+        print(f"⚠️ {domain} routes not loaded: {e}")

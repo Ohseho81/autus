@@ -45,20 +45,25 @@ class WorkflowGraph:
         return graph
 
     def validate(self) -> bool:
-        # Minimal validation: check for cycles and disconnected nodes
-        # For test purposes, just check all nodes are reachable from the first node
-        if not self.nodes:
-            return True
+        # Accept isolated nodes, only check for cycles
+        # Detect cycles using DFS
         visited = set()
-        def dfs(node_id):
-            if node_id in visited:
-                return
-            visited.add(node_id)
-            for neighbor in self.neighbors(node_id):
-                dfs(neighbor.id)
-        first_node = next(iter(self.nodes))
-        dfs(first_node)
-        return len(visited) == len(self.nodes)
+        rec_stack = set()
+        def has_cycle(node_id):
+            if node_id not in visited:
+                visited.add(node_id)
+                rec_stack.add(node_id)
+                for neighbor in self.neighbors(node_id):
+                    if neighbor.id not in visited and has_cycle(neighbor.id):
+                        return True
+                    elif neighbor.id in rec_stack:
+                        return True
+                rec_stack.remove(node_id)
+            return False
+        for node_id in self.nodes:
+            if has_cycle(node_id):
+                return False
+        return True
     """
     Minimal WorkflowGraph used by tests.
 
@@ -66,11 +71,11 @@ class WorkflowGraph:
     - edges: list of WorkflowEdge
     """
 
-    def __init__(self, nodes: Union[List[Any], Dict[str, Any]] = None, edges: List[Any] = None):
+    def __init__(self, nodes: Union[List[Any], Dict[str, Any]] = None, edges: List[Any] = None, metadata: Optional[Dict[str, Any]] = None):
         self.nodes: Dict[str, WorkflowNode] = {}
         self.edges: List[WorkflowEdge] = []
+        self.metadata: Dict[str, Any] = metadata or {}
         if nodes is not None:
-            # Accepts list of dicts, WorkflowNode, or both
             if isinstance(nodes, dict):
                 nodes = list(nodes.values())
             for n in nodes:
@@ -89,22 +94,36 @@ class WorkflowGraph:
     def from_dict(cls, data: Dict[str, Any]) -> "WorkflowGraph":
         nodes = data.get("nodes", [])
         edges = data.get("edges", [])
-        return cls(nodes, edges)
+        metadata = data.get("metadata", {})
+        return cls(nodes, edges, metadata)
 
     def add_node(self, node_id: str, node_type: str = "task", config: Optional[Dict[str, Any]] = None) -> WorkflowNode:
         if config is None:
             config = {}
-        node = WorkflowNode(id=node_id, type=node_type, config=config)
-        self.nodes[node_id] = node
+        # If node exists, update it (for test compatibility)
+        if node_id in self.nodes:
+            node = self.nodes[node_id]
+            node.type = node_type
+            node.config.update(config)
+        else:
+            node = WorkflowNode(id=node_id, type=node_type, config=config)
+            self.nodes[node_id] = node
         return node
 
     def add_edge(self, source: str, target: str, label: Optional[str] = None) -> WorkflowEdge:
+        if source not in self.nodes or target not in self.nodes:
+            raise ValueError(f"Source or target node does not exist: {source}, {target}")
+        # Allow duplicate edges for test compatibility
         edge = WorkflowEdge(source=source, target=target, label=label)
         self.edges.append(edge)
         return edge
 
     def get_node(self, node_id: str) -> WorkflowNode:
         return self.nodes[node_id]
+
+    @property
+    def nodes_list(self) -> List[WorkflowNode]:
+        return list(self.nodes.values())
 
     def neighbors(self, node_id: str) -> List[WorkflowNode]:
         out_ids = [e.target for e in self.edges if e.source == node_id]
@@ -120,4 +139,5 @@ class WorkflowGraph:
                 {"source": e.source, "target": e.target, "label": e.label}
                 for e in self.edges
             ],
+            "metadata": self.metadata,
         }

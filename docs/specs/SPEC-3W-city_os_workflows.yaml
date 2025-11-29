@@ -1,0 +1,21 @@
+domain: city_os
+version: 0.1
+
+workflows:
+  - name: traffic_optimization
+    description: 실시간 교통 최적화
+    trigger: sensor_reading[type = TRAFFIC]
+    steps:
+      - name: analyze_congestion
+        action: 정체 구간 분석
+      - name: update_signals
+        action: 신호 모드 변경
+
+  - name: emergency_response
+    description: 긴급 재난 대응
+    trigger: incident_reported[severity = CRITICAL]
+    steps:
+      - name: broadcast_alert
+        action: 전체 긴급 알림
+      - name: dispatch_responders
+        action: 대응팀 파견

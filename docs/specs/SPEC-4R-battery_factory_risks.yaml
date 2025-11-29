@@ -1,0 +1,15 @@
+domain: battery_factory
+version: 0.1
+
+risks:
+  - id: R001
+    name: equipment_down_cascade
+    description: 동일 라인 2개 이상 설비 DOWN
+    response:
+      - action: emergency_stop
+
+  - id: R002
+    name: quality_failure_rate
+    description: 불량률 5% 초과
+    response:
+      - action: line_inspection

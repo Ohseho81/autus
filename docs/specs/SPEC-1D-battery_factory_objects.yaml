@@ -1,0 +1,51 @@
+domain: battery_factory
+version: 0.1
+
+entities:
+  - name: Line
+    key: line_id
+    description: 생산 라인
+    attributes:
+      - name: name
+        type: string
+      - name: type
+        type: enum[ELECTRODE, ASSEMBLY, FORMATION, PACKING]
+      - name: status
+        type: enum[RUNNING, STOPPED, MAINTENANCE]
+
+  - name: Equipment
+    key: equipment_id
+    description: 생산 설비
+    attributes:
+      - name: line_id
+        type: Line.ref
+      - name: name
+        type: string
+      - name: type
+        type: enum[MIXER, COATER, PRESS, STACKER, WELDER, TESTER]
+      - name: status
+        type: enum[OK, WARNING, DOWN]
+
+  - name: Batch
+    key: batch_id
+    description: 생산 배치
+    attributes:
+      - name: line_id
+        type: Line.ref
+      - name: product_code
+        type: string
+      - name: quantity
+        type: int
+      - name: status
+        type: enum[QUEUED, IN_PROGRESS, COMPLETED, REJECTED]
+
+  - name: QualityCheck
+    key: check_id
+    description: 품질 검사
+    attributes:
+      - name: batch_id
+        type: Batch.ref
+      - name: type
+        type: enum[VISUAL, ELECTRICAL, CAPACITY, SAFETY]
+      - name: result
+        type: enum[PASS, FAIL, PENDING]

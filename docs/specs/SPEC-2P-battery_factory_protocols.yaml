@@ -1,0 +1,38 @@
+domain: battery_factory
+version: 0.1
+
+events:
+  - name: equipment_status_changed
+    source: Equipment
+    payload:
+      - name: equipment_id
+        type: Equipment.ref
+      - name: to_status
+        type: Equipment.status
+
+  - name: batch_completed
+    source: Batch
+    payload:
+      - name: batch_id
+        type: Batch.ref
+      - name: quantity
+        type: int
+
+  - name: quality_result
+    source: QualityCheck
+    payload:
+      - name: check_id
+        type: QualityCheck.ref
+      - name: result
+        type: QualityCheck.result
+
+relations:
+  - from: Line
+    to: Equipment
+    type: has_many
+  - from: Line
+    to: Batch
+    type: has_many
+  - from: Batch
+    to: QualityCheck
+    type: has_many

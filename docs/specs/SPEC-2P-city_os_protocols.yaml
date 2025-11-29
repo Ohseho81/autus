@@ -1,0 +1,37 @@
+domain: city_os
+version: 0.1
+
+events:
+  - name: sensor_reading
+    source: Sensor
+    payload:
+      - name: sensor_id
+        type: Sensor.ref
+      - name: value
+        type: float
+
+  - name: threshold_exceeded
+    source: Sensor
+    payload:
+      - name: sensor_id
+        type: Sensor.ref
+      - name: metric
+        type: string
+      - name: value
+        type: float
+
+  - name: incident_reported
+    source: Incident
+    payload:
+      - name: incident_id
+        type: Incident.ref
+      - name: severity
+        type: Incident.severity
+
+relations:
+  - from: Zone
+    to: Sensor
+    type: has_many
+  - from: Zone
+    to: Incident
+    type: has_many

@@ -1,0 +1,47 @@
+domain: city_os
+version: 0.1
+
+entities:
+  - name: Zone
+    key: zone_id
+    description: 도시 구역
+    attributes:
+      - name: name
+        type: string
+      - name: type
+        type: enum[RESIDENTIAL, COMMERCIAL, INDUSTRIAL, GREEN]
+      - name: population
+        type: int
+
+  - name: Sensor
+    key: sensor_id
+    description: IoT 센서
+    attributes:
+      - name: zone_id
+        type: Zone.ref
+      - name: type
+        type: enum[TRAFFIC, AIR_QUALITY, NOISE, WEATHER, CCTV]
+      - name: status
+        type: enum[ACTIVE, INACTIVE, ERROR]
+
+  - name: TrafficSignal
+    key: signal_id
+    description: 교통 신호
+    attributes:
+      - name: zone_id
+        type: Zone.ref
+      - name: mode
+        type: enum[NORMAL, RUSH_HOUR, EMERGENCY]
+
+  - name: Incident
+    key: incident_id
+    description: 사건/사고
+    attributes:
+      - name: zone_id
+        type: Zone.ref
+      - name: type
+        type: enum[TRAFFIC, FIRE, CRIME, DISASTER]
+      - name: severity
+        type: enum[LOW, MEDIUM, HIGH, CRITICAL]
+      - name: status
+        type: enum[REPORTED, RESPONDING, RESOLVED]

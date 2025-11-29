@@ -171,7 +171,7 @@ class TestErrorHandling:
         graph.add_node("node1", {"updated": True})
 
         # Should have only one node
-        node_ids = [n.id for n in graph.nodes]
+        node_ids = [n.id for n in graph.nodes_list]
         assert node_ids.count("node1") == 1
 
     def test_handles_duplicate_edges(self):

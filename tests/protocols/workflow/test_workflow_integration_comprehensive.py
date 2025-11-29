@@ -10,7 +10,7 @@ import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-from protocols.workflow.standard import WorkflowGraph
+from protocols.workflow.graph import WorkflowGraph
 from protocols.workflow.graph import WorkflowNode, WorkflowEdge
 
 # GraphExecutor stub for tests

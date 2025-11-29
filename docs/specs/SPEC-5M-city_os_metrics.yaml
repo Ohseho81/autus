@@ -1,0 +1,14 @@
+domain: city_os
+version: 0.1
+
+metrics:
+  - name: incident_response_time
+    source: Incident
+    target:
+      p50: 5
+      p90: 15
+
+  - name: sensor_uptime
+    source: Sensor
+    target:
+      min: 99

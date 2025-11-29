@@ -5,7 +5,7 @@ Generated: 2025-11-29T12:12:41.985656
 
 from pydantic import BaseModel
 from typing import Optional, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class AssetStatusChangedEvent(BaseModel):
     """설비 상태 변경"""

@@ -1,0 +1,23 @@
+domain: battery_factory
+version: 0.1
+
+workflows:
+  - name: equipment_maintenance
+    description: 설비 이상 대응
+    trigger: equipment_status_changed[to_status = DOWN]
+    steps:
+      - name: stop_line
+        action: 라인 자동 정지
+      - name: alert_technician
+        action: 설비기사 호출
+      - name: repair_equipment
+        action: 수리 진행
+
+  - name: quality_control
+    description: 품질 불량 추적
+    trigger: quality_result[result = FAIL]
+    steps:
+      - name: quarantine_batch
+        action: 배치 격리
+      - name: trace_root_cause
+        action: 원인 추적

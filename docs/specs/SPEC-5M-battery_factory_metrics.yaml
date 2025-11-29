@@ -1,0 +1,13 @@
+domain: battery_factory
+version: 0.1
+
+metrics:
+  - name: oee
+    description: Overall Equipment Effectiveness
+    target:
+      min: 85
+
+  - name: defect_rate
+    source: QualityCheck
+    target:
+      max: 2
