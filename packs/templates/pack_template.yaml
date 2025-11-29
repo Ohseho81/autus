@@ -1,0 +1,12 @@
+name: {{pack_name}}
+version: 0.1.0
+domain: {{domain}}
+
+cells:
+  - name: main
+    prompt: "{{description}}"
+    output: result
+
+actions:
+  - type: log
+    message: "Pack executed"

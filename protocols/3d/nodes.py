@@ -119,9 +119,9 @@ class WorkflowOrbit:
             color = "#00ff88" if node.get("state") == "running" else "#4488ff"
             n = manager.create_node(
                 NodeType.WORKFLOW,
-                f"workflow_{node.get("id", i)}",
+                f"workflow_{node.get('id', i)}",
                 pos, color,
-                label=node.get("name", f"Node {i}"),
+                label=node.get('name', f'Node {i}'),
                 progress=node.get("progress", 0)
             )
             created.append(n.node_id)
@@ -225,7 +225,7 @@ class PackUniverse:
             cat = pack.get("category", "examples")
             n = manager.create_node(
                 NodeType.PACK,
-                f"pack_{pack.get("name", i)}",
+                f"pack_{pack.get('name', i)}",
                 pos,
                 PackUniverse.PACK_COLORS.get(cat, "#888888"),
                 scale=1.5,

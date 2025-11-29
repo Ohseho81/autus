@@ -66,7 +66,11 @@ class QRCodeGenerator:
             minimized_surface = {
                 'core_hash': surf.get('core_hash')
             }
-            if 'evolution_history' in surf and isinstance(surf['evolution_history'], list) and len(surf['evolution_history']) > 0:
+            if (
+                'evolution_history' in surf
+                and isinstance(surf['evolution_history'], list)
+                and len(surf['evolution_history']) > 0
+            ):
                 minimized_surface['evolution_history'] = [surf['evolution_history'][-1]]
             identity_data['surface'] = minimized_surface
 
@@ -104,7 +108,10 @@ class QRCodeGenerator:
                     continue
                 else:
                     raise
-        raise ValueError("Data too large to fit in a QR code (max version 40). Consider reducing payload size.")
+        raise ValueError(
+            "Data too large to fit in a QR code (max version 40). "
+            "Consider reducing payload size."
+        )
 
     def save_qr_image(self, qr_image: Image.Image, filepath: str) -> None:
         """
@@ -210,7 +217,9 @@ class QRCodeScanner:
 
         # Decode base64
         try:
-            import zlib; compressed = base64.b64decode(qr_data); json_str = zlib.decompress(compressed).decode('utf-8')
+            import zlib
+            compressed = base64.b64decode(qr_data)
+            json_str = zlib.decompress(compressed).decode('utf-8')
             sync_data = json.loads(json_str)
         except Exception:
             return None
@@ -256,7 +265,11 @@ class DeviceSync:
         # We need to create a dict with the sync data
         sync_data = self.identity_core.export_for_sync()
         identity_data = {
-            'seed_hash': hashlib.sha256(self.identity_core.seed.encode('utf-8') if isinstance(self.identity_core.seed, str) else self.identity_core.seed).hexdigest(),
+            'seed_hash': hashlib.sha256(
+                self.identity_core.seed.encode('utf-8')
+                if isinstance(self.identity_core.seed, str)
+                else self.identity_core.seed
+            ).hexdigest(),
             'sync_data': sync_data,
             'created_at': datetime.now().isoformat()
         }

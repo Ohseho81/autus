@@ -3,18 +3,18 @@ from __future__ import annotations
 
 Pack 시스템
 """
+
 from typing import Dict, Any, Optional, List
+import yaml
+from pathlib import Path
 
 # Custom exception for missing packs
 class PackNotFoundError(Exception):
     """Raised when a requested Pack is not found."""
     pass
-import yaml
-from pathlib import Path
 
 try:
     import sys
-    from pathlib import Path
     ROOT = Path(__file__).resolve().parent.parent.parent
     sys.path.insert(0, str(ROOT))
     from config import (
@@ -78,7 +78,9 @@ def list_packs() -> List[Dict[str, Any]]:
                         packs.append({
                             "name": pack.get("name") or pack.get("pack_name", pack_file.stem),
                             "version": pack.get("version", "1.0.0"),
-                            "description": pack.get("metadata", {}).get("description", "No description")
+                            "description": (
+                                pack.get("metadata", {}).get("description", "No description")
+                            ),
                         })
             except Exception:
                 pass
@@ -94,7 +96,9 @@ def list_packs() -> List[Dict[str, Any]]:
                             packs.append({
                                 "name": pack.get("name") or pack.get("pack_name", pack_file.stem),
                                 "version": pack.get("version", "1.0.0"),
-                                "description": pack.get("metadata", {}).get("description", "No description")
+                                "description": (
+                                    pack.get("metadata", {}).get("description", "No description")
+                                ),
                             })
                 except Exception:
                     pass

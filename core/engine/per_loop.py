@@ -92,14 +92,21 @@ class PERLoop:
 
                 if success:
                     results['steps_completed'].append(step)
-                    results['outputs'][f"step_{step['id']}"] = f"{step['action']}_{step['target']}_done"
+                    step_key = f"step_{step['id']}"
+                    step_val = f"{step['action']}_{step['target']}_done"
+                    results['outputs'][step_key] = step_val
                 else:
                     results['steps_failed'].append(step)
             except Exception as e:
                 results['steps_failed'].append({**step, 'error': str(e)})
 
         results['completed_at'] = datetime.now().isoformat()
-        results['success_rate'] = len(results['steps_completed']) / len(plan['steps']) if plan['steps'] else 0
+        if plan['steps']:
+            results['success_rate'] = (
+                len(results['steps_completed']) / len(plan['steps'])
+            )
+        else:
+            results['success_rate'] = 0
 
         return results
 

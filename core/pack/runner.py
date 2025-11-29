@@ -53,7 +53,10 @@ class DevPackRunner:
             elif os.getenv("OPENAI_API_KEY"):
                 self.provider = "anthropic"
             else:
-                raise LLMProviderError("API 키를 찾을 수 없습니다. ANTHROPIC_API_KEY 또는 OPENAI_API_KEY를 설정하세요.")
+                raise LLMProviderError(
+                    "API 키를 찾을 수 없습니다. "
+                    "ANTHROPIC_API_KEY 또는 OPENAI_API_KEY를 설정하세요."
+                )
 
         # LLM 클라이언트 초기화
         self._init_client()

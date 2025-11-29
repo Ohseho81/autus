@@ -1,0 +1,37 @@
+domain: 3d_os
+version: 0.1
+
+entities:
+  - name: Layer
+    key: layer_id
+    attributes:
+      - name: name
+        type: string
+      - name: level
+        type: int
+      - name: radius
+        type: float
+      - name: color
+        type: string
+
+  - name: Node
+    key: node_id
+    attributes:
+      - name: layer_id
+        type: Layer.ref
+      - name: position
+        type: geo_3d
+      - name: type
+        type: enum[CORE, PROTOCOL, PACK]
+      - name: status
+        type: enum[ACTIVE, INACTIVE, ERROR]
+
+  - name: Connection
+    key: connection_id
+    attributes:
+      - name: source_node
+        type: Node.ref
+      - name: target_node
+        type: Node.ref
+      - name: type
+        type: enum[DATA, CONTROL, EVENT]

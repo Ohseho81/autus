@@ -1,0 +1,30 @@
+domain: core
+version: 0.1
+description: 모든 도메인 공통 엔티티
+
+entities:
+  - name: Device
+    key: device_id
+    attributes:
+      - name: type
+        type: enum[MOBILE, DESKTOP, IOT, SERVER]
+      - name: status
+        type: enum[ONLINE, OFFLINE, SYNCING]
+
+  - name: Space
+    key: space_id
+    attributes:
+      - name: name
+        type: string
+      - name: type
+        type: enum[PHYSICAL, VIRTUAL, HYBRID]
+
+  - name: Event
+    key: event_id
+    attributes:
+      - name: type
+        type: string
+      - name: source
+        type: string
+      - name: timestamp
+        type: datetime

@@ -109,7 +109,7 @@ def cmd_run(args: argparse.Namespace) -> None:
     if args.inputs:
         try:
             inputs = json.loads(args.inputs)
-        except:
+        except Exception:
             print("⚠️  Invalid JSON inputs, using empty inputs")
 
     try:

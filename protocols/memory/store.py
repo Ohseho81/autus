@@ -216,16 +216,6 @@ class MemoryStore:
             return None
         except Exception as e:
             raise Exception(f"Failed to retrieve preference: {e}")
-        try:
-            pattern_json = json.dumps(pattern_data)
-            # pattern_type이 PRIMARY KEY이므로 INSERT OR REPLACE 사용
-            self.conn.execute(
-                "INSERT OR REPLACE INTO patterns (pattern_type, pattern_data, frequency, updated_at) "
-                "VALUES (?, ?, COALESCE((SELECT frequency FROM patterns WHERE pattern_type = ?), 0) + 1, CURRENT_TIMESTAMP)",
-                (pattern_type, pattern_json, pattern_type)
-            )
-        except Exception as e:
-            raise Exception(f"Failed to store pattern: {e}")
 
     def get_patterns(self, pattern_type: Optional[str] = None) -> List[Dict[str, Any]]:
         """
