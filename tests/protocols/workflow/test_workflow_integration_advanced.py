@@ -6,7 +6,7 @@ Tests complex DAG execution, parallel execution, error handling
 
 import pytest
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from protocols.workflow.graph import WorkflowGraph
 
