@@ -1,0 +1,17 @@
+name: Protect Structure
+
+on:
+  pull_request:
+    paths:
+      - 'CONSTITUTION.md'
+      - 'docs/specs/**'
+      - 'pyproject.toml'
+
+jobs:
+  block:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block Protected Path Changes
+        run: |
+          echo "ERROR: Protected paths cannot be changed via PR"
+          exit 1

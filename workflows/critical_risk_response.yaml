@@ -1,0 +1,8 @@
+name: critical_risk_response
+description: "Critical risk notification workflow for AUTUS tests"
+actions:
+  - type: notify
+    channel: slack
+    message: "[AUTUS] Critical risk detected"
+
+

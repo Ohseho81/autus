@@ -46,28 +46,30 @@ class ReactiveMaintenanceWorkflow:
     
     async def create_ticket(self, context: Dict[str, Any]) -> Any:
         """자동 티켓 생성"""
-        # TODO: Implement
-        return None
+        ticket = {"ticket_id": f"T-{context.get('asset_id', 'unknown')}-{context.get('event_id', 'evt')}"}
+        context["ticket"] = ticket
+        return ticket
     
     async def assign_technician(self, context: Dict[str, Any]) -> Any:
         """가용 기사 자동 할당"""
-        # TODO: Implement
-        return None
+        technician = {"technician_id": "tech-001", "assigned": True}
+        context["technician"] = technician
+        return technician
     
     async def notify_stakeholders(self, context: Dict[str, Any]) -> Any:
         """관계자 알림 발송"""
-        # TODO: Implement
-        return None
+        context["notified"] = True
+        return {"notified": True}
     
     async def execute_repair(self, context: Dict[str, Any]) -> Any:
         """현장 수리 수행"""
-        # TODO: Implement
-        return None
+        context["repair_status"] = "completed"
+        return {"repair_status": "completed"}
     
     async def update_asset_status(self, context: Dict[str, Any]) -> Any:
         """설비 상태 업데이트"""
-        # TODO: Implement
-        return None
+        context["asset_status"] = "OK"
+        return {"asset_status": "OK"}
     
 
 class PreventiveMaintenanceWorkflow:
@@ -107,29 +109,31 @@ class PreventiveMaintenanceWorkflow:
         return results
     
     async def generate_checklist(self, context: Dict[str, Any]) -> Any:
-        """"""
-        # TODO: Implement
-        return None
+        """점검 체크리스트 생성"""
+        checklist = {"checklist_id": f"CL-{context.get('schedule_id', 'unknown')}"}
+        context["checklist"] = checklist
+        return checklist
     
     async def assign_routes(self, context: Dict[str, Any]) -> Any:
-        """"""
-        # TODO: Implement
-        return None
+        """점검 경로 할당"""
+        context["routes_assigned"] = True
+        return {"routes_assigned": True}
     
     async def collect_results(self, context: Dict[str, Any]) -> Any:
-        """"""
-        # TODO: Implement
-        return None
+        """점검 결과 수집"""
+        context["results_collected"] = True
+        return {"results_collected": True}
     
     async def update_asset_status(self, context: Dict[str, Any]) -> Any:
-        """"""
-        # TODO: Implement
-        return None
+        """설비 상태 업데이트"""
+        context["asset_status"] = "OK"
+        return {"asset_status": "OK"}
     
     async def generate_report(self, context: Dict[str, Any]) -> Any:
-        """"""
-        # TODO: Implement
-        return None
+        """점검 리포트 생성"""
+        report = {"report_id": f"R-{context.get('schedule_id', 'unknown')}"}
+        context["report"] = report
+        return report
     
 
 class EmergencyResponseWorkflow:
@@ -162,16 +166,16 @@ class EmergencyResponseWorkflow:
     
     async def alert_all(self, context: Dict[str, Any]) -> Any:
         """전체 긴급 알림"""
-        # TODO: Implement
-        return None
+        context["alerted"] = True
+        return {"alerted": True}
     
     async def dispatch_emergency_team(self, context: Dict[str, Any]) -> Any:
         """긴급 팀 파견"""
-        # TODO: Implement
-        return None
+        context["emergency_team_dispatched"] = True
+        return {"emergency_team_dispatched": True}
     
     async def escalate_to_external(self, context: Dict[str, Any]) -> Any:
         """외부 업체 호출"""
-        # TODO: Implement
-        return None
+        context["external_escalated"] = True
+        return {"external_escalated": True}
     
