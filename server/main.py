@@ -151,3 +151,11 @@ async def websocket_stream(websocket: WebSocket):
             await websocket.send_json({"type": "ack", "data": data})
     except Exception as e:
         print(f"WS closed: {e}")
+
+# Auto-generated EMO Hub routes
+try:
+    from packs.generated.emo_hub.routes import router as emo_hub_router
+    app.include_router(emo_hub_router, prefix="/api")
+    print("✅ EMO Hub routes registered")
+except ImportError as e:
+    print(f"⚠️ EMO Hub routes not loaded: {e}")
