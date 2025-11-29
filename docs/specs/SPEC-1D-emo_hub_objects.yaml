@@ -1,0 +1,77 @@
+# SPEC-1D: EMO Hub Domain Objects
+domain: emo_hub
+version: 0.1
+
+entities:
+  - name: Building
+    key: building_id
+    description: 관리 대상 건물
+    attributes:
+      - name: name
+        type: string
+      - name: address
+        type: string
+      - name: floor_count
+        type: int
+      - name: total_area
+        type: float
+      - name: status
+        type: enum[ACTIVE, INACTIVE, MAINTENANCE]
+
+  - name: Asset
+    key: asset_id
+    description: 설비/자산
+    attributes:
+      - name: building_id
+        type: Building.ref
+      - name: name
+        type: string
+      - name: category
+        type: enum[HVAC, ELEVATOR, FIRE, WATER, ELECTRIC, SECURITY]
+      - name: status
+        type: enum[OK, WARNING, DOWN, MAINTENANCE]
+      - name: installed_at
+        type: datetime
+      - name: last_check_at
+        type: datetime
+
+  - name: Ticket
+    key: ticket_id
+    description: 작업 티켓
+    attributes:
+      - name: asset_id
+        type: Asset.ref
+      - name: title
+        type: string
+      - name: priority
+        type: enum[LOW, MEDIUM, HIGH, CRITICAL]
+      - name: state
+        type: enum[OPEN, ASSIGNED, IN_PROGRESS, DONE, CLOSED]
+      - name: created_at
+        type: datetime
+      - name: closed_at
+        type: datetime
+
+  - name: Technician
+    key: technician_id
+    description: 현장 기술자
+    attributes:
+      - name: specialty
+        type: enum[HVAC, ELEVATOR, FIRE, WATER, ELECTRIC, GENERAL]
+      - name: status
+        type: enum[AVAILABLE, BUSY, OFF]
+      - name: current_location
+        type: Building.ref
+
+  - name: Schedule
+    key: schedule_id
+    description: 정기 점검 스케줄
+    attributes:
+      - name: asset_id
+        type: Asset.ref
+      - name: cron
+        type: string
+      - name: checklist_id
+        type: Checklist.ref
+      - name: next_run
+        type: datetime

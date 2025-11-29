@@ -1,0 +1,71 @@
+# SPEC-3W: EMO Hub Workflows
+domain: emo_hub
+version: 0.1
+
+workflows:
+  - name: reactive_maintenance
+    description: 고장 대응 유지보수
+    trigger: asset_status_changed[to_status in [WARNING, DOWN]]
+    steps:
+      - name: create_ticket
+        input: Asset
+        output: Ticket
+        action: "자동 티켓 생성"
+        
+      - name: assign_technician
+        input: Ticket
+        output: Ticket
+        action: "가용 기사 자동 할당"
+        
+      - name: notify_stakeholders
+        input: Ticket
+        output: Notification
+        action: "관계자 알림 발송"
+        
+      - name: execute_repair
+        input: Ticket
+        output: Ticket
+        action: "현장 수리 수행"
+        
+      - name: update_asset_status
+        input: Ticket
+        output: Asset
+        action: "설비 상태 업데이트"
+
+  - name: preventive_maintenance
+    description: 예방 정비
+    trigger: schedule[cron]
+    steps:
+      - name: generate_checklist
+        input: Schedule
+        output: Checklist
+        
+      - name: assign_routes
+        input: Checklist
+        output: Route
+        
+      - name: collect_results
+        input: Route
+        output: InspectionResult
+        
+      - name: update_asset_status
+        input: InspectionResult
+        output: Asset
+        
+      - name: generate_report
+        input: InspectionResult
+        output: Report
+
+  - name: emergency_response
+    description: 긴급 상황 대응
+    trigger: asset_status_changed[to_status = DOWN AND category in [FIRE, ELEVATOR]]
+    steps:
+      - name: alert_all
+        action: "전체 긴급 알림"
+        
+      - name: dispatch_emergency_team
+        action: "긴급 팀 파견"
+        
+      - name: escalate_to_external
+        condition: "30분 내 미해결"
+        action: "외부 업체 호출"

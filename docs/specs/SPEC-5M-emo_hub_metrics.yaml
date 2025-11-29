@@ -1,0 +1,63 @@
+# SPEC-5M: EMO Hub Metrics & SLO
+domain: emo_hub
+version: 0.1
+
+metrics:
+  - name: ticket_resolution_time
+    description: 티켓 해결 시간
+    source: Ticket
+    formula: "closed_at - created_at"
+    unit: hours
+    target:
+      p50: 4
+      p90: 12
+      p99: 24
+
+  - name: mttr
+    description: 평균 복구 시간 (Mean Time To Repair)
+    source: Asset
+    formula: "AVG(repair_end - repair_start)"
+    unit: hours
+    target:
+      max: 4
+
+  - name: mtbf
+    description: 평균 고장 간격 (Mean Time Between Failures)
+    source: Asset
+    formula: "AVG(failure_n+1 - failure_n)"
+    unit: days
+    target:
+      min: 90
+
+  - name: preventive_completion_rate
+    description: 예방정비 완료율
+    source: Schedule
+    formula: "completed / scheduled * 100"
+    unit: percent
+    target:
+      min: 95
+
+  - name: technician_utilization
+    description: 기술자 가동률
+    source: Technician
+    formula: "busy_time / total_time * 100"
+    unit: percent
+    target:
+      range: [60, 85]
+
+  - name: false_alarm_rate
+    description: 오경보율
+    source: Asset
+    formula: "false_alarms / total_alarms * 100"
+    unit: percent
+    target:
+      max: 5
+
+slo:
+  - name: availability
+    description: 시스템 가용성
+    target: 99.9%
+    
+  - name: critical_response
+    description: CRITICAL 티켓 30분 내 대응
+    target: 99%

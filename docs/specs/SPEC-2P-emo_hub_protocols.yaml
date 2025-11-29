@@ -1,0 +1,72 @@
+# SPEC-2P: EMO Hub Protocols
+domain: emo_hub
+version: 0.1
+
+events:
+  - name: asset_status_changed
+    source: Asset
+    description: 설비 상태 변경
+    payload:
+      - name: asset_id
+        type: Asset.ref
+      - name: from_status
+        type: Asset.status
+      - name: to_status
+        type: Asset.status
+      - name: changed_at
+        type: datetime
+
+  - name: ticket_created
+    source: Ticket
+    description: 티켓 생성됨
+    payload:
+      - name: ticket_id
+        type: Ticket.ref
+      - name: asset_id
+        type: Asset.ref
+      - name: priority
+        type: Ticket.priority
+
+  - name: ticket_assigned
+    source: Ticket
+    description: 티켓 할당됨
+    payload:
+      - name: ticket_id
+        type: Ticket.ref
+      - name: technician_id
+        type: Technician.ref
+
+  - name: ticket_completed
+    source: Ticket
+    description: 티켓 완료됨
+    payload:
+      - name: ticket_id
+        type: Ticket.ref
+      - name: resolution_time
+        type: duration
+
+  - name: schedule_triggered
+    source: Schedule
+    description: 정기 점검 시작
+    payload:
+      - name: schedule_id
+        type: Schedule.ref
+      - name: asset_id
+        type: Asset.ref
+
+relations:
+  - from: Building
+    to: Asset
+    type: has_many
+    
+  - from: Asset
+    to: Ticket
+    type: has_many
+    
+  - from: Technician
+    to: Ticket
+    type: assigned_to
+    
+  - from: Asset
+    to: Schedule
+    type: has_many

@@ -1,0 +1,52 @@
+# SPEC-4R: EMO Hub Risks & Constraints
+domain: emo_hub
+version: 0.1
+
+constitution_mapping:
+  - article: "Article I: Zero Identity"
+    rule: "Technician, Building 엔티티에 PII 금지"
+    
+  - article: "Article II: Privacy by Architecture"
+    rule: "모든 데이터 로컬 저장, 서버 전송 금지"
+
+risks:
+  - id: R001
+    name: pii_in_technician
+    article: "Article I"
+    description: "기술자 정보에 이름/연락처 저장 시도"
+    detection:
+      - entity: Technician
+        forbidden_types: [name, email, phone, address]
+    response:
+      - action: block
+      - log: armp
+      - alert: security_team
+
+  - id: R002
+    name: unassigned_critical_ticket
+    article: "Operational Safety"
+    description: "CRITICAL 티켓 30분 이상 미할당"
+    detection:
+      - entity: Ticket
+        condition: "priority = CRITICAL AND state = OPEN AND age > 30min"
+    response:
+      - action: auto_escalate
+      - alert: facility_manager
+
+  - id: R003
+    name: asset_down_cascade
+    article: "Operational Safety"
+    description: "동일 건물 3개 이상 설비 동시 DOWN"
+    detection:
+      - entity: Asset
+        condition: "COUNT(status = DOWN) >= 3 GROUP BY building_id"
+    response:
+      - action: emergency_protocol
+      - alert: all_stakeholders
+
+constraints:
+  - name: ticket_sla
+    rule: "CRITICAL 티켓은 4시간 내 해결"
+    
+  - name: preventive_coverage
+    rule: "모든 설비는 월 1회 이상 점검"
