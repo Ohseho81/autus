@@ -10,6 +10,15 @@ import os
 from pathlib import Path
 from typing import Dict, Any, Optional
 
+# Custom exceptions for LLM provider and pack errors
+class LLMProviderError(Exception):
+    """Raised when there is an LLM provider configuration or usage error."""
+    pass
+
+class PackNotFoundError(Exception):
+    """Raised when a requested Pack is not found."""
+    pass
+
 try:
     import sys
     ROOT = Path(__file__).resolve().parent.parent.parent

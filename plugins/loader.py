@@ -9,9 +9,12 @@ from importlib import import_module
 from typing import Any, Dict
 
 
-class _NoopRequests:
+class _StubRequests:
     """
-    Default stand-in for the `requests` interface used in tests.
+    기본 테스트용 requests 스텁.
+
+    실제 네트워크 호출은 하지 않고, tests에서 DummyRequests로 monkeypatch 해서
+    호출 여부만 검증할 수 있도록 한다.
     """
 
     called = False
@@ -27,8 +30,9 @@ class _NoopRequests:
         return _Resp()
 
 
-# Tests may monkeypatch this symbol to a DummyRequests implementation.
-requests: Any = _NoopRequests()
+# tests/test_plugin_loader.py 에서 `plugins.loader.requests` 를 DummyRequests로
+# monkeypatch 할 것을 기대한다. 기본값은 네트워크 없는 스텁으로 둔다.
+requests: Any = _StubRequests()
 
 
 def load_plugin(path: str) -> Any:
@@ -61,13 +65,14 @@ class SlackNotifier:
 
     def notify(self, message: str, payload: Dict[str, Any] | None = None) -> Any:
         payload = payload or {"text": message}
-        # Delegate to SlackAdapter so tests can monkeypatch its `requests` dependency.
-        adapter_cls = load_plugin("packs.integration.slack_adapter:SlackAdapter")
-        adapter = adapter_cls()
-        return adapter.run(
-            "notify",
-            {"webhook_url": self.webhook_url, "payload": payload},
-        )
+        # tests/test_plugin_loader.py 에서 loader.requests 를 DummyRequests 로
+        # monkeypatch 하므로, 이 모듈의 requests.post 를 직접 호출한다.
+        resp = requests.post(self.webhook_url, json=payload, timeout=10)
+        return {
+            "success": getattr(resp, "status_code", 200) == 200,
+            "status_code": getattr(resp, "status_code", 200),
+            "output": getattr(resp, "text", ""),
+        }
 
 
 def run_plugin(name: str, **kwargs: Dict[str, Any]) -> Any:

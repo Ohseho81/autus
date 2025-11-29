@@ -4,6 +4,11 @@ from __future__ import annotations
 Pack 시스템
 """
 from typing import Dict, Any, Optional, List
+
+# Custom exception for missing packs
+class PackNotFoundError(Exception):
+    """Raised when a requested Pack is not found."""
+    pass
 import yaml
 from pathlib import Path
 

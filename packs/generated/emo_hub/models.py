@@ -1,11 +1,33 @@
+
 """
 Auto-generated Pydantic models for emo_hub
 Generated: 2025-11-29T12:12:41.985456
+
+SQLAlchemy DB connection and ORM base for emo_hub
 """
+
 
 from pydantic import BaseModel, Field
 from typing import Optional, Literal, Any
 from datetime import datetime, timedelta
+
+# SQLAlchemy DB connection setup
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+# Example: use SQLite for local dev, replace with your DB URL as needed
+SQLALCHEMY_DATABASE_URL = "sqlite:///./emo_hub.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+# Dependency for FastAPI
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 class Building(BaseModel):
     """관리 대상 건물"""
