@@ -220,9 +220,11 @@ class TransactionRollbackRisk(Risk):
 # Register risks
 
 def register_data_integrity_risks():
-    enforcer.register_risk(BackupFailureRisk())
-    enforcer.register_risk(DataMigrationRisk())
-    enforcer.register_risk(TransactionRollbackRisk())
+    registered = set(r.name for r in enforcer.risks)
+    risks = [BackupFailureRisk(), DataMigrationRisk(), TransactionRollbackRisk()]
+    for risk in risks:
+        if risk.name not in registered:
+            enforcer.register_risk(risk)
     logger.info("✅ Data integrity risks registered")
 
 

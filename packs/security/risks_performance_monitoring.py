@@ -148,8 +148,11 @@ class ResponseTimeDegradationRisk(Risk):
 # Register risks
 
 def register_performance_monitoring_risks():
-    enforcer.register_risk(CPUThresholdRisk())
-    enforcer.register_risk(ResponseTimeDegradationRisk())
+    registered = set(r.name for r in enforcer.risks)
+    risks = [CPUThresholdRisk(), ResponseTimeDegradationRisk()]
+    for risk in risks:
+        if risk.name not in registered:
+            enforcer.register_risk(risk)
     logger.info("✅ Performance monitoring risks registered")
 
 register_performance_monitoring_risks()

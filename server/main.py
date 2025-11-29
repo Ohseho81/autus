@@ -31,6 +31,7 @@ from server.routes.privacy_guard import router as privacy_guard_router
 from server.routes.risk_monitor import router as risk_monitor_router
 from server.routes.runtime_controller import router as runtime_controller_router
 from server.routes.saas_adapter import router as saas_adapter_router
+from server.routes.state_3d import router as state_3d_router
 
 app = FastAPI(title="AUTUS", version="0.3.1")
 
@@ -74,6 +75,7 @@ app.include_router(privacy_guard_router)
 app.include_router(risk_monitor_router)
 app.include_router(runtime_controller_router)
 app.include_router(saas_adapter_router)
+app.include_router(state_3d_router, tags=["3d-hud"])
 
 
 # Auto-generated: weather_api

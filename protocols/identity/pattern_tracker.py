@@ -355,7 +355,7 @@ class MemoryIntegration:
                     pattern_data=pattern,
                     context={'source': 'memory_os'}
                 )
-        except Exception as e:
+        except Exception:
             # Memory OS might not have patterns yet
             pass
 
@@ -382,6 +382,6 @@ class MemoryIntegration:
                     pattern_data={'count': preference_count},
                     context={'source': 'memory_os'}
                 )
-        except Exception as e:
+        except Exception:
             pass
 

@@ -230,9 +230,11 @@ class APIVersionMismatchRisk(Risk):
 # Register risks
 
 def register_api_external_risks():
-    enforcer.register_risk(APIResponseTimeoutRisk())
-    enforcer.register_risk(ExternalServiceFailureRisk())
-    enforcer.register_risk(APIVersionMismatchRisk())
+    registered = set(r.name for r in enforcer.risks)
+    risks = [APIResponseTimeoutRisk(), ExternalServiceFailureRisk(), APIVersionMismatchRisk()]
+    for risk in risks:
+        if risk.name not in registered:
+            enforcer.register_risk(risk)
     logger.info("\u2705 API & External service risks registered")
 
 register_api_external_risks()

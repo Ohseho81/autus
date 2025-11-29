@@ -37,15 +37,59 @@
     <script>
         const canvas = document.getElementById("renderCanvas");
         const engine = new BABYLON.Engine(canvas, true);
-        const API_BASE = "http://127.0.0.1:8000/api";
         const WS_URL = "ws://127.0.0.1:8000/stream";
-        
         const nodes = {};
         const nodeData = {};  // 노드 메타데이터 저장
         let currentModule = "all";
         let ws = null;
         let scene = null;
         let time = 0;
+
+        // 3중 구 구조용 /3d/state API 로드
+        const load3DSphereState = async () => {
+            const res = await fetch("http://127.0.0.1:8000/3d/state");
+            return await res.json();
+        };
+
+        // Triple Sphere 노드 배치 (레이어별 구의 반지름)
+        const LAYER_RADIUS = { core: 3, protocols: 6, packs: 10 };
+        function spherePosition(idx, total, radius) {
+            // 골고루 분포: 골드 스파이럴
+            const phi = Math.acos(1 - 2 * (idx + 0.5) / total);
+            const theta = Math.PI * (1 + Math.sqrt(5)) * (idx + 0.5);
+            return [
+                radius * Math.cos(theta) * Math.sin(phi),
+                radius * Math.sin(theta) * Math.sin(phi),
+                radius * Math.cos(phi)
+            ];
+        }
+
+        // Triple Sphere 렌더
+        const render3DSphere = async (scene) => {
+            Object.values(nodes).forEach(n => n.dispose());
+            Object.keys(nodes).forEach(k => delete nodes[k]);
+            const data = await load3DSphereState();
+            if (!data) return;
+            // Core
+            (data.core.nodes || []).forEach((n, i, arr) => createNode(scene, {
+                node_id: n.id,
+                position: spherePosition(i, arr.length, LAYER_RADIUS.core),
+                properties: { label: n.label, color: "#00ffff", scale: 1.2, type: "core" }
+            }));
+            // Protocols
+            (data.protocols.nodes || []).forEach((n, i, arr) => createNode(scene, {
+                node_id: n.id,
+                position: spherePosition(i, arr.length, LAYER_RADIUS.protocols),
+                properties: { label: n.label, color: "#ff00ff", scale: 1.0, type: "protocol" }
+            }));
+            // Packs
+            (data.packs.nodes || []).forEach((n, i, arr) => createNode(scene, {
+                node_id: n.id,
+                position: spherePosition(i, arr.length, LAYER_RADIUS.packs),
+                properties: { label: n.label, color: "#ffff00", scale: 0.8, type: "pack" }
+            }));
+            updateInfo("3중구");
+        };
         
         // 로그
         const log = (msg, type = "info") => {
@@ -261,25 +305,14 @@
         };
         
         const renderModule = async (scene, module) => {
-            Object.values(nodes).forEach(n => n.dispose());
-            Object.keys(nodes).forEach(k => delete nodes[k]);
-            
             if (module === "all") {
-                const data = await loadModule("all");
-                if (!data) return;
-                if (data.identity) createNode(scene, data.identity);
-                (data.workflow || []).forEach(n => createNode(scene, n));
-                (data.memory || []).forEach(n => createNode(scene, n));
-                (data.risk || []).forEach(n => createNode(scene, n));
-                (data.packs || []).forEach(n => createNode(scene, n));
-            } else if (module === "identity") {
-                const data = await loadModule("identity");
-                if (data) createNode(scene, data);
+                await render3DSphere(scene);
             } else {
+                // 기존 방식 유지 (identity, workflow 등)
                 const data = await loadModule(module);
                 if (data && data.nodes) data.nodes.forEach(n => createNode(scene, n));
+                updateInfo(module);
             }
-            updateInfo(module);
         };
         
         const updateInfo = (module) => {

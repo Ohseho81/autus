@@ -12,7 +12,6 @@ from datetime import datetime
 import logging
 
 from protocols.identity.core import IdentityCore
-from protocols.identity.surface import IdentitySurface
 
 logger = logging.getLogger(__name__)
 

@@ -104,6 +104,15 @@ class MemoryStore:
             self.conn = duckdb.connect(db_path)
             self._init_schema()
         except Exception as e:
+            # If DB file is corrupted, delete and retry once
+            if Path(db_path).exists():
+                try:
+                    Path(db_path).unlink()
+                    self.conn = duckdb.connect(db_path)
+                    self._init_schema()
+                    return
+                except Exception:
+                    pass
             raise MemoryError(f"Failed to connect to the database: {e}") from e
 
     def _init_schema(self) -> None:
@@ -148,7 +157,7 @@ class MemoryStore:
             self.conn.execute("BEGIN")
             yield self
             self.conn.execute("COMMIT")
-        except Exception as e:
+        except Exception:
             try:
                 self.conn.execute("ROLLBACK")
             except Exception:

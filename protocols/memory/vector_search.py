@@ -8,7 +8,6 @@ Vector Search for Local Memory OS
 from typing import List, Dict, Any, Tuple
 import json
 import logging
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -172,7 +171,7 @@ class VectorSearch:
 
     def index_memory(self, memory_store) -> None:
         """
-        MemoryStore의 데이터를 인덱싱
+        MemoryStore의 데이터를 인덱싱 (preferences, patterns, context)
 
         Args:
             memory_store: MemoryStore 인스턴스
@@ -196,14 +195,31 @@ class VectorSearch:
         # Patterns 인덱싱
         patterns = memory_store.get_patterns()
         for pattern in patterns:
-            pattern_text = json.dumps(pattern.get("data", {}))
+            data = pattern.get("data", {})
+            # 주요 필드를 평문으로 추가
+            plain_fields = []
+            if isinstance(data, dict):
+                plain_fields.extend([str(v) for v in data.values()])
+            pattern_text = f"{pattern['type']} {' '.join(plain_fields)} {json.dumps(data)}"
             self.index.add_document(
                 doc_id=f"pattern:{pattern['type']}",
                 text=pattern_text,
                 metadata={"type": "pattern", "pattern_type": pattern["type"]}
             )
 
-        logger.info(f"Indexed {len(prefs)} preferences and {len(patterns)} patterns")
+        # Context 인덱싱
+        contexts = memory_store.conn.execute(
+            "SELECT context_key, context_value FROM context"
+        ).fetchall()
+        for context_key, context_value in contexts:
+            text = f"{context_key} {context_value}"
+            self.index.add_document(
+                doc_id=f"context:{context_key}",
+                text=text,
+                metadata={"type": "context", "context_key": context_key}
+            )
+
+        logger.info(f"Indexed {len(prefs)} preferences, {len(patterns)} patterns, and {len(contexts)} contexts")
 
     def search(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """

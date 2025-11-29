@@ -11,7 +11,7 @@ import sys
 import json
 import argparse
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -110,7 +110,7 @@ def cmd_run(args: argparse.Namespace) -> None:
         try:
             inputs = json.loads(args.inputs)
         except:
-            print(f"⚠️  Invalid JSON inputs, using empty inputs")
+            print("⚠️  Invalid JSON inputs, using empty inputs")
 
     try:
         # Try to load and execute pack
@@ -203,7 +203,7 @@ def main() -> None:
     init_parser.add_argument('--name', help='Project name')
 
     # List command
-    list_parser = subparsers.add_parser('list', help='List packs')
+    subparsers.add_parser('list', help='List packs')
 
     # Run command
     run_parser = subparsers.add_parser('run', help='Run pack')
@@ -216,7 +216,7 @@ def main() -> None:
     create_parser.add_argument('--type', default='generic', help='Pack type')
 
     # Info command
-    info_parser = subparsers.add_parser('info', help='Show project info')
+    subparsers.add_parser('info', help='Show project info')
 
     args = parser.parse_args()
 

@@ -112,21 +112,26 @@ class TestMemoryOSLargeDataset:
 class TestMemoryOSConcurrentAccess:
     """Test concurrent access to Memory OS"""
 
-    def test_concurrent_preference_storage(self, memory_os):
-        """Test concurrent preference storage"""
-        def store_preference(index):
-            memory_os.set_preference(f"concurrent_{index}", f"value_{index}")
-            return memory_os.get_preference(f"concurrent_{index}")
+    def test_concurrent_preference_storage(self, temp_db):
+        """Test concurrent preference storage (thread-safe, schema pre-initialized)"""
+        # Pre-initialize DB schema in main thread
+        MemoryOS(db_path=temp_db)
 
-        # Store from 10 threads
+        def store_preference(index, db_path):
+            local_memory_os = MemoryOS(db_path=db_path)
+            local_memory_os.set_preference(f"concurrent_{index}", f"value_{index}")
+            return local_memory_os.get_preference(f"concurrent_{index}")
+
+        # Store from 10 threads, each with its own MemoryOS instance
         with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = [executor.submit(store_preference, i) for i in range(100)]
+            futures = [executor.submit(store_preference, i, temp_db) for i in range(100)]
             results = [f.result() for f in as_completed(futures)]
 
-        # Verify all stored
+        # Verify all stored (using a new MemoryOS instance)
+        verify_os = MemoryOS(db_path=temp_db)
         assert len(results) == 100
         for i in range(100):
-            value = memory_os.get_preference(f"concurrent_{i}")
+            value = verify_os.get_preference(f"concurrent_{i}")
             assert value == f"value_{i}"
 
     def test_concurrent_search(self, memory_os):

@@ -147,8 +147,11 @@ class DiskSpaceRisk(Risk):
 # Register risks
 
 def register_performance_advanced_risks():
-    enforcer.register_risk(MemoryLeakRisk())
-    enforcer.register_risk(DiskSpaceRisk())
+    registered = set(r.name for r in enforcer.risks)
+    risks = [MemoryLeakRisk(), DiskSpaceRisk()]
+    for risk in risks:
+        if risk.name not in registered:
+            enforcer.register_risk(risk)
     logger.info("✅ Advanced performance risks registered")
 
 register_performance_advanced_risks()

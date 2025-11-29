@@ -1,0 +1,2 @@
+class RiskPolicyProtocol:
+    pass

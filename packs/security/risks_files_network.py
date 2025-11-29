@@ -300,10 +300,11 @@ class SSLCertificateRisk(Risk):
 # Register risks
 
 def register_files_network_risks():
-    enforcer.register_risk(PathTraversalRisk())
-    enforcer.register_risk(UnauthorizedFileAccessRisk())
-    enforcer.register_risk(NetworkConnectivityRisk())
-    enforcer.register_risk(SSLCertificateRisk())
+    registered = set(r.name for r in enforcer.risks)
+    risks = [PathTraversalRisk(), UnauthorizedFileAccessRisk(), NetworkConnectivityRisk(), SSLCertificateRisk()]
+    for risk in risks:
+        if risk.name not in registered:
+            enforcer.register_risk(risk)
     logger.info("✅ File & Network security risks registered")
 
 

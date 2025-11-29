@@ -9,7 +9,7 @@ No authentication, no identity storage, only QR code exchange.
 
 import json
 import base64
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 from datetime import datetime, timedelta
 import qrcode
 from io import BytesIO
@@ -163,11 +163,13 @@ class QRCodeScanner:
         # Get first QR code data
         qr_data = decoded_objects[0].data.decode('utf-8')
 
-        # Decode base64
+        # Decode base64 and decompress with zlib
         try:
-            json_str = base64.b64decode(qr_data).decode('utf-8')
+            import zlib
+            compressed = base64.b64decode(qr_data)
+            json_str = zlib.decompress(compressed).decode('utf-8')
             sync_data = json.loads(json_str)
-        except Exception as e:
+        except Exception:
             return None
 
         # Check expiration
@@ -208,7 +210,7 @@ class QRCodeScanner:
 
         # Decode base64
         try:
-            json_str = base64.b64decode(qr_data).decode('utf-8')
+            import zlib; compressed = base64.b64decode(qr_data); json_str = zlib.decompress(compressed).decode('utf-8')
             sync_data = json.loads(json_str)
         except Exception:
             return None

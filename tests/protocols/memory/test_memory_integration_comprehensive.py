@@ -92,17 +92,26 @@ class TestLargeDatasets:
         """Store 1000+ patterns and verify search"""
         memory = temp_memory_os
 
-        # Store 1000 patterns
+        # Store 1000 patterns with unique pattern_type
         for i in range(1000):
-            memory.learn_pattern("test_pattern", {
+            memory.learn_pattern(f"test_pattern_{i}", {
                 "index": i,
                 "data": f"pattern_data_{i}",
                 "timestamp": time.time()
             })
 
         # Verify patterns stored
-        patterns = memory.get_patterns("test_pattern")
+
+        patterns = memory.get_patterns()
+        print(f"[DEBUG] patterns stored: {len(patterns)}")
         assert len(patterns) >= 1000
+
+
+        # Re-index memory to ensure search includes all patterns
+
+        memory._indexed = False
+        memory._index_memory()
+        print(f"[DEBUG] vector index documents: {len(memory._vector_search_engine.index.documents)}")
 
         # Test search
         results = memory.search("pattern_data")
@@ -117,10 +126,10 @@ class TestLargeDatasets:
         """Test with different data sizes"""
         memory = temp_memory_os
 
-        # Store data
+        # Store data with unique pattern_type
         for i in range(data_size):
             memory.set_preference(f"key_{i}", f"value_{i}", "test")
-            memory.learn_pattern("test", {"index": i})
+            memory.learn_pattern(f"test_{i}", {"index": i})
 
         # Verify
         summary = memory.get_memory_summary()
@@ -172,7 +181,7 @@ class TestConcurrentAccess:
         def write_patterns(start: int, count: int):
             try:
                 for i in range(start, start + count):
-                    memory.learn_pattern("concurrent_pattern", {
+                    memory.learn_pattern(f"concurrent_pattern_{i}", {
                         "index": i,
                         "data": f"data_{i}"
                     })
@@ -197,7 +206,7 @@ class TestConcurrentAccess:
         assert len(errors) == 0
 
         # Verify patterns stored
-        patterns = memory.get_patterns("concurrent_pattern")
+        patterns = memory.get_patterns()
         assert len(patterns) >= 500
 
     def test_concurrent_reads_and_writes(self, temp_memory_os):

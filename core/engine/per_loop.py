@@ -5,8 +5,6 @@ Plan → Execute → Review → Improve → Repeat
 
 from __future__ import annotations
 
-import json
-import time
 from typing import Dict, List, Any, Optional, TYPE_CHECKING
 from datetime import datetime
 
@@ -200,7 +198,7 @@ class PERLoop:
                 print(f"\n📝 Applying {len(review['improvements'])} improvements...")
 
         print(f"\n{'='*50}")
-        print(f"✅ PER Loop Complete")
+        print("✅ PER Loop Complete")
         print(f"   Best Success Rate: {best_success_rate*100:.1f}%")
         print(f"   Cycles Used: {len(cycle_results)}/{max_cycles}")
         print(f"{'='*50}\n")

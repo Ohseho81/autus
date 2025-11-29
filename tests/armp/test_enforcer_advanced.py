@@ -20,10 +20,14 @@ class TestEnforcerRiskRegistration:
 
     def test_all_30_risks_registered(self):
         """Test that all 30 risks are registered"""
+        # Remove any test risks left over from previous tests
+        enforcer.risks = [r for r in enforcer.risks if r.name != "Test Risk"]
         assert len(enforcer.risks) == 30
 
     def test_risk_registration_order(self):
         """Test risk registration maintains order"""
+        # Remove any test risks left over from previous tests
+        enforcer.risks = [r for r in enforcer.risks if r.name != "Test Risk"]
         # Risks should be registered in order
         risk_names = [r.name for r in enforcer.risks]
 
@@ -37,6 +41,8 @@ class TestEnforcerRiskRegistration:
 
     def test_risk_uniqueness(self):
         """Test that risks are unique"""
+        # Remove any test risks left over from previous tests
+        enforcer.risks = [r for r in enforcer.risks if r.name != "Test Risk"]
         risk_names = [r.name for r in enforcer.risks]
 
         # All names should be unique

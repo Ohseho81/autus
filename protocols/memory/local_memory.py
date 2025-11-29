@@ -5,7 +5,6 @@ AUTUS Local Memory OS
 Constitution Article II: Privacy by Architecture
 """
 
-import json
 import sqlite3
 import hashlib
 from datetime import datetime
@@ -193,10 +192,10 @@ class AUTUSMemoryOS:
         """메모리 가져오기 - 로컬 복원용"""
         if backup.get("anonymous_id") == self.anonymous_id:
             self.memory_layers = backup.get("memory_layers", {})
-            print(f"✅ 메모리 복원 완료")
+            print("✅ 메모리 복원 완료")
             return True
         else:
-            print(f"❌ 익명 ID 불일치")
+            print("❌ 익명 ID 불일치")
             return False
 
 # 테스트
@@ -231,7 +230,7 @@ if __name__ == "__main__":
     
     # 통계
     stats = memory.export_memory()["stats"]
-    print(f"\n📊 메모리 통계:")
+    print("\n📊 메모리 통계:")
     print(f"  단기 기억: {stats['short_term_count']}")
     print(f"  장기 기억: {stats['long_term_count']}")
     print(f"  자동화: {stats['automations']}")

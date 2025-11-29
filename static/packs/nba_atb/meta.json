@@ -1,0 +1,10 @@
+{
+  "pack_id": "nba_atb",
+  "category": "operations",
+  "version": "0.1.0",
+  "protocol_bindings": {
+    "identity": true,
+    "memory": true,
+    "workflow": true
+  }
+}

@@ -6,7 +6,6 @@ No server involvement, no identity storage.
 """
 
 import os
-import hashlib
 import secrets
 from typing import Tuple, Optional
 from datetime import datetime, timedelta

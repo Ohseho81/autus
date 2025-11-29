@@ -9,7 +9,7 @@ No PII, only behavioral characteristics.
 
 import math
 from datetime import datetime
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
 import hashlib
 import json
 
@@ -90,7 +90,7 @@ class IdentitySurface:
 
         # Extract pattern characteristics
         pattern_type = pattern.get('type', 'unknown')
-        context = pattern.get('context', {})
+        pattern.get('context', {})
 
         # Evolve position (small drift based on pattern)
         position_delta = self._calculate_position_delta(pattern)
@@ -129,7 +129,7 @@ class IdentitySurface:
 
         Different pattern types cause different movements
         """
-        pattern_type = pattern.get('type', 'unknown')
+        pattern.get('type', 'unknown')
 
         # Small random-ish movement based on pattern
         pattern_hash = hashlib.sha256(
@@ -253,12 +253,12 @@ class IdentitySurface:
     def from_dict(cls, data: Dict) -> 'IdentitySurface':
         """Import surface from dictionary"""
         surface = cls(data['core_hash'])
-        surface.position = tuple(data['position'])
-        surface.radius = data['radius']
-        surface.texture = data['texture']
-        surface.color = data['color']
-        surface.pattern_count = data['pattern_count']
-        surface.created_at = datetime.fromisoformat(data['created_at'])
+        surface.position = tuple(data.get('position', (0.5, 0.5, 0.5)))
+        surface.radius = data.get('radius', 0.5)
+        surface.texture = data.get('texture', 'smooth')
+        surface.color = data.get('color', (0.5, 0.5, 0.8))
+        surface.pattern_count = data.get('pattern_count', 0)
+        surface.created_at = datetime.fromisoformat(data.get('created_at', datetime.now().isoformat()))
         surface.evolution_history = data.get('evolution_history', [])
         return surface
 

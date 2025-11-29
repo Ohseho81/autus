@@ -209,9 +209,11 @@ class ProtocolStateCorruptionRisk(Risk):
 # Register risks
 
 def register_protocol_compliance_risks():
-    enforcer.register_risk(ProtocolVersionIncompatibleRisk())
-    enforcer.register_risk(InvalidProtocolMessageRisk())
-    enforcer.register_risk(ProtocolStateCorruptionRisk())
+    registered = set(r.name for r in enforcer.risks)
+    risks = [ProtocolVersionIncompatibleRisk(), InvalidProtocolMessageRisk(), ProtocolStateCorruptionRisk()]
+    for risk in risks:
+        if risk.name not in registered:
+            enforcer.register_risk(risk)
     logger.info("\u2705 Protocol compliance risks registered")
 
 register_protocol_compliance_risks()

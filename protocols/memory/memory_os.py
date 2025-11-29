@@ -8,7 +8,6 @@ MemoryStore를 래핑하는 상위 레벨 인터페이스
 """
 from typing import Any, Dict, Optional, List
 from protocols.memory.store import MemoryStore
-from protocols.memory.pii_validator import PIIValidator, PIIViolationError
 from protocols.memory.vector_search import VectorSearch
 from packs.utils.logging import get_logger
 
@@ -127,6 +126,21 @@ class MemoryOS:
             expires_at: 만료 시간 (ISO 형식)
         """
         self.store.store_context(context_type, value, expires_at)
+        # 벡터 인덱스 업데이트 (context도 즉시 인덱싱)
+        import json
+        # Always index both the context key and a JSON-dumped value for searchability
+        if isinstance(value, str):
+            value_str = value
+        else:
+            value_str = json.dumps(value, ensure_ascii=False)
+        # Also index a space-separated version of the context key for better search
+        context_key_for_search = f"{context_type} {context_type.replace('_', ' ')}"
+        text = f"{context_key_for_search} {value_str}"
+        self._vector_search_engine.index.add_document(
+            doc_id=f"context:{context_type}",
+            text=text,
+            metadata={"type": "context", "context_key": context_type}
+        )
         logger.debug(f"Context set: {context_type}")
 
     def get_context(self, context_type: str) -> Optional[Any]:

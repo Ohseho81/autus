@@ -291,10 +291,11 @@ class WebhookFailureRisk(Risk):
 # Register risks
 
 def register_final_risks():
-    enforcer.register_risk(ConstitutionViolationRisk())
-    enforcer.register_risk(APIKeyExposureRisk())
-    enforcer.register_risk(DataLossEventRisk())
-    enforcer.register_risk(WebhookFailureRisk())
+    registered = set(r.name for r in enforcer.risks)
+    risks = [ConstitutionViolationRisk(), APIKeyExposureRisk(), DataLossEventRisk(), WebhookFailureRisk()]
+    for risk in risks:
+        if risk.name not in registered:
+            enforcer.register_risk(risk)
     logger.info("✅ Final risks registered")
 
 

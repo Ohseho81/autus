@@ -1,0 +1,2 @@
+class AuthDeviceSync:
+    pass

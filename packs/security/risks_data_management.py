@@ -75,7 +75,10 @@ class SchemaVersionMismatchRisk(Risk):
 # Register risks
 
 def register_data_management_risks():
-    enforcer.register_risk(SchemaVersionMismatchRisk())
+    registered = set(r.name for r in enforcer.risks)
+    risk = SchemaVersionMismatchRisk()
+    if risk.name not in registered:
+        enforcer.register_risk(risk)
     logger.info("✅ Data management risks registered")
 
 

@@ -108,6 +108,8 @@ class PIIValidator:
         Returns:
             정규화된 키
         """
+        if not isinstance(key, str) or not key:
+            raise ValueError("Preference key must be a non-empty string.")
         normalized = key.lower()
 
         # 특수 문자를 일반 문자로 변환

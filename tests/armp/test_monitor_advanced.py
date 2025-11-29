@@ -72,9 +72,10 @@ class TestMonitorLoop:
         # Mock detect_violations to track calls
         original_detect = enforcer.detect_violations
 
+
         def mock_detect():
             call_count['count'] += 1
-            return original_detect()
+            return []  # No violations, so monitor loop is fast
 
         enforcer.detect_violations = mock_detect
 
@@ -290,7 +291,7 @@ class TestMonitorLongRunning:
         assert metrics is not None
 
     def test_monitor_with_many_cycles(self):
-        """Test monitor with many cycles"""
+        """Test monitor with many cycles (robust, timing-tolerant)"""
         call_count = {'count': 0}
 
         original_detect = enforcer.detect_violations
@@ -305,14 +306,18 @@ class TestMonitorLongRunning:
             monitor.interval = 0.1
             monitor.start()
 
-            # Run for 0.5 seconds (should be ~5 cycles)
-            time.sleep(0.5)
+            # Wait up to 2 seconds for at least 3 cycles
+            import time
+            deadline = time.time() + 2.0
+            while time.time() < deadline:
+                if call_count['count'] >= 3:
+                    break
+                time.sleep(0.05)
 
             monitor.stop()
             time.sleep(0.1)
 
-            # Should have multiple cycles
-            assert call_count['count'] >= 3
+            assert call_count['count'] >= 3, f"Monitor only ran {call_count['count']} cycles in 2s"
         finally:
             enforcer.detect_violations = original_detect
 

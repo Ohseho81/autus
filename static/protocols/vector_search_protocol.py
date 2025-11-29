@@ -1,0 +1,2 @@
+class VectorSearchProtocol:
+    pass

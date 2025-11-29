@@ -1,0 +1,2 @@
+class ConfigKernel:
+    pass

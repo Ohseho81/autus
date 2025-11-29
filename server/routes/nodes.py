@@ -7,70 +7,155 @@ from fastapi import APIRouter, BackgroundTasks
 from typing import Dict, Any
 import asyncio
 import random
-from protocols.identity.visualizer import generate_demo_data
+
+import math
 
 router = APIRouter(prefix="/api", tags=["3D Nodes"])
 
-@router.get("/state/identity")
-async def get_identity_state():
-    data = generate_demo_data()
-    core = data.get("core", {})
-    return {
-        "update": "identity_state",
-        "node_id": "identity_core",
-        "position": list(core.get("position", (0, 0, 0))),
-        "properties": {
-            "color": core.get("color", {}).get("primary", "#ffffff"),
-            "shape": core.get("shape", {}).get("geometry", "sphere"),
-            "surface": data.get("surface", {}),
+
+# --- Layer 1: Core Sphere (12 kernels) ---
+
+KERNELS = [
+    {"node_id": "kernel_runtime", "label": "런타임 엔진"},
+    {"node_id": "kernel_config", "label": "설정 관리"},
+    {"node_id": "kernel_loop", "label": "Core Loop"},
+    {"node_id": "kernel_armp", "label": "보안 커널(ARMP)"},
+    {"node_id": "kernel_memory", "label": "MemoryOS"},
+    {"node_id": "kernel_workflow", "label": "워크플로우 엔진"},
+    {"node_id": "kernel_eventbus", "label": "이벤트 버스"},
+    {"node_id": "kernel_telemetry", "label": "원격 측정"},
+    {"node_id": "kernel_plugin", "label": "플러그인 로더"},
+    {"node_id": "kernel_device", "label": "디바이스 브릿지"},
+    {"node_id": "kernel_zero_id", "label": "Zero Identity 가드"},
+    {"node_id": "kernel_schema", "label": "스키마 레지스트리"}
+]
+
+
+def get_identity_nodes():
+    nodes = []
+    for i, k in enumerate(KERNELS):
+        angle = (i / len(KERNELS)) * 2 * math.pi
+        nodes.append({
+            "node_id": k["node_id"],
+            "type": "kernel",
+            "label": k["label"],
+            "layer": 1,
+            "color": "#ff3333",
+            "position": [2 * math.cos(angle), 0, 2 * math.sin(angle)],
             "state": "active"
-        }
-    }
-
-@router.get("/state/workflow")
-async def get_workflow_state():
-    import math
-    nodes = []
-    for i in range(5):
-        angle = (i / 5) * 2 * math.pi
-        # 약간의 랜덤 움직임 추가
-        jitter = random.uniform(-0.1, 0.1)
-        nodes.append({
-            "update": "workflow_state",
-            "node_id": f"workflow_{i}",
-            "position": [3 * math.cos(angle) + jitter, jitter, 3 * math.sin(angle) + jitter],
-            "properties": {
-                "color": "#00ff88" if i == 2 else "#4488ff",
-                "state": "running" if i == 2 else "idle",
-                "progress": random.uniform(0.3, 0.9) if i == 2 else 0,
-                "label": f"Task {i+1}"
-            }
         })
-    return {"nodes": nodes}
+    return nodes
 
-@router.get("/state/memory")
-async def get_memory_state():
-    import hashlib
-    patterns = [
-        {"name": "morning_routine", "category": "habit", "count": 15},
-        {"name": "code_review", "category": "workflow", "count": 8},
-        {"name": "meeting_prep", "category": "schedule", "count": 5},
-    ]
-    colors = {"workflow": "#4CAF50", "schedule": "#2196F3", "habit": "#9C27B0"}
+
+# --- Layer 2: Protocol Sphere (12 protocols) ---
+
+PROTOCOLS = [
+    {"node_id": "proto_identity", "label": "Identity Core"},
+    {"node_id": "proto_auth_sync", "label": "Auth & Device Sync"},
+    {"node_id": "proto_memory", "label": "Memory Protocol"},
+    {"node_id": "proto_workflow", "label": "Workflow Protocol"},
+    {"node_id": "proto_pack_api", "label": "Pack API Schema"},
+    {"node_id": "proto_preference", "label": "Preference Vector"},
+    {"node_id": "proto_pattern", "label": "Pattern Tracker"},
+    {"node_id": "proto_risk", "label": "Risk Policy"},
+    {"node_id": "proto_vector", "label": "Vector Search"},
+    {"node_id": "proto_history", "label": "History Timeline"},
+    {"node_id": "proto_connector", "label": "Connector Protocol"},
+    {"node_id": "proto_3d", "label": "3D State Protocol"}
+]
+
+
+def get_protocol_nodes():
     nodes = []
-    for i, p in enumerate(patterns):
-        h = hashlib.md5(p["name"].encode()).digest()
+    for i, p in enumerate(PROTOCOLS):
+        angle = (i / len(PROTOCOLS)) * 2 * math.pi
         nodes.append({
-            "update": "pattern_state",
-            "node_id": f"pattern_{i}",
-            "position": [(h[0]/128-1)*5, (h[1]/128-1)*5, (h[2]/128-1)*5],
-            "properties": {
-                "color": colors.get(p["category"], "#888"),
-                "scale": 0.2 + min(p["count"]/20, 0.8),
-                "name": p["name"]
-            }
+            "node_id": p["node_id"],
+            "type": "protocol",
+            "label": p["label"],
+            "layer": 2,
+            "color": "#00cfff",
+            "position": [5 * math.cos(angle), 0, 5 * math.sin(angle)],
+            "state": "standard"
         })
-    return {"nodes": nodes}
+    return nodes
+
+
+# --- Layer 3: Pack Sphere (47 packs, grouped by category) ---
+
+PACKS = [
+    # operations (8)
+    {"node_id": "pack_emo_cmms", "label": "EMO CMMS", "category": "operations"},
+    {"node_id": "pack_building_fm", "label": "Building FM", "category": "operations"},
+    {"node_id": "pack_energy_manager", "label": "Energy Manager", "category": "operations"},
+    {"node_id": "pack_asset_tracker", "label": "Asset Tracker", "category": "operations"},
+    {"node_id": "pack_facility_monitor", "label": "Facility Monitor", "category": "operations"},
+    {"node_id": "pack_safety_guard", "label": "Safety Guard", "category": "operations"},
+    {"node_id": "pack_maintenance_ai", "label": "Maintenance AI", "category": "operations"},
+    {"node_id": "pack_operation_dashboard", "label": "Operation Dashboard", "category": "operations"},
+    # education (8)
+    {"node_id": "pack_jeju_school", "label": "Jeju School", "category": "education"},
+    {"node_id": "pack_student_profile", "label": "Student Profile", "category": "education"},
+    {"node_id": "pack_edu_bridge", "label": "Edu Bridge", "category": "education"},
+    {"node_id": "pack_learning_path", "label": "Learning Path", "category": "education"},
+    {"node_id": "pack_exam_generator", "label": "Exam Generator", "category": "education"},
+    {"node_id": "pack_attendance_ai", "label": "Attendance AI", "category": "education"},
+    {"node_id": "pack_edu_reporter", "label": "Edu Reporter", "category": "education"},
+    {"node_id": "pack_classroom_manager", "label": "Classroom Manager", "category": "education"},
+    # sports (7)
+    {"node_id": "pack_nba_atb", "label": "NBA ATB", "category": "sports"},
+    {"node_id": "pack_unit_league", "label": "Unit League", "category": "sports"},
+    {"node_id": "pack_sports_analytics", "label": "Sports Analytics", "category": "sports"},
+    {"node_id": "pack_match_predictor", "label": "Match Predictor", "category": "sports"},
+    {"node_id": "pack_player_tracker", "label": "Player Tracker", "category": "sports"},
+    {"node_id": "pack_fitness_coach", "label": "Fitness Coach", "category": "sports"},
+    {"node_id": "pack_scoreboard", "label": "Scoreboard", "category": "sports"},
+    # city (6)
+    {"node_id": "pack_city_master", "label": "City Master", "category": "city"},
+    {"node_id": "pack_traffic_simulator", "label": "Traffic Simulator", "category": "city"},
+    {"node_id": "pack_urban_planner", "label": "Urban Planner", "category": "city"},
+    {"node_id": "pack_waste_manager", "label": "Waste Manager", "category": "city"},
+    {"node_id": "pack_public_safety", "label": "Public Safety", "category": "city"},
+    {"node_id": "pack_smart_parking", "label": "Smart Parking", "category": "city"},
+    # finance (5)
+    {"node_id": "pack_tax_optimizer", "label": "Tax Optimizer", "category": "finance"},
+    {"node_id": "pack_fx_hedge", "label": "FX Hedge", "category": "finance"},
+    {"node_id": "pack_budget_planner", "label": "Budget Planner", "category": "finance"},
+    {"node_id": "pack_expense_tracker", "label": "Expense Tracker", "category": "finance"},
+    {"node_id": "pack_investment_advisor", "label": "Investment Advisor", "category": "finance"},
+    # governance (5)
+    {"node_id": "pack_evidence_logger", "label": "Evidence Logger", "category": "governance"},
+    {"node_id": "pack_risk_library", "label": "Risk Library", "category": "governance"},
+    {"node_id": "pack_policy_manager", "label": "Policy Manager", "category": "governance"},
+    {"node_id": "pack_compliance_ai", "label": "Compliance AI", "category": "governance"},
+    {"node_id": "pack_audit_trail", "label": "Audit Trail", "category": "governance"},
+    # meta (8)
+    {"node_id": "pack_local_memory", "label": "Local Memory", "category": "meta"},
+    {"node_id": "pack_pack_factory", "label": "Pack Factory", "category": "meta"},
+    {"node_id": "pack_pattern_learner", "label": "Pattern Learner", "category": "meta"},
+    {"node_id": "pack_preference_vector", "label": "Preference Vector", "category": "meta"},
+    {"node_id": "pack_privacy_guard", "label": "Privacy Guard", "category": "meta"},
+    {"node_id": "pack_runtime_controller", "label": "Runtime Controller", "category": "meta"},
+    {"node_id": "pack_style_analyzer", "label": "Style Analyzer", "category": "meta"},
+    {"node_id": "pack_zero_identity", "label": "Zero Identity Pack", "category": "meta"}
+]
+
+def get_pack_nodes():
+    nodes = []
+    total = len(PACKS)
+    for i, p in enumerate(PACKS):
+        angle = (i / total) * 2 * math.pi
+        nodes.append({
+            "node_id": p["node_id"],
+            "type": "pack",
+            "label": p["label"],
+            "category": p["category"],
+            "layer": 3,
+            "color": "#FFD600",
+            "position": [10 * math.cos(angle), 0, 10 * math.sin(angle)],
+            "state": "normal"
+        })
+    return nodes
 
 @router.get("/state/risk")
 async def get_risk_state():
@@ -119,19 +204,17 @@ async def get_packs_state():
         })
     return {"nodes": nodes}
 
+
+# --- All nodes (Triple Sphere) ---
+
+# --- All nodes (Triple Sphere) ---
+
 @router.get("/nodes/all")
 async def get_all_nodes():
-    identity = await get_identity_state()
-    workflow = await get_workflow_state()
-    memory = await get_memory_state()
-    risk = await get_risk_state()
-    packs = await get_packs_state()
     return {
-        "identity": identity,
-        "workflow": workflow["nodes"],
-        "memory": memory["nodes"],
-        "risk": risk["nodes"],
-        "packs": packs["nodes"]
+        "identity": get_identity_nodes(),
+        "protocols": get_protocol_nodes(),
+        "packs": get_pack_nodes()
     }
 
 @router.post("/event")

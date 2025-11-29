@@ -124,7 +124,7 @@ if __name__ == "__main__":
         # Test serialization
         json_str = graph.to_json()
         new_graph = WorkflowGraph.from_json(json_str)
-        print(f"\n✅ Deserialization successful")
+        print("\n✅ Deserialization successful")
         print(f"Nodes: {len(new_graph.nodes)}")
         print(f"Edges: {len(new_graph.edges)}")
     else:

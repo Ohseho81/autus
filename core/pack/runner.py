@@ -8,8 +8,7 @@ import yaml
 import json
 import os
 from pathlib import Path
-from typing import Dict, Any, List, Optional
-import importlib.util
+from typing import Dict, Any, Optional
 
 try:
     import sys

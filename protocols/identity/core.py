@@ -16,7 +16,9 @@ class IdentityCore:
         """
         Import identity from base64-encoded, zlib-compressed sync data (as produced by export_for_sync).
         """
-        import base64, zlib, json
+        import base64
+        import zlib
+        import json
         try:
             compressed = base64.b64decode(sync_data_b64)
             json_str = zlib.decompress(compressed).decode("utf-8")
@@ -81,7 +83,9 @@ class IdentityCore:
         ARTICLE II COMPLIANCE: No PII exported.
         Only seed_hash (anonymous identifier) is included.
         """
-        import json, zlib, base64
+        import json
+        import zlib
+        import base64
         data = {
             "seed_hash": self.seed_hash,
             "created_at": self.created_at.isoformat(),

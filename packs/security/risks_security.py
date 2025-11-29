@@ -13,6 +13,7 @@ def dummy_recovery():
     pass
 
 def register_security_risks():
+    registered = set(r.name for r in enforcer.risks)
     sql_injection = Risk(
         name="SQL Injection Attack",
         category=RiskCategory.SECURITY,
@@ -23,4 +24,5 @@ def register_security_risks():
         response=dummy_response,
         recovery=dummy_recovery
     )
-    enforcer.register_risk(sql_injection)
+    if sql_injection.name not in registered:
+        enforcer.register_risk(sql_injection)
