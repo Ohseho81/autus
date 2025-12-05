@@ -1,0 +1,8 @@
+{
+  "pack": "architect_pack",
+  "results": {
+    "analysis": "{\"summary\": \"Implement \\nFeature: Sovereign Privacy Engine\\nDescription: Apple-style on-device processing with L0-L3 data levels\\nLayer: 2_sovereign\\nPillar: context\\nSource: Apple\\n\\nRequirements:\\n- L0 raw data never leaves device\\n- L1 local processed data\\n- L2/L3 summary only to server\\n- AES-256-GCM encryption\\n- Consent management\\n\\nAPI Endpoints:\\n- /sovereign/local/process\\n- /sovereign/local/delete\\n- /sovereign/privacy/status\\n\\nFiles to generate:\\n- core/sovereign/processor.py\\n- core/sovereign/encryption.py\\n- core/sovereign/consent.py\\n\", \"files\": [\"src/feature.py\", \"tests/test_feature.py\"], \"dependencies\": [\"fastapi\"], \"complexity\": \"medium\", \"steps\": [\"1. Design\", \"2. Implement\", \"3. Test\"]}"
+  },
+  "status": "success",
+  "mode": "mock"
+}
