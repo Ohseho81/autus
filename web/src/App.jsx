@@ -9,6 +9,7 @@ function App() {
   const [graph, setGraph] = useState(null)
   const [identity, setIdentity] = useState(null)
   const [memory, setMemory] = useState(null)
+  const [qrCode, setQrCode] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -32,6 +33,15 @@ function App() {
     }
     fetchData()
   }, [])
+
+  const showQR = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/twin/auth/qr-image`)
+      setQrCode(res.data.qr_image)
+    } catch (error) {
+      console.error('QR Error:', error)
+    }
+  }
 
   if (loading) return <div className="loading">Loading AUTUS Twin...</div>
 
@@ -68,7 +78,6 @@ function App() {
                     <span className="val">{identity.coordinates_3d.z.toFixed(3)}</span>
                   </div>
                 </div>
-                {/* 3D Visual */}
                 <div className="identity-visual" style={{
                   background: `radial-gradient(circle at ${50 + identity.coordinates_3d.x * 30}% ${50 + identity.coordinates_3d.y * 30}%, 
                     hsl(${(identity.coordinates_3d.z + 1) * 180}, 70%, 50%), 
@@ -82,6 +91,9 @@ function App() {
                 <span className="badge">🚫 No Email</span>
                 <span className="badge">✅ Local Only</span>
               </div>
+              <button className="qr-button" onClick={showQR}>
+                📱 Show QR for Device Sync
+              </button>
             </>
           )}
         </div>
@@ -178,6 +190,18 @@ function App() {
           ))}
         </div>
       </div>
+
+      {/* QR Modal */}
+      {qrCode && (
+        <div className="qr-modal" onClick={() => setQrCode(null)}>
+          <div className="qr-content" onClick={e => e.stopPropagation()}>
+            <h3>📱 Scan to Sync Device</h3>
+            <img src={qrCode} alt="QR Code" />
+            <p>Expires in 5 minutes</p>
+            <p className="tap-hint">Tap outside to close</p>
+          </div>
+        </div>
+      )}
 
       <footer>
         <p>Zero Identity • Privacy by Architecture • Meta-Circular Development</p>

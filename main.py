@@ -1,4 +1,7 @@
 from typing import List, Dict, Any, Optional
+import qrcode
+import io
+import base64
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -185,4 +188,27 @@ async def get_3d_coordinates(zero_id: str):
     return {
         "zero_id": auth.zero_id,
         "coordinates": auth.get_3d_coordinates()
+    }
+
+@app.get("/twin/auth/qr-image")
+async def get_qr_image():
+    """Generate actual QR code image as base64"""
+    auth = ZeroAuth()
+    qr_data = auth.generate_qr_data(expires_minutes=5)
+    
+    # Generate QR image
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Convert to base64
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    img_base64 = base64.b64encode(buffer.getvalue()).decode()
+    
+    return {
+        "zero_id": auth.zero_id,
+        "qr_image": f"data:image/png;base64,{img_base64}",
+        "expires_in": "5 minutes"
     }
