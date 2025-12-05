@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+from standard import WorkflowGraph
 
 app = FastAPI(title="Autus Twin Dev")
 
@@ -92,10 +93,42 @@ async def get_twin_user(zero_id: str) -> TwinUser:
 
 @app.get("/twin/graph/summary", response_model=TwinGraphSummary)
 async def get_twin_graph_summary() -> TwinGraphSummary:
+    # 실제 WorkflowGraph 사용 (standard.py)
+    sample_nodes = [
+        {'id': '1', 'type': 'city', 'name': 'seoul'},
+        {'id': '2', 'type': 'employer', 'name': 'samsung'},
+        {'id': '3', 'type': 'employer', 'name': 'lg'},
+        {'id': '4', 'type': 'talent', 'name': 'dev_001'},
+        {'id': '5', 'type': 'talent', 'name': 'dev_002'},
+    ]
+    sample_edges = [
+        {'source': '1', 'target': '2', 'type': 'hosts'},
+        {'source': '1', 'target': '3', 'type': 'hosts'},
+        {'source': '2', 'target': '4', 'type': 'employs'},
+        {'source': '3', 'target': '5', 'type': 'employs'},
+    ]
+    
+    graph = WorkflowGraph(nodes=sample_nodes, edges=sample_edges)
+    
+    if not graph.validate():
+        return TwinGraphSummary(
+            nodes=0, edges=0, type_distribution={},
+            influence_top=[], graph_health={"error": "invalid graph"}
+        )
+    
+    # 타입별 분포 계산
+    type_dist = {}
+    for node in graph.nodes:
+        t = node.get('type', 'unknown')
+        type_dist[t] = type_dist.get(t, 0) + 1
+    
     return TwinGraphSummary(
-        nodes=10,
-        edges=20,
-        type_distribution={"city": 1, "employer": 3, "talent": 6},
-        influence_top=[],
-        graph_health={"connectivity": 0.8, "bottlenecks": [], "risk_index": 0.1},
+        nodes=len(graph.nodes),
+        edges=len(graph.edges),
+        type_distribution=type_dist,
+        influence_top=[
+            TwinGraphInfluenceNode(id='1', type='city', score=0.95),
+            TwinGraphInfluenceNode(id='2', type='employer', score=0.8),
+        ],
+        graph_health={"connectivity": 0.9, "bottlenecks": [], "risk_index": 0.05},
     )
