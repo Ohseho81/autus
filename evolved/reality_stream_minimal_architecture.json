@@ -1,0 +1,8 @@
+{
+  "pack": "architect_pack",
+  "results": {
+    "analysis": "{\"summary\": \"Implement Feature: reality_stream_minimal\\nDescription: Minimal Reality Stream - receive IoT events and update Twin graph\", \"files\": [\"src/feature.py\", \"tests/test_feature.py\"], \"dependencies\": [\"fastapi\"], \"complexity\": \"medium\", \"steps\": [\"1. Design\", \"2. Implement\", \"3. Test\"]}"
+  },
+  "status": "success",
+  "mode": "mock"
+}

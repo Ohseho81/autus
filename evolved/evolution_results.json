@@ -1,0 +1,46 @@
+{
+  "started_at": "2025-12-06T07:02:33.612469",
+  "completed_at": "2025-12-06T07:02:33.784561",
+  "steps": [
+    {
+      "step": "load_spec",
+      "success": true,
+      "timestamp": "2025-12-06T07:02:33.613094",
+      "details": {
+        "spec": {
+          "name": "reality_stream_minimal",
+          "version": "0.1.0",
+          "description": "Minimal Reality Stream - receive IoT events and update Twin graph",
+          "target_layer": "reality_stream",
+          "priority": "high",
+          "features": [
+            "Webhook endpoint for sensor events",
+            "Event validation and normalization",
+            "Twin graph update trigger",
+            "Basic event logging"
+          ],
+          "endpoints": [
+            "POST /events/ingest",
+            "GET /events/status",
+            "GET /events/recent"
+          ],
+          "models": [
+            "SensorEvent",
+            "EventStatus",
+            "TwinUpdate"
+          ]
+        }
+      }
+    },
+    {
+      "step": "architect",
+      "success": false,
+      "timestamp": "2025-12-06T07:02:33.784513",
+      "details": {
+        "error": "Architect API failed: 500"
+      }
+    }
+  ],
+  "success": false,
+  "error": "Architect API failed: 500"
+}
