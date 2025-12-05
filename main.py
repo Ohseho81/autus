@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from standard import WorkflowGraph
 from protocols.memory.local_memory import LocalMemory
+from protocols.auth.zero_auth import ZeroAuth
 
 app = FastAPI(title="Autus Twin Dev")
 
@@ -157,3 +158,31 @@ async def set_memory_preference(key: str, value: str):
     memory = LocalMemory()
     memory.set_preference(key, value)
     return {"status": "saved", "key": key}
+
+# ===== Zero Auth Protocol =====
+
+@app.get("/twin/auth/identity")
+async def get_auth_identity():
+    """Generate new Zero Identity (Article I)"""
+    auth = ZeroAuth()
+    return auth.get_identity_info()
+
+@app.get("/twin/auth/qr")
+async def get_auth_qr():
+    """Generate QR data for device sync"""
+    auth = ZeroAuth()
+    return {
+        "zero_id": auth.zero_id,
+        "qr_data": auth.generate_qr_data(expires_minutes=5),
+        "expires_in": "5 minutes"
+    }
+
+@app.get("/twin/auth/coordinates/{zero_id}")
+async def get_3d_coordinates(zero_id: str):
+    """Get 3D coordinates for identity visualization"""
+    # In real app, would lookup seed by zero_id
+    auth = ZeroAuth()
+    return {
+        "zero_id": auth.zero_id,
+        "coordinates": auth.get_3d_coordinates()
+    }
