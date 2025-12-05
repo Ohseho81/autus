@@ -212,3 +212,141 @@ async def get_qr_image():
         "qr_image": f"data:image/png;base64,{img_base64}",
         "expires_in": "5 minutes"
     }
+
+# ===== Dev Packs Protocol (Article III) =====
+
+@app.get("/twin/packs")
+async def get_dev_packs():
+    """Get available Dev Packs (Meta-Circular Development)"""
+    # Sample dev packs based on AUTUS architecture
+    packs = [
+        {
+            "id": "school",
+            "name": "School Pack",
+            "description": "Education pathway automation",
+            "status": "active",
+            "modules": ["enrollment", "curriculum", "certification"],
+            "cities": ["seoul", "clark"]
+        },
+        {
+            "id": "visa",
+            "name": "Visa Pack",
+            "description": "Immigration and mobility support",
+            "status": "active",
+            "modules": ["application", "tracking", "renewal"],
+            "cities": ["clark", "dubai"]
+        },
+        {
+            "id": "job",
+            "name": "Job Pack",
+            "description": "Employment and career matching",
+            "status": "beta",
+            "modules": ["matching", "interview", "onboarding"],
+            "cities": ["seoul", "singapore"]
+        },
+        {
+            "id": "health",
+            "name": "Health Pack",
+            "description": "Healthcare access and records",
+            "status": "planned",
+            "modules": ["insurance", "records", "appointments"],
+            "cities": []
+        }
+    ]
+    
+    return {
+        "total": len(packs),
+        "active": len([p for p in packs if p["status"] == "active"]),
+        "packs": packs
+    }
+
+@app.get("/twin/packs/{pack_id}")
+async def get_pack_detail(pack_id: str):
+    """Get specific pack details"""
+    pack_data = {
+        "school": {
+            "id": "school",
+            "name": "School Pack",
+            "version": "1.2.0",
+            "description": "Complete education pathway automation",
+            "status": "active",
+            "modules": [
+                {"name": "enrollment", "status": "active", "usage": 89},
+                {"name": "curriculum", "status": "active", "usage": 76},
+                {"name": "certification", "status": "active", "usage": 92}
+            ],
+            "cities": ["seoul", "clark"],
+            "users_active": 1247,
+            "retention_rate": 0.94
+        },
+        "visa": {
+            "id": "visa",
+            "name": "Visa Pack",
+            "version": "2.0.1",
+            "description": "Immigration and mobility support",
+            "status": "active",
+            "modules": [
+                {"name": "application", "status": "active", "usage": 95},
+                {"name": "tracking", "status": "active", "usage": 88},
+                {"name": "renewal", "status": "beta", "usage": 45}
+            ],
+            "cities": ["clark", "dubai"],
+            "users_active": 832,
+            "retention_rate": 0.91
+        }
+    }
+    
+    if pack_id not in pack_data:
+        return {"error": "Pack not found", "pack_id": pack_id}
+    
+    return pack_data[pack_id]
+
+@app.get("/twin/packs/user/{zero_id}")
+async def get_user_packs(zero_id: str):
+    """Get packs assigned to a user"""
+    # In real app, would lookup by zero_id
+    return {
+        "zero_id": zero_id,
+        "active_packs": ["school", "visa"],
+        "completed_packs": [],
+        "recommended_packs": ["job"],
+        "pack_history": [
+            {"pack_id": "school", "enrolled_at": "2024-01-15", "progress": 0.75},
+            {"pack_id": "visa", "enrolled_at": "2024-03-20", "progress": 0.45}
+        ]
+    }
+
+# ===== Article III: Meta-Circular Development =====
+
+@app.get("/twin/packs/status")
+async def get_packs_status():
+    """Get development packs status (Article III)"""
+    return {
+        "meta_circular": True,
+        "packs": {
+            "architect_pack": {"status": "active", "purpose": "Plans features"},
+            "codegen_pack": {"status": "active", "purpose": "Generates code"},
+            "testgen_pack": {"status": "active", "purpose": "Writes tests"},
+            "pipeline_pack": {"status": "active", "purpose": "Orchestrates workflow"}
+        },
+        "capabilities": [
+            "AUTUS develops AUTUS",
+            "AI-speed development",
+            "Self-evolving system"
+        ],
+        "article": "III: Meta-Circular Development"
+    }
+
+@app.get("/twin/protocols/status")
+async def get_protocols_status():
+    """Get all AUTUS protocols status"""
+    return {
+        "protocols": {
+            "identity": {"article": "I", "status": "active", "file": "protocols/auth/zero_auth.py"},
+            "memory": {"article": "II", "status": "active", "file": "protocols/memory/local_memory.py"},
+            "workflow": {"article": "V", "status": "active", "file": "standard.py"},
+            "packs": {"article": "III", "status": "active", "type": "meta-circular"}
+        },
+        "constitution_compliance": "100%",
+        "total_endpoints": 15
+    }
