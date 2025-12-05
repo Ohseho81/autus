@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import Identity3D from './Identity3D'
 import './App.css'
 
 const API_URL = 'http://127.0.0.1:8003'
@@ -78,13 +79,7 @@ function App() {
                     <span className="val">{identity.coordinates_3d.z.toFixed(3)}</span>
                   </div>
                 </div>
-                <div className="identity-visual" style={{
-                  background: `radial-gradient(circle at ${50 + identity.coordinates_3d.x * 30}% ${50 + identity.coordinates_3d.y * 30}%, 
-                    hsl(${(identity.coordinates_3d.z + 1) * 180}, 70%, 50%), 
-                    hsl(${(identity.coordinates_3d.x + 1) * 180}, 60%, 30%))`
-                }}>
-                  <div className="identity-core"></div>
-                </div>
+                <Identity3D coordinates={identity.coordinates_3d} />
               </div>
               <div className="privacy-badges">
                 <span className="badge">🚫 No Login</span>
