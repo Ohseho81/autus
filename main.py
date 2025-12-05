@@ -432,3 +432,50 @@ async def twin_definition():
         },
         "version": "1.0.0"
     }
+
+# ===== Universe Graph with Four Pillars =====
+
+@app.get("/universe/graph")
+async def get_universe_graph():
+    """Universe graph structured by Information-Context-Intent-Impact"""
+    return {
+        "pillars": {
+            "information": {
+                "nodes": [
+                    {"id": "seoul", "type": "city", "data": "population: 10M"},
+                    {"id": "clark", "type": "city", "data": "population: 500K"},
+                    {"id": "kathmandu", "type": "city", "data": "population: 1.5M"}
+                ],
+                "count": 3
+            },
+            "context": {
+                "edges": [
+                    {"from": "seoul", "to": "clark", "relation": "talent_flow"},
+                    {"from": "clark", "to": "kathmandu", "relation": "education_partnership"},
+                    {"from": "kathmandu", "to": "seoul", "relation": "visa_program"}
+                ],
+                "count": 3
+            },
+            "intent": {
+                "packs": [
+                    {"id": "school", "goal": "Operate education systems"},
+                    {"id": "visa", "goal": "Manage talent migration"},
+                    {"id": "cmms", "goal": "Maintain facilities"},
+                    {"id": "admissions", "goal": "Process applications"}
+                ],
+                "count": 4
+            },
+            "impact": {
+                "metrics": [
+                    {"id": "retention", "value": 0.85, "trend": "up"},
+                    {"id": "talent_growth", "value": 0.12, "trend": "up"},
+                    {"id": "efficiency", "value": 0.90, "trend": "stable"}
+                ],
+                "count": 3
+            }
+        },
+        "loop": "Information → Context → Intent → Impact",
+        "total_nodes": 13,
+        "total_edges": 3,
+        "health": 0.90
+    }
