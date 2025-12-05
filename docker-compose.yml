@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  autus:
+    build: .
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./autus.db:/app/autus.db
+    restart: unless-stopped
