@@ -1,0 +1,8 @@
+{
+  "pack": "architect_pack",
+  "results": {
+    "analysis": "{\"summary\": \"Implement \\nFeature: Pack Performance Monitor\\nDescription: OpenAI-style behavior telemetry for pack execution\\nLayer: 4_packs\\nPillar: intent\\nSource: OpenAI\\n\\nRequirements:\\n- Zero raw logs\\n- Summary signals only\\n- Pack success rate tracking\\n- Latency monitoring\\n- Friction index calculation\\n\\nAPI Endpoints:\\n- /telemetry/pack\\n- /telemetry/workflow\\n- /telemetry/summary\\n\\nFiles to generate:\\n- core/telemetry/collector.py\\n- core/telemetry/signals.py\\n- core/telemetry/dashboard.py\\n\", \"files\": [\"src/feature.py\", \"tests/test_feature.py\"], \"dependencies\": [\"fastapi\"], \"complexity\": \"medium\", \"steps\": [\"1. Design\", \"2. Implement\", \"3. Test\"]}"
+  },
+  "status": "success",
+  "mode": "mock"
+}
