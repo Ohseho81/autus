@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from standard import WorkflowGraph
+from protocols.memory.local_memory import LocalMemory
 
 app = FastAPI(title="Autus Twin Dev")
 
@@ -141,3 +142,18 @@ async def get_twin_graph_summary() -> TwinGraphSummary:
         ],
         graph_health={"connectivity": 0.9, "bottlenecks": [], "risk_index": 0.05},
     )
+
+# ===== Memory Protocol =====
+
+@app.get("/twin/memory/summary")
+async def get_memory_summary():
+    """Get local memory summary (Privacy by Architecture)"""
+    memory = LocalMemory()
+    return memory.get_summary()
+
+@app.post("/twin/memory/preference")
+async def set_memory_preference(key: str, value: str):
+    """Set a preference (stored locally only)"""
+    memory = LocalMemory()
+    memory.set_preference(key, value)
+    return {"status": "saved", "key": key}
