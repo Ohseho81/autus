@@ -523,3 +523,7 @@ async def run_codegen(file_path: str, purpose: str):
         "purpose": purpose
     })
     return result
+
+# ===== Reality Events API =====
+from api.reality_events import router as reality_router
+app.include_router(reality_router)

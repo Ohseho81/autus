@@ -1,0 +1,69 @@
+# AUTUS API Schema
+
+openapi: "3.0.0"
+info:
+  title: "AUTUS OS API"
+  version: "1.0.0"
+  description: "Personal AI Operating System"
+
+paths:
+  # Identity
+  /twin/auth/identity:
+    get:
+      summary: "Generate Zero Identity"
+      tags: ["Identity"]
+      
+  /twin/auth/qr-image:
+    get:
+      summary: "Generate QR for device sync"
+      tags: ["Identity"]
+
+  # Memory
+  /twin/memory/summary:
+    get:
+      summary: "Get Sovereign Memory summary"
+      tags: ["Memory"]
+
+  # Twin
+  /twin/overview:
+    get:
+      summary: "Get Twin overview"
+      tags: ["Twin"]
+      
+  /twin/definition:
+    get:
+      summary: "Get Twin 4-Pillar definition"
+      tags: ["Twin"]
+
+  # Universe
+  /universe/overview:
+    get:
+      summary: "Get 1-2-3-4-Universe overview"
+      tags: ["Universe"]
+      
+  /universe/graph:
+    get:
+      summary: "Get Universe graph with 4 pillars"
+      tags: ["Universe"]
+
+  # Packs
+  /packs/list:
+    get:
+      summary: "List available packs"
+      tags: ["Packs"]
+      
+  /packs/architect:
+    post:
+      summary: "Run architect pack"
+      tags: ["Packs"]
+      
+  /packs/codegen:
+    post:
+      summary: "Run codegen pack"
+      tags: ["Packs"]
+
+  # Reality Events
+  /api/v1/reality-events/webhook/sensor:
+    post:
+      summary: "Receive IoT sensor event"
+      tags: ["Reality Events"]

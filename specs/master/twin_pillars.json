@@ -1,0 +1,30 @@
+{
+  "pillars": {
+    "information": {
+      "description": "Facts, states, events from reality",
+      "sources": ["sensors", "webhooks", "user_actions", "system_logs"],
+      "data_level": "L0 → L1",
+      "layer_mapping": "3_worlds"
+    },
+    "context": {
+      "description": "Relationships, structure, time between information",
+      "operations": ["graph_building", "pattern_detection", "relationship_mapping"],
+      "data_level": "L1 → L2",
+      "layer_mapping": "2_sovereign + 3_worlds"
+    },
+    "intent": {
+      "description": "Goals, policies, strategies to achieve",
+      "sources": ["pack_definitions", "user_preferences", "system_policies"],
+      "data_level": "Pack goals",
+      "layer_mapping": "1_identity + 4_packs"
+    },
+    "impact": {
+      "description": "Results, effects, feedback on the world",
+      "metrics": ["success_rate", "efficiency", "retention", "growth"],
+      "data_level": "L3",
+      "layer_mapping": "4_packs + universe"
+    }
+  },
+  "loop": "Information → Context → Intent → Impact → Information",
+  "version": "1.0.0"
+}

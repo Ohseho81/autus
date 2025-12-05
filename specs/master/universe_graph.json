@@ -1,0 +1,20 @@
+{
+  "universe": {
+    "description": "Network of all Twins, Packs, and Identities",
+    "node_types": ["identity", "city", "school", "factory", "pack", "event"],
+    "edge_types": ["belongs_to", "executes", "impacts", "connects"],
+    "metrics": {
+      "total_nodes": "dynamic",
+      "total_edges": "dynamic",
+      "connectivity": "0-1 score",
+      "health": "0-1 score"
+    }
+  },
+  "layers_in_universe": {
+    "1_identity": {"role": "Who drives change", "pillar": "intent"},
+    "2_sovereign": {"role": "What values guide", "pillar": "context + intent"},
+    "3_worlds": {"role": "Where action happens", "pillar": "information + context"},
+    "4_packs": {"role": "How action executes", "pillar": "intent + impact"}
+  },
+  "version": "1.0.0"
+}

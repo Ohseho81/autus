@@ -1,0 +1,43 @@
+# AUTUS Data Flow Specification
+
+data_levels:
+  L0_raw:
+    description: "Immediately deleted, never transmitted"
+    location: "Device memory only"
+    retention: "0 seconds"
+    
+  L1_processed:
+    description: "First-stage local processing"
+    location: "Sovereign Memory"
+    retention: "User controlled"
+    
+  L2_summary:
+    description: "Aggregated/anonymized statistics"
+    location: "User-controlled storage"
+    retention: "User controlled"
+    
+  L3_impact:
+    description: "Final metrics for Universe"
+    location: "AUTUS receives"
+    retention: "For prediction only"
+
+flow:
+  - source: "IoT/Sensors"
+    target: "L0_raw"
+    action: "ingest"
+    
+  - source: "L0_raw"
+    target: "L1_processed"
+    action: "transform + delete_raw"
+    
+  - source: "L1_processed"
+    target: "L2_summary"
+    action: "aggregate"
+    
+  - source: "L2_summary"
+    target: "L3_impact"
+    action: "calculate_impact"
+    
+  - source: "L3_impact"
+    target: "Universe"
+    action: "update_graph"
