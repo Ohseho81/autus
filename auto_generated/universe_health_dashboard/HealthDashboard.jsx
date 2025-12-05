@@ -1,0 +1,1 @@
+{'pack': 'codegen_pack', 'results': {'code': '{"cell": "generate_code", "status": "mock"}', 'validation': '{"cell": "validate_syntax", "status": "mock"}'}, 'status': 'success', 'mode': 'mock'}
