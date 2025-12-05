@@ -1,30 +1,220 @@
 {
+  "name": "AUTUS Digital Twin Four Pillars",
+  "version": "1.0.0",
+  "description": "Information-Context-Intent-Impact 정의",
+  
   "pillars": {
     "information": {
-      "description": "Facts, states, events from reality",
-      "sources": ["sensors", "webhooks", "user_actions", "system_logs"],
+      "id": 1,
+      "name": "Information",
+      "name_ko": "정보",
+      "icon": "📊",
+      "color": "#4fc3f7",
+      "definition": {
+        "en": "Facts, states, events collected from reality",
+        "ko": "현실에서 수집되는 모든 상태·이벤트·속성 값"
+      },
+      "question": "What is happening?",
+      "layer_mapping": "3_worlds",
+      "sources": ["Tesla", "Palantir"],
+      "components": {
+        "nodes": {
+          "description": "Entity instances",
+          "examples": ["User", "City", "Pack", "Event"]
+        },
+        "attributes": {
+          "description": "Node properties",
+          "examples": ["population", "status", "timestamp"]
+        },
+        "events": {
+          "description": "State changes",
+          "examples": ["user_action", "pack_execution", "workflow_transition"]
+        }
+      },
       "data_level": "L0 → L1",
-      "layer_mapping": "3_worlds"
+      "processing": {
+        "method": "Reality Event Compression",
+        "source": "Tesla",
+        "compression_ratio": 0.90,
+        "windows": ["1s", "5s", "30s"]
+      }
     },
+    
     "context": {
-      "description": "Relationships, structure, time between information",
-      "operations": ["graph_building", "pattern_detection", "relationship_mapping"],
-      "data_level": "L1 → L2",
-      "layer_mapping": "2_sovereign + 3_worlds"
+      "id": 2,
+      "name": "Context",
+      "name_ko": "맥락",
+      "icon": "🔗",
+      "color": "#81c784",
+      "definition": {
+        "en": "Relationships, structure, time between information",
+        "ko": "정보 간의 관계, 시간, 구조를 형성하는 그래프"
+      },
+      "question": "How are things connected?",
+      "layer_mapping": "2_sovereign + 3_worlds",
+      "sources": ["Palantir", "Apple"],
+      "components": {
+        "edges": {
+          "description": "Relationships between nodes",
+          "types": ["influence", "affects", "depends_on", "produces"]
+        },
+        "temporal": {
+          "description": "Time-based relationships",
+          "features": ["sequence", "duration", "frequency"]
+        },
+        "ontology": {
+          "description": "Schema enforcement",
+          "source": "Palantir"
+        }
+      },
+      "data_level": "L1",
+      "processing": {
+        "method": "Context Graph Model",
+        "source": "Palantir",
+        "query_time_ms": 50,
+        "consistency_rate": 1.0
+      }
     },
+    
     "intent": {
-      "description": "Goals, policies, strategies to achieve",
-      "sources": ["pack_definitions", "user_preferences", "system_policies"],
-      "data_level": "Pack goals",
-      "layer_mapping": "1_identity + 4_packs"
+      "id": 3,
+      "name": "Intent",
+      "name_ko": "의도",
+      "icon": "🎯",
+      "color": "#ffb74d",
+      "definition": {
+        "en": "Goals, policies, strategies to achieve",
+        "ko": "팩·사용자·도시가 달성하려는 목표와 정책"
+      },
+      "question": "What do we want to achieve?",
+      "layer_mapping": "1_identity + 4_packs",
+      "sources": ["Arendt", "OpenAI"],
+      "components": {
+        "goals": {
+          "description": "Desired outcomes",
+          "examples": ["retention", "growth", "efficiency"]
+        },
+        "policies": {
+          "description": "Rules and constraints",
+          "examples": ["privacy_policy", "consent_rules", "data_handling"]
+        },
+        "strategies": {
+          "description": "Action plans",
+          "examples": ["pack_sequence", "workflow_design", "resource_allocation"]
+        }
+      },
+      "data_level": "L1 → L2",
+      "processing": {
+        "method": "Intention Vector",
+        "source": "Arendt",
+        "update_trigger": "pack_execution"
+      },
+      "philosophy": {
+        "arendt": "Identity as Action - Pack 실행이 정체성에 반영됨"
+      }
     },
+    
     "impact": {
-      "description": "Results, effects, feedback on the world",
-      "metrics": ["success_rate", "efficiency", "retention", "growth"],
-      "data_level": "L3",
-      "layer_mapping": "4_packs + universe"
+      "id": 4,
+      "name": "Impact",
+      "name_ko": "영향",
+      "icon": "💥",
+      "color": "#e57373",
+      "definition": {
+        "en": "Results, effects, feedback on the world",
+        "ko": "행동이 세계에 미치는 파급효과와 결과 지표"
+      },
+      "question": "What changed?",
+      "layer_mapping": "4_packs + universe",
+      "sources": ["ByteDance", "Luhmann", "Deutsch"],
+      "components": {
+        "metrics": {
+          "description": "Measurable outcomes",
+          "examples": ["retention_rate", "talent_growth", "efficiency_score"]
+        },
+        "feedback": {
+          "description": "System responses",
+          "examples": ["model_update", "ranking_change", "recommendation_shift"]
+        },
+        "predictions": {
+          "description": "Future projections",
+          "examples": ["expected_impact", "risk_assessment", "opportunity_score"]
+        }
+      },
+      "data_level": "L2 → L3",
+      "processing": {
+        "method": "Impact Prediction Engine",
+        "source": "ByteDance",
+        "ranking_latency_ms": 30,
+        "update_interval": "1min"
+      },
+      "philosophy": {
+        "luhmann": "System Recursion - Impact가 다음 Intent 재조정에 사용됨",
+        "deutsch": "Knowledge Growth - 미래 예측 정확도 증가가 핵심 지표"
+      }
     }
   },
-  "loop": "Information → Context → Intent → Impact → Information",
-  "version": "1.0.0"
+  
+  "loop": {
+    "sequence": ["information", "context", "intent", "impact"],
+    "description": "Information → Context → Intent → Impact → Information ...",
+    "cycle_time": "continuous",
+    "feedback": {
+      "source": "impact",
+      "target": "intent",
+      "mechanism": "System Recursion (Luhmann)"
+    }
+  },
+  
+  "layer_integration": {
+    "1_identity": {
+      "pillars": ["intent"],
+      "question": "Who am I?",
+      "file": "protocols/auth/zero_auth.py"
+    },
+    "2_sovereign": {
+      "pillars": ["context", "intent"],
+      "question": "What do I value?",
+      "file": "protocols/memory/local_memory.py"
+    },
+    "3_worlds": {
+      "pillars": ["information", "context"],
+      "question": "Where do I belong?",
+      "file": "main.py"
+    },
+    "4_packs": {
+      "pillars": ["intent", "impact"],
+      "question": "How do I act?",
+      "file": "core/pack/runner.py"
+    },
+    "universe": {
+      "pillars": ["impact"],
+      "question": "What am I changing?",
+      "endpoint": "/universe/overview"
+    }
+  },
+  
+  "api_endpoints": {
+    "information": [
+      "POST /events/ingest",
+      "POST /events/compress",
+      "GET /graph/query"
+    ],
+    "context": [
+      "POST /graph/node/add",
+      "POST /graph/edge/add",
+      "POST /graph/ontology/validate"
+    ],
+    "intent": [
+      "POST /identity/update-intention",
+      "GET /twin/auth/identity",
+      "POST /packs/execute"
+    ],
+    "impact": [
+      "POST /impact/predict",
+      "POST /impact/update",
+      "GET /impact/ranking",
+      "POST /universe/feedback-loop"
+    ]
+  }
 }

@@ -1,69 +1,475 @@
-# AUTUS API Schema
-
-openapi: "3.0.0"
+openapi: 3.0.0
 info:
-  title: "AUTUS OS API"
-  version: "1.0.0"
-  description: "Personal AI Operating System"
+  title: AUTUS OS Master API
+  description: |
+    AUTUS Personal Operating System API
+    
+    ## Architecture: 1-2-3-4-Universe
+    - Layer 1: Identity (Zero Auth)
+    - Layer 2: Sovereign Memory
+    - Layer 3: Twin Worlds
+    - Layer 4: Pack Engine
+    - Layer U: Universe
+    
+    ## Four Pillars
+    - Information: Facts from reality
+    - Context: Relationships and structure
+    - Intent: Goals and policies
+    - Impact: Results and feedback
+  version: 1.0.0
+  contact:
+    name: AUTUS Team
+
+servers:
+  - url: http://127.0.0.1:8003
+    description: Local Development
+
+tags:
+  - name: Identity
+    description: Layer 1 - Zero Auth (Who am I?)
+  - name: Sovereign
+    description: Layer 2 - Local Memory (What do I value?)
+  - name: Worlds
+    description: Layer 3 - Twin Worlds (Where do I belong?)
+  - name: Packs
+    description: Layer 4 - Pack Engine (How do I act?)
+  - name: Universe
+    description: Layer U - Universe (What am I changing?)
+  - name: Graph
+    description: Context Graph (Palantir)
+  - name: Events
+    description: Reality Events (Tesla)
+  - name: Impact
+    description: Impact Prediction (ByteDance)
 
 paths:
-  # Identity
+  # ========== LAYER 1: IDENTITY ==========
   /twin/auth/identity:
     get:
-      summary: "Generate Zero Identity"
-      tags: ["Identity"]
-      
+      tags: [Identity]
+      summary: Generate new Zero Identity
+      description: Creates a new identity with Zero ID and 3D coordinates
+      responses:
+        '200':
+          description: New identity generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+
+  /twin/auth/qr:
+    get:
+      tags: [Identity]
+      summary: Generate QR sync data
+      responses:
+        '200':
+          description: QR data for device sync
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  zero_id: { type: string }
+                  qr_data: { type: string }
+                  expires_in: { type: string }
+
   /twin/auth/qr-image:
     get:
-      summary: "Generate QR for device sync"
-      tags: ["Identity"]
+      tags: [Identity]
+      summary: Generate QR code image
+      responses:
+        '200':
+          description: QR code as base64 image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  zero_id: { type: string }
+                  qr_image: { type: string, format: base64 }
 
-  # Memory
+  /identity/update-intention:
+    post:
+      tags: [Identity]
+      summary: Update intention vector (Arendt)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action_type: { type: string }
+                pack_id: { type: string }
+      responses:
+        '200':
+          description: Intention updated
+
+  # ========== LAYER 2: SOVEREIGN ==========
   /twin/memory/summary:
     get:
-      summary: "Get Sovereign Memory summary"
-      tags: ["Memory"]
+      tags: [Sovereign]
+      summary: Get local memory summary
+      responses:
+        '200':
+          description: Memory summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemorySummary'
 
-  # Twin
+  /twin/memory/preference:
+    post:
+      tags: [Sovereign]
+      summary: Set a preference (local only)
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema: { type: string }
+        - name: value
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Preference saved
+
+  /sovereign/local/process:
+    post:
+      tags: [Sovereign]
+      summary: Process data locally
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                raw_data: { type: object }
+                process_type: { type: string }
+      responses:
+        '200':
+          description: Data processed locally
+
+  /sovereign/privacy/status:
+    get:
+      tags: [Sovereign]
+      summary: Get privacy status
+      responses:
+        '200':
+          description: Privacy and consent status
+
+  # ========== LAYER 3: WORLDS ==========
   /twin/overview:
     get:
-      summary: "Get Twin overview"
-      tags: ["Twin"]
-      
-  /twin/definition:
-    get:
-      summary: "Get Twin 4-Pillar definition"
-      tags: ["Twin"]
+      tags: [Worlds]
+      summary: Get Twin overview
+      responses:
+        '200':
+          description: Twin overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TwinOverview'
 
-  # Universe
-  /universe/overview:
+  /twin/city/{city_id}:
     get:
-      summary: "Get 1-2-3-4-Universe overview"
-      tags: ["Universe"]
-      
-  /universe/graph:
-    get:
-      summary: "Get Universe graph with 4 pillars"
-      tags: ["Universe"]
+      tags: [Worlds]
+      summary: Get city details
+      parameters:
+        - name: city_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: City details
 
-  # Packs
+  /twin/graph/summary:
+    get:
+      tags: [Worlds]
+      summary: Get graph summary
+      responses:
+        '200':
+          description: Graph summary with node distribution
+
+  # ========== LAYER 4: PACKS ==========
+  /twin/packs:
+    get:
+      tags: [Packs]
+      summary: Get all packs
+      responses:
+        '200':
+          description: List of packs
+
+  /twin/packs/{pack_id}:
+    get:
+      tags: [Packs]
+      summary: Get pack details
+      parameters:
+        - name: pack_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Pack details
+
   /packs/list:
     get:
-      summary: "List available packs"
-      tags: ["Packs"]
-      
+      tags: [Packs]
+      summary: List available packs from Pack Engine
+      responses:
+        '200':
+          description: Available packs
+
+  /packs/execute:
+    post:
+      tags: [Packs]
+      summary: Execute a pack
+      parameters:
+        - name: pack_name
+          in: query
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inputs: { type: object }
+      responses:
+        '200':
+          description: Pack execution result
+
   /packs/architect:
     post:
-      summary: "Run architect pack"
-      tags: ["Packs"]
-      
+      tags: [Packs]
+      summary: Run architect_pack
+      parameters:
+        - name: feature_description
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Architecture output
+
   /packs/codegen:
     post:
-      summary: "Run codegen pack"
-      tags: ["Packs"]
+      tags: [Packs]
+      summary: Run codegen_pack
+      parameters:
+        - name: file_path
+          in: query
+          required: true
+          schema: { type: string }
+        - name: purpose
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Generated code
 
-  # Reality Events
-  /api/v1/reality-events/webhook/sensor:
+  # ========== LAYER U: UNIVERSE ==========
+  /universe/overview:
+    get:
+      tags: [Universe]
+      summary: Get 1-2-3-4-Universe overview
+      responses:
+        '200':
+          description: Complete universe overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniverseOverview'
+
+  /universe/graph:
+    get:
+      tags: [Universe]
+      summary: Get universe graph by pillars
+      responses:
+        '200':
+          description: Graph structured by Information-Context-Intent-Impact
+
+  /universe/feedback-loop:
     post:
-      summary: "Receive IoT sensor event"
-      tags: ["Reality Events"]
+      tags: [Universe]
+      summary: Trigger feedback loop (Luhmann)
+      responses:
+        '200':
+          description: Feedback processed
+
+  /twin/definition:
+    get:
+      tags: [Universe]
+      summary: Get Twin Definition (Four Pillars)
+      responses:
+        '200':
+          description: Information-Context-Intent-Impact definition
+
+  # ========== GRAPH (Palantir) ==========
+  /graph/node/add:
+    post:
+      tags: [Graph]
+      summary: Add node to graph
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: { type: string, enum: [User, City, Pack, Workflow, Event] }
+                properties: { type: object }
+      responses:
+        '200':
+          description: Node added
+
+  /graph/edge/add:
+    post:
+      tags: [Graph]
+      summary: Add edge to graph
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from_id: { type: string }
+                to_id: { type: string }
+                edge_type: { type: string }
+      responses:
+        '200':
+          description: Edge added
+
+  /graph/query:
+    post:
+      tags: [Graph]
+      summary: Query the graph
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query: { type: string }
+      responses:
+        '200':
+          description: Query results
+
+  # ========== EVENTS (Tesla) ==========
+  /events/ingest:
+    post:
+      tags: [Events]
+      summary: Ingest raw event
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_type: { type: string }
+                payload: { type: object }
+                timestamp: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Event ingested
+
+  /events/compress:
+    post:
+      tags: [Events]
+      summary: Compress events
+      responses:
+        '200':
+          description: Compressed vector
+
+  # ========== IMPACT (ByteDance) ==========
+  /impact/predict:
+    post:
+      tags: [Impact]
+      summary: Predict impact
+      responses:
+        '200':
+          description: Predictions
+
+  /impact/ranking:
+    get:
+      tags: [Impact]
+      summary: Get ranked recommendations
+      responses:
+        '200':
+          description: Ranked items
+
+  /impact/improvement-score:
+    get:
+      tags: [Impact]
+      summary: Get improvement score (Deutsch)
+      responses:
+        '200':
+          description: Knowledge improvement metrics
+
+components:
+  schemas:
+    Identity:
+      type: object
+      properties:
+        zero_id:
+          type: string
+          example: "ZzdYfGcLhSmeSBu9cH4J5TA"
+        coordinates_3d:
+          type: object
+          properties:
+            x: { type: number }
+            y: { type: number }
+            z: { type: number }
+        auth_type:
+          type: string
+          example: "zero_auth"
+        requires_login:
+          type: boolean
+          example: false
+        requires_email:
+          type: boolean
+          example: false
+
+    MemorySummary:
+      type: object
+      properties:
+        version: { type: string }
+        preferences_count: { type: integer }
+        patterns_count: { type: integer }
+        workflows_count: { type: integer }
+        sovereign:
+          type: object
+          properties:
+            data_policy: { type: string }
+            consent: { type: array, items: { type: object } }
+
+    TwinOverview:
+      type: object
+      properties:
+        city_count: { type: integer }
+        talent_total: { type: integer }
+        active_packs: { type: integer }
+        retention_avg: { type: number }
+        global_risk: { type: number }
+        top_cities: { type: array, items: { type: object } }
+
+    UniverseOverview:
+      type: object
+      properties:
+        layers:
+          type: object
+          properties:
+            1_identity: { type: object }
+            2_sovereign: { type: object }
+            3_worlds: { type: object }
+            4_packs: { type: object }
+        universe:
+          type: object
+          properties:
+            nodes: { type: integer }
+            edges: { type: integer }
+            connectivity: { type: number }
+        model: { type: string, example: "1-2-3-4-Universe" }
