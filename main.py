@@ -1,10 +1,19 @@
 from typing import List, Dict, Any, Optional
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from standard import WorkflowGraph
 
 app = FastAPI(title="Autus Twin Dev")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 간단 헬스체크
 @app.get("/health")
