@@ -7,17 +7,23 @@ const API_URL = 'http://127.0.0.1:8003'
 function App() {
   const [overview, setOverview] = useState(null)
   const [graph, setGraph] = useState(null)
+  const [identity, setIdentity] = useState(null)
+  const [memory, setMemory] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [overviewRes, graphRes] = await Promise.all([
+        const [overviewRes, graphRes, identityRes, memoryRes] = await Promise.all([
           axios.get(`${API_URL}/twin/overview`),
-          axios.get(`${API_URL}/twin/graph/summary`)
+          axios.get(`${API_URL}/twin/graph/summary`),
+          axios.get(`${API_URL}/twin/auth/identity`),
+          axios.get(`${API_URL}/twin/memory/summary`)
         ])
         setOverview(overviewRes.data)
         setGraph(graphRes.data)
+        setIdentity(identityRes.data)
+        setMemory(memoryRes.data)
       } catch (error) {
         console.error('API Error:', error)
       } finally {
@@ -37,6 +43,73 @@ function App() {
       </header>
 
       <div className="dashboard">
+        {/* Identity Card - Article I */}
+        <div className="card identity-card">
+          <h2>🔐 Zero Identity</h2>
+          {identity && (
+            <>
+              <div className="zero-id">
+                <span className="label">Zero ID</span>
+                <span className="value">{identity.zero_id}</span>
+              </div>
+              <div className="coordinates">
+                <h3>3D Coordinates</h3>
+                <div className="coord-grid">
+                  <div className="coord">
+                    <span className="axis">X</span>
+                    <span className="val">{identity.coordinates_3d.x.toFixed(3)}</span>
+                  </div>
+                  <div className="coord">
+                    <span className="axis">Y</span>
+                    <span className="val">{identity.coordinates_3d.y.toFixed(3)}</span>
+                  </div>
+                  <div className="coord">
+                    <span className="axis">Z</span>
+                    <span className="val">{identity.coordinates_3d.z.toFixed(3)}</span>
+                  </div>
+                </div>
+                {/* 3D Visual */}
+                <div className="identity-visual" style={{
+                  background: `radial-gradient(circle at ${50 + identity.coordinates_3d.x * 30}% ${50 + identity.coordinates_3d.y * 30}%, 
+                    hsl(${(identity.coordinates_3d.z + 1) * 180}, 70%, 50%), 
+                    hsl(${(identity.coordinates_3d.x + 1) * 180}, 60%, 30%))`
+                }}>
+                  <div className="identity-core"></div>
+                </div>
+              </div>
+              <div className="privacy-badges">
+                <span className="badge">🚫 No Login</span>
+                <span className="badge">🚫 No Email</span>
+                <span className="badge">✅ Local Only</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Memory Card - Article II */}
+        <div className="card">
+          <h2>🧠 Local Memory</h2>
+          {memory && (
+            <div className="stats">
+              <div className="stat">
+                <span className="value">{memory.preferences_count}</span>
+                <span className="label">Preferences</span>
+              </div>
+              <div className="stat">
+                <span className="value">{memory.patterns_count}</span>
+                <span className="label">Patterns</span>
+              </div>
+              <div className="stat">
+                <span className="value">{memory.workflows_count}</span>
+                <span className="label">Workflows</span>
+              </div>
+            </div>
+          )}
+          <div className="privacy-note">
+            🔒 {memory?.sovereign?.data_policy || 'local_only'}
+          </div>
+        </div>
+
         {/* Overview Card */}
         <div className="card">
           <h2>📊 Overview</h2>
@@ -108,6 +181,7 @@ function App() {
 
       <footer>
         <p>Zero Identity • Privacy by Architecture • Meta-Circular Development</p>
+        <p className="version">AUTUS Protocol v1.0.0</p>
       </footer>
     </div>
   )
