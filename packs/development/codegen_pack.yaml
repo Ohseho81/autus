@@ -1,0 +1,46 @@
+name: codegen_pack
+version: 1.0.0
+description: Generate Python code from specifications
+
+metadata:
+  category: development
+  requires_llm: true
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  temperature: 0.2
+  max_tokens: 8000
+
+cells:
+  - name: generate_code
+    prompt: |
+      Generate Python code for:
+      
+      File: {file_path}
+      Purpose: {purpose}
+      
+      Requirements:
+      - Clean, documented code
+      - Type hints
+      - Docstrings
+      - Error handling
+      
+      Return only the Python code, no explanations.
+    output: code
+
+  - name: validate_syntax
+    prompt: |
+      Check this Python code for syntax errors:
+      
+      {code}
+      
+      Return JSON: {"valid": true/false, "errors": [...]}
+    input: code
+    output: validation
+
+actions:
+  - type: write_file
+    path: "{file_path}"
+    content: "{code}"
+    create_dirs: true

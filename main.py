@@ -479,3 +479,47 @@ async def get_universe_graph():
         "total_edges": 3,
         "health": 0.90
     }
+
+# ===== Pack Engine API =====
+
+import sys
+sys.path.insert(0, '.')
+from core.pack.runner import PackRunner
+
+pack_runner = PackRunner()
+
+@app.get("/packs/list")
+async def list_packs():
+    """List available packs"""
+    return {
+        "packs": pack_runner.list_packs(),
+        "count": len(pack_runner.list_packs())
+    }
+
+@app.post("/packs/execute")
+async def execute_pack(pack_name: str, inputs: dict):
+    """Execute a pack with given inputs"""
+    try:
+        result = pack_runner.execute_pack(pack_name, inputs)
+        return result
+    except FileNotFoundError as e:
+        return {"error": str(e), "status": "failed"}
+    except Exception as e:
+        return {"error": str(e), "status": "failed"}
+
+@app.post("/packs/architect")
+async def run_architect(feature_description: str):
+    """Quick endpoint to run architect_pack"""
+    result = pack_runner.execute_pack("architect_pack", {
+        "feature_description": feature_description
+    })
+    return result
+
+@app.post("/packs/codegen")
+async def run_codegen(file_path: str, purpose: str):
+    """Quick endpoint to run codegen_pack"""
+    result = pack_runner.execute_pack("codegen_pack", {
+        "file_path": file_path,
+        "purpose": purpose
+    })
+    return result

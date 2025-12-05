@@ -178,3 +178,4 @@ if __name__ == "__main__":
     print("   - No server authentication")
     print("   - Seed never leaves device (except QR sync)")
 
+
