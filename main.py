@@ -348,5 +348,45 @@ async def get_protocols_status():
             "packs": {"article": "III", "status": "active", "type": "meta-circular"}
         },
         "constitution_compliance": "100%",
-        "total_endpoints": 15
+        "total_endpoints": 16
+    }
+
+# ===== Universe Layer (1-2-3-4 통합) =====
+
+@app.get("/universe/overview")
+async def get_universe_overview():
+    """Complete 1-2-3-4-Universe overview"""
+    auth = ZeroAuth()
+    memory = LocalMemory()
+    
+    return {
+        "layers": {
+            "1_identity": {
+                "zero_id": auth.zero_id,
+                "coordinates": auth.get_3d_coordinates(),
+                "question": "Who am I?"
+            },
+            "2_sovereign": {
+                "summary": memory.get_summary(),
+                "question": "What do I value?"
+            },
+            "3_worlds": {
+                "cities": ["seoul", "clark", "kathmandu"],
+                "count": 3,
+                "question": "Where do I belong?"
+            },
+            "4_packs": {
+                "active": ["school", "visa", "cmms", "admissions"],
+                "count": 4,
+                "question": "How do I act?"
+            }
+        },
+        "universe": {
+            "nodes": 12,
+            "edges": 18,
+            "connectivity": 0.85,
+            "question": "Who am I connected to, and what am I changing?"
+        },
+        "model": "1-2-3-4-Universe",
+        "philosophy": "Your Personal Operating System"
     }

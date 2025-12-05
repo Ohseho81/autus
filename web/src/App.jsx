@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import Identity3D from './Identity3D'
 import './App.css'
+import Identity3D from './Identity3D'
+import Universe3D from './Universe3D'
 
 const API_URL = 'http://127.0.0.1:8003'
 
@@ -10,22 +11,25 @@ function App() {
   const [graph, setGraph] = useState(null)
   const [identity, setIdentity] = useState(null)
   const [memory, setMemory] = useState(null)
+  const [universe, setUniverse] = useState(null)
   const [qrCode, setQrCode] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [overviewRes, graphRes, identityRes, memoryRes] = await Promise.all([
+        const [overviewRes, graphRes, identityRes, memoryRes, universeRes] = await Promise.all([
           axios.get(`${API_URL}/twin/overview`),
           axios.get(`${API_URL}/twin/graph/summary`),
           axios.get(`${API_URL}/twin/auth/identity`),
-          axios.get(`${API_URL}/twin/memory/summary`)
+          axios.get(`${API_URL}/twin/memory/summary`),
+          axios.get(`${API_URL}/universe/overview`)
         ])
         setOverview(overviewRes.data)
         setGraph(graphRes.data)
         setIdentity(identityRes.data)
         setMemory(memoryRes.data)
+        setUniverse(universeRes.data)
       } catch (error) {
         console.error('API Error:', error)
       } finally {
@@ -44,19 +48,33 @@ function App() {
     }
   }
 
-  if (loading) return <div className="loading">Loading AUTUS Twin...</div>
+  if (loading) return <div className="loading">Loading AUTUS Universe...</div>
 
   return (
     <div className="app">
       <header>
-        <h1>🌐 AUTUS Twin</h1>
-        <p>The Protocol for Personal AI Operating Systems</p>
+        <h1>🌌 AUTUS Universe</h1>
+        <p>Your Personal Operating System • 1-2-3-4-Universe Model</p>
       </header>
 
+      {/* Universe 3D View - Full Width */}
+      <div className="universe-section">
+        <div className="card universe-card">
+          <h2>🌌 Your Universe</h2>
+          <Universe3D data={universe} />
+          <div className="universe-legend">
+            <span>⭐ Identity (You)</span>
+            <span>🪐 Worlds (Cities)</span>
+            <span>🛸 Packs (Actions)</span>
+          </div>
+        </div>
+      </div>
+
       <div className="dashboard">
-        {/* Identity Card - Article I */}
+        {/* Layer 1: Identity Card */}
         <div className="card identity-card">
-          <h2>🔐 Zero Identity</h2>
+          <h2>1️⃣ Identity</h2>
+          <p className="layer-question">Who am I?</p>
           {identity && (
             <>
               <div className="zero-id">
@@ -93,9 +111,10 @@ function App() {
           )}
         </div>
 
-        {/* Memory Card - Article II */}
+        {/* Layer 2: Sovereign Memory Card */}
         <div className="card">
-          <h2>🧠 Local Memory</h2>
+          <h2>2️⃣ Sovereign Memory</h2>
+          <p className="layer-question">What do I value?</p>
           {memory && (
             <div className="stats">
               <div className="stat">
@@ -117,32 +136,53 @@ function App() {
           </div>
         </div>
 
-        {/* Overview Card */}
+        {/* Layer 3: Worlds Card */}
         <div className="card">
-          <h2>📊 Overview</h2>
-          {overview && (
-            <div className="stats">
-              <div className="stat">
-                <span className="value">{overview.city_count}</span>
-                <span className="label">Cities</span>
+          <h2>3️⃣ Twin Worlds</h2>
+          <p className="layer-question">Where do I belong?</p>
+          {universe?.layers?.["3_worlds"] && (
+            <>
+              <div className="stats">
+                <div className="stat">
+                  <span className="value">{universe.layers["3_worlds"].count}</span>
+                  <span className="label">Cities</span>
+                </div>
               </div>
-              <div className="stat">
-                <span className="value">{overview.talent_total}</span>
-                <span className="label">Talents</span>
+              <div className="world-list">
+                {universe.layers["3_worlds"].cities.map(city => (
+                  <div key={city} className="world-item">
+                    🪐 {city}
+                  </div>
+                ))}
               </div>
-              <div className="stat">
-                <span className="value">{overview.active_packs}</span>
-                <span className="label">Active Packs</span>
-              </div>
-              <div className="stat">
-                <span className="value">{(overview.retention_avg * 100).toFixed(0)}%</span>
-                <span className="label">Retention</span>
-              </div>
-            </div>
+            </>
           )}
         </div>
 
-        {/* Graph Card */}
+        {/* Layer 4: Packs Card */}
+        <div className="card">
+          <h2>4️⃣ Pack Engine</h2>
+          <p className="layer-question">How do I act?</p>
+          {universe?.layers?.["4_packs"] && (
+            <>
+              <div className="stats">
+                <div className="stat">
+                  <span className="value">{universe.layers["4_packs"].count}</span>
+                  <span className="label">Active Packs</span>
+                </div>
+              </div>
+              <div className="pack-list">
+                {universe.layers["4_packs"].active.map(pack => (
+                  <div key={pack} className="pack-item">
+                    🛸 {pack}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Graph Summary */}
         <div className="card">
           <h2>🔗 Graph Summary</h2>
           {graph && (
@@ -173,17 +213,6 @@ function App() {
             </>
           )}
         </div>
-
-        {/* Top Cities */}
-        <div className="card">
-          <h2>🏙️ Top Cities</h2>
-          {overview?.top_cities?.map(city => (
-            <div key={city.city_id} className="city-item">
-              <span>{city.city_id}</span>
-              <span className="score">{(city.score * 100).toFixed(0)}%</span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* QR Modal */}
@@ -199,7 +228,7 @@ function App() {
       )}
 
       <footer>
-        <p>Zero Identity • Privacy by Architecture • Meta-Circular Development</p>
+        <p>1️⃣ Identity • 2️⃣ Sovereign • 3️⃣ Worlds • 4️⃣ Packs • 🌌 Universe</p>
         <p className="version">AUTUS Protocol v1.0.0</p>
       </footer>
     </div>

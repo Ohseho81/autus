@@ -285,3 +285,50 @@ footer .version {
   font-size: 0.8rem;
   color: #999;
 }
+
+/* Universe Section */
+.universe-section {
+  margin-bottom: 1.5rem;
+}
+
+.universe-card {
+  grid-column: span 1;
+}
+
+.universe-card h2 {
+  text-align: center;
+}
+
+.universe-legend {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.layer-question {
+  color: #888;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.world-list, .pack-list {
+  margin-top: 1rem;
+}
+
+.world-item, .pack-item {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  text-transform: capitalize;
+}
+
+@media (min-width: 900px) {
+  .universe-card {
+    grid-column: span 2;
+  }
+}
