@@ -120,3 +120,49 @@ Your Personal Operating System - a decision engine for life.
 *AUTUS Protocol v1.0.0*
 
 
+
+---
+
+## Article II: Data Sovereignty (Extended)
+
+### Principle
+**AUTUS never stores raw data. All data is processed locally, and servers receive only summarized 'results' for Twin/Universe prediction.**
+
+### Data Processing Levels
+
+| Level | Name | Description | Location |
+|-------|------|-------------|----------|
+| **L0** | Raw | Immediately deleted, never transmitted | Device only |
+| **L1** | Processed | First-stage local processing | Sovereign Memory |
+| **L2** | Summary | Aggregated/anonymized statistics | User-controlled |
+| **L3** | Impact Metrics | Final metrics for Universe | AUTUS receives |
+
+### What AUTUS Never Receives
+- Original text/files
+- Browser input/history
+- Personal identifiable information
+- OS logs
+- GPS precise location
+- Voice/video/photos
+- External app activity
+
+### Data Collection Sources (5 Legal Paths)
+
+1. **AUTUS App** - Local behavior observation
+2. **Browser Extension** - Domain categories only (with consent)
+3. **OS Signals** - Summarized patterns only (with permission)
+4. **Pack Telemetry** - Execution success/failure metrics
+5. **City/School API** - Aggregated institutional data
+
+### Twin Pillar Mapping
+
+| Pillar | Data Flow Role |
+|--------|----------------|
+| **Information** | L0 → L1 (Reality input summarized) |
+| **Context** | L1 → L2 (Relationships/patterns formed) |
+| **Intent** | Pack goals / User objectives |
+| **Impact** | L3 (Final metrics to Universe) |
+
+### Official Statement
+> "AUTUS는 raw data를 절대 저장하지 않으며, 모든 데이터는 디바이스에서 1차 가공되고, 서버는 요약된 '결과'만 받아 Twin·Universe의 미래 예측에 사용한다."
+
