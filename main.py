@@ -390,3 +390,45 @@ async def get_universe_overview():
         "model": "1-2-3-4-Universe",
         "philosophy": "Your Personal Operating System"
     }
+
+# ===== Twin Definition: Information-Context-Intent-Impact =====
+
+@app.get("/twin/definition")
+async def twin_definition():
+    """Official AUTUS Digital Twin Definition"""
+    return {
+        "twin": "AUTUS Digital Twin",
+        "pillars": ["information", "context", "intent", "impact"],
+        "definition": {
+            "information": {
+                "ko": "현실에서 수집되는 모든 상태·이벤트·속성 값",
+                "en": "All states, events, and attributes collected from reality",
+                "layer": "3_worlds"
+            },
+            "context": {
+                "ko": "정보 간의 관계, 시간, 구조를 형성하는 그래프",
+                "en": "Graph forming relationships, time, and structure between information",
+                "layer": "2_sovereign + 3_worlds"
+            },
+            "intent": {
+                "ko": "팩·사용자·도시가 달성하려는 목표와 정책",
+                "en": "Goals and policies that packs, users, and cities aim to achieve",
+                "layer": "1_identity + 4_packs"
+            },
+            "impact": {
+                "ko": "행동이 세계에 미치는 파급효과와 결과 지표",
+                "en": "Ripple effects and outcome metrics of actions on the world",
+                "layer": "4_packs + universe"
+            }
+        },
+        "loop": "Information → Context → Intent → Impact → Information",
+        "purpose": "정보·맥락·의도·영향의 순환 OS",
+        "mapping": {
+            "1_identity": "intent",
+            "2_sovereign": "context + intent", 
+            "3_worlds": "information + context",
+            "4_packs": "intent + impact",
+            "universe": "impact"
+        },
+        "version": "1.0.0"
+    }
