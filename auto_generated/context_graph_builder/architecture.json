@@ -1,0 +1,8 @@
+{
+  "pack": "architect_pack",
+  "results": {
+    "analysis": "{\"summary\": \"Implement \\nFeature: Context Graph Builder\\nDescription: Palantir-style ontology-based graph construction\\nLayer: 3_worlds\\nPillar: context\\nSource: Palantir\\n\\nRequirements:\\n- Entity types: User, City, Pack, Workflow, Event\\n- Edge types: influence, affects, depends_on, produces\\n- Ontology validation\\n- Query time < 50ms\\n\\nAPI Endpoints:\\n- /graph/node/add\\n- /graph/edge/add\\n- /graph/ontology/validate\\n- /graph/query\\n\\nFiles to generate:\\n- core/graph/builder.py\\n- core/graph/ontology.py\\n- core/graph/query_engine.py\\n\", \"files\": [\"src/feature.py\", \"tests/test_feature.py\"], \"dependencies\": [\"fastapi\"], \"complexity\": \"medium\", \"steps\": [\"1. Design\", \"2. Implement\", \"3. Test\"]}"
+  },
+  "status": "success",
+  "mode": "mock"
+}
