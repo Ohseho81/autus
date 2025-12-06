@@ -2,14 +2,18 @@ from typing import List, Dict, Any, Optional
 import qrcode
 import io
 import base64
+import time
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from standard import WorkflowGraph
 from protocols.memory.local_memory import LocalMemory
 from protocols.auth.zero_auth import ZeroAuth
 from api.routes.devices import router as devices_router
+from api.routes.analytics import router as analytics_router
+from api.logger import log_request
+from api.analytics import analytics
 
 app = FastAPI(title="Autus Twin Dev")
 
@@ -560,3 +564,22 @@ app.include_router(auto_spec_router)
 
 # ===== Device Management API (IoT/MQTT) =====
 app.include_router(devices_router)
+
+# ===== Analytics API =====
+app.include_router(analytics_router)
+
+
+# ===== Logging Middleware =====
+@app.middleware("http")
+async def logging_middleware(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = (time.time() - start) * 1000
+    
+    # Log request
+    log_request(request.method, request.url.path, response.status_code, duration)
+    
+    # Track API call
+    analytics.track_api(request.url.path, request.method)
+    
+    return response
