@@ -47,3 +47,4 @@ def test_analytics_events():
     data = response.json()
     assert "events" in data
 
+

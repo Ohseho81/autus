@@ -134,3 +134,4 @@ class TestRuleEngineSingleton:
         
         assert engine1 is engine2
 
+

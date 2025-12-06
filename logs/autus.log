@@ -1,2 +1,6 @@
 2025-12-06 20:49:57,870 | INFO | GET /god/universe → 422 (0.29ms)
 2025-12-06 20:49:57,871 | INFO | HTTP Request: GET http://testserver/god/universe?role=unauthorized_user "HTTP/1.1 422 Unprocessable Entity"
+2025-12-06 21:09:19,077 | INFO | GET /metrics → 200 (0.85ms)
+2025-12-06 21:09:19,092 | INFO | GET /health → 200 (0.35ms)
+2025-12-06 21:09:22,570 | INFO | GET /metrics → 200 (1.61ms)
+2025-12-06 21:09:22,586 | INFO | GET /health → 200 (0.52ms)

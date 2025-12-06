@@ -90,3 +90,4 @@ export function notifyEvent(type, data = {}) {
   sendLocalNotification(notification.title, notification.body);
 }
 
+

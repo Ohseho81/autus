@@ -188,3 +188,4 @@ class TestTelemetry:
         assert metrics["metrics"]["api.post_requests"] == 50
         assert metrics["metrics"]["api.errors"] == 5
 
+

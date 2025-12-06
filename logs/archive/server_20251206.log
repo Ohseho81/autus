@@ -1188,3 +1188,31 @@ OSError: [Errno 9] Bad file descriptor
 
 Current thread 0x000000020749a200 (most recent call first):
   <no Python frame>
+WARNING:  WatchFiles detected changes in 'test_metrics_route.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'test_metrics_route.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
