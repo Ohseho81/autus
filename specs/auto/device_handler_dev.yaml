@@ -1,0 +1,32 @@
+api_endpoints:
+- POST /devices/register
+- GET /devices/{device_id}
+- POST /devices/{device_id}/events
+auto_generated: true
+description: 'Handler for new device type: dev'
+features:
+- Device registration
+- Event processing
+- Status tracking
+- Data validation
+files:
+- core/devices/handler.py
+- core/devices/registry.py
+generated_at: '2025-12-06T02:10:11.754174+00:00'
+layer: 3_worlds
+metadata:
+  confidence: 0.9
+  need_id: need_device_handler_dev_202512060210
+  pattern_details:
+    device_id: dev_005
+    device_type: dev
+    first_seen: '2025-12-06T02:10:11.749754+00:00'
+name: Device Handler
+pillar: information
+priority: medium
+requirements:
+- Register new devices automatically
+- Process device events
+- Track device status
+- Validate incoming data
+triggered_by: new_device_type

@@ -8,7 +8,7 @@ Article II: Privacy by Architecture
 - Consent is auditable
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from enum import Enum
@@ -156,10 +156,9 @@ class SovereignPacket(BaseModel):
         # In production, would use actual cryptographic verification
         return self.signature.value.startswith(expected_hash[:16])
     
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    model_config = ConfigDict(
+        json_encoders={datetime: lambda v: v.isoformat()}
+    )
 
 
 class SovereignPacketCreate(BaseModel):
