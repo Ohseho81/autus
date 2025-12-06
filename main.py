@@ -938,3 +938,34 @@ async def oracle_health():
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+# ============ AUTUS Oracle Dashboard ============
+try:
+    from api.routes.oracle_dashboard import router as oracle_dashboard_router
+    app.include_router(oracle_dashboard_router, prefix="/api/v1")
+    print("✅ Oracle Dashboard 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Oracle Dashboard 로드 실패: {e}")
+
+# ============ Static Files & Dashboard ============
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from pathlib import Path
+
+# Static 폴더 마운트
+static_path = Path(__file__).parent / "static"
+if static_path.exists():
+    app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+
+@app.get("/dashboard", tags=["Dashboard"])
+async def oracle_dashboard():
+    """Oracle 대시보드 페이지"""
+    dashboard_path = Path(__file__).parent / "static" / "oracle_dashboard.html"
+    if dashboard_path.exists():
+        return FileResponse(str(dashboard_path))
+    return {"error": "Dashboard not found"}
+
+@app.get("/dashboard/oracle", tags=["Dashboard"])
+async def oracle_dashboard_alias():
+    """Oracle 대시보드 (별칭)"""
+    return await oracle_dashboard()
