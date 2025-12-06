@@ -531,3 +531,7 @@ app.include_router(reality_router)
 # ===== Sovereign API (Layer 2) =====
 from api.sovereign import router as sovereign_router
 app.include_router(sovereign_router)
+
+# ===== Sovereign Import API =====
+from api.sovereign_import import router as sovereign_import_router
+app.include_router(sovereign_import_router)
