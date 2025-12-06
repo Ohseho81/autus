@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import './App.css'
+import { requestNotificationPermission, registerServiceWorker } from './utils/notifications'
 
 const API = import.meta.env.VITE_API_URL || "https://autus-production.up.railway.app"
 
@@ -17,6 +18,12 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isLive, setIsLive] = useState(true)
+
+  // Initialize notifications & service worker
+  useEffect(() => {
+    registerServiceWorker();
+    requestNotificationPermission();
+  }, [])
 
   // Health check
   useEffect(() => {
