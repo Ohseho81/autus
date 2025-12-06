@@ -34,12 +34,13 @@ COPY constitution.yaml .
 # 디렉토리 생성
 RUN mkdir -p logs specs/auto
 
-# 포트
-EXPOSE 8003
+# 포트 (Railway uses PORT env)
+ENV PORT=8003
+EXPOSE ${PORT}
 
 # 헬스체크
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8003/health || exit 1
+    CMD curl -f http://localhost:${PORT}/health || exit 1
 
-# 실행
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003"]
+# 실행 (Railway 호환 - PORT 환경변수 사용)
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8003}"]
