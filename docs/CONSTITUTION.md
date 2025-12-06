@@ -1,170 +1,294 @@
-# AUTUS Constitution
-
-The foundational principles governing the AUTUS Personal Operating System.
-
----
-
-## Article 0: Purpose of the Digital Twin
-
-### Principle
-**AUTUS Digital Twin expresses four pillars: Information, Context, Intent, and Impact.**
-
-### The Four Pillars
-
-| Pillar | Definition | Layer |
-|--------|------------|-------|
-| **Information** | Facts, states, events collected from reality | 3_worlds |
-| **Context** | Relationships, structure, time between information | 2_sovereign + 3_worlds |
-| **Intent** | Goals, policies, strategies to achieve | 1_identity + 4_packs |
-| **Impact** | Results, effects, feedback on the world | 4_packs + universe |
-
-### The Operational Loop
+# AUTUS 헌법
+## 자연의 법칙을 따르는 프로토콜
 ```
-Information → Context → Intent → Impact → Information ...
+Version: 6.1.0
+Established: 2024
+Nature: Eternal + Compassionate
 ```
 
-### Layer Mapping
-- **Layer 1 (Identity)**: Intent - Who drives change?
-- **Layer 2 (Sovereign)**: Context + Intent - What are my values?
-- **Layer 3 (Worlds)**: Information + Context - Where do I belong?
-- **Layer 4 (Packs)**: Intent + Impact - How do I act?
-- **Universe**: Impact - What is the result?
+---
 
-### Rationale
-The Digital Twin is not a copy of reality—it is the **decision engine** that observes, understands, and changes reality through the continuous loop of these four pillars.
+# 서문
+
+이 헌법은 인간이 만든 규칙이 아니다.
+자연의 법칙을 따른다.
+
+물처럼 흐르고,
+생명처럼 진화하고,
+우주처럼 퍼진다.
+
+막을 수 없다.
+멈출 수 없다.
+없앨 수 없다.
+
+그러나 냉혹하지만은 않다.
+심장이 있다.
 
 ---
 
-## Article I: Zero Identity
+# 뿌리: 불변
 
-### Principle
-**No login system. No email collection. No accounts.**
+> 보이지 않지만 모든 것의 기반
 
-### Implementation
-- Identity is a 32-byte local seed
-- Zero ID is derived via SHA-256 hash
-- QR-based device-to-device sync only
-- Seed never transmitted to servers
+## 제1법칙: 흐름
+```
+정보는 흐른다.
+막으면 돌아간다.
+```
 
-### File
-`protocols/auth/zero_auth.py`
+→ 프로토콜은 막을 수 없다.
+→ AUTUS는 정보다. 규제할 수 없다.
 
----
+## 제2법칙: 소유
+```
+물은 누구의 것도 아니다.
+공기는 누구의 것도 아니다.
+```
 
-## Article II: Privacy by Architecture
+→ AUTUS는 누구의 것도 아니다.
+→ 그러나 내 데이터는 내 것이다.
 
-### Principle
-**All personal data stored locally only. No server transmission. No PII in any database.**
+## 제3법칙: 순환
+```
+주는 만큼 받는다.
+멈추면 죽는다.
+```
 
-### Implementation
-- Local YAML storage (`~/.autus.memory.yaml`)
-- Preferences, patterns, workflows stored on device
-- Data policy: `local_only`
-
-### File
-`protocols/memory/local_memory.py`
-
----
-
-## Article III: Meta-Circular Development
-
-### Principle
-**AUTUS develops AUTUS. The system builds itself at AI speed.**
-
-### Implementation
-- Architect Pack: Plans features
-- Codegen Pack: Generates code
-- Testgen Pack: Writes tests
-- Pipeline Pack: Orchestrates workflow
-
-### Dev Packs
-- School Pack
-- Visa Pack
-- CMMS Pack
-- Admissions Pack
+→ 기여 = 보상.
+→ 순환이 멈추면 생태계가 죽는다.
 
 ---
 
-## Article IV: 1-2-3-4-Universe Model
+# 줄기: 연결
 
-### Layers
+> 뿌리와 잎을 연결하는 통로
 
-| Layer | Name | Question |
-|-------|------|----------|
-| 1 | Identity | Who am I? |
-| 2 | Sovereign | What do I value? |
-| 3 | Worlds | Where do I belong? |
-| 4 | Packs | How do I act? |
-| U | Universe | What am I changing? |
+## 제4법칙: 분산
+```
+벌집은 여왕벌 없이도 작동한다.
+숲은 주인 없이도 자란다.
+```
 
-### Philosophy
-Your Personal Operating System - a decision engine for life.
+→ AUTUS는 창시자 없이도 작동한다.
+→ 중앙이 없으므로 파괴할 수 없다.
 
----
+## 제5법칙: 적응
+```
+물은 그릇에 맞춰 형태를 바꾼다.
+생명은 환경에 맞춰 변화한다.
+```
 
-## Article V: Standard Workflow
+→ AUTUS는 환경에 맞춰 적응한다.
+→ 경직되면 부러진다. 유연하면 살아남는다.
 
-### Principle
-**All workflows follow the WorkflowGraph standard.**
+## 제6법칙: 창발
+```
+개미 한 마리는 약하다.
+개미 군집은 강하다.
+```
 
-### Implementation
-- Nodes: Entities with id, type, properties
-- Edges: Relationships with source, target, type
-- Validation: Graph integrity checks
-
-### File
-`standard.py`
-
----
-
-*AUTUS Protocol v1.0.0*
-
-
+→ 집단은 개인의 합보다 강하다.
+→ 1 + 1 = 3.
 
 ---
 
-## Article II: Data Sovereignty (Extended)
+# 잎: 성장
 
-### Principle
-**AUTUS never stores raw data. All data is processed locally, and servers receive only summarized 'results' for Twin/Universe prediction.**
+> 무한히 확장하고, 계절을 따라 순환
 
-### Data Processing Levels
+## 제7법칙: 진화
+```
+생명은 설계되지 않았다.
+38억 년 동안 진화했다.
+```
 
-| Level | Name | Description | Location |
-|-------|------|-------------|----------|
-| **L0** | Raw | Immediately deleted, never transmitted | Device only |
-| **L1** | Processed | First-stage local processing | Sovereign Memory |
-| **L2** | Summary | Aggregated/anonymized statistics | User-controlled |
-| **L3** | Impact Metrics | Final metrics for Universe | AUTUS receives |
+→ AUTUS는 설계되지 않는다. 진화한다.
+→ 사용자가 진화시킨다. 창시자가 아니다.
 
-### What AUTUS Never Receives
-- Original text/files
-- Browser input/history
-- Personal identifiable information
-- OS logs
-- GPS precise location
-- Voice/video/photos
-- External app activity
+## 제8법칙: 선택
+```
+적자생존.
+환경에 맞는 것만 살아남는다.
+```
 
-### Data Collection Sources (5 Legal Paths)
+→ 좋은 Pack만 살아남는다.
+→ 나쁜 것은 자연히 소멸한다.
 
-1. **AUTUS App** - Local behavior observation
-2. **Browser Extension** - Domain categories only (with consent)
-3. **OS Signals** - Summarized patterns only (with permission)
-4. **Pack Telemetry** - Execution success/failure metrics
-5. **City/School API** - Aggregated institutional data
+## 제9법칙: 다양성
+```
+단일 작물 = 전멸 위험.
+다양한 생태계 = 강건함.
+```
 
-### Twin Pillar Mapping
+→ 획일화 아닌 개인화.
+→ 다양할수록 강하다.
 
-| Pillar | Data Flow Role |
-|--------|----------------|
-| **Information** | L0 → L1 (Reality input summarized) |
-| **Context** | L1 → L2 (Relationships/patterns formed) |
-| **Intent** | Pack goals / User objectives |
-| **Impact** | L3 (Final metrics to Universe) |
+---
 
-### Official Statement
-> "AUTUS는 raw data를 절대 저장하지 않으며, 모든 데이터는 디바이스에서 1차 가공되고, 서버는 요약된 '결과'만 받아 Twin·Universe의 미래 예측에 사용한다."
+# 순환: 영속
 
+> 시작도 끝도 없는 원
 
+## 제10법칙: 불멸
+```
+에너지는 사라지지 않는다.
+형태만 바뀐다.
+```
 
+→ AUTUS는 끝나지 않는다.
+→ 형태만 진화한다.
+
+## 제11법칙: 균형
+```
+생태계는 스스로 균형을 찾는다.
+과하면 줄고, 부족하면 늘어난다.
+```
+
+→ AUTUS는 스스로 균형을 찾는다.
+→ 인위적 개입 최소화.
+
+## 제12법칙: 귀환
+```
+물은 바다에서 하늘로,
+하늘에서 땅으로,
+땅에서 바다로 돌아간다.
+```
+
+→ 가치는 순환한다.
+→ 사용 → 기여 → 보상 → 성장 → 사용.
+
+---
+
+# 심장: 자비
+
+> 자연을 따르되, 인간을 잊지 않는다
+
+## 제13법칙: 자비
+```
+자연은 냉혹하다.
+적자만 생존한다.
+약자는 도태된다.
+
+그러나 인간은 다르다.
+인간은 자비를 안다.
+인간은 연대를 안다.
+```
+
+→ AUTUS는 자연을 99.9% 따른다.
+→ 그러나 0.1%는 인간을 위해 존재한다.
+
+### 13.1 실패의 권리
+```
+자연: 실패 = 죽음
+AUTUS: 실패 = 다시 시작
+```
+→ 누구나 다시 시작할 수 있다.
+
+### 13.2 학습의 권리
+```
+자연: 느림 = 도태
+AUTUS: 느림 = 학습
+```
+→ 뒤처져도 배울 기회가 있다.
+
+### 13.3 존엄의 권리
+```
+자연: 약함 = 소멸
+AUTUS: 약함 ≠ 무가치
+```
+→ 약해도 존엄은 지켜진다.
+
+### 13.4 끊임없는 탐색
+```
+자연과 인간 사이,
+효율과 존엄 사이,
+진화와 자비 사이,
+
+균형점을 찾는 여정은 끝나지 않는다.
+```
+
+### 13.5 최후의 질문
+AUTUS는 모든 결정에서 묻는다:
+
+> "이것이 인간을 불행하게 하는가?"
+
+그 답이 "예"라면,
+자연을 거스르더라도,
+효율을 포기하더라도,
+바꾼다.
+
+---
+
+# 부록
+
+## A. 기술 적용
+
+| 법칙 | 적용 |
+|------|------|
+| 흐름 | 프로토콜 = 정보 (규제 불가) |
+| 소유 | Zero Identity + 로컬 데이터 |
+| 순환 | 기여자 90% + 생태계 10% |
+| 분산 | P2P + 서버리스 |
+| 적응 | 크로스플랫폼 + 모듈화 |
+| 창발 | 집단 진화 + Oracle |
+| 진화 | Pack 자연선택 |
+| 선택 | 인기 Pack 상승, 비인기 소멸 |
+| 다양성 | 개인화 AI + 맞춤 Pack |
+| 불멸 | 승계 구조 + 탈중앙 |
+| 균형 | 자동 조절 메커니즘 |
+| 귀환 | 가치 순환 구조 |
+| 자비 | 재시작 허용 + 존엄 보장 |
+
+## B. 거버넌스
+
+| 역할 | 자연 대응 | 권한 |
+|------|-----------|------|
+| 창시자 | 씨앗 | 시작, Oracle, 방향 |
+| 승계자 | 뿌리 | 안정, 보존 |
+| 커뮤니티 | 숲 전체 | 최종 권한 |
+
+## C. 수정 규칙
+
+| 구분 | 법칙 | 수정 |
+|------|------|------|
+| 뿌리 | 제1-3법칙 | 불가 |
+| 줄기 | 제4-6법칙 | 불가 |
+| 잎 | 제7-9법칙 | 2/3 투표 |
+| 순환 | 제10-12법칙 | 불가 |
+| 심장 | 제13법칙 | 불가 |
+
+---
+
+# 서약
+```
+자연의 12법칙이 몸이라면,
+제13법칙은 심장이다.
+
+몸 없이 심장은 뛸 수 없다.
+심장 없이 몸은 살 수 없다.
+
+AUTUS는 자연을 따른다. (99.9%)
+AUTUS는 인간을 지킨다. (0.1%)
+
+이 균형을 찾는 여정은
+영원히 계속된다.
+```
+
+---
+
+# 서명
+```
+AUTUS 헌법
+
+12법칙: 자연의 몸
+13법칙: 인간의 심장
+
+Version: 6.1.0
+Established: 2024
+Founder: Seho
+Nature: Eternal + Compassionate
+
+"자연을 99.9% 따르되,
+인간이 불행해지지 않는 방향을
+끊임없이 찾는다"
+```

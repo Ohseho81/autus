@@ -25,7 +25,7 @@ import time
 import json
 from datetime import datetime
 
-from fastapi import FastAPI, WebSocket, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from core.standard import WorkflowGraph
@@ -896,45 +896,3 @@ async def startup_event():
         print("✅ Prometheus metrics available at /metrics")
     except Exception as e:
         print(f"⚠️ Startup warning: {e}")
-
-# ============ AUTUS Oracle Integration ============
-# 헌법 실행: 행정(자동수집) + 사법(자비검증)
-
-try:
-    from api.routes.oracle import router as oracle_router
-    app.include_router(oracle_router, prefix="/api/v1")
-    print("✅ Oracle 라우터 등록 완료")
-except ImportError as e:
-    print(f"⚠️ Oracle 라우터 로드 실패: {e}")
-except Exception as e:
-    print(f"⚠️ Oracle 라우터 등록 실패: {e}")
-
-# ============ 헌법 상태 엔드포인트 ============
-
-@app.get("/constitution", tags=["Constitution"])
-async def constitution_status():
-    """AUTUS 헌법 상태"""
-    return {
-        "version": "6.1.0",
-        "status": "active",
-        "laws": 13,
-        "principle": "자연을 99.9% 따르되, 인간이 불행해지지 않는 방향을 끊임없이 찾는다.",
-        "docs": "/docs/CONSTITUTION.md"
-    }
-
-@app.get("/oracle/health", tags=["Oracle"])
-async def oracle_health():
-    """Oracle 상태 확인"""
-    try:
-        from oracle import collector, selector, evolution, compassion
-        return {
-            "status": "ok",
-            "modules": {
-                "collector": "active",
-                "selector": "active", 
-                "evolution": "active",
-                "compassion": "active"
-            }
-        }
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
