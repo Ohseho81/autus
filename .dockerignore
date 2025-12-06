@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Web build artifacts (use pre-built)
+web/node_modules/
+web/.vite/
+
+# Tests
+tests/
+*.test.py
+
+# Docs
+*.md
+!README.md
+
+# Local dev
+.env.local
+*.db
+
