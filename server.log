@@ -915,3 +915,59 @@ OSError: [Errno 9] Bad file descriptor
 
 Current thread 0x000000020749a200 (most recent call first):
   <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/rate_limiter.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/logger.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'sdk/python/autus_sdk.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/oidc_auth.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/routes/oidc.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/logger.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'tests/test_multi_city.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'tests/test_multi_city.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
