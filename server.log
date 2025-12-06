@@ -971,3 +971,108 @@ OSError: [Errno 9] Bad file descriptor
 
 Current thread 0x000000020749a200 (most recent call first):
   <no Python frame>
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'evolved/task_scheduler.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'tests/test_comprehensive_api.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'tests/test_comprehensive_api.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/websocket.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/routes/ws.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/email_service.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/routes/email.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/routes/v1.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/routes/v2.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in '.venv/lib/python3.14/site-packages/coverage/env.py', '.venv/lib/python3.14/site-packages/coverage/sysmon.py', '.venv/lib/python3.14/site-packages/coverage/sqldata.py', '.venv/lib/python3.14/site-packages/coverage/context.py', '.venv/lib/python3.14/site-packages/coverage/results.py', '.venv/lib/python3.14/site-packages/pytest_cov/engine.py', '.venv/lib/python3.14/site-packages/coverage/__main__.py', '.venv/lib/python3.14/site-packages/coverage/inorout.py', '.venv/lib/python3.14/site-packages/coverage/multiproc.py', '.venv/lib/python3.14/site-packages/coverage/parser.py', '.venv/lib/python3.14/site-packages/coverage/python.py', '.venv/lib/python3.14/site-packages/coverage/pytracer.py', '.venv/lib/python3.14/site-packages/coverage/report_core.py', '.venv/lib/python3.14/site-packages/coverage/version.py', '.venv/lib/python3.14/site-packages/pytest_cov/plugin.py', '.venv/lib/python3.14/site-packages/coverage/xmlreport.py', '.venv/lib/python3.14/site-packages/coverage/lcovreport.py', '.venv/lib/python3.14/site-packages/coverage/misc.py', '.venv/lib/python3.14/site-packages/coverage/data.py', '.venv/lib/python3.14/site-packages/coverage/annotate.py', '.venv/lib/python3.14/site-packages/coverage/tomlconfig.py', '.venv/lib/python3.14/site-packages/coverage/bytecode.py', '.venv/lib/python3.14/site-packages/coverage/execfile.py', '.venv/lib/python3.14/site-packages/coverage/core.py', '.venv/lib/python3.14/site-packages/coverage/disposition.py', '.venv/lib/python3.14/site-packages/coverage/jsonreport.py', '.venv/lib/python3.14/site-packages/coverage/regions.py', '.venv/lib/python3.14/site-packages/coverage/exceptions.py', '.venv/lib/python3.14/site-packages/coverage/control.py', '.venv/lib/python3.14/site-packages/coverage/numbits.py', '.venv/lib/python3.14/site-packages/coverage/templite.py', '.venv/lib/python3.14/site-packages/coverage/html.py', '.venv/lib/python3.14/site-packages/coverage/config.py', '.venv/lib/python3.14/site-packages/coverage/cmdline.py', '.venv/lib/python3.14/site-packages/coverage/debug.py', '.venv/lib/python3.14/site-packages/coverage/plugin_support.py', '.venv/lib/python3.14/site-packages/coverage/__init__.py', '.venv/lib/python3.14/site-packages/coverage/patch.py', '.venv/lib/python3.14/site-packages/coverage/files.py', '.venv/lib/python3.14/site-packages/coverage/phystokens.py', '.venv/lib/python3.14/site-packages/coverage/types.py', '.venv/lib/python3.14/site-packages/coverage/report.py', '.venv/lib/python3.14/site-packages/coverage/plugin.py', '.venv/lib/python3.14/site-packages/coverage/collector.py', '.venv/lib/python3.14/site-packages/pytest_cov/__init__.py', '.venv/lib/python3.14/site-packages/coverage/sqlitedb.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'tests/test_comprehensive_api.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'health_loop.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/rate_limiter.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'tests/test_comprehensive_api.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
