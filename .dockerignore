@@ -1,17 +1,38 @@
-# Git
-.git
-.gitignore
+# Virtual environments
+.venv/
+venv/
+env/
 
-# Python
-__pycache__
+# Python cache
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
-venv/
-.venv/
 *.egg-info/
 .pytest_cache/
+
+# Git
+.git/
+.gitignore
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite3
+
+# Node
+node_modules/
+web/node_modules/
+web/dist/
+
+# Logs
+logs/
+*.log
 
 # IDE
 .vscode/
@@ -19,19 +40,14 @@ venv/
 *.swp
 *.swo
 
-# Web build artifacts (use pre-built)
-web/node_modules/
-web/.vite/
+# OS
+.DS_Store
+Thumbs.db
 
-# Tests
-tests/
-*.test.py
+# Build
+dist/
+build/
+*.egg
 
-# Docs
-*.md
-!README.md
-
-# Local dev
-.env.local
-*.db
-
+# Tests (optional - remove if you want tests in container)
+# tests/

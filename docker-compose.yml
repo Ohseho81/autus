@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  autus:
+  autus-api:
     build: .
-    container_name: autus-server
+    container_name: autus-api
     ports:
       - "8003:8003"
     env_file:
@@ -11,10 +11,9 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     volumes:
-      - ./autus.db:/app/autus.db
       - ./evolved:/app/evolved
       - ./specs:/app/specs
-      - ./governance:/app/governance
+      - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
@@ -22,12 +21,18 @@ services:
       timeout: 10s
       retries: 3
 
-  # Optional: Frontend (uncomment to use)
-  # web:
-  #   build: ./web
-  #   container_name: autus-web
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - autus
-  #   restart: unless-stopped
+  autus-dashboard:
+    build: ./web
+    container_name: autus-dashboard
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://autus-api:8003
+    depends_on:
+      autus-api:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  default:
+    name: autus-network
