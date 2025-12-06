@@ -411,12 +411,31 @@ class TaskScheduler:
         )
         
         try:
-            # Execute the task function
+            # Execute the task function with optional timeout
             if task.timeout:
-                # TODO: Implement proper timeout handling
-                task_result = task.function(*task.args, **task.kwargs)
+                # IMPLEMENTED: Proper timeout handling using asyncio.wait_for
+                import asyncio
+                import functools
+                
+                if asyncio.iscoroutinefunction(task.function):
+                    task_result = await asyncio.wait_for(
+                        task.function(*task.args, **task.kwargs),
+                        timeout=task.timeout
+                    )
+                else:
+                    loop = asyncio.get_event_loop()
+                    task_result = await asyncio.wait_for(
+                        loop.run_in_executor(
+                            None,
+                            functools.partial(task.function, *task.args, **task.kwargs)
+                        ),
+                        timeout=task.timeout
+                    )
             else:
-                task_result = task.function(*task.args, **task.kwargs)
+                if asyncio.iscoroutinefunction(task.function):
+                    task_result = await task.function(*task.args, **task.kwargs)
+                else:
+                    task_result = task.function(*task.args, **task.kwargs)
                 
             end_time = datetime.now()
             result.status = TaskStatus.COMPLETED

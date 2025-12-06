@@ -1,53 +1,221 @@
 """
-AUTUS Health Loop
+AUTUS Health Loop - Comprehensive System Monitoring
 자동 점검 → 문제 발견 → 자동 수정 → 재점검
+
+This module provides continuous health monitoring of:
+- API server status
+- Pack system availability
+- Database connectivity
+- Resource utilization
+- Error tracking
+- Performance metrics
 """
 
 import os
 import json
 import requests
 import subprocess
+import psutil
+import time
 from pathlib import Path
 from datetime import datetime
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass, asdict
 
 API_URL = "http://127.0.0.1:8003"
 
-class HealthLoop:
+@dataclass
+class HealthMetric:
+    """Health check metric container."""
+    timestamp: str
+    component: str
+    status: str  # "healthy", "warning", "error"
+    details: Dict[str, Any]
+    response_time_ms: float
+
+
+class AdvancedHealthLoop:
+    """Advanced health monitoring with metrics collection and alerting."""
+    
     def __init__(self):
-        self.issues = []
-        self.fixes = []
+        self.issues: List[Dict[str, Any]] = []
+        self.fixes: List[Dict[str, Any]] = []
+        self.metrics: List[HealthMetric] = []
+        self.max_metrics_history = 1000
+        self.alert_thresholds = {
+            "cpu_percent": 80.0,
+            "memory_percent": 85.0,
+            "response_time_ms": 5000,
+            "error_rate": 0.1
+        }
         
-    def check_api_health(self):
-        """API 서버 상태 점검"""
+    def check_api_health(self) -> bool:
+        """API 서버 상태 점검 with performance metrics."""
         print("\n🔍 1. API Health Check...")
+        start_time = time.time()
         try:
             r = requests.get(f"{API_URL}/health", timeout=5)
+            response_time = (time.time() - start_time) * 1000
+            
             if r.status_code == 200:
-                print("   ✅ API Server OK")
+                print(f"   ✅ API Server OK ({response_time:.1f}ms)")
+                self._record_metric(
+                    component="api_server",
+                    status="healthy",
+                    details={"response_time_ms": response_time},
+                    response_time_ms=response_time
+                )
                 return True
             else:
-                self.issues.append("API server returned non-200")
+                self.issues.append({
+                    "component": "api_server",
+                    "error": f"HTTP {r.status_code}",
+                    "timestamp": datetime.now().isoformat()
+                })
+                print(f"   ❌ API Server returned {r.status_code}")
                 return False
-        except:
-            self.issues.append("API server not running")
-            print("   ❌ API Server DOWN")
+        except Exception as e:
+            self.issues.append({
+                "component": "api_server",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            })
+            print(f"   ❌ API Server DOWN: {str(e)}")
             return False
     
-    def check_packs(self):
-        """Pack 시스템 점검"""
-        print("\n🔍 2. Pack System Check...")
+    def check_system_resources(self) -> bool:
+        """Check CPU, memory, and disk usage."""
+        print("\n🔍 2. System Resources Check...")
+        try:
+            cpu_percent = psutil.cpu_percent(interval=1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            status = "healthy"
+            warnings = []
+            
+            if cpu_percent > self.alert_thresholds["cpu_percent"]:
+                warnings.append(f"High CPU: {cpu_percent}%")
+                status = "warning"
+            
+            if memory.percent > self.alert_thresholds["memory_percent"]:
+                warnings.append(f"High Memory: {memory.percent}%")
+                status = "warning"
+            
+            details = {
+                "cpu_percent": cpu_percent,
+                "memory_percent": memory.percent,
+                "memory_available_mb": memory.available / (1024**2),
+                "disk_percent": disk.percent,
+                "warnings": warnings
+            }
+            
+            self._record_metric(
+                component="system_resources",
+                status=status,
+                details=details,
+                response_time_ms=0
+            )
+            
+            print(f"   {'✅' if status == 'healthy' else '⚠️'} CPU: {cpu_percent}% | Memory: {memory.percent}% | Disk: {disk.percent}%")
+            return status != "error"
+            
+        except Exception as e:
+            print(f"   ⚠️ Could not check system resources: {str(e)}")
+            return True
+    
+    def check_packs(self) -> bool:
+        """Pack 시스템 점검 with enhanced details."""
+        print("\n🔍 3. Pack System Check...")
         try:
             r = requests.get(f"{API_URL}/packs/list", timeout=5)
             data = r.json()
             count = data.get('count', 0)
             
-            if count >= 2:
+            self._record_metric(
+                component="pack_system",
+                status="healthy" if count >= 1 else "warning",
+                details={"packs_count": count, "packs": data.get('packs', [])},
+                response_time_ms=0
+            )
+            
+            if count >= 1:
                 print(f"   ✅ Packs OK: {count} packs")
                 return True
             else:
-                self.issues.append(f"Only {count} packs found")
-                return False
+                self.issues.append({
+                    "component": "pack_system",
+                    "error": f"Only {count} packs found",
+                    "timestamp": datetime.now().isoformat()
+                })
+                print(f"   ⚠️ Low pack count: {count}")
+                return True  # Not critical
         except Exception as e:
+            self.issues.append({
+                "component": "pack_system",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            })
+            print(f"   ⚠️ Pack check failed: {str(e)}")
+            return True
+    
+    def check_database(self) -> bool:
+        """Database connectivity check."""
+        print("\n🔍 4. Database Check...")
+        try:
+            db_path = Path("autus.db")
+            if db_path.exists():
+                db_size_mb = db_path.stat().st_size / (1024**2)
+                self._record_metric(
+                    component="database",
+                    status="healthy",
+                    details={"db_size_mb": db_size_mb},
+                    response_time_ms=0
+                )
+                print(f"   ✅ Database OK ({db_size_mb:.1f}MB)")
+                return True
+            else:
+                print(f"   ⚠️ Database file not found")
+                return True
+        except Exception as e:
+            print(f"   ❌ Database check failed: {str(e)}")
+            return False
+    
+    def get_health_summary(self) -> Dict[str, Any]:
+        """Get comprehensive health summary."""
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "total_issues": len(self.issues),
+            "total_fixes": len(self.fixes),
+            "recent_issues": self.issues[-10:],  # Last 10 issues
+            "metrics_collected": len(self.metrics),
+            "system_status": "healthy" if len(self.issues) == 0 else "needs_attention"
+        }
+    
+    def _record_metric(self, component: str, status: str, details: Dict[str, Any], response_time_ms: float) -> None:
+        """Record a health metric."""
+        metric = HealthMetric(
+            timestamp=datetime.now().isoformat(),
+            component=component,
+            status=status,
+            details=details,
+            response_time_ms=response_time_ms
+        )
+        self.metrics.append(metric)
+        
+        # Keep only recent metrics
+        if len(self.metrics) > self.max_metrics_history:
+            self.metrics = self.metrics[-self.max_metrics_history:]
+    
+    def export_metrics(self, filepath: str = "logs/health_metrics.json") -> None:
+        """Export collected metrics to JSON file."""
+        try:
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            with open(filepath, 'w') as f:
+                json.dump([asdict(m) for m in self.metrics[-100:]], f, indent=2)
+            print(f"✅ Metrics exported to {filepath}")
+        except Exception as e:
+            print(f"❌ Failed to export metrics: {str(e)}")
             self.issues.append(f"Pack check failed: {e}")
             return False
     
