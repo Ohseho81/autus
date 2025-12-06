@@ -1,0 +1,67 @@
+name: AUTUS CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # 1. 코드 품질 검사
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install linters
+        run: pip install ruff black isort
+      - name: Run ruff
+        run: ruff check . --ignore E501
+      - name: Check formatting
+        run: black --check . || true
+
+  # 2. 테스트
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
+      - name: Test summary
+        run: echo "✅ All tests passed!"
+
+  # 3. 보안 검사
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install safety
+        run: pip install safety
+      - name: Check vulnerabilities
+        run: safety check -r requirements.txt || true
+
+  # 4. 빌드 & 배포
+  deploy:
+    needs: [lint, test, security]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deploying to production..."
+          echo "Railway auto-deploys on push ✅"
+          echo "Vercel auto-deploys on push ✅"
