@@ -166,3 +166,5 @@ Your Personal Operating System - a decision engine for life.
 ### Official Statement
 > "AUTUS는 raw data를 절대 저장하지 않으며, 모든 데이터는 디바이스에서 1차 가공되고, 서버는 요약된 '결과'만 받아 Twin·Universe의 미래 예측에 사용한다."
 
+
+
