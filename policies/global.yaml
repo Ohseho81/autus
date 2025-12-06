@@ -1,0 +1,39 @@
+# AUTUS Global Policy
+# Applies to all cities and users
+
+version: "1.0.0"
+scope: global
+effective_date: "2025-12-06"
+
+rules:
+  # Data Management
+  data_retention: 90  # days
+  audit_enabled: true
+  encryption: "aes-256"
+  
+  # Privacy
+  pii_storage: "local_only"
+  consent_required: true
+  data_portability: true
+  right_to_delete: true
+  
+  # Security
+  session_timeout: 3600  # seconds
+  max_login_attempts: 5
+  require_2fa_admin: true
+  
+  # Performance
+  max_events_per_minute: 1000
+  max_payload_size_kb: 100
+  rate_limit_per_user: 100
+
+compliance:
+  gdpr: true
+  pdpa: true
+  local_regulations: true
+
+monitoring:
+  health_check_interval: 60  # seconds
+  alert_threshold_error_rate: 0.05  # 5%
+  alert_threshold_latency_ms: 500
+

@@ -1,59 +1,10 @@
 features:
-- api_endpoints:
-  - /analytics/summary
-  - /analytics/trends
-  completed_at: '2025-12-06T08:17:29.826375'
-  description: Real-time analytics dashboard for IoT events
-  files:
-  - core/analytics/aggregator.py
-  - core/analytics/detector.py
-  id: F001
-  layer: 3_worlds
-  name: Event Analytics
-  pillar: information
-  priority: 1
-  requirements:
-  - Event aggregation by time
-  - Top events ranking
-  - Anomaly detection alerts
-  status: completed
-- api_endpoints:
-  - /scheduler/jobs
-  - /scheduler/history
-  completed_at: '2025-12-06T08:19:53.279744'
-  description: Schedule packs to run at specific times
-  files:
-  - core/scheduler/cron.py
-  - core/scheduler/queue.py
-  id: F002
-  layer: 4_packs
-  name: Pack Scheduler
-  pillar: intent
-  priority: 2
-  requirements:
-  - Cron-like scheduling
-  - Pack queue management
-  - Execution history
-  status: completed
-- api_endpoints:
-  - /memory/export
-  - /memory/import
-  completed_at: '2025-12-06T08:22:23.970046'
-  description: Sync local memory across devices via QR
-  files:
-  - core/sync/exporter.py
-  - core/sync/importer.py
-  id: F003
-  layer: 2_sovereign
-  name: Memory Sync
-  pillar: context
-  priority: 3
-  requirements:
-  - Encrypted memory export
-  - QR-based transfer
-  - Conflict resolution
-  status: completed
-- completed_at: '2025-12-06T09:09:33.427050'
-  name: prediction_engine
-  spec: specs/prediction_engine.yaml
-  status: completed
+  - name: reality_protocol
+    spec: specs/reality_protocol.yaml
+    status: pending
+  - name: policy_rules_system
+    spec: specs/policy_rules_system.yaml
+    status: pending
+  - name: telemetry_ci
+    spec: specs/telemetry_ci.yaml
+    status: pending

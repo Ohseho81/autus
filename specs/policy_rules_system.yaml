@@ -1,0 +1,23 @@
+name: policy_rules_system
+description: Constitution, policies, and rules YAML system with Rule Engine
+layer: 2_governance
+priority: critical
+
+features:
+  - Constitution YAML loader
+  - Policy YAML loader (global, city-specific)
+  - Rules YAML loader (view_scope, auth_scopes, triggers)
+  - Rule Engine for matching and evaluation
+
+components:
+  - ConstitutionLoader class
+  - PolicyLoader class
+  - RuleEngine class
+
+files:
+  - constitution.yaml
+  - policies/global.yaml
+  - policies/city_clark.yaml
+  - rules/view_scope.yaml
+  - rules/auth_scopes.yaml
+  - protocols/rules/engine.py

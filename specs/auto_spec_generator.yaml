@@ -1,0 +1,48 @@
+name: Auto Spec Generator
+description: Analyze Reality Events and auto-generate feature specs when patterns detected
+layer: 4_meta
+pillar: intent
+priority: critical
+
+features:
+  - Event pattern analysis
+  - Anomaly detection triggers
+  - Auto spec generation from patterns
+  - Auto backlog insertion
+  - Self-evolving system feedback loop
+
+components:
+  - PatternAnalyzer class
+  - NeedDetector class
+  - SpecGenerator class
+  - BacklogManager class
+
+triggers:
+  - "error_rate > 5% → generate monitoring_pack spec"
+  - "new_device_type detected → generate device_handler spec"
+  - "user_request_pattern → generate feature spec"
+  - "performance_degradation → generate optimization spec"
+  - "missing_data_handler → generate data_pipeline spec"
+
+requirements:
+  - Analyze event streams for patterns
+  - Detect anomalies and needs automatically
+  - Generate YAML spec files from detected patterns
+  - Insert specs into backlog with priority
+  - Trigger Evolution Orchestrator when needed
+  - Self-improving: learn from successful evolutions
+
+api_endpoints:
+  - GET /meta/patterns - Current detected patterns
+  - GET /meta/needs - Detected feature needs
+  - POST /meta/analyze - Trigger pattern analysis
+  - POST /meta/generate-spec - Generate spec from pattern
+  - GET /meta/auto-evolution/status - Auto-evolution status
+
+files:
+  - core/meta/pattern_analyzer.py
+  - core/meta/need_detector.py
+  - core/meta/spec_generator.py
+  - core/meta/backlog_manager.py
+  - api/meta.py
+
