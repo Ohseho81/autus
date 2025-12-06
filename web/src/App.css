@@ -592,3 +592,394 @@ body {
   font-size: 0.85rem;
   color: #4fc3f7;
 }
+
+/* ============================================
+   GOD MODE - Universe Overview
+   ============================================ */
+.view-god {
+  animation: fadeIn 0.3s ease;
+}
+
+.god-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.god-header h2 {
+  font-size: 1.2rem;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.god-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.refresh-btn {
+  padding: 0.5rem 1rem;
+  background: #21262d;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+  background: #30363d;
+  color: #fff;
+}
+
+.refresh-btn.active {
+  background: #238636;
+  border-color: #238636;
+  color: #fff;
+}
+
+/* God Stats Grid */
+.god-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.god-stat-card {
+  background: linear-gradient(135deg, #161b22, #21262d);
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #30363d;
+}
+
+.gsc-icon {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.gsc-num {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gsc-label {
+  font-size: 0.7rem;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* God Sections */
+.god-section {
+  background: #161b22;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid #21262d;
+}
+
+.god-section h3 {
+  font-size: 0.95rem;
+  color: #e6edf3;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #21262d;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #21262d;
+}
+
+.section-header h3 {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+/* Evolution Panel */
+.evolution-panel {
+  background: linear-gradient(135deg, #161b22, #1a2332);
+  border: 1px solid #238636;
+}
+
+.evolution-trigger {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #238636, #2ea043);
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.evolution-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(35, 134, 54, 0.4);
+}
+
+.evolution-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.evo-stat {
+  background: #21262d;
+  padding: 0.75rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.es-label {
+  font-size: 0.8rem;
+  color: #8b949e;
+}
+
+.es-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.es-value.enabled {
+  color: #3fb950;
+}
+
+.es-value.disabled {
+  color: #f85149;
+}
+
+/* Telemetry Panel */
+.telemetry-panel {
+  background: linear-gradient(135deg, #161b22, #1a1a2e);
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.tele-card {
+  background: #21262d;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.tc-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #8b949e;
+  margin-bottom: 0.5rem;
+}
+
+.tc-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #4fc3f7;
+}
+
+.tc-value.warning {
+  color: #f85149;
+}
+
+/* Event Feed */
+.event-feed {
+  background: linear-gradient(135deg, #161b22, #1a1a28);
+}
+
+.events-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.event-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: #21262d;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.event-item:hover {
+  background: #30363d;
+}
+
+.event-item.error {
+  border-left: 3px solid #f85149;
+}
+
+.event-item.warning {
+  border-left: 3px solid #d29922;
+}
+
+.event-item.info {
+  border-left: 3px solid #58a6ff;
+}
+
+.ei-time {
+  color: #8b949e;
+  font-family: monospace;
+  font-size: 0.7rem;
+}
+
+.ei-level {
+  font-size: 0.9rem;
+}
+
+.ei-type {
+  flex: 1;
+  color: #e6edf3;
+  font-weight: 500;
+}
+
+.ei-source {
+  color: #8b949e;
+  font-size: 0.75rem;
+}
+
+.no-events {
+  text-align: center;
+  padding: 2rem;
+  color: #8b949e;
+}
+
+/* Constitution Panel */
+.constitution-panel {
+  background: linear-gradient(135deg, #161b22, #1e2a32);
+}
+
+.const-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.const-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #21262d;
+  border-radius: 8px;
+}
+
+.const-item.compliant {
+  border-left: 3px solid #3fb950;
+}
+
+.ci-check {
+  color: #3fb950;
+  font-weight: bold;
+}
+
+.ci-article {
+  flex: 1;
+  font-size: 0.85rem;
+  color: #e6edf3;
+}
+
+.ci-status {
+  font-size: 0.75rem;
+  color: #8b949e;
+}
+
+/* API Panel */
+.api-panel {
+  background: linear-gradient(135deg, #161b22, #1a2028);
+}
+
+.api-count {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #21262d, #30363d);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.api-num {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #58a6ff, #a371f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.api-label {
+  font-size: 0.85rem;
+  color: #8b949e;
+}
+
+.api-categories {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.api-cat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  background: #21262d;
+  border-radius: 6px;
+}
+
+.ac-name {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #79c0ff;
+}
+
+.ac-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8b949e;
+}
+
+/* Scrollbar */
+.events-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.events-list::-webkit-scrollbar-track {
+  background: #21262d;
+  border-radius: 3px;
+}
+
+.events-list::-webkit-scrollbar-thumb {
+  background: #484f58;
+  border-radius: 3px;
+}
+
+.events-list::-webkit-scrollbar-thumb:hover {
+  background: #6e7681;
+}

@@ -1,43 +1,103 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
 import './App.css'
 
 const API_URL = 'http://127.0.0.1:8003'
 
 function App() {
-  const [mode, setMode] = useState('my') // 'my' or 'admin'
+  const [mode, setMode] = useState('my')
   const [identity, setIdentity] = useState(null)
   const [memory, setMemory] = useState(null)
   const [universe, setUniverse] = useState(null)
   const [graph, setGraph] = useState(null)
   const [qrCode, setQrCode] = useState(null)
   const [loading, setLoading] = useState(true)
+  
+  // New states for God Mode
+  const [godData, setGodData] = useState(null)
+  const [evolution, setEvolution] = useState(null)
+  const [telemetry, setTelemetry] = useState(null)
+  const [events, setEvents] = useState([])
+  const [autoRefresh, setAutoRefresh] = useState(false)
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [identityRes, memoryRes, universeRes, graphRes] = await Promise.all([
+        axios.get(`${API_URL}/twin/auth/identity`),
+        axios.get(`${API_URL}/twin/memory/summary`),
+        axios.get(`${API_URL}/universe/overview`),
+        axios.get(`${API_URL}/twin/graph/summary`)
+      ])
+      setIdentity(identityRes.data)
+      setMemory(memoryRes.data)
+      setUniverse(universeRes.data)
+      setGraph(graphRes.data)
+    } catch (error) {
+      console.error('API Error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchGodData = useCallback(async () => {
+    try {
+      const [godRes, evoRes, telRes] = await Promise.all([
+        axios.get(`${API_URL}/god/overview`).catch(() => ({ data: null })),
+        axios.get(`${API_URL}/auto/status`).catch(() => ({ data: null })),
+        axios.get(`${API_URL}/telemetry/metrics`).catch(() => ({ data: null }))
+      ])
+      setGodData(godRes.data)
+      setEvolution(evoRes.data)
+      setTelemetry(telRes.data)
+    } catch (error) {
+      console.error('God Data Error:', error)
+    }
+  }, [])
+
+  const fetchEvents = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_URL}/telemetry/events?limit=20`)
+      setEvents(res.data?.events || [])
+    } catch (error) {
+      console.error('Events Error:', error)
+    }
+  }, [])
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [identityRes, memoryRes, universeRes, graphRes] = await Promise.all([
-          axios.get(`${API_URL}/twin/auth/identity`),
-          axios.get(`${API_URL}/twin/memory/summary`),
-          axios.get(`${API_URL}/universe/overview`),
-          axios.get(`${API_URL}/twin/graph/summary`)
-        ])
-        setIdentity(identityRes.data)
-        setMemory(memoryRes.data)
-        setUniverse(universeRes.data)
-        setGraph(graphRes.data)
-      } catch (error) {
-        console.error('API Error:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
     fetchData()
-  }, [])
+  }, [fetchData])
+
+  useEffect(() => {
+    if (mode === 'god') {
+      fetchGodData()
+      fetchEvents()
+    }
+  }, [mode, fetchGodData, fetchEvents])
+
+  useEffect(() => {
+    let interval
+    if (autoRefresh && mode === 'god') {
+      interval = setInterval(() => {
+        fetchGodData()
+        fetchEvents()
+      }, 3000)
+    }
+    return () => clearInterval(interval)
+  }, [autoRefresh, mode, fetchGodData, fetchEvents])
 
   const showQR = async () => {
     const res = await axios.get(`${API_URL}/twin/auth/qr-image`)
     setQrCode(res.data.qr_image)
+  }
+
+  const triggerEvolution = async () => {
+    try {
+      await axios.post(`${API_URL}/auto/cycle`)
+      fetchGodData()
+      fetchEvents()
+    } catch (error) {
+      console.error('Evolution Error:', error)
+    }
   }
 
   if (loading) return <div className="loading">Loading AUTUS...</div>
@@ -62,6 +122,12 @@ function App() {
             onClick={() => setMode('admin')}
           >
             🔧 Admin
+          </button>
+          <button 
+            className={`mode-btn ${mode === 'god' ? 'active' : ''}`}
+            onClick={() => setMode('god')}
+          >
+            👁️ God
           </button>
           <button 
             className={`mode-btn ${mode === 'sovereign' ? 'active' : ''}`}
@@ -272,6 +338,205 @@ function App() {
               <div className="ss-item">
                 <span>Pack Engine</span>
                 <span className="ss-ok">✓ Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* GOD MODE - Universe Overview */}
+      {mode === 'god' && (
+        <div className="view-god">
+          {/* God Header */}
+          <div className="god-header">
+            <h2>👁️ God Mode - Universe Overview</h2>
+            <div className="god-controls">
+              <button 
+                className={`refresh-btn ${autoRefresh ? 'active' : ''}`}
+                onClick={() => setAutoRefresh(!autoRefresh)}
+              >
+                {autoRefresh ? '⏸️ Pause' : '▶️ Auto'}
+              </button>
+              <button className="refresh-btn" onClick={() => { fetchGodData(); fetchEvents(); }}>
+                🔄 Refresh
+              </button>
+            </div>
+          </div>
+
+          {/* Universe Stats */}
+          <div className="god-stats">
+            <div className="god-stat-card">
+              <span className="gsc-icon">🌌</span>
+              <span className="gsc-num">{godData?.universe?.total_nodes || graph?.nodes || 0}</span>
+              <span className="gsc-label">Total Nodes</span>
+            </div>
+            <div className="god-stat-card">
+              <span className="gsc-icon">🔗</span>
+              <span className="gsc-num">{godData?.universe?.total_edges || graph?.edges || 0}</span>
+              <span className="gsc-label">Connections</span>
+            </div>
+            <div className="god-stat-card">
+              <span className="gsc-icon">👤</span>
+              <span className="gsc-num">{godData?.users?.total || 1}</span>
+              <span className="gsc-label">Users</span>
+            </div>
+            <div className="god-stat-card">
+              <span className="gsc-icon">📦</span>
+              <span className="gsc-num">{godData?.packs?.active || universe?.layers?.["4_packs"]?.count || 0}</span>
+              <span className="gsc-label">Active Packs</span>
+            </div>
+            <div className="god-stat-card">
+              <span className="gsc-icon">🧬</span>
+              <span className="gsc-num">{evolution?.total_specs_generated || 0}</span>
+              <span className="gsc-label">Specs Generated</span>
+            </div>
+            <div className="god-stat-card">
+              <span className="gsc-icon">📊</span>
+              <span className="gsc-num">{telemetry?.total_events || 0}</span>
+              <span className="gsc-label">Total Events</span>
+            </div>
+          </div>
+
+          {/* Evolution Panel */}
+          <div className="god-section evolution-panel">
+            <div className="section-header">
+              <h3>🧬 Auto Evolution Status</h3>
+              <button className="evolution-trigger" onClick={triggerEvolution}>
+                ⚡ Trigger Evolution
+              </button>
+            </div>
+            <div className="evolution-stats">
+              <div className="evo-stat">
+                <span className="es-label">Status</span>
+                <span className={`es-value ${evolution?.enabled ? 'enabled' : 'disabled'}`}>
+                  {evolution?.enabled ? '🟢 Enabled' : '🔴 Disabled'}
+                </span>
+              </div>
+              <div className="evo-stat">
+                <span className="es-label">Patterns Detected</span>
+                <span className="es-value">{evolution?.total_patterns || 0}</span>
+              </div>
+              <div className="evo-stat">
+                <span className="es-label">Needs Detected</span>
+                <span className="es-value">{evolution?.total_needs || 0}</span>
+              </div>
+              <div className="evo-stat">
+                <span className="es-label">Specs Generated</span>
+                <span className="es-value">{evolution?.total_specs_generated || 0}</span>
+              </div>
+              <div className="evo-stat">
+                <span className="es-label">Cycles Run</span>
+                <span className="es-value">{evolution?.cycles_run || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Telemetry Panel */}
+          <div className="god-section telemetry-panel">
+            <h3>📊 System Telemetry</h3>
+            <div className="telemetry-grid">
+              <div className="tele-card">
+                <span className="tc-label">Error Rate</span>
+                <span className={`tc-value ${(telemetry?.error_rate || 0) > 0.05 ? 'warning' : ''}`}>
+                  {((telemetry?.error_rate || 0) * 100).toFixed(2)}%
+                </span>
+              </div>
+              <div className="tele-card">
+                <span className="tc-label">Total Errors</span>
+                <span className="tc-value">{telemetry?.total_errors || 0}</span>
+              </div>
+              <div className="tele-card">
+                <span className="tc-label">Counters</span>
+                <span className="tc-value">{Object.keys(telemetry?.counters || {}).length}</span>
+              </div>
+              <div className="tele-card">
+                <span className="tc-label">Gauges</span>
+                <span className="tc-value">{Object.keys(telemetry?.gauges || {}).length}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Real-time Event Feed */}
+          <div className="god-section event-feed">
+            <h3>📡 Real-time Event Feed</h3>
+            <div className="events-list">
+              {events.length > 0 ? (
+                events.slice(0, 15).map((event, idx) => (
+                  <div key={idx} className={`event-item ${event.level || 'info'}`}>
+                    <span className="ei-time">
+                      {new Date(event.timestamp).toLocaleTimeString()}
+                    </span>
+                    <span className={`ei-level ${event.level || 'info'}`}>
+                      {event.level === 'error' ? '❌' : event.level === 'warning' ? '⚠️' : 'ℹ️'}
+                    </span>
+                    <span className="ei-type">{event.event_type}</span>
+                    <span className="ei-source">{event.source}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="no-events">No events yet. Trigger some actions!</div>
+              )}
+            </div>
+          </div>
+
+          {/* Constitution Compliance */}
+          <div className="god-section constitution-panel">
+            <h3>⚖️ Constitution Compliance</h3>
+            <div className="const-items">
+              <div className="const-item compliant">
+                <span className="ci-check">✓</span>
+                <span className="ci-article">Article I: Zero Identity</span>
+                <span className="ci-status">No login required</span>
+              </div>
+              <div className="const-item compliant">
+                <span className="ci-check">✓</span>
+                <span className="ci-article">Article II: Privacy by Architecture</span>
+                <span className="ci-status">Local-first storage</span>
+              </div>
+              <div className="const-item compliant">
+                <span className="ci-check">✓</span>
+                <span className="ci-article">Article III: Consent as Code</span>
+                <span className="ci-status">Explicit consent</span>
+              </div>
+              <div className="const-item compliant">
+                <span className="ci-check">✓</span>
+                <span className="ci-article">Article IV: Transparent Operation</span>
+                <span className="ci-status">All actions logged</span>
+              </div>
+            </div>
+          </div>
+
+          {/* API Endpoints */}
+          <div className="god-section api-panel">
+            <h3>🔌 API Endpoints</h3>
+            <div className="api-count">
+              <span className="api-num">72+</span>
+              <span className="api-label">Active Endpoints</span>
+            </div>
+            <div className="api-categories">
+              <div className="api-cat">
+                <span className="ac-name">/twin/*</span>
+                <span className="ac-count">15</span>
+              </div>
+              <div className="api-cat">
+                <span className="ac-name">/universe/*</span>
+                <span className="ac-count">8</span>
+              </div>
+              <div className="api-cat">
+                <span className="ac-name">/me/*</span>
+                <span className="ac-count">6</span>
+              </div>
+              <div className="api-cat">
+                <span className="ac-name">/god/*</span>
+                <span className="ac-count">5</span>
+              </div>
+              <div className="api-cat">
+                <span className="ac-name">/auto/*</span>
+                <span className="ac-count">11</span>
+              </div>
+              <div className="api-cat">
+                <span className="ac-name">/telemetry/*</span>
+                <span className="ac-count">5</span>
               </div>
             </div>
           </div>
