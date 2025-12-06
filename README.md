@@ -1,345 +1,220 @@
-# 🌌 AUTUS - 초개인 성장 OS
+# AUTUS
 
-> The Protocol for Personal AI Operating Systems
-> "AUTUS develops AUTUS" - 자기 자신을 개발하는 AI OS
+> **자연의 법칙을 따르는 AI 프로토콜**
 
-[![Python](https://img.shields.io/badge/Python-94.5%25-blue)](https://python.org)
-[![Tests](https://img.shields.io/badge/Tests-51%20passed-green)](tests/)
-[![API](https://img.shields.io/badge/API-72%2B%20endpoints-cyan)](https://autus-production.up.railway.app/docs)
-[![Auto-Generated](https://img.shields.io/badge/Auto--Generated-47%20files-purple)](evolved/)
-[![Deploy](https://img.shields.io/badge/Deploy-Railway-blueviolet)](https://autus-production.up.railway.app)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Protocol: CC0](https://img.shields.io/badge/Protocol-CC0-blue.svg)](https://creativecommons.org/publicdomain/zero/1.0/)
+[![Tests](https://img.shields.io/badge/Tests-116%20passed-green.svg)]()
+[![Constitution](https://img.shields.io/badge/Constitution-v6.1-purple.svg)]()
 
 ---
 
-## 🌐 Live Demo
+## 🌿 AUTUS란?
 
-| Service | URL |
-|---------|-----|
-| 🖥️ **Dashboard** | https://autus-dashboard.vercel.app |
-| 📚 **API Docs** | https://autus-production.up.railway.app/docs |
-| 💚 **Health Check** | https://autus-production.up.railway.app/health |
-
-> ⚡ **Try it now!** No login required.
-
----
-
-## 🎯 What is AUTUS?
-
-AUTUS는 **자기 자신을 개발하는 AI Operating System**입니다.
-
-- 🧬 **Meta-Circular Development**: AI가 코드를 자동 생성
-- 🔐 **Zero Identity**: 로그인 없음, 프라이버시 보장
-- 🌍 **Reality Events**: 현실 세계 이벤트를 디지털로 변환
-- 👑 **Sovereign Data**: 데이터 주권을 사용자에게
-
----
-
-## 📜 Constitution (헌법)
-
-AUTUS는 5가지 불변의 원칙을 따릅니다:
-
-| Article | Name | Rule |
-|---------|------|------|
-| I | **Zero Identity** | No login, no accounts, 3D Living Form only |
-| II | **Privacy by Architecture** | No PII in databases |
-| III | **Meta-Circular Development** | AUTUS develops AUTUS |
-| IV | **Minimal Core** | Core < 500 lines, everything else is Packs |
-| V | **Network Effect** | Protocol monopoly through necessity |
-
----
-
-## 🏗️ Architecture
-
+AUTUS는 **프로토콜**이다. 제품이 아니다.
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      AUTUS Universe                         │
-├─────────────────────────────────────────────────────────────┤
-│  🆔 Layer 1: Zero Identity                                  │
-│     └─ No login, 3D coordinates, QR sync                    │
-├─────────────────────────────────────────────────────────────┤
-│  🔐 Layer 2: Sovereign                                      │
-│     └─ Data ownership, permissions, consent, audit          │
-├─────────────────────────────────────────────────────────────┤
-│  🌍 Layer 3: Digital Twin                                   │
-│     └─ Reality events → State sync → Graph                  │
-├─────────────────────────────────────────────────────────────┤
-│  📦 Layer 4: Pack Engine                                    │
-│     └─ Auto-evolution, self-development                     │
-└─────────────────────────────────────────────────────────────┘
+물처럼 흐르고,
+생명처럼 진화하고,
+우주처럼 퍼진다.
+
+막을 수 없다.
+멈출 수 없다.
+없앨 수 없다.
 ```
 
 ---
 
-## 📊 Stats
+## 🏛️ 헌법 (13법칙)
 
-| Metric | Value |
-|--------|-------|
-| **API Endpoints** | 72+ |
-| **Test Cases** | 51 (100% pass) |
-| **Auto-Generated Files** | 47 |
-| **Auto-Generated Lines** | ~17,000+ |
-| **Protocols** | 4 (Reality, Auth, Memory, Rules) |
-| **Constitution Articles** | 5 |
+### 뿌리: 불변
+| 법칙 | 원리 |
+|------|------|
+| 제1법칙 | **흐름** - 정보는 흐른다. 막으면 돌아간다. |
+| 제2법칙 | **소유** - AUTUS는 누구의 것도 아니다. 내 데이터는 내 것이다. |
+| 제3법칙 | **순환** - 주는 만큼 받는다. 멈추면 죽는다. |
+
+### 줄기: 연결
+| 법칙 | 원리 |
+|------|------|
+| 제4법칙 | **분산** - 창시자 없이도 작동한다. |
+| 제5법칙 | **적응** - 환경에 맞춰 변화한다. |
+| 제6법칙 | **창발** - 집단은 개인의 합보다 강하다. |
+
+### 잎: 성장
+| 법칙 | 원리 |
+|------|------|
+| 제7법칙 | **진화** - 설계되지 않는다. 진화한다. |
+| 제8법칙 | **선택** - 좋은 것만 살아남는다. |
+| 제9법칙 | **다양성** - 다양할수록 강하다. |
+
+### 순환: 영속
+| 법칙 | 원리 |
+|------|------|
+| 제10법칙 | **불멸** - 끝나지 않는다. 형태만 바뀐다. |
+| 제11법칙 | **균형** - 스스로 균형을 찾는다. |
+| 제12법칙 | **귀환** - 가치는 순환한다. |
+
+### 심장: 자비
+| 법칙 | 원리 |
+|------|------|
+| 제13법칙 | **자비** - 자연을 99.9% 따르되, 인간이 불행해지지 않는 방향을 끊임없이 찾는다. |
+
+📜 [전체 헌법 보기](docs/CONSTITUTION.md)
 
 ---
 
-## 🚀 Quick Start
+## 🔮 Oracle
 
-### Prerequisites
-- Python 3.11+
-- Node.js 18+ (for Dashboard)
-- Anthropic API Key
+Oracle은 AUTUS의 집단 지성이다.
+```
+사용하면 → 자동 수집
+수집하면 → 패턴 생성
+패턴 생성 → 집단 진화
+```
 
-### Installation
+### Oracle 모듈
 
+| 모듈 | 역할 | 법칙 |
+|------|------|------|
+| `collector` | 메트릭 수집 | 제11법칙 균형 |
+| `selector` | 자연선택 | 제8법칙 선택 |
+| `evolution` | 집단진화 | 제7법칙 진화 |
+| `compassion` | 자비검증 | 제13법칙 자비 |
+
+### Oracle API
 ```bash
-# Clone
+# 통계 조회
+GET /api/v1/oracle/stats
+
+# 순위 조회 (자연선택)
+GET /api/v1/oracle/ranking
+
+# 피드백 (자비검증)
+POST /api/v1/oracle/feedback/{pack_name}?is_happy=true
+
+# 헌법 상태
+GET /api/v1/oracle/constitution/status
+```
+
+---
+
+## 📦 Pack
+
+Pack은 AUTUS의 확장 단위다. 모든 기능은 Pack으로 구현된다.
+
+### Pack 예시
+```yaml
+autus: "1.0"
+name: "hello"
+version: "1.0.0"
+
+cells:
+  - name: "greet"
+    type: "llm"
+    prompt: "Say hello to {name}"
+    output: "greeting"
+```
+
+### Pack 실행
+```python
+from reference import execute
+
+result = execute("hello", {"name": "World"})
+print(result)
+```
+
+📋 [Pack 포맷 스펙](spec/PACK_FORMAT.md)
+
+---
+
+## 🚀 시작하기
+
+### 설치
+```bash
 git clone https://github.com/Ohseho81/autus.git
 cd autus
-
-# Python setup
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-
-# Environment
-echo "ANTHROPIC_API_KEY=your-key-here" > .env
-
-# Run API Server
-uvicorn main:app --reload --port 8003
-
-# Run Dashboard (separate terminal)
-cd web
-npm install
-npm run dev
 ```
 
-### Access
-- **API Docs**: http://localhost:8003/docs
-- **Dashboard**: http://localhost:5173
+### 실행
+```bash
+# 서버 시작
+uvicorn main:app --reload --port 8000
 
----
+# API 문서
+open http://localhost:8000/docs
 
-## 🖥️ Dashboard
-
-### God Mode (Seho Only)
-
-- 🏙️ Cities: 3
-- 👥 Users: 5,420
-- ⚡ Events/min: 45
-- 💚 Health: 98%
-
-### My Dashboard (Role-based)
-- Student: 내 할일, 진행률
-- Teacher: 내 반, 출석
-- Facility: 내 구역, 점검
-
-### Evolution Monitor
-- 47 auto-generated files
-- Real-time evolution status
-
----
-
-## 🔌 API Overview
-
-### Identity & Auth
-```
-GET  /twin/auth/identity
-GET  /twin/auth/qr
-GET  /twin/auth/coordinates/{id}
+# 헬스 체크
+curl http://localhost:8000/health
 ```
 
-### Sovereign (18 endpoints)
-```
-POST /sovereign/token/generate
-GET  /sovereign/token/validate/{id}
-POST /sovereign/permission/check
-POST /sovereign/data/sign
-GET  /sovereign/audit/log
-POST /sovereign/consent/grant
-POST /sovereign/import
-```
-
-### Reality Events
-```
-POST /api/v1/reality-events/webhook/sensor
-POST /api/v1/reality-events/webhook/sensor/batch
-GET  /api/v1/reality-events/devices/{id}/status
-GET  /api/v1/reality-events/twin/graph
-```
-
-### Role-based View
-```
-GET  /me?role=student
-GET  /me?role=teacher
-GET  /me?role=seho
-GET  /god/universe?role=seho  # God Mode only
-GET  /god/graph?role=seho
-```
-
-### Auto Evolution
-```
-POST /auto/analyze/simulate
-GET  /auto/needs
-POST /auto/generate
-POST /auto/cycle
-GET  /auto/status
+### 테스트
+```bash
+pytest tests/ -v --ignore=tests/load_test.py
 ```
 
 ---
 
-## 🧬 Auto Evolution
-
-AUTUS는 스스로 코드를 생성합니다:
-
-```
-Pattern Detected → Need Identified → Spec Generated → Code Evolved
-```
-
-### Generated Modules
-- `growth_engine` - 1,858 lines
-- `workflow_engine` - 1,200 lines
-- `twin_realtime_sync` - 900 lines
-- `sovereign_layer` - 2,612 lines
-- ... and 43 more files
-
----
-
-## 📁 Project Structure
-
+## 📁 구조
 ```
 autus/
-├── api/                    # REST API (72+ endpoints)
-├── core/                   # Core modules
-├── engines/                # Telemetry, Pattern, Evolution
-├── evolved/                # Auto-generated code (47 files)
-├── packs/                  # Pack definitions
-├── policies/               # Global & city policies
-├── protocols/              # Reality, Auth, Memory, Rules
-├── rules/                  # View & auth scopes
-├── sovereign/              # Data sovereignty layer
-├── specs/                  # Feature specifications
-├── tests/                  # 51 test cases
-├── web/                    # React Dashboard
-├── constitution.yaml       # 5 Articles
-├── main.py                 # FastAPI app
-├── evolution_orchestrator.py
-└── continuous_loop.py
+├── 📜 docs/                    # 헌법, 승계
+│   ├── CONSTITUTION.md         # 헌법 v6.1
+│   └── SUCCESSION.md           # 승계 문서
+├── 📋 spec/                    # 프로토콜 스펙
+│   ├── PROTOCOL.md
+│   ├── PACK_FORMAT.md
+│   └── SYNC_FORMAT.md
+├── 🔮 oracle/                  # Oracle (250줄)
+│   ├── collector.py
+│   ├── selector.py
+│   ├── evolution.py
+│   └── compassion.py
+├── 📦 reference/               # 레퍼런스 구현
+│   └── executor.py
+├── 🌐 api/                     # API
+├── ⚙️ services/                # 서비스
+├── 🔌 protocols/               # 프로토콜 구현
+├── 🧪 tests/                   # 테스트
+└── main.py                     # 진입점
 ```
 
 ---
 
-## 🧪 Testing
+## 📜 라이선스
 
-```bash
-# Run all tests
-PYTHONPATH=. pytest tests/ -v
-
-# Results: 51 passed, 4 warnings
+| 구분 | 라이선스 |
+|------|----------|
+| 프로토콜 스펙 | CC0 (퍼블릭 도메인) |
+| 레퍼런스 구현 | MIT |
+| 헌법 | 불변 |
+```
+누구나 구현할 수 있다.
+누구도 소유할 수 없다.
 ```
 
 ---
 
-## 🐳 Docker
+## 🤝 기여
 
-```bash
-# Build
-docker build -t autus .
+1. Fork
+2. 헌법 준수 확인
+3. Pull Request
 
-# Run
-docker-compose up
-```
+⚠️ **헌법 제1-6, 10-13조는 수정 불가**
 
 ---
 
-## 🛣️ Roadmap
+## 📞 연락
 
-- [x] Constitution & Governance
-- [x] Zero Identity Protocol
-- [x] Sovereign Data Layer
-- [x] Reality Event Engine
-- [x] Role-based View System
-- [x] Auto Evolution Engine
-- [x] Dashboard UI
-- [x] CI/CD Pipeline
-- [ ] Mobile PWA
-- [ ] Multi-city Deployment
-- [ ] Real Device Integration
-
----
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE)
-
----
-
-## 👤 Author
-
-**Seho Oh** - [@Ohseho81](https://github.com/Ohseho81)
+- GitHub: [Ohseho81/autus](https://github.com/Ohseho81/autus)
+- Issues: [GitHub Issues](https://github.com/Ohseho81/autus/issues)
 
 ---
 
 <p align="center">
-  <strong>🌌 AUTUS - The OS that develops itself</strong><br>
-  Built with ❤️ following the Constitution
+  <strong>AUTUS</strong><br>
+  자연을 99.9% 따르되,<br>
+  인간이 불행해지지 않는 방향을<br>
+  끊임없이 찾는다.
 </p>
-
----
-
-## 🏗️ Architecture
-
-```mermaid
-graph TB
-    subgraph Client
-        WEB[Dashboard<br/>React + Vite]
-        MOBILE[PWA<br/>Mobile App]
-    end
-    
-    subgraph API[FastAPI Server]
-        MAIN[main.py<br/>88 Endpoints]
-        GOD[God Mode]
-        TWIN[Twin API]
-        DEVICE[Device API]
-    end
-    
-    subgraph Core
-        ENGINE[Engines]
-        EVOLVED[Evolved Code]
-        PROTOCOL[Protocols]
-    end
-    
-    subgraph External
-        MQTT[MQTT Broker]
-        IOT[IoT Devices]
-    end
-    
-    WEB --> MAIN
-    MOBILE --> MAIN
-    MAIN --> ENGINE
-    DEVICE --> MQTT
-    MQTT --> IOT
-```
-
-## 📡 API Endpoints (88개)
-
-| Category | Count | Description |
-|----------|-------|-------------|
-| Health | 2 | 서버 상태 |
-| Twin | 15 | 디지털 트윈 |
-| God Mode | 7 | 관리자 대시보드 |
-| Devices | 8 | IoT 디바이스 |
-| Analytics | 8 | 사용자 분석 |
-| Sovereign | 12 | 프라이버시 |
-| Reality | 6 | 실시간 이벤트 |
-| Packs | 4 | Pack 시스템 |
-
-## 🌐 Production URLs
-
-| Service | URL |
-|---------|-----|
-| Dashboard | https://autus-ai.com |
-| API Docs | https://autus-production.up.railway.app/docs |
-| Health | https://autus-production.up.railway.app/health |
-| GitHub | https://github.com/Ohseho81/autus |
-
