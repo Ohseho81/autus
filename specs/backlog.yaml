@@ -13,7 +13,7 @@ features:
     status: pending
   - name: real_device
     spec: specs/real_device.yaml
-    status: pending
+    status: completed
   - name: mobile_pwa
     spec: specs/mobile_pwa.yaml
     status: completed

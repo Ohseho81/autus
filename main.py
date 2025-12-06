@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from standard import WorkflowGraph
 from protocols.memory.local_memory import LocalMemory
 from protocols.auth.zero_auth import ZeroAuth
+from api.routes.devices import router as devices_router
 
 app = FastAPI(title="Autus Twin Dev")
 
@@ -556,3 +557,6 @@ app.include_router(god_router)
 # ===== Auto Spec API (Self-Evolution) =====
 from api.auto_spec import router as auto_spec_router
 app.include_router(auto_spec_router)
+
+# ===== Device Management API (IoT/MQTT) =====
+app.include_router(devices_router)
