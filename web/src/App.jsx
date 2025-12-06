@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 
-const API = "http://127.0.0.1:8003"
+const API = import.meta.env.VITE_API_URL || "https://autus-production.up.railway.app"
 
 // Available roles
 const ROLES = ['student', 'teacher', 'admin', 'facility_manager', 'immigration_officer', 'seho']
