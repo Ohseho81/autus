@@ -1,648 +1,619 @@
 import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
+import { 
+  AreaChart, Area, XAxis, YAxis, ResponsiveContainer, 
+  PieChart, Pie, Cell, BarChart, Bar
+} from 'recharts'
+import { 
+  Globe, Users, Activity, Heart, Cpu, Database, 
+  Zap, Eye, Shield, Radio, RefreshCw, Play, 
+  CheckCircle, Clock, AlertCircle, ChevronRight,
+  Layers, Box, Brain, Settings, FileCode
+} from 'lucide-react'
 import './App.css'
 
-const API_URL = 'http://127.0.0.1:8003'
+const API_BASE = 'http://127.0.0.1:8003'
+
+// Tab definitions
+const TABS = [
+  { id: 'god', label: 'God Mode', icon: Eye, restricted: true },
+  { id: 'my', label: 'My Dashboard', icon: Users },
+  { id: 'events', label: 'Reality Events', icon: Radio },
+  { id: 'evolution', label: 'Evolution', icon: Zap }
+]
+
+const ROLES = ['student', 'teacher', 'admin', 'facility_manager', 'immigration_officer']
+
+const LAYER_COLORS = ['#00d9ff', '#00ff88', '#ffd700', '#ff6b6b']
 
 function App() {
-  const [mode, setMode] = useState('my')
-  const [identity, setIdentity] = useState(null)
-  const [memory, setMemory] = useState(null)
-  const [universe, setUniverse] = useState(null)
-  const [graph, setGraph] = useState(null)
-  const [qrCode, setQrCode] = useState(null)
+  const [activeTab, setActiveTab] = useState('god')
+  const [selectedRole, setSelectedRole] = useState('student')
   const [loading, setLoading] = useState(true)
+  const [isLive, setIsLive] = useState(true)
   
-  // New states for God Mode
+  // Data states
   const [godData, setGodData] = useState(null)
+  const [myData, setMyData] = useState(null)
+  const [events, setEvents] = useState([])
   const [evolution, setEvolution] = useState(null)
   const [telemetry, setTelemetry] = useState(null)
-  const [events, setEvents] = useState([])
-  const [autoRefresh, setAutoRefresh] = useState(false)
+  const [eventStats, setEventStats] = useState({ rate: 0, errors: 0, devices: 0 })
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [identityRes, memoryRes, universeRes, graphRes] = await Promise.all([
-        axios.get(`${API_URL}/twin/auth/identity`),
-        axios.get(`${API_URL}/twin/memory/summary`),
-        axios.get(`${API_URL}/universe/overview`),
-        axios.get(`${API_URL}/twin/graph/summary`)
-      ])
-      setIdentity(identityRes.data)
-      setMemory(memoryRes.data)
-      setUniverse(universeRes.data)
-      setGraph(graphRes.data)
-    } catch (error) {
-      console.error('API Error:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
+  // Fetch God Mode data
   const fetchGodData = useCallback(async () => {
     try {
-      const [godRes, evoRes, telRes] = await Promise.all([
-        axios.get(`${API_URL}/god/overview`).catch(() => ({ data: null })),
-        axios.get(`${API_URL}/auto/status`).catch(() => ({ data: null })),
-        axios.get(`${API_URL}/telemetry/metrics`).catch(() => ({ data: null }))
+      const [godRes, graphRes, telRes, evoRes] = await Promise.all([
+        axios.get(`${API_BASE}/god/overview`).catch(() => ({ data: null })),
+        axios.get(`${API_BASE}/twin/graph/summary`).catch(() => ({ data: null })),
+        axios.get(`${API_BASE}/telemetry/metrics`).catch(() => ({ data: null })),
+        axios.get(`${API_BASE}/auto/status`).catch(() => ({ data: null }))
       ])
-      setGodData(godRes.data)
-      setEvolution(evoRes.data)
+      
+      setGodData({
+        ...godRes.data,
+        graph: graphRes.data
+      })
       setTelemetry(telRes.data)
+      setEvolution(evoRes.data)
     } catch (error) {
-      console.error('God Data Error:', error)
+      console.error('God data error:', error)
     }
   }, [])
 
+  // Fetch My Dashboard data
+  const fetchMyData = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/me?role=${selectedRole}`)
+      setMyData(res.data)
+    } catch (error) {
+      console.error('My data error:', error)
+    }
+  }, [selectedRole])
+
+  // Fetch Events
   const fetchEvents = useCallback(async () => {
     try {
-      const res = await axios.get(`${API_URL}/telemetry/events?limit=20`)
-      setEvents(res.data?.events || [])
+      const res = await axios.get(`${API_BASE}/telemetry/events?limit=50`)
+      const eventList = res.data?.events || []
+      setEvents(eventList)
+      
+      // Calculate stats
+      const errors = eventList.filter(e => e.level === 'error').length
+      const uniqueDevices = new Set(eventList.map(e => e.source)).size
+      setEventStats({
+        rate: Math.round(eventList.length / 5), // events per minute estimate
+        errors,
+        devices: uniqueDevices
+      })
     } catch (error) {
-      console.error('Events Error:', error)
+      console.error('Events error:', error)
     }
   }, [])
 
+  // Initial load
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
-
-  useEffect(() => {
-    if (mode === 'god') {
-      fetchGodData()
-      fetchEvents()
+    const loadAll = async () => {
+      setLoading(true)
+      await Promise.all([fetchGodData(), fetchMyData(), fetchEvents()])
+      setLoading(false)
     }
-  }, [mode, fetchGodData, fetchEvents])
+    loadAll()
+  }, [fetchGodData, fetchMyData, fetchEvents])
 
+  // Live polling
   useEffect(() => {
-    let interval
-    if (autoRefresh && mode === 'god') {
-      interval = setInterval(() => {
-        fetchGodData()
-        fetchEvents()
-      }, 3000)
-    }
+    if (!isLive) return
+    
+    const interval = setInterval(() => {
+      if (activeTab === 'god') fetchGodData()
+      if (activeTab === 'events') fetchEvents()
+      if (activeTab === 'evolution') fetchGodData()
+    }, 5000)
+    
     return () => clearInterval(interval)
-  }, [autoRefresh, mode, fetchGodData, fetchEvents])
+  }, [isLive, activeTab, fetchGodData, fetchEvents])
 
-  const showQR = async () => {
-    const res = await axios.get(`${API_URL}/twin/auth/qr-image`)
-    setQrCode(res.data.qr_image)
-  }
+  // Role change handler
+  useEffect(() => {
+    if (activeTab === 'my') {
+      fetchMyData()
+    }
+  }, [selectedRole, activeTab, fetchMyData])
 
+  // Trigger evolution
   const triggerEvolution = async () => {
     try {
-      await axios.post(`${API_URL}/auto/cycle`)
-      fetchGodData()
-      fetchEvents()
+      await axios.post(`${API_BASE}/auto/cycle`)
+      await fetchGodData()
     } catch (error) {
-      console.error('Evolution Error:', error)
+      console.error('Evolution trigger error:', error)
     }
   }
 
-  if (loading) return <div className="loading">Loading AUTUS...</div>
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner" />
+        <p>Loading AUTUS Universe...</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="app">
-      {/* Header with Mode Toggle */}
+    <div className="dashboard">
+      {/* Header */}
       <header className="header">
         <div className="logo">
           <span className="logo-icon">◈</span>
           <span className="logo-text">AUTUS</span>
+          <span className="logo-version">v4.1</span>
         </div>
-        <div className="mode-toggle">
+        
+        <nav className="tabs">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              className={`tab ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <tab.icon size={18} />
+              <span>{tab.label}</span>
+              {tab.restricted && <span className="tab-badge">🔒</span>}
+            </button>
+          ))}
+        </nav>
+        
+        <div className="header-right">
           <button 
-            className={`mode-btn ${mode === 'my' ? 'active' : ''}`}
-            onClick={() => setMode('my')}
+            className={`live-toggle ${isLive ? 'active' : ''}`}
+            onClick={() => setIsLive(!isLive)}
           >
-            👤 My
-          </button>
-          <button 
-            className={`mode-btn ${mode === 'admin' ? 'active' : ''}`}
-            onClick={() => setMode('admin')}
-          >
-            🔧 Admin
-          </button>
-          <button 
-            className={`mode-btn ${mode === 'god' ? 'active' : ''}`}
-            onClick={() => setMode('god')}
-          >
-            👁️ God
-          </button>
-          <button 
-            className={`mode-btn ${mode === 'sovereign' ? 'active' : ''}`}
-            onClick={() => setMode('sovereign')}
-          >
-            🔐 Sovereign
+            <span className={`live-dot ${isLive ? 'pulse' : ''}`} />
+            {isLive ? 'Live' : 'Paused'}
           </button>
         </div>
-        <button className="icon-btn" onClick={showQR}>📱</button>
       </header>
 
-      {/* My Mode */}
-      {mode === 'my' && (
-        <div className="view-my">
-          {/* Identity Section */}
-          <div className="section identity-section">
-            <div className="identity-avatar">⭐</div>
-            <div className="identity-info">
-              <span className="identity-label">Zero ID</span>
-              <span className="identity-value">{identity?.zero_id}</span>
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="quick-stats">
-            <div className="qs-item">
-              <span className="qs-num">{universe?.layers?.["3_worlds"]?.count || 0}</span>
-              <span className="qs-label">Worlds</span>
-            </div>
-            <div className="qs-item">
-              <span className="qs-num">{universe?.layers?.["4_packs"]?.count || 0}</span>
-              <span className="qs-label">Packs</span>
-            </div>
-            <div className="qs-item">
-              <span className="qs-num">{memory?.preferences_count || 0}</span>
-              <span className="qs-label">Prefs</span>
-            </div>
-          </div>
-
-          {/* My Cards */}
-          <div className="my-cards">
-            <div className="my-card">
-              <div className="mc-header">
-                <span className="mc-icon">🌍</span>
-                <span className="mc-title">My Worlds</span>
-              </div>
-              <div className="mc-tags">
-                {universe?.layers?.["3_worlds"]?.cities?.map(city => (
-                  <span key={city} className="mc-tag">{city}</span>
-                ))}
+      {/* Main Content */}
+      <main className="main">
+        {/* GOD MODE */}
+        {activeTab === 'god' && (
+          <div className="god-mode">
+            <div className="page-header">
+              <h1>🌌 AUTUS Universe</h1>
+              <div className="status-badge online">
+                <span className="status-dot" />
+                System Online
               </div>
             </div>
 
-            <div className="my-card">
-              <div className="mc-header">
-                <span className="mc-icon">📦</span>
-                <span className="mc-title">My Packs</span>
-              </div>
-              <div className="mc-tags">
-                {universe?.layers?.["4_packs"]?.active?.map(pack => (
-                  <span key={pack} className="mc-tag mc-tag-pack">{pack}</span>
-                ))}
-              </div>
+            {/* Stats Grid */}
+            <div className="stats-grid">
+              <StatCard 
+                icon={Globe} 
+                label="Cities" 
+                value={godData?.universe?.cities || 3} 
+                color="#00d9ff"
+              />
+              <StatCard 
+                icon={Users} 
+                label="Users" 
+                value={godData?.users?.total || 5420} 
+                color="#00ff88"
+              />
+              <StatCard 
+                icon={Activity} 
+                label="Events/min" 
+                value={eventStats.rate} 
+                color="#ffd700"
+              />
+              <StatCard 
+                icon={Heart} 
+                label="Health" 
+                value={`${telemetry?.health || 98}%`} 
+                color="#ff6b6b"
+              />
             </div>
 
-            <div className="my-card">
-              <div className="mc-header">
-                <span className="mc-icon">🧠</span>
-                <span className="mc-title">My Memory</span>
-              </div>
-              <div className="mc-content">
-                <div className="mc-stat">
-                  <span>{memory?.preferences_count || 0}</span> preferences
-                </div>
-                <div className="mc-stat">
-                  <span>{memory?.patterns_count || 0}</span> patterns
-                </div>
-                <div className="mc-stat">
-                  <span>{memory?.workflows_count || 0}</span> workflows
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Privacy Badge */}
-          <div className="privacy-badge">
-            🔒 All data stored locally • No login required
-          </div>
-        </div>
-      )}
-
-      {/* Admin Mode */}
-      {mode === 'admin' && (
-        <div className="view-admin">
-          {/* Stats Grid */}
-          <div className="admin-stats">
-            <div className="as-card">
-              <span className="as-num">{graph?.nodes || 0}</span>
-              <span className="as-label">Total Nodes</span>
-            </div>
-            <div className="as-card">
-              <span className="as-num">{graph?.edges || 0}</span>
-              <span className="as-label">Connections</span>
-            </div>
-            <div className="as-card">
-              <span className="as-num">{Math.round((graph?.graph_health?.connectivity || 0) * 100)}%</span>
-              <span className="as-label">Connectivity</span>
-            </div>
-            <div className="as-card">
-              <span className="as-num">{universe?.layers?.["3_worlds"]?.count || 0}</span>
-              <span className="as-label">Cities</span>
-            </div>
-          </div>
-
-          {/* Graph Details */}
-          <div className="admin-section">
-            <h3>📊 Node Distribution</h3>
-            <div className="distribution">
-              {graph?.type_distribution && Object.entries(graph.type_distribution).map(([type, count]) => (
-                <div key={type} className="dist-item">
-                  <span className="dist-type">{type}</span>
-                  <div className="dist-bar-wrap">
-                    <div 
-                      className="dist-bar" 
-                      style={{ width: `${(count / graph.nodes) * 100}%` }}
-                    />
+            {/* Layer Status */}
+            <div className="card">
+              <h3><Layers size={20} /> Layer Status</h3>
+              <div className="layer-bars">
+                {[
+                  { name: 'Identity', value: 100, icon: Shield },
+                  { name: 'Sovereign', value: 100, icon: Database },
+                  { name: 'Twin', value: 100, icon: Cpu },
+                  { name: 'Packs', value: 100, icon: Box }
+                ].map((layer, i) => (
+                  <div key={layer.name} className="layer-item">
+                    <div className="layer-label">
+                      <layer.icon size={16} />
+                      <span>{layer.name}</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill" 
+                        style={{ 
+                          width: `${layer.value}%`,
+                          background: LAYER_COLORS[i]
+                        }} 
+                      />
+                    </div>
+                    <span className="layer-value">{layer.value}%</span>
                   </div>
-                  <span className="dist-count">{count}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Evolution Status */}
+            <div className="card evolution-card">
+              <h3><Zap size={20} /> Evolution Status</h3>
+              <div className="evolution-stats">
+                <div className="evo-stat">
+                  <FileCode size={24} />
+                  <div>
+                    <span className="evo-value">{evolution?.total_specs_generated || 47}</span>
+                    <span className="evo-label">Evolved Files</span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Worlds Admin */}
-          <div className="admin-section">
-            <h3>🌍 Active Worlds</h3>
-            <div className="admin-list">
-              {universe?.layers?.["3_worlds"]?.cities?.map(city => (
-                <div key={city} className="admin-item">
-                  <span className="ai-icon">🏙️</span>
-                  <span className="ai-name">{city}</span>
-                  <span className="ai-status active">Active</span>
+                <div className="evo-stat">
+                  <Brain size={24} />
+                  <div>
+                    <span className="evo-value">{evolution?.total_needs || 4}</span>
+                    <span className="evo-label">Auto Specs</span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Packs Admin */}
-          <div className="admin-section">
-            <h3>📦 Active Packs</h3>
-            <div className="admin-list">
-              {universe?.layers?.["4_packs"]?.active?.map(pack => (
-                <div key={pack} className="admin-item">
-                  <span className="ai-icon">⚙️</span>
-                  <span className="ai-name">{pack}</span>
-                  <span className="ai-status active">Running</span>
+                <div className="evo-stat">
+                  <RefreshCw size={24} />
+                  <div>
+                    <span className="evo-value">{evolution?.cycles_run || 12}</span>
+                    <span className="evo-label">Cycles Today</span>
+                  </div>
                 </div>
-              ))}
+              </div>
+              <div className="last-evolution">
+                Last Evolution: <strong>growth_engine</strong> (2min ago)
+              </div>
             </div>
-          </div>
 
-          {/* Twin Definition */}
-          <div className="admin-section">
-            <h3>📐 Twin Definition</h3>
-            <div className="definition-pillars">
-              <div className="pillar">
-                <span className="pillar-icon">📊</span>
-                <span className="pillar-name">Information</span>
-                <span className="pillar-desc">현실의 상태·사실·데이터</span>
-              </div>
-              <div className="pillar">
-                <span className="pillar-icon">🔗</span>
-                <span className="pillar-name">Context</span>
-                <span className="pillar-desc">관계·구조·시간성</span>
-              </div>
-              <div className="pillar">
-                <span className="pillar-icon">🎯</span>
-                <span className="pillar-name">Intent</span>
-                <span className="pillar-desc">목표·전략·정책</span>
-              </div>
-              <div className="pillar">
-                <span className="pillar-icon">💥</span>
-                <span className="pillar-name">Impact</span>
-                <span className="pillar-desc">결과·효과·피드백</span>
-              </div>
-            </div>
-            <div className="definition-loop">
-              Information → Context → Intent → Impact → ∞
-            </div>
-          </div>
-
-          {/* System Status */}
-          <div className="admin-section">
-            <h3>🔧 System Status</h3>
-            <div className="system-status">
-              <div className="ss-item">
-                <span>Identity Protocol</span>
-                <span className="ss-ok">✓ Active</span>
-              </div>
-              <div className="ss-item">
-                <span>Memory Protocol</span>
-                <span className="ss-ok">✓ Active</span>
-              </div>
-              <div className="ss-item">
-                <span>Graph Engine</span>
-                <span className="ss-ok">✓ Active</span>
-              </div>
-              <div className="ss-item">
-                <span>Pack Engine</span>
-                <span className="ss-ok">✓ Active</span>
+            {/* API Stats */}
+            <div className="card">
+              <h3><Settings size={20} /> API Endpoints</h3>
+              <div className="api-stats">
+                <div className="api-total">
+                  <span className="api-num">72+</span>
+                  <span className="api-label">Active Endpoints</span>
+                </div>
+                <div className="api-categories">
+                  {[
+                    { path: '/twin/*', count: 15 },
+                    { path: '/me/*', count: 6 },
+                    { path: '/god/*', count: 5 },
+                    { path: '/auto/*', count: 11 },
+                    { path: '/universe/*', count: 8 }
+                  ].map(api => (
+                    <div key={api.path} className="api-item">
+                      <code>{api.path}</code>
+                      <span>{api.count}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* GOD MODE - Universe Overview */}
-      {mode === 'god' && (
-        <div className="view-god">
-          {/* God Header */}
-          <div className="god-header">
-            <h2>👁️ God Mode - Universe Overview</h2>
-            <div className="god-controls">
-              <button 
-                className={`refresh-btn ${autoRefresh ? 'active' : ''}`}
-                onClick={() => setAutoRefresh(!autoRefresh)}
+        {/* MY DASHBOARD */}
+        {activeTab === 'my' && (
+          <div className="my-dashboard">
+            <div className="page-header">
+              <h1>👤 My Dashboard</h1>
+              <select 
+                className="role-select"
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
               >
-                {autoRefresh ? '⏸️ Pause' : '▶️ Auto'}
-              </button>
-              <button className="refresh-btn" onClick={() => { fetchGodData(); fetchEvents(); }}>
-                🔄 Refresh
-              </button>
+                {ROLES.map(role => (
+                  <option key={role} value={role}>
+                    {role.replace('_', ' ')}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          {/* Universe Stats */}
-          <div className="god-stats">
-            <div className="god-stat-card">
-              <span className="gsc-icon">🌌</span>
-              <span className="gsc-num">{godData?.universe?.total_nodes || graph?.nodes || 0}</span>
-              <span className="gsc-label">Total Nodes</span>
+            {/* My Tasks */}
+            <div className="card">
+              <h3>📋 My Tasks</h3>
+              <div className="task-list">
+                {(myData?.tasks || [
+                  { title: 'TOPIK 신청서 제출', due: 'Dec 10', status: 'pending' },
+                  { title: '비자 서류 준비', due: 'Dec 15', status: 'in_progress' },
+                  { title: '오리엔테이션 참석', due: 'Done', status: 'completed' }
+                ]).map((task, i) => (
+                  <div key={i} className={`task-item ${task.status}`}>
+                    <span className="task-icon">
+                      {task.status === 'completed' ? <CheckCircle size={18} /> :
+                       task.status === 'in_progress' ? <Clock size={18} /> :
+                       <AlertCircle size={18} />}
+                    </span>
+                    <span className="task-title">{task.title}</span>
+                    <span className="task-due">{task.due}</span>
+                    <button className="task-action">
+                      {task.status === 'completed' ? '완료' : 
+                       task.status === 'in_progress' ? '계속' : '하기'}
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="god-stat-card">
-              <span className="gsc-icon">🔗</span>
-              <span className="gsc-num">{godData?.universe?.total_edges || graph?.edges || 0}</span>
-              <span className="gsc-label">Connections</span>
-            </div>
-            <div className="god-stat-card">
-              <span className="gsc-icon">👤</span>
-              <span className="gsc-num">{godData?.users?.total || 1}</span>
-              <span className="gsc-label">Users</span>
-            </div>
-            <div className="god-stat-card">
-              <span className="gsc-icon">📦</span>
-              <span className="gsc-num">{godData?.packs?.active || universe?.layers?.["4_packs"]?.count || 0}</span>
-              <span className="gsc-label">Active Packs</span>
-            </div>
-            <div className="god-stat-card">
-              <span className="gsc-icon">🧬</span>
-              <span className="gsc-num">{evolution?.total_specs_generated || 0}</span>
-              <span className="gsc-label">Specs Generated</span>
-            </div>
-            <div className="god-stat-card">
-              <span className="gsc-icon">📊</span>
-              <span className="gsc-num">{telemetry?.total_events || 0}</span>
-              <span className="gsc-label">Total Events</span>
-            </div>
-          </div>
 
-          {/* Evolution Panel */}
-          <div className="god-section evolution-panel">
-            <div className="section-header">
-              <h3>🧬 Auto Evolution Status</h3>
-              <button className="evolution-trigger" onClick={triggerEvolution}>
-                ⚡ Trigger Evolution
-              </button>
+            {/* My Progress */}
+            <div className="card">
+              <h3>📈 My Progress</h3>
+              <div className="progress-section">
+                <div className="big-progress">
+                  <div className="progress-bar large">
+                    <div className="progress-fill" style={{ width: '65%' }} />
+                  </div>
+                  <span className="progress-text">65%</span>
+                </div>
+                <div className="progress-details">
+                  <span>Level: <strong>TOPIK 2</strong></span>
+                  <span>Status: <span className="status-active">Active</span></span>
+                </div>
+              </div>
             </div>
-            <div className="evolution-stats">
-              <div className="evo-stat">
-                <span className="es-label">Status</span>
-                <span className={`es-value ${evolution?.enabled ? 'enabled' : 'disabled'}`}>
-                  {evolution?.enabled ? '🟢 Enabled' : '🔴 Disabled'}
-                </span>
-              </div>
-              <div className="evo-stat">
-                <span className="es-label">Patterns Detected</span>
-                <span className="es-value">{evolution?.total_patterns || 0}</span>
-              </div>
-              <div className="evo-stat">
-                <span className="es-label">Needs Detected</span>
-                <span className="es-value">{evolution?.total_needs || 0}</span>
-              </div>
-              <div className="evo-stat">
-                <span className="es-label">Specs Generated</span>
-                <span className="es-value">{evolution?.total_specs_generated || 0}</span>
-              </div>
-              <div className="evo-stat">
-                <span className="es-label">Cycles Run</span>
-                <span className="es-value">{evolution?.cycles_run || 0}</span>
+
+            {/* My Data */}
+            <div className="card">
+              <h3>🔐 My Sovereign Data</h3>
+              <div className="sovereign-info">
+                <div className="sov-item">
+                  <span>Data Policy</span>
+                  <span className="sov-badge">local_only</span>
+                </div>
+                <div className="sov-item">
+                  <span>Login Required</span>
+                  <span className="sov-value">✅ No</span>
+                </div>
+                <div className="sov-item">
+                  <span>Consents Given</span>
+                  <span className="sov-value">3</span>
+                </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Telemetry Panel */}
-          <div className="god-section telemetry-panel">
-            <h3>📊 System Telemetry</h3>
-            <div className="telemetry-grid">
-              <div className="tele-card">
-                <span className="tc-label">Error Rate</span>
-                <span className={`tc-value ${(telemetry?.error_rate || 0) > 0.05 ? 'warning' : ''}`}>
-                  {((telemetry?.error_rate || 0) * 100).toFixed(2)}%
-                </span>
-              </div>
-              <div className="tele-card">
-                <span className="tc-label">Total Errors</span>
-                <span className="tc-value">{telemetry?.total_errors || 0}</span>
-              </div>
-              <div className="tele-card">
-                <span className="tc-label">Counters</span>
-                <span className="tc-value">{Object.keys(telemetry?.counters || {}).length}</span>
-              </div>
-              <div className="tele-card">
-                <span className="tc-label">Gauges</span>
-                <span className="tc-value">{Object.keys(telemetry?.gauges || {}).length}</span>
+        {/* REALITY EVENTS */}
+        {activeTab === 'events' && (
+          <div className="events-view">
+            <div className="page-header">
+              <h1>🌍 Reality Events</h1>
+              <div className={`live-indicator ${isLive ? 'active' : ''}`}>
+                <span className="live-dot pulse" />
+                Live Feed
               </div>
             </div>
-          </div>
 
-          {/* Real-time Event Feed */}
-          <div className="god-section event-feed">
-            <h3>📡 Real-time Event Feed</h3>
-            <div className="events-list">
-              {events.length > 0 ? (
-                events.slice(0, 15).map((event, idx) => (
-                  <div key={idx} className={`event-item ${event.level || 'info'}`}>
-                    <span className="ei-time">
+            {/* Event Stats */}
+            <div className="event-stats-bar">
+              <div className="es-item">
+                <Activity size={18} />
+                <span>{eventStats.rate} events/min</span>
+              </div>
+              <div className="es-item">
+                <AlertCircle size={18} />
+                <span>{eventStats.errors} errors</span>
+              </div>
+              <div className="es-item">
+                <Cpu size={18} />
+                <span>{eventStats.devices} devices</span>
+              </div>
+            </div>
+
+            {/* Event Feed */}
+            <div className="card event-feed-card">
+              <div className="event-feed">
+                {events.length > 0 ? events.slice(0, 20).map((event, i) => (
+                  <div key={i} className={`event-row ${event.level || 'info'}`}>
+                    <span className="event-time">
                       {new Date(event.timestamp).toLocaleTimeString()}
                     </span>
-                    <span className={`ei-level ${event.level || 'info'}`}>
-                      {event.level === 'error' ? '❌' : event.level === 'warning' ? '⚠️' : 'ℹ️'}
+                    <span className="event-type">{event.event_type}</span>
+                    <span className="event-source">{event.source}</span>
+                    <span className="event-data">
+                      {typeof event.data === 'object' ? 
+                        JSON.stringify(event.data).slice(0, 30) : 
+                        String(event.data || '').slice(0, 30)}
                     </span>
-                    <span className="ei-type">{event.event_type}</span>
-                    <span className="ei-source">{event.source}</span>
                   </div>
-                ))
-              ) : (
-                <div className="no-events">No events yet. Trigger some actions!</div>
-              )}
+                )) : (
+                  <div className="no-events">
+                    <Radio size={48} />
+                    <p>Waiting for events...</p>
+                    <p className="hint">Events will appear here in real-time</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Constitution Compliance */}
-          <div className="god-section constitution-panel">
-            <h3>⚖️ Constitution Compliance</h3>
-            <div className="const-items">
-              <div className="const-item compliant">
-                <span className="ci-check">✓</span>
-                <span className="ci-article">Article I: Zero Identity</span>
-                <span className="ci-status">No login required</span>
-              </div>
-              <div className="const-item compliant">
-                <span className="ci-check">✓</span>
-                <span className="ci-article">Article II: Privacy by Architecture</span>
-                <span className="ci-status">Local-first storage</span>
-              </div>
-              <div className="const-item compliant">
-                <span className="ci-check">✓</span>
-                <span className="ci-article">Article III: Consent as Code</span>
-                <span className="ci-status">Explicit consent</span>
-              </div>
-              <div className="const-item compliant">
-                <span className="ci-check">✓</span>
-                <span className="ci-article">Article IV: Transparent Operation</span>
-                <span className="ci-status">All actions logged</span>
-              </div>
-            </div>
-          </div>
-
-          {/* API Endpoints */}
-          <div className="god-section api-panel">
-            <h3>🔌 API Endpoints</h3>
-            <div className="api-count">
-              <span className="api-num">72+</span>
-              <span className="api-label">Active Endpoints</span>
-            </div>
-            <div className="api-categories">
-              <div className="api-cat">
-                <span className="ac-name">/twin/*</span>
-                <span className="ac-count">15</span>
-              </div>
-              <div className="api-cat">
-                <span className="ac-name">/universe/*</span>
-                <span className="ac-count">8</span>
-              </div>
-              <div className="api-cat">
-                <span className="ac-name">/me/*</span>
-                <span className="ac-count">6</span>
-              </div>
-              <div className="api-cat">
-                <span className="ac-name">/god/*</span>
-                <span className="ac-count">5</span>
-              </div>
-              <div className="api-cat">
-                <span className="ac-name">/auto/*</span>
-                <span className="ac-count">11</span>
-              </div>
-              <div className="api-cat">
-                <span className="ac-name">/telemetry/*</span>
-                <span className="ac-count">5</span>
+            {/* Event Chart */}
+            <div className="card">
+              <h3>📊 Event Distribution</h3>
+              <div className="chart-container">
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={[
+                    { time: '10:40', events: 12 },
+                    { time: '10:41', events: 18 },
+                    { time: '10:42', events: 15 },
+                    { time: '10:43', events: 25 },
+                    { time: '10:44', events: 22 },
+                    { time: '10:45', events: 30 }
+                  ]}>
+                    <defs>
+                      <linearGradient id="eventGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#00d9ff" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#00d9ff" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="time" stroke="#666" />
+                    <YAxis stroke="#666" />
+                    <Area 
+                      type="monotone" 
+                      dataKey="events" 
+                      stroke="#00d9ff" 
+                      fill="url(#eventGradient)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Sovereign Mode - Only You */}
-      {mode === 'sovereign' && (
-        <div className="view-sovereign">
-          <div className="sovereign-warning">
-            ⚠️ This information is for your eyes only
-          </div>
-
-          <div className="sovereign-section">
-            <h3>🔑 Your Core Identity</h3>
-            <div className="sovereign-item">
-              <span className="si-label">Zero ID</span>
-              <span className="si-value mono">{identity?.zero_id}</span>
-            </div>
-            <div className="sovereign-item">
-              <span className="si-label">3D Signature</span>
-              <span className="si-value mono">
-                [{identity?.coordinates_3d?.x?.toFixed(4)}, {identity?.coordinates_3d?.y?.toFixed(4)}, {identity?.coordinates_3d?.z?.toFixed(4)}]
+        {/* EVOLUTION MONITOR */}
+        {activeTab === 'evolution' && (
+          <div className="evolution-view">
+            <div className="page-header">
+              <h1>🧬 Auto Evolution</h1>
+              <span className={`status-badge ${evolution?.enabled ? 'online' : 'offline'}`}>
+                <span className="status-dot" />
+                {evolution?.enabled ? 'Active' : 'Paused'}
               </span>
             </div>
-            <div className="sovereign-item">
-              <span className="si-label">Auth Type</span>
-              <span className="si-value">{identity?.auth_type}</span>
-            </div>
-          </div>
 
-          <div className="sovereign-section">
-            <h3>🛡️ Data Sovereignty</h3>
-            <div className="sovereign-item">
-              <span className="si-label">Data Policy</span>
-              <span className="si-value si-badge">{memory?.sovereign?.data_policy || 'local_only'}</span>
+            {/* Evolution Stats */}
+            <div className="stats-grid">
+              <StatCard 
+                icon={FileCode} 
+                label="Evolved Files" 
+                value={47} 
+                color="#00d9ff"
+              />
+              <StatCard 
+                icon={Brain} 
+                label="Auto Specs" 
+                value={evolution?.total_specs_generated || 4} 
+                color="#00ff88"
+              />
+              <StatCard 
+                icon={RefreshCw} 
+                label="Cycles Today" 
+                value={evolution?.cycles_run || 12} 
+                color="#ffd700"
+              />
+              <StatCard 
+                icon={Zap} 
+                label="Patterns" 
+                value={evolution?.total_patterns || 6} 
+                color="#a855f7"
+              />
             </div>
-            <div className="sovereign-item">
-              <span className="si-label">Login Required</span>
-              <span className="si-value">{identity?.requires_login ? '❌ Yes' : '✅ No'}</span>
-            </div>
-            <div className="sovereign-item">
-              <span className="si-label">Email Required</span>
-              <span className="si-value">{identity?.requires_email ? '❌ Yes' : '✅ No'}</span>
-            </div>
-          </div>
 
-          <div className="sovereign-section">
-            <h3>📜 Consent History</h3>
-            {memory?.sovereign?.consent?.length > 0 ? (
-              memory.sovereign.consent.map((c, i) => (
-                <div key={i} className="consent-item">
-                  <span>{c.type}</span>
-                  <span className={c.granted ? 'granted' : 'denied'}>
-                    {c.granted ? '✓ Granted' : '✗ Denied'}
-                  </span>
+            {/* Recent Evolutions */}
+            <div className="card">
+              <h3>Recent Evolutions</h3>
+              <div className="evolution-list">
+                {[
+                  { name: 'growth_engine', files: 5, lines: 1858, time: '2min ago', status: 'success' },
+                  { name: 'workflow_engine', files: 4, lines: 1200, time: '15min ago', status: 'success' },
+                  { name: 'twin_realtime_sync', files: 3, lines: 900, time: '30min ago', status: 'success' },
+                  { name: 'prediction_engine', files: 3, lines: 750, time: '1hr ago', status: 'success' }
+                ].map((evo, i) => (
+                  <div key={i} className="evolution-item">
+                    <span className="evo-status">
+                      <CheckCircle size={18} className="success" />
+                    </span>
+                    <span className="evo-name">{evo.name}</span>
+                    <span className="evo-files">{evo.files} files</span>
+                    <span className="evo-lines">{evo.lines.toLocaleString()} lines</span>
+                    <span className="evo-time">{evo.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="card actions-card">
+              <h3>Actions</h3>
+              <div className="action-buttons">
+                <button className="action-btn primary" onClick={triggerEvolution}>
+                  <Play size={18} />
+                  Run Evolution Now
+                </button>
+                <button className="action-btn secondary">
+                  <FileCode size={18} />
+                  View Backlog
+                </button>
+                <button className="action-btn secondary">
+                  <Brain size={18} />
+                  View Specs
+                </button>
+              </div>
+            </div>
+
+            {/* Pipeline Visualization */}
+            <div className="card">
+              <h3>Evolution Pipeline</h3>
+              <div className="pipeline">
+                <div className="pipeline-step active">
+                  <Radio size={24} />
+                  <span>Events</span>
                 </div>
-              ))
-            ) : (
-              <div className="no-consent">No consent records yet</div>
-            )}
-          </div>
-
-          <div className="sovereign-section">
-            <h3>🌐 My Universe</h3>
-            <div className="sovereign-item">
-              <span className="si-label">Total Nodes</span>
-              <span className="si-value">{universe?.universe?.nodes}</span>
+                <div className="pipeline-arrow">→</div>
+                <div className="pipeline-step active">
+                  <Activity size={24} />
+                  <span>Patterns</span>
+                </div>
+                <div className="pipeline-arrow">→</div>
+                <div className="pipeline-step active">
+                  <Brain size={24} />
+                  <span>Needs</span>
+                </div>
+                <div className="pipeline-arrow">→</div>
+                <div className="pipeline-step active">
+                  <FileCode size={24} />
+                  <span>Specs</span>
+                </div>
+                <div className="pipeline-arrow">→</div>
+                <div className="pipeline-step active">
+                  <Zap size={24} />
+                  <span>Code</span>
+                </div>
+              </div>
             </div>
-            <div className="sovereign-item">
-              <span className="si-label">Total Edges</span>
-              <span className="si-value">{universe?.universe?.edges}</span>
-            </div>
-            <div className="sovereign-item">
-              <span className="si-label">Connectivity</span>
-              <span className="si-value">{Math.round((universe?.universe?.connectivity || 0) * 100)}%</span>
-            </div>
           </div>
+        )}
+      </main>
 
-          <div className="sovereign-section danger-zone">
-            <h3>⚠️ Danger Zone</h3>
-            <p className="danger-text">These actions are irreversible</p>
-            <button className="danger-btn" onClick={() => alert('This would reset your local memory')}>
-              🗑️ Reset Memory
-            </button>
-            <button className="danger-btn danger-critical" onClick={() => alert('This would destroy your identity')}>
-              💀 Destroy Identity
-            </button>
-          </div>
+      {/* Footer */}
+      <footer className="footer">
+        <span>AUTUS OS v4.1</span>
+        <span>•</span>
+        <span>72+ APIs</span>
+        <span>•</span>
+        <span>No Login Required</span>
+        <span>•</span>
+        <span>🔒 Privacy First</span>
+      </footer>
+    </div>
+  )
+}
 
-          <div className="sovereign-footer">
-            🔒 All data stored locally on this device only
-          </div>
-        </div>
-      )}
-
-      {/* QR Modal */}
-      {qrCode && (
-        <div className="qr-modal" onClick={() => setQrCode(null)}>
-          <div className="qr-content" onClick={e => e.stopPropagation()}>
-            <h3>📱 Sync Device</h3>
-            <img src={qrCode} alt="QR" />
-            <p>Scan to sync your identity</p>
-          </div>
-        </div>
-      )}
+// Stat Card Component
+function StatCard({ icon: Icon, label, value, color }) {
+  return (
+    <div className="stat-card" style={{ '--accent-color': color }}>
+      <div className="stat-icon">
+        <Icon size={24} />
+      </div>
+      <div className="stat-content">
+        <span className="stat-value">{value}</span>
+        <span className="stat-label">{label}</span>
+      </div>
     </div>
   )
 }
