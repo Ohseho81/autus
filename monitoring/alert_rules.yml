@@ -1,0 +1,99 @@
+groups:
+  - name: autus_alerts
+    interval: 30s
+    rules:
+      # API Response Time Alerts
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, http_request_duration_seconds_bucket) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API response time detected"
+          description: "P95 response time is {{ $value }}s (threshold: 0.5s)"
+
+      - alert: CriticalResponseTime
+        expr: histogram_quantile(0.99, http_request_duration_seconds_bucket) > 1.0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical API response time"
+          description: "P99 response time is {{ $value }}s (threshold: 1.0s)"
+
+      # Error Rate Alerts
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+
+      - alert: CriticalErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical error rate"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+
+      # Database Query Performance
+      - alert: SlowDatabaseQueries
+        expr: histogram_quantile(0.95, db_query_duration_seconds_bucket) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow database queries detected"
+          description: "P95 query time is {{ $value }}s (threshold: 0.1s)"
+
+      # System Resource Alerts
+      - alert: HighCPUUsage
+        expr: system_cpu_usage_percent > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% (threshold: 80%)"
+
+      - alert: HighMemoryUsage
+        expr: system_memory_usage_percent > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% (threshold: 85%)"
+
+      - alert: HighDiskUsage
+        expr: system_disk_usage_percent > 90
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High disk usage"
+          description: "Disk usage is {{ $value }}% (threshold: 90%)"
+
+      # Health Check Alerts
+      - alert: ComponentUnhealthy
+        expr: health_check_status == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "System component unhealthy"
+          description: "Component {{ $labels.component }} is unhealthy"
+
+      # Rate Limiter Alerts
+      - alert: ManyBlockedClients
+        expr: rate_limiter_blocked_clients > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Many clients blocked by rate limiter"
+          description: "{{ $value }} clients are currently blocked"

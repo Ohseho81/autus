@@ -33,6 +33,10 @@ from api.routes.devices import router as devices_router
 from api.routes.analytics import router as analytics_router
 from api.logger import log_request
 from api.analytics import analytics
+from api.prometheus_metrics import (
+    MetricsCollector, start_metrics_server, 
+    health_check_status, health_check_duration_seconds
+)
 
 # AUTUS v4.2 - Meta-Circular Development OS
 __version__ = "4.2.0"
@@ -627,6 +631,7 @@ async def logging_middleware(request: Request, call_next):
     start = time.time()
     response = await call_next(request)
     duration = (time.time() - start) * 1000
+    duration_seconds = duration / 1000
     
     # Log request
     log_request(request.method, request.url.path, response.status_code, duration)
@@ -634,4 +639,37 @@ async def logging_middleware(request: Request, call_next):
     # Track API call
     analytics.track_api(request.url.path, request.method)
     
+    # Record metrics (skip metrics endpoint to avoid recursion)
+    if not request.url.path.startswith("/metrics"):
+        endpoint = request.url.path
+        MetricsCollector.record_request(
+            method=request.method,
+            endpoint=endpoint,
+            status_code=response.status_code,
+            duration=duration_seconds
+        )
+    
     return response
+
+
+# ===== Metrics Endpoint =====
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics endpoint"""
+    from api.prometheus_metrics import get_metrics_text
+    from fastapi.responses import Response
+    return Response(content=get_metrics_text(), media_type="text/plain")
+
+
+# ===== Startup Events =====
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    try:
+        # Start Prometheus metrics server (optional, can also serve via /metrics endpoint)
+        # start_metrics_server(8000)  # Uncomment if separate metrics port desired
+        print("✅ AUTUS v4.3.0 started successfully")
+        print("✅ Prometheus metrics available at /metrics")
+    except Exception as e:
+        print(f"⚠️ Startup warning: {e}")
+

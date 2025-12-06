@@ -1146,3 +1146,38 @@ OSError: [Errno 9] Bad file descriptor
 
 Current thread 0x000000020749a200 (most recent call first):
   <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/prometheus_metrics.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'api/prometheus_metrics.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in '.venv/lib/python3.14/site-packages/prometheus_client/core.py', '.venv/lib/python3.14/site-packages/prometheus_client/process_collector.py', '.venv/lib/python3.14/site-packages/prometheus_client/validation.py', '.venv/lib/python3.14/site-packages/prometheus_client/utils.py', '.venv/lib/python3.14/site-packages/prometheus_client/gc_collector.py', '.venv/lib/python3.14/site-packages/prometheus_client/mmap_dict.py', '.venv/lib/python3.14/site-packages/prometheus_client/parser.py', '.venv/lib/python3.14/site-packages/prometheus_client/__init__.py', '.venv/lib/python3.14/site-packages/prometheus_client/bridge/graphite.py', '.venv/lib/python3.14/site-packages/prometheus_client/openmetrics/__init__.py', '.venv/lib/python3.14/site-packages/prometheus_client/registry.py', '.venv/lib/python3.14/site-packages/prometheus_client/openmetrics/parser.py', '.venv/lib/python3.14/site-packages/prometheus_client/twisted/__init__.py', '.venv/lib/python3.14/site-packages/prometheus_client/context_managers.py', '.venv/lib/python3.14/site-packages/prometheus_client/metrics.py', '.venv/lib/python3.14/site-packages/prometheus_client/multiprocess.py', '.venv/lib/python3.14/site-packages/prometheus_client/openmetrics/exposition.py', '.venv/lib/python3.14/site-packages/prometheus_client/metrics_core.py', '.venv/lib/python3.14/site-packages/prometheus_client/decorator.py', '.venv/lib/python3.14/site-packages/prometheus_client/exposition.py', '.venv/lib/python3.14/site-packages/prometheus_client/twisted/_exposition.py', '.venv/lib/python3.14/site-packages/prometheus_client/bridge/__init__.py', '.venv/lib/python3.14/site-packages/prometheus_client/asgi.py', '.venv/lib/python3.14/site-packages/prometheus_client/samples.py', '.venv/lib/python3.14/site-packages/prometheus_client/values.py', '.venv/lib/python3.14/site-packages/prometheus_client/platform_collector.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Fatal Python error: init_sys_streams: can't initialize sys standard streams
+Python runtime state: core initialized
+OSError: [Errno 9] Bad file descriptor
+
+Current thread 0x000000020749a200 (most recent call first):
+  <no Python frame>
