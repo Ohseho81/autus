@@ -1,0 +1,54 @@
+INFO:     Will watch for changes in these directories: ['/Users/oseho/Desktop/autus']
+INFO:     Uvicorn running on http://127.0.0.1:8003 (Press CTRL+C to quit)
+INFO:     Started reloader process [7687] using WatchFiles
+INFO:     Started server process [7691]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+✅ API Key loaded (ends with ...yLJNPAAA)
+INFO:     127.0.0.1:54402 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54403 - "GET /packs/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54406 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54407 - "GET /packs/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54409 - "POST /packs/architect?feature_description=Feature%3A+workflow_engine%0ADescription%3A+%0ALayer%3A+3_worlds%0APillar%3A+information%0A%0ARequirements%3A%0A%0AAPI+Endpoints%3A HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54411 - "POST /packs/codegen?file_path=src%2Fworlds%2Fworkflow_engine%2Fworkflow_engine.py&purpose=Part+of+workflow_engine%3A+ HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'evolved/workflow_engine.py'. Reloading...
+INFO:     127.0.0.1:54415 - "POST /packs/codegen?file_path=src%2Fworlds%2Fworkflow_engine%2Fworkflow_executor.py&purpose=Part+of+workflow_engine%3A+ HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7691]
+INFO:     Started server process [7708]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'evolved/workflow_executor.py'. Reloading...
+✅ API Key loaded (ends with ...yLJNPAAA)
+INFO:     127.0.0.1:54433 - "POST /packs/codegen?file_path=src%2Fworlds%2Fworkflow_engine%2Fworkflow_manager.py&purpose=Part+of+workflow_engine%3A+ HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7708]
+INFO:     Started server process [7716]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'evolved/workflow_manager.py'. Reloading...
+✅ API Key loaded (ends with ...yLJNPAAA)
+INFO:     127.0.0.1:54463 - "POST /packs/codegen?file_path=src%2Fworlds%2Fworkflow_engine%2Ftask_scheduler.py&purpose=Part+of+workflow_engine%3A+ HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7716]
+INFO:     Started server process [7723]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'evolved/task_scheduler.py'. Reloading...
+✅ API Key loaded (ends with ...yLJNPAAA)
+INFO:     127.0.0.1:54473 - "POST /packs/codegen?file_path=src%2Fworlds%2Fworkflow_engine%2Fworkflow_state.py&purpose=Part+of+workflow_engine%3A+ HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7723]
+INFO:     Started server process [7730]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'evolved/workflow_state.py'. Reloading...
+INFO:     Shutting down
