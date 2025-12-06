@@ -21,6 +21,8 @@ app.add_middleware(
         "https://autus-dashboard.vercel.app",
         "https://autus-web.vercel.app",
         "https://*.vercel.app",
+        "https://autus-ai.com",
+        "https://www.autus-ai.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
