@@ -197,3 +197,14 @@ class Telemetry:
             "exported_at": _utcnow().isoformat()
         }, indent=2)
 
+
+# Global telemetry instance
+_telemetry_instance = None
+
+
+def get_telemetry_instance() -> Telemetry:
+    """Get or create the global telemetry instance"""
+    global _telemetry_instance
+    if _telemetry_instance is None:
+        _telemetry_instance = Telemetry()
+    return _telemetry_instance

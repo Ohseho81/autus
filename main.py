@@ -22,6 +22,8 @@ import qrcode
 import io
 import base64
 import time
+import json
+from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -75,6 +77,127 @@ async def cache_stats():
     """Get cache statistics"""
     from api.cache import get_cache_stats
     return get_cache_stats()
+
+
+# ===== Async Task Endpoints =====
+@app.post("/tasks/sync-analytics")
+async def trigger_sync_analytics():
+    """Trigger analytics synchronization task"""
+    try:
+        from evolved.tasks import sync_analytics
+        task = sync_analytics.delay()
+        return {
+            'status': 'queued',
+            'task_id': task.id,
+            'task_name': 'sync_analytics'
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+@app.post("/tasks/generate-report")
+async def trigger_report_generation(report_type: str = "daily"):
+    """Trigger report generation task"""
+    try:
+        if report_type == "weekly":
+            from evolved.tasks import generate_weekly_reports
+            task = generate_weekly_reports.delay()
+        else:
+            from evolved.tasks import generate_daily_reports
+            task = generate_daily_reports.delay()
+        
+        return {
+            'status': 'queued',
+            'task_id': task.id,
+            'task_name': f'generate_{report_type}_reports'
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+@app.get("/tasks/{task_id}")
+async def get_task_status(task_id: str):
+    """Get status of a specific task"""
+    try:
+        from evolved.celery_app import app as celery_app
+        result = celery_app.AsyncResult(task_id)
+        
+        return {
+            'task_id': task_id,
+            'state': result.state,
+            'result': result.result if result.ready() else None,
+            'ready': result.ready(),
+            'successful': result.successful() if result.ready() else None,
+            'failed': result.failed() if result.ready() else None,
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+@app.get("/tasks/queue/stats")
+async def get_queue_stats():
+    """Get async task queue statistics"""
+    try:
+        from evolved.tasks import get_task_queue_stats
+        stats = get_task_queue_stats()
+        return {
+            'queue_stats': stats,
+            'timestamp': datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+# ===== WebSocket Endpoints =====
+@app.websocket("/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: str, channel: str = "default"):
+    """WebSocket endpoint for real-time updates"""
+    from api.websocket import manager
+    
+    try:
+        await manager.connect(websocket, channel)
+        
+        # Send welcome message
+        await manager.send_personal({
+            'type': 'welcome',
+            'client_id': client_id,
+            'channel': channel,
+            'timestamp': datetime.utcnow().isoformat()
+        }, websocket)
+        
+        # Keep connection alive and handle messages
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            
+            # Handle subscription changes
+            if message.get('action') == 'subscribe':
+                # Could update subscription here
+                await manager.send_personal({
+                    'type': 'subscription_updated',
+                    'channel': message.get('channel')
+                }, websocket)
+            
+            # Handle ping/keepalive
+            elif message.get('action') == 'ping':
+                await manager.send_personal({
+                    'type': 'pong',
+                    'timestamp': datetime.utcnow().isoformat()
+                }, websocket)
+    
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+    finally:
+        manager.disconnect(websocket)
+
+
+@app.get("/ws/stats")
+async def websocket_stats():
+    """Get WebSocket connection statistics"""
+    from api.websocket import manager
+    return manager.get_stats()
+
+
 
 # ===== Twin 모델 정의 =====
 
