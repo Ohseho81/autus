@@ -3,9 +3,10 @@ features:
   name: twin_realtime_sync
   spec: specs/twin_realtime_sync.yaml
   status: completed
-- name: workflow_engine
+- completed_at: '2025-12-06T10:46:08.537870'
+  name: workflow_engine
   spec: specs/workflow_engine.yaml
-  status: pending
+  status: completed
 - name: growth_engine
   spec: specs/growth_engine.yaml
   status: pending

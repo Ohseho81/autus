@@ -52,3 +52,9 @@ INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 WARNING:  WatchFiles detected changes in 'evolved/workflow_state.py'. Reloading...
 INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7730]
+INFO:     Started server process [7736]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
