@@ -3,10 +3,15 @@ from .collector import MetricCollector
 from .selector import NaturalSelector
 from .evolution import CollectiveEvolution
 from .compassion import CompassionChecker
+from .llm_client import LLMClient, get_client, generate, is_enabled
 
 __all__ = [
     "MetricCollector",
     "NaturalSelector", 
     "CollectiveEvolution",
-    "CompassionChecker"
+    "CompassionChecker",
+    "LLMClient",
+    "get_client",
+    "generate",
+    "is_enabled"
 ]

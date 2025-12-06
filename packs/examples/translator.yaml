@@ -1,0 +1,18 @@
+autus: "1.0"
+name: "translator"
+version: "1.0.0"
+
+metadata:
+  description: "번역 Pack"
+  author: "AUTUS"
+  license: "MIT"
+
+cells:
+  - name: "translate"
+    type: "llm"
+    prompt: |
+      다음 텍스트를 {target_language}로 번역해줘:
+      
+      {text}
+    temperature: 0.3
+    output: "translated"
