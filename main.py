@@ -527,3 +527,7 @@ async def run_codegen(file_path: str, purpose: str):
 # ===== Reality Events API =====
 from api.reality_events import router as reality_router
 app.include_router(reality_router)
+
+# ===== Sovereign API (Layer 2) =====
+from api.sovereign import router as sovereign_router
+app.include_router(sovereign_router)
