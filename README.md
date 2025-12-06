@@ -285,3 +285,61 @@ MIT License - See [LICENSE](LICENSE)
   Built with ❤️ following the Constitution
 </p>
 
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph TB
+    subgraph Client
+        WEB[Dashboard<br/>React + Vite]
+        MOBILE[PWA<br/>Mobile App]
+    end
+    
+    subgraph API[FastAPI Server]
+        MAIN[main.py<br/>88 Endpoints]
+        GOD[God Mode]
+        TWIN[Twin API]
+        DEVICE[Device API]
+    end
+    
+    subgraph Core
+        ENGINE[Engines]
+        EVOLVED[Evolved Code]
+        PROTOCOL[Protocols]
+    end
+    
+    subgraph External
+        MQTT[MQTT Broker]
+        IOT[IoT Devices]
+    end
+    
+    WEB --> MAIN
+    MOBILE --> MAIN
+    MAIN --> ENGINE
+    DEVICE --> MQTT
+    MQTT --> IOT
+```
+
+## 📡 API Endpoints (88개)
+
+| Category | Count | Description |
+|----------|-------|-------------|
+| Health | 2 | 서버 상태 |
+| Twin | 15 | 디지털 트윈 |
+| God Mode | 7 | 관리자 대시보드 |
+| Devices | 8 | IoT 디바이스 |
+| Analytics | 8 | 사용자 분석 |
+| Sovereign | 12 | 프라이버시 |
+| Reality | 6 | 실시간 이벤트 |
+| Packs | 4 | Pack 시스템 |
+
+## 🌐 Production URLs
+
+| Service | URL |
+|---------|-----|
+| Dashboard | https://autus-ai.com |
+| API Docs | https://autus-production.up.railway.app/docs |
+| Health | https://autus-production.up.railway.app/health |
+| GitHub | https://github.com/Ohseho81/autus |
+

@@ -1,10 +1,21 @@
 """
-Pattern Analyzer for Auto Spec Generator
+[ARCHIVED] Pattern Analyzer - Legacy Version
 
-This module analyzes reality events and automatically generates feature specifications
-when patterns are detected in user behavior and system interactions.
+This file is kept for historical reference only.
+Current implementation is in: engines/pattern_analyzer.py
+
+Reason: Duplicated with engines/pattern_analyzer.py which is actively maintained
+Migration: Use engines.pattern_analyzer instead
+
+Previous Usage (DO NOT USE):
+    from evolved.pattern_analyzer import PatternAnalyzer
+    
+Current Usage:
+    from engines.pattern_analyzer import PatternAnalyzer, get_pattern_analyzer
 """
 
+# Legacy code archived below - DO NOT USE
+"""
 from typing import Dict, List, Optional, Tuple, Any, Set
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta

@@ -11,13 +11,23 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 @router.get("/stats")
 async def get_stats():
-    """Get all analytics statistics."""
+    """
+    Get analytics statistics summary.
+    
+    Returns:
+        dict: Page views, API calls, events count, and health metrics
+    """
     return analytics.get_stats()
 
 
 @router.get("/pages")
 async def get_page_views():
-    """Get page view statistics."""
+    """
+    Get page view statistics.
+    
+    Returns:
+        dict: Page views by route and total count
+    """
     return {
         "page_views": dict(analytics.page_views),
         "total": sum(analytics.page_views.values())
@@ -26,7 +36,12 @@ async def get_page_views():
 
 @router.get("/api-calls")
 async def get_api_calls():
-    """Get API call statistics."""
+    """
+    Get API call statistics.
+    
+    Returns:
+        dict: API calls by endpoint and total count
+    """
     return {
         "api_calls": dict(analytics.api_calls),
         "total": sum(analytics.api_calls.values())
@@ -35,7 +50,15 @@ async def get_api_calls():
 
 @router.get("/events")
 async def get_events(limit: int = Query(default=50, le=100)):
-    """Get recent events."""
+    """
+    Get recent analytics events.
+    
+    Args:
+        limit: Number of events to return (max 100)
+    
+    Returns:
+        dict: Recent events and total count
+    """
     return {
         "events": analytics.events[-limit:],
         "total": len(analytics.events)

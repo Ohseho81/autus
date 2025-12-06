@@ -1,3 +1,16 @@
+"""
+AUTUS Pack Engine - Core Pack Execution Runtime
+
+Part of Article IV: Minimal Core
+- Executes feature packs (bundles of functionality)
+- Packs can be added, removed, or updated independently
+- All non-core features are implemented as packs
+
+Usage:
+    runner = PackRunner()
+    runner.run_pack("pack_name")
+"""
+
 import os
 import yaml
 import json

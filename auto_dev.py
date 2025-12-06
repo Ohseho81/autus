@@ -3,11 +3,16 @@
 AUTUS Auto-Development Script
 Meta-Circular Development: AUTUS develops AUTUS
 
-Usage:
+Note: This script is now replaced by evolution_orchestrator.py and main.py
+For auto-evolution, use: python evolution_orchestrator.py <spec_path>
+
+Legacy Usage (archived):
     python auto_dev.py --single    # Develop single feature
     python auto_dev.py             # Develop all pending features
     python auto_dev.py --list      # List backlog
     python auto_dev.py --status    # Show status
+
+Status: ARCHIVED - See evolution_orchestrator.py for current implementation
 """
 
 import yaml

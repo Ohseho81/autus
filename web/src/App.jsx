@@ -172,7 +172,7 @@ function App() {
         <div className="header-left">
           <span className="logo">◈</span>
           <h1>AUTUS OS</h1>
-          <span className="version">v4.1</span>
+          <span className="version">v4.2</span>
         </div>
 
         <nav className="tabs">

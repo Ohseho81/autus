@@ -1,9 +1,10 @@
 # AUTUS Constitution
 # The fundamental rules that govern AUTUS OS
 
-version: "1.0.0"
+version: "4.2.0"
 name: "AUTUS Constitution"
 created_at: "2025-12-06"
+updated_at: "2025-12-06"
 author: "Seho Lee"
 
 preamble: |

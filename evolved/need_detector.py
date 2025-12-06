@@ -1,9 +1,21 @@
 """
-Auto Spec Generator: Analyze Reality Events and auto-generate feature specs when patterns detected.
+[ARCHIVED] Auto Spec Generator - Legacy Version
 
-This module detects patterns in reality events that suggest the need for new feature specifications.
+This file is kept for historical reference only.
+Current implementation is in: engines/need_detector.py
+
+Reason: Duplicated with engines/need_detector.py which is actively maintained
+Migration: Use engines.need_detector instead
+
+Previous Usage (DO NOT USE):
+    from evolved.need_detector import NeedDetector
+    
+Current Usage:
+    from engines.need_detector import NeedDetector, get_need_detector
 """
 
+# Legacy code archived below - DO NOT USE
+"""
 import logging
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass, field

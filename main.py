@@ -1,3 +1,22 @@
+"""
+AUTUS - The Protocol for Personal AI Operating Systems
+
+Main FastAPI application with 88 endpoints serving:
+- Digital Twin Management
+- Zero-Identity Authentication
+- Data Sovereignty & Privacy
+- Meta-Circular Development
+- Reality Event Handling
+
+Production: https://autus-ai.com
+API Docs: https://autus-production.up.railway.app/docs
+Dashboard: https://autus-dashboard.vercel.app
+
+Author: Seho Oh
+Version: 4.2.0
+License: MIT
+"""
+
 from typing import List, Dict, Any, Optional
 import qrcode
 import io
@@ -15,7 +34,15 @@ from api.routes.analytics import router as analytics_router
 from api.logger import log_request
 from api.analytics import analytics
 
-app = FastAPI(title="Autus Twin Dev")
+# AUTUS v4.2 - Meta-Circular Development OS
+__version__ = "4.2.0"
+__title__ = "AUTUS - Meta-Circular Development OS"
+
+app = FastAPI(
+    title=__title__,
+    version=__version__,
+    description="The Protocol for Personal AI Operating Systems"
+)
 
 app.add_middleware(
     CORSMiddleware,

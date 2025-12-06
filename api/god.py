@@ -7,12 +7,10 @@ Returns 403 Forbidden otherwise
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Dict, Any, List
 from datetime import datetime, timedelta
 import random
 
 from core.view_scope import Role
-from api.deps import require_god_mode
 
 router = APIRouter(prefix="/god", tags=["god"])
 
@@ -38,7 +36,18 @@ def check_god_mode(role: Role = Query(...)):
 @router.get("/universe")
 async def get_universe(role: Role = Depends(check_god_mode)):
     """
-    🌌 Complete universe overview.
+    🌌 Get entire universe overview for God Mode.
+    
+    Seho's exclusive full-system monitoring view with:
+    - All cities and their health status
+    - Total users, events, and system state
+    - Real-time health metrics
+    
+    Args:
+        role: User role (must be 'seho' for access)
+    
+    Returns:
+        dict: Universe state with cities, users, events, health
     
     Usage: GET /god/universe?role=seho
     """

@@ -34,19 +34,37 @@ devices_db: dict[str, Device] = {}
 
 @router.get("/", response_model=List[Device])
 async def list_devices():
-    """List all registered devices."""
+    """
+    List all registered IoT devices.
+    
+    Returns:
+        List[Device]: All devices with their current status and metadata
+    """
     return list(devices_db.values())
 
 
 @router.get("/online")
 async def list_online_devices():
-    """List only online devices."""
+    """
+    List only online IoT devices.
+    
+    Returns:
+        List[Device]: Devices currently online and responsive
+    """
     return [d for d in devices_db.values() if d.status == "online"]
 
 
 @router.post("/register", response_model=dict)
 async def register_device(device: Device):
-    """Register a new device."""
+    """
+    Register a new IoT device.
+    
+    Args:
+        device: Device information (id, name, type, etc.)
+    
+    Returns:
+        dict: Registration status and device details
+    """
     device.last_seen = datetime.utcnow().isoformat()
     devices_db[device.id] = device
     return {

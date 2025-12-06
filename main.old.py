@@ -1,3 +1,16 @@
+"""
+[DEPRECATED] AUTUS v3.0 - Legacy Main File
+
+This file contains the original v3.0 implementation and is kept for historical reference only.
+Current implementation uses main.py with FastAPI and evolved modules.
+
+Status: ARCHIVED (Not used in production)
+Reason: Replaced by main.py with new architecture
+Migration: All endpoints have been migrated to main.py
+
+To use this file, rename it back to main.py (after backing up current main.py)
+"""
+
 from fastapi import FastAPI, WebSocket, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
