@@ -969,3 +969,11 @@ async def oracle_dashboard():
 async def oracle_dashboard_alias():
     """Oracle 대시보드 (별칭)"""
     return await oracle_dashboard()
+
+# ============ AUTUS Pack Marketplace ============
+try:
+    from api.routes.marketplace import router as marketplace_router
+    app.include_router(marketplace_router, prefix="/api/v1")
+    print("✅ Marketplace 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Marketplace 로드 실패: {e}")
