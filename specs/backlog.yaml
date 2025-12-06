@@ -11,9 +11,6 @@ features:
   - name: docker_fix
     spec: specs/docker_fix.yaml
     status: pending
-  - name: readme_update
-    spec: specs/readme_update.yaml
-    status: pending
   - name: real_device
     spec: specs/real_device.yaml
     status: pending

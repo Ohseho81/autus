@@ -13,3 +13,16 @@ components:
   - MQTTClient class
   - DeviceRegistry class
   - SensorDataProcessor class
+
+api_endpoints:
+  - POST /devices/register
+  - GET /devices/{device_id}
+  - POST /devices/{device_id}/data
+  - GET /devices/status
+  - DELETE /devices/{device_id}
+
+files:
+  - core/devices/mqtt_client.py
+  - core/devices/registry.py
+  - core/devices/processor.py
+  - api/devices.py

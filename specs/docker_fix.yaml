@@ -1,7 +1,11 @@
-api_endpoints: []
-description: ''
-files: []
-layer: 3_worlds
 name: docker_fix
-pillar: information
-requirements: []
+description: Fix Dockerfile to copy all required files
+layer: infra
+priority: critical
+
+tasks:
+  - Add COPY standard.py to Dockerfile
+  - Add COPY auto_generated/ to Dockerfile
+  - Add COPY examples/ to Dockerfile
+  - Add COPY logs/ to Dockerfile
+  - Verify all imports work in container

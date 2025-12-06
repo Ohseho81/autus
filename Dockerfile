@@ -26,6 +26,7 @@ COPY specs/ ./specs/
 COPY scripts/ ./scripts/
 COPY tests/ ./tests/
 COPY main.py .
+COPY standard.py .
 COPY evolution_orchestrator.py .
 COPY continuous_loop.py .
 COPY constitution.yaml .

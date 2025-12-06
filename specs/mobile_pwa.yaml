@@ -9,3 +9,8 @@ features:
   - Push notifications
   - Responsive design
   - App manifest
+
+files:
+  - web/public/manifest.json
+  - web/public/sw.js
+  - web/src/service-worker.js
