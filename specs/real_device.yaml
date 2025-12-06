@@ -1,0 +1,15 @@
+name: real_device
+description: IoT sensor integration for Reality Events
+layer: integration
+priority: medium
+
+features:
+  - MQTT client for sensors
+  - Device registration API
+  - Real-time data ingestion
+  - Device status monitoring
+
+components:
+  - MQTTClient class
+  - DeviceRegistry class
+  - SensorDataProcessor class

@@ -1,13 +1,22 @@
 features:
-- completed_at: '2025-12-06T10:17:49.002686'
-  name: twin_realtime_sync
-  spec: specs/twin_realtime_sync.yaml
-  status: completed
-- completed_at: '2025-12-06T10:46:08.537870'
-  name: workflow_engine
-  spec: specs/workflow_engine.yaml
-  status: completed
-- completed_at: '2025-12-06T10:58:00.000000'
-  name: growth_engine
-  spec: specs/growth_engine.yaml
-  status: completed
+  - name: twin_realtime_sync
+    spec: specs/twin_realtime_sync.yaml
+    status: completed
+  - name: workflow_engine
+    spec: specs/workflow_engine.yaml
+    status: completed
+  - name: growth_engine
+    spec: specs/growth_engine.yaml
+    status: completed
+  - name: docker_fix
+    spec: specs/docker_fix.yaml
+    status: pending
+  - name: readme_update
+    spec: specs/readme_update.yaml
+    status: pending
+  - name: real_device
+    spec: specs/real_device.yaml
+    status: pending
+  - name: mobile_pwa
+    spec: specs/mobile_pwa.yaml
+    status: pending

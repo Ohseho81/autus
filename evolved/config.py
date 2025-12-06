@@ -1,280 +1,324 @@
 """
-config.py
+Configuration module for docker_fix.
 
-Configuration settings for Reality Stream Minimal - IoT event processing and Digital Twin graph updates.
-Contains all configurable parameters, connection strings, and system settings.
+This module handles configuration loading and management for the docker_fix tool,
+including environment variables, config files, and default settings.
 """
 
 import os
-from typing import Dict, List, Optional, Union
-from dataclasses import dataclass
+import json
 from pathlib import Path
+from typing import Dict, Any, Optional, Union
+from dataclasses import dataclass, asdict
 import logging
 
-
-@dataclass
-class DatabaseConfig:
-    """Database connection configuration."""
-    host: str
-    port: int
-    database: str
-    username: str
-    password: str
-    connection_timeout: int = 30
-    max_connections: int = 10
+logger = logging.getLogger(__name__)
 
 
 @dataclass
-class IoTConfig:
-    """IoT service configuration."""
-    event_hub_connection_string: str
-    consumer_group: str
-    partition_count: int = 4
-    batch_size: int = 100
-    max_wait_time: int = 60
-
-
-@dataclass
-class GraphConfig:
-    """Digital Twin graph configuration."""
-    endpoint: str
-    access_key: str
-    database_name: str
-    container_name: str
-    max_retry_attempts: int = 3
-    retry_delay: int = 1
-
-
-@dataclass
-class ProcessingConfig:
-    """Event processing configuration."""
-    max_concurrent_events: int = 50
-    event_timeout: int = 30
-    batch_processing_enabled: bool = True
-    dead_letter_queue_enabled: bool = True
-
-
-class Config:
-    """Main configuration class for Reality Stream Minimal."""
+class DockerFixConfig:
+    """Configuration class for docker_fix settings."""
     
-    def __init__(self) -> None:
-        """Initialize configuration with environment variables and defaults."""
-        self._load_environment_variables()
-        self._setup_logging()
-        
-    def _load_environment_variables(self) -> None:
-        """Load configuration from environment variables."""
+    # Docker settings
+    docker_host: str = "unix://var/run/docker.sock"
+    docker_timeout: int = 30
+    docker_api_version: str = "auto"
+    
+    # Logging settings
+    log_level: str = "INFO"
+    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    log_file: Optional[str] = None
+    
+    # Fix settings
+    auto_fix: bool = False
+    backup_before_fix: bool = True
+    max_retries: int = 3
+    retry_delay: int = 5
+    
+    # Container settings
+    stop_timeout: int = 10
+    remove_anonymous_volumes: bool = False
+    force_recreate: bool = False
+    
+    # Network settings
+    cleanup_networks: bool = True
+    preserve_custom_networks: bool = True
+    
+    # Volume settings
+    cleanup_volumes: bool = False
+    preserve_named_volumes: bool = True
+    
+    # Image settings
+    cleanup_images: bool = False
+    preserve_tagged_images: bool = True
+    image_cleanup_days: int = 7
+    
+    # Monitoring settings
+    health_check_interval: int = 30
+    health_check_timeout: int = 10
+    health_check_retries: int = 3
+    
+    # Output settings
+    output_format: str = "table"  # table, json, yaml
+    show_timestamps: bool = True
+    color_output: bool = True
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert config to dictionary."""
+        return asdict(self)
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'DockerFixConfig':
+        """Create config from dictionary."""
         try:
-            # Database Configuration
-            self.database = DatabaseConfig(
-                host=os.getenv('DB_HOST', 'localhost'),
-                port=int(os.getenv('DB_PORT', '5432')),
-                database=os.getenv('DB_NAME', 'reality_stream'),
-                username=os.getenv('DB_USERNAME', 'admin'),
-                password=os.getenv('DB_PASSWORD', ''),
-                connection_timeout=int(os.getenv('DB_CONNECTION_TIMEOUT', '30')),
-                max_connections=int(os.getenv('DB_MAX_CONNECTIONS', '10'))
-            )
-            
-            # IoT Configuration
-            self.iot = IoTConfig(
-                event_hub_connection_string=os.getenv('IOT_EVENT_HUB_CONNECTION_STRING', ''),
-                consumer_group=os.getenv('IOT_CONSUMER_GROUP', '$Default'),
-                partition_count=int(os.getenv('IOT_PARTITION_COUNT', '4')),
-                batch_size=int(os.getenv('IOT_BATCH_SIZE', '100')),
-                max_wait_time=int(os.getenv('IOT_MAX_WAIT_TIME', '60'))
-            )
-            
-            # Graph Configuration
-            self.graph = GraphConfig(
-                endpoint=os.getenv('GRAPH_ENDPOINT', ''),
-                access_key=os.getenv('GRAPH_ACCESS_KEY', ''),
-                database_name=os.getenv('GRAPH_DATABASE_NAME', 'TwinGraph'),
-                container_name=os.getenv('GRAPH_CONTAINER_NAME', 'twins'),
-                max_retry_attempts=int(os.getenv('GRAPH_MAX_RETRY_ATTEMPTS', '3')),
-                retry_delay=int(os.getenv('GRAPH_RETRY_DELAY', '1'))
-            )
-            
-            # Processing Configuration
-            self.processing = ProcessingConfig(
-                max_concurrent_events=int(os.getenv('PROCESSING_MAX_CONCURRENT_EVENTS', '50')),
-                event_timeout=int(os.getenv('PROCESSING_EVENT_TIMEOUT', '30')),
-                batch_processing_enabled=os.getenv('PROCESSING_BATCH_ENABLED', 'true').lower() == 'true',
-                dead_letter_queue_enabled=os.getenv('PROCESSING_DLQ_ENABLED', 'true').lower() == 'true'
-            )
-            
-        except (ValueError, TypeError) as e:
-            raise ConfigurationError(f"Error loading configuration: {e}")
-    
-    def _setup_logging(self) -> None:
-        """Setup logging configuration."""
-        self.log_level: str = os.getenv('LOG_LEVEL', 'INFO').upper()
-        self.log_format: str = os.getenv(
-            'LOG_FORMAT', 
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        self.log_file: Optional[str] = os.getenv('LOG_FILE')
-        
-    def validate(self) -> bool:
-        """
-        Validate configuration settings.
-        
-        Returns:
-            bool: True if configuration is valid
-            
-        Raises:
-            ConfigurationError: If configuration is invalid
-        """
-        try:
-            # Validate required IoT settings
-            if not self.iot.event_hub_connection_string:
-                raise ConfigurationError("IoT Event Hub connection string is required")
-            
-            # Validate required Graph settings
-            if not self.graph.endpoint:
-                raise ConfigurationError("Graph endpoint is required")
-            
-            if not self.graph.access_key:
-                raise ConfigurationError("Graph access key is required")
-            
-            # Validate database settings
-            if not self.database.password:
-                logging.warning("Database password is empty")
-            
-            # Validate numeric ranges
-            if self.processing.max_concurrent_events <= 0:
-                raise ConfigurationError("Max concurrent events must be positive")
-            
-            if self.iot.batch_size <= 0:
-                raise ConfigurationError("IoT batch size must be positive")
-            
-            return True
-            
-        except Exception as e:
-            raise ConfigurationError(f"Configuration validation failed: {e}")
-    
-    def get_connection_string(self, service: str) -> str:
-        """
-        Get connection string for specified service.
-        
-        Args:
-            service: Service name ('database', 'iot', 'graph')
-            
-        Returns:
-            str: Connection string
-            
-        Raises:
-            ConfigurationError: If service is unknown
-        """
-        try:
-            if service == 'database':
-                return (f"postgresql://{self.database.username}:{self.database.password}@"
-                       f"{self.database.host}:{self.database.port}/{self.database.database}")
-            
-            elif service == 'iot':
-                return self.iot.event_hub_connection_string
-            
-            elif service == 'graph':
-                return f"AccountEndpoint={self.graph.endpoint};AccountKey={self.graph.access_key};"
-            
-            else:
-                raise ConfigurationError(f"Unknown service: {service}")
-                
-        except Exception as e:
-            raise ConfigurationError(f"Error building connection string for {service}: {e}")
-    
-    def get_feature_flags(self) -> Dict[str, bool]:
-        """
-        Get feature flags configuration.
-        
-        Returns:
-            Dict[str, bool]: Feature flags
-        """
-        return {
-            'batch_processing': self.processing.batch_processing_enabled,
-            'dead_letter_queue': self.processing.dead_letter_queue_enabled,
-            'metrics_enabled': os.getenv('METRICS_ENABLED', 'true').lower() == 'true',
-            'health_checks_enabled': os.getenv('HEALTH_CHECKS_ENABLED', 'true').lower() == 'true',
-            'telemetry_enabled': os.getenv('TELEMETRY_ENABLED', 'true').lower() == 'true'
-        }
-    
-    def get_retry_policy(self, service: str) -> Dict[str, Union[int, float]]:
-        """
-        Get retry policy for specified service.
-        
-        Args:
-            service: Service name
-            
-        Returns:
-            Dict[str, Union[int, float]]: Retry policy settings
-        """
-        base_policy = {
-            'max_attempts': 3,
-            'base_delay': 1.0,
-            'max_delay': 60.0,
-            'exponential_base': 2.0
-        }
-        
-        if service == 'graph':
-            base_policy.update({
-                'max_attempts': self.graph.max_retry_attempts,
-                'base_delay': float(self.graph.retry_delay)
-            })
-        
-        return base_policy
+            # Filter out unknown keys
+            valid_keys = {field.name for field in cls.__dataclass_fields__.values()}
+            filtered_data = {k: v for k, v in data.items() if k in valid_keys}
+            return cls(**filtered_data)
+        except TypeError as e:
+            raise ConfigError(f"Invalid configuration data: {e}")
 
 
-class ConfigurationError(Exception):
-    """Custom exception for configuration errors."""
+class ConfigError(Exception):
+    """Configuration-related errors."""
     pass
 
 
-# Global configuration instance
-def get_config() -> Config:
+class ConfigManager:
+    """Manages configuration loading and saving."""
+    
+    DEFAULT_CONFIG_PATHS = [
+        Path.home() / ".docker_fix" / "config.json",
+        Path.cwd() / "docker_fix.json",
+        Path("/etc/docker_fix/config.json"),
+    ]
+    
+    ENV_PREFIX = "DOCKER_FIX_"
+    
+    def __init__(self, config_path: Optional[Union[str, Path]] = None):
+        """Initialize configuration manager.
+        
+        Args:
+            config_path: Optional path to configuration file
+        """
+        self.config_path = Path(config_path) if config_path else None
+        self._config: Optional[DockerFixConfig] = None
+    
+    def load_config(self) -> DockerFixConfig:
+        """Load configuration from various sources.
+        
+        Returns:
+            DockerFixConfig: Loaded configuration
+            
+        Raises:
+            ConfigError: If configuration cannot be loaded
+        """
+        try:
+            # Start with default config
+            config_data = {}
+            
+            # Load from file
+            file_config = self._load_from_file()
+            if file_config:
+                config_data.update(file_config)
+            
+            # Override with environment variables
+            env_config = self._load_from_env()
+            config_data.update(env_config)
+            
+            # Create config object
+            self._config = DockerFixConfig.from_dict(config_data)
+            
+            logger.info("Configuration loaded successfully")
+            return self._config
+            
+        except Exception as e:
+            raise ConfigError(f"Failed to load configuration: {e}")
+    
+    def save_config(self, config: DockerFixConfig) -> None:
+        """Save configuration to file.
+        
+        Args:
+            config: Configuration to save
+            
+        Raises:
+            ConfigError: If configuration cannot be saved
+        """
+        try:
+            config_path = self._get_save_path()
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(config_path, 'w') as f:
+                json.dump(config.to_dict(), f, indent=2)
+            
+            logger.info(f"Configuration saved to {config_path}")
+            
+        except Exception as e:
+            raise ConfigError(f"Failed to save configuration: {e}")
+    
+    def get_config(self) -> DockerFixConfig:
+        """Get current configuration.
+        
+        Returns:
+            DockerFixConfig: Current configuration
+        """
+        if self._config is None:
+            self._config = self.load_config()
+        return self._config
+    
+    def _load_from_file(self) -> Dict[str, Any]:
+        """Load configuration from file.
+        
+        Returns:
+            Dict[str, Any]: Configuration data from file
+        """
+        config_path = self._find_config_file()
+        if not config_path:
+            logger.debug("No configuration file found")
+            return {}
+        
+        try:
+            with open(config_path, 'r') as f:
+                data = json.load(f)
+            
+            logger.debug(f"Configuration loaded from {config_path}")
+            return data
+            
+        except json.JSONDecodeError as e:
+            raise ConfigError(f"Invalid JSON in config file {config_path}: {e}")
+        except Exception as e:
+            raise ConfigError(f"Failed to read config file {config_path}: {e}")
+    
+    def _load_from_env(self) -> Dict[str, Any]:
+        """Load configuration from environment variables.
+        
+        Returns:
+            Dict[str, Any]: Configuration data from environment
+        """
+        config_data = {}
+        
+        for key, value in os.environ.items():
+            if key.startswith(self.ENV_PREFIX):
+                # Convert environment variable name to config key
+                config_key = key[len(self.ENV_PREFIX):].lower()
+                
+                # Convert value to appropriate type
+                try:
+                    # Try to parse as JSON first (for complex values)
+                    parsed_value = json.loads(value)
+                except json.JSONDecodeError:
+                    # Fall back to string/boolean/integer parsing
+                    parsed_value = self._parse_env_value(value)
+                
+                config_data[config_key] = parsed_value
+        
+        if config_data:
+            logger.debug(f"Configuration loaded from environment: {list(config_data.keys())}")
+        
+        return config_data
+    
+    def _parse_env_value(self, value: str) -> Union[str, int, bool]:
+        """Parse environment variable value.
+        
+        Args:
+            value: Raw environment variable value
+            
+        Returns:
+            Union[str, int, bool]: Parsed value
+        """
+        # Boolean values
+        if value.lower() in ('true', '1', 'yes', 'on'):
+            return True
+        if value.lower() in ('false', '0', 'no', 'off'):
+            return False
+        
+        # Integer values
+        try:
+            return int(value)
+        except ValueError:
+            pass
+        
+        # String values
+        return value
+    
+    def _find_config_file(self) -> Optional[Path]:
+        """Find configuration file.
+        
+        Returns:
+            Optional[Path]: Path to configuration file if found
+        """
+        # Check explicit path first
+        if self.config_path and self.config_path.exists():
+            return self.config_path
+        
+        # Check default paths
+        for path in self.DEFAULT_CONFIG_PATHS:
+            if path.exists():
+                return path
+        
+        return None
+    
+    def _get_save_path(self) -> Path:
+        """Get path for saving configuration.
+        
+        Returns:
+            Path: Path to save configuration
+        """
+        if self.config_path:
+            return self.config_path
+        
+        return self.DEFAULT_CONFIG_PATHS[0]
+
+
+# Global configuration manager instance
+_config_manager: Optional[ConfigManager] = None
+
+
+def get_config_manager(config_path: Optional[Union[str, Path]] = None) -> ConfigManager:
+    """Get global configuration manager instance.
+    
+    Args:
+        config_path: Optional path to configuration file
+        
+    Returns:
+        ConfigManager: Configuration manager instance
     """
-    Get global configuration instance.
+    global _config_manager
+    
+    if _config_manager is None or config_path:
+        _config_manager = ConfigManager(config_path)
+    
+    return _config_manager
+
+
+def get_config() -> DockerFixConfig:
+    """Get current configuration.
     
     Returns:
-        Config: Configuration instance
+        DockerFixConfig: Current configuration
     """
-    if not hasattr(get_config, '_instance'):
-        get_config._instance = Config()
-        get_config._instance.validate()
+    return get_config_manager().get_config()
+
+
+def load_config(config_path: Optional[Union[str, Path]] = None) -> DockerFixConfig:
+    """Load configuration from file and environment.
     
-    return get_config._instance
+    Args:
+        config_path: Optional path to configuration file
+        
+    Returns:
+        DockerFixConfig: Loaded configuration
+    """
+    manager = get_config_manager(config_path)
+    return manager.load_config()
 
 
-# Environment-specific configurations
-DEVELOPMENT_CONFIG = {
-    'LOG_LEVEL': 'DEBUG',
-    'PROCESSING_MAX_CONCURRENT_EVENTS': '10',
-    'IOT_BATCH_SIZE': '10'
-}
-
-PRODUCTION_CONFIG = {
-    'LOG_LEVEL': 'INFO',
-    'PROCESSING_MAX_CONCURRENT_EVENTS': '100',
-    'IOT_BATCH_SIZE': '500'
-}
-
-# Supported IoT device types
-SUPPORTED_DEVICE_TYPES: List[str] = [
-    'temperature_sensor',
-    'humidity_sensor',
-    'pressure_sensor',
-    'motion_detector',
-    'smart_meter',
-    'camera',
-    'actuator',
-    'gateway'
-]
-
-# Graph relationship types
-TWIN_RELATIONSHIP_TYPES: List[str] = [
-    'contains',
-    'connectedTo',
-    'feeds',
-    'controls',
-    'monitors',
-    'locatedIn'
-]
+def save_config(config: DockerFixConfig, config_path: Optional[Union[str, Path]] = None) -> None:
+    """Save configuration to file.
+    
+    Args:
+        config: Configuration to save
+        config_path: Optional path to save configuration
+    """
+    manager = get_config_manager(config_path)
+    manager.save_config(config)

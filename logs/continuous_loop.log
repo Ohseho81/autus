@@ -278,3 +278,137 @@
 [10:46:08] 
 ⏱️ Cycle completed in 266.4s
 [10:46:08] 📊 Stats: 1 cycles, 2 fixes, 1 evolutions
+[12:03:56] 
+============================================================
+[12:03:56] 🚀 AUTUS CONTINUOUS LOOP STARTED
+[12:03:56]    Interval: 300s (5.0 min)
+[12:03:56]    API: http://127.0.0.1:8003
+[12:03:56]    Press Ctrl+C to stop
+[12:03:56] ============================================================
+[12:03:56] 
+============================================================
+[12:03:56] 🔄 CYCLE 1 - 2025-12-06 12:03:56
+[12:03:56] ============================================================
+[12:03:56] 🔍 Starting health check...
+[12:03:56]   ✓ API server healthy
+[12:03:56]   ✓ Pack Engine healthy (2 packs)
+[12:03:56]   ✓ All required files present
+[12:03:56]   ✓ Git status OK (7 changes)
+[12:03:56] ⚠️ Found 2 issue(s)
+[12:03:56] 
+🔧 Attempting to fix 2 issue(s)...
+[12:03:56]   → Installing pyyaml...
+[12:03:56]   ✓ Installed pyyaml
+[12:03:56]   → Installing python-dotenv...
+[12:03:56]   ✓ Installed python-dotenv
+[12:03:56]   Fixed 2/2 issues
+[12:03:56] 🔍 Starting health check...
+[12:03:56]   ✓ API server healthy
+[12:03:56]   ✓ Pack Engine healthy (2 packs)
+[12:03:56]   ✓ All required files present
+[12:03:56]   ✓ Git status OK (7 changes)
+[12:03:56] ⚠️ Found 2 issue(s)
+[12:03:56] 
+📋 Checking backlog...
+[12:03:56]   Found pending: docker_fix
+[12:03:56] 
+🧬 Running Evolution: /Users/oseho/Desktop/autus/specs/docker_fix.yaml
+[12:08:56]   ❌ Evolution timed out
+[12:08:56] 
+⏱️ Cycle completed in 300.6s
+[12:08:56] 📊 Stats: 1 cycles, 2 fixes, 0 evolutions
+[12:08:56] 
+💤 Sleeping for 300s...
+[12:13:56] 
+============================================================
+[12:13:56] 🔄 CYCLE 2 - 2025-12-06 12:13:56
+[12:13:56] ============================================================
+[12:13:56] 🔍 Starting health check...
+[12:14:06]   ✓ All required files present
+[12:14:06]   ✓ Git status OK (11 changes)
+[12:14:06] ⚠️ Found 4 issue(s)
+[12:14:06] 
+🔧 Attempting to fix 4 issue(s)...
+[12:14:06]   → Attempting to start API server...
+[12:14:14]   → Installing pyyaml...
+[12:14:15]   ✓ Installed pyyaml
+[12:14:15]   → Installing python-dotenv...
+[12:14:15]   ✓ Installed python-dotenv
+[12:14:15]   Fixed 2/4 issues
+[12:14:15] 🔍 Starting health check...
+[12:14:25]   ✓ All required files present
+[12:14:25]   ✓ Git status OK (11 changes)
+[12:14:25] ⚠️ Found 4 issue(s)
+[12:14:25] 
+📋 Checking backlog...
+[12:14:25]   Found pending: docker_fix
+[12:14:25] 
+🧬 Running Evolution: /Users/oseho/Desktop/autus/specs/docker_fix.yaml
+[12:16:25]   ❌ Evolution failed: 
+[12:16:25] 
+⏱️ Cycle completed in 148.8s
+[12:16:25] 📊 Stats: 2 cycles, 4 fixes, 0 evolutions
+[12:16:25] 
+💤 Sleeping for 300s...
+[12:22:11] 
+============================================================
+[12:22:11] 🔄 CYCLE 3 - 2025-12-06 12:22:11
+[12:22:11] ============================================================
+[12:22:11] 🔍 Starting health check...
+[12:22:11]   ✓ API server healthy
+[12:22:11]   ✓ Pack Engine healthy (2 packs)
+[12:22:11]   ✓ All required files present
+[12:22:11]   ✓ Git status OK (12 changes)
+[12:22:11] ⚠️ Found 2 issue(s)
+[12:22:11] 
+🔧 Attempting to fix 2 issue(s)...
+[12:22:11]   → Installing pyyaml...
+[12:22:11]   ✓ Installed pyyaml
+[12:22:11]   → Installing python-dotenv...
+[12:22:12]   ✓ Installed python-dotenv
+[12:22:12]   Fixed 2/2 issues
+[12:22:12] 🔍 Starting health check...
+[12:22:12]   ✓ API server healthy
+[12:22:12]   ✓ Pack Engine healthy (2 packs)
+[12:22:12]   ✓ All required files present
+[12:22:12]   ✓ Git status OK (12 changes)
+[12:22:12] ⚠️ Found 2 issue(s)
+[12:22:12] 
+📋 Checking backlog...
+[12:22:12]   Found pending: docker_fix
+[12:22:12] 
+🧬 Running Evolution: /Users/oseho/Desktop/autus/specs/docker_fix.yaml
+[12:22:13]   ❌ Evolution failed: 
+[12:22:13] 
+⏱️ Cycle completed in 2.1s
+[12:22:13] 📊 Stats: 3 cycles, 6 fixes, 0 evolutions
+[12:22:13] 
+💤 Sleeping for 300s...
+[12:27:13] 
+============================================================
+[12:27:13] 🔄 CYCLE 4 - 2025-12-06 12:27:13
+[12:27:13] ============================================================
+[12:27:13] 🔍 Starting health check...
+[12:27:13]   ✓ API server healthy
+[12:27:13]   ✓ Pack Engine healthy (2 packs)
+[12:27:13]   ✓ All required files present
+[12:27:13]   ✓ Git status OK (12 changes)
+[12:27:13] ⚠️ Found 2 issue(s)
+[12:27:13] 
+🔧 Attempting to fix 2 issue(s)...
+[12:27:13]   → Installing pyyaml...
+[12:27:13]   ✓ Installed pyyaml
+[12:27:13]   → Installing python-dotenv...
+[12:27:14]   ✓ Installed python-dotenv
+[12:27:14]   Fixed 2/2 issues
+[12:27:14] 🔍 Starting health check...
+[12:27:14]   ✓ API server healthy
+[12:27:14]   ✓ Pack Engine healthy (2 packs)
+[12:27:14]   ✓ All required files present
+[12:27:14]   ✓ Git status OK (12 changes)
+[12:27:14] ⚠️ Found 2 issue(s)
+[12:27:14] 
+📋 Checking backlog...
+[12:27:14]   Found pending: docker_fix
+[12:27:14] 
+🧬 Running Evolution: /Users/oseho/Desktop/autus/specs/docker_fix.yaml

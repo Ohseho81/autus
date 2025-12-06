@@ -1,0 +1,11 @@
+name: mobile_pwa
+description: Progressive Web App for mobile access
+layer: frontend
+priority: low
+
+features:
+  - Service worker
+  - Offline support
+  - Push notifications
+  - Responsive design
+  - App manifest

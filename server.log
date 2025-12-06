@@ -1,110 +1,380 @@
 INFO:     Will watch for changes in these directories: ['/Users/oseho/Desktop/autus']
 INFO:     Uvicorn running on http://127.0.0.1:8003 (Press CTRL+C to quit)
-INFO:     Started reloader process [7687] using WatchFiles
-INFO:     Started server process [7691]
+INFO:     Started reloader process [10300] using WatchFiles
+INFO:     Started server process [10305]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ✅ API Key loaded (ends with ...yLJNPAAA)
-INFO:     127.0.0.1:54402 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54403 - "GET /packs/list HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54406 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54407 - "GET /packs/list HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54409 - "POST /packs/architect?feature_description=Feature%3A+workflow_engine%0ADescription%3A+%0ALayer%3A+3_worlds%0APillar%3A+information%0A%0ARequirements%3A%0A%0AAPI+Endpoints%3A HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54411 - "POST /packs/codegen?file_path=src%2Fworlds%2Fworkflow_engine%2Fworkflow_engine.py&purpose=Part+of+workflow_engine%3A+ HTTP/1.1" 200 OK
-WARNING:  WatchFiles detected changes in 'evolved/workflow_engine.py'. Reloading...
-INFO:     127.0.0.1:54415 - "POST /packs/codegen?file_path=src%2Fworlds%2Fworkflow_engine%2Fworkflow_executor.py&purpose=Part+of+workflow_engine%3A+ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56393 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56394 - "GET /packs/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56400 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56401 - "GET /packs/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56403 - "POST /packs/architect?feature_description=Feature%3A+docker_fix%0ADescription%3A+%0ALayer%3A+3_worlds%0APillar%3A+information%0A%0ARequirements%3A%0A%0AAPI+Endpoints%3A HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56410 - "POST /packs/codegen?file_path=docker_fix%2F&purpose=Part+of+docker_fix%3A+ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56405 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56406 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56407 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56429 - "POST /packs/codegen?file_path=docker_fix%2F__init__.py&purpose=Part+of+docker_fix%3A+ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56419 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56420 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56406 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56405 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56421 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56407 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'evolved/__init__.py'. Reloading...
+INFO:     127.0.0.1:56434 - "POST /packs/codegen?file_path=docker_fix%2Fmain.py&purpose=Part+of+docker_fix%3A+ HTTP/1.1" 200 OK
 INFO:     Shutting down
+INFO:     127.0.0.1:56420 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56421 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56419 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56406 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56407 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56405 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [7691]
-INFO:     Started server process [7708]
+INFO:     Finished server process [10305]
+INFO:     Started server process [10386]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'evolved/workflow_executor.py'. Reloading...
+WARNING:  WatchFiles detected changes in 'evolved/main.py'. Reloading...
 ✅ API Key loaded (ends with ...yLJNPAAA)
-INFO:     127.0.0.1:54433 - "POST /packs/codegen?file_path=src%2Fworlds%2Fworkflow_engine%2Fworkflow_manager.py&purpose=Part+of+workflow_engine%3A+ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56442 - "POST /packs/codegen?file_path=docker_fix%2Fdocker_utils.py&purpose=Part+of+docker_fix%3A+ HTTP/1.1" 200 OK
 INFO:     Shutting down
+INFO:     127.0.0.1:56443 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [7708]
-INFO:     Started server process [7716]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'evolved/workflow_manager.py'. Reloading...
-✅ API Key loaded (ends with ...yLJNPAAA)
-INFO:     127.0.0.1:54463 - "POST /packs/codegen?file_path=src%2Fworlds%2Fworkflow_engine%2Ftask_scheduler.py&purpose=Part+of+workflow_engine%3A+ HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [7716]
-INFO:     Started server process [7723]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'evolved/task_scheduler.py'. Reloading...
-✅ API Key loaded (ends with ...yLJNPAAA)
-INFO:     127.0.0.1:54473 - "POST /packs/codegen?file_path=src%2Fworlds%2Fworkflow_engine%2Fworkflow_state.py&purpose=Part+of+workflow_engine%3A+ HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [7723]
-INFO:     Started server process [7730]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'evolved/workflow_state.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [7730]
-INFO:     Started server process [7736]
+INFO:     Finished server process [10386]
+INFO:     Started server process [10851]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ✅ API Key loaded (ends with ...yLJNPAAA)
-INFO:     127.0.0.1:54636 - "POST /packs/architect?feature_description=Feature%3A+growth_engine%0ADescription%3A+Prediction+and+growth+coaching+engine+for+users%0ALayer%3A+4_intelligence%0A%0AAPI+Endpoints%3A%0A-+GET+%2Fgrowth%2Ffeatures%2F%7Bsubject_id%7D%0A-+GET+%2Fgrowth%2Fpredict%2F%7Bsubject_id%7D%0A-+GET+%2Fgrowth%2Finterventions%2F%7Bsubject_id%7D%0A-+POST+%2Fgrowth%2Fexperiment%2Ftrack HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54638 - "POST /packs/codegen?file_path=src%2Ffeatures%2Fgrowth_engine%2Fcontrollers%2Fgrowth_controller.py&purpose=Part+of+growth_engine%3A+Prediction+and+growth+coaching+engine+for+users HTTP/1.1" 200 OK
-WARNING:  WatchFiles detected changes in 'evolved/growth_controller.py'. Reloading...
-INFO:     127.0.0.1:54646 - "POST /packs/codegen?file_path=src%2Ffeatures%2Fgrowth_engine%2Fservices%2Fprediction_service.py&purpose=Part+of+growth_engine%3A+Prediction+and+growth+coaching+engine+for+users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56445 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56446 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56447 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56448 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57237 - "POST /packs/architect?feature_description=Feature%3A+docker_fix%0ADescription%3A+%0ALayer%3A+3_worlds%0APillar%3A+information%0A%0ARequirements%3A%0A%0AAPI+Endpoints%3A HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57469 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57470 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57471 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57472 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57473 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57474 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57469 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57470 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57471 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57472 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57473 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57474 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57470 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57469 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57471 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57472 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57474 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57470 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57473 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57471 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57469 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57472 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57470 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57474 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57473 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57471 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57469 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57472 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57470 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57473 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57473 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57472 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57470 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57632 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57633 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57634 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57798 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57799 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57800 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57849 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57850 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57851 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57895 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57893 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57895 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57894 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57896 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57893 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57894 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57896 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57904 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57906 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57905 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57911 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57912 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57913 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57913 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57912 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57911 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57911 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57913 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57912 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57913 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57911 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57912 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57911 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57912 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57913 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57913 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57912 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57911 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57920 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57921 - "GET /packs/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57925 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57926 - "GET /packs/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57928 - "POST /packs/architect?feature_description=Feature%3A+docker_fix%0ADescription%3A+%0ALayer%3A+3_worlds%0APillar%3A+information%0A%0ARequirements%3A%0A%0AAPI+Endpoints%3A HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
+    )
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpcore/_sync/connection.py", line 101, in handle_request
+    raise exc
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpcore/_sync/connection.py", line 78, in handle_request
+    stream = self._connect(request)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpcore/_sync/connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpcore/_backends/sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.0_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 8] nodename nor servname provided, or not known
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/anthropic/_base_client.py", line 1049, in request
+    response = self._client.send(
+        request,
+        stream=stream or self._should_stream_response_body(request=request),
+        **kwargs,
+    )
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.0_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 8] nodename nor servname provided, or not known
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/uvicorn/protocols/http/httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/fastapi/applications.py", line 1139, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 119, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 105, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 385, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 284, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oseho/Desktop/autus/main.py", line 513, in run_architect
+    result = pack_runner.execute_pack("architect_pack", {
+        "feature_description": feature_description
+    })
+  File "/Users/oseho/Desktop/autus/core/pack/runner.py", line 89, in execute_pack
+    output = self.execute_cell(cell, current_inputs, pack.get("llm", {}))
+  File "/Users/oseho/Desktop/autus/core/pack/runner.py", line 77, in execute_cell
+    response = client.messages.create(
+        model=llm_config.get("model", "claude-sonnet-4-20250514"),
+        max_tokens=llm_config.get("max_tokens", 4000),
+        messages=[{"role": "user", "content": prompt}]
+    )
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/anthropic/_utils/_utils.py", line 282, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/anthropic/resources/messages/messages.py", line 930, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/v1/messages",
+        ^^^^^^^^^^^^^^^
+    ...<26 lines>...
+        stream_cls=Stream[RawMessageStreamEvent],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/anthropic/_base_client.py", line 1326, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oseho/Desktop/autus/.venv/lib/python3.14/site-packages/anthropic/_base_client.py", line 1081, in request
+    raise APIConnectionError(request=request) from err
+anthropic.APIConnectionError: Connection error.
+INFO:     127.0.0.1:57950 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57951 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57952 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58014 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58016 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58015 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58122 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58123 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58124 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58182 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58183 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58184 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58230 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58231 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58232 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58237 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58238 - "GET /packs/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58241 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58242 - "GET /packs/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58244 - "POST /packs/architect?feature_description=Feature%3A+docker_fix%0ADescription%3A+%0ALayer%3A+3_worlds%0APillar%3A+information%0A%0ARequirements%3A%0A%0AAPI+Endpoints%3A HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58247 - "POST /packs/codegen?file_path=docker_fix%2F&purpose=Part+of+docker_fix%3A+ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58254 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58255 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58256 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58300 - "POST /packs/codegen?file_path=docker_fix%2F__init__.py&purpose=Part+of+docker_fix%3A+ HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'evolved/__init__.py'. Reloading...
+INFO:     127.0.0.1:58315 - "POST /packs/codegen?file_path=docker_fix%2Fmain.py&purpose=Part+of+docker_fix%3A+ HTTP/1.1" 200 OK
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [7736]
-INFO:     Started server process [7947]
+INFO:     Finished server process [10851]
+INFO:     Started server process [11211]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'evolved/prediction_service.py'. Reloading...
+WARNING:  WatchFiles detected changes in 'evolved/main.py'. Reloading...
 ✅ API Key loaded (ends with ...yLJNPAAA)
-INFO:     127.0.0.1:54668 - "POST /packs/codegen?file_path=src%2Ffeatures%2Fgrowth_engine%2Fservices%2Fcoaching_service.py&purpose=Part+of+growth_engine%3A+Prediction+and+growth+coaching+engine+for+users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58355 - "POST /packs/codegen?file_path=docker_fix%2Fconfig.py&purpose=Part+of+docker_fix%3A+ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58321 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
 INFO:     Shutting down
+INFO:     127.0.0.1:58322 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58354 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [7947]
-INFO:     Started server process [7974]
+INFO:     Finished server process [11211]
+INFO:     Started server process [11239]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'evolved/coaching_service.py'. Reloading...
 ✅ API Key loaded (ends with ...yLJNPAAA)
-INFO:     127.0.0.1:54682 - "POST /packs/codegen?file_path=src%2Ffeatures%2Fgrowth_engine%2Fservices%2Fexperiment_service.py&purpose=Part+of+growth_engine%3A+Prediction+and+growth+coaching+engine+for+users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58358 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58359 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'evolved/config.py'. Reloading...
+INFO:     127.0.0.1:58482 - "POST /packs/codegen?file_path=docker_fix%2Frequirements.txt&purpose=Part+of+docker_fix%3A+ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58479 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
 INFO:     Shutting down
+INFO:     127.0.0.1:58480 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58481 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58358 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58483 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [7974]
-INFO:     Started server process [7989]
+INFO:     Finished server process [11239]
+INFO:     Started server process [11247]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'evolved/experiment_service.py'. Reloading...
 ✅ API Key loaded (ends with ...yLJNPAAA)
-INFO:     127.0.0.1:54702 - "POST /packs/codegen?file_path=src%2Ffeatures%2Fgrowth_engine%2Fmodels%2Fgrowth_model.py&purpose=Part+of+growth_engine%3A+Prediction+and+growth+coaching+engine+for+users HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [7989]
-INFO:     Started server process [8016]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'evolved/growth_model.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [8016]
-INFO:     Started server process [8032]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
+INFO:     127.0.0.1:58507 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58508 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58509 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58510 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58511 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58512 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58507 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58509 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58508 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58511 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58512 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58510 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58507 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58511 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58508 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58509 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58512 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58511 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58508 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58510 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58507 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58512 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58509 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58511 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58507 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58510 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58508 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58508 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58510 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58507 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58508 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58510 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58507 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58508 - "GET /god/graph?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58510 - "GET /god/flow?role=seho HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58507 - "GET /god/universe?role=seho HTTP/1.1" 200 OK
