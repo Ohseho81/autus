@@ -1,0 +1,14 @@
+api_endpoints:
+- /memory/export
+- /memory/import
+description: Sync local memory across devices via QR
+files:
+- core/sync/exporter.py
+- core/sync/importer.py
+layer: 2_sovereign
+name: Memory Sync
+pillar: context
+requirements:
+- Encrypted memory export
+- QR-based transfer
+- Conflict resolution

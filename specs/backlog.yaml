@@ -20,6 +20,7 @@ features:
 - api_endpoints:
   - /scheduler/jobs
   - /scheduler/history
+  completed_at: '2025-12-06T08:19:53.279744'
   description: Schedule packs to run at specific times
   files:
   - core/scheduler/cron.py
@@ -33,7 +34,7 @@ features:
   - Cron-like scheduling
   - Pack queue management
   - Execution history
-  status: pending
+  status: completed
 - api_endpoints:
   - /memory/export
   - /memory/import
