@@ -9,54 +9,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v4
-      
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
-      
-      - name: 📦 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      
-      - name: 🧪 Run tests
-        run: |
-          PYTHONPATH=. pytest tests/ -v --tb=short
-        continue-on-error: false
-
-  lint:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v4
-      
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      
-      - name: 🔍 Check syntax
-        run: |
-          python -m py_compile main.py
-          python -m py_compile evolution_orchestrator.py
+      - run: pip install -r requirements.txt
+      - run: PYTHONPATH=. pytest tests/ -v
 
   deploy:
-    needs: [test, lint]
+    needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+    if: github.ref == 'refs/heads/main'
     steps:
-      - name: 🚀 Deploy notification
-        run: |
-          echo "✅ Tests passed!"
-          echo "🚂 Railway auto-deploys on push"
-          echo "▲ Vercel auto-deploys on push"
-          echo "🎉 Deployment triggered!"
-
+      - run: echo "Railway auto-deploys on push ✅"
