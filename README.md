@@ -5,8 +5,21 @@
 
 [![Python](https://img.shields.io/badge/Python-94.5%25-blue)](https://python.org)
 [![Tests](https://img.shields.io/badge/Tests-51%20passed-green)](tests/)
-[![API](https://img.shields.io/badge/API-72%2B%20endpoints-cyan)](http://localhost:8003/docs)
+[![API](https://img.shields.io/badge/API-72%2B%20endpoints-cyan)](https://autus-production.up.railway.app/docs)
 [![Auto-Generated](https://img.shields.io/badge/Auto--Generated-47%20files-purple)](evolved/)
+[![Deploy](https://img.shields.io/badge/Deploy-Railway-blueviolet)](https://autus-production.up.railway.app)
+
+---
+
+## 🌐 Live Demo
+
+| Service | URL |
+|---------|-----|
+| 🖥️ **Dashboard** | https://autus-dashboard.vercel.app |
+| 📚 **API Docs** | https://autus-production.up.railway.app/docs |
+| 💚 **Health Check** | https://autus-production.up.railway.app/health |
+
+> ⚡ **Try it now!** No login required.
 
 ---
 
