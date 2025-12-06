@@ -535,3 +535,11 @@ app.include_router(sovereign_router)
 # ===== Sovereign Import API =====
 from api.sovereign_import import router as sovereign_import_router
 app.include_router(sovereign_import_router)
+
+# ===== Me API (Role-based Personalized View) =====
+from api.me import router as me_router
+app.include_router(me_router)
+
+# ===== God Mode API (Seho Only) =====
+from api.god import router as god_router
+app.include_router(god_router)
