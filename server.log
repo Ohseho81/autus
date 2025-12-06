@@ -58,3 +58,53 @@ INFO:     Finished server process [7730]
 INFO:     Started server process [7736]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+✅ API Key loaded (ends with ...yLJNPAAA)
+INFO:     127.0.0.1:54636 - "POST /packs/architect?feature_description=Feature%3A+growth_engine%0ADescription%3A+Prediction+and+growth+coaching+engine+for+users%0ALayer%3A+4_intelligence%0A%0AAPI+Endpoints%3A%0A-+GET+%2Fgrowth%2Ffeatures%2F%7Bsubject_id%7D%0A-+GET+%2Fgrowth%2Fpredict%2F%7Bsubject_id%7D%0A-+GET+%2Fgrowth%2Finterventions%2F%7Bsubject_id%7D%0A-+POST+%2Fgrowth%2Fexperiment%2Ftrack HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54638 - "POST /packs/codegen?file_path=src%2Ffeatures%2Fgrowth_engine%2Fcontrollers%2Fgrowth_controller.py&purpose=Part+of+growth_engine%3A+Prediction+and+growth+coaching+engine+for+users HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'evolved/growth_controller.py'. Reloading...
+INFO:     127.0.0.1:54646 - "POST /packs/codegen?file_path=src%2Ffeatures%2Fgrowth_engine%2Fservices%2Fprediction_service.py&purpose=Part+of+growth_engine%3A+Prediction+and+growth+coaching+engine+for+users HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7736]
+INFO:     Started server process [7947]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'evolved/prediction_service.py'. Reloading...
+✅ API Key loaded (ends with ...yLJNPAAA)
+INFO:     127.0.0.1:54668 - "POST /packs/codegen?file_path=src%2Ffeatures%2Fgrowth_engine%2Fservices%2Fcoaching_service.py&purpose=Part+of+growth_engine%3A+Prediction+and+growth+coaching+engine+for+users HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7947]
+INFO:     Started server process [7974]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'evolved/coaching_service.py'. Reloading...
+✅ API Key loaded (ends with ...yLJNPAAA)
+INFO:     127.0.0.1:54682 - "POST /packs/codegen?file_path=src%2Ffeatures%2Fgrowth_engine%2Fservices%2Fexperiment_service.py&purpose=Part+of+growth_engine%3A+Prediction+and+growth+coaching+engine+for+users HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7974]
+INFO:     Started server process [7989]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'evolved/experiment_service.py'. Reloading...
+✅ API Key loaded (ends with ...yLJNPAAA)
+INFO:     127.0.0.1:54702 - "POST /packs/codegen?file_path=src%2Ffeatures%2Fgrowth_engine%2Fmodels%2Fgrowth_model.py&purpose=Part+of+growth_engine%3A+Prediction+and+growth+coaching+engine+for+users HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7989]
+INFO:     Started server process [8016]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'evolved/growth_model.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [8016]
+INFO:     Started server process [8032]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

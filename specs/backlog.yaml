@@ -7,6 +7,7 @@ features:
   name: workflow_engine
   spec: specs/workflow_engine.yaml
   status: completed
-- name: growth_engine
+- completed_at: '2025-12-06T10:58:00.000000'
+  name: growth_engine
   spec: specs/growth_engine.yaml
-  status: pending
+  status: completed
