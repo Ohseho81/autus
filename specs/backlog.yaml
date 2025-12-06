@@ -53,3 +53,7 @@ features:
   - QR-based transfer
   - Conflict resolution
   status: completed
+
+- name: prediction_engine
+  spec: specs/prediction_engine.yaml
+  status: pending
