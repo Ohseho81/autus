@@ -67,7 +67,16 @@ async def get_events(limit: int = Query(default=50, le=100)):
 
 @router.post("/track")
 async def track_event(event: str, data: Optional[dict] = None):
-    """Track a custom event."""
+    """
+    Track a custom analytics event.
+    
+    Args:
+        event: Event name to track
+        data: Optional event data dictionary
+    
+    Returns:
+        dict: Confirmation of tracked event
+    """
     analytics.track_event(event, data)
     return {"status": "tracked", "event": event}
 
