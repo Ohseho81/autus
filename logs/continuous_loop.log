@@ -418,3 +418,110 @@
 [12:30:04] 📊 Stats: 4 cycles, 8 fixes, 1 evolutions
 [12:30:04] 
 💤 Sleeping for 300s...
+[17:04:05] 
+============================================================
+[17:04:05] 🚀 AUTUS CONTINUOUS LOOP STARTED
+[17:04:05]    Interval: 300s (5.0 min)
+[17:04:05]    API: http://127.0.0.1:8003
+[17:04:05]    Press Ctrl+C to stop
+[17:04:05] ============================================================
+[17:04:05] 
+============================================================
+[17:04:05] 🔄 CYCLE 1 - 2025-12-06 17:04:05
+[17:04:05] ============================================================
+[17:04:05] 🔍 Starting health check...
+[17:04:15]   ✓ All required files present
+[17:04:15]   ✓ Git status OK (2 changes)
+[17:04:16] ⚠️ Found 4 issue(s)
+[17:04:16] 
+🔧 Attempting to fix 4 issue(s)...
+[17:04:16]   → Attempting to start API server...
+[17:04:24]   → Installing pyyaml...
+[17:04:24]   ✓ Installed pyyaml
+[17:04:24]   → Installing python-dotenv...
+[17:04:24]   ✓ Installed python-dotenv
+[17:04:24]   Fixed 2/4 issues
+[17:04:24] 🔍 Starting health check...
+[17:04:34]   ✓ All required files present
+[17:04:34]   ✓ Git status OK (3 changes)
+[17:04:34] ⚠️ Found 4 issue(s)
+[17:04:34] 
+⏱️ Cycle completed in 28.7s
+[17:04:34] 📊 Stats: 1 cycles, 2 fixes, 0 evolutions
+[17:04:34] 
+💤 Sleeping for 300s...
+[17:09:34] 
+============================================================
+[17:09:34] 🔄 CYCLE 2 - 2025-12-06 17:09:34
+[17:09:34] ============================================================
+[17:09:34] 🔍 Starting health check...
+[17:09:44]   ✓ All required files present
+[17:09:44]   ✓ Git status OK (3 changes)
+[17:09:44] ⚠️ Found 4 issue(s)
+[17:09:44] 
+🔧 Attempting to fix 4 issue(s)...
+[17:09:44]   → Attempting to start API server...
+[17:09:52]   → Installing pyyaml...
+[17:09:52]   ✓ Installed pyyaml
+[17:09:52]   → Installing python-dotenv...
+[17:09:53]   ✓ Installed python-dotenv
+[17:09:53]   Fixed 2/4 issues
+[17:09:53] 🔍 Starting health check...
+[17:10:03]   ✓ All required files present
+[17:10:03]   ✓ Git status OK (3 changes)
+[17:10:03] ⚠️ Found 4 issue(s)
+[17:10:03] 
+⏱️ Cycle completed in 28.6s
+[17:10:03] 📊 Stats: 2 cycles, 4 fixes, 0 evolutions
+[17:10:03] 
+💤 Sleeping for 300s...
+[17:15:03] 
+============================================================
+[17:15:03] 🔄 CYCLE 3 - 2025-12-06 17:15:03
+[17:15:03] ============================================================
+[17:15:03] 🔍 Starting health check...
+[17:15:13]   ✓ All required files present
+[17:15:13]   ✓ Git status OK (4 changes)
+[17:15:13] ⚠️ Found 4 issue(s)
+[17:15:13] 
+🔧 Attempting to fix 4 issue(s)...
+[17:15:13]   → Attempting to start API server...
+[17:15:21]   → Installing pyyaml...
+[17:15:21]   ✓ Installed pyyaml
+[17:15:21]   → Installing python-dotenv...
+[17:15:21]   ✓ Installed python-dotenv
+[17:15:21]   Fixed 2/4 issues
+[17:15:21] 🔍 Starting health check...
+[17:15:31]   ✓ All required files present
+[17:15:31]   ✓ Git status OK (4 changes)
+[17:15:31] ⚠️ Found 4 issue(s)
+[17:15:31] 
+⏱️ Cycle completed in 28.6s
+[17:15:31] 📊 Stats: 3 cycles, 6 fixes, 0 evolutions
+[17:15:31] 
+💤 Sleeping for 300s...
+[17:20:31] 
+============================================================
+[17:20:31] 🔄 CYCLE 4 - 2025-12-06 17:20:31
+[17:20:31] ============================================================
+[17:20:31] 🔍 Starting health check...
+[17:20:41]   ✓ All required files present
+[17:20:41]   ✓ Git status OK (4 changes)
+[17:20:41] ⚠️ Found 4 issue(s)
+[17:20:41] 
+🔧 Attempting to fix 4 issue(s)...
+[17:20:41]   → Attempting to start API server...
+[17:20:49]   → Installing pyyaml...
+[17:20:50]   ✓ Installed pyyaml
+[17:20:50]   → Installing python-dotenv...
+[17:20:50]   ✓ Installed python-dotenv
+[17:20:50]   Fixed 2/4 issues
+[17:20:50] 🔍 Starting health check...
+[17:21:00]   ✓ All required files present
+[17:21:00]   ✓ Git status OK (4 changes)
+[17:21:00] ⚠️ Found 4 issue(s)
+[17:21:00] 
+⏱️ Cycle completed in 28.7s
+[17:21:00] 📊 Stats: 4 cycles, 8 fixes, 0 evolutions
+[17:21:00] 
+💤 Sleeping for 300s...

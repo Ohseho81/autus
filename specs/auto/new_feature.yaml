@@ -1,0 +1,4 @@
+name: realtime_alerts
+status: pending
+description: "실시간 알림 시스템"
+priority: high

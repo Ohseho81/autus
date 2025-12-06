@@ -16,4 +16,4 @@ features:
     status: pending
   - name: mobile_pwa
     spec: specs/mobile_pwa.yaml
-    status: pending
+    status: completed
