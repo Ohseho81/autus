@@ -3,10 +3,15 @@ AUTUS Telemetry Engine
 Collects and manages system metrics, events, and errors
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Optional, List, Any
 import json
 from collections import defaultdict
+
+
+def _utcnow() -> datetime:
+    """Get current UTC time (timezone-aware)."""
+    return datetime.now(timezone.utc)
 
 
 class Telemetry:
@@ -22,7 +27,7 @@ class Telemetry:
     _events: List[Dict] = []
     _errors: List[Dict] = []
     _metrics: Dict[str, Any] = defaultdict(int)
-    _started_at: datetime = datetime.utcnow()
+    _started_at: datetime = _utcnow()
     
     @classmethod
     def record_event(
@@ -43,7 +48,7 @@ class Telemetry:
             "type": event_type,
             "tags": tags or {},
             "data": data or {},
-            "at": datetime.utcnow().isoformat()
+            "at": _utcnow().isoformat()
         })
         
         # Keep only last 10000 events
@@ -69,7 +74,7 @@ class Telemetry:
             "code": code,
             "detail": detail,
             "context": context or {},
-            "at": datetime.utcnow().isoformat()
+            "at": _utcnow().isoformat()
         })
         
         # Keep only last 1000 errors
@@ -94,7 +99,7 @@ class Telemetry:
         Returns:
             Dict with events, errors, and metrics summary
         """
-        uptime = (datetime.utcnow() - cls._started_at).total_seconds()
+        uptime = (_utcnow() - cls._started_at).total_seconds()
         
         return {
             "events": len(cls._events),
@@ -157,7 +162,7 @@ class Telemetry:
         Returns:
             Error rate (errors / events)
         """
-        now = datetime.utcnow()
+        now = _utcnow()
         window_start = now.timestamp() - (window_minutes * 60)
         
         recent_events = [
@@ -180,7 +185,7 @@ class Telemetry:
         cls._events = []
         cls._errors = []
         cls._metrics = defaultdict(int)
-        cls._started_at = datetime.utcnow()
+        cls._started_at = _utcnow()
     
     @classmethod
     def export_json(cls) -> str:
@@ -189,6 +194,6 @@ class Telemetry:
             "events": cls._events,
             "errors": cls._errors,
             "metrics": dict(cls._metrics),
-            "exported_at": datetime.utcnow().isoformat()
+            "exported_at": _utcnow().isoformat()
         }, indent=2)
 

@@ -4,7 +4,7 @@ protocols/reality/events.py
 """
 
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 from protocols.reality import RealityEvent, EventError, ValidationError
 from protocols.reality.events import EventBatch, EventSource
 
@@ -58,9 +58,9 @@ class TestRealityEvent:
     
     def test_event_timestamp(self):
         """Test that events get automatic timestamps."""
-        before = datetime.utcnow()
+        before = datetime.now(timezone.utc)
         event = RealityEvent(id="evt_004", source="system", type="health.check")
-        after = datetime.utcnow()
+        after = datetime.now(timezone.utc)
         
         assert before <= event.created_at <= after
     

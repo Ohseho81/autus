@@ -543,3 +543,7 @@ app.include_router(me_router)
 # ===== God Mode API (Seho Only) =====
 from api.god import router as god_router
 app.include_router(god_router)
+
+# ===== Auto Spec API (Self-Evolution) =====
+from api.auto_spec import router as auto_spec_router
+app.include_router(auto_spec_router)

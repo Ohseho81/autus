@@ -3,9 +3,9 @@ AUTUS Reality Events Protocol
 Loop A: Reality → Twin (Information Layer)
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Literal, Dict, Any, Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 
@@ -35,7 +35,7 @@ class RealityEvent(BaseModel):
     payload: Dict[str, Any] = {}
     
     # Metadata
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     version: str = "1.0.0"
     
     # Context
@@ -43,17 +43,16 @@ class RealityEvent(BaseModel):
     location_id: Optional[str] = None
     tags: List[str] = []
     
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    model_config = ConfigDict(
+        json_encoders={datetime: lambda v: v.isoformat()}
+    )
 
 
 class EventBatch(BaseModel):
     """Batch of reality events for bulk processing."""
     events: List[RealityEvent]
     batch_id: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class EventError(Exception):
