@@ -26,15 +26,18 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from standard import WorkflowGraph
+from core.standard import WorkflowGraph
 from protocols.memory.local_memory import LocalMemory
 from protocols.auth.zero_auth import ZeroAuth
 from api.routes.devices import router as devices_router
 from api.routes.analytics import router as analytics_router
 from api.logger import log_request
 from api.analytics import analytics
-
-# AUTUS v4.2 - Meta-Circular Development OS
+from api.cache import init_cache, cached_response, cache_invalidate
+from api.prometheus_metrics import (
+    MetricsCollector, start_metrics_server, 
+    health_check_status, health_check_duration_seconds
+)
 __version__ = "4.2.0"
 __title__ = "AUTUS - Meta-Circular Development OS"
 
@@ -65,6 +68,13 @@ app.add_middleware(
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+# ===== Cache Statistics Endpoint =====
+@app.get("/cache/stats")
+async def cache_stats():
+    """Get cache statistics"""
+    from api.cache import get_cache_stats
+    return get_cache_stats()
 
 # ===== Twin 모델 정의 =====
 
@@ -610,3 +620,17 @@ async def logging_middleware(request: Request, call_next):
     analytics.track_api(request.url.path, request.method)
     
     return response
+
+
+# ===== Startup Events =====
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    try:
+        # Initialize caching layer
+        init_cache()
+        print("✅ AUTUS v4.5 started successfully")
+        print("✅ Redis caching layer initialized")
+        print("✅ Prometheus metrics available at /metrics")
+    except Exception as e:
+        print(f"⚠️ Startup warning: {e}")

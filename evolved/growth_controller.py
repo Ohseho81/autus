@@ -13,23 +13,23 @@ from dataclasses import dataclass
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from src.features.growth_engine.services.prediction_service import PredictionService
-from src.features.growth_engine.services.coaching_service import CoachingService
-from src.features.growth_engine.services.analytics_service import AnalyticsService
-from src.features.growth_engine.models.growth_models import (
+from features.growth_engine.services.prediction_service import PredictionService
+from features.growth_engine.services.coaching_service import CoachingService
+from features.growth_engine.services.analytics_service import AnalyticsService
+from features.growth_engine.models.growth_models import (
     GrowthPrediction,
     CoachingRecommendation,
     UserGrowthProfile,
     GrowthMetric
 )
-from src.features.growth_engine.schemas.growth_schemas import (
+from features.growth_engine.schemas.growth_schemas import (
     PredictionRequest,
     PredictionResponse,
     CoachingRequest,
     CoachingResponse,
     GrowthAnalyticsResponse
 )
-from src.core.exceptions import ValidationError, ServiceError
+from core.exceptions import ValidationError, ServiceError
 
 
 logger = logging.getLogger(__name__)

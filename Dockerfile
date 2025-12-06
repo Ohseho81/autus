@@ -15,21 +15,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 모든 코드 복사
 COPY api/ ./api/
 COPY core/ ./core/
-COPY engines/ ./engines/
 COPY evolved/ ./evolved/
 COPY packs/ ./packs/
 COPY policies/ ./policies/
 COPY protocols/ ./protocols/
 COPY rules/ ./rules/
-COPY sovereign/ ./sovereign/
-COPY specs/ ./specs/
 COPY scripts/ ./scripts/
+COPY specs/ ./specs/
 COPY tests/ ./tests/
 COPY main.py .
-COPY standard.py .
-COPY evolution_orchestrator.py .
-COPY continuous_loop.py .
-COPY constitution.yaml .
 
 # 디렉토리 생성
 RUN mkdir -p logs specs/auto
