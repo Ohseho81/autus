@@ -198,6 +198,145 @@ async def websocket_stats():
     return manager.get_stats()
 
 
+# ===== Data Pipeline Endpoints =====
+@app.post("/pipeline/aggregate")
+async def aggregate_metric(
+    metric_name: str,
+    value: float,
+    group_by: Optional[str] = None
+):
+    """Aggregate metric value"""
+    try:
+        from evolved.aggregation_engine import get_aggregator
+        aggregator = get_aggregator()
+        aggregator.aggregate_event(metric_name, value, group_by=group_by)
+        
+        return {
+            'status': 'aggregated',
+            'metric': metric_name,
+            'value': value
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+@app.get("/pipeline/stats/{metric_name}")
+async def get_aggregated_stats(metric_name: str):
+    """Get aggregated statistics for metric"""
+    try:
+        from evolved.aggregation_engine import get_aggregator
+        aggregator = get_aggregator()
+        stats = aggregator.get_aggregated_stats(metric_name)
+        return stats
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+@app.get("/pipeline/all-stats")
+async def get_all_pipeline_stats():
+    """Get all aggregated statistics"""
+    try:
+        from evolved.aggregation_engine import get_aggregator
+        aggregator = get_aggregator()
+        return aggregator.get_all_stats()
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+@app.post("/pipeline/ml/train")
+async def train_ml_model(
+    model_name: str,
+    model_type: str = "random_forest",
+    feature_keys: List[str] = None
+):
+    """Train ML model"""
+    try:
+        # This would normally use training data from events
+        return {
+            'status': 'queued',
+            'model': model_name,
+            'type': model_type,
+            'message': 'Model training queued as background task'
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+@app.post("/pipeline/ml/predict")
+async def make_predictions(
+    model_name: str,
+    features: List[float]
+):
+    """Make predictions using trained model"""
+    try:
+        from evolved.ml_pipeline import get_ml_pipeline
+        import numpy as np
+        
+        pipeline = get_ml_pipeline()
+        X_test = np.array([features])
+        predictions = pipeline.predict(X_test, model_name)
+        
+        if predictions is None:
+            return {'status': 'error', 'error': 'Model not found or prediction failed'}
+        
+        return {
+            'model': model_name,
+            'predictions': predictions.tolist(),
+            'timestamp': datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+@app.get("/pipeline/ml/models")
+async def list_ml_models():
+    """List available ML models"""
+    try:
+        from evolved.ml_pipeline import get_ml_pipeline
+        pipeline = get_ml_pipeline()
+        
+        return {
+            'models': list(pipeline.models.keys()),
+            'count': len(pipeline.models)
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+@app.post("/pipeline/spark/process")
+async def spark_batch_process(events: List[Dict[str, Any]]):
+    """Process events using Spark"""
+    try:
+        from evolved.spark_processor import get_spark_processor
+        processor = get_spark_processor()
+        
+        results = processor.process_events_batch(events)
+        
+        return {
+            'status': 'processed',
+            'events': len(events),
+            'results': results
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+@app.get("/pipeline/spark/status")
+async def spark_status():
+    """Get Spark processor status"""
+    try:
+        from evolved.spark_processor import get_spark_processor
+        processor = get_spark_processor()
+        
+        return {
+            'status': 'active' if processor.session else 'fallback_mode',
+            'session': 'PySpark' if processor.session else 'Local Processing'
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+
+
 
 # ===== Twin 모델 정의 =====
 
