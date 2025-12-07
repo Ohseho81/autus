@@ -181,6 +181,91 @@ autus/
 
 ---
 
+## 🚀 현재 버전 (v4.2.0)
+
+### 📊 API 통계
+- **총 엔드포인트**: 251개
+- **라우터**: 12개 (Core, Mars OS, City OS, Graph, Financial, Risk Engine, Chatbot 등)
+- **평균 응답 시간**: 2.4ms
+- **테스트 성공률**: 100%
+
+### 🔧 신규 기능
+
+#### Financial Simulation (`/api/v1/financial`)
+- 재정 시뮬레이션: 24개월 재정 예측
+- 비용 계산: 한국 유학 생활비 (학비, 기숙사, 식비 등)
+- 세금 계산: 소득세, 주민세, 국민연금, 건강보험
+
+#### Risk Engine v2.0 (`/api/v1/risk`)
+- 6가지 위험 카테고리: 출석, 일자리, 비자, 재정, 건강, 학업
+- 위험도 평가: LOW, MEDIUM, HIGH, CRITICAL
+- 실시간 알림: 위험 모니터링 및 대시보드
+
+#### Chatbot API (`/api/v1/chatbot`)
+- WhatsApp/Facebook Messenger 통합
+- 자동 지원서 작성 플로우
+- 사용자 대화 기록 관리
+
+### 📚 문서
+
+| 문서 | 링크 | 설명 |
+|------|------|------|
+| 헌법 | [CONSTITUTION.md](docs/CONSTITUTION.md) | 13개 법칙 및 아키텍처 |
+| Pass 규정 | [PASS_REGULATION.md](docs/PASS_REGULATION.md) | LimePass 시스템 정의 |
+| 비즈니스 전략 | [THIEL_FRAMEWORK.md](docs/THIEL_FRAMEWORK.md) | 10년 비전 및 재무 |
+| Mars/City 통합 | [MARS_CITY_GRAPH_INTEGRATION.md](MARS_CITY_GRAPH_INTEGRATION.md) | 3개 신규 라우터 |
+| Financial 통합 | [FINANCIAL_RISK_CHATBOT_INTEGRATION.md](FINANCIAL_RISK_CHATBOT_INTEGRATION.md) | 3개 신규 라우터 |
+| 배포 검증 | [DEPLOYMENT_STAGES_1_TO_4_VALIDATION.md](DEPLOYMENT_STAGES_1_TO_4_VALIDATION.md) | 배포 프로세스 |
+
+---
+
+## 🌐 API 엔드포인트 (주요)
+
+### Mars OS
+```bash
+GET  /api/v1/mars/pack/pkmars         # Mars Pack 정보
+GET  /api/v1/mars/twins               # Digital Twins
+GET  /api/v1/mars/dashboard           # Dashboard
+```
+
+### City OS
+```bash
+GET  /api/v1/city/pack/pkcity         # City Pack 정보
+GET  /api/v1/city/dashboard           # City Dashboard (10 domains)
+GET  /api/v1/city/twins               # City Twins
+```
+
+### Financial
+```bash
+GET  /api/v1/financial/costs           # 비용 정보
+GET  /api/v1/financial/demo            # 데모 시뮬레이션
+POST /api/v1/financial/compare         # 재정 비교
+```
+
+### Risk Engine
+```bash
+GET  /api/v1/risk/alerts               # 위험 알림
+GET  /api/v1/risk/dashboard            # Risk 대시보드
+GET  /api/v1/risk/demo                 # 데모 평가
+```
+
+### Chatbot
+```bash
+GET  /api/v1/chatbot/stats             # 통계
+POST /api/v1/chatbot/webhook           # WhatsApp/FB 웹훅
+POST /api/v1/chatbot/simulate          # 시뮬레이션
+```
+
+### Static Pages
+```bash
+GET  /admin/                           # Admin Dashboard
+GET  /market                           # Marketplace
+GET  /limepass/                        # LimePass
+GET  /cell                             # Cell Management
+```
+
+---
+
 ## 📜 라이선스
 
 | 구분 | 라이선스 |
