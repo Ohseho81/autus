@@ -1229,6 +1229,30 @@ try:
 except ImportError as e:
     print(f"⚠️ UI Export 로드 실패: {e}")
 
+# ============ AUTUS Mars OS ============
+try:
+    from api.routes.mars import router as mars_router
+    app.include_router(mars_router, prefix="/api/v1")
+    print("✅ Mars OS 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Mars OS 로드 실패: {e}")
+
+# ============ AUTUS City OS ============
+try:
+    from api.routes.city import router as city_router
+    app.include_router(city_router, prefix="/api/v1")
+    print("✅ City OS 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ City OS 로드 실패: {e}")
+
+# ============ AUTUS Graph (Entity Relations) ============
+try:
+    from api.routes.graph import router as graph_router
+    app.include_router(graph_router, prefix="/api/v1")
+    print("✅ Graph 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Graph 로드 실패: {e}")
+
 # Mount static pages at root paths
 from pathlib import Path
 static_root = Path(__file__).parent / "static"
@@ -1236,3 +1260,4 @@ if static_root.exists():
     app.mount("/market", StaticFiles(directory=str(static_root / "market"), html=True), name="market")
     app.mount("/cell", StaticFiles(directory=str(static_root / "cell"), html=True), name="cell")
     app.mount("/limepass", StaticFiles(directory=str(static_root / "limepass"), html=True), name="limepass")
+    app.mount("/admin", StaticFiles(directory=str(static_root / "admin"), html=True), name="admin")

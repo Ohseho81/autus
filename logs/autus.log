@@ -669,3 +669,39 @@
 2025-12-07 14:12:33,014 | INFO | Request started
 2025-12-07 14:12:33,016 | INFO | Request completed
 2025-12-07 14:12:33,016 | INFO | GET /metrics → 404 (2.43ms)
+2025-12-07 22:37:44,005 | INFO | Request started
+2025-12-07 22:37:44,006 | INFO | Request completed
+2025-12-07 22:37:44,006 | INFO | GET /api/v1/mars/pack/pkmars → 200 (0.90ms)
+2025-12-07 22:37:44,007 | INFO | HTTP Request: GET http://testserver/api/v1/mars/pack/pkmars "HTTP/1.1 200 OK"
+2025-12-07 22:37:44,009 | INFO | Request started
+2025-12-07 22:37:44,010 | INFO | Request completed
+2025-12-07 22:37:44,010 | INFO | GET /api/v1/city/dashboard → 200 (2.08ms)
+2025-12-07 22:37:44,011 | INFO | HTTP Request: GET http://testserver/api/v1/city/dashboard "HTTP/1.1 200 OK"
+2025-12-07 22:37:44,012 | INFO | Request started
+2025-12-07 22:37:44,012 | INFO | Request completed
+2025-12-07 22:37:44,012 | INFO | GET /api/v1/graph/entities → 200 (0.69ms)
+2025-12-07 22:37:44,013 | INFO | HTTP Request: GET http://testserver/api/v1/graph/entities "HTTP/1.1 200 OK"
+2025-12-07 22:37:51,805 | INFO | Request started
+2025-12-07 22:37:51,809 | INFO | Request completed
+2025-12-07 22:37:51,810 | INFO | GET /admin/ → 200 (4.47ms)
+2025-12-07 22:37:51,811 | INFO | HTTP Request: GET http://testserver/admin/ "HTTP/1.1 200 OK"
+2025-12-07 22:37:51,811 | INFO | Request started
+2025-12-07 22:37:51,812 | INFO | Request completed
+2025-12-07 22:37:51,813 | INFO | GET /limepass/ → 200 (1.41ms)
+2025-12-07 22:37:51,813 | INFO | HTTP Request: GET http://testserver/limepass/ "HTTP/1.1 200 OK"
+2025-12-07 22:37:51,814 | INFO | Request started
+2025-12-07 22:37:51,814 | INFO | Request completed
+2025-12-07 22:37:51,814 | INFO | GET /market → 307 (0.62ms)
+2025-12-07 22:37:51,815 | INFO | HTTP Request: GET http://testserver/market "HTTP/1.1 307 Temporary Redirect"
+2025-12-07 22:37:51,815 | INFO | Request started
+2025-12-07 22:37:51,816 | INFO | Request completed
+2025-12-07 22:37:51,817 | INFO | GET /market/ → 200 (1.34ms)
+2025-12-07 22:37:51,817 | INFO | HTTP Request: GET http://testserver/market/ "HTTP/1.1 200 OK"
+2025-12-07 22:37:51,818 | INFO | Request started
+2025-12-07 22:37:51,818 | INFO | Request completed
+2025-12-07 22:37:51,818 | INFO | GET /cell → 307 (0.63ms)
+2025-12-07 22:37:51,819 | INFO | HTTP Request: GET http://testserver/cell "HTTP/1.1 307 Temporary Redirect"
+2025-12-07 22:37:51,819 | INFO | Request started
+2025-12-07 22:37:51,820 | INFO | Request completed
+2025-12-07 22:37:51,820 | INFO | GET /cell/ → 200 (1.26ms)
+2025-12-07 22:37:51,821 | INFO | HTTP Request: GET http://testserver/cell/ "HTTP/1.1 200 OK"
