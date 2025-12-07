@@ -1,3 +1,4 @@
+from typing import List, Dict, Optional
 """
 AUTUS Sync Protocol - QR Sync
 제2법칙: 소유 - 서버 없이 기기 간 동기화
