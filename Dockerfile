@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy source code (organized by module)
 COPY api/ ./api/
 COPY core/ ./core/
 COPY evolved/ ./evolved/
@@ -31,13 +32,15 @@ COPY validators/ ./validators/
 COPY config/ ./config/
 COPY static/ ./static/
 COPY matching_engine/ ./matching_engine/
-COPY config/ ./config/
-COPY static/ ./static/
-COPY matching_engine/ ./matching_engine/
 COPY main.py .
 
+# Create necessary directories
 RUN mkdir -p logs specs/auto
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --reload"]
