@@ -48,7 +48,7 @@
     const API = 'https://autus-production.up.railway.app';
     async function load() {
       try {
-        const r = await fetch(API + '/marketplace/packs');
+        const r = await fetch(API + '/api/v1/marketplace/packs');
         const d = await r.json();
         render(Array.isArray(d) ? d : d.packs || []);
       } catch(e) { document.getElementById('packGrid').innerHTML = '<div class="loading">로드 실패</div>'; }

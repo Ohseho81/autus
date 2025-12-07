@@ -1175,6 +1175,8 @@ try:
     from api.routes.marketplace import router as marketplace_router
     app.include_router(marketplace_router, prefix="/api/v1")
     print("✅ Marketplace 라우터 등록 완료")
+    from api.routes.cells import router as cells_router
+    app.include_router(cells_router, prefix="/api/v1")
 except ImportError as e:
     print(f"⚠️ Marketplace 로드 실패: {e}")
 
