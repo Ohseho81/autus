@@ -977,3 +977,11 @@ try:
     print("✅ Marketplace 라우터 등록 완료")
 except ImportError as e:
     print(f"⚠️ Marketplace 로드 실패: {e}")
+
+# ============ AUTUS P2P Sync ============
+try:
+    from api.routes.sync import router as sync_router
+    app.include_router(sync_router, prefix="/api/v1")
+    print("✅ Sync 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Sync 로드 실패: {e}")
