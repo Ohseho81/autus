@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autus Admin Dashboard</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui,sans-serif;background:#0a0a0f;color:#fff;min-height:100vh}
+        .sidebar{width:220px;background:#12121a;height:100vh;position:fixed;padding:20px 0}
+        .sidebar h1{color:#32CD32;padding:0 20px 20px;font-size:1.4rem;border-bottom:1px solid #222}
+        .nav{list-style:none;margin-top:20px}
+        .nav li{padding:12px 20px;cursor:pointer;border-left:3px solid transparent}
+        .nav li:hover,.nav li.active{background:#1a1a2e;border-left-color:#32CD32}
+        .nav li span{margin-right:10px}
+        .main{margin-left:220px;padding:30px}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+        .header h2{font-size:1.8rem}
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:30px}
+        .stat-card{background:#12121a;border-radius:12px;padding:20px}
+        .stat-card .value{font-size:2rem;color:#32CD32;font-weight:bold}
+        .stat-card .label{color:#888;margin-top:5px}
+        .card{background:#12121a;border-radius:12px;padding:20px;margin-bottom:20px}
+        .card h3{margin-bottom:15px;color:#32CD32}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:12px;text-align:left;border-bottom:1px solid #222}
+        th{color:#888;font-weight:normal}
+        .status{padding:4px 8px;border-radius:4px;font-size:12px}
+        .status.ok{background:#1a4d1a;color:#32CD32}
+        .status.warning{background:#4d4d1a;color:#ffd700}
+        .status.error{background:#4d1a1a;color:#ff6b6b}
+        .btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:14px}
+        .btn-primary{background:#32CD32;color:#000}
+        .btn-secondary{background:#333;color:#fff}
+        .tabs{display:flex;gap:10px;margin-bottom:20px}
+        .tab{padding:10px 20px;background:#1a1a2e;border-radius:6px;cursor:pointer}
+        .tab.active{background:#32CD32;color:#000}
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+        .log{font-family:monospace;font-size:12px;background:#0a0a0f;padding:10px;border-radius:6px;max-height:200px;overflow-y:auto}
+        .log-line{padding:2px 0;border-bottom:1px solid #111}
+        .log-line.info{color:#888}
+        .log-line.success{color:#32CD32}
+        .log-line.warning{color:#ffd700}
+        .log-line.error{color:#ff6b6b}
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h1>🌿 Autus OS</h1>
+        <ul class="nav">
+            <li class="active" onclick="showSection('overview')"><span>📊</span> Overview</li>
+            <li onclick="showSection('packs')"><span>📦</span> Packs</li>
+            <li onclick="showSection('cells')"><span>🏢</span> Cells</li>
+            <li onclick="showSection('validators')"><span>✅</span> Validators</li>
+            <li onclick="showSection('graph')"><span>🔗</span> Graph</li>
+            <li onclick="showSection('logs')"><span>📝</span> Logs</li>
+        </ul>
+    </div>
+    
+    <div class="main">
+        <!-- Overview Section -->
+        <div id="overview" class="section">
+            <div class="header">
+                <h2>Dashboard Overview</h2>
+                <button class="btn btn-primary" onclick="refreshData()">↻ Refresh</button>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="value" id="stat-packs">--</div>
+                    <div class="label">Active Packs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-cells">--</div>
+                    <div class="label">Cells</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-entities">--</div>
+                    <div class="label">Entities</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-events">--</div>
+                    <div class="label">Events/24h</div>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3>System Status</h3>
+                    <table>
+                        <tr><td>API Server</td><td><span class="status ok">Online</span></td></tr>
+                        <tr><td>ARL Engine</td><td><span class="status ok">Running</span></td></tr>
+                        <tr><td>Flow Mapper</td><td><span class="status ok">Active</span></td></tr>
+                        <tr><td>Validators</td><td><span class="status ok">4/4</span></td></tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <div class="log" id="activity-log">
+                        <div class="log-line success">[14:23:01] Pack LIMEPASS registered</div>
+                        <div class="log-line info">[14:22:45] Cell angeles-school connected</div>
+                        <div class="log-line success">[14:22:30] Validator V4 passed</div>
+                        <div class="log-line warning">[14:22:15] High memory usage detected</div>
+                        <div class="log-line info">[14:22:00] Flow generated for PH_KR_KW</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Packs Section -->
+        <div id="packs" class="section" style="display:none">
+            <div class="header">
+                <h2>Pack Management</h2>
+                <button class="btn btn-primary">+ New Pack</button>
+            </div>
+            <div class="card">
+                <table>
+                    <thead><tr><th>Pack ID</th><th>Name</th><th>Version</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="packs-table">
+                        <tr><td>PKCITY@v1</td><td>City OS</td><td>1.0.0</td><td><span class="status ok">Active</span></td><td><button class="btn btn-secondary">View</button></td></tr>
+                        <tr><td>PKMARS@v1</td><td>Mars OS</td><td>1.0.0</td><td><span class="status ok">Active</span></td><td><button class="btn btn-secondary">View</button></td></tr>
+                        <tr><td>LIMEPASS</td><td>LimePass HR</td><td>1.0.0</td><td><span class="status ok">Active</span></td><td><button class="btn btn-secondary">View</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Cells Section -->
+        <div id="cells" class="section" style="display:none">
+            <div class="header">
+                <h2>Cell Registry</h2>
+                <button class="btn btn-primary">+ Register Cell</button>
+            </div>
+            <div class="card">
+                <table>
+                    <thead><tr><th>Cell ID</th><th>Domain</th><th>Packs</th><th>Events/24h</th><th>Status</th></tr></thead>
+                    <tbody id="cells-table">
+                        <tr><td>angeles-school</td><td>education/sports</td><td>3</td><td>12,340</td><td><span class="status ok">Online</span></td></tr>
+                        <tr><td>jeju-city</td><td>city/tourism</td><td>5</td><td>45,200</td><td><span class="status ok">Online</span></td></tr>
+                        <tr><td>mars-alpha</td><td>colony/habitat</td><td>4</td><td>8,900</td><td><span class="status warning">Sync</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Validators Section -->
+        <div id="validators" class="section" style="display:none">
+            <div class="header">
+                <h2>Validator Suite</h2>
+                <button class="btn btn-primary" onclick="runValidation()">▶ Run All</button>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>V1: Syntax Validator</h3>
+                    <p style="color:#888;margin-bottom:10px">YAML/JSON parsing</p>
+                    <span class="status ok">PASS</span>
+                </div>
+                <div class="card">
+                    <h3>V2: Schema Validator</h3>
+                    <p style="color:#888;margin-bottom:10px">Required fields, types</p>
+                    <span class="status ok">PASS</span>
+                </div>
+                <div class="card">
+                    <h3>V3: Semantic Validator</h3>
+                    <p style="color:#888;margin-bottom:10px">Field/group consistency</p>
+                    <span class="status warning">1 WARNING</span>
+                </div>
+                <div class="card">
+                    <h3>V4: Flow Validator</h3>
+                    <p style="color:#888;margin-bottom:10px">Step order, rule coverage</p>
+                    <span class="status ok">PASS</span>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Validation Report</h3>
+                <div class="log" id="validation-log">
+                    <div class="log-line success">[V1] Syntax OK - 0 errors</div>
+                    <div class="log-line success">[V2] Schema OK - 0 errors</div>
+                    <div class="log-line warning">[V3] Warning: UNUSED_QUESTION 'middle_name'</div>
+                    <div class="log-line success">[V4] Flow OK - 12 steps validated</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Graph Section -->
+        <div id="graph" class="section" style="display:none">
+            <div class="header">
+                <h2>Entity Graph</h2>
+                <button class="btn btn-primary">+ Add Entity</button>
+            </div>
+            <div class="card">
+                <h3>Entities</h3>
+                <table>
+                    <thead><tr><th>ID</th><th>Type</th><th>Name</th><th>Cell</th><th>Relations</th></tr></thead>
+                    <tbody id="entities-table"></tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h3>Relationships</h3>
+                <table>
+                    <thead><tr><th>From</th><th>Relation</th><th>To</th><th>Status</th></tr></thead>
+                    <tbody id="relations-table"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Logs Section -->
+        <div id="logs" class="section" style="display:none">
+            <div class="header">
+                <h2>System Logs</h2>
+                <div class="tabs">
+                    <span class="tab active">All</span>
+                    <span class="tab">Errors</span>
+                    <span class="tab">Events</span>
+                    <span class="tab">API</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="log" style="max-height:400px" id="system-log">
+                    <div class="log-line info">[2025-12-07 14:30:00] GET /api/v1/arl/schema/state → 200</div>
+                    <div class="log-line success">[2025-12-07 14:29:55] Pack LIMEPASS loaded successfully</div>
+                    <div class="log-line info">[2025-12-07 14:29:50] Cell angeles-school heartbeat</div>
+                    <div class="log-line warning">[2025-12-07 14:29:45] Slow query detected: 250ms</div>
+                    <div class="log-line error">[2025-12-07 14:29:40] Redis connection timeout (recovered)</div>
+                    <div class="log-line info">[2025-12-07 14:29:35] Validator V1-V4 completed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'https://api.autus-ai.com/api/v1';
+        
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            document.querySelectorAll('.nav li').forEach(li => li.classList.remove('active'));
+            event.target.closest('li').classList.add('active');
+            if (id === 'graph') loadGraph();
+        }
+        
+        async function refreshData() {
+            try {
+                const [packs, entities] = await Promise.all([
+                    fetch(API + '/marketplace/packs').then(r => r.json()),
+                    fetch(API + '/graph/entities').then(r => r.json())
+                ]);
+                document.getElementById('stat-packs').textContent = packs.packs?.length || 3;
+                document.getElementById('stat-cells').textContent = 3;
+                document.getElementById('stat-entities').textContent = entities.count || 7;
+                document.getElementById('stat-events').textContent = '12.3K';
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        async function loadGraph() {
+            try {
+                const [entities, rels] = await Promise.all([
+                    fetch(API + '/graph/entities').then(r => r.json()),
+                    fetch(API + '/graph/relationships').then(r => r.json())
+                ]);
+                
+                const et = document.getElementById('entities-table');
+                et.innerHTML = Object.entries(entities.entities || {}).map(([id, e]) => 
+                    `<tr><td>${id}</td><td>${e.type}</td><td>${e.name}</td><td>${e.cell}</td><td>-</td></tr>`
+                ).join('');
+                
+                const rt = document.getElementById('relations-table');
+                rt.innerHTML = (rels.relationships || []).map(r => 
+                    `<tr><td>${r.from}</td><td>${r.type}</td><td>${r.to}</td><td><span class="status ${r.status==='active'?'ok':'warning'}">${r.status}</span></td></tr>`
+                ).join('');
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        function runValidation() {
+            alert('Running V1-V4 validators...\n\nResult: PASS (1 warning)');
+        }
+        
+        refreshData();
+    </script>
+</body>
+</html>

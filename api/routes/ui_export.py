@@ -1,8 +1,6 @@
 from fastapi import APIRouter
 from typing import Dict, List
-from kernel.flow_mapper.generator import generate_flow, QUESTION_TEMPLATES
-from kernel.ui_dsl.screen_model import UIScreen, UIComponent
-from kernel.ui_dsl.figma_export import screens_to_figma_document
+from kernel.flow_mapper import generate_flow, QUESTION_TEMPLATES
 
 router = APIRouter(prefix="/ui", tags=["UI Export"])
 
@@ -29,12 +27,22 @@ async def get_screens(app_id: str):
 
 @router.get("/{app_id}/figma")
 async def get_figma(app_id: str):
-    flow = generate_flow(app_id, [])
-    ui_screens = []
-    for step in flow.steps:
-        screen = UIScreen(id=step.id, title=TITLES.get(step.id, step.id))
-        screen.components.append(UIComponent(f"{step.id}-heading", "heading", {"text": TITLES.get(step.id)}))
-        for q in step.questions:
-            screen.components.append(UIComponent(f"{step.id}-{q.field}", q.input_type, {"name": q.field}))
-        ui_screens.append(screen)
-    return screens_to_figma_document(app_id, ui_screens)
+    """Export UI flow as Figma document structure"""
+    flow = generate_flow([])
+    figma_doc = {
+        "id": f"figma_{app_id}",
+        "name": f"UI Flow - {app_id}",
+        "type": "document",
+        "frames": []
+    }
+    
+    for step in flow:
+        frame = {
+            "id": f"frame_{step['id']}",
+            "name": step['id'],
+            "type": "frame",
+            "children": []
+        }
+        figma_doc["frames"].append(frame)
+    
+    return figma_doc
