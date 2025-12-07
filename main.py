@@ -1220,13 +1220,17 @@ try:
 except ImportError as e:
     print(f"⚠️ Sync 로드 실패: {e}")
 
+# ============ AUTUS Tile Services (UI Kernel Layer) ============
+try:
+    from api.routes.tiles import router as tiles_router
+    app.include_router(tiles_router, prefix="/api/v1")
+    print("✅ Tile Services 라우터 등록 완료 (7개 엔드포인트)")
+except ImportError as e:
+    print(f"⚠️ Tile Services 로드 실패: {e}")
+
 # ============ AUTUS Evolution (Meta-Circular) ============
 try:
     from api.routes.evolution import router as evolution_router
-
-    # Tile Services (UI Kernel Layer)
-    from api.routes.tiles import router as tiles_router
-    app.include_router(tiles_router, prefix="/api/v1")
     app.include_router(evolution_router, prefix="/api/v1")
     print("✅ Evolution 라우터 등록 완료")
 except ImportError as e:
