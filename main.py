@@ -985,3 +985,11 @@ try:
     print("✅ Sync 라우터 등록 완료")
 except ImportError as e:
     print(f"⚠️ Sync 로드 실패: {e}")
+
+# ============ AUTUS Evolution (Meta-Circular) ============
+try:
+    from api.routes.evolution import router as evolution_router
+    app.include_router(evolution_router, prefix="/api/v1")
+    print("✅ Evolution 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Evolution 로드 실패: {e}")
