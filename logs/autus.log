@@ -813,3 +813,123 @@
 2025-12-07 22:44:20,361 | INFO | Request completed
 2025-12-07 22:44:20,361 | INFO | POST /api/v1/chatbot/simulate → 200 (0.81ms)
 2025-12-07 22:44:20,362 | INFO | HTTP Request: POST http://testserver/api/v1/chatbot/simulate "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,118 | INFO | Request started
+2025-12-07 22:46:48,119 | INFO | Request completed
+2025-12-07 22:46:48,119 | INFO | GET /api/v1/devices → 404 (1.24ms)
+2025-12-07 22:46:48,120 | INFO | HTTP Request: GET http://testserver/api/v1/devices "HTTP/1.1 404 Not Found"
+2025-12-07 22:46:48,121 | INFO | Request started
+2025-12-07 22:46:48,121 | INFO | Request completed
+2025-12-07 22:46:48,122 | INFO | GET /api/v1/devices → 404 (0.82ms)
+2025-12-07 22:46:48,122 | INFO | HTTP Request: GET http://testserver/api/v1/devices "HTTP/1.1 404 Not Found"
+2025-12-07 22:46:48,123 | INFO | Request started
+2025-12-07 22:46:48,123 | INFO | Request completed
+2025-12-07 22:46:48,123 | INFO | GET /api/v1/devices → 404 (0.61ms)
+2025-12-07 22:46:48,124 | INFO | HTTP Request: GET http://testserver/api/v1/devices "HTTP/1.1 404 Not Found"
+2025-12-07 22:46:48,124 | INFO | Request started
+2025-12-07 22:46:48,125 | INFO | Request completed
+2025-12-07 22:46:48,125 | INFO | GET /api/v1/mars/twins → 200 (0.60ms)
+2025-12-07 22:46:48,125 | INFO | HTTP Request: GET http://testserver/api/v1/mars/twins "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,126 | INFO | Request started
+2025-12-07 22:46:48,126 | INFO | Request completed
+2025-12-07 22:46:48,126 | INFO | GET /api/v1/mars/twins → 200 (0.56ms)
+2025-12-07 22:46:48,127 | INFO | HTTP Request: GET http://testserver/api/v1/mars/twins "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,127 | INFO | Request started
+2025-12-07 22:46:48,127 | INFO | Request completed
+2025-12-07 22:46:48,128 | INFO | GET /api/v1/mars/twins → 200 (0.60ms)
+2025-12-07 22:46:48,128 | INFO | HTTP Request: GET http://testserver/api/v1/mars/twins "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,129 | INFO | Request started
+2025-12-07 22:46:48,130 | INFO | Request completed
+2025-12-07 22:46:48,130 | INFO | GET /api/v1/city/dashboard → 200 (0.80ms)
+2025-12-07 22:46:48,131 | INFO | HTTP Request: GET http://testserver/api/v1/city/dashboard "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,131 | INFO | Request started
+2025-12-07 22:46:48,132 | INFO | Request completed
+2025-12-07 22:46:48,132 | INFO | GET /api/v1/city/dashboard → 200 (0.62ms)
+2025-12-07 22:46:48,132 | INFO | HTTP Request: GET http://testserver/api/v1/city/dashboard "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,133 | INFO | Request started
+2025-12-07 22:46:48,133 | INFO | Request completed
+2025-12-07 22:46:48,133 | INFO | GET /api/v1/city/dashboard → 200 (0.81ms)
+2025-12-07 22:46:48,134 | INFO | HTTP Request: GET http://testserver/api/v1/city/dashboard "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,135 | INFO | Request started
+2025-12-07 22:46:48,135 | INFO | Request completed
+2025-12-07 22:46:48,135 | INFO | GET /api/v1/graph/entities → 200 (0.73ms)
+2025-12-07 22:46:48,136 | INFO | HTTP Request: GET http://testserver/api/v1/graph/entities "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,136 | INFO | Request started
+2025-12-07 22:46:48,137 | INFO | Request completed
+2025-12-07 22:46:48,137 | INFO | GET /api/v1/graph/entities → 200 (0.87ms)
+2025-12-07 22:46:48,138 | INFO | HTTP Request: GET http://testserver/api/v1/graph/entities "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,138 | INFO | Request started
+2025-12-07 22:46:48,139 | INFO | Request completed
+2025-12-07 22:46:48,139 | INFO | GET /api/v1/graph/entities → 200 (0.80ms)
+2025-12-07 22:46:48,140 | INFO | HTTP Request: GET http://testserver/api/v1/graph/entities "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,140 | INFO | Request started
+2025-12-07 22:46:48,141 | INFO | Request completed
+2025-12-07 22:46:48,141 | INFO | GET /api/v1/financial/costs → 200 (0.62ms)
+2025-12-07 22:46:48,141 | INFO | HTTP Request: GET http://testserver/api/v1/financial/costs "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,142 | INFO | Request started
+2025-12-07 22:46:48,142 | INFO | Request completed
+2025-12-07 22:46:48,142 | INFO | GET /api/v1/financial/costs → 200 (0.58ms)
+2025-12-07 22:46:48,143 | INFO | HTTP Request: GET http://testserver/api/v1/financial/costs "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,143 | INFO | Request started
+2025-12-07 22:46:48,143 | INFO | Request completed
+2025-12-07 22:46:48,144 | INFO | GET /api/v1/financial/costs → 200 (0.54ms)
+2025-12-07 22:46:48,144 | INFO | HTTP Request: GET http://testserver/api/v1/financial/costs "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,145 | INFO | Request started
+2025-12-07 22:46:48,146 | INFO | Request completed
+2025-12-07 22:46:48,146 | INFO | GET /api/v1/risk/alerts → 200 (1.44ms)
+2025-12-07 22:46:48,147 | INFO | HTTP Request: GET http://testserver/api/v1/risk/alerts "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,147 | INFO | Request started
+2025-12-07 22:46:48,148 | INFO | Request completed
+2025-12-07 22:46:48,148 | INFO | GET /api/v1/risk/alerts → 200 (0.61ms)
+2025-12-07 22:46:48,149 | INFO | HTTP Request: GET http://testserver/api/v1/risk/alerts "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,149 | INFO | Request started
+2025-12-07 22:46:48,149 | INFO | Request completed
+2025-12-07 22:46:48,150 | INFO | GET /api/v1/risk/alerts → 200 (0.59ms)
+2025-12-07 22:46:48,150 | INFO | HTTP Request: GET http://testserver/api/v1/risk/alerts "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,151 | INFO | Request started
+2025-12-07 22:46:48,151 | INFO | Request completed
+2025-12-07 22:46:48,151 | INFO | GET /api/v1/chatbot/stats → 200 (0.70ms)
+2025-12-07 22:46:48,152 | INFO | HTTP Request: GET http://testserver/api/v1/chatbot/stats "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,152 | INFO | Request started
+2025-12-07 22:46:48,153 | INFO | Request completed
+2025-12-07 22:46:48,153 | INFO | GET /api/v1/chatbot/stats → 200 (0.87ms)
+2025-12-07 22:46:48,154 | INFO | HTTP Request: GET http://testserver/api/v1/chatbot/stats "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,155 | INFO | Request started
+2025-12-07 22:46:48,155 | INFO | Request completed
+2025-12-07 22:46:48,155 | INFO | GET /api/v1/chatbot/stats → 200 (0.66ms)
+2025-12-07 22:46:48,156 | INFO | HTTP Request: GET http://testserver/api/v1/chatbot/stats "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,157 | INFO | Request started
+2025-12-07 22:46:48,157 | INFO | Request completed
+2025-12-07 22:46:48,157 | INFO | GET /market → 307 (0.61ms)
+2025-12-07 22:46:48,157 | INFO | HTTP Request: GET http://testserver/market "HTTP/1.1 307 Temporary Redirect"
+2025-12-07 22:46:48,158 | INFO | Request started
+2025-12-07 22:46:48,161 | INFO | Request completed
+2025-12-07 22:46:48,161 | INFO | GET /market/ → 200 (3.39ms)
+2025-12-07 22:46:48,162 | INFO | HTTP Request: GET http://testserver/market/ "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,163 | INFO | Request started
+2025-12-07 22:46:48,163 | INFO | Request completed
+2025-12-07 22:46:48,163 | INFO | GET /market → 307 (0.70ms)
+2025-12-07 22:46:48,164 | INFO | HTTP Request: GET http://testserver/market "HTTP/1.1 307 Temporary Redirect"
+2025-12-07 22:46:48,164 | INFO | Request started
+2025-12-07 22:46:48,165 | INFO | Request completed
+2025-12-07 22:46:48,165 | INFO | GET /market/ → 200 (1.03ms)
+2025-12-07 22:46:48,166 | INFO | HTTP Request: GET http://testserver/market/ "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,166 | INFO | Request started
+2025-12-07 22:46:48,167 | INFO | Request completed
+2025-12-07 22:46:48,167 | INFO | GET /market → 307 (0.62ms)
+2025-12-07 22:46:48,167 | INFO | HTTP Request: GET http://testserver/market "HTTP/1.1 307 Temporary Redirect"
+2025-12-07 22:46:48,168 | INFO | Request started
+2025-12-07 22:46:48,168 | INFO | Request completed
+2025-12-07 22:46:48,169 | INFO | GET /market/ → 200 (1.13ms)
+2025-12-07 22:46:48,169 | INFO | HTTP Request: GET http://testserver/market/ "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,170 | INFO | Request started
+2025-12-07 22:46:48,171 | INFO | Request completed
+2025-12-07 22:46:48,172 | INFO | GET /admin/ → 200 (2.05ms)
+2025-12-07 22:46:48,173 | INFO | HTTP Request: GET http://testserver/admin/ "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,174 | INFO | Request started
+2025-12-07 22:46:48,174 | INFO | Request completed
+2025-12-07 22:46:48,175 | INFO | GET /admin/ → 200 (1.08ms)
+2025-12-07 22:46:48,175 | INFO | HTTP Request: GET http://testserver/admin/ "HTTP/1.1 200 OK"
+2025-12-07 22:46:48,176 | INFO | Request started
+2025-12-07 22:46:48,176 | INFO | Request completed
+2025-12-07 22:46:48,177 | INFO | GET /admin/ → 200 (1.05ms)
+2025-12-07 22:46:48,178 | INFO | HTTP Request: GET http://testserver/admin/ "HTTP/1.1 200 OK"
