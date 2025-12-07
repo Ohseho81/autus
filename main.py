@@ -51,6 +51,10 @@ from api.errors import AutousException, ErrorCode, ErrorResponse
 from api.monitoring import get_monitor
 from api.routes.monitoring import router as monitoring_router
 from api.routes.deployments import router as deployments_router
+from api.routes.architecture import router as architecture_router
+from api.routes.quality import router as quality_router
+from api.routes.team import router as team_router
+from api.routes.vscode import router as vscode_router
 
 __version__ = "4.2.0"
 __title__ = "AUTUS - Meta-Circular Development OS"
@@ -1320,6 +1324,34 @@ try:
     print("✅ Deployment Pipeline 라우터 등록 완료 (7개 엔드포인트)")
 except ImportError as e:
     print(f"⚠️ Deployment Pipeline 로드 실패: {e}")
+
+# ============ AUTUS Architecture Analysis ============
+try:
+    app.include_router(architecture_router, prefix="/api/v1")
+    print("✅ Architecture Analysis 라우터 등록 완료 (8개 엔드포인트)")
+except ImportError as e:
+    print(f"⚠️ Architecture Analysis 로드 실패: {e}")
+
+# ============ AUTUS Code Quality Analysis ============
+try:
+    app.include_router(quality_router, prefix="/api/v1")
+    print("✅ Code Quality Analysis 라우터 등록 완료 (6개 엔드포인트)")
+except ImportError as e:
+    print(f"⚠️ Code Quality Analysis 로드 실패: {e}")
+
+# ============ AUTUS Team Collaboration ============
+try:
+    app.include_router(team_router, prefix="/api/v1")
+    print("✅ Team Collaboration 라우터 등록 완료 (7개 엔드포인트)")
+except ImportError as e:
+    print(f"⚠️ Team Collaboration 로드 실패: {e}")
+
+# ============ AUTUS VS Code IDE Integration ============
+try:
+    app.include_router(vscode_router, prefix="/api/v1")
+    print("✅ VS Code IDE Integration 라우터 등록 완료 (9개 엔드포인트)")
+except ImportError as e:
+    print(f"⚠️ VS Code IDE Integration 로드 실패: {e}")
 
 # Mount static pages at root paths
 from pathlib import Path
