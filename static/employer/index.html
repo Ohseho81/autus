@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LimePass Employer Portal</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui,sans-serif;background:#0a0a0f;color:#fff;min-height:100vh}
+        .container{max-width:900px;margin:0 auto;padding:40px 20px}
+        h1{color:#32CD32;margin-bottom:10px}
+        .subtitle{color:#888;margin-bottom:30px}
+        .tabs{display:flex;gap:10px;margin-bottom:30px}
+        .tab{padding:12px 24px;background:#1a1a2e;border-radius:8px;cursor:pointer;border:1px solid transparent}
+        .tab.active{border-color:#32CD32;color:#32CD32}
+        .card{background:#12121a;border-radius:12px;padding:24px;margin-bottom:20px}
+        .card h2{color:#32CD32;margin-bottom:20px;font-size:1.3rem}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px}
+        .form-group{margin-bottom:15px}
+        .form-group label{display:block;color:#aaa;margin-bottom:6px;font-size:14px}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px;border:1px solid #333;border-radius:6px;background:#0a0a0f;color:#fff;font-size:14px}
+        .form-group input:focus,.form-group select:focus{outline:none;border-color:#32CD32}
+        .btn{padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:14px}
+        .btn-primary{background:#32CD32;color:#000}
+        .btn-secondary{background:#333;color:#fff}
+        .btn-sm{padding:8px 16px;font-size:12px}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:12px;text-align:left;border-bottom:1px solid #222}
+        th{color:#888;font-weight:normal}
+        .score{display:inline-block;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold}
+        .score.high{background:#1a4d1a;color:#32CD32}
+        .score.medium{background:#4d4d1a;color:#ffd700}
+        .score.low{background:#4d1a1a;color:#ff6b6b}
+        .rules-preview{background:#0a0a0f;border-radius:6px;padding:15px;font-family:monospace;font-size:12px;max-height:200px;overflow-y:auto}
+        .rule-item{padding:8px;border-bottom:1px solid #222}
+        .hidden{display:none}
+        .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:30px}
+        .stat{background:#1a1a2e;border-radius:8px;padding:20px;text-align:center}
+        .stat .value{font-size:2rem;color:#32CD32;font-weight:bold}
+        .stat .label{color:#888;font-size:12px;margin-top:5px}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🏢 Employer Portal</h1>
+    <p class="subtitle">Post jobs and find qualified LimePass candidates</p>
+    
+    <div class="stats">
+        <div class="stat"><div class="value" id="stat-jobs">0</div><div class="label">Active Jobs</div></div>
+        <div class="stat"><div class="value" id="stat-candidates">5</div><div class="label">Candidates</div></div>
+        <div class="stat"><div class="value" id="stat-matches">0</div><div class="label">Matches</div></div>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('post')">Post Job</div>
+        <div class="tab" onclick="showTab('jobs')">My Jobs</div>
+        <div class="tab" onclick="showTab('matches')">Matches</div>
+    </div>
+    
+    <!-- Post Job Tab -->
+    <div id="post" class="tab-content">
+        <div class="card">
+            <h2>Create Job Posting</h2>
+            <form id="jobForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Position</label>
+                        <input type="text" id="position" placeholder="e.g. Sports Trainer" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" id="company" placeholder="Your company name" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Min Salary (USD)</label>
+                        <input type="number" id="salary_min" value="2000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Salary (USD)</label>
+                        <input type="number" id="salary_max" value="3500" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Work Location</label>
+                        <input type="text" id="work_location" placeholder="e.g. Seoul, Korea" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contract (months)</label>
+                        <input type="number" id="contract_months" value="24">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Min English Score</label>
+                        <input type="number" id="english_min" value="600">
+                    </div>
+                    <div class="form-group">
+                        <label>Experience (years)</label>
+                        <input type="number" id="experience_years" value="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fitness Level</label>
+                        <select id="fitness_level">
+                            <option value="normal">Normal</option>
+                            <option value="athletic">Athletic</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Visa Type</label>
+                        <select id="visa_type">
+                            <option value="E-7">E-7 (Work)</option>
+                            <option value="D-10">D-10 (Job Seeking)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Required Skills (comma separated)</label>
+                    <input type="text" id="skills" placeholder="e.g. coaching, fitness, communication">
+                </div>
+                <div class="form-group">
+                    <label>Additional Requirements</label>
+                    <textarea id="additional" rows="3" placeholder="Any other requirements..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Job & Generate Rules</button>
+            </form>
+        </div>
+        
+        <div class="card hidden" id="rulesPreview">
+            <h2>Generated RulePack</h2>
+            <div class="rules-preview" id="rulesContent"></div>
+            <button class="btn btn-secondary" style="margin-top:15px" onclick="viewMatches()">View Matching Candidates →</button>
+        </div>
+    </div>
+    
+    <!-- Jobs Tab -->
+    <div id="jobs" class="tab-content hidden">
+        <div class="card">
+            <h2>Active Job Postings</h2>
+            <table>
+                <thead><tr><th>Position</th><th>Company</th><th>Salary</th><th>Rules</th><th>Actions</th></tr></thead>
+                <tbody id="jobsTable"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Matches Tab -->
+    <div id="matches" class="tab-content hidden">
+        <div class="card">
+            <h2>Top Matching Candidates</h2>
+            <table>
+                <thead><tr><th>Name</th><th>Major</th><th>GPA</th><th>English</th><th>Fit Score</th><th>Actions</th></tr></thead>
+                <tbody id="matchesTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+const API = 'https://api.autus-ai.com/api/v1/employer';
+let currentJobId = null;
+
+function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tab).classList.remove('hidden');
+    event.target.classList.add('active');
+    if (tab === 'jobs') loadJobs();
+}
+
+document.getElementById('jobForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const job = {
+        position: document.getElementById('position').value,
+        company: document.getElementById('company').value,
+        salary_min: parseInt(document.getElementById('salary_min').value),
+        salary_max: parseInt(document.getElementById('salary_max').value),
+        work_location: document.getElementById('work_location').value,
+        contract_months: parseInt(document.getElementById('contract_months').value),
+        english_min: parseInt(document.getElementById('english_min').value),
+        experience_years: parseInt(document.getElementById('experience_years').value),
+        fitness_level: document.getElementById('fitness_level').value,
+        visa_type: document.getElementById('visa_type').value,
+        skills: document.getElementById('skills').value.split(',').map(s => s.trim()).filter(s => s),
+        additional: document.getElementById('additional').value
+    };
+    
+    try {
+        const res = await fetch(API + '/jobs', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(job)
+        });
+        const data = await res.json();
+        currentJobId = data.job_id;
+        
+        // Load rules
+        const rulesRes = await fetch(API + '/jobs/' + currentJobId + '/rules');
+        const rulesData = await rulesRes.json();
+        
+        document.getElementById('rulesContent').innerHTML = rulesData.rules.map(r => 
+            `<div class="rule-item"><strong>${r.id}</strong>: ${r.field} ${r.operator} ${r.value} (weight: ${r.weight})</div>`
+        ).join('');
+        
+        document.getElementById('rulesPreview').classList.remove('hidden');
+        loadStats();
+    } catch(e) {
+        alert('Error creating job');
+    }
+});
+
+async function loadJobs() {
+    try {
+        const res = await fetch(API + '/jobs');
+        const data = await res.json();
+        
+        document.getElementById('jobsTable').innerHTML = (data.jobs || []).map(j => `
+            <tr>
+                <td>${j.posting.position}</td>
+                <td>${j.posting.company}</td>
+                <td>$${j.posting.salary_min}-${j.posting.salary_max}</td>
+                <td>${j.rules_count} rules</td>
+                <td><button class="btn btn-sm btn-secondary" onclick="loadMatches('${j.id}')">View Matches</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="5">No jobs yet</td></tr>';
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+async function loadMatches(jobId) {
+    currentJobId = jobId || currentJobId;
+    if (!currentJobId) return;
+    
+    try {
+        const res = await fetch(API + '/jobs/' + currentJobId + '/matches');
+        const data = await res.json();
+        
+        document.getElementById('matchesTable').innerHTML = (data.matches || []).map(m => `
+            <tr>
+                <td>${m.name}</td>
+                <td>${m.major}</td>
+                <td>${m.gpa}</td>
+                <td>${m.english}</td>
+                <td><span class="score ${m.fit_score >= 0.7 ? 'high' : m.fit_score >= 0.4 ? 'medium' : 'low'}">${(m.fit_score * 100).toFixed(0)}%</span></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="scheduleInterview('${m.applicant_id}')">Interview</button>
+                    <button class="btn btn-sm btn-secondary" onclick="sendOffer('${m.applicant_id}')">Offer</button>
+                </td>
+            </tr>
+        `).join('');
+        
+        showTab('matches');
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+function viewMatches() {
+    loadMatches(currentJobId);
+}
+
+async function scheduleInterview(applicantId) {
+    alert('Interview scheduled with ' + applicantId);
+}
+
+async function sendOffer(applicantId) {
+    alert('Offer sent to ' + applicantId);
+}
+
+async function loadStats() {
+    try {
+        const res = await fetch(API + '/stats');
+        const data = await res.json();
+        document.getElementById('stat-jobs').textContent = data.total_jobs || 0;
+    } catch(e) {}
+}
+
+loadStats();
+</script>
+</body>
+</html>
