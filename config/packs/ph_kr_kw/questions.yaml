@@ -1,0 +1,153 @@
+# PH → Kwangwoon Question Templates
+version: "1.0"
+app_id: "PH_KR_KW_SPORTS_MASTER"
+
+questions:
+  # Identity
+  - field: full_name
+    input_type: text
+    required: true
+    labels:
+      en: "What is your full legal name?"
+      kr: "성명을 입력하세요"
+      ph: "Ano ang buong pangalan mo?"
+
+  - field: birth_date
+    input_type: date
+    required: true
+    labels:
+      en: "Date of birth"
+      kr: "생년월일"
+      ph: "Petsa ng kapanganakan"
+
+  - field: email
+    input_type: text
+    required: true
+    labels:
+      en: "Email address"
+      kr: "이메일 주소"
+      ph: "Email address"
+
+  # Academic
+  - field: gpa
+    input_type: number
+    required: true
+    validation:
+      min: 0
+      max: 4.5
+    labels:
+      en: "What is your GPA (out of 4.5)?"
+      kr: "학점(4.5 만점)은?"
+      ph: "Ano ang GPA mo (out of 4.5)?"
+
+  - field: major
+    input_type: text
+    required: true
+    labels:
+      en: "What was your undergraduate major?"
+      kr: "학부 전공은?"
+      ph: "Ano ang kurso mo sa kolehiyo?"
+
+  # Language
+  - field: english_score
+    input_type: number
+    required: false
+    labels:
+      en: "English test score (TOEIC/IELTS)"
+      kr: "영어 점수 (토익/아이엘츠)"
+      ph: "English test score (TOEIC/IELTS)"
+
+  - field: korean_level
+    input_type: select
+    required: false
+    options:
+      - "None"
+      - "TOPIK 1-2"
+      - "TOPIK 3-4"
+      - "TOPIK 5-6"
+    labels:
+      en: "Korean language level"
+      kr: "한국어 수준"
+      ph: "Antas ng Korean"
+
+  # Finance
+  - field: bank_balance_usd
+    input_type: number
+    required: true
+    validation:
+      min: 0
+    labels:
+      en: "Available savings (USD)"
+      kr: "예금 잔액 (USD)"
+      ph: "Savings na available (USD)"
+
+  - field: sponsor
+    input_type: select
+    required: false
+    options:
+      - "Yes"
+      - "No"
+    labels:
+      en: "Do you have a financial sponsor?"
+      kr: "후원자가 있나요?"
+      ph: "May sponsor ka ba?"
+
+  # Health
+  - field: tb_status
+    input_type: select
+    required: true
+    options:
+      - "negative"
+      - "positive"
+      - "not_tested"
+    labels:
+      en: "TB test result"
+      kr: "결핵 검사 결과"
+      ph: "Resulta ng TB test"
+
+  # Intent
+  - field: intent_text
+    input_type: textarea
+    required: true
+    validation:
+      min_length: 100
+    labels:
+      en: "Why do you want to study sports in Korea?"
+      kr: "한국에서 스포츠를 공부하고 싶은 이유는?"
+      ph: "Bakit gusto mong mag-aral ng sports sa Korea?"
+
+  # Documents
+  - field: passport_uploaded
+    input_type: file
+    required: true
+    labels:
+      en: "Upload passport scan"
+      kr: "여권 스캔 업로드"
+      ph: "I-upload ang passport scan"
+
+  - field: transcript_uploaded
+    input_type: file
+    required: true
+    labels:
+      en: "Upload official transcript"
+      kr: "성적증명서 업로드"
+      ph: "I-upload ang transcript"
+
+  # Employment
+  - field: sports_experience_years
+    input_type: number
+    required: false
+    validation:
+      min: 0
+    labels:
+      en: "Years of sports-related experience"
+      kr: "스포츠 관련 경력 (년)"
+      ph: "Taon ng karanasan sa sports"
+
+  - field: career_goal
+    input_type: textarea
+    required: false
+    labels:
+      en: "What is your career goal?"
+      kr: "커리어 목표는?"
+      ph: "Ano ang career goal mo?"

@@ -28,8 +28,8 @@ COPY oracle/ ./oracle/
 COPY succession/ ./succession/
 COPY kernel/ ./kernel/
 COPY validators/ ./validators/
-COPY kernel/ ./kernel/
-COPY validators/ ./validators/
+COPY config/ ./config/
+COPY static/ ./static/
 COPY main.py .
 
 RUN mkdir -p logs specs/auto

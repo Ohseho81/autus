@@ -1213,6 +1213,22 @@ try:
 except ImportError as e:
     print(f"⚠️ Succession 로드 실패: {e}")
 
+# ============ AUTUS Validate (검증 엔진) ============
+try:
+    from api.routes.validate import router as validate_router
+    app.include_router(validate_router, prefix="/api/v1")
+    print("✅ Validate 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Validate 로드 실패: {e}")
+
+# ============ AUTUS UI Export (UI 내보내기) ============
+try:
+    from api.routes.ui_export import router as ui_export_router
+    app.include_router(ui_export_router, prefix="/api/v1")
+    print("✅ UI Export 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ UI Export 로드 실패: {e}")
+
 # Mount static pages at root paths
 from pathlib import Path
 static_root = Path(__file__).parent / "static"
