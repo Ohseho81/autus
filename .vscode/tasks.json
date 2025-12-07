@@ -1,0 +1,150 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🎯 [M1] 성능 대시보드 - 실시간 추적",
+      "type": "shell",
+      "command": "python3",
+      "args": ["performance_dashboard.py", "--dashboard", "--duration=600"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true,
+        "clear": true
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "💾 [T2] 캐시 검증 - 80% 목표 확인",
+      "type": "shell",
+      "command": "python3",
+      "args": ["performance_dashboard.py", "--cache"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "⚡ [D1] 프로파일링 - 병목 특정",
+      "type": "shell",
+      "command": "python3",
+      "args": ["performance_dashboard.py", "--profile"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "🔵 [M1+T2+D1] 전체 성능 분석",
+      "type": "shell",
+      "command": "python3",
+      "args": ["performance_dashboard.py", "--all"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "📊 실시간 대시보드 (Refresh: 30초)",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-c", "while true; do clear; curl -s http://localhost:8000/monitoring/performance/dashboard | jq '.'; sleep 30; done"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": false,
+        "clear": false
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*",
+          "endsPattern": "^.*"
+        }
+      }
+    },
+    {
+      "label": "🔍 캐시 상태 모니터링",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-c", "while true; do clear; echo '=== 캐시 통계 ===' && date && curl -s http://localhost:8000/cache/stats | jq '.' && echo '' && sleep 10; done"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": false
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*",
+          "endsPattern": "^.*"
+        }
+      }
+    },
+    {
+      "label": "📈 요청 추적 모니터링",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-c", "while true; do clear; echo '=== 요청 추적 ===' && date && curl -s http://localhost:8000/monitoring/requests/summary | jq '.' && echo '' && sleep 10; done"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": false
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*",
+          "endsPattern": "^.*"
+        }
+      }
+    },
+    {
+      "label": "🧪 부하 테스트 (100 요청)",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-c", "python3 -c \"import asyncio, httpx, time, statistics\\n\\nasync def benchmark():\\n    times = []\\n    async with httpx.AsyncClient() as client:\\n        for i in range(100):\\n            start = time.time()\\n            try:\\n                r = await client.get('http://localhost:8000/devices')\\n                times.append((time.time() - start) * 1000)\\n            except:\\n                pass\\n    times.sort()\\n    print(f'P50: {statistics.median(times):.2f}ms')\\n    print(f'P95: {times[int(len(times)*0.95)]:.2f}ms')\\n    print(f'P99: {times[int(len(times)*0.99)]:.2f}ms')\\n    print(f'Min: {min(times):.2f}ms, Max: {max(times):.2f}ms')\\n\\nasyncio.run(benchmark())\""],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "🚀 서버 시작 + 성능 분석",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-c", "echo '서버 시작 중...' && python3 main.py &>/dev/null & sleep 3 && python3 performance_dashboard.py --all"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true,
+        "clear": true
+      }
+    }
+  ]
+}
