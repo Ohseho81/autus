@@ -48,13 +48,19 @@ from api.prometheus_metrics import (
     health_check_status, health_check_duration_seconds
 )
 from api.errors import AutousException, ErrorCode, ErrorResponse
+from api.monitoring import get_monitor
+from api.routes.monitoring import router as monitoring_router
+
 __version__ = "4.2.0"
 __title__ = "AUTUS - Meta-Circular Development OS"
 
 app = FastAPI(
     title=__title__,
     version=__version__,
-    description="The Protocol for Personal AI Operating Systems"
+    description="The Protocol for Personal AI Operating Systems",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
 
 app.add_middleware(
@@ -123,6 +129,17 @@ async def general_exception_handler(request: Request, exc: Exception):
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+# ===== Monitoring Dashboard =====
+@app.get("/monitoring/dashboard", tags=["Dashboard"])
+async def monitoring_dashboard_page():
+    """API Monitoring Dashboard HTML"""
+    from fastapi.responses import FileResponse
+    from pathlib import Path
+    dashboard_path = Path(__file__).parent / "static" / "monitoring_dashboard.html"
+    if dashboard_path.exists():
+        return FileResponse(str(dashboard_path))
+    return {"error": "Dashboard not found"}
 
 # ===== Request Tracking Endpoints =====
 @app.get("/monitoring/requests/summary")
@@ -1201,6 +1218,10 @@ except ImportError as e:
 # ============ AUTUS Evolution (Meta-Circular) ============
 try:
     from api.routes.evolution import router as evolution_router
+
+    # Tile Services (UI Kernel Layer)
+    from api.routes.tiles import router as tiles_router
+    app.include_router(tiles_router, prefix="/api/v1")
     app.include_router(evolution_router, prefix="/api/v1")
     print("✅ Evolution 라우터 등록 완료")
 except ImportError as e:
@@ -1284,6 +1305,13 @@ try:
     print("✅ Task Engine 라우터 등록 완료 (10개 엔드포인트)")
 except ImportError as e:
     print(f"⚠️ Task Engine 로드 실패: {e}")
+
+# ============ AUTUS API Monitoring & Analytics ============
+try:
+    app.include_router(monitoring_router, prefix="/api/v1")
+    print("✅ API Monitoring 라우터 등록 완료 (8개 엔드포인트)")
+except ImportError as e:
+    print(f"⚠️ Monitoring 로드 실패: {e}")
 
 # Mount static pages at root paths
 from pathlib import Path

@@ -85,6 +85,21 @@ class RequestTrackingMiddleware(BaseHTTPMiddleware):
             # Add Request ID to response headers
             response.headers[REQUEST_ID_HEADER] = request_id
             
+            # Record in API monitor
+            try:
+                from api.monitoring import get_monitor
+                monitor = get_monitor()
+                is_error = response.status_code >= 400
+                monitor.record_request(
+                    path=path,
+                    method=method,
+                    duration_ms=request_duration_ms,
+                    status_code=response.status_code,
+                    is_error=is_error
+                )
+            except Exception as e:
+                logger.warning(f"Failed to record monitoring data: {e}")
+            
             # Log response
             logger.info(
                 f"Request completed",
