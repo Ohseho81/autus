@@ -1,134 +1,48 @@
-# PH → Kwangwoon Sports Master + ATB Employment Rules
 version: "1.0"
 app_id: "PH_KR_KW_SPORTS_MASTER"
-
 rules:
-  # Academic Rules
   - id: R-GPA-MIN
     group: academic
-    trigger: "EVT::ACADEMIC_INPUT"
     severity: blocker
-    conditions:
-      - field: gpa
-        operator: ">="
-        value: 2.5
-    delta:
-      A4: 0.2
+    conditions: [{field: gpa, operator: ">=", value: 2.5}]
     weight: 0.35
-    description: "Minimum GPA requirement for admission"
-
   - id: R-MAJOR-FIT
     group: academic
-    trigger: "EVT::ACADEMIC_INPUT"
     severity: warning
-    conditions:
-      - field: major
-        operator: "in"
-        value: ["PE", "Sports Science", "Kinesiology", "Physical Education", "Sports Management"]
-    delta:
-      A4: 0.1
+    conditions: [{field: major, operator: "in", value: ["PE", "Sports Science"]}]
     weight: 0.15
-    description: "Relevant major preferred"
-
-  # Language Rules
   - id: R-ENGLISH-MIN
     group: language
-    trigger: "EVT::LANG_INPUT"
     severity: warning
-    conditions:
-      - field: english_score
-        operator: ">="
-        value: 700
-    delta:
-      A4: 0.1
+    conditions: [{field: english_score, operator: ">=", value: 700}]
     weight: 0.10
-    description: "Minimum English proficiency"
-
-  # Finance Rules
   - id: R-FIN-MIN_BALANCE
     group: finance
-    trigger: "EVT::FIN_INPUT"
     severity: blocker
-    conditions:
-      - field: bank_balance_usd
-        operator: ">="
-        value: 20000
-    delta:
-      A3: -0.2
-      A9: -0.2
+    conditions: [{field: bank_balance_usd, operator: ">=", value: 20000}]
     weight: 0.30
-    description: "Minimum financial capacity for D-2 visa"
-
-  # Health Rules
   - id: R-HEALTH-TB-NEG
     group: health
-    trigger: "EVT::HEALTH_INPUT"
     severity: warning
-    conditions:
-      - field: tb_status
-        operator: "=="
-        value: "negative"
-    delta:
-      A5: 0.1
-      A9: -0.1
+    conditions: [{field: tb_status, operator: "==", value: "negative"}]
     weight: 0.15
-    description: "TB test must be negative"
-
-  # Intent Rules
   - id: R-INTENT-CLARITY
     group: intent
-    trigger: "EVT::INTENT_INPUT"
     severity: info
-    conditions:
-      - field: intent_text
-        operator: "min_length"
-        value: 100
-    delta:
-      A6: 0.1
+    conditions: [{field: intent_text, operator: "min_length", value: 100}]
     weight: 0.05
-    description: "Clear study intent statement"
-
-  # Document Rules
   - id: R-DOC-COMPLETE
     group: documents
-    trigger: "EVT::DOC_UPLOAD"
     severity: blocker
-    conditions:
-      - field: passport_uploaded
-        operator: "=="
-        value: true
-      - field: transcript_uploaded
-        operator: "=="
-        value: true
-    delta:
-      A7: 0.1
+    conditions: [{field: passport_uploaded, operator: "==", value: true}]
     weight: 0.20
-    description: "All required documents uploaded"
-
-  # Visa Rules
   - id: R-VISA-ELIGIBLE
     group: visa
-    trigger: "EVT::SCORE_CALC"
     severity: warning
-    conditions:
-      - field: eligibility_score
-        operator: ">="
-        value: 0.6
-    delta:
-      A7: 0.2
+    conditions: [{field: eligibility_score, operator: ">=", value: 0.6}]
     weight: 0.25
-    description: "Overall visa eligibility threshold"
-
-  # Employment Rules
   - id: R-EMP-FIT
     group: employment
-    trigger: "EVT::EMP_PREF"
     severity: info
-    conditions:
-      - field: sports_experience_years
-        operator: ">="
-        value: 1
-    delta:
-      A8: 0.1
+    conditions: [{field: sports_experience_years, operator: ">=", value: 1}]
     weight: 0.10
-    description: "Sports experience for ATB placement"
