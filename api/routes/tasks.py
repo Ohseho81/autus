@@ -2,13 +2,15 @@
 
 from fastapi import APIRouter, HTTPException
 from typing import Dict, List, Any
+from pathlib import Path
 from kernel.task_engine.loader import TaskLoader
 from kernel.task_engine.runner import TaskRunner
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 
-# Initialize task engine
-task_loader = TaskLoader("config/tasks/limepass_os_tasks.json")
+# Initialize task engine with absolute path
+config_path = Path(__file__).parent.parent.parent / "config/tasks/limepass_os_tasks.json"
+task_loader = TaskLoader(str(config_path))
 task_graph = task_loader.load()
 task_runner = TaskRunner(task_graph)
 

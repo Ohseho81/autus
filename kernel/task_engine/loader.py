@@ -185,12 +185,32 @@ class TaskLoader:
         summary = {}
         
         for domain_key, domain in self.domains.items():
-            progress = self.graph.calculate_progress(domain.name)
-            summary[domain_key] = {
-                "name": domain.name,
-                "description": domain.description,
-                **progress
-            }
+            # Filter tasks by domain ID (D1, D2, D3, etc.)
+            domain_tasks = [t for t in self.graph.tasks.values() if t.domain == domain_key]
+            
+            if domain_tasks:
+                completed = sum(1 for t in domain_tasks if t.status == "completed")
+                total = len(domain_tasks)
+                progress = (completed / total * 100) if total > 0 else 0
+                
+                summary[domain_key] = {
+                    "name": domain.name,
+                    "description": domain.description,
+                    "total": total,
+                    "completed": completed,
+                    "ready": sum(1 for t in domain_tasks if t.status == "ready"),
+                    "in_progress": sum(1 for t in domain_tasks if t.status == "in_progress"),
+                    "blocked": sum(1 for t in domain_tasks if t.status == "blocked"),
+                    "progress": round(progress, 1)
+                }
+            else:
+                summary[domain_key] = {
+                    "name": domain.name,
+                    "description": domain.description,
+                    "total": 0,
+                    "completed": 0,
+                    "progress": 0.0
+                }
         
         return summary
 
