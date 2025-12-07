@@ -1,0 +1,27 @@
+{
+  "screens": [
+    {"id": "splash", "path": "/", "component": "SplashScreen"},
+    {"id": "onboarding", "path": "/onboarding", "component": "OnboardingCarousel"},
+    {"id": "login", "path": "/auth/login", "component": "PhoneLoginScreen"},
+    {"id": "flow-welcome", "path": "/flow/welcome", "component": "FlowWelcome"},
+    {"id": "flow-identity", "path": "/flow/identity", "component": "FlowIdentity"},
+    {"id": "flow-academic", "path": "/flow/academic", "component": "FlowAcademic"},
+    {"id": "flow-language", "path": "/flow/language", "component": "FlowLanguage"},
+    {"id": "flow-finance", "path": "/flow/finance", "component": "FlowFinance"},
+    {"id": "flow-health", "path": "/flow/health", "component": "FlowHealth"},
+    {"id": "flow-intent", "path": "/flow/intent", "component": "FlowIntent"},
+    {"id": "flow-documents", "path": "/flow/documents", "component": "FlowDocuments"},
+    {"id": "flow-score", "path": "/flow/score", "component": "FlowScore"},
+    {"id": "flow-visa", "path": "/flow/visa", "component": "FlowVisa"},
+    {"id": "flow-employment", "path": "/flow/employment", "component": "FlowEmployment"},
+    {"id": "flow-roadmap", "path": "/flow/roadmap", "component": "FlowRoadmap"},
+    {"id": "dashboard", "path": "/dashboard", "component": "DashboardScreen"},
+    {"id": "profile", "path": "/profile", "component": "ProfileScreen"}
+  ],
+  "navigation": {
+    "type": "stack",
+    "initialRoute": "splash",
+    "authRoutes": ["login"],
+    "protectedRoutes": ["flow-*", "dashboard", "profile"]
+  }
+}
