@@ -8,7 +8,7 @@ from kernel.task_engine.runner import TaskRunner
 router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 
 # Initialize task engine
-task_loader = TaskLoader("/Users/oseho/Desktop/autus/config/tasks/limepass_os_tasks.json")
+task_loader = TaskLoader("config/tasks/limepass_os_tasks.json")
 task_graph = task_loader.load()
 task_runner = TaskRunner(task_graph)
 
