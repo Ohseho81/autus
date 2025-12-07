@@ -993,3 +993,11 @@ try:
     print("✅ Evolution 라우터 등록 완료")
 except ImportError as e:
     print(f"⚠️ Evolution 로드 실패: {e}")
+
+# ============ AUTUS Succession (영속) ============
+try:
+    from api.routes.succession import router as succession_router
+    app.include_router(succession_router, prefix="/api/v1")
+    print("✅ Succession 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Succession 로드 실패: {e}")
