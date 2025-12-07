@@ -7,14 +7,13 @@ This is the brain of the self-evolving system.
 
 import subprocess
 import sys
-from pathlib import Path
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
 
-from engines.pattern_analyzer import PatternAnalyzer, AnalysisResult, get_pattern_analyzer
-from engines.need_detector import NeedDetector, DetectedNeed, get_need_detector
-from engines.spec_generator import SpecGenerator, GeneratedSpec, get_spec_generator
+from engines.pattern_analyzer import AnalysisResult, get_pattern_analyzer
+from engines.need_detector import DetectedNeed, get_need_detector
+from engines.spec_generator import GeneratedSpec, get_spec_generator
 from engines import Telemetry
 
 

@@ -3,10 +3,20 @@ Kafka Event Streaming for AUTUS
 Real-time event publishing and consumption for data pipeline
 """
 
-from kafka import KafkaProducer, KafkaConsumer
-from kafka.errors import KafkaError
 import json
 import logging
+
+# Optional Kafka imports with graceful degradation
+try:
+    from kafka import KafkaProducer, KafkaConsumer
+    from kafka.errors import KafkaError
+    KAFKA_AVAILABLE = True
+except ImportError:
+    KAFKA_AVAILABLE = False
+    KafkaProducer = None
+    KafkaConsumer = None
+    KafkaError = None
+    logging.warning("kafka-python not available. Install: pip install kafka-python")
 from typing import Dict, Any, List, Optional, Callable
 from datetime import datetime
 from enum import Enum

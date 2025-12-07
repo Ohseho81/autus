@@ -23,14 +23,16 @@ logger = logging.getLogger(__name__)
 _redis_client: Optional[redis.Redis] = None
 
 class CacheConfig:
-    """Cache configuration"""
-    # TTL strategies (seconds)
-    TTL_ANALYTICS = 300          # 5 minutes for analytics
-    TTL_DEVICES = 120            # 2 minutes for device lists
-    TTL_TWIN = 600               # 10 minutes for twin data
-    TTL_GOD = 300                # 5 minutes for god endpoints
-    TTL_HEALTH = 30              # 30 seconds for health checks
-    TTL_DEFAULT = 60             # 1 minute default
+    """Cache configuration with dynamic TTL strategies"""
+    # TTL strategies (seconds) - Optimized based on data freshness requirements
+    TTL_ANALYTICS = 300          # 5 minutes for analytics (medium refresh)
+    TTL_DEVICES = 180            # 3 minutes for device lists (increased from 120)
+    TTL_TWIN = 900               # 15 minutes for twin data (increased from 600)
+    TTL_GOD = 600                # 10 minutes for god endpoints (doubled from 300)
+    TTL_HEALTH = 10              # 10 seconds for health checks (decreased from 30)
+    TTL_DEFAULT = 120            # 2 minutes default (doubled from 60)
+    TTL_LONG = 1800              # 30 minutes for rarely-changed data
+    TTL_VERY_LONG = 3600         # 1 hour for static data
     
     # Cache key prefixes
     PREFIX_ANALYTICS = "autus:analytics:"
@@ -38,17 +40,23 @@ class CacheConfig:
     PREFIX_TWIN = "autus:twin:"
     PREFIX_GOD = "autus:god:"
     PREFIX_HEALTH = "autus:health:"
+    PREFIX_CONFIG = "autus:config:"
     
-    # Invalidation patterns
+    # Tag-based cache invalidation for batch operations
+    TAGS = {
+        "analytics": ["autus:analytics:*", "autus:god:*"],
+        "devices": ["autus:devices:*", "autus:god:*"],
+        "config": ["autus:config:*"],
+        "all": ["autus:*"]
+    }
+    
+    # Invalidation patterns by endpoint
     INVALIDATE_ON_WRITE = {
-        "/analytics/track": [
-            "autus:analytics:*",
-            "autus:god:*"
-        ],
-        "/devices/register": [
-            "autus:devices:*",
-            "autus:god:*"
-        ]
+        "/analytics/track": ["analytics"],
+        "/analytics/bulk": ["analytics"],
+        "/devices/register": ["devices"],
+        "/devices/update": ["devices"],
+        "/config/update": ["config", "all"]
     }
 
 # Metrics for caching

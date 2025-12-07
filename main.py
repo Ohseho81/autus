@@ -27,6 +27,8 @@ from datetime import datetime
 
 from fastapi import FastAPI, WebSocket, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from core.standard import WorkflowGraph
 from protocols.memory.local_memory import LocalMemory
@@ -36,10 +38,15 @@ from api.routes.analytics import router as analytics_router
 from api.logger import log_request
 from api.analytics import analytics
 from api.cache import init_cache, cached_response, cache_invalidate
+from api.cache_warmer import init_cache_warming, run_cache_warmup
+from api.request_tracking import RequestTrackingMiddleware
+from api.rate_limit_middleware import RateLimitMiddleware
+from api.performance_monitor import perf_monitor
 from api.prometheus_metrics import (
     MetricsCollector, start_metrics_server, 
     health_check_status, health_check_duration_seconds
 )
+from api.errors import AutousException, ErrorCode, ErrorResponse
 __version__ = "4.2.0"
 __title__ = "AUTUS - Meta-Circular Development OS"
 
@@ -66,10 +73,72 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Rate limit middleware (must be early in chain)
+app.add_middleware(RateLimitMiddleware)
+
+# Request tracking middleware (must be after CORS)
+app.add_middleware(RequestTrackingMiddleware)
+
+# Gzip middleware for response compression (>500B responses)
+app.add_middleware(
+    GZipMiddleware,
+    minimum_size=500,  # Only compress responses larger than 500 bytes
+)
+
+
+# ===== Exception Handlers =====
+@app.exception_handler(AutousException)
+async def autous_exception_handler(request: Request, exc: AutousException):
+    """Handle AUTUS custom exceptions"""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=ErrorResponse(
+            error_code=exc.error_code.value,
+            message=exc.error_message,
+            path=str(request.url),
+            details=exc.error_details
+        ).dict()
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle general exceptions"""
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.exception(f"Unhandled exception at {request.url}: {exc}")
+    
+    return JSONResponse(
+        status_code=500,
+        content=ErrorResponse(
+            error_code=ErrorCode.INTERNAL_ERROR.value,
+            message="Internal server error",
+            path=str(request.url),
+            details={"exception": str(type(exc).__name__)}
+        ).dict()
+    )
+
 # 간단 헬스체크
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+# ===== Request Tracking Endpoints =====
+@app.get("/monitoring/requests/summary")
+async def request_tracking_summary():
+    """Get request tracking summary"""
+    from api.request_tracking import get_all_requests_summary
+    return get_all_requests_summary()
+
+
+@app.get("/monitoring/requests/{request_id}")
+async def get_request_details(request_id: str):
+    """Get details for specific request"""
+    from api.request_tracking import get_request_context
+    context = get_request_context(request_id)
+    if not context:
+        return {"error": "Request not found", "request_id": request_id}
+    return context
 
 # ===== Cache Statistics Endpoint =====
 @app.get("/cache/stats")
@@ -77,6 +146,137 @@ async def cache_stats():
     """Get cache statistics"""
     from api.cache import get_cache_stats
     return get_cache_stats()
+
+
+# ===== Rate Limiter Management Endpoints =====
+@app.get("/monitoring/rate-limit/stats")
+async def rate_limit_stats():
+    """Get rate limiter statistics"""
+    from api.rate_limiter import rate_limiter
+    return rate_limiter.get_stats()
+
+
+@app.get("/monitoring/rate-limit/blocked-clients")
+async def get_blocked_clients():
+    """Get list of currently blocked clients"""
+    from api.rate_limiter import rate_limiter
+    blocked = rate_limiter._limiter.get_blocked_clients()
+    return {
+        "blocked_count": len(blocked),
+        "clients": blocked
+    }
+
+
+@app.post("/monitoring/rate-limit/reset/{client_id}")
+async def reset_client_limit(client_id: str):
+    """Reset rate limit for a specific client (admin operation)"""
+    from api.rate_limiter import rate_limiter
+    success = rate_limiter._limiter.reset_client(client_id)
+    return {
+        "client_id": client_id,
+        "reset": success,
+        "message": "Rate limit reset successfully" if success else "Client not found"
+    }
+
+
+# ===== Error Response Validation Endpoints =====
+@app.get("/monitoring/error-validation/report")
+async def error_validation_report():
+    """Get error response consistency validation report"""
+    from api.error_validator import validator
+    return validator.get_validation_report()
+
+
+@app.post("/monitoring/error-validation/check-endpoint")
+async def check_endpoint_errors(endpoint_name: str, func_name: str):
+    """
+    Check a specific endpoint for error response consistency
+    
+    Args:
+        endpoint_name: Name of endpoint (e.g., "/devices/register")
+        func_name: Function name to check
+        
+    Returns:
+        Validation result for endpoint
+    """
+    from api.error_validator import validator
+    return {
+        "endpoint": endpoint_name,
+        "function": func_name,
+        "status": "validation_available",
+        "message": "Use /monitoring/error-validation/report for full validation"
+    }
+
+
+# ===== Performance Monitoring Dashboard =====
+@app.get("/monitoring/performance/dashboard")
+async def performance_dashboard():
+    """
+    Comprehensive performance dashboard
+    
+    Returns:
+        Overall system performance metrics and per-endpoint benchmarks
+    """
+    return perf_monitor.get_summary_report()
+
+
+@app.get("/monitoring/performance/endpoint/{endpoint_name}")
+async def endpoint_performance(endpoint_name: str):
+    """Get performance metrics for specific endpoint"""
+    result = perf_monitor.get_benchmark_result(endpoint_name)
+    return {
+        "endpoint": result.endpoint,
+        "total_requests": result.total_requests,
+        "response_times_ms": {
+            "avg": result.avg_response_time_ms,
+            "p50": result.p50_response_time_ms,
+            "p95": result.p95_response_time_ms,
+            "p99": result.p99_response_time_ms,
+            "min": result.min_response_time_ms,
+            "max": result.max_response_time_ms
+        },
+        "cache_hit_rate": result.cache_hit_rate,
+        "error_rate": result.error_rate
+    }
+
+
+@app.get("/monitoring/performance/metrics")
+async def recent_performance_metrics(limit: int = 100):
+    """Get recent performance metrics"""
+    return {
+        "limit": limit,
+        "metrics": perf_monitor.export_metrics_json(limit)
+    }
+
+
+@app.post("/monitoring/performance/reset")
+async def reset_performance_metrics():
+    """Reset performance metrics (admin operation)"""
+    perf_monitor.reset()
+    return {"status": "reset", "message": "Performance metrics cleared"}
+
+
+# ===== Cache Warming Management =====
+@app.post("/maintenance/cache/warmup")
+async def trigger_cache_warmup():
+    """Manually trigger cache warmup"""
+    result = await run_cache_warmup()
+    return result
+
+
+@app.get("/maintenance/cache/warming-status")
+async def cache_warming_status():
+    """Get cache warming status"""
+    from api.cache_warmer import cache_warmer
+    return {
+        "warmup_complete": cache_warmer.warmup_complete,
+        "total_items": len(cache_warmer.warm_items),
+        "warmup_duration_ms": cache_warmer.warmup_duration_ms,
+        "items_ready_to_warm": len([
+            item for item in cache_warmer.warm_items
+            if cache_warmer.warmup_complete
+        ])
+    }
 
 
 # ===== Async Task Endpoints =====

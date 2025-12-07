@@ -78,45 +78,45 @@ class DatabaseOptimizer:
             return {"status": "error", "message": str(e)}
     
     def create_optimal_indices(self) -> Dict[str, Any]:
-        """Create optimal indices for all tables.
+        """Create optimal indices for all tables with batch processing support.
         
         Returns:
             Summary of indices created
         """
         indices_to_create = {
             # twins table indices
-            "idx_twins_type": ("twins", ["type"]),
-            "idx_twins_name": ("twins", ["name"]),
-            "idx_twins_type_version": ("twins", ["type", "version"]),
+            "idx_twins_type": ("twins", ["type"], True),
+            "idx_twins_name": ("twins", ["name"], False),
+            "idx_twins_type_version": ("twins", ["type", "version"], True),
             
-            # events table indices
-            "idx_events_type": ("events", ["type"]),
-            "idx_events_entity_id": ("events", ["entity_id"]),
-            "idx_events_timestamp": ("events", ["timestamp"]),
-            "idx_events_type_entity": ("events", ["type", "entity_id"]),
-            "idx_events_timestamp_type": ("events", ["timestamp", "type"]),
+            # events table indices (critical for query performance)
+            "idx_events_type": ("events", ["type"], True),
+            "idx_events_entity_id": ("events", ["entity_id"], True),
+            "idx_events_timestamp": ("events", ["timestamp"], True),
+            "idx_events_type_entity": ("events", ["type", "entity_id"], True),
+            "idx_events_timestamp_type": ("events", ["timestamp", "type"], True),
             
-            # pack_logs table indices
-            "idx_pack_logs_pack_id": ("pack_logs", ["pack_id"]),
-            "idx_pack_logs_entity_id": ("pack_logs", ["entity_id"]),
-            "idx_pack_logs_timestamp": ("pack_logs", ["timestamp"]),
-            "idx_pack_logs_pack_entity": ("pack_logs", ["pack_id", "entity_id"]),
+            # pack_logs table indices (high query volume)
+            "idx_pack_logs_pack_id": ("pack_logs", ["pack_id"], True),
+            "idx_pack_logs_entity_id": ("pack_logs", ["entity_id"], True),
+            "idx_pack_logs_timestamp": ("pack_logs", ["timestamp"], True),
+            "idx_pack_logs_pack_entity": ("pack_logs", ["pack_id", "entity_id"], True),
             
             # packs table indices
-            "idx_packs_type": ("packs", ["type"]),
-            "idx_packs_name": ("packs", ["name"]),
+            "idx_packs_type": ("packs", ["type"], False),
+            "idx_packs_name": ("packs", ["name"], False),
             
             # webhooks table indices
-            "idx_webhooks_active": ("webhooks", ["active"]),
+            "idx_webhooks_active": ("webhooks", ["active"], False),
             
-            # sovereign table indices
-            "idx_sovereign_twin_id": ("sovereign", ["twin_id"]),
-            "idx_sovereign_zero_id": ("sovereign", ["zero_id"]),
-            "idx_sovereign_status": ("sovereign", ["status"]),
+            # sovereign table indices (critical for relationships)
+            "idx_sovereign_twin_id": ("sovereign", ["twin_id"], True),
+            "idx_sovereign_zero_id": ("sovereign", ["zero_id"], True),
+            "idx_sovereign_status": ("sovereign", ["status"], True),
             
             # users table indices
-            "idx_users_username": ("users", ["username"]),
-            "idx_users_role": ("users", ["role"]),
+            "idx_users_username": ("users", ["username"], True),
+            "idx_users_role": ("users", ["role"], False),
         }
         
         created = []
@@ -130,18 +130,20 @@ class DatabaseOptimizer:
                 )
                 existing = set(row[0] for row in cursor.fetchall())
                 
-                # Create new indices
-                for idx_name, (table, columns) in indices_to_create.items():
+                # Create new indices with batch execution
+                for idx_name, (table, columns, is_unique) in indices_to_create.items():
                     if idx_name not in existing:
                         try:
                             col_str = ", ".join(columns)
-                            sql = f"CREATE INDEX IF NOT EXISTS {idx_name} ON {table}({col_str})"
+                            unique_clause = "UNIQUE" if is_unique else ""
+                            sql = f"CREATE {unique_clause} INDEX IF NOT EXISTS {idx_name} ON {table}({col_str})"
                             conn.execute(sql)
                             created.append(idx_name)
                             self.indices[idx_name] = IndexInfo(
                                 name=idx_name,
                                 table=table,
                                 columns=columns,
+                                is_unique=is_unique,
                                 created_at=datetime.now().isoformat()
                             )
                         except Exception as e:

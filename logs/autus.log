@@ -1,0 +1,671 @@
+2025-12-07 09:57:49,624 | INFO | ✅ Redis connected successfully
+2025-12-07 09:57:49,624 | INFO | ✅ Redis cache layer initialized
+2025-12-07 09:57:49,624 | INFO | 🔥 Warming up cache with common endpoints...
+2025-12-07 09:57:49,624 | INFO | ✅ Cache warmup complete: 0 keys
+2025-12-07 09:57:57,529 | INFO | GET /metrics → 404 (0.41ms)
+2025-12-07 09:58:07,505 | INFO | GET /metrics → 404 (1.62ms)
+2025-12-07 09:58:17,506 | INFO | GET /metrics → 404 (1.27ms)
+2025-12-07 09:58:27,501 | INFO | GET /metrics → 404 (1.20ms)
+2025-12-07 09:58:37,500 | INFO | GET /metrics → 404 (0.93ms)
+2025-12-07 09:58:47,506 | INFO | GET /metrics → 404 (0.92ms)
+2025-12-07 09:58:57,512 | INFO | GET /metrics → 404 (1.03ms)
+2025-12-07 09:59:07,503 | INFO | GET /metrics → 404 (1.04ms)
+2025-12-07 09:59:17,504 | INFO | GET /metrics → 404 (1.11ms)
+2025-12-07 09:59:27,502 | INFO | GET /metrics → 404 (0.99ms)
+2025-12-07 09:59:37,501 | INFO | GET /metrics → 404 (0.64ms)
+2025-12-07 09:59:47,502 | INFO | GET /metrics → 404 (0.94ms)
+2025-12-07 09:59:57,505 | INFO | GET /metrics → 404 (0.97ms)
+2025-12-07 10:00:07,499 | INFO | GET /metrics → 404 (0.75ms)
+2025-12-07 10:00:17,502 | INFO | GET /metrics → 404 (1.35ms)
+2025-12-07 10:00:27,504 | INFO | GET /metrics → 404 (1.28ms)
+2025-12-07 10:00:37,505 | INFO | GET /metrics → 404 (1.07ms)
+2025-12-07 10:00:47,501 | INFO | GET /metrics → 404 (0.84ms)
+2025-12-07 10:00:57,501 | INFO | GET /metrics → 404 (0.98ms)
+2025-12-07 10:01:07,505 | INFO | GET /metrics → 404 (1.36ms)
+2025-12-07 10:01:17,503 | INFO | GET /metrics → 404 (1.00ms)
+2025-12-07 10:01:27,503 | INFO | GET /metrics → 404 (0.98ms)
+2025-12-07 10:01:37,506 | INFO | GET /metrics → 404 (1.49ms)
+2025-12-07 10:01:47,500 | INFO | GET /metrics → 404 (0.78ms)
+2025-12-07 10:01:57,510 | INFO | GET /metrics → 404 (1.42ms)
+2025-12-07 10:02:07,507 | INFO | GET /metrics → 404 (1.40ms)
+2025-12-07 10:02:17,506 | INFO | GET /metrics → 404 (1.53ms)
+2025-12-07 10:02:27,506 | INFO | GET /metrics → 404 (1.31ms)
+2025-12-07 10:02:37,504 | INFO | GET /metrics → 404 (1.42ms)
+2025-12-07 10:02:47,507 | INFO | GET /metrics → 404 (1.46ms)
+2025-12-07 10:02:57,508 | INFO | GET /metrics → 404 (1.35ms)
+2025-12-07 10:03:07,503 | INFO | GET /metrics → 404 (1.04ms)
+2025-12-07 10:03:13,792 | INFO | ✅ Redis connected successfully
+2025-12-07 10:03:13,792 | INFO | ✅ Redis cache layer initialized
+2025-12-07 10:03:13,792 | INFO | 🔥 Warming up cache with common endpoints...
+2025-12-07 10:03:13,792 | INFO | ✅ Cache warmup complete: 0 keys
+2025-12-07 10:03:17,522 | INFO | GET /metrics → 404 (1.37ms)
+2025-12-07 10:03:27,503 | INFO | GET /metrics → 404 (1.47ms)
+2025-12-07 10:03:37,507 | INFO | GET /metrics → 404 (1.65ms)
+2025-12-07 10:03:47,505 | INFO | GET /metrics → 404 (0.92ms)
+2025-12-07 10:03:57,501 | INFO | GET /metrics → 404 (0.79ms)
+2025-12-07 10:04:07,503 | INFO | GET /metrics → 404 (0.93ms)
+2025-12-07 10:04:17,507 | INFO | GET /metrics → 404 (1.48ms)
+2025-12-07 10:04:27,505 | INFO | GET /metrics → 404 (0.83ms)
+2025-12-07 10:04:37,506 | INFO | GET /metrics → 404 (1.55ms)
+2025-12-07 10:04:47,509 | INFO | GET /metrics → 404 (1.49ms)
+2025-12-07 10:04:57,506 | INFO | GET /metrics → 404 (0.94ms)
+2025-12-07 10:05:07,504 | INFO | GET /metrics → 404 (2.03ms)
+2025-12-07 10:05:17,503 | INFO | GET /metrics → 404 (1.02ms)
+2025-12-07 10:05:27,506 | INFO | GET /metrics → 404 (1.42ms)
+2025-12-07 10:05:37,507 | INFO | GET /metrics → 404 (1.46ms)
+2025-12-07 10:05:47,510 | INFO | GET /metrics → 404 (1.25ms)
+2025-12-07 10:05:57,504 | INFO | GET /metrics → 404 (0.99ms)
+2025-12-07 10:06:07,503 | INFO | GET /metrics → 404 (1.42ms)
+2025-12-07 10:06:17,503 | INFO | GET /metrics → 404 (1.15ms)
+2025-12-07 10:06:27,504 | INFO | GET /metrics → 404 (1.01ms)
+2025-12-07 10:06:37,503 | INFO | GET /metrics → 404 (0.59ms)
+2025-12-07 10:06:47,505 | INFO | GET /metrics → 404 (1.05ms)
+2025-12-07 10:06:57,508 | INFO | GET /metrics → 404 (1.16ms)
+2025-12-07 10:07:18,075 | INFO | ✅ Redis connected successfully
+2025-12-07 10:07:18,075 | INFO | ✅ Redis cache layer initialized
+2025-12-07 10:07:18,075 | INFO | 🔥 Warming up cache with common endpoints...
+2025-12-07 10:07:18,075 | INFO | ✅ Cache warmup complete: 0 keys
+2025-12-07 10:07:27,509 | INFO | GET /metrics → 404 (0.46ms)
+2025-12-07 10:07:37,507 | INFO | GET /metrics → 404 (1.03ms)
+2025-12-07 10:07:47,505 | INFO | GET /metrics → 404 (1.34ms)
+2025-12-07 10:07:57,508 | INFO | GET /metrics → 404 (1.07ms)
+2025-12-07 10:08:07,507 | INFO | GET /metrics → 404 (1.28ms)
+2025-12-07 10:08:15,479 | INFO | GET /static/index.html → 200 (26.09ms)
+2025-12-07 10:08:15,538 | INFO | GET /favicon.ico → 404 (0.65ms)
+2025-12-07 10:08:17,507 | INFO | GET /metrics → 404 (1.39ms)
+2025-12-07 10:08:27,508 | INFO | GET /metrics → 404 (1.14ms)
+2025-12-07 10:08:37,506 | INFO | GET /metrics → 404 (0.61ms)
+2025-12-07 10:08:47,507 | INFO | GET /metrics → 404 (0.75ms)
+2025-12-07 10:08:57,503 | INFO | GET /metrics → 404 (1.03ms)
+2025-12-07 10:09:07,504 | INFO | GET /metrics → 404 (0.98ms)
+2025-12-07 10:09:17,511 | INFO | GET /metrics → 404 (1.58ms)
+2025-12-07 10:10:02,428 | INFO | GET /metrics → 404 (1.33ms)
+2025-12-07 10:10:12,423 | INFO | GET /metrics → 404 (1.36ms)
+2025-12-07 10:29:26,279 | INFO | GET /metrics → 404 (1.19ms)
+2025-12-07 10:30:14,962 | INFO | GET /metrics → 404 (9.08ms)
+2025-12-07 10:30:24,949 | INFO | GET /metrics → 404 (0.77ms)
+2025-12-07 10:30:34,948 | INFO | GET /metrics → 404 (1.02ms)
+2025-12-07 10:30:44,951 | INFO | GET /metrics → 404 (2.29ms)
+2025-12-07 10:30:54,945 | INFO | GET /metrics → 404 (1.89ms)
+2025-12-07 10:31:04,945 | INFO | GET /metrics → 404 (1.93ms)
+2025-12-07 10:31:14,946 | INFO | GET /metrics → 404 (2.49ms)
+2025-12-07 10:31:24,947 | INFO | GET /metrics → 404 (1.75ms)
+2025-12-07 10:31:34,944 | INFO | GET /metrics → 404 (0.69ms)
+2025-12-07 10:31:44,946 | INFO | GET /metrics → 404 (1.74ms)
+2025-12-07 10:31:54,947 | INFO | GET /metrics → 404 (1.70ms)
+2025-12-07 10:32:04,948 | INFO | GET /metrics → 404 (1.72ms)
+2025-12-07 10:32:14,949 | INFO | GET /metrics → 404 (2.12ms)
+2025-12-07 10:32:24,946 | INFO | GET /metrics → 404 (0.89ms)
+2025-12-07 10:32:34,947 | INFO | GET /metrics → 404 (0.70ms)
+2025-12-07 10:32:44,942 | INFO | GET /metrics → 404 (0.69ms)
+2025-12-07 10:32:54,946 | INFO | GET /metrics → 404 (0.77ms)
+2025-12-07 10:33:04,948 | INFO | GET /metrics → 404 (2.28ms)
+2025-12-07 10:33:14,942 | INFO | GET /metrics → 404 (0.82ms)
+2025-12-07 10:33:24,947 | INFO | GET /metrics → 404 (1.19ms)
+2025-12-07 10:33:34,960 | INFO | GET /metrics → 404 (0.79ms)
+2025-12-07 10:33:44,944 | INFO | GET /metrics → 404 (1.14ms)
+2025-12-07 10:33:54,946 | INFO | GET /metrics → 404 (0.76ms)
+2025-12-07 10:34:04,948 | INFO | GET /metrics → 404 (2.18ms)
+2025-12-07 10:34:14,943 | INFO | GET /metrics → 404 (0.68ms)
+2025-12-07 10:34:24,946 | INFO | GET /metrics → 404 (1.16ms)
+2025-12-07 10:34:34,943 | INFO | GET /metrics → 404 (0.63ms)
+2025-12-07 10:34:44,944 | INFO | GET /metrics → 404 (0.63ms)
+2025-12-07 10:34:54,944 | INFO | GET /metrics → 404 (0.73ms)
+2025-12-07 10:35:04,950 | INFO | GET /metrics → 404 (1.09ms)
+2025-12-07 10:35:14,944 | INFO | GET /metrics → 404 (1.00ms)
+2025-12-07 10:35:24,943 | INFO | GET /metrics → 404 (0.75ms)
+2025-12-07 10:35:34,948 | INFO | GET /metrics → 404 (1.37ms)
+2025-12-07 10:35:44,946 | INFO | GET /metrics → 404 (0.68ms)
+2025-12-07 10:35:54,947 | INFO | GET /metrics → 404 (0.96ms)
+2025-12-07 10:36:04,943 | INFO | GET /metrics → 404 (0.64ms)
+2025-12-07 10:36:14,945 | INFO | GET /metrics → 404 (0.78ms)
+2025-12-07 10:36:24,946 | INFO | GET /metrics → 404 (0.71ms)
+2025-12-07 10:36:34,946 | INFO | GET /metrics → 404 (0.69ms)
+2025-12-07 10:36:44,947 | INFO | GET /metrics → 404 (0.80ms)
+2025-12-07 10:36:54,952 | INFO | GET /metrics → 404 (0.73ms)
+2025-12-07 10:37:04,946 | INFO | GET /metrics → 404 (0.72ms)
+2025-12-07 10:47:20,501 | INFO | ✅ Redis connected successfully
+2025-12-07 10:47:20,501 | INFO | ✅ Redis cache layer initialized
+2025-12-07 10:47:20,501 | INFO | 🔥 Warming up cache with common endpoints...
+2025-12-07 10:47:20,501 | INFO | ✅ Cache warmup complete: 0 keys
+2025-12-07 10:47:24,957 | INFO | Request started
+2025-12-07 10:47:24,958 | INFO | Request completed
+2025-12-07 10:47:24,959 | INFO | GET /metrics → 404 (2.03ms)
+2025-12-07 10:47:34,953 | INFO | Request started
+2025-12-07 10:47:34,954 | INFO | Request completed
+2025-12-07 10:47:34,955 | INFO | GET /metrics → 404 (2.01ms)
+2025-12-07 10:47:44,959 | INFO | Request started
+2025-12-07 10:47:44,961 | INFO | Request completed
+2025-12-07 10:47:44,961 | INFO | GET /metrics → 404 (2.69ms)
+2025-12-07 10:47:54,953 | INFO | Request started
+2025-12-07 10:47:54,954 | INFO | Request completed
+2025-12-07 10:47:54,954 | INFO | GET /metrics → 404 (1.65ms)
+2025-12-07 10:48:04,952 | INFO | Request started
+2025-12-07 10:48:04,954 | INFO | Request completed
+2025-12-07 10:48:04,954 | INFO | GET /metrics → 404 (2.54ms)
+2025-12-07 10:48:14,958 | INFO | Request started
+2025-12-07 10:48:14,959 | INFO | Request completed
+2025-12-07 10:48:14,960 | INFO | GET /metrics → 404 (2.37ms)
+2025-12-07 10:48:24,959 | INFO | Request started
+2025-12-07 10:48:24,961 | INFO | Request completed
+2025-12-07 10:48:24,962 | INFO | GET /metrics → 404 (2.93ms)
+2025-12-07 10:48:34,956 | INFO | Request started
+2025-12-07 10:48:34,958 | INFO | Request completed
+2025-12-07 10:48:34,959 | INFO | GET /metrics → 404 (3.33ms)
+2025-12-07 10:48:44,958 | INFO | Request started
+2025-12-07 10:48:44,960 | INFO | Request completed
+2025-12-07 10:48:44,960 | INFO | GET /metrics → 404 (2.77ms)
+2025-12-07 10:48:54,959 | INFO | Request started
+2025-12-07 10:48:54,961 | INFO | Request completed
+2025-12-07 10:48:54,962 | INFO | GET /metrics → 404 (3.46ms)
+2025-12-07 10:49:04,960 | INFO | Request started
+2025-12-07 10:49:04,962 | INFO | Request completed
+2025-12-07 10:49:04,962 | INFO | GET /metrics → 404 (2.93ms)
+2025-12-07 10:49:14,957 | INFO | Request started
+2025-12-07 10:49:14,959 | INFO | Request completed
+2025-12-07 10:49:14,960 | INFO | GET /metrics → 404 (3.30ms)
+2025-12-07 10:49:24,958 | INFO | Request started
+2025-12-07 10:49:24,960 | INFO | Request completed
+2025-12-07 10:49:24,961 | INFO | GET /metrics → 404 (3.21ms)
+2025-12-07 10:49:34,959 | INFO | Request started
+2025-12-07 10:49:35,001 | INFO | Request completed
+2025-12-07 10:49:35,002 | INFO | GET /metrics → 404 (43.33ms)
+2025-12-07 10:49:44,961 | INFO | Request started
+2025-12-07 10:49:44,963 | INFO | Request completed
+2025-12-07 10:49:44,964 | INFO | GET /metrics → 404 (3.09ms)
+2025-12-07 10:49:54,957 | INFO | Request started
+2025-12-07 10:49:54,959 | INFO | Request completed
+2025-12-07 10:49:54,960 | INFO | GET /metrics → 404 (3.28ms)
+2025-12-07 10:53:32,248 | INFO | Request started
+2025-12-07 10:53:32,250 | INFO | Request completed
+2025-12-07 10:53:32,251 | INFO | GET /metrics → 404 (3.67ms)
+2025-12-07 10:53:42,254 | INFO | Request started
+2025-12-07 10:53:42,256 | INFO | Request completed
+2025-12-07 10:53:42,257 | INFO | GET /metrics → 404 (3.21ms)
+2025-12-07 10:55:29,216 | INFO | Request started
+2025-12-07 10:55:29,218 | INFO | Request completed
+2025-12-07 10:55:29,218 | INFO | GET /metrics → 404 (2.47ms)
+2025-12-07 10:55:39,213 | INFO | Request started
+2025-12-07 10:55:39,219 | INFO | Request completed
+2025-12-07 10:55:39,220 | INFO | GET /metrics → 404 (8.55ms)
+2025-12-07 10:55:40,459 | INFO | Request started
+2025-12-07 10:55:40,467 | INFO | Request completed
+2025-12-07 10:55:40,468 | INFO | GET /static/index.html → 200 (9.77ms)
+2025-12-07 10:55:49,208 | INFO | Request started
+2025-12-07 10:55:49,210 | INFO | Request completed
+2025-12-07 10:55:49,211 | INFO | GET /metrics → 404 (3.19ms)
+2025-12-07 10:55:59,214 | INFO | Request started
+2025-12-07 10:55:59,217 | INFO | Request completed
+2025-12-07 10:55:59,218 | INFO | GET /metrics → 404 (5.48ms)
+2025-12-07 10:56:09,205 | INFO | Request started
+2025-12-07 10:56:09,206 | INFO | Request completed
+2025-12-07 10:56:09,207 | INFO | GET /metrics → 404 (2.38ms)
+2025-12-07 10:56:19,211 | INFO | Request started
+2025-12-07 10:56:19,215 | INFO | Request completed
+2025-12-07 10:56:19,215 | INFO | GET /metrics → 404 (5.57ms)
+2025-12-07 10:56:29,212 | INFO | Request started
+2025-12-07 10:56:29,214 | INFO | Request completed
+2025-12-07 10:56:29,215 | INFO | GET /metrics → 404 (3.53ms)
+2025-12-07 10:56:39,202 | INFO | Request started
+2025-12-07 10:56:39,203 | INFO | Request completed
+2025-12-07 10:56:39,204 | INFO | GET /metrics → 404 (2.23ms)
+2025-12-07 10:56:49,212 | INFO | Request started
+2025-12-07 10:56:49,217 | INFO | Request completed
+2025-12-07 10:56:49,218 | INFO | GET /metrics → 404 (7.40ms)
+2025-12-07 10:56:59,207 | INFO | Request started
+2025-12-07 10:56:59,209 | INFO | Request completed
+2025-12-07 10:56:59,209 | INFO | GET /metrics → 404 (3.15ms)
+2025-12-07 10:57:09,209 | INFO | Request started
+2025-12-07 10:57:09,211 | INFO | Request completed
+2025-12-07 10:57:09,211 | INFO | GET /metrics → 404 (3.02ms)
+2025-12-07 10:57:19,206 | INFO | Request started
+2025-12-07 10:57:19,207 | INFO | Request completed
+2025-12-07 10:57:19,208 | INFO | GET /metrics → 404 (2.27ms)
+2025-12-07 10:57:29,206 | INFO | Request started
+2025-12-07 10:57:29,209 | INFO | Request completed
+2025-12-07 10:57:29,209 | INFO | GET /metrics → 404 (3.28ms)
+2025-12-07 10:57:39,209 | INFO | Request started
+2025-12-07 10:57:39,210 | INFO | Request completed
+2025-12-07 10:57:39,211 | INFO | GET /metrics → 404 (2.61ms)
+2025-12-07 10:57:49,208 | INFO | Request started
+2025-12-07 10:57:49,211 | INFO | Request completed
+2025-12-07 10:57:49,211 | INFO | GET /metrics → 404 (3.30ms)
+2025-12-07 10:57:59,207 | INFO | Request started
+2025-12-07 10:57:59,209 | INFO | Request completed
+2025-12-07 10:57:59,209 | INFO | GET /metrics → 404 (2.27ms)
+2025-12-07 10:58:09,204 | INFO | Request started
+2025-12-07 10:58:09,206 | INFO | Request completed
+2025-12-07 10:58:09,206 | INFO | GET /metrics → 404 (2.22ms)
+2025-12-07 10:58:19,211 | INFO | Request started
+2025-12-07 10:58:19,213 | INFO | Request completed
+2025-12-07 10:58:19,214 | INFO | GET /metrics → 404 (2.40ms)
+2025-12-07 10:58:29,205 | INFO | Request started
+2025-12-07 10:58:29,207 | INFO | Request completed
+2025-12-07 10:58:29,207 | INFO | GET /metrics → 404 (2.74ms)
+2025-12-07 10:58:39,208 | INFO | Request started
+2025-12-07 10:58:39,210 | INFO | Request completed
+2025-12-07 10:58:39,211 | INFO | GET /metrics → 404 (3.02ms)
+2025-12-07 10:58:49,207 | INFO | Request started
+2025-12-07 10:58:49,208 | INFO | Request completed
+2025-12-07 10:58:49,209 | INFO | GET /metrics → 404 (2.23ms)
+2025-12-07 10:58:59,206 | INFO | Request started
+2025-12-07 10:58:59,208 | INFO | Request completed
+2025-12-07 10:58:59,209 | INFO | GET /metrics → 404 (3.40ms)
+2025-12-07 10:59:09,208 | INFO | Request started
+2025-12-07 10:59:09,211 | INFO | Request completed
+2025-12-07 10:59:09,211 | INFO | GET /metrics → 404 (3.44ms)
+2025-12-07 10:59:19,210 | INFO | Request started
+2025-12-07 10:59:19,212 | INFO | Request completed
+2025-12-07 10:59:19,213 | INFO | GET /metrics → 404 (3.28ms)
+2025-12-07 10:59:29,208 | INFO | Request started
+2025-12-07 10:59:29,210 | INFO | Request completed
+2025-12-07 10:59:29,211 | INFO | GET /metrics → 404 (3.42ms)
+2025-12-07 10:59:39,209 | INFO | Request started
+2025-12-07 10:59:39,211 | INFO | Request completed
+2025-12-07 10:59:39,211 | INFO | GET /metrics → 404 (2.83ms)
+2025-12-07 10:59:49,210 | INFO | Request started
+2025-12-07 10:59:49,212 | INFO | Request completed
+2025-12-07 10:59:49,212 | INFO | GET /metrics → 404 (3.24ms)
+2025-12-07 10:59:59,207 | INFO | Request started
+2025-12-07 10:59:59,210 | INFO | Request completed
+2025-12-07 10:59:59,210 | INFO | GET /metrics → 404 (3.35ms)
+2025-12-07 11:00:09,210 | INFO | Request started
+2025-12-07 11:00:09,212 | INFO | Request completed
+2025-12-07 11:00:09,213 | INFO | GET /metrics → 404 (3.10ms)
+2025-12-07 11:00:19,208 | INFO | Request started
+2025-12-07 11:00:19,210 | INFO | Request completed
+2025-12-07 11:00:19,211 | INFO | GET /metrics → 404 (3.33ms)
+2025-12-07 11:00:29,216 | INFO | Request started
+2025-12-07 11:00:29,218 | INFO | Request completed
+2025-12-07 11:00:29,219 | INFO | GET /metrics → 404 (3.58ms)
+2025-12-07 11:00:39,207 | INFO | Request started
+2025-12-07 11:00:39,209 | INFO | Request completed
+2025-12-07 11:00:39,210 | INFO | GET /metrics → 404 (3.65ms)
+2025-12-07 11:00:49,211 | INFO | Request started
+2025-12-07 11:00:49,214 | INFO | Request completed
+2025-12-07 11:00:49,214 | INFO | GET /metrics → 404 (3.79ms)
+2025-12-07 11:00:59,211 | INFO | Request started
+2025-12-07 11:00:59,213 | INFO | Request completed
+2025-12-07 11:00:59,214 | INFO | GET /metrics → 404 (3.55ms)
+2025-12-07 11:01:09,218 | INFO | Request started
+2025-12-07 11:01:09,220 | INFO | Request completed
+2025-12-07 11:01:09,221 | INFO | GET /metrics → 404 (3.27ms)
+2025-12-07 11:10:51,390 | INFO | Request started
+2025-12-07 11:10:51,394 | INFO | Request completed
+2025-12-07 11:10:51,395 | INFO | GET /metrics → 404 (6.20ms)
+2025-12-07 11:11:01,384 | INFO | Request started
+2025-12-07 11:11:01,387 | INFO | Request completed
+2025-12-07 11:11:01,387 | INFO | GET /metrics → 404 (3.63ms)
+2025-12-07 11:11:11,381 | INFO | Request started
+2025-12-07 11:11:11,384 | INFO | Request completed
+2025-12-07 11:11:11,385 | INFO | GET /metrics → 404 (4.14ms)
+2025-12-07 11:11:21,377 | INFO | Request started
+2025-12-07 11:11:21,379 | INFO | Request completed
+2025-12-07 11:11:21,379 | INFO | GET /metrics → 404 (2.41ms)
+2025-12-07 11:11:31,388 | INFO | Request started
+2025-12-07 11:11:31,391 | INFO | Request completed
+2025-12-07 11:11:31,392 | INFO | GET /metrics → 404 (5.00ms)
+2025-12-07 11:11:41,377 | INFO | Request started
+2025-12-07 11:11:41,379 | INFO | Request completed
+2025-12-07 11:11:41,380 | INFO | GET /metrics → 404 (3.01ms)
+2025-12-07 11:11:48,861 | INFO | Request started
+2025-12-07 11:11:48,869 | INFO | Request completed
+2025-12-07 11:11:48,869 | INFO | GET /static/index.html → 304 (10.44ms)
+2025-12-07 11:11:49,706 | INFO | Request started
+2025-12-07 11:11:49,708 | INFO | Request completed
+2025-12-07 11:11:49,709 | INFO | GET /static/index.html → 304 (3.53ms)
+2025-12-07 11:11:50,818 | INFO | Request started
+2025-12-07 11:11:50,821 | INFO | Request completed
+2025-12-07 11:11:50,822 | INFO | GET /static/index.html → 304 (4.09ms)
+2025-12-07 11:11:51,381 | INFO | Request started
+2025-12-07 11:11:51,383 | INFO | Request completed
+2025-12-07 11:11:51,383 | INFO | GET /metrics → 404 (2.66ms)
+2025-12-07 11:12:01,380 | INFO | Request started
+2025-12-07 11:12:01,382 | INFO | Request completed
+2025-12-07 11:12:01,382 | INFO | GET /metrics → 404 (3.08ms)
+2025-12-07 11:12:11,378 | INFO | Request started
+2025-12-07 11:12:11,380 | INFO | Request completed
+2025-12-07 11:12:11,381 | INFO | GET /metrics → 404 (2.62ms)
+2025-12-07 11:12:21,383 | INFO | Request started
+2025-12-07 11:12:21,386 | INFO | Request completed
+2025-12-07 11:12:21,386 | INFO | GET /metrics → 404 (3.57ms)
+2025-12-07 11:12:31,382 | INFO | Request started
+2025-12-07 11:12:31,384 | INFO | Request completed
+2025-12-07 11:12:31,385 | INFO | GET /metrics → 404 (2.94ms)
+2025-12-07 11:12:41,378 | INFO | Request started
+2025-12-07 11:12:41,381 | INFO | Request completed
+2025-12-07 11:12:41,382 | INFO | GET /metrics → 404 (4.07ms)
+2025-12-07 11:12:51,380 | INFO | Request started
+2025-12-07 11:12:51,382 | INFO | Request completed
+2025-12-07 11:12:51,383 | INFO | GET /metrics → 404 (3.58ms)
+2025-12-07 11:13:01,378 | INFO | Request started
+2025-12-07 11:13:01,382 | INFO | Request completed
+2025-12-07 11:13:01,382 | INFO | GET /metrics → 404 (4.31ms)
+2025-12-07 11:13:11,377 | INFO | Request started
+2025-12-07 11:13:11,379 | INFO | Request completed
+2025-12-07 11:13:11,380 | INFO | GET /metrics → 404 (3.62ms)
+2025-12-07 11:13:21,378 | INFO | Request started
+2025-12-07 11:13:21,380 | INFO | Request completed
+2025-12-07 11:13:21,381 | INFO | GET /metrics → 404 (3.35ms)
+2025-12-07 11:13:31,380 | INFO | Request started
+2025-12-07 11:13:31,382 | INFO | Request completed
+2025-12-07 11:13:31,383 | INFO | GET /metrics → 404 (2.90ms)
+2025-12-07 11:13:41,377 | INFO | Request started
+2025-12-07 11:13:41,380 | INFO | Request completed
+2025-12-07 11:13:41,381 | INFO | GET /metrics → 404 (3.80ms)
+2025-12-07 11:13:51,380 | INFO | Request started
+2025-12-07 11:13:51,382 | INFO | Request completed
+2025-12-07 11:13:51,383 | INFO | GET /metrics → 404 (2.89ms)
+2025-12-07 11:14:01,374 | INFO | Request started
+2025-12-07 11:14:01,376 | INFO | Request completed
+2025-12-07 11:14:01,376 | INFO | GET /metrics → 404 (2.62ms)
+2025-12-07 11:14:11,378 | INFO | Request started
+2025-12-07 11:14:11,380 | INFO | Request completed
+2025-12-07 11:14:11,380 | INFO | GET /metrics → 404 (2.24ms)
+2025-12-07 11:14:21,374 | INFO | Request started
+2025-12-07 11:14:21,377 | INFO | Request completed
+2025-12-07 11:14:21,377 | INFO | GET /metrics → 404 (3.21ms)
+2025-12-07 11:14:31,383 | INFO | Request started
+2025-12-07 11:14:31,386 | INFO | Request completed
+2025-12-07 11:14:31,387 | INFO | GET /metrics → 404 (4.22ms)
+2025-12-07 11:14:41,378 | INFO | Request started
+2025-12-07 11:14:41,380 | INFO | Request completed
+2025-12-07 11:14:41,380 | INFO | GET /metrics → 404 (2.65ms)
+2025-12-07 11:14:51,376 | INFO | Request started
+2025-12-07 11:14:51,379 | INFO | Request completed
+2025-12-07 11:14:51,380 | INFO | GET /metrics → 404 (3.79ms)
+2025-12-07 11:15:01,377 | INFO | Request started
+2025-12-07 11:15:01,379 | INFO | Request completed
+2025-12-07 11:15:01,380 | INFO | GET /metrics → 404 (3.31ms)
+2025-12-07 11:15:11,375 | INFO | Request started
+2025-12-07 11:15:11,377 | INFO | Request completed
+2025-12-07 11:15:11,378 | INFO | GET /metrics → 404 (3.14ms)
+2025-12-07 11:15:21,376 | INFO | Request started
+2025-12-07 11:15:21,378 | INFO | Request completed
+2025-12-07 11:15:21,378 | INFO | GET /metrics → 404 (2.37ms)
+2025-12-07 11:15:31,378 | INFO | Request started
+2025-12-07 11:15:31,380 | INFO | Request completed
+2025-12-07 11:15:31,381 | INFO | GET /metrics → 404 (3.69ms)
+2025-12-07 11:15:41,377 | INFO | Request started
+2025-12-07 11:15:41,379 | INFO | Request completed
+2025-12-07 11:15:41,380 | INFO | GET /metrics → 404 (3.11ms)
+2025-12-07 11:15:51,377 | INFO | Request started
+2025-12-07 11:15:51,379 | INFO | Request completed
+2025-12-07 11:15:51,379 | INFO | GET /metrics → 404 (2.65ms)
+2025-12-07 11:16:01,378 | INFO | Request started
+2025-12-07 11:16:01,380 | INFO | Request completed
+2025-12-07 11:16:01,381 | INFO | GET /metrics → 404 (3.36ms)
+2025-12-07 11:16:11,376 | INFO | Request started
+2025-12-07 11:16:11,377 | INFO | Request completed
+2025-12-07 11:16:11,378 | INFO | GET /metrics → 404 (2.70ms)
+2025-12-07 11:16:21,382 | INFO | Request started
+2025-12-07 11:16:21,385 | INFO | Request completed
+2025-12-07 11:16:21,385 | INFO | GET /metrics → 404 (3.60ms)
+2025-12-07 11:16:31,378 | INFO | Request started
+2025-12-07 11:16:31,380 | INFO | Request completed
+2025-12-07 11:16:31,381 | INFO | GET /metrics → 404 (3.33ms)
+2025-12-07 11:16:41,379 | INFO | Request started
+2025-12-07 11:16:41,381 | INFO | Request completed
+2025-12-07 11:16:41,382 | INFO | GET /metrics → 404 (3.41ms)
+2025-12-07 11:16:51,380 | INFO | Request started
+2025-12-07 11:16:51,382 | INFO | Request completed
+2025-12-07 11:16:51,383 | INFO | GET /metrics → 404 (3.31ms)
+2025-12-07 11:17:01,380 | INFO | Request started
+2025-12-07 11:17:01,382 | INFO | Request completed
+2025-12-07 11:17:01,383 | INFO | GET /metrics → 404 (3.80ms)
+2025-12-07 11:17:11,379 | INFO | Request started
+2025-12-07 11:17:11,381 | INFO | Request completed
+2025-12-07 11:17:11,383 | INFO | GET /metrics → 404 (4.72ms)
+2025-12-07 11:17:21,379 | INFO | Request started
+2025-12-07 11:17:21,382 | INFO | Request completed
+2025-12-07 11:17:21,382 | INFO | GET /metrics → 404 (3.58ms)
+2025-12-07 11:17:31,377 | INFO | Request started
+2025-12-07 11:17:31,379 | INFO | Request completed
+2025-12-07 11:17:31,380 | INFO | GET /metrics → 404 (3.26ms)
+2025-12-07 11:17:41,380 | INFO | Request started
+2025-12-07 11:17:41,384 | INFO | Request completed
+2025-12-07 11:17:41,384 | INFO | GET /metrics → 404 (4.58ms)
+2025-12-07 11:17:51,381 | INFO | Request started
+2025-12-07 11:17:51,383 | INFO | Request completed
+2025-12-07 11:17:51,384 | INFO | GET /metrics → 404 (2.92ms)
+2025-12-07 11:18:01,378 | INFO | Request started
+2025-12-07 11:18:01,380 | INFO | Request completed
+2025-12-07 11:18:01,381 | INFO | GET /metrics → 404 (3.22ms)
+2025-12-07 11:18:11,379 | INFO | Request started
+2025-12-07 11:18:11,382 | INFO | Request completed
+2025-12-07 11:18:11,383 | INFO | GET /metrics → 404 (4.23ms)
+2025-12-07 11:18:21,379 | INFO | Request started
+2025-12-07 11:18:21,381 | INFO | Request completed
+2025-12-07 11:18:21,382 | INFO | GET /metrics → 404 (3.43ms)
+2025-12-07 11:18:31,375 | INFO | Request started
+2025-12-07 11:18:31,377 | INFO | Request completed
+2025-12-07 11:18:31,378 | INFO | GET /metrics → 404 (3.17ms)
+2025-12-07 11:18:41,377 | INFO | Request started
+2025-12-07 11:18:41,381 | INFO | Request completed
+2025-12-07 11:18:41,381 | INFO | GET /metrics → 404 (4.34ms)
+2025-12-07 11:18:51,375 | INFO | Request started
+2025-12-07 11:18:51,377 | INFO | Request completed
+2025-12-07 11:18:51,377 | INFO | GET /metrics → 404 (3.08ms)
+2025-12-07 11:22:11,143 | INFO | Request started
+2025-12-07 11:22:11,147 | INFO | Request completed
+2025-12-07 11:22:11,148 | INFO | GET /metrics → 404 (6.39ms)
+2025-12-07 11:22:30,051 | INFO | Request started
+2025-12-07 11:22:30,056 | INFO | Request completed
+2025-12-07 11:22:30,056 | INFO | GET /metrics → 404 (6.33ms)
+2025-12-07 11:22:40,043 | INFO | Request started
+2025-12-07 11:22:40,045 | INFO | Request completed
+2025-12-07 11:22:40,045 | INFO | GET /metrics → 404 (2.78ms)
+2025-12-07 14:01:48,561 | INFO | ✅ Redis connected successfully
+2025-12-07 14:01:48,561 | INFO | ✅ Redis cache layer initialized
+2025-12-07 14:01:48,561 | INFO | 🔥 Warming up cache with common endpoints...
+2025-12-07 14:01:48,561 | INFO | ✅ Cache warmup complete: 0 keys
+2025-12-07 14:01:53,095 | INFO | Request started
+2025-12-07 14:01:53,098 | INFO | Request completed
+2025-12-07 14:01:53,098 | INFO | GET /metrics → 404 (3.24ms)
+2025-12-07 14:02:03,082 | INFO | Request started
+2025-12-07 14:02:03,084 | INFO | Request completed
+2025-12-07 14:02:03,085 | INFO | GET /metrics → 404 (3.26ms)
+2025-12-07 14:02:13,082 | INFO | Request started
+2025-12-07 14:02:13,085 | INFO | Request completed
+2025-12-07 14:02:13,085 | INFO | GET /metrics → 404 (3.63ms)
+2025-12-07 14:02:23,086 | INFO | Request started
+2025-12-07 14:02:23,089 | INFO | Request completed
+2025-12-07 14:02:23,089 | INFO | GET /metrics → 404 (4.51ms)
+2025-12-07 14:02:24,103 | INFO | Request started
+2025-12-07 14:02:24,142 | INFO | Request completed
+2025-12-07 14:02:24,142 | INFO | GET /static/index.html → 304 (39.74ms)
+2025-12-07 14:02:24,946 | INFO | Request started
+2025-12-07 14:02:24,947 | INFO | Request completed
+2025-12-07 14:02:24,948 | INFO | GET /static/index.html → 304 (2.08ms)
+2025-12-07 14:02:33,080 | INFO | Request started
+2025-12-07 14:02:33,082 | INFO | Request completed
+2025-12-07 14:02:33,082 | INFO | GET /metrics → 404 (2.33ms)
+2025-12-07 14:02:43,081 | INFO | Request started
+2025-12-07 14:02:43,084 | INFO | Request completed
+2025-12-07 14:02:43,085 | INFO | GET /metrics → 404 (3.52ms)
+2025-12-07 14:02:53,077 | INFO | Request started
+2025-12-07 14:02:53,078 | INFO | Request completed
+2025-12-07 14:02:53,078 | INFO | GET /metrics → 404 (1.70ms)
+2025-12-07 14:03:03,084 | INFO | Request started
+2025-12-07 14:03:03,087 | INFO | Request completed
+2025-12-07 14:03:03,088 | INFO | GET /metrics → 404 (6.07ms)
+2025-12-07 14:03:13,083 | INFO | Request started
+2025-12-07 14:03:13,086 | INFO | Request completed
+2025-12-07 14:03:13,087 | INFO | GET /metrics → 404 (4.19ms)
+2025-12-07 14:03:23,091 | INFO | Request started
+2025-12-07 14:03:23,093 | INFO | Request completed
+2025-12-07 14:03:23,094 | INFO | GET /metrics → 404 (4.02ms)
+2025-12-07 14:03:33,075 | INFO | Request started
+2025-12-07 14:03:33,077 | INFO | Request completed
+2025-12-07 14:03:33,077 | INFO | GET /metrics → 404 (2.25ms)
+2025-12-07 14:03:43,084 | INFO | Request started
+2025-12-07 14:03:43,087 | INFO | Request completed
+2025-12-07 14:03:43,087 | INFO | GET /metrics → 404 (4.53ms)
+2025-12-07 14:03:53,073 | INFO | Request started
+2025-12-07 14:03:53,075 | INFO | Request completed
+2025-12-07 14:03:53,075 | INFO | GET /metrics → 404 (2.11ms)
+2025-12-07 14:04:03,083 | INFO | Request started
+2025-12-07 14:04:03,086 | INFO | Request completed
+2025-12-07 14:04:03,087 | INFO | GET /metrics → 404 (5.03ms)
+2025-12-07 14:04:04,056 | INFO | Request started
+2025-12-07 14:04:04,059 | INFO | Request completed
+2025-12-07 14:04:04,060 | INFO | GET /static/my.html → 200 (4.69ms)
+2025-12-07 14:04:13,077 | INFO | Request started
+2025-12-07 14:04:13,079 | INFO | Request completed
+2025-12-07 14:04:13,079 | INFO | GET /metrics → 404 (2.26ms)
+2025-12-07 14:04:23,082 | INFO | Request started
+2025-12-07 14:04:23,085 | INFO | Request completed
+2025-12-07 14:04:23,085 | INFO | GET /metrics → 404 (3.71ms)
+2025-12-07 14:04:33,083 | INFO | Request started
+2025-12-07 14:04:33,085 | INFO | Request completed
+2025-12-07 14:04:33,086 | INFO | GET /metrics → 404 (3.56ms)
+2025-12-07 14:04:43,082 | INFO | Request started
+2025-12-07 14:04:43,084 | INFO | Request completed
+2025-12-07 14:04:43,085 | INFO | GET /metrics → 404 (3.84ms)
+2025-12-07 14:04:53,076 | INFO | Request started
+2025-12-07 14:04:53,078 | INFO | Request completed
+2025-12-07 14:04:53,079 | INFO | GET /metrics → 404 (3.16ms)
+2025-12-07 14:04:58,390 | INFO | Request started
+2025-12-07 14:04:58,393 | INFO | Request completed
+2025-12-07 14:04:58,395 | INFO | GET /static/index.html → 200 (6.29ms)
+2025-12-07 14:05:03,081 | INFO | Request started
+2025-12-07 14:05:03,083 | INFO | Request completed
+2025-12-07 14:05:03,084 | INFO | GET /metrics → 404 (3.05ms)
+2025-12-07 14:05:13,082 | INFO | Request started
+2025-12-07 14:05:13,084 | INFO | Request completed
+2025-12-07 14:05:13,085 | INFO | GET /metrics → 404 (3.29ms)
+2025-12-07 14:05:23,080 | INFO | Request started
+2025-12-07 14:05:23,083 | INFO | Request completed
+2025-12-07 14:05:23,083 | INFO | GET /metrics → 404 (3.33ms)
+2025-12-07 14:05:33,079 | INFO | Request started
+2025-12-07 14:05:33,081 | INFO | Request completed
+2025-12-07 14:05:33,082 | INFO | GET /metrics → 404 (3.52ms)
+2025-12-07 14:05:43,079 | INFO | Request started
+2025-12-07 14:05:43,082 | INFO | Request completed
+2025-12-07 14:05:43,083 | INFO | GET /metrics → 404 (3.65ms)
+2025-12-07 14:05:53,079 | INFO | Request started
+2025-12-07 14:05:53,081 | INFO | Request completed
+2025-12-07 14:05:53,082 | INFO | GET /metrics → 404 (3.22ms)
+2025-12-07 14:06:03,082 | INFO | Request started
+2025-12-07 14:06:03,085 | INFO | Request completed
+2025-12-07 14:06:03,086 | INFO | GET /metrics → 404 (4.71ms)
+2025-12-07 14:06:13,077 | INFO | Request started
+2025-12-07 14:06:13,079 | INFO | Request completed
+2025-12-07 14:06:13,080 | INFO | GET /metrics → 404 (2.80ms)
+2025-12-07 14:06:23,073 | INFO | Request started
+2025-12-07 14:06:23,074 | INFO | Request completed
+2025-12-07 14:06:23,075 | INFO | GET /metrics → 404 (2.32ms)
+2025-12-07 14:06:31,078 | INFO | Request started
+2025-12-07 14:06:31,080 | INFO | Request completed
+2025-12-07 14:06:31,081 | INFO | GET /static/my.html → 304 (3.32ms)
+2025-12-07 14:06:33,085 | INFO | Request started
+2025-12-07 14:06:33,088 | INFO | Request completed
+2025-12-07 14:06:33,094 | INFO | GET /metrics → 404 (8.82ms)
+2025-12-07 14:06:43,081 | INFO | Request started
+2025-12-07 14:06:43,084 | INFO | Request completed
+2025-12-07 14:06:43,084 | INFO | GET /metrics → 404 (3.48ms)
+2025-12-07 14:06:53,076 | INFO | Request started
+2025-12-07 14:06:53,078 | INFO | Request completed
+2025-12-07 14:06:53,079 | INFO | GET /metrics → 404 (3.22ms)
+2025-12-07 14:07:03,079 | INFO | Request started
+2025-12-07 14:07:03,081 | INFO | Request completed
+2025-12-07 14:07:03,081 | INFO | GET /metrics → 404 (2.81ms)
+2025-12-07 14:07:13,086 | INFO | Request started
+2025-12-07 14:07:13,088 | INFO | Request completed
+2025-12-07 14:07:13,088 | INFO | GET /metrics → 404 (2.77ms)
+2025-12-07 14:07:23,076 | INFO | Request started
+2025-12-07 14:07:23,078 | INFO | Request completed
+2025-12-07 14:07:23,078 | INFO | GET /metrics → 404 (2.16ms)
+2025-12-07 14:07:33,017 | INFO | Request started
+2025-12-07 14:07:33,018 | INFO | Request completed
+2025-12-07 14:07:33,019 | INFO | GET /metrics → 404 (2.47ms)
+2025-12-07 14:07:43,020 | INFO | Request started
+2025-12-07 14:07:43,021 | INFO | Request completed
+2025-12-07 14:07:43,022 | INFO | GET /metrics → 404 (2.80ms)
+2025-12-07 14:07:53,019 | INFO | Request started
+2025-12-07 14:07:53,021 | INFO | Request completed
+2025-12-07 14:07:53,021 | INFO | GET /metrics → 404 (3.20ms)
+2025-12-07 14:08:03,018 | INFO | Request started
+2025-12-07 14:08:03,020 | INFO | Request completed
+2025-12-07 14:08:03,020 | INFO | GET /metrics → 404 (3.18ms)
+2025-12-07 14:08:13,016 | INFO | Request started
+2025-12-07 14:08:13,019 | INFO | Request completed
+2025-12-07 14:08:13,020 | INFO | GET /metrics → 404 (4.00ms)
+2025-12-07 14:08:23,020 | INFO | Request started
+2025-12-07 14:08:23,022 | INFO | Request completed
+2025-12-07 14:08:23,023 | INFO | GET /metrics → 404 (3.82ms)
+2025-12-07 14:08:33,020 | INFO | Request started
+2025-12-07 14:08:33,024 | INFO | Request completed
+2025-12-07 14:08:33,025 | INFO | GET /metrics → 404 (5.88ms)
+2025-12-07 14:08:43,016 | INFO | Request started
+2025-12-07 14:08:43,018 | INFO | Request completed
+2025-12-07 14:08:43,018 | INFO | GET /metrics → 404 (2.51ms)
+2025-12-07 14:08:53,016 | INFO | Request started
+2025-12-07 14:08:53,017 | INFO | Request completed
+2025-12-07 14:08:53,018 | INFO | GET /metrics → 404 (2.03ms)
+2025-12-07 14:09:03,014 | INFO | Request started
+2025-12-07 14:09:03,016 | INFO | Request completed
+2025-12-07 14:09:03,017 | INFO | GET /metrics → 404 (3.43ms)
+2025-12-07 14:09:13,021 | INFO | Request started
+2025-12-07 14:09:13,024 | INFO | Request completed
+2025-12-07 14:09:13,024 | INFO | GET /metrics → 404 (3.99ms)
+2025-12-07 14:09:23,021 | INFO | Request started
+2025-12-07 14:09:23,023 | INFO | Request completed
+2025-12-07 14:09:23,024 | INFO | GET /metrics → 404 (3.48ms)
+2025-12-07 14:09:33,023 | INFO | Request started
+2025-12-07 14:09:33,026 | INFO | Request completed
+2025-12-07 14:09:33,026 | INFO | GET /metrics → 404 (4.67ms)
+2025-12-07 14:09:43,015 | INFO | Request started
+2025-12-07 14:09:43,019 | INFO | Request completed
+2025-12-07 14:09:43,019 | INFO | GET /metrics → 404 (4.45ms)
+2025-12-07 14:09:53,016 | INFO | Request started
+2025-12-07 14:09:53,019 | INFO | Request completed
+2025-12-07 14:09:53,019 | INFO | GET /metrics → 404 (3.07ms)
+2025-12-07 14:10:03,020 | INFO | Request started
+2025-12-07 14:10:03,022 | INFO | Request completed
+2025-12-07 14:10:03,023 | INFO | GET /metrics → 404 (3.10ms)
+2025-12-07 14:10:13,017 | INFO | Request started
+2025-12-07 14:10:13,020 | INFO | Request completed
+2025-12-07 14:10:13,021 | INFO | GET /metrics → 404 (4.48ms)
+2025-12-07 14:10:23,017 | INFO | Request started
+2025-12-07 14:10:23,018 | INFO | Request completed
+2025-12-07 14:10:23,019 | INFO | GET /metrics → 404 (2.97ms)
+2025-12-07 14:10:33,019 | INFO | Request started
+2025-12-07 14:10:33,022 | INFO | Request completed
+2025-12-07 14:10:33,023 | INFO | GET /metrics → 404 (4.27ms)
+2025-12-07 14:10:43,017 | INFO | Request started
+2025-12-07 14:10:43,018 | INFO | Request completed
+2025-12-07 14:10:43,018 | INFO | GET /metrics → 404 (1.92ms)
+2025-12-07 14:10:53,018 | INFO | Request started
+2025-12-07 14:10:53,023 | INFO | Request completed
+2025-12-07 14:10:53,023 | INFO | GET /metrics → 404 (7.13ms)
+2025-12-07 14:11:03,011 | INFO | Request started
+2025-12-07 14:11:03,012 | INFO | Request completed
+2025-12-07 14:11:03,013 | INFO | GET /metrics → 404 (2.48ms)
+2025-12-07 14:11:13,015 | INFO | Request started
+2025-12-07 14:11:13,017 | INFO | Request completed
+2025-12-07 14:11:13,018 | INFO | GET /metrics → 404 (2.62ms)
+2025-12-07 14:11:23,014 | INFO | Request started
+2025-12-07 14:11:23,017 | INFO | Request completed
+2025-12-07 14:11:23,018 | INFO | GET /metrics → 404 (3.93ms)
+2025-12-07 14:11:33,017 | INFO | Request started
+2025-12-07 14:11:33,021 | INFO | Request completed
+2025-12-07 14:11:33,022 | INFO | GET /metrics → 404 (6.23ms)
+2025-12-07 14:11:43,015 | INFO | Request started
+2025-12-07 14:11:43,017 | INFO | Request completed
+2025-12-07 14:11:43,018 | INFO | GET /metrics → 404 (3.24ms)
+2025-12-07 14:11:53,010 | INFO | Request started
+2025-12-07 14:11:53,012 | INFO | Request completed
+2025-12-07 14:11:53,012 | INFO | GET /metrics → 404 (2.52ms)
+2025-12-07 14:12:03,015 | INFO | Request started
+2025-12-07 14:12:03,017 | INFO | Request completed
+2025-12-07 14:12:03,017 | INFO | GET /metrics → 404 (2.30ms)
+2025-12-07 14:12:13,016 | INFO | Request started
+2025-12-07 14:12:13,018 | INFO | Request completed
+2025-12-07 14:12:13,018 | INFO | GET /metrics → 404 (2.84ms)
+2025-12-07 14:12:23,013 | INFO | Request started
+2025-12-07 14:12:23,015 | INFO | Request completed
+2025-12-07 14:12:23,016 | INFO | GET /metrics → 404 (4.10ms)
+2025-12-07 14:12:33,014 | INFO | Request started
+2025-12-07 14:12:33,016 | INFO | Request completed
+2025-12-07 14:12:33,016 | INFO | GET /metrics → 404 (2.43ms)

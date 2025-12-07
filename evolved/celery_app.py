@@ -31,17 +31,25 @@ app.conf.update(
     timezone='UTC',
     enable_utc=True,
     
-    # Task timeout
-    task_soft_time_limit=300,  # 5 minutes soft limit
-    task_time_limit=600,       # 10 minutes hard limit
+    # Optimized task timeouts by queue priority
+    task_soft_time_limit=120,  # 2 minutes soft limit (reduced from 300)
+    task_time_limit=180,       # 3 minutes hard limit (reduced from 600)
+    task_acks_late=True,       # Acknowledge after execution
+    task_reject_on_worker_lost=True,  # Reject if worker dies
     
-    # Result settings
-    result_expires=3600,  # Results expire after 1 hour
+    # Result settings - optimized for quick cleanup
+    result_expires=1800,  # Results expire after 30 minutes (reduced from 3600)
     result_extended=True,
+    result_backend_transport_options={
+        'retry_on_timeout': True,
+        'master_name': 'mymaster',
+    },
     
-    # Worker settings
-    worker_prefetch_multiplier=4,
-    worker_max_tasks_per_child=1000,
+    # Optimized worker settings
+    worker_prefetch_multiplier=2,  # Reduced from 4 for better load balancing
+    worker_max_tasks_per_child=500,  # Reduced from 1000 for memory efficiency
+    worker_disable_rate_limits=False,
+    worker_log_format='[%(asctime)s: %(levelname)s/%(processName)s] %(message)s',
     
     # Task routing
     task_default_queue='default',
@@ -86,14 +94,31 @@ app.conf.update(
     ),
 )
 
-# Custom task class with retry logic
+# Custom task class with optimized retry logic
 class CallbackTask(Task):
-    """Task with custom error handling and callbacks"""
+    """Task with custom error handling and exponential backoff retry"""
+    # Retry policy: exponential backoff with jitter
     autoretry_for = (Exception,)
-    retry_kwargs = {'max_retries': 3}
+    retry_kwargs = {
+        'max_retries': 2,  # Reduced from 3 for faster failure feedback
+        'countdown': 5     # Start with 5 second delay
+    }
     retry_backoff = True
-    retry_backoff_max = 600
+    retry_backoff_max = 300  # Max 5 minutes between retries (reduced from 600)
     retry_jitter = True
+    
+    # Track task metrics
+    def before_start(self, task_id, args, kwargs):
+        """Called before task execution"""
+        return super().before_start(task_id, args, kwargs)
+    
+    def on_retry(self, exc, task_id, args, kwargs, einfo):
+        """Called when task is retried"""
+        return super().on_retry(exc, task_id, args, kwargs, einfo)
+    
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        """Called when task fails after all retries"""
+        return super().on_failure(exc, task_id, args, kwargs, einfo)
 
 app.Task = CallbackTask
 
