@@ -1253,6 +1253,30 @@ try:
 except ImportError as e:
     print(f"⚠️ Graph 로드 실패: {e}")
 
+# ============ AUTUS Financial (재정 시뮬레이션) ============
+try:
+    from api.routes.financial import router as financial_router
+    app.include_router(financial_router, prefix="/api/v1")
+    print("✅ Financial 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Financial 로드 실패: {e}")
+
+# ============ AUTUS Risk Engine v2.0 ============
+try:
+    from api.routes.risk_engine import router as risk_router
+    app.include_router(risk_router, prefix="/api/v1")
+    print("✅ Risk Engine 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Risk Engine 로드 실패: {e}")
+
+# ============ AUTUS Chatbot (WhatsApp/Facebook) ============
+try:
+    from api.routes.chatbot import router as chatbot_router
+    app.include_router(chatbot_router, prefix="/api/v1")
+    print("✅ Chatbot 라우터 등록 완료")
+except ImportError as e:
+    print(f"⚠️ Chatbot 로드 실패: {e}")
+
 # Mount static pages at root paths
 from pathlib import Path
 static_root = Path(__file__).parent / "static"
