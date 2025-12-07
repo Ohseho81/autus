@@ -1183,6 +1183,9 @@ try:
     from api.routes.arl import router as arl_router
     app.include_router(arl_router, prefix="/api/v1")
     print("✅ ARL 라우터 등록 완료")
+    from api.routes.flow import router as flow_router
+    app.include_router(flow_router, prefix="/api/v1")
+    print("✅ Flow Mapper 라우터 등록 완료")
 except ImportError as e:
     print(f"⚠️ Marketplace 로드 실패: {e}")
 
