@@ -1,351 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AUTUS - Your AI, Your Data, No Login</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        :root{--bg:#FAFAFA;--card:#FFF;--text:#1a1a1a;--text-secondary:#666;--primary:#0066FF;--primary-hover:#0052CC;--success:#00C853;--success-bg:#E8F5E9;--accent:#FF6B00;--accent-bg:#FFF3E0;--border:#E8E8E8;--shadow:0 4px 24px rgba(0,0,0,0.06);--shadow-hover:0 8px 32px rgba(0,0,0,0.1);--radius:20px;--radius-sm:12px}
-        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
-        
-        /* Header */
-        header{padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
-        .logo{display:flex;align-items:center;gap:.625rem}
-        .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--primary),#00C2FF);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.1rem}
-        .logo-text{font-size:1.25rem;font-weight:700;letter-spacing:-.02em}
-        .header-right{display:flex;align-items:center;gap:1.25rem}
-        .lang-switch{display:flex;background:var(--bg);border-radius:8px;padding:3px;font-size:.8rem}
-        .lang-btn{padding:.375rem .625rem;border:none;background:transparent;cursor:pointer;border-radius:6px;font-weight:500;color:var(--text-secondary);transition:all .2s}
-        .lang-btn.active{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
-        .my-stats{display:flex;gap:.625rem}
-        .stat-pill{display:flex;align-items:center;gap:.375rem;padding:.5rem .875rem;background:var(--success-bg);border-radius:20px;font-size:.8rem;color:#1B5E20;font-weight:500}
-        .stat-value{font-weight:700}
-        
-        /* Main */
-        main{flex:1;display:flex;flex-direction:column;align-items:center;padding:4rem 2rem 3rem;max-width:800px;margin:0 auto;width:100%}
-        
-        /* Hero */
-        .hero{text-align:center;margin-bottom:3rem}
-        .hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:var(--accent-bg);border-radius:20px;font-size:.85rem;color:#E65100;font-weight:600;margin-bottom:1.5rem}
-        .hero h1{font-size:3.25rem;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:1rem;background:linear-gradient(135deg,var(--text) 0%,#444 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .hero h1 .highlight{background:linear-gradient(135deg,var(--primary) 0%,#00C2FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .hero-sub{font-size:1.25rem;color:var(--text-secondary);margin-bottom:2rem;line-height:1.5}
-        
-        /* Value Props */
-        .value-bar{display:inline-flex;align-items:center;gap:2rem;padding:1rem 2rem;background:var(--card);border-radius:16px;box-shadow:var(--shadow);margin-bottom:1.5rem}
-        .value-item{display:flex;align-items:center;gap:.625rem;font-size:1rem}
-        .value-label{color:var(--text-secondary);font-weight:500}
-        .value-before{text-decoration:line-through;color:#ccc}
-        .value-arrow{color:var(--success);font-weight:600}
-        .value-after{font-weight:700;color:var(--success)}
-        
-        /* Trust Badges */
-        .trust-badges{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap}
-        .trust-badge{display:flex;align-items:center;gap:.375rem;padding:.5rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:10px;font-size:.85rem;font-weight:500;color:var(--text-secondary);transition:all .2s}
-        .trust-badge:hover{border-color:var(--primary);color:var(--primary)}
-        .trust-icon{font-size:1rem}
-        
-        /* Search */
-        .search-wrap{width:100%;max-width:600px;margin-bottom:3rem;position:relative}
-        .search-input{width:100%;padding:1.25rem 1.5rem;font-size:1.1rem;border:2px solid var(--border);border-radius:var(--radius);background:var(--card);transition:all .3s;font-family:inherit}
-        .search-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(0,102,255,.1)}
-        .search-input::placeholder{color:#aaa}
-        .search-hint{position:absolute;right:1rem;top:50%;transform:translateY(-50%);font-size:.75rem;color:#aaa;background:var(--bg);padding:.25rem .5rem;border-radius:6px}
-        
-        /* Pack Grid */
-        .pack-section{width:100%;max-width:640px}
-        .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
-        .section-title{font-size:.9rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em}
-        .pack-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
-        .pack-card{background:var(--card);border-radius:var(--radius);padding:1.5rem;cursor:pointer;border:2px solid transparent;transition:all .3s;position:relative;overflow:hidden}
-        .pack-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),#00C2FF);opacity:0;transition:opacity .3s}
-        .pack-card:hover{border-color:var(--primary);box-shadow:var(--shadow-hover);transform:translateY(-4px)}
-        .pack-card:hover::before{opacity:1}
-        .pack-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}
-        .pack-icon{font-size:1.75rem}
-        .pack-title{font-size:1.1rem;font-weight:600}
-        .pack-save{display:flex;align-items:center;gap:.5rem;padding:.625rem .875rem;background:var(--success-bg);border-radius:var(--radius-sm);font-size:.9rem;margin-bottom:.875rem}
-        .save-before{text-decoration:line-through;color:#9E9E9E}
-        .save-after{font-weight:700;color:#2E7D32}
-        .pack-social{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-secondary)}
-        .pack-social span{display:flex;align-items:center;gap:.25rem}
-        
-        /* More Button */
-        .more-section{margin-top:2rem;text-align:center}
-        .more-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.875rem 1.5rem;background:var(--card);border:2px solid var(--border);border-radius:var(--radius-sm);font-size:.9rem;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:all .2s}
-        .more-btn:hover{border-color:var(--primary);color:var(--primary);background:rgba(0,102,255,.02)}
-        
-        /* Footer */
-        footer{padding:2rem;background:var(--text);color:#fff;text-align:center}
-        .footer-stat{font-size:1rem;margin-bottom:.5rem;color:rgba(255,255,255,.7)}
-        .footer-value{font-size:2.5rem;font-weight:700;color:var(--success);margin-bottom:1rem}
-        .footer-tagline{font-size:1.1rem;margin-bottom:1.5rem;color:rgba(255,255,255,.9)}
-        .footer-badges{display:flex;justify-content:center;gap:1.5rem;font-size:.85rem;color:rgba(255,255,255,.6);flex-wrap:wrap}
-        .footer-badge{display:flex;align-items:center;gap:.375rem}
-        .footer-trust{margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.1)}
-        .footer-trust-text{font-size:.8rem;color:rgba(255,255,255,.5)}
-        /* Modal */
-        .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem;z-index:100}
-        .modal.active{display:flex}
-        .modal-box{background:var(--card);border-radius:24px;width:100%;max-width:480px;max-height:90vh;overflow:hidden;animation:modalIn .35s cubic-bezier(.16,1,.3,1);position:relative}
-        @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
-        .modal-head{padding:1.75rem;border-bottom:1px solid var(--border)}
-        .modal-title{font-size:1.375rem;font-weight:700;margin-bottom:.625rem}
-        .expected-pill{display:inline-flex;align-items:center;gap:.375rem;padding:.5rem .875rem;background:var(--success-bg);border-radius:20px;font-size:.9rem;color:#2E7D32;font-weight:600}
-        .modal-body{padding:1.75rem;overflow-y:auto;max-height:55vh}
-        .flow-bar{display:flex;justify-content:center;align-items:center;gap:.625rem;margin-bottom:1.5rem;font-size:.85rem}
-        .flow-step{padding:.5rem .75rem;border-radius:8px;background:var(--bg);color:var(--text-secondary);font-weight:500}
-        .flow-step.active{background:rgba(0,102,255,.1);color:var(--primary)}
-        .flow-step.done{background:var(--success-bg);color:#2E7D32}
-        .flow-arrow{color:#ccc}
-        .contrib-note{display:flex;align-items:center;gap:.625rem;padding:.875rem 1rem;background:rgba(0,102,255,.05);border-radius:var(--radius-sm);font-size:.85rem;color:var(--primary);margin-bottom:1.5rem;border:1px solid rgba(0,102,255,.1)}
-        .field{margin-bottom:1.25rem}
-        .field-label{display:block;font-size:.9rem;font-weight:600;margin-bottom:.5rem;color:var(--text)}
-        .field-input{width:100%;padding:1rem 1.125rem;font-size:1rem;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);transition:all .2s;font-family:inherit}
-        .field-input:focus{outline:none;border-color:var(--primary);background:var(--card);box-shadow:0 0 0 4px rgba(0,102,255,.08)}
-        .field-textarea{min-height:120px;resize:vertical}
-        .modal-foot{padding:1.5rem 1.75rem;border-top:1px solid var(--border);background:var(--bg)}
-        .btn{width:100%;padding:1rem;font-size:1rem;font-weight:600;border:none;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;font-family:inherit}
-        .btn-primary{background:var(--primary);color:#fff}
-        .btn-primary:hover{background:var(--primary-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,102,255,.3)}
-        .btn-secondary{background:var(--bg);color:var(--text);margin-top:.625rem;border:2px solid var(--border)}
-        .btn-secondary:hover{border-color:var(--text-secondary)}
-        .result-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.25rem;white-space:pre-wrap;word-break:break-word;line-height:1.7;max-height:200px;overflow-y:auto;font-size:.95rem}
-        .saved-result{display:flex;align-items:center;justify-content:center;gap:.625rem;padding:1.125rem;background:var(--success-bg);border-radius:var(--radius-sm);margin-top:1.25rem;font-size:1rem}
-        .saved-value{font-size:1.375rem;font-weight:700;color:#2E7D32}
-        .contrib-done{text-align:center;font-size:.85rem;color:var(--text-secondary);margin-top:.875rem}
-        .recommend-card{display:flex;align-items:center;gap:.625rem;padding:1rem;background:var(--accent-bg);border:1px solid rgba(255,107,0,.2);border-radius:var(--radius-sm);margin-top:1.25rem;font-size:.9rem;color:#E65100;cursor:pointer;transition:all .2s;font-weight:500}
-        .recommend-card:hover{background:#FFE8CC}
-        .loading-wrap{display:flex;flex-direction:column;align-items:center;padding:3rem}
-        .spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s cubic-bezier(.5,0,.5,1) infinite}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .loading-text{margin-top:1.25rem;color:var(--text-secondary);font-size:1rem}
-        .close-btn{position:absolute;top:1.25rem;right:1.25rem;width:36px;height:36px;border:none;background:var(--bg);border-radius:50%;cursor:pointer;font-size:1.5rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;transition:all .2s}
-        .close-btn:hover{background:var(--border);color:var(--text)}
-        
-        /* Responsive */
-        @media(max-width:640px){
-            main{padding:2.5rem 1.25rem}
-            .hero h1{font-size:2.25rem}
-            .hero-sub{font-size:1rem}
-            .value-bar{flex-direction:column;gap:.75rem;padding:1rem 1.25rem}
-            .pack-grid{grid-template-columns:1fr}
-            .my-stats{display:none}
-            .header-right{gap:.75rem}
-            .footer-badges{flex-direction:column;gap:.5rem}
-            .footer-value{font-size:2rem}
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Autus - Zero-Action OS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #050608;
+      color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { font-size: 3rem; margin-bottom: 16px; }
+    .tagline { font-size: 1.2rem; opacity: 0.8; margin-bottom: 40px; }
+    .links { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+    a {
+      color: #f5f5f5;
+      text-decoration: none;
+      padding: 12px 24px;
+      border: 1px solid #333;
+      border-radius: 999px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    a:hover { border-color: #4f46e5; background: #4f46e510; }
+    footer { position: fixed; bottom: 20px; font-size: 12px; opacity: 0.5; }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <div class="logo-icon">A</div>
-            <span class="logo-text">AUTUS</span>
-        </div>
-        <div class="header-right">
-            <div class="lang-switch">
-                <button class="lang-btn active" onclick="setLang('en')">EN</button>
-                <button class="lang-btn" onclick="setLang('ko')">한국어</button>
-            </div>
-            <div class="my-stats">
-                <div class="stat-pill"><span>⏱️</span><span class="stat-value" id="savedTime">0m</span><span data-en="saved" data-ko="절약">saved</span></div>
-                <div class="stat-pill"><span>✓</span><span class="stat-value" id="taskCount">0</span><span data-en="tasks" data-ko="완료">tasks</span></div>
-            </div>
-        </div>
-    </header>
-    <main>
-        <section class="hero">
-            <div class="hero-badge">🚀 <span data-en="No account needed" data-ko="계정 필요 없음">No account needed</span></div>
-            <h1 data-en="Automate tasks,<br><span class='highlight'>80% faster</span>" data-ko="반복 업무,<br><span class='highlight'>80%</span> 줄이세요">Automate tasks,<br><span class="highlight">80% faster</span></h1>
-            <p class="hero-sub" data-en="Your AI assistant. No login. Your data stays yours." data-ko="당신의 AI 비서. 로그인 없음. 데이터는 당신 것.">Your AI assistant. No login. Your data stays yours.</p>
-            <div class="value-bar">
-                <div class="value-item"><span class="value-label" data-en="Email" data-ko="이메일">Email</span><span class="value-before">5m</span><span class="value-arrow">→</span><span class="value-after">30s</span></div>
-                <div class="value-item"><span class="value-label" data-en="Summary" data-ko="요약">Summary</span><span class="value-before">10m</span><span class="value-arrow">→</span><span class="value-after">1m</span></div>
-                <div class="value-item"><span class="value-label" data-en="Translate" data-ko="번역">Translate</span><span class="value-before">15m</span><span class="value-arrow">→</span><span class="value-after">30s</span></div>
-            </div>
-            <div class="trust-badges">
-                <div class="trust-badge"><span class="trust-icon">🔒</span><span data-en="No Login" data-ko="로그인 없음">No Login</span></div>
-                <div class="trust-badge"><span class="trust-icon">💾</span><span data-en="Your Data" data-ko="내 데이터 소유">Your Data</span></div>
-                <div class="trust-badge"><span class="trust-icon">🚫</span><span data-en="No Ads" data-ko="광고 없음">No Ads</span></div>
-                <div class="trust-badge"><span class="trust-icon">👑</span><span data-en="You Own It" data-ko="당신이 주인">You Own It</span></div>
-            </div>
-        </section>
-        <div class="search-wrap">
-            <input type="text" class="search-input" id="searchInput" data-placeholder-en="What would you like to automate?" data-placeholder-ko="무엇을 자동화할까요?" placeholder="What would you like to automate?" autofocus>
-            <span class="search-hint">↵ Enter</span>
-        </div>
-        <div class="pack-section">
-            <div class="section-header">
-                <span class="section-title" data-en="Popular Packs" data-ko="인기 Pack">Popular Packs</span>
-            </div>
-            <div class="pack-grid">
-                <div class="pack-card" onclick="openPack('email')">
-                    <div class="pack-header"><span class="pack-icon">✉️</span><span class="pack-title" data-en="Email Writer" data-ko="이메일 작성">Email Writer</span></div>
-                    <div class="pack-save"><span>⏱️</span><span class="save-before">5m</span><span>→</span><span class="save-after">30s</span></div>
-                    <div class="pack-social"><span>👥 2,341</span><span>⭐ 4.8</span></div>
-                </div>
-                <div class="pack-card" onclick="openPack('summary')">
-                    <div class="pack-header"><span class="pack-icon">📝</span><span class="pack-title" data-en="Summarizer" data-ko="요약">Summarizer</span></div>
-                    <div class="pack-save"><span>⏱️</span><span class="save-before">10m</span><span>→</span><span class="save-after">1m</span></div>
-                    <div class="pack-social"><span>👥 1,823</span><span>⭐ 4.7</span></div>
-                </div>
-                <div class="pack-card" onclick="openPack('translate')">
-                    <div class="pack-header"><span class="pack-icon">🌐</span><span class="pack-title" data-en="Translator" data-ko="번역">Translator</span></div>
-                    <div class="pack-save"><span>⏱️</span><span class="save-before">15m</span><span>→</span><span class="save-after">30s</span></div>
-                    <div class="pack-social"><span>👥 956</span><span>⭐ 4.6</span></div>
-                </div>
-                <div class="pack-card" onclick="openPack('write')">
-                    <div class="pack-header"><span class="pack-icon">✍️</span><span class="pack-title" data-en="Content Writer" data-ko="글쓰기">Content Writer</span></div>
-                    <div class="pack-save"><span>⏱️</span><span class="save-before">20m</span><span>→</span><span class="save-after">2m</span></div>
-                    <div class="pack-social"><span>👥 1,205</span><span>⭐ 4.5</span></div>
-                </div>
-            </div>
-            <div class="more-section">
-                <button class="more-btn" onclick="alert('Coming soon!')">
-                    <span>📦</span>
-                    <span data-en="More Packs (12)" data-ko="더 많은 Pack (12개)">More Packs (12)</span>
-                </button>
-            </div>
-        </div>
-    </main>    <footer>
-        <div class="footer-stat" data-en="Time saved by users this week" data-ko="이번 주 사용자들이 절약한 시간">Time saved by users this week</div>
-        <div class="footer-value">12,847<span style="font-size:1rem;font-weight:400">h</span></div>
-        <div class="footer-tagline" data-en="Value goes to you, not big tech." data-ko="가치는 대기업이 아닌 당신에게.">Value goes to you, not big tech.</div>
-        <div class="footer-badges">
-            <span class="footer-badge">🔒 <span data-en="No Login" data-ko="로그인 없음">No Login</span></span>
-            <span class="footer-badge">💾 <span data-en="100% Your Data" data-ko="데이터 100% 소유">100% Your Data</span></span>
-            <span class="footer-badge">🚫 <span data-en="No Ads" data-ko="광고 없음">No Ads</span></span>
-            <span class="footer-badge">🌱 <span id="userCount">5,234</span> <span data-en="growing" data-ko="명 성장 중">growing</span></span>
-        </div>
-        <div class="footer-trust">
-            <p class="footer-trust-text" data-en="Built with privacy-first architecture. Your data never leaves your device." data-ko="프라이버시 우선 설계. 데이터는 절대 기기를 떠나지 않습니다.">Built with privacy-first architecture. Your data never leaves your device.</p>
-        </div>
-    </footer>
-    
-    <div class="modal" id="packModal">
-        <div class="modal-box">
-            <button class="close-btn" onclick="closeModal()">×</button>
-            <div class="modal-head">
-                <div class="modal-title" id="modalTitle">✉️ Email Writer</div>
-                <div class="expected-pill"><span>⏱️</span><span data-en="Est. save:" data-ko="예상 절약:">Est. save:</span><span id="expectedSave">4m 30s</span></div>
-            </div>
-            <div class="modal-body">
-                <div class="flow-bar"><span class="flow-step active">① <span data-en="Input" data-ko="입력">Input</span></span><span class="flow-arrow">→</span><span class="flow-step">② <span data-en="Process" data-ko="처리">Process</span></span><span class="flow-arrow">→</span><span class="flow-step">③ <span data-en="Done" data-ko="완료">Done</span></span></div>
-                <div class="contrib-note"><span>💡</span><span data-en="Results contribute anonymously to collective intelligence" data-ko="결과는 익명으로 집단지성에 기여됩니다">Results contribute anonymously to collective intelligence</span></div>
-                <div id="inputFields"></div>
-            </div>
-            <div class="modal-foot"><button class="btn btn-primary" onclick="runPack()" data-en="Run" data-ko="실행하기">Run</button></div>
-        </div>
-    </div>
-    
-    <div class="modal" id="loadingModal">
-        <div class="modal-box">
-            <div class="loading-wrap">
-                <div class="flow-bar"><span class="flow-step done">① ✓</span><span class="flow-arrow">→</span><span class="flow-step active">② <span data-en="Processing" data-ko="처리 중">Processing</span></span><span class="flow-arrow">→</span><span class="flow-step">③</span></div>
-                <div class="spinner"></div>
-                <div class="loading-text" data-en="AI is processing..." data-ko="AI가 처리 중입니다...">AI is processing...</div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="modal" id="resultModal">
-        <div class="modal-box">
-            <button class="close-btn" onclick="closeResult()">×</button>
-            <div class="modal-head"><div class="modal-title">✨ <span data-en="Complete!" data-ko="완료!">Complete!</span></div></div>
-            <div class="modal-body">
-                <div class="flow-bar"><span class="flow-step done">① ✓</span><span class="flow-arrow">→</span><span class="flow-step done">② ✓</span><span class="flow-arrow">→</span><span class="flow-step done">③ ✓</span></div>
-                <div class="result-box" id="resultContent"></div>
-                <div class="saved-result"><span>⏱️</span><span data-en="You saved" data-ko="절약 시간">You saved</span><span class="saved-value" id="actualSaved">4m 30s</span></div>
-                <div class="contrib-done">✅ <span data-en="Contributed to collective intelligence" data-ko="집단지성에 기여됨">Contributed to collective intelligence</span></div>
-                <div class="recommend-card" onclick="openRecommended()"><span>💡</span><span id="recommendText" data-en="Try next: Reply email" data-ko="다음 추천: 답장 이메일">Try next: Reply email</span></div>
-            </div>
-            <div class="modal-foot">
-                <button class="btn btn-primary" onclick="copyResult()" data-en="Copy" data-ko="복사하기">Copy</button>
-                <button class="btn btn-secondary" onclick="closeResult()" data-en="Close" data-ko="닫기">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let currentLang='en';
-        const PACKS={
-            email:{title:{en:'✉️ Email Writer',ko:'✉️ 이메일 작성'},timeBefore:300,timeAfter:30,recommend:{pack:'write',text:{en:'Try: Reply email',ko:'추천: 답장 이메일'}},fields:[
-                {id:'recipient',label:{en:'Recipient',ko:'받는 사람'},placeholder:{en:'e.g. Manager, Client',ko:'예: 팀장님, 고객사'}},
-                {id:'purpose',label:{en:'Purpose',ko:'목적'},placeholder:{en:'e.g. Meeting request',ko:'예: 미팅 요청'}},
-                {id:'details',label:{en:'Details',ko:'내용'},type:'textarea',placeholder:{en:'Key points to include',ko:'포함할 내용'}}
-            ]},
-            summary:{title:{en:'📝 Summarizer',ko:'📝 요약'},timeBefore:600,timeAfter:60,recommend:{pack:'write',text:{en:'Try: Report writing',ko:'추천: 보고서 작성'}},fields:[
-                {id:'content',label:{en:'Content to summarize',ko:'요약할 내용'},type:'textarea',placeholder:{en:'Paste text here',ko:'텍스트 붙여넣기'}},
-                {id:'length',label:{en:'Length',ko:'길이'},placeholder:{en:'e.g. 3 lines, 100 words',ko:'예: 3줄, 100자'}}
-            ]},
-            translate:{title:{en:'🌐 Translator',ko:'🌐 번역'},timeBefore:900,timeAfter:30,recommend:{pack:'email',text:{en:'Try: English email',ko:'추천: 영문 이메일'}},fields:[
-                {id:'content',label:{en:'Content to translate',ko:'번역할 내용'},type:'textarea',placeholder:{en:'Enter text',ko:'텍스트 입력'}},
-                {id:'target',label:{en:'Target language',ko:'언어'},placeholder:{en:'e.g. Korean, Japanese',ko:'예: 영어, 일본어'}}
-            ]},
-            write:{title:{en:'✍️ Content Writer',ko:'✍️ 글쓰기'},timeBefore:1200,timeAfter:120,recommend:{pack:'summary',text:{en:'Try: Summarize',ko:'추천: 글 요약'}},fields:[
-                {id:'type',label:{en:'Type',ko:'종류'},placeholder:{en:'e.g. Blog, Social post',ko:'예: 블로그, SNS'}},
-                {id:'topic',label:{en:'Topic',ko:'주제'},placeholder:{en:'What about?',ko:'무엇에 대해?'}},
-                {id:'tone',label:{en:'Tone',ko:'톤'},placeholder:{en:'e.g. Friendly, Professional',ko:'예: 친근하게, 전문적으로'}}
-            ]}
-        };
-        let currentPack=null,lastResult='',startTime=null;
-        let stats=JSON.parse(localStorage.getItem('autus_stats')||'{"saved":0,"tasks":0}');
-        
-        function fmt(s,lang){
-            if(s>=60){const m=Math.floor(s/60),sec=s%60;return lang==='ko'?(sec>0?m+'분 '+sec+'초':m+'분'):(sec>0?m+'m '+sec+'s':m+'m')}
-            return lang==='ko'?s+'초':s+'s';
-        }
-        function updateStats(){
-            document.getElementById('savedTime').textContent=fmt(stats.saved,currentLang);
-            document.getElementById('taskCount').textContent=stats.tasks;
-        }
-        updateStats();
-        
-        function setLang(lang){
-            currentLang=lang;
-            document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
-            document.querySelector('.lang-btn[onclick="setLang(\''+lang+'\')"]').classList.add('active');
-            document.querySelectorAll('[data-'+lang+']').forEach(el=>{
-                const val=el.getAttribute('data-'+lang);
-                if(val)el.innerHTML=val;
-            });
-            document.querySelectorAll('[data-placeholder-'+lang+']').forEach(el=>{
-                el.placeholder=el.getAttribute('data-placeholder-'+lang);
-            });
-            updateStats();
-        }
-        
-        function openPack(id){
-            currentPack=id;const p=PACKS[id];
-            document.getElementById('modalTitle').textContent=p.title[currentLang];
-            document.getElementById('expectedSave').textContent=fmt(p.timeBefore-p.timeAfter,currentLang);
-            document.getElementById('inputFields').innerHTML=p.fields.map(f=>'<div class="field"><label class="field-label">'+f.label[currentLang]+'</label>'+(f.type==='textarea'?'<textarea class="field-input field-textarea" id="'+f.id+'" placeholder="'+f.placeholder[currentLang]+'"></textarea>':'<input type="text" class="field-input" id="'+f.id+'" placeholder="'+f.placeholder[currentLang]+'">')+'</div>').join('');
-            document.getElementById('packModal').classList.add('active');
-        }
-        function closeModal(){document.getElementById('packModal').classList.remove('active')}
-        async function runPack(){
-            startTime=Date.now();const p=PACKS[currentPack],inputs={};
-            p.fields.forEach(f=>inputs[f.id]=document.getElementById(f.id).value);
-            closeModal();document.getElementById('loadingModal').classList.add('active');
-            try{const res=await fetch('/api/v1/packs/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pack_name:currentPack,inputs})});const data=await res.json();lastResult=data.result||data.output||JSON.stringify(data,null,2)}catch(e){lastResult=currentLang==='ko'?'처리 중 오류가 발생했습니다.':'An error occurred.'}
-            const actual=Math.round((Date.now()-startTime)/1000),saved=Math.max(0,p.timeBefore-actual);
-            stats.saved+=saved;stats.tasks++;localStorage.setItem('autus_stats',JSON.stringify(stats));updateStats();
-            document.getElementById('actualSaved').textContent=fmt(saved,currentLang);
-            document.getElementById('recommendText').textContent=p.recommend.text[currentLang];
-            document.getElementById('loadingModal').classList.remove('active');
-            document.getElementById('resultContent').textContent=lastResult;
-            document.getElementById('resultModal').classList.add('active');
-        }
-        function closeResult(){document.getElementById('resultModal').classList.remove('active')}
-        async function copyResult(){try{await navigator.clipboard.writeText(lastResult);const btn=event.target;const orig=btn.textContent;btn.textContent=currentLang==='ko'?'복사됨!':'Copied!';setTimeout(()=>btn.textContent=orig,1500)}catch(e){alert('Copy failed')}}
-        function openRecommended(){closeResult();setTimeout(()=>openPack(PACKS[currentPack].recommend.pack),200)}
-        document.getElementById('searchInput').addEventListener('keypress',e=>{if(e.key==='Enter'&&e.target.value.trim()){const q=e.target.value.toLowerCase();if(q.includes('email')||q.includes('이메일')||q.includes('메일'))openPack('email');else if(q.includes('summar')||q.includes('요약'))openPack('summary');else if(q.includes('translat')||q.includes('번역'))openPack('translate');else openPack('write')}});
-        document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeResult()}});
-    </script>
+  <h1>Autus</h1>
+  <p class="tagline">Autus does nothing. The world does everything on Autus.</p>
+  <div class="links">
+    <a href="/market/">Market</a>
+    <a href="/cell/angeles-school">Cell Dashboard</a>
+    <a href="/docs/">Documentation</a>
+    <a href="https://autus-production.up.railway.app/docs" target="_blank">API Docs</a>
+  </div>
+  <footer>Autus 5.0 - Zero-Action Operating System</footer>
 </body>
 </html>

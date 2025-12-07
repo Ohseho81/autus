@@ -1201,3 +1201,10 @@ try:
     print("✅ Succession 라우터 등록 완료")
 except ImportError as e:
     print(f"⚠️ Succession 로드 실패: {e}")
+
+# Mount static pages at root paths
+from pathlib import Path
+static_root = Path(__file__).parent / "static"
+if static_root.exists():
+    app.mount("/market", StaticFiles(directory=str(static_root / "market"), html=True), name="market")
+    app.mount("/cell", StaticFiles(directory=str(static_root / "cell"), html=True), name="cell")
