@@ -753,3 +753,63 @@
 2025-12-07 22:41:00,946 | INFO | Request completed
 2025-12-07 22:41:00,947 | INFO | GET /limepass/ → 200 (1.73ms)
 2025-12-07 22:41:00,947 | INFO | HTTP Request: GET http://testserver/limepass/ "HTTP/1.1 200 OK"
+2025-12-07 22:43:56,620 | INFO | Request started
+2025-12-07 22:43:56,621 | INFO | Request completed
+2025-12-07 22:43:56,621 | INFO | GET /api/v1/financial/costs → 200 (1.09ms)
+2025-12-07 22:43:56,622 | INFO | HTTP Request: GET http://testserver/api/v1/financial/costs "HTTP/1.1 200 OK"
+2025-12-07 22:43:56,623 | INFO | Request started
+2025-12-07 22:43:56,623 | INFO | Request completed
+2025-12-07 22:43:56,623 | INFO | POST /api/v1/financial/profile → 404 (0.78ms)
+2025-12-07 22:43:56,624 | INFO | HTTP Request: POST http://testserver/api/v1/financial/profile "HTTP/1.1 404 Not Found"
+2025-12-07 22:43:56,624 | INFO | Request started
+2025-12-07 22:43:56,625 | INFO | Request completed
+2025-12-07 22:43:56,625 | INFO | GET /api/v1/risk/factors → 404 (0.61ms)
+2025-12-07 22:43:56,625 | INFO | HTTP Request: GET http://testserver/api/v1/risk/factors "HTTP/1.1 404 Not Found"
+2025-12-07 22:43:56,626 | INFO | Request started
+2025-12-07 22:43:56,626 | INFO | Request completed
+2025-12-07 22:43:56,626 | INFO | GET /api/v1/risk/assessment → 404 (0.58ms)
+2025-12-07 22:43:56,627 | INFO | HTTP Request: GET http://testserver/api/v1/risk/assessment "HTTP/1.1 404 Not Found"
+2025-12-07 22:43:56,627 | INFO | Request started
+2025-12-07 22:43:56,627 | INFO | Request completed
+2025-12-07 22:43:56,628 | INFO | GET /api/v1/chatbot/flow → 404 (0.57ms)
+2025-12-07 22:43:56,628 | INFO | HTTP Request: GET http://testserver/api/v1/chatbot/flow "HTTP/1.1 404 Not Found"
+2025-12-07 22:43:56,628 | INFO | Request started
+2025-12-07 22:43:56,629 | INFO | Request completed
+2025-12-07 22:43:56,629 | INFO | POST /api/v1/chatbot/message → 404 (0.59ms)
+2025-12-07 22:43:56,629 | INFO | HTTP Request: POST http://testserver/api/v1/chatbot/message "HTTP/1.1 404 Not Found"
+2025-12-07 22:44:20,347 | INFO | Request started
+2025-12-07 22:44:20,347 | INFO | Request completed
+2025-12-07 22:44:20,348 | INFO | GET /api/v1/financial/costs → 200 (1.03ms)
+2025-12-07 22:44:20,349 | INFO | HTTP Request: GET http://testserver/api/v1/financial/costs "HTTP/1.1 200 OK"
+2025-12-07 22:44:20,349 | INFO | Request started
+2025-12-07 22:44:20,350 | INFO | Request completed
+2025-12-07 22:44:20,350 | INFO | GET /api/v1/financial/demo → 200 (1.03ms)
+2025-12-07 22:44:20,351 | INFO | HTTP Request: GET http://testserver/api/v1/financial/demo "HTTP/1.1 200 OK"
+2025-12-07 22:44:20,351 | INFO | Request started
+2025-12-07 22:44:20,352 | INFO | Request completed
+2025-12-07 22:44:20,352 | INFO | POST /api/v1/financial/compare → 200 (0.83ms)
+2025-12-07 22:44:20,352 | INFO | HTTP Request: POST http://testserver/api/v1/financial/compare "HTTP/1.1 200 OK"
+2025-12-07 22:44:20,353 | INFO | Request started
+2025-12-07 22:44:20,353 | INFO | Request completed
+2025-12-07 22:44:20,353 | INFO | GET /api/v1/risk/alerts → 200 (0.63ms)
+2025-12-07 22:44:20,354 | INFO | HTTP Request: GET http://testserver/api/v1/risk/alerts "HTTP/1.1 200 OK"
+2025-12-07 22:44:20,354 | INFO | Request started
+2025-12-07 22:44:20,355 | INFO | Request completed
+2025-12-07 22:44:20,355 | INFO | GET /api/v1/risk/dashboard → 200 (0.61ms)
+2025-12-07 22:44:20,355 | INFO | HTTP Request: GET http://testserver/api/v1/risk/dashboard "HTTP/1.1 200 OK"
+2025-12-07 22:44:20,356 | INFO | Request started
+2025-12-07 22:44:20,356 | INFO | Request completed
+2025-12-07 22:44:20,356 | INFO | GET /api/v1/risk/demo → 200 (0.64ms)
+2025-12-07 22:44:20,357 | INFO | HTTP Request: GET http://testserver/api/v1/risk/demo "HTTP/1.1 200 OK"
+2025-12-07 22:44:20,358 | INFO | Request started
+2025-12-07 22:44:20,358 | INFO | Request completed
+2025-12-07 22:44:20,358 | INFO | GET /api/v1/chatbot/stats → 200 (0.55ms)
+2025-12-07 22:44:20,358 | INFO | HTTP Request: GET http://testserver/api/v1/chatbot/stats "HTTP/1.1 200 OK"
+2025-12-07 22:44:20,359 | INFO | Request started
+2025-12-07 22:44:20,359 | INFO | Request completed
+2025-12-07 22:44:20,360 | INFO | POST /api/v1/chatbot/webhook → 200 (0.72ms)
+2025-12-07 22:44:20,360 | INFO | HTTP Request: POST http://testserver/api/v1/chatbot/webhook "HTTP/1.1 200 OK"
+2025-12-07 22:44:20,360 | INFO | Request started
+2025-12-07 22:44:20,361 | INFO | Request completed
+2025-12-07 22:44:20,361 | INFO | POST /api/v1/chatbot/simulate → 200 (0.81ms)
+2025-12-07 22:44:20,362 | INFO | HTTP Request: POST http://testserver/api/v1/chatbot/simulate "HTTP/1.1 200 OK"
