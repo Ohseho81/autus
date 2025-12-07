@@ -705,3 +705,51 @@
 2025-12-07 22:37:51,820 | INFO | Request completed
 2025-12-07 22:37:51,820 | INFO | GET /cell/ → 200 (1.26ms)
 2025-12-07 22:37:51,821 | INFO | HTTP Request: GET http://testserver/cell/ "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,923 | INFO | Request started
+2025-12-07 22:41:00,924 | INFO | Request completed
+2025-12-07 22:41:00,924 | INFO | GET /api/v1/mars/pack/pkmars → 200 (0.95ms)
+2025-12-07 22:41:00,925 | INFO | HTTP Request: GET http://testserver/api/v1/mars/pack/pkmars "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,925 | INFO | Request started
+2025-12-07 22:41:00,926 | INFO | Request completed
+2025-12-07 22:41:00,926 | INFO | GET /api/v1/mars/twins → 200 (0.66ms)
+2025-12-07 22:41:00,926 | INFO | HTTP Request: GET http://testserver/api/v1/mars/twins "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,927 | INFO | Request started
+2025-12-07 22:41:00,927 | INFO | Request completed
+2025-12-07 22:41:00,927 | INFO | GET /api/v1/mars/dashboard → 200 (0.63ms)
+2025-12-07 22:41:00,928 | INFO | HTTP Request: GET http://testserver/api/v1/mars/dashboard "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,928 | INFO | Request started
+2025-12-07 22:41:00,929 | INFO | Request completed
+2025-12-07 22:41:00,929 | INFO | GET /api/v1/city/pack/pkcity → 200 (0.64ms)
+2025-12-07 22:41:00,930 | INFO | HTTP Request: GET http://testserver/api/v1/city/pack/pkcity "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,930 | INFO | Request started
+2025-12-07 22:41:00,931 | INFO | Request completed
+2025-12-07 22:41:00,931 | INFO | GET /api/v1/city/dashboard → 200 (0.57ms)
+2025-12-07 22:41:00,931 | INFO | HTTP Request: GET http://testserver/api/v1/city/dashboard "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,932 | INFO | Request started
+2025-12-07 22:41:00,932 | INFO | Request completed
+2025-12-07 22:41:00,932 | INFO | GET /api/v1/city/twins → 200 (0.59ms)
+2025-12-07 22:41:00,933 | INFO | HTTP Request: GET http://testserver/api/v1/city/twins "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,933 | INFO | Request started
+2025-12-07 22:41:00,933 | INFO | Request completed
+2025-12-07 22:41:00,934 | INFO | GET /api/v1/graph/entities → 200 (0.61ms)
+2025-12-07 22:41:00,934 | INFO | HTTP Request: GET http://testserver/api/v1/graph/entities "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,934 | INFO | Request started
+2025-12-07 22:41:00,935 | INFO | Request completed
+2025-12-07 22:41:00,935 | INFO | GET /api/v1/graph/relationships → 200 (0.57ms)
+2025-12-07 22:41:00,935 | INFO | HTTP Request: GET http://testserver/api/v1/graph/relationships "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,936 | INFO | Request started
+2025-12-07 22:41:00,939 | INFO | Request completed
+2025-12-07 22:41:00,940 | INFO | GET /admin/ → 200 (3.99ms)
+2025-12-07 22:41:00,941 | INFO | HTTP Request: GET http://testserver/admin/ "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,941 | INFO | Request started
+2025-12-07 22:41:00,941 | INFO | Request completed
+2025-12-07 22:41:00,942 | INFO | GET /market → 307 (0.66ms)
+2025-12-07 22:41:00,942 | INFO | HTTP Request: GET http://testserver/market "HTTP/1.1 307 Temporary Redirect"
+2025-12-07 22:41:00,942 | INFO | Request started
+2025-12-07 22:41:00,943 | INFO | Request completed
+2025-12-07 22:41:00,944 | INFO | GET /market/ → 200 (1.35ms)
+2025-12-07 22:41:00,944 | INFO | HTTP Request: GET http://testserver/market/ "HTTP/1.1 200 OK"
+2025-12-07 22:41:00,945 | INFO | Request started
+2025-12-07 22:41:00,946 | INFO | Request completed
+2025-12-07 22:41:00,947 | INFO | GET /limepass/ → 200 (1.73ms)
+2025-12-07 22:41:00,947 | INFO | HTTP Request: GET http://testserver/limepass/ "HTTP/1.1 200 OK"
