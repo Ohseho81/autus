@@ -1,0 +1,26 @@
+{
+  "$id": "autus.kernel.event",
+  "type": "object",
+  "required": ["id", "type", "delta"],
+  "properties": {
+    "id": { "type": "string" },
+    "type": { "type": "string" },
+    "actor": { "type": "string" },
+    "targets": { "type": "array", "items": { "type": "string" } },
+    "delta": {
+      "type": "object",
+      "properties": {
+        "A2": { "type": "number" },
+        "A3": { "type": "number" },
+        "A4": { "type": "number" },
+        "A5": { "type": "number" },
+        "A6": { "type": "number" },
+        "A7": { "type": "number" },
+        "A8": { "type": "number" },
+        "A9": { "type": "number" }
+      }
+    },
+    "context": { "type": "object" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1180,6 +1180,9 @@ try:
     from api.routes.limepass import router as limepass_router
     app.include_router(limepass_router, prefix="/api/v1")
     print("✅ LimePass 라우터 등록 완료")
+    from api.routes.arl import router as arl_router
+    app.include_router(arl_router, prefix="/api/v1")
+    print("✅ ARL 라우터 등록 완료")
 except ImportError as e:
     print(f"⚠️ Marketplace 로드 실패: {e}")
 
