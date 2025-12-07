@@ -50,6 +50,7 @@ from api.prometheus_metrics import (
 from api.errors import AutousException, ErrorCode, ErrorResponse
 from api.monitoring import get_monitor
 from api.routes.monitoring import router as monitoring_router
+from api.routes.deployments import router as deployments_router
 
 __version__ = "4.2.0"
 __title__ = "AUTUS - Meta-Circular Development OS"
@@ -1312,6 +1313,13 @@ try:
     print("✅ API Monitoring 라우터 등록 완료 (8개 엔드포인트)")
 except ImportError as e:
     print(f"⚠️ Monitoring 로드 실패: {e}")
+
+# ============ AUTUS Deployment Pipeline ============
+try:
+    app.include_router(deployments_router, prefix="/api/v1")
+    print("✅ Deployment Pipeline 라우터 등록 완료 (7개 엔드포인트)")
+except ImportError as e:
+    print(f"⚠️ Deployment Pipeline 로드 실패: {e}")
 
 # Mount static pages at root paths
 from pathlib import Path
