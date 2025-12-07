@@ -26,6 +26,10 @@ COPY evolution/ ./evolution/
 COPY marketplace/ ./marketplace/
 COPY oracle/ ./oracle/
 COPY succession/ ./succession/
+COPY kernel/ ./kernel/
+COPY validators/ ./validators/
+COPY kernel/ ./kernel/
+COPY validators/ ./validators/
 COPY main.py .
 
 RUN mkdir -p logs specs/auto
