@@ -1,0 +1,17 @@
+{
+  "id": "JOB-ATB-COACH-001",
+  "employer_id": "EMP-ATB-SEOUL",
+  "position_title": "ATB Indoor Basketball Coach",
+  "work_location": "Seoul, Korea",
+  "salary_min_krw": 2600000,
+  "salary_max_krw": 3200000,
+  "contract_months": 24,
+  "visa_type": "E-7",
+  "english_level": "intermediate",
+  "experience_years": 2,
+  "preferred_majors": ["Physical Education", "Sports Science", "Kinesiology"],
+  "fitness_level": "high",
+  "min_gpa": 2.5,
+  "working_hours_per_week": 44,
+  "additional_requirements": "Must demonstrate drills and participate in high-intensity practice"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "JOB-ATB-TRAINER-002",
+  "employer_id": "EMP-ATB-SEOUL",
+  "position_title": "ATB Academy Skills Trainer",
+  "work_location": "Seoul, Korea",
+  "salary_min_krw": 2400000,
+  "salary_max_krw": 3000000,
+  "contract_months": 24,
+  "visa_type": "D-2",
+  "english_level": "basic",
+  "experience_years": 1,
+  "preferred_majors": ["Physical Education", "Education", "Sports Science"],
+  "fitness_level": "medium",
+  "min_gpa": 2.0,
+  "working_hours_per_week": 40,
+  "additional_requirements": "Comfortable teaching kids, willing to work weekends"
+}

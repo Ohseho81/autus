@@ -30,8 +30,10 @@ COPY kernel/ ./kernel/
 COPY validators/ ./validators/
 COPY config/ ./config/
 COPY static/ ./static/
+COPY matching_engine/ ./matching_engine/
 COPY config/ ./config/
 COPY static/ ./static/
+COPY matching_engine/ ./matching_engine/
 COPY main.py .
 
 RUN mkdir -p logs specs/auto
