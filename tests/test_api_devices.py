@@ -17,3 +17,4 @@ def test_device_stats():
     response = client.get("/devices/stats/summary")
     assert response.status_code == 200
 
+

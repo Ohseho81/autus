@@ -189,3 +189,4 @@ class TestTelemetry:
         assert metrics["metrics"]["api.errors"] == 5
 
 
+

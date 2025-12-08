@@ -16,3 +16,4 @@ def test_god_health():
     response = client.get("/god/health?role=seho")
     assert response.status_code == 200
 
+
