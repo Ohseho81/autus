@@ -15,16 +15,36 @@ Autus-OS Protocol v1 - Layer 5: Tile API Layer
 
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
-from services.tiles import (
-    TileResponse,
-    get_student_tile,
-    get_cohort_tile,
-    get_university_tile,
-    get_employer_tile,
-    get_country_tile,
-    get_flow_tile,
-    get_autopilot_tile
-)
+
+# Dynamic import with fallback for Railway environment
+try:
+    from services.tiles import (
+        TileResponse,
+        get_student_tile,
+        get_cohort_tile,
+        get_university_tile,
+        get_employer_tile,
+        get_country_tile,
+        get_flow_tile,
+        get_autopilot_tile
+    )
+except ModuleNotFoundError:
+    # Fallback: Import from local path if services is not in PYTHONPATH
+    import sys
+    import os
+    _root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    if _root not in sys.path:
+        sys.path.insert(0, _root)
+    from services.tiles import (
+        TileResponse,
+        get_student_tile,
+        get_cohort_tile,
+        get_university_tile,
+        get_employer_tile,
+        get_country_tile,
+        get_flow_tile,
+        get_autopilot_tile
+    )
 
 router = APIRouter(prefix="/svc", tags=["tiles", "ui-kernel"])
 
