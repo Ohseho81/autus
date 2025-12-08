@@ -36,6 +36,7 @@ from protocols.auth.zero_auth import ZeroAuth
 from api.routes.devices import router as devices_router
 from api.routes.analytics import router as analytics_router
 from api.routes.tasks import router as tasks_router
+from api.routes.tiles import router as tiles_router
 from api.logger import log_request
 from api.analytics import analytics
 from api.cache import init_cache, cached_response, cache_invalidate
@@ -1220,13 +1221,12 @@ try:
 except ImportError as e:
     print(f"⚠️ Sync 로드 실패: {e}")
 
-# ============ AUTUS Tile Services (UI Kernel Layer) ============
-try:
-    from api.routes.tiles import router as tiles_router
-    app.include_router(tiles_router, prefix="/api/v1")
-    print("✅ Tile Services 라우터 등록 완료 (7개 엔드포인트)")
-except ImportError as e:
-    print(f"⚠️ Tile Services 로드 실패: {e}")
+# ============ Early Route Registration (상단에서 import됨) ============
+app.include_router(devices_router)
+app.include_router(analytics_router)
+app.include_router(tasks_router)
+app.include_router(tiles_router, prefix="/api/v1")
+print("✅ Core 라우터 등록 완료 (devices, analytics, tasks, tiles)")
 
 # ============ AUTUS Evolution (Meta-Circular) ============
 try:
