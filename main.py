@@ -17,6 +17,10 @@ Version: 4.2.0
 License: MIT
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from typing import List, Dict, Any, Optional
 import qrcode
 import io
