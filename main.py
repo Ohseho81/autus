@@ -19,7 +19,15 @@ License: MIT
 
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Ensure project root is in Python path for module discovery
+_app_root = os.path.dirname(os.path.abspath(__file__))
+if _app_root not in sys.path:
+    sys.path.insert(0, _app_root)
+
+# Also add to path if running from container (Railway)
+if '/app' not in sys.path and os.path.exists('/app'):
+    sys.path.insert(0, '/app')
 
 from typing import List, Dict, Any, Optional
 import qrcode
