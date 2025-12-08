@@ -1091,6 +1091,13 @@ app.include_router(devices_router)
 # ===== Analytics API =====
 app.include_router(analytics_router)
 
+# ===== Tasks API =====
+app.include_router(tasks_router)
+
+# ===== Tiles Services API =====
+app.include_router(tiles_router, prefix="/api/v1")
+print("✅ Core 라우터 등록 완료 (devices, analytics, tasks, tiles)")
+
 
 # ===== Logging Middleware =====
 @app.middleware("http")
@@ -1220,13 +1227,6 @@ try:
     print("✅ Sync 라우터 등록 완료")
 except ImportError as e:
     print(f"⚠️ Sync 로드 실패: {e}")
-
-# ============ Early Route Registration (상단에서 import됨) ============
-app.include_router(devices_router)
-app.include_router(analytics_router)
-app.include_router(tasks_router)
-app.include_router(tiles_router, prefix="/api/v1")
-print("✅ Core 라우터 등록 완료 (devices, analytics, tasks, tiles)")
 
 # ============ AUTUS Evolution (Meta-Circular) ============
 try:
