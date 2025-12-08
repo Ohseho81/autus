@@ -32,6 +32,7 @@ COPY validators/ ./validators/
 COPY config/ ./config/
 COPY static/ ./static/
 COPY matching_engine/ ./matching_engine/
+COPY services/ ./services/
 COPY main.py .
 
 # Create necessary directories
