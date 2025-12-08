@@ -15,7 +15,7 @@ Autus-OS Protocol v1 - Layer 5: Tile API Layer
 
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
-from services.tiles import (
+from api.services.tiles import (
     TileResponse,
     get_student_tile,
     get_cohort_tile,
