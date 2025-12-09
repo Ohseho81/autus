@@ -37,6 +37,12 @@ COPY main.py .
 # Create necessary directories
 RUN mkdir -p logs specs/auto
 
+# Create dummy services module as fallback for import issues
+RUN mkdir -p services/tiles && \
+    echo "" > services/__init__.py && \
+    echo "" > services/tiles/__init__.py && \
+    echo "# Dummy module - use api.services instead" > services/tiles.py
+
 EXPOSE 8000
 
 # Health check
