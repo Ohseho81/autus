@@ -54,7 +54,7 @@ router = APIRouter(prefix="/svc", tags=["tiles", "ui-kernel"])
 
 
 # ============================================================
-# TILE ENDPOINTS
+# TILE ENDPOINTS (Fixed for Railway deployment)
 # ============================================================
 
 @router.get("/student/{student_id}", response_model=TileResponse)
