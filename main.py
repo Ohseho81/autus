@@ -39,8 +39,7 @@ from protocols.auth.zero_auth import ZeroAuth
 from api.routes.devices import router as devices_router
 from api.routes.analytics import router as analytics_router
 from api.routes.tasks import router as tasks_router
-# Temporarily disabled - Railway git webhook issue
-# from api.routes.tiles import router as tiles_router
+from api.routes.tiles import router as tiles_router
 from api.logger import log_request
 from api.analytics import analytics
 from api.cache import init_cache, cached_response, cache_invalidate
@@ -1099,9 +1098,8 @@ app.include_router(analytics_router)
 app.include_router(tasks_router)
 
 # ===== Tiles Services API =====
-# Temporarily disabled - Railway git webhook issue with tiles import
-# app.include_router(tiles_router, prefix="/api/v1")
-print("✅ Core 라우터 등록 완료 (devices, analytics, tasks)")
+app.include_router(tiles_router, prefix="/api/v1")
+print("✅ Core 라우터 등록 완료 (devices, analytics, tasks, tiles)")
 
 
 # ===== Logging Middleware =====
