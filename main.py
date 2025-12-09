@@ -1213,6 +1213,8 @@ try:
     app.include_router(cells_router, prefix="/api/v1")
     from api.routes.limepass import router as limepass_router
     app.include_router(limepass_router, prefix="/api/v1")
+    from kernel.lime.api import router as lime_kernel_router
+    app.include_router(lime_kernel_router)
     print("✅ LimePass 라우터 등록 완료")
     from api.routes.arl import router as arl_router
     app.include_router(arl_router, prefix="/api/v1")
