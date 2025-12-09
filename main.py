@@ -39,7 +39,16 @@ from protocols.auth.zero_auth import ZeroAuth
 from api.routes.devices import router as devices_router
 from api.routes.analytics import router as analytics_router
 from api.routes.tasks import router as tasks_router
-from api.routes.tiles import router as tiles_router
+
+# Try to import tiles router - gracefully fail if module issue
+try:
+    from api.routes.tiles import router as tiles_router
+    tiles_router_available = True
+except Exception as e:
+    print(f"⚠️ Tiles router import failed: {e}")
+    tiles_router_available = False
+    tiles_router = None
+
 from api.logger import log_request
 from api.analytics import analytics
 from api.cache import init_cache, cached_response, cache_invalidate
@@ -1098,8 +1107,11 @@ app.include_router(analytics_router)
 app.include_router(tasks_router)
 
 # ===== Tiles Services API =====
-app.include_router(tiles_router, prefix="/api/v1")
-print("✅ Core 라우터 등록 완료 (devices, analytics, tasks, tiles)")
+if tiles_router_available:
+    app.include_router(tiles_router, prefix="/api/v1")
+    print("✅ Core 라우터 등록 완료 (devices, analytics, tasks, tiles)")
+else:
+    print("⚠️ Core 라우터 등록 완료 (devices, analytics, tasks) - tiles unavailable")
 
 
 # ===== Logging Middleware =====
