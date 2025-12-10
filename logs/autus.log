@@ -993,3 +993,121 @@
 2025-12-08 22:25:41,153 | INFO | Request completed
 2025-12-08 22:25:41,153 | INFO | GET /api/v1/svc/student/TEST_001 → 200 (1.55ms)
 2025-12-08 22:25:41,154 | INFO | HTTP Request: GET http://testserver/api/v1/svc/student/TEST_001 "HTTP/1.1 200 OK"
+2025-12-09 08:09:35,548 | INFO | ✅ Redis connected successfully
+2025-12-09 08:09:35,548 | INFO | ✅ Redis cache layer initialized
+2025-12-09 08:09:35,548 | INFO | 🔥 Warming up cache with common endpoints...
+2025-12-09 08:09:35,548 | INFO | ✅ Cache warmup complete: 0 keys
+2025-12-09 08:09:44,980 | INFO | Request started
+2025-12-09 08:09:44,982 | INFO | Request completed
+2025-12-09 08:09:44,982 | INFO | GET /api/v1/lime/health → 200 (2.22ms)
+2025-12-09 08:11:53,412 | INFO | Request started
+2025-12-09 08:11:53,414 | INFO | Request completed
+2025-12-09 08:11:53,414 | INFO | GET /api/v1/lime/events → 200 (2.08ms)
+2025-12-09 08:11:53,458 | INFO | Request started
+2025-12-09 08:11:53,459 | INFO | Request completed
+2025-12-09 08:11:53,459 | INFO | GET /api/v1/lime/entities → 200 (1.32ms)
+2025-12-09 08:11:53,490 | INFO | Request started
+2025-12-09 08:11:53,491 | INFO | Request completed
+2025-12-09 08:11:53,491 | INFO | GET /api/v1/lime/state/HUM:001 → 200 (0.96ms)
+2025-12-09 08:11:53,520 | INFO | Request started
+2025-12-09 08:11:53,521 | INFO | Request completed
+2025-12-09 08:11:53,521 | INFO | POST /api/v1/lime/event → 200 (1.27ms)
+2025-12-09 08:11:53,548 | INFO | Request started
+2025-12-09 08:11:53,549 | INFO | Request completed
+2025-12-09 08:11:53,549 | INFO | GET /api/v1/lime/settlement/HUM:001 → 200 (0.82ms)
+2025-12-09 08:20:15,235 | INFO | Request started
+2025-12-09 08:20:15,236 | INFO | Request completed
+2025-12-09 08:20:15,236 | INFO | GET /api/v1/lime/health → 200 (1.30ms)
+2025-12-09 08:20:15,237 | INFO | HTTP Request: GET http://testserver/api/v1/lime/health "HTTP/1.1 200 OK"
+2025-12-09 08:20:15,237 | INFO | Request started
+2025-12-09 08:20:15,238 | INFO | Request completed
+2025-12-09 08:20:15,238 | INFO | GET /api/v1/lime/events → 200 (0.95ms)
+2025-12-09 08:20:15,239 | INFO | HTTP Request: GET http://testserver/api/v1/lime/events "HTTP/1.1 200 OK"
+2025-12-09 08:20:15,239 | INFO | Request started
+2025-12-09 08:20:15,240 | INFO | Request completed
+2025-12-09 08:20:15,240 | INFO | GET /api/v1/lime/entities → 200 (1.00ms)
+2025-12-09 08:20:15,241 | INFO | HTTP Request: GET http://testserver/api/v1/lime/entities "HTTP/1.1 200 OK"
+2025-12-09 08:20:29,629 | INFO | Request started
+2025-12-09 08:20:29,630 | INFO | Request completed
+2025-12-09 08:20:29,630 | INFO | GET /api/v1/lime/state/HUM_001 → 404 (1.23ms)
+2025-12-09 08:20:29,631 | INFO | HTTP Request: GET http://testserver/api/v1/lime/state/HUM_001 "HTTP/1.1 404 Not Found"
+2025-12-09 08:20:29,631 | INFO | Request started
+2025-12-09 08:20:29,632 | INFO | Request completed
+2025-12-09 08:20:29,632 | INFO | GET /api/v1/lime/settlement/HUM_001 → 404 (1.02ms)
+2025-12-09 08:20:29,633 | INFO | HTTP Request: GET http://testserver/api/v1/lime/settlement/HUM_001 "HTTP/1.1 404 Not Found"
+2025-12-09 08:20:29,633 | INFO | Request started
+2025-12-09 08:20:29,635 | INFO | Request completed
+2025-12-09 08:20:29,635 | INFO | GET /api/v1/lime/scenarios → 200 (1.67ms)
+2025-12-09 08:20:29,636 | INFO | HTTP Request: GET http://testserver/api/v1/lime/scenarios "HTTP/1.1 200 OK"
+2025-12-09 08:21:10,369 | INFO | Request started
+2025-12-09 08:21:10,369 | INFO | Request completed
+2025-12-09 08:21:10,370 | INFO | GET /api/v1/lime/health → 200 (1.06ms)
+2025-12-09 08:21:10,370 | INFO | HTTP Request: GET http://testserver/api/v1/lime/health "HTTP/1.1 200 OK"
+2025-12-09 08:21:10,371 | INFO | Request started
+2025-12-09 08:21:10,372 | INFO | Request completed
+2025-12-09 08:21:10,372 | INFO | GET /api/v1/lime/events → 200 (0.84ms)
+2025-12-09 08:21:10,372 | INFO | HTTP Request: GET http://testserver/api/v1/lime/events "HTTP/1.1 200 OK"
+2025-12-09 08:21:10,373 | INFO | Request started
+2025-12-09 08:21:10,373 | INFO | Request completed
+2025-12-09 08:21:10,373 | INFO | GET /api/v1/lime/entities → 200 (0.80ms)
+2025-12-09 08:21:10,374 | INFO | HTTP Request: GET http://testserver/api/v1/lime/entities "HTTP/1.1 200 OK"
+2025-12-09 08:21:10,374 | INFO | Request started
+2025-12-09 08:21:10,375 | INFO | Request completed
+2025-12-09 08:21:10,375 | INFO | GET /api/v1/lime/state/HUM_001 → 404 (0.67ms)
+2025-12-09 08:21:10,375 | INFO | HTTP Request: GET http://testserver/api/v1/lime/state/HUM_001 "HTTP/1.1 404 Not Found"
+2025-12-09 08:21:10,376 | INFO | Request started
+2025-12-09 08:21:10,376 | INFO | Request completed
+2025-12-09 08:21:10,376 | INFO | GET /api/v1/lime/settlement/HUM_001 → 404 (0.63ms)
+2025-12-09 08:21:10,377 | INFO | HTTP Request: GET http://testserver/api/v1/lime/settlement/HUM_001 "HTTP/1.1 404 Not Found"
+2025-12-09 08:21:10,377 | INFO | Request started
+2025-12-09 08:21:10,378 | INFO | Request completed
+2025-12-09 08:21:10,378 | INFO | GET /api/v1/lime/scenarios → 200 (0.76ms)
+2025-12-09 08:21:10,378 | INFO | HTTP Request: GET http://testserver/api/v1/lime/scenarios "HTTP/1.1 200 OK"
+2025-12-09 08:21:17,967 | INFO | Request started
+2025-12-09 08:21:17,968 | INFO | Request completed
+2025-12-09 08:21:17,968 | INFO | POST /api/v1/lime/event → 400 (1.41ms)
+2025-12-09 08:21:17,969 | INFO | HTTP Request: POST http://testserver/api/v1/lime/event "HTTP/1.1 400 Bad Request"
+2025-12-09 08:21:17,969 | INFO | Request started
+2025-12-09 08:21:17,971 | INFO | Request completed
+2025-12-09 08:21:17,971 | INFO | POST /api/v1/lime/simulate → 200 (1.98ms)
+2025-12-09 08:21:17,972 | INFO | HTTP Request: POST http://testserver/api/v1/lime/simulate "HTTP/1.1 200 OK"
+2025-12-09 08:21:17,972 | INFO | Request started
+2025-12-09 08:21:17,973 | INFO | Request completed
+2025-12-09 08:21:17,973 | INFO | POST /api/v1/lime/reset → 200 (0.76ms)
+2025-12-09 08:21:17,973 | INFO | HTTP Request: POST http://testserver/api/v1/lime/reset "HTTP/1.1 200 OK"
+2025-12-09 08:35:02,454 | INFO | Request started
+2025-12-09 08:35:02,455 | INFO | Request completed
+2025-12-09 08:35:02,455 | INFO | GET /api/v1/lime/health → 200 (1.20ms)
+2025-12-09 08:35:02,456 | INFO | HTTP Request: GET http://testserver/api/v1/lime/health "HTTP/1.1 200 OK"
+2025-12-09 08:35:02,456 | INFO | Request started
+2025-12-09 08:35:02,457 | INFO | Request completed
+2025-12-09 08:35:02,457 | INFO | GET /api/v1/lime/events → 200 (0.87ms)
+2025-12-09 08:35:02,458 | INFO | HTTP Request: GET http://testserver/api/v1/lime/events "HTTP/1.1 200 OK"
+2025-12-09 08:35:02,458 | INFO | Request started
+2025-12-09 08:35:02,459 | INFO | Request completed
+2025-12-09 08:35:02,459 | INFO | GET /api/v1/lime/entities → 200 (1.04ms)
+2025-12-09 08:35:02,460 | INFO | HTTP Request: GET http://testserver/api/v1/lime/entities "HTTP/1.1 200 OK"
+2025-12-09 08:35:02,460 | INFO | Request started
+2025-12-09 08:35:02,461 | INFO | Request completed
+2025-12-09 08:35:02,461 | INFO | GET /api/v1/lime/state/HUM:001 → 200 (0.73ms)
+2025-12-09 08:35:02,461 | INFO | HTTP Request: GET http://testserver/api/v1/lime/state/HUM:001 "HTTP/1.1 200 OK"
+2025-12-09 08:35:02,462 | INFO | Request started
+2025-12-09 08:35:02,462 | INFO | Request completed
+2025-12-09 08:35:02,462 | INFO | GET /api/v1/lime/settlement/HUM:001 → 200 (0.67ms)
+2025-12-09 08:35:02,463 | INFO | HTTP Request: GET http://testserver/api/v1/lime/settlement/HUM:001 "HTTP/1.1 200 OK"
+2025-12-09 08:35:02,463 | INFO | Request started
+2025-12-09 08:35:02,464 | INFO | Request completed
+2025-12-09 08:35:02,464 | INFO | GET /api/v1/lime/scenarios → 200 (0.83ms)
+2025-12-09 08:35:02,464 | INFO | HTTP Request: GET http://testserver/api/v1/lime/scenarios "HTTP/1.1 200 OK"
+2025-12-09 08:35:02,465 | INFO | Request started
+2025-12-09 08:35:02,465 | INFO | Request completed
+2025-12-09 08:35:02,466 | INFO | POST /api/v1/lime/event → 200 (1.02ms)
+2025-12-09 08:35:02,466 | INFO | HTTP Request: POST http://testserver/api/v1/lime/event "HTTP/1.1 200 OK"
+2025-12-09 08:35:02,467 | INFO | Request started
+2025-12-09 08:35:02,467 | INFO | Request completed
+2025-12-09 08:35:02,467 | INFO | POST /api/v1/lime/simulate → 200 (1.07ms)
+2025-12-09 08:35:02,468 | INFO | HTTP Request: POST http://testserver/api/v1/lime/simulate "HTTP/1.1 200 OK"
+2025-12-09 08:35:02,469 | INFO | Request started
+2025-12-09 08:35:02,469 | INFO | Request completed
+2025-12-09 08:35:02,469 | INFO | POST /api/v1/lime/reset → 200 (0.83ms)
+2025-12-09 08:35:02,470 | INFO | HTTP Request: POST http://testserver/api/v1/lime/reset "HTTP/1.1 200 OK"

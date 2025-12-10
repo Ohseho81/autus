@@ -18,3 +18,4 @@ def test_device_stats():
     assert response.status_code == 200
 
 
+

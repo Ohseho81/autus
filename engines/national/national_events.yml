@@ -1,0 +1,200 @@
+# National Meaning Layer OS v1
+# 국가/이주 관련 이벤트 정의 (20개 기본 + 확장)
+
+events:
+  # === HUM: Human 이벤트 ===
+  HUM.APPLY.SUBMITTED:
+    DIR: 0.02
+    FOR: 0.02
+    GAP: -0.01
+    UNC: -0.01
+    TEM: 0.00
+    INT: 0.01
+
+  HUM.DOC.UPLOADED:
+    DIR: 0.01
+    FOR: 0.02
+    GAP: -0.02
+    UNC: -0.02
+    TEM: 0.01
+    INT: 0.02
+
+  HUM.DOC.APPROVED:
+    DIR: 0.03
+    FOR: 0.03
+    GAP: -0.04
+    UNC: -0.04
+    TEM: -0.01
+    INT: 0.03
+
+  HUM.DOC.REJECTED:
+    DIR: -0.03
+    FOR: -0.03
+    GAP: 0.04
+    UNC: 0.05
+    TEM: 0.02
+    INT: -0.03
+
+  HUM.MEDICAL.PASSED:
+    DIR: 0.02
+    FOR: 0.03
+    GAP: -0.03
+    UNC: -0.03
+    TEM: -0.01
+    INT: 0.02
+
+  HUM.MEDICAL.FAILED:
+    DIR: -0.04
+    FOR: -0.03
+    GAP: 0.05
+    UNC: 0.06
+    TEM: 0.03
+    INT: -0.04
+
+  HUM.TRAINING.COMPLETED:
+    DIR: 0.04
+    FOR: 0.04
+    GAP: -0.05
+    UNC: -0.04
+    TEM: -0.02
+    INT: 0.04
+
+  HUM.TRAINING.FAILED:
+    DIR: -0.03
+    FOR: -0.02
+    GAP: 0.04
+    UNC: 0.05
+    TEM: 0.02
+    INT: -0.03
+
+  # === EDU: Education 이벤트 ===
+  EDU.ADMISSION.APPROVED:
+    DIR: 0.04
+    FOR: 0.03
+    GAP: -0.05
+    UNC: -0.05
+    TEM: -0.02
+    INT: 0.04
+
+  EDU.ADMISSION.REJECTED:
+    DIR: -0.03
+    FOR: -0.02
+    GAP: 0.05
+    UNC: 0.05
+    TEM: 0.03
+    INT: -0.03
+
+  EDU.LANGUAGE.PASSED:
+    DIR: 0.03
+    FOR: 0.03
+    GAP: -0.04
+    UNC: -0.03
+    TEM: -0.01
+    INT: 0.03
+
+  # === GOV: Government 이벤트 ===
+  GOV.VISA.SUBMITTED:
+    DIR: 0.01
+    FOR: 0.01
+    GAP: -0.01
+    UNC: 0.02
+    TEM: 0.03
+    INT: 0.00
+
+  GOV.VISA.APPROVED:
+    DIR: 0.05
+    FOR: 0.05
+    GAP: -0.06
+    UNC: -0.07
+    TEM: -0.04
+    INT: 0.06
+
+  GOV.VISA.REJECTED:
+    DIR: -0.05
+    FOR: -0.04
+    GAP: 0.06
+    UNC: 0.08
+    TEM: 0.05
+    INT: -0.05
+
+  GOV.VISA.EXTENDED:
+    DIR: 0.02
+    FOR: 0.02
+    GAP: -0.02
+    UNC: -0.03
+    TEM: -0.05
+    INT: 0.03
+
+  # === EMP: Employment 이벤트 ===
+  EMP.OFFER.RECEIVED:
+    DIR: 0.03
+    FOR: 0.03
+    GAP: -0.03
+    UNC: -0.03
+    TEM: -0.01
+    INT: 0.03
+
+  EMP.OFFER.ACCEPTED:
+    DIR: 0.04
+    FOR: 0.04
+    GAP: -0.04
+    UNC: -0.04
+    TEM: -0.02
+    INT: 0.05
+
+  EMP.OFFER.REJECTED:
+    DIR: -0.03
+    FOR: -0.03
+    GAP: 0.04
+    UNC: 0.05
+    TEM: 0.02
+    INT: -0.03
+
+  EMP.CONTRACT.SIGNED:
+    DIR: 0.04
+    FOR: 0.04
+    GAP: -0.05
+    UNC: -0.05
+    TEM: -0.03
+    INT: 0.06
+
+  # === CITY: Settlement 이벤트 ===
+  CITY.ARRIVAL.CONFIRMED:
+    DIR: 0.03
+    FOR: 0.03
+    GAP: -0.04
+    UNC: -0.03
+    TEM: -0.02
+    INT: 0.04
+
+  CITY.SETTLEMENT.COMPLETE:
+    DIR: 0.03
+    FOR: 0.02
+    GAP: -0.03
+    UNC: -0.04
+    TEM: -0.03
+    INT: 0.06
+
+  CITY.SETTLEMENT.FAIL:
+    DIR: -0.04
+    FOR: -0.04
+    GAP: 0.05
+    UNC: 0.06
+    TEM: 0.04
+    INT: -0.05
+
+  CITY.HOUSING.SECURED:
+    DIR: 0.02
+    FOR: 0.02
+    GAP: -0.03
+    UNC: -0.04
+    TEM: -0.02
+    INT: 0.04
+
+  CITY.BANK.OPENED:
+    DIR: 0.01
+    FOR: 0.01
+    GAP: -0.02
+    UNC: -0.02
+    TEM: -0.01
+    INT: 0.03
