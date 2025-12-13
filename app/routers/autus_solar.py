@@ -1,12 +1,9 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-import sys
-sys.path.insert(0, '.')
 
-from core.solar.solar_entity import SolarEntity
+from core.solar.solar_entity import get_sun
 
 router = APIRouter(prefix="/autus/solar", tags=["autus-solar"])
-_sun = SolarEntity(id="SUN_001", name="Demo Solar")
 
 class EnergyInput(BaseModel):
     slot: str
@@ -14,19 +11,20 @@ class EnergyInput(BaseModel):
 
 @router.get("/status")
 def get_status():
-    return _sun.snapshot()
+    return get_sun().snapshot()
 
 @router.post("/tick")
 def run_tick():
-    return _sun.tick()
+    return get_sun().tick()
 
 @router.post("/input")
 def apply_input(req: EnergyInput):
-    _sun.apply_input(req.slot, req.value)
-    return _sun.snapshot()
+    sun = get_sun()
+    sun.apply_input(req.slot, req.value)
+    return sun.snapshot()
 
 @router.post("/reset")
 def reset():
-    global _sun
-    _sun = SolarEntity(id="SUN_001", name="Demo Solar")
-    return _sun.snapshot()
+    sun = get_sun()
+    sun.reset()
+    return sun.snapshot()
