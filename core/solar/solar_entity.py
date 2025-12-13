@@ -1,6 +1,6 @@
 """
-AUTUS Solar Entity - Gravity Physics v1.1
-중력 기반 물리 엔진 + Pressure Loop
+AUTUS Solar Entity - Gravity Physics v1.2
+Brain Loop + Pressure Loop + Gravity
 """
 from dataclasses import dataclass, field
 from typing import Dict, List
@@ -17,24 +17,21 @@ class EventLog:
 @dataclass
 class InnerGravity:
     """내면 중력 상태"""
-    talent: float = 0.5      # T: 고정 성향 (천천히 변화)
-    effort: float = 0.0      # E: 누적 노력
-    context: float = 0.5     # C: 환경/조건
+    talent: float = 0.5
+    effort: float = 0.0
+    context: float = 0.5
     
-    # 가중치 (LOCKED)
-    W1: float = 0.4  # Talent
-    W2: float = 0.4  # Effort (log)
-    W3: float = 0.2  # Context
-    KAPPA: float = 1.0  # 스케일 상수
+    W1: float = 0.4
+    W2: float = 0.4
+    W3: float = 0.2
+    KAPPA: float = 1.0
     
     def compute_mass(self) -> float:
-        """중력 질량: M = w1·T + w2·log(1+E) + w3·C"""
         return (self.W1 * self.talent + 
                 self.W2 * math.log(1 + self.effort) + 
                 self.W3 * self.context)
     
     def compute_gravity(self) -> float:
-        """중력장: G = κ · M"""
         return self.KAPPA * self.compute_mass()
     
     def to_dict(self) -> Dict:
@@ -47,12 +44,30 @@ class InnerGravity:
         }
 
 @dataclass
+class BrainState:
+    """Brain Loop 상태"""
+    focus: float = 0.5      # 집중도
+    clarity: float = 0.5    # 명확도
+    load: float = 0.0       # 인지 부하
+    
+    FOCUS_DECAY: float = 0.02
+    CLARITY_GAIN: float = 0.05
+    LOAD_THRESHOLD: float = 0.7
+    
+    def to_dict(self) -> Dict:
+        return {
+            "focus": round(self.focus, 3),
+            "clarity": round(self.clarity, 3),
+            "load": round(self.load, 3)
+        }
+
+@dataclass
 class TwinState:
     """핵심 상태 변수"""
-    P: float = 0.0      # Pressure
-    E: float = 1.0      # Energy
-    K: float = 0.5      # Engines
-    C: int = 0          # Cycle
+    P: float = 0.0
+    E: float = 1.0
+    K: float = 0.5
+    C: int = 0
     was_unstable: bool = False
 
 @dataclass 
@@ -79,18 +94,19 @@ class EnergyField:
 
 @dataclass
 class SolarEntity:
-    """AUTUS Solar - Gravity Physics v1.1"""
+    """AUTUS Solar - Gravity Physics v1.2 + Brain Loop"""
     id: str = "SUN_001"
     name: str = "AUTUS Solar"
     
     twin: TwinState = field(default_factory=TwinState)
     energy: EnergyField = field(default_factory=EnergyField)
     gravity: InnerGravity = field(default_factory=InnerGravity)
+    brain: BrainState = field(default_factory=BrainState)
     
     logs: List[EventLog] = field(default_factory=list)
     tick_count: int = 0
     
-    # Physics Constants (LOCKED)
+    # Pressure Constants
     ALPHA: float = 1.0
     BETA: float = 0.8
     GAMMA: float = 0.05
@@ -99,11 +115,15 @@ class SolarEntity:
     P_STABLE: float = 0.20
     E_MIN: float = 0.40
     
-    # Gravity Constants (LOCKED)
-    EFFORT_GAIN: float = 0.1      # PRESSURE 시 노력 증가
-    EFFORT_DECAY: float = 0.01   # 자연 감소
-    CONTEXT_GAIN: float = 0.05   # 안정 시 환경 개선
-    CONTEXT_LOSS: float = 0.1    # 실패 시 환경 악화
+    # Gravity Constants
+    EFFORT_GAIN: float = 0.1
+    EFFORT_DECAY: float = 0.01
+    CONTEXT_GAIN: float = 0.05
+    CONTEXT_LOSS: float = 0.1
+    
+    # Brain Constants
+    BRAIN_FOCUS_GAIN: float = 0.1
+    BRAIN_LOAD_FACTOR: float = 0.3
     
     def _log(self, event_type: str, data: Dict):
         self.logs.append(EventLog(time.time(), self.tick_count, event_type, data))
@@ -112,22 +132,50 @@ class SolarEntity:
     
     def apply_input(self, slot: str, value: float):
         """외력 입력"""
-        if slot.lower() == "boundary":
+        slot_lower = slot.lower()
+        
+        if slot_lower == "boundary":
             load = 1.0 if value > 0.5 else -1.0
             
-            # 중력 영향: PRESSURE → Effort 증가
+            # Gravity: PRESSURE → Effort 증가
             if load > 0:
                 self.gravity.effort += self.EFFORT_GAIN
-                self._log("GRAVITY_EFFORT", {
-                    "cause": "PRESSURE",
-                    "effort_delta": self.EFFORT_GAIN,
-                    "effort_new": self.gravity.effort
-                })
+                self._log("GRAVITY_EFFORT", {"cause": "PRESSURE", "effort_delta": self.EFFORT_GAIN, "effort_new": self.gravity.effort})
             
             self._log("INPUT", {"slot": slot, "value": value, "load": load})
             self._tick(load)
+            
+        elif slot_lower == "brain":
+            # Brain Loop: Focus 증가, Load 증가
+            self.brain.focus = min(1.0, self.brain.focus + self.BRAIN_FOCUS_GAIN)
+            self.brain.load = min(1.0, self.brain.load + self.BRAIN_LOAD_FACTOR)
+            
+            # Focus → Talent 영향
+            if self.brain.focus > 0.7:
+                self.gravity.talent = min(1.0, self.gravity.talent + 0.02)
+            
+            self._log("BRAIN_INPUT", {
+                "focus": self.brain.focus,
+                "load": self.brain.load,
+                "talent_effect": self.gravity.talent
+            })
+            self._tick(0)
+            
+        elif slot_lower == "sensors":
+            # Sensors → Clarity 증가
+            self.brain.clarity = min(1.0, self.brain.clarity + 0.1)
+            
+            # Clarity → Context 영향
+            if self.brain.clarity > 0.6:
+                self.gravity.context = min(1.0, self.gravity.context + 0.02)
+            
+            self._log("SENSORS_INPUT", {
+                "clarity": self.brain.clarity,
+                "context_effect": self.gravity.context
+            })
+            self._tick(0)
+            
         else:
-            slot_lower = slot.lower()
             if hasattr(self.energy, slot_lower):
                 current = getattr(self.energy, slot_lower)
                 new_value = max(0, min(1, current + (value - current) * 0.3))
@@ -138,7 +186,7 @@ class SolarEntity:
         return self.snapshot()
     
     def _tick(self, load: float):
-        """Physics + Gravity Loop"""
+        """Physics + Gravity + Brain Loop"""
         self.tick_count += 1
         
         # === PRESSURE PHYSICS ===
@@ -152,44 +200,56 @@ class SolarEntity:
         if new_P >= self.P_TH:
             new_K = min(1.0, self.twin.K + self.DELTA)
             if new_K != self.twin.K:
-                self._log("AUTO_INTERVENTION", {
-                    "trigger": "P >= P_TH",
-                    "P": new_P,
-                    "K_old": self.twin.K,
-                    "K_new": new_K
-                })
+                self._log("AUTO_INTERVENTION", {"trigger": "P >= P_TH", "P": new_P, "K_old": self.twin.K, "K_new": new_K})
             self.twin.K = new_K
             self.twin.was_unstable = True
-            
-            # 중력 영향: 과압 → Context 감소
             self.gravity.context = max(0, self.gravity.context - self.CONTEXT_LOSS * 0.5)
+            
+            # Brain: 압력 → Load 증가
+            self.brain.load = min(1.0, self.brain.load + 0.2)
         
         # 전이 감지
         is_stable = (new_P <= self.P_STABLE) and (new_E >= self.E_MIN)
         if is_stable and self.twin.was_unstable:
             self.twin.C += 1
-            
-            # 중력 영향: 안정화 성공 → Context 증가
             self.gravity.context = min(1, self.gravity.context + self.CONTEXT_GAIN)
+            
+            # Brain: 안정화 → Clarity 증가
+            self.brain.clarity = min(1.0, self.brain.clarity + 0.1)
             
             self._log("TRANSITION", {
                 "type": "unstable→stable",
                 "P": new_P,
                 "E": new_E,
                 "cycle": self.twin.C,
-                "gravity": self.gravity.to_dict()
+                "gravity": self.gravity.to_dict(),
+                "brain": self.brain.to_dict()
             })
             self.twin.was_unstable = False
         
+        # === BRAIN LOOP ===
+        # Focus 자연 감쇠
+        if self.brain.focus > 0.3:
+            self.brain.focus = max(0.3, self.brain.focus - self.brain.FOCUS_DECAY)
+        
+        # Load 자연 회복
+        if self.brain.load > 0:
+            self.brain.load = max(0, self.brain.load - 0.03)
+        
+        # Load 과부하 → Focus 급락
+        if self.brain.load >= self.brain.LOAD_THRESHOLD:
+            self.brain.focus *= 0.9
+            self._log("BRAIN_OVERLOAD", {"load": self.brain.load, "focus_drop": self.brain.focus})
+        
+        # Clarity → Sensors 영향
+        if self.brain.clarity > 0.5:
+            self.brain.clarity = max(0.3, self.brain.clarity - 0.01)
+        
         # === GRAVITY PHYSICS ===
-        # 노력 자연 감소
         if load == 0 and self.gravity.effort > 0:
             self.gravity.effort = max(0, self.gravity.effort - self.EFFORT_DECAY)
         
-        # 중력 기반 궤도 계산
         G = self.gravity.compute_gravity()
-        
-        # 계기판 갱신 (중력 반영)
         self._update_dashboard(G)
         
         self._log("TICK", {
@@ -198,29 +258,25 @@ class SolarEntity:
             "E": round(new_E, 3),
             "K": round(self.twin.K, 3),
             "C": self.twin.C,
-            "gravity": self.gravity.to_dict()
+            "gravity": self.gravity.to_dict(),
+            "brain": self.brain.to_dict()
         })
     
     def _update_dashboard(self, G: float):
-        """계기판 갱신 (P + 중력 기반)"""
+        """계기판 갱신"""
         p_factor = 1 - min(1, self.twin.P)
-        g_factor = min(1, G)  # 중력 영향
+        g_factor = min(1, G)
         
-        # Brain/Sensors/Heart: P가 낮고 G가 높을수록 안정
-        self.energy.brain = 0.50 + 0.10 * p_factor + 0.10 * g_factor
-        self.energy.sensors = 0.50 + 0.10 * p_factor + 0.08 * g_factor
+        # Brain: Focus + Clarity 반영
+        self.energy.brain = 0.40 + 0.30 * self.brain.focus + 0.20 * self.brain.clarity
+        self.energy.sensors = 0.40 + 0.30 * self.brain.clarity + 0.10 * g_factor
         self.energy.heart = 0.50 + 0.10 * p_factor + 0.05 * g_factor
-        
         self.energy.engines = self.twin.K
         self.energy.boundary = min(1, self.twin.P)
-        
-        # Base: 중력 기반
         self.energy.base = 0.40 + 0.30 * g_factor
-        
         self.energy.core = 1.0
     
     def compute_orbit_radius(self, planet_index: int = 0) -> float:
-        """궤도 반경: R = R_base / (1 + G)"""
         G = self.gravity.compute_gravity()
         R_base = 2.0 + planet_index * 0.5
         return R_base / (1 + G * 0.5)
@@ -232,13 +288,9 @@ class SolarEntity:
             "name": self.name,
             "cycle": self.twin.C,
             "tick": self.tick_count,
-            "twin": {
-                "P": round(self.twin.P, 3),
-                "E": round(self.twin.E, 3),
-                "K": round(self.twin.K, 3),
-                "C": self.twin.C
-            },
+            "twin": {"P": round(self.twin.P, 3), "E": round(self.twin.E, 3), "K": round(self.twin.K, 3), "C": self.twin.C},
             "gravity": self.gravity.to_dict(),
+            "brain": self.brain.to_dict(),
             "orbit_radius": round(self.compute_orbit_radius(), 3),
             "energy": self.energy.to_dict(),
             "blocked": self.twin.P >= self.P_TH,
@@ -253,6 +305,7 @@ class SolarEntity:
         self.twin = TwinState()
         self.energy = EnergyField()
         self.gravity = InnerGravity()
+        self.brain = BrainState()
         self.logs = []
         self.tick_count = 0
 

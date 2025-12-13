@@ -22,6 +22,7 @@
         button:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); color: #fff; }
         .status-operational { color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.3); }
         .status-blocked { color: #ff3366; text-shadow: 0 0 30px rgba(255,51,102,0.5); }
+        .gravity-ring { position: absolute; border: 1px solid rgba(0,212,255,0.3); border-radius: 50%; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -31,11 +32,10 @@
     <script type="text/babel">
         const API = "https://solar.autus-ai.com";
         
-        // Physics Constants v0.3
-        const R_MIN = 0.9, R_MAX = 2.4;           // 반경
-        const OMEGA_MIN = 0.002, OMEGA_MAX = 0.015; // 각속도
-        const TILT_MIN = 0.0, TILT_MAX = 0.4;     // 경사 (라디안)
-        const T_MIN = 0.006, T_MAX = 0.02;        // 두께
+        // Physics Constants
+        const R_MIN = 0.9, R_MAX = 2.4;
+        const OMEGA_MIN = 0.002, OMEGA_MAX = 0.02;
+        const TILT_MIN = 0.0, TILT_MAX = 0.4;
         const LERP_ALPHA = 0.06;
         
         class DeepSpaceRenderer {
@@ -62,8 +62,8 @@
                 this.omega = OMEGA_MIN;
                 this.targetTilt = 0;
                 this.shownTilt = 0;
-                this.targetThickness = T_MIN;
-                this.shownThickness = T_MIN;
+                this.gravity = 0.3;
+                this.targetGravity = 0.3;
                 
                 this.createDeepSpace();
                 this.animate();
@@ -82,7 +82,7 @@
                 const sunLight = new THREE.PointLight(0x00d4ff, 2, 50);
                 this.scene.add(sunLight);
                 
-                // Sun
+                // Sun with gravity visualization
                 const sunMat = new THREE.MeshPhysicalMaterial({
                     color: 0x001020, metalness: 0.1, roughness: 0.1,
                     transmission: 0.9, thickness: 2, clearcoat: 1,
@@ -90,6 +90,18 @@
                 });
                 this.sun = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), sunMat);
                 this.scene.add(this.sun);
+                
+                // Gravity field visualization (rings)
+                this.gravityRings = [];
+                for (let i = 0; i < 5; i++) {
+                    const ring = new THREE.Mesh(
+                        new THREE.RingGeometry(1.2 + i * 0.3, 1.25 + i * 0.3, 64),
+                        new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.1 - i * 0.015, side: THREE.DoubleSide })
+                    );
+                    ring.rotation.x = Math.PI / 2;
+                    this.gravityRings.push(ring);
+                    this.scene.add(ring);
+                }
                 
                 const glowMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.15 });
                 this.sunGlow = new THREE.Mesh(new THREE.SphereGeometry(0.8, 32, 32), glowMat);
@@ -99,15 +111,15 @@
                 this.core = new THREE.Mesh(new THREE.SphereGeometry(0.3, 32, 32), coreMat);
                 this.scene.add(this.core);
                 
-                // 7 Orbits with groups (for tilt)
+                // 7 Orbits
                 const orbitData = [
-                    { radius: 2.5, color: 0x4488ff },
-                    { radius: 3.2, color: 0x44ff88 },
-                    { radius: 3.9, color: 0xff4488 },
-                    { radius: 4.6, color: 0xffdd44 },
-                    { radius: 5.3, color: 0xff8844 },
-                    { radius: 6.0, color: 0x8844ff },
-                    { radius: 6.7, color: 0xff2244 }
+                    { radius: 2.5, color: 0x4488ff, name: 'Brain' },
+                    { radius: 3.2, color: 0x44ff88, name: 'Sensors' },
+                    { radius: 3.9, color: 0xff4488, name: 'Heart' },
+                    { radius: 4.6, color: 0xffdd44, name: 'Core' },
+                    { radius: 5.3, color: 0xff8844, name: 'Engines' },
+                    { radius: 6.0, color: 0x8844ff, name: 'Base' },
+                    { radius: 6.7, color: 0xff2244, name: 'Boundary' }
                 ];
                 
                 orbitData.forEach((data, i) => {
@@ -117,7 +129,7 @@
                         new THREE.MeshBasicMaterial({ color: data.color, transparent: true, opacity: 0.15 })
                     );
                     orbit.rotation.x = Math.PI / 2;
-                    orbit.userData = { baseRadius: data.radius, index: i };
+                    orbit.userData = { baseRadius: data.radius, index: i, name: data.name };
                     group.add(orbit);
                     group.userData = { orbit, index: i };
                     this.orbitGroups.push(group);
@@ -152,37 +164,61 @@
                 
                 this.blocked = state.blocked;
                 const energy = state.energy || {};
+                const gravity = state.gravity || {};
+                const twin = state.twin || {};
                 
-                // Sun color
+                // Gravity visualization
+                this.targetGravity = gravity.gravity || 0.3;
+                
+                // Sun color based on state
                 if (state.blocked) {
                     this.sunGlow.material.color.setHex(0xff2244);
                     this.core.material.color.setHex(0xff4466);
                     this.sunGlow.material.opacity = 0.3;
                 } else {
+                    // Gravity affects sun intensity
+                    const gIntensity = Math.min(1, this.targetGravity * 2);
                     this.sunGlow.material.color.setHex(0x00d4ff);
                     this.core.material.color.setHex(0x00ffff);
-                    this.sunGlow.material.opacity = 0.15;
+                    this.sunGlow.material.opacity = 0.1 + gIntensity * 0.2;
+                    this.sun.scale.setScalar(0.9 + gIntensity * 0.2);
                 }
+                
+                // Update gravity rings
+                this.gravityRings.forEach((ring, i) => {
+                    const scale = 1 + (1 - this.targetGravity) * 0.5;
+                    ring.scale.setScalar(scale);
+                    ring.material.opacity = 0.05 + this.targetGravity * 0.1 - i * 0.01;
+                });
                 
                 if (!this.blocked) {
                     const engines = energy.Engines || 0.5;
                     const sensors = energy.Sensors || 0.5;
-                    const core = energy.Core || 1.0;
-                    const progress = engines; // Planet progress = Engines
+                    const brain = energy.Brain || 0.5;
                     
-                    // Physics targets
-                    this.targetRadius = R_MIN + (R_MAX - R_MIN) * progress;
-                    this.targetOmega = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * engines;
-                    this.targetTilt = TILT_MIN + (TILT_MAX - TILT_MIN) * sensors;
-                    this.targetThickness = T_MIN + (T_MAX - T_MIN) * core;
+                    // Physics targets (gravity affects orbit)
+                    const orbitRadius = state.orbit_radius || 1.7;
+                    this.targetRadius = orbitRadius;
+                    
+                    // Omega based on engines + gravity
+                    this.targetOmega = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * engines * (1 + this.targetGravity * 0.5);
+                    
+                    // Tilt based on sensors + brain
+                    this.targetTilt = TILT_MIN + (TILT_MAX - TILT_MIN) * sensors * brain;
                 }
                 
-                // Update orbit colors based on energy
+                // Update orbit colors
                 const slots = ['Brain', 'Sensors', 'Heart', 'Core', 'Engines', 'Base', 'Boundary'];
                 this.orbitGroups.forEach((group, i) => {
                     const orbit = group.userData.orbit;
                     const value = energy[slots[i]] || 0.5;
                     orbit.material.opacity = 0.1 + value * 0.3;
+                    
+                    // Gravity affects orbit radius
+                    const baseRadius = orbit.userData.baseRadius;
+                    const gravityEffect = 1 / (1 + this.targetGravity * 0.3);
+                    orbit.scale.setScalar(gravityEffect);
+                    
                     if (slots[i] === 'Boundary' && value > 0.5) {
                         orbit.material.color.setHex(0xff2244);
                     }
@@ -193,27 +229,24 @@
                 requestAnimationFrame(() => this.animate());
                 this.time += 0.016;
                 
+                // Gravity lerp
+                this.gravity = THREE.MathUtils.lerp(this.gravity, this.targetGravity, LERP_ALPHA);
+                
                 const pulse = 1 + Math.sin(this.time * 0.5) * 0.02;
-                this.sunGlow.scale.setScalar(pulse);
+                this.sunGlow.scale.setScalar(pulse * (0.9 + this.gravity * 0.2));
                 
                 if (!this.blocked) {
-                    // Lerp all physics
                     this.shownRadius = THREE.MathUtils.lerp(this.shownRadius, this.targetRadius, LERP_ALPHA);
                     this.omega = THREE.MathUtils.lerp(this.omega, this.targetOmega, LERP_ALPHA);
                     this.shownTilt = THREE.MathUtils.lerp(this.shownTilt, this.targetTilt, LERP_ALPHA);
-                    this.shownThickness = THREE.MathUtils.lerp(this.shownThickness, this.targetThickness, LERP_ALPHA);
                     
-                    // Apply to orbits
                     this.orbitGroups.forEach((group, i) => {
-                        // Rotation (angular velocity)
                         group.rotation.z += this.omega * (1 + i * 0.08);
-                        // Tilt (inclination based on Sensors)
                         group.rotation.x = this.shownTilt * (1 + i * 0.1);
                     });
                     
-                    // Planet
                     this.planet.userData.angle += this.omega * 0.8;
-                    this.planet.userData.radius = this.shownRadius * 1.5;
+                    this.planet.userData.radius = this.shownRadius * 2;
                     const r = this.planet.userData.radius;
                     this.planet.position.x = Math.cos(this.planet.userData.angle) * r;
                     this.planet.position.z = Math.sin(this.planet.userData.angle) * r;
@@ -269,14 +302,19 @@
                 fetchState();
             };
             
+            const gravity = solar?.gravity || {};
+            const twin = solar?.twin || {};
+            
             return (
                 <>
+                    {/* Title */}
                     <div className="ui-layer" style={{top: 32, left: 32, opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
                         <div style={{letterSpacing: '0.3em', fontSize: 11, fontWeight: 200}} className="text-dim">AUTUS</div>
                         <div style={{fontSize: 24, fontWeight: 200, marginTop: 4}} className="text-bright">Atlas</div>
-                        <div style={{fontSize: 9, marginTop: 8, letterSpacing: '0.1em'}} className="text-dim">PHYSICS v0.3</div>
+                        <div style={{fontSize: 9, marginTop: 8, letterSpacing: '0.1em'}} className="text-dim">GRAVITY v1.1</div>
                     </div>
                     
+                    {/* Status */}
                     <div className="ui-layer" style={{top: 32, right: 32, textAlign: 'right', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
                         <div style={{fontSize: 11, letterSpacing: '0.2em'}} className="text-dim">CYCLE</div>
                         <div style={{fontSize: 32, fontWeight: 200}} className="text-bright">{solar?.cycle || 0}</div>
@@ -286,6 +324,47 @@
                         {solar?.blocked && <div style={{fontSize: 10, marginTop: 4}} className="text-dim">{solar.block_reason}</div>}
                     </div>
                     
+                    {/* Inner Gravity Panel */}
+                    <div className="ui-layer" style={{top: 120, right: 32, textAlign: 'right', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
+                        <div style={{fontSize: 10, letterSpacing: '0.2em', marginBottom: 12}} className="text-dim">INNER GRAVITY</div>
+                        <div style={{fontSize: 11, marginBottom: 6}}>
+                            <span className="text-dim">Talent </span>
+                            <span className="text-bright">{(gravity.talent * 100 || 50).toFixed(0)}%</span>
+                        </div>
+                        <div style={{fontSize: 11, marginBottom: 6}}>
+                            <span className="text-dim">Effort </span>
+                            <span className="text-bright">{(gravity.effort || 0).toFixed(2)}</span>
+                        </div>
+                        <div style={{fontSize: 11, marginBottom: 6}}>
+                            <span className="text-dim">Context </span>
+                            <span className="text-bright">{(gravity.context * 100 || 50).toFixed(0)}%</span>
+                        </div>
+                        <div style={{fontSize: 14, marginTop: 12, color: '#00d4ff'}}>
+                            G = {(gravity.gravity || 0.3).toFixed(3)}
+                        </div>
+                        <div style={{fontSize: 10, marginTop: 4}} className="text-dim">
+                            Orbit R = {(solar?.orbit_radius || 1.7).toFixed(2)}
+                        </div>
+                    </div>
+                    
+                    {/* Twin State Panel */}
+                    <div className="ui-layer" style={{top: 300, right: 32, textAlign: 'right', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
+                        <div style={{fontSize: 10, letterSpacing: '0.2em', marginBottom: 12}} className="text-dim">TWIN STATE</div>
+                        <div style={{fontSize: 11, marginBottom: 4}}>
+                            <span className="text-dim">P </span>
+                            <span style={{color: twin.P > 1 ? '#ff3366' : '#fff'}}>{(twin.P || 0).toFixed(2)}</span>
+                        </div>
+                        <div style={{fontSize: 11, marginBottom: 4}}>
+                            <span className="text-dim">E </span>
+                            <span className="text-bright">{(twin.E || 1).toFixed(2)}</span>
+                        </div>
+                        <div style={{fontSize: 11, marginBottom: 4}}>
+                            <span className="text-dim">K </span>
+                            <span className="text-bright">{(twin.K || 0.5).toFixed(2)}</span>
+                        </div>
+                    </div>
+                    
+                    {/* Energy Field */}
                     <div className="ui-layer" style={{top: '50%', left: 32, transform: 'translateY(-50%)', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
                         <div style={{fontSize: 10, letterSpacing: '0.2em', marginBottom: 16}} className="text-dim">ENERGY FIELD</div>
                         {solar?.energy && Object.entries(solar.energy).map(([slot, value]) => (
@@ -304,17 +383,18 @@
                         ))}
                     </div>
                     
+                    {/* Controls */}
                     <div className="ui-layer" style={{bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
                         <button onClick={runCycle}>CYCLE</button>
                         <button onClick={() => applyEnergy('Brain', 0.9)}>BRAIN</button>
                         <button onClick={() => applyEnergy('Sensors', 0.9)}>SENSORS</button>
                         <button onClick={() => applyEnergy('Engines', 0.9)}>ENGINES</button>
-                        <button onClick={() => applyEnergy('Core', 0.9)}>CORE</button>
                         <button onClick={() => applyEnergy('Boundary', 0.95)} style={{color: '#ff6688'}}>PRESSURE</button>
                         <button onClick={() => applyEnergy('Boundary', 0.0)} style={{color: '#00ff88'}}>RELEASE</button>
                         <button onClick={resetSolar} style={{opacity: 0.5}}>RESET</button>
                     </div>
                     
+                    {/* Toggle */}
                     <div className="ui-layer" style={{bottom: 32, right: 32}}>
                         <button onClick={() => setShowUI(!showUI)} style={{opacity: 0.3, fontSize: 10}}>{showUI ? 'HIDE' : 'SHOW'}</button>
                     </div>
