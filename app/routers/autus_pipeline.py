@@ -1,38 +1,18 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-import sys
-sys.path.insert(0, '.')
+from core.autus.pipeline import AutusPipeline
+from core.autus.hassabis_v2.replay import replay_segment
 
-router = APIRouter(prefix="/autus/pipeline", tags=["autus-pipeline"])
+router = APIRouter(prefix="/autus", tags=["autus"])
+pipeline = AutusPipeline()
 
-# 간단한 상태
-state = {
-    "integrity": 100.0,
-    "energy": 100.0,
-    "mode": "SEED",
-    "gmu_count": 1,
-    "cycle": 0
-}
+class Input(BaseModel): text: str
+class ReplayInput(BaseModel): gmu_id: str; variation: dict
 
-class PipelineInput(BaseModel):
-    text: str
+@router.post("/pipeline/process")
+def process(body: Input):
+    return pipeline.process(body.text)
 
-@router.post("/process")
-def process_command(body: PipelineInput):
-    state["cycle"] += 1
-    logs = []
-    
-    task_type = "WORK"
-    if "사람" in body.text or "채용" in body.text:
-        task_type = "PEOPLE"
-    elif "성장" in body.text or "확장" in body.text:
-        task_type = "GROWTH"
-    
-    logs.append(f"MOTION: Executed {task_type}")
-    state["energy"] -= 2.0
-    
-    return {"success": True, "state": state, "logs": logs}
-
-@router.get("/state")
-def get_state():
-    return state
+@router.post("/hassabis/replay")
+def replay(body: ReplayInput):
+    return {"explanation": replay_segment([], body.variation)}
