@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>AUTUS Solar</title>
+    <title>AUTUS</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -15,100 +15,204 @@
             align-items: center;
             justify-content: center;
         }
-        .header { font-size: 10px; letter-spacing: 0.3em; opacity: 0.4; margin-bottom: 12px; }
-        .status { font-size: 48px; font-weight: 200; letter-spacing: 0.1em; margin-bottom: 8px; }
-        .status.GREEN { color: #00ff88; }
-        .status.YELLOW { color: #ffaa00; }
-        .status.RED { color: #ff2244; animation: pulse 0.5s infinite; }
-        @keyframes pulse { 50% { opacity: 0.4; } }
-        .failure { font-size: 12px; color: #ff6644; margin-bottom: 16px; height: 16px; }
-        .metrics { display: flex; gap: 32px; margin-bottom: 24px; }
-        .metric { text-align: center; font-size: 11px; opacity: 0.5; }
-        .metric span { display: block; font-size: 24px; color: #fff; opacity: 1; margin-top: 4px; }
-        .bars { display: flex; gap: 16px; margin-bottom: 32px; }
-        .bar-group { text-align: center; }
-        .bar-label { font-size: 9px; opacity: 0.4; margin-bottom: 4px; }
-        .bar { width: 50px; height: 4px; background: #222; border-radius: 2px; }
-        .bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
-        .bar-fill.p { background: #ff6644; }
-        .bar-fill.r { background: #00ff88; }
-        .bar-fill.d { background: #00d4ff; }
-        .bar-fill.e { background: #ffaa00; }
-        .bar-fill.g { background: #aa88ff; }
-        .controls { display: flex; gap: 10px; }
+        .status-text { 
+            font-size: 14px; 
+            letter-spacing: 0.2em; 
+            opacity: 0.6;
+            margin-bottom: 8px;
+        }
+        .status-main { 
+            font-size: 32px; 
+            font-weight: 300; 
+            letter-spacing: 0.1em;
+            margin-bottom: 48px;
+        }
+        .status-main.GREEN { color: #00ff88; }
+        .status-main.YELLOW { color: #ffaa00; }
+        .status-main.RED { color: #ff2244; }
+        
+        .action-label {
+            font-size: 11px;
+            letter-spacing: 0.3em;
+            opacity: 0.4;
+            margin-bottom: 8px;
+        }
+        .action-text {
+            font-size: 24px;
+            font-weight: 200;
+            margin-bottom: 32px;
+            height: 32px;
+        }
+        .action-text.urgent { color: #ffaa00; }
+        .action-text.critical { color: #ff2244; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 50% { opacity: 0.5; } }
+        
         button {
             background: transparent;
-            border: 1px solid #333;
-            color: #666;
-            padding: 10px 18px;
-            font-size: 10px;
-            letter-spacing: 0.1em;
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+            padding: 16px 48px;
+            font-size: 12px;
+            letter-spacing: 0.2em;
             cursor: pointer;
             transition: all 0.2s;
         }
-        button:hover:not(:disabled) { border-color: #666; color: #fff; }
-        button:disabled { opacity: 0.2; cursor: not-allowed; }
-        button.p { border-color: #ff6644; color: #ff6644; }
-        button.r { border-color: #00ff88; color: #00ff88; }
-        button.d { border-color: #00d4ff; color: #00d4ff; }
-        button.x { border-color: #ffaa00; color: #ffaa00; display: none; }
-        .hint { font-size: 10px; opacity: 0.4; margin-top: 16px; height: 14px; }
-        .hint.active { color: #ffaa00; opacity: 1; }
-        .footer { position: fixed; bottom: 12px; font-size: 9px; opacity: 0.2; }
+        button:hover { background: #ffaa0022; }
+        button.hidden { display: none; }
+        button.critical { border-color: #ff2244; color: #ff2244; }
+        button.critical:hover { background: #ff224422; }
+        
+        .debug {
+            position: fixed;
+            bottom: 16px;
+            font-size: 9px;
+            opacity: 0.15;
+            cursor: pointer;
+        }
+        .debug:hover { opacity: 0.4; }
+        .debug-panel {
+            position: fixed;
+            bottom: 40px;
+            background: #111;
+            border: 1px solid #222;
+            padding: 12px 16px;
+            font-size: 10px;
+            border-radius: 8px;
+            display: none;
+        }
+        .debug-panel.show { display: block; }
+        .debug-panel div { margin: 4px 0; opacity: 0.6; }
+        
+        .ops-panel {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+            opacity: 0.3;
+        }
+        .ops-panel:hover { opacity: 1; }
+        .ops-panel button {
+            padding: 8px 12px;
+            font-size: 9px;
+            border-color: #333;
+            color: #666;
+        }
     </style>
 </head>
 <body>
-    <div class="header">AUTUS SOLAR</div>
-    <div id="status" class="status">—</div>
-    <div id="failure" class="failure"></div>
-    <div class="metrics">
-        <div class="metric">tick<span id="tick">0</span></div>
-        <div class="metric">cycle<span id="cycle">0</span></div>
+    <div class="status-text" id="status-text">SYSTEM STABLE</div>
+    <div class="status-main GREEN" id="status-main">ALL CLEAR</div>
+    
+    <div class="action-label">ACTION REQUIRED</div>
+    <div class="action-text" id="action-text"></div>
+    
+    <button id="btn-execute" class="hidden" onclick="execute()">EXECUTE</button>
+    
+    <!-- OPS Panel (hover to show) -->
+    <div class="ops-panel">
+        <button onclick="post('/event/add_work',{count:1,weight:1,actor_id:'OPS'})">+P</button>
+        <button onclick="post('/event/remove_work',{count:1,weight:1,actor_id:'OPS'})">+R</button>
+        <button onclick="post('/event/commit_decision',{decision:'commit',actor_id:'OPS'})">+D</button>
     </div>
-    <div class="bars">
-        <div class="bar-group"><div class="bar-label">P</div><div class="bar"><div id="bp" class="bar-fill p"></div></div></div>
-        <div class="bar-group"><div class="bar-label">R</div><div class="bar"><div id="br" class="bar-fill r"></div></div></div>
-        <div class="bar-group"><div class="bar-label">D</div><div class="bar"><div id="bd" class="bar-fill d"></div></div></div>
-        <div class="bar-group"><div class="bar-label">E</div><div class="bar"><div id="be" class="bar-fill e"></div></div></div>
-        <div class="bar-group"><div class="bar-label">G</div><div class="bar"><div id="bg" class="bar-fill g"></div></div></div>
+    
+    <!-- Debug (click to show) -->
+    <div class="debug" onclick="toggleDebug()">DEBUG</div>
+    <div class="debug-panel" id="debug-panel">
+        <div>tick: <span id="d-tick">0</span></div>
+        <div>cycle: <span id="d-cycle">0</span></div>
+        <div>P: <span id="d-p">0</span> | R: <span id="d-r">0</span> | D: <span id="d-d">0</span></div>
+        <div>E: <span id="d-e">0</span> | G: <span id="d-g">0</span></div>
+        <div>bottleneck: <span id="d-bn">NONE</span></div>
     </div>
-    <div class="controls">
-        <button id="btnP" class="p" onclick="post('/event/add_work',{count:1,weight:1,actor_id:'UI'})">PRESSURE</button>
-        <button id="btnR" class="r" onclick="post('/event/remove_work',{count:1,weight:1,actor_id:'UI'})">RELEASE</button>
-        <button id="btnD" class="d" onclick="post('/event/commit_decision',{decision:'commit',actor_id:'UI'})">DECISION</button>
-        <button id="btnX" class="x" onclick="post('/execute',{action:'AUTO_STABILIZE',actor_id:'UI'})">EXECUTE</button>
-    </div>
-    <div id="hint" class="hint"></div>
-    <div class="footer">State Engine v1 | /status</div>
+    
     <script>
-        const API='';
-        async function get(){
-            const r=await fetch(API+'/autus/solar/status',{cache:'no-store'});
-            return r.ok?await r.json():null;
+        let debugVisible = false;
+        function toggleDebug() {
+            debugVisible = !debugVisible;
+            document.getElementById('debug-panel').className = debugVisible ? 'debug-panel show' : 'debug-panel';
         }
-        async function post(p,b){
-            await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+        
+        async function get() {
+            const r = await fetch('/autus/solar/status', {cache:'no-store'});
+            return r.ok ? await r.json() : null;
         }
-        function render(s){
-            if(!s||!s.signals)return;
-            document.getElementById('status').textContent=s.output.status;
-            document.getElementById('status').className='status '+s.output.status;
-            document.getElementById('tick').textContent=s.tick;
-            document.getElementById('cycle').textContent=s.cycle;
-            document.getElementById('bp').style.width=Math.min(100,s.signals.pressure*30)+'%';
-            document.getElementById('br').style.width=Math.min(100,s.signals.release*30)+'%';
-            document.getElementById('bd').style.width=s.signals.decision*100+'%';
-            document.getElementById('be').style.width=s.signals.entropy*100+'%';
-            document.getElementById('bg').style.width=s.signals.gravity*100+'%';
-            const f=document.getElementById('failure');
-            f.textContent=s.output.failure_in_ticks?'⚠ FAIL IN '+s.output.failure_in_ticks:'';
-            document.getElementById('btnP').disabled=s.output.status==='RED';
-            document.getElementById('btnX').style.display=s.output.status==='GREEN'?'none':'inline-block';
-            const h=document.getElementById('hint');
-            h.textContent=s.output.required_action!=='NONE'?'ACTION: '+s.output.required_action:'';
-            h.className=s.output.required_action!=='NONE'?'hint active':'hint';
+        
+        async function post(p, b) {
+            await fetch(p, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b)});
         }
-        (async function poll(){while(1){try{render(await get())}catch(e){}await new Promise(r=>setTimeout(r,1000))}})();
+        
+        async function execute() {
+            await post('/execute', {action:'AUTO_STABILIZE', actor_id:'UI'});
+        }
+        
+        function render(s) {
+            if (!s || !s.signals) return;
+            
+            const status = s.output.status;
+            const fail = s.output.failure_in_ticks;
+            const action = s.output.required_action;
+            const bn = s.output.bottleneck;
+            
+            // Status text
+            const statusText = document.getElementById('status-text');
+            const statusMain = document.getElementById('status-main');
+            
+            if (status === 'GREEN') {
+                statusText.textContent = 'SYSTEM STABLE';
+                statusMain.textContent = 'ALL CLEAR';
+                statusMain.className = 'status-main GREEN';
+            } else if (status === 'YELLOW') {
+                statusText.textContent = 'SYSTEM AT RISK';
+                statusMain.textContent = fail ? `FAILURE IN ${fail} TICKS` : 'ATTENTION NEEDED';
+                statusMain.className = 'status-main YELLOW';
+            } else {
+                statusText.textContent = 'SYSTEM CRITICAL';
+                statusMain.textContent = fail ? `FAILURE IN ${fail} TICKS` : 'IMMEDIATE ACTION';
+                statusMain.className = 'status-main RED';
+            }
+            
+            // Action text
+            const actionText = document.getElementById('action-text');
+            if (action === 'NONE' && bn === 'NONE') {
+                actionText.textContent = '';
+                actionText.className = 'action-text';
+            } else if (action === 'DECIDE') {
+                actionText.textContent = 'DECISION NEEDED';
+                actionText.className = 'action-text urgent';
+            } else if (action === 'REMOVE') {
+                actionText.textContent = 'REDUCE WORKLOAD';
+                actionText.className = 'action-text urgent';
+            } else if (bn !== 'NONE') {
+                actionText.textContent = bn.replace('_', ' ');
+                actionText.className = status === 'RED' ? 'action-text critical' : 'action-text urgent';
+            }
+            
+            // Execute button
+            const btnExec = document.getElementById('btn-execute');
+            if (status === 'GREEN') {
+                btnExec.className = 'hidden';
+            } else {
+                btnExec.className = status === 'RED' ? 'critical' : '';
+            }
+            
+            // Debug panel
+            document.getElementById('d-tick').textContent = s.tick;
+            document.getElementById('d-cycle').textContent = s.cycle;
+            document.getElementById('d-p').textContent = s.signals.pressure.toFixed(2);
+            document.getElementById('d-r').textContent = s.signals.release.toFixed(2);
+            document.getElementById('d-d').textContent = s.signals.decision.toFixed(2);
+            document.getElementById('d-e').textContent = s.signals.entropy.toFixed(3);
+            document.getElementById('d-g').textContent = s.signals.gravity.toFixed(3);
+            document.getElementById('d-bn').textContent = bn;
+        }
+        
+        (async function poll() {
+            while (1) {
+                try { render(await get()); } catch(e) {}
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        })();
     </script>
 </body>
 </html>
