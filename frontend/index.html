@@ -1,232 +1,115 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>AUTUS ATLAS - Physics v2.3</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <title>AUTUS Solar</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #000; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
-        .panel { position: fixed; z-index: 10; }
-        .glass { background: rgba(20,20,20,0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; }
-        .status { font-size: 48px; font-weight: 200; letter-spacing: 0.1em; }
-        .status.stable { color: #00ff88; }
-        .status.warning { color: #ffaa00; }
-        .status.unstable { color: #ff4466; animation: pulse 0.5s infinite; }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .meter { margin: 12px 0; }
-        .meter-label { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.7; margin-bottom: 4px; }
-        .meter-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
-        .meter-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
-        .fill-good { background: linear-gradient(90deg, #00ff88, #00d4ff); }
-        .fill-warn { background: linear-gradient(90deg, #ffaa00, #ff6644); }
-        .fill-bad { background: linear-gradient(90deg, #ff6644, #ff2244); }
-        button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
-        button:hover { background: rgba(255,255,255,0.1); }
-        button.danger { border-color: #ff4466; color: #ff4466; }
-        button.success { border-color: #00ff88; color: #00ff88; }
-        button.primary { border-color: #00d4ff; color: #00d4ff; }
-        .log { font-size: 11px; opacity: 0.8; max-height: 200px; overflow-y: auto; font-family: monospace; }
-        .canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, #0a0a15 0%, #000 100%); }
-        .sun { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, #00d4ff 0%, #004466 100%); box-shadow: 0 0 60px #00d4ff40; transition: all 0.3s; }
-        .sun.warning { background: radial-gradient(circle, #ffaa00 0%, #664400 100%); box-shadow: 0 0 60px #ffaa0040; }
-        .sun.unstable { background: radial-gradient(circle, #ff4466 0%, #440000 100%); box-shadow: 0 0 80px #ff446660; animation: shake 0.1s infinite; }
-        @keyframes shake { 0%,100% { transform: translate(-50%, -50%); } 50% { transform: translate(calc(-50% + 3px), calc(-50% - 2px)); } }
-        .orbit { position: absolute; top: 50%; left: 50%; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; transform: translate(-50%, -50%); }
+        body { 
+            background: #000; 
+            color: #fff; 
+            font-family: -apple-system, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .state { text-align: center; margin-bottom: 48px; }
+        .stability { font-size: 64px; font-weight: 200; letter-spacing: 0.1em; }
+        .stability.STABLE { color: #00ff88; }
+        .stability.WARNING { color: #ffaa00; }
+        .stability.COLLAPSE { color: #ff2244; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 50% { opacity: 0.5; } }
+        .metrics { display: flex; gap: 48px; margin-top: 24px; font-size: 14px; opacity: 0.6; }
+        .metric span { display: block; font-size: 28px; color: #fff; opacity: 1; margin-top: 4px; }
+        .entropy-bar { width: 200px; height: 4px; background: #222; border-radius: 2px; margin-top: 24px; }
+        .entropy-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+        .entropy-fill.low { background: #00ff88; }
+        .entropy-fill.mid { background: #ffaa00; }
+        .entropy-fill.high { background: #ff2244; }
+        .controls { display: flex; gap: 12px; }
+        button {
+            background: transparent;
+            border: 1px solid #333;
+            color: #888;
+            padding: 12px 24px;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover { border-color: #666; color: #fff; }
+        button.decision { border-color: #00d4ff; color: #00d4ff; }
+        button.decision:hover { background: #00d4ff22; }
+        .error { color: #ff2244; font-size: 12px; margin-top: 24px; }
+        .truth { position: fixed; bottom: 16px; font-size: 10px; opacity: 0.3; }
     </style>
 </head>
 <body>
-    <div class="canvas">
-        <div id="sun" class="sun"></div>
-        <div class="orbit" style="width:200px;height:200px"></div>
-        <div class="orbit" style="width:300px;height:300px"></div>
-        <div class="orbit" style="width:400px;height:400px"></div>
+    <div class="state">
+        <div id="stability" class="stability">—</div>
+        <div class="metrics">
+            <div class="metric">tick<span id="tick">0</span></div>
+            <div class="metric">cycle<span id="cycle">0</span></div>
+            <div class="metric">entropy<span id="entropy">0</span></div>
+        </div>
+        <div class="entropy-bar">
+            <div id="entropy-fill" class="entropy-fill low" style="width:0%"></div>
+        </div>
     </div>
-    <div id="root"></div>
     
-    <script type="text/babel">
-        // API = Backend = Single Source of Truth
-        const API = window.location.hostname === 'localhost' 
+    <div class="controls">
+        <button onclick="send('pressure')">PRESSURE</button>
+        <button onclick="send('release')">RELEASE</button>
+        <button onclick="send('reset')">RESET</button>
+        <button onclick="send('decision')" class="decision">DECISION</button>
+    </div>
+    
+    <div id="error" class="error"></div>
+    <div class="truth">Truth = /status</div>
+    
+    <script>
+        const API = location.hostname === 'localhost' 
             ? 'http://localhost:8000' 
             : 'https://solar.autus-ai.com';
         
-        function App() {
-            // State = Backend Response (NO local calculation)
-            const [state, setState] = React.useState(null);
-            const [logs, setLogs] = React.useState([]);
-            const [loading, setLoading] = React.useState(false);
-            
-            const addLog = (msg) => setLogs(l => [...l.slice(-19), { msg, t: Date.now() }]);
-            
-            // ONLY fetch from /status - NO calculation
-            const fetchStatus = async () => {
-                try {
-                    const res = await fetch(`${API}/autus/solar/status`);
-                    const data = await res.json();
-                    setState(data);
-                    
-                    // Update sun visual
-                    const sun = document.getElementById('sun');
-                    if (sun) sun.className = 'sun ' + (data.orbit?.status || 'stable').toLowerCase();
-                    
-                    return data;
-                } catch(e) { 
-                    addLog(`ERROR: ${e.message}`);
-                    return null;
-                }
-            };
-            
-            // Initial fetch
-            React.useEffect(() => { fetchStatus(); }, []);
-            
-            // CYCLE: POST → fetch status → display
-            const doCycle = async () => {
-                setLoading(true);
-                try {
-                    await fetch(`${API}/autus/solar/cycle`, { method: 'POST' });
-                    const data = await fetchStatus();
-                    if (data) addLog(`CYCLE → tick ${data.tick}`);
-                } catch(e) {
-                    addLog(`ERROR: ${e.message}`);
-                }
-                setLoading(false);
-            };
-            
-            // PRESSURE: POST → fetch status → display
-            const doPressure = async () => {
-                setLoading(true);
-                try {
-                    await fetch(`${API}/autus/solar/input`, { 
-                        method: 'POST', 
-                        headers: {'Content-Type': 'application/json'}, 
-                        body: JSON.stringify({ slot: 'Boundary', value: 1.0 }) 
-                    });
-                    const data = await fetchStatus();
-                    if (data) addLog(`PRESSURE → tick ${data.tick}, S=${data.entropy?.value?.toFixed(3)}`);
-                } catch(e) {
-                    addLog(`ERROR: ${e.message}`);
-                }
-                setLoading(false);
-            };
-            
-            // ENGINES: POST → fetch status → display
-            const doEngines = async () => {
-                setLoading(true);
-                try {
-                    await fetch(`${API}/autus/solar/input`, { 
-                        method: 'POST', 
-                        headers: {'Content-Type': 'application/json'}, 
-                        body: JSON.stringify({ slot: 'Engines', value: 1.0 }) 
-                    });
-                    const data = await fetchStatus();
-                    if (data) addLog(`ENGINES → tick ${data.tick}, S=${data.entropy?.value?.toFixed(3)}`);
-                } catch(e) {
-                    addLog(`ERROR: ${e.message}`);
-                }
-                setLoading(false);
-            };
-            
-            // RESET: POST → fetch status → display
-            const doReset = async () => {
-                setLoading(true);
-                try {
-                    await fetch(`${API}/autus/solar/reset`, { method: 'POST' });
-                    const data = await fetchStatus();
-                    setLogs([]);
-                    if (data) addLog(`RESET → tick ${data.tick}, cycle ${data.cycle}`);
-                } catch(e) {
-                    addLog(`ERROR: ${e.message}`);
-                }
-                setLoading(false);
-            };
-            
-            // REFRESH: just fetch
-            const doRefresh = async () => {
-                const data = await fetchStatus();
-                if (data) addLog(`REFRESH → tick ${data.tick}, cycle ${data.cycle}`);
-            };
-            
-            if (!state) return <div style={{color:'#fff',padding:40,fontSize:14}}>Loading...</div>;
-            
-            // ALL values from Backend (NO calculation)
-            const tick = state.tick ?? 0;
-            const cycle = state.cycle ?? 0;
-            const S = state.entropy?.value ?? 0;
-            const B = state.twin?.B ?? 0;
-            const G = state.gravity?.gravity ?? 0;
-            const st = state.orbit?.status ?? 'STABLE';
-            
-            return (
-                <>
-                    {/* Header */}
-                    <div className="panel" style={{top: 24, left: 24}}>
-                        <div style={{fontSize: 10, letterSpacing: '0.3em', opacity: 0.5}}>AUTUS</div>
-                        <div style={{fontSize: 28, fontWeight: 200}}>Atlas</div>
-                        <div style={{fontSize: 10, opacity: 0.4, marginTop: 4}}>PHYSICS v2.3</div>
-                    </div>
-                    
-                    {/* HUD: tick · cycle (FROM BACKEND ONLY) */}
-                    <div className="panel" style={{top: 24, left: '50%', transform: 'translateX(-50)', textAlign: 'center'}}>
-                        <div style={{fontSize: 24, fontWeight: 200}}>tick {tick} · cycle {cycle}</div>
-                    </div>
-                    
-                    {/* Status (FROM BACKEND) */}
-                    <div className="panel" style={{top: 24, right: 24, textAlign: 'right'}}>
-                        <div className={`status ${st.toLowerCase()}`}>{st}</div>
-                    </div>
-                    
-                    {/* Meters (FROM BACKEND) */}
-                    <div className="panel glass" style={{top: 100, right: 24, width: 200}}>
-                        <div className="meter">
-                            <div className="meter-label"><span>ENTROPY</span><span>{S.toFixed(3)}</span></div>
-                            <div className="meter-bar">
-                                <div className={`meter-fill ${S > 0.4 ? 'fill-bad' : S > 0.2 ? 'fill-warn' : 'fill-good'}`} style={{width: `${Math.min(100, S * 200)}%`}}></div>
-                            </div>
-                        </div>
-                        <div className="meter">
-                            <div className="meter-label"><span>BOUNDARY</span><span>{(B * 100).toFixed(0)}%</span></div>
-                            <div className="meter-bar">
-                                <div className={`meter-fill ${B > 0.5 ? 'fill-good' : 'fill-warn'}`} style={{width: `${B * 100}%`}}></div>
-                            </div>
-                        </div>
-                        <div className="meter">
-                            <div className="meter-label"><span>GRAVITY</span><span>{G.toFixed(3)}</span></div>
-                            <div className="meter-bar">
-                                <div className="meter-fill fill-good" style={{width: `${Math.min(100, G * 300)}%`}}></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* Action Log */}
-                    <div className="panel glass" style={{bottom: 100, left: 24, width: 320}}>
-                        <div style={{fontSize: 10, opacity: 0.5, marginBottom: 8}}>ACTION LOG</div>
-                        <div className="log">
-                            {logs.length === 0 && <div style={{opacity: 0.4}}>버튼을 클릭하세요</div>}
-                            {logs.map((l, i) => <div key={l.t + i}>{l.msg}</div>)}
-                        </div>
-                    </div>
-                    
-                    {/* Controls */}
-                    <div className="panel" style={{bottom: 24, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 12}}>
-                        <button className="primary" onClick={doCycle} disabled={loading}>CYCLE</button>
-                        <button className="danger" onClick={doPressure} disabled={loading}>PRESSURE</button>
-                        <button className="success" onClick={doEngines} disabled={loading}>ENGINES</button>
-                        <button onClick={doReset} disabled={loading} style={{opacity: 0.6}}>RESET</button>
-                        <button onClick={doRefresh} disabled={loading} style={{opacity: 0.4}}>REFRESH</button>
-                    </div>
-                    
-                    {/* Source of Truth */}
-                    <div className="panel" style={{bottom: 24, right: 24, fontSize: 10, opacity: 0.3, textAlign: 'right'}}>
-                        <div>Truth = /status</div>
-                        <div>No local calculation</div>
-                    </div>
-                </>
-            );
+        async function fetch_status() {
+            try {
+                const res = await fetch(`${API}/autus/solar/status`);
+                const s = await res.json();
+                render(s);
+            } catch(e) {
+                document.getElementById('error').textContent = e.message;
+            }
         }
         
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        async function send(event) {
+            try {
+                const res = await fetch(`${API}/autus/solar/${event}`, { method: 'POST' });
+                const s = await res.json();
+                render(s);
+            } catch(e) {
+                document.getElementById('error').textContent = e.message;
+            }
+        }
+        
+        function render(s) {
+            document.getElementById('stability').textContent = s.stability;
+            document.getElementById('stability').className = 'stability ' + s.stability;
+            document.getElementById('tick').textContent = s.tick;
+            document.getElementById('cycle').textContent = s.cycle;
+            document.getElementById('entropy').textContent = s.entropy.toFixed(2);
+            
+            const pct = Math.min(100, (s.entropy / s.boundary) * 100);
+            const fill = document.getElementById('entropy-fill');
+            fill.style.width = pct + '%';
+            fill.className = 'entropy-fill ' + (pct < 25 ? 'low' : pct < 50 ? 'mid' : 'high');
+            
+            document.getElementById('error').textContent = s.error || '';
+        }
+        
+        fetch_status();
     </script>
 </body>
 </html>

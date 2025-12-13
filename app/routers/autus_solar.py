@@ -1,37 +1,43 @@
-"""AUTUS Solar Router - Physics v1.0"""
+"""
+AUTUS Solar Router - Physics v1.0
+Events: PRESSURE | RELEASE | RESET | DECISION
+"""
 from fastapi import APIRouter
-from core.solar.solar_entity import get_sun
+from core.solar.solar_entity import get_solar
 
 router = APIRouter(prefix="/autus/solar", tags=["solar"])
 
+# === SINGLE TRUTH ===
 @router.get("/status")
 def status():
-    """GET /status → S"""
-    return get_sun().snapshot()
+    """GET /status → State Vector S"""
+    return get_solar().status()
 
+# === 4 EVENTS ONLY ===
 @router.post("/pressure")
 def pressure():
-    """POST /pressure → t+1, e+α"""
-    return get_sun().pressure().snapshot()
+    """PRESSURE: tick+1, entropy+α"""
+    return get_solar().pressure()
 
 @router.post("/release")
 def release():
-    """POST /release → t+1, e-β"""
-    return get_sun().release().snapshot()
+    """RELEASE: tick+1, entropy-β"""
+    return get_solar().release()
 
 @router.post("/reset")
 def reset():
-    """POST /reset → t+1, e=e0, c unchanged"""
-    return get_sun().reset().snapshot()
+    """RESET: tick+1, entropy=e0, cycle UNCHANGED"""
+    return get_solar().reset()
 
-@router.post("/cycle")
-def cycle():
-    """POST /cycle → t+1, c+1, e×γ"""
-    return get_sun().cycle().snapshot()
+@router.post("/decision")
+def decision():
+    """DECISION: tick+1, cycle+1, entropy×γ (Human Only)"""
+    return get_solar().decision()
 
+# === TESTING ===
 @router.post("/full-reset")
 def full_reset():
-    """POST /full-reset → all=0 (testing)"""
-    return get_sun().full_reset().snapshot()
+    """FULL RESET: all=0 (Testing)"""
+    return get_solar().full_reset()
 
-print("✅ Physics v1.0 LOCKED - Ship It")
+print("✅ Solar Physics v1.0 LOCKED")
