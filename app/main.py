@@ -80,3 +80,11 @@ try:
     print("✅ Jeff Dean Layer loaded")
 except Exception as e:
     print(f"⚠️ Jeff Dean Layer not loaded: {e}")
+
+# === HASSABIS V2 LAYER ===
+try:
+    from app.routers.autus_hassabis import router as hassabis_router
+    app.include_router(hassabis_router)
+    print("✅ Hassabis v2 Layer loaded")
+except Exception as e:
+    print(f"⚠️ Hassabis v2 Layer not loaded: {e}")
