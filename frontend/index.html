@@ -85,7 +85,7 @@
             const doCycle = async () => {
                 setLoading(true);
                 try {
-                    await fetch(`${API}/autus/solar/tick`, { method: 'POST' });
+                    await fetch(`${API}/autus/solar/cycle`, { method: 'POST' });
                     const data = await fetchStatus();
                     if (data) addLog(`CYCLE → tick ${data.tick}`);
                 } catch(e) {
