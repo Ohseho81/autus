@@ -72,3 +72,11 @@ try:
     print("✅ Trust Passport loaded")
 except Exception as e:
     print(f"⚠️ Trust Passport not loaded: {e}")
+
+# === SOLAR ENTITY ===
+try:
+    from app.routers.autus_solar import router as solar_router
+    app.include_router(solar_router)
+    print("✅ Solar Entity loaded")
+except Exception as e:
+    print(f"⚠️ Solar Entity not loaded: {e}")
