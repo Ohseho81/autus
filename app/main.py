@@ -96,3 +96,11 @@ try:
     print("✅ City Pack loaded")
 except Exception as e:
     print(f"⚠️ City Pack not loaded: {e}")
+
+# === REAL DATA ADAPTER ===
+try:
+    from app.routers.autus_ingest import router as ingest_router
+    app.include_router(ingest_router)
+    print("✅ Real Data Adapter loaded")
+except Exception as e:
+    print(f"⚠️ Real Data Adapter not loaded: {e}")
