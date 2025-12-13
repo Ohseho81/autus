@@ -29,3 +29,19 @@ try:
     print("✅ PH→KR Talent Pack loaded")
 except Exception as e:
     print(f"⚠️ Talent Pack not loaded: {e}")
+
+# === FRONTEND STATIC ===
+from fastapi.staticfiles import StaticFiles
+try:
+    app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
+    print("✅ Frontend mounted")
+except Exception as e:
+    print(f"⚠️ Frontend not mounted: {e}")
+
+# === FRONTEND STATIC ===
+from fastapi.staticfiles import StaticFiles
+try:
+    app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
+    print("✅ Frontend mounted")
+except Exception as e:
+    print(f"⚠️ Frontend not mounted: {e}")
