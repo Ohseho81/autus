@@ -1,0 +1,4 @@
+{
+  "allowed": ["id", "value", "ts_norm", "conf", "shadow", "hash"],
+  "forbidden": ["raw", "original", "source", "password", "secret", "token"]
+}
