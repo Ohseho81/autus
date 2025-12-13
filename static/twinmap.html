@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autus 5.0 - Twin Console + Safety & Governance</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #FAFAFA; }
+        .topbar { height: 64px; background: #FFF; border-bottom: 1px solid #E5E5E5; display: flex; align-items: center; padding: 0 20px; gap: 24px; }
+        .topbar-title { font-size: 18px; font-weight: 700; margin-right: auto; }
+        .topbar-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+        .topbar-item .value { font-weight: 600; }
+        .risk-indicator { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .risk-low { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+        .risk-mid { background: #FFF3E0; color: #E65100; border: 1px solid #FFCC80; }
+        .risk-high { background: #FFEBEE; color: #C62828; border: 1px solid #EF9A9A; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .main-container { display: flex; height: calc(100vh - 64px - 100px); }
+        .leftbar { width: 72px; background: #F5F5F5; display: flex; flex-direction: column; align-items: center; padding: 16px 0; gap: 16px; border-right: 1px solid #E5E5E5; }
+        .leftbar-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border-radius: 10px; transition: all 0.2s; }
+        .leftbar-icon:hover { background: #E0E0E0; }
+        .leftbar-icon.active { background: #1976D2; color: #FFF; }
+        .twinmap-container { flex: 1; background: #FFF; position: relative; overflow: hidden; }
+        .right-panel { width: 280px; background: #F8F9FB; border-left: 1px solid #E5E5E5; display: flex; flex-direction: column; overflow: hidden; }
+        .loop-panel { padding: 16px; border-bottom: 1px solid #E5E5E5; }
+        .panel-title { font-size: 11px; font-weight: 600; color: #666; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .loop-stage { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; background: #FFF; border: 1px solid #E5E5E5; font-size: 12px; transition: all 0.2s; }
+        .loop-stage.active { background: #E3F2FD; border-color: #2196F3; }
+        .safety-panel { padding: 16px; border-bottom: 1px solid #E5E5E5; flex: 1; overflow-y: auto; }
+        .safety-event { display: flex; align-items: flex-start; gap: 8px; padding: 8px; background: #FFF; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #F44336; font-size: 11px; }
+        .safety-event.warn { border-left-color: #FF9800; }
+        .safety-event .time { color: #999; }
+        .safety-event .reason { color: #333; flex: 1; }
+        .approval-panel { padding: 16px; background: #FFFDE7; }
+        .approval-item { background: #FFF; border-radius: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid #FFC107; }
+        .approval-item .pack-name { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+        .approval-item .description { font-size: 11px; color: #666; margin-bottom: 10px; }
+        .approval-buttons { display: flex; gap: 8px; }
+        .btn { padding: 6px 16px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-approve { background: #4CAF50; color: #FFF; }
+        .btn-reject { background: #F44336; color: #FFF; }
+        .timeline { height: 100px; background: #FFF; border-top: 1px solid #E5E5E5; padding: 16px 20px; }
+        .timeline-title { font-size: 11px; font-weight: 600; color: #666; margin-bottom: 12px; }
+        .timeline-track { display: flex; align-items: center; gap: 12px; overflow-x: auto; }
+        .timeline-event { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
+        .timeline-event .icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-bottom: 4px; }
+        .timeline-event .icon.minor { background: #E8F5E9; color: #4CAF50; }
+        .timeline-event .icon.warning { background: #FFF3E0; color: #FF9800; }
+        .timeline-event .icon.critical { background: #FFEBEE; color: #F44336; }
+        .timeline-event .icon.blocked { background: #FFCDD2; color: #B71C1C; }
+        .timeline-event .icon.approved { background: #C8E6C9; color: #1B5E20; }
+        .timeline-event .time { font-size: 9px; color: #999; }
+        .timeline-event .label { font-size: 10px; color: #333; }
+        .stats-overlay { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.95); border-radius: 8px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 180px; }
+        .stats-title { font-size: 11px; font-weight: 600; color: #666; margin-bottom: 10px; }
+        .stats-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+        .mode-toggle { display: flex; background: #E0E0E0; border-radius: 20px; padding: 3px; }
+        .mode-btn { padding: 5px 14px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; }
+        .mode-btn.active { background: #FFF; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .mode-btn.live.active { color: #4CAF50; }
+        .mode-btn.sim.active { color: #7C4DFF; }
+        .sim-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; font-weight: 800; color: rgba(124,77,255,0.08); pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function collectState(tick) {
+            const people = [];
+            for (let i = 0; i < 15; i++) {
+                people.push({ id: `p${i}`, x: 120 + Math.sin(tick * 0.02 + i) * 70 + (i % 4) * 150, y: 100 + Math.cos(tick * 0.015 + i * 0.5) * 50 + Math.floor(i / 4) * 100 });
+            }
+            return {
+                people,
+                spaces: [
+                    { id: "A", x: 60, y: 60, w: 160, h: 120, density: 0.45 + Math.sin(tick * 0.01) * 0.15, name: "Training A" },
+                    { id: "B", x: 260, y: 60, w: 180, h: 140, density: 0.75 + Math.sin(tick * 0.008) * 0.1, name: "Workshop B" },
+                    { id: "C", x: 480, y: 60, w: 140, h: 120, density: 0.32, name: "Office C" },
+                    { id: "D", x: 60, y: 220, w: 200, h: 160, density: 0.55, name: "Lab D" },
+                    { id: "E", x: 300, y: 240, w: 160, h: 140, density: 0.85 + Math.sin(tick * 0.012) * 0.08, name: "Assembly E" },
+                ],
+                process: [{ id: "P1", x: 160, y: 300, load: 0.78 }, { id: "P2", x: 380, y: 310, load: 0.94 }],
+                energy: [{ id: "E1", x: 540, y: 300, load: 0.68, risk: false }, { id: "E2", x: 580, y: 150, load: 0.91, risk: true }],
+                events: [{ id: "ev1", x: 340, y: 120, level: "warning" }, { id: "ev2", x: 500, y: 340, level: "critical" }]
+            };
+        }
+
+        function renderTwin(ctx, state, w, h, mode) {
+            ctx.clearRect(0, 0, w, h);
+            ctx.strokeStyle = mode === 'sim' ? "#EDE7F6" : "#F5F5F5";
+            for (let x = 0; x < w; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+            for (let y = 0; y < h; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+            state.spaces.forEach(s => {
+                ctx.fillStyle = s.density > 0.8 ? "rgba(244,67,54,0.15)" : s.density > 0.6 ? "rgba(255,152,0,0.1)" : "rgba(76,175,80,0.06)";
+                ctx.fillRect(s.x, s.y, s.w, s.h);
+                ctx.strokeStyle = s.density > 0.8 ? "#E53935" : "#BDBDBD";
+                ctx.strokeRect(s.x, s.y, s.w, s.h);
+                ctx.fillStyle = "#555"; ctx.font = "11px sans-serif";
+                ctx.fillText(s.name, s.x + 8, s.y + 16);
+                ctx.fillText(Math.round(s.density * 100) + "%", s.x + 8, s.y + s.h - 8);
+            });
+
+            state.process.forEach(p => {
+                ctx.fillStyle = p.load > 0.9 ? "#E53935" : "#43A047";
+                ctx.fillRect(p.x - 14, p.y - 14, 28, 28);
+                ctx.fillStyle = "#FFF"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
+                ctx.fillText(Math.round(p.load * 100), p.x, p.y + 4); ctx.textAlign = "left";
+            });
+
+            state.energy.forEach(e => {
+                ctx.strokeStyle = e.risk ? "#E53935" : "#FFC107"; ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                [-6, 0, 6].forEach(dy => { ctx.moveTo(e.x - 12, e.y + dy); ctx.lineTo(e.x + 12, e.y + dy); });
+                ctx.stroke();
+            });
+
+            state.people.forEach(p => {
+                ctx.fillStyle = mode === 'sim' ? "#7C4DFF" : "#1976D2";
+                ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
+            });
+
+            state.events.forEach(ev => {
+                ctx.fillStyle = ev.level === "critical" ? "#E53935" : "#FB8C00";
+                ctx.beginPath(); ctx.arc(ev.x, ev.y, 10, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = "#FFF"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
+                ctx.fillText("!", ev.x, ev.y + 4); ctx.textAlign = "left";
+            });
+        }
+
+        function safetyCheck(state) {
+            const issues = [];
+            state.spaces.forEach(s => { if (s.density > 0.85) issues.push({ pack: 'crowd_allow', reason: `${s.name} ${Math.round(s.density*100)}%`, severity: 'high' }); });
+            state.process.forEach(p => { if (p.load > 0.92) issues.push({ pack: 'process_boost', reason: `Process overload`, severity: 'high' }); });
+            return issues;
+        }
+
+        function App() {
+            const canvasRef = useRef(null);
+            const [mode, setMode] = useState('live');
+            const [loopStage, setLoopStage] = useState(0);
+            const [riskLevel, setRiskLevel] = useState('low');
+            const [safetyEvents, setSafetyEvents] = useState([]);
+            const [approvals, setApprovals] = useState([]);
+            const [timeline, setTimeline] = useState([
+                { id: 1, type: 'minor', time: '09:12', label: 'Check-in' },
+                { id: 2, type: 'warning', time: '09:45', label: 'Density↑' },
+                { id: 3, type: 'critical', time: '11:05', label: 'Alert' },
+            ]);
+
+            const stages = ["📡 Event", "🔍 Context", "📊 Encode", "💥 Impact", "🔮 Predict"];
+
+            useEffect(() => {
+                const ctx = canvasRef.current.getContext("2d");
+                let tick = 0;
+                const loop = () => {
+                    tick++;
+                    const state = collectState(tick);
+                    renderTwin(ctx, state, 660, 420, mode);
+                    if (tick % 120 === 0) {
+                        const issues = safetyCheck(state);
+                        setRiskLevel(issues.length > 0 ? 'high' : 'low');
+                        if (issues.length > 0 && Math.random() > 0.6) {
+                            setSafetyEvents(prev => [{ id: Date.now(), time: new Date().toLocaleTimeString().slice(0,5), ...issues[0] }, ...prev].slice(0, 8));
+                        }
+                        if (Math.random() > 0.9 && approvals.length < 2) {
+                            setApprovals(prev => [...prev, { id: Date.now(), pack: 'redirect_flow', desc: 'Redirect people from Assembly E' }]);
+                        }
+                    }
+                    if (tick % 60 === 0) setLoopStage(s => (s + 1) % 5);
+                    requestAnimationFrame(loop);
+                };
+                loop();
+            }, [mode]);
+
+            const handleApprove = id => { setApprovals(p => p.filter(a => a.id !== id)); setTimeline(p => [...p, { id: Date.now(), type: 'approved', time: new Date().toLocaleTimeString().slice(0,5), label: 'OK' }]); };
+            const handleReject = id => { setApprovals(p => p.filter(a => a.id !== id)); setTimeline(p => [...p, { id: Date.now(), type: 'blocked', time: new Date().toLocaleTimeString().slice(0,5), label: 'No' }]); };
+
+            return (
+                <div>
+                    <div className="topbar">
+                        <div className="topbar-title">AUTUS 5.0</div>
+                        <div className="mode-toggle">
+                            <div className={`mode-btn live ${mode==='live'?'active':''}`} onClick={()=>setMode('live')}>LIVE</div>
+                            <div className={`mode-btn sim ${mode==='sim'?'active':''}`} onClick={()=>setMode('sim')}>SIM</div>
+                        </div>
+                        <div className="topbar-item">👥 <span className="value">15</span></div>
+                        <div className="topbar-item">🏢 <span className="value">5</span></div>
+                        <div className="topbar-item">⚡ <span className="value">76%</span></div>
+                        <div className={`risk-indicator risk-${riskLevel}`}>{riskLevel==='high'?'★':'○'} {riskLevel.toUpperCase()}</div>
+                    </div>
+                    <div className="main-container">
+                        <div className="leftbar">
+                            <div className="leftbar-icon active">🗺️</div>
+                            <div className="leftbar-icon">👥</div>
+                            <div className="leftbar-icon">🏢</div>
+                            <div className="leftbar-icon">⚙️</div>
+                            <div className="leftbar-icon">🛡️</div>
+                        </div>
+                        <div className="twinmap-container">
+                            <canvas ref={canvasRef} width={660} height={420} />
+                            {mode==='sim' && <div className="sim-watermark">SIM</div>}
+                            <div className="stats-overlay">
+                                <div className="stats-title">REAL-TIME</div>
+                                <div className="stats-row"><span>Density</span><span style={{fontWeight:600}}>58%</span></div>
+                                <div className="stats-row"><span>Process</span><span style={{fontWeight:600}}>86%</span></div>
+                                <div className="stats-row"><span>Safety</span><span style={{fontWeight:600,color:riskLevel==='high'?'#E53935':'#43A047'}}>{riskLevel==='high'?'72':'94'}</span></div>
+                            </div>
+                        </div>
+                        <div className="right-panel">
+                            <div className="loop-panel">
+                                <div className="panel-title">EP10 Loop</div>
+                                {stages.map((s,i) => <div key={i} className={`loop-stage ${i===loopStage?'active':''}`}>{s}</div>)}
+                            </div>
+                            <div className="safety-panel">
+                                <div className="panel-title">🛡️ Safety Blocks</div>
+                                {safetyEvents.length===0 ? <div style={{fontSize:11,color:'#999'}}>No blocks</div> : safetyEvents.map(ev => (
+                                    <div key={ev.id} className="safety-event"><span className="time">{ev.time}</span><span className="reason"><b>{ev.pack}</b><br/>{ev.reason}</span></div>
+                                ))}
+                            </div>
+                            {approvals.length > 0 && <div className="approval-panel">
+                                <div className="panel-title">⚖️ Approval</div>
+                                {approvals.map(a => <div key={a.id} className="approval-item">
+                                    <div className="pack-name">{a.pack}</div>
+                                    <div className="description">{a.desc}</div>
+                                    <div className="approval-buttons">
+                                        <button className="btn btn-approve" onClick={()=>handleApprove(a.id)}>Approve</button>
+                                        <button className="btn btn-reject" onClick={()=>handleReject(a.id)}>Reject</button>
+                                    </div>
+                                </div>)}
+                            </div>}
+                        </div>
+                    </div>
+                    <div className="timeline">
+                        <div className="timeline-title">TIMELINE</div>
+                        <div className="timeline-track">
+                            {timeline.map(ev => <div key={ev.id} className="timeline-event">
+                                <div className={`icon ${ev.type}`}>{ev.type==='critical'?'!':ev.type==='blocked'?'✕':ev.type==='approved'?'✓':'○'}</div>
+                                <div className="time">{ev.time}</div>
+                                <div className="label">{ev.label}</div>
+                            </div>)}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>

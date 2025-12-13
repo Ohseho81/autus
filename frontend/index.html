@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AUTUS OS</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; padding: 40px; }
+        h1 { font-size: 48px; letter-spacing: 8px; }
+        .status { display: flex; gap: 40px; margin: 40px 0; }
+        .item { text-align: center; }
+        .label { color: #888; font-size: 12px; }
+        .value { font-size: 24px; font-weight: bold; color: #0ff; }
+        input { background: #222; border: 1px solid #444; padding: 12px; color: #fff; width: 300px; }
+        button { background: #0aa; border: none; padding: 12px 24px; color: #fff; cursor: pointer; }
+        #logs { background: #111; padding: 20px; height: 150px; overflow-y: auto; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>AUTUS</h1>
+    <p style="color:#0ff">DECISION OS v2.0</p>
+    
+    <div class="status">
+        <div class="item"><div class="label">MODE</div><div class="value" id="mode">SEED</div></div>
+        <div class="item"><div class="label">ENERGY</div><div class="value" id="energy">100%</div></div>
+        <div class="item"><div class="label">CYCLE</div><div class="value" id="cycle">0</div></div>
+    </div>
+    
+    <div id="logs"></div>
+    
+    <input type="text" id="input" placeholder="명령 입력 (사람 채용, 성장 확장 등)">
+    <button onclick="execute()">EXECUTE</button>
+    
+    <script>
+        async function execute() {
+            const text = document.getElementById('input').value;
+            if (!text) return;
+            
+            const res = await fetch('/autus/pipeline/process', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text})
+            });
+            const data = await res.json();
+            
+            if (data.state) {
+                document.getElementById('mode').textContent = data.state.mode;
+                document.getElementById('energy').textContent = data.state.energy.toFixed(0) + '%';
+                document.getElementById('cycle').textContent = data.state.cycle;
+            }
+            
+            if (data.logs) {
+                const logs = document.getElementById('logs');
+                data.logs.forEach(l => {
+                    logs.innerHTML = '<div>' + l + '</div>' + logs.innerHTML;
+                });
+            }
+            
+            document.getElementById('input').value = '';
+        }
+        
+        document.getElementById('input').addEventListener('keypress', e => {
+            if (e.key === 'Enter') execute();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AUTUS OS · HUM Dashboard – Jobs Edition v3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #030712; --bg-card: #0f1629; --bg-card-hover: #151d32;
+      --accent: #3b82f6; --accent-glow: rgba(59, 130, 246, 0.4);
+      --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+      --text-main: #f8fafc; --text-muted: #94a3b8; --text-dim: #64748b;
+      --border: rgba(148, 163, 184, 0.15); --border-hover: rgba(148, 163, 184, 0.3);
+      --radius-xl: 24px; --radius-lg: 16px; --radius-md: 12px; --radius-pill: 999px;
+      --shadow-glow: 0 0 60px -12px var(--accent-glow);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(16, 185, 129, 0.08), transparent);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1280px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(3, 7, 18, 0.95));
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: var(--shadow-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    @keyframes glow { 0%, 100% { box-shadow: 0 0 20px var(--accent-glow); } 50% { box-shadow: 0 0 40px var(--accent-glow); } }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes ripple { to { transform: scale(2); opacity: 0; } }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      color: white;
+      box-shadow: 0 8px 20px -4px var(--accent-glow);
+      animation: glow 3s ease-in-out infinite;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      background: linear-gradient(90deg, var(--text-main), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 12px var(--success);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .status-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--success);
+    }
+
+    .success-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.1));
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .success-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .success-value {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--accent), #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 16px;
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+      background: var(--bg-card-hover);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .card-badge {
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      color: var(--accent);
+    }
+
+    /* Identity Card */
+    .identity-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 8px 24px -4px var(--accent-glow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.2));
+    }
+
+    .identity-info {
+      flex: 1;
+    }
+
+    .identity-name {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .identity-role {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .identity-route {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .route-arrow {
+      color: var(--accent);
+      font-size: 14px;
+    }
+
+    /* Progress Ring */
+    .progress-section {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .progress-ring-container {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+
+    .progress-ring {
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring-bg {
+      fill: none;
+      stroke: rgba(148, 163, 184, 0.1);
+      stroke-width: 8;
+    }
+
+    .progress-ring-fill {
+      fill: none;
+      stroke: url(#gradient);
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 339.292;
+      stroke-dashoffset: 339.292;
+      transition: stroke-dashoffset 1s ease-out;
+    }
+
+    .progress-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .progress-value {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .progress-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .progress-info {
+      flex: 1;
+    }
+
+    /* Vector Bars */
+    .vector-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .vector-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .vector-label {
+      width: 32px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+
+    .vector-bar-container {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(148, 163, 184, 0.1);
+      overflow: hidden;
+    }
+
+    .vector-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .vector-bar-fill.positive { background: linear-gradient(90deg, var(--accent), #8b5cf6); }
+    .vector-bar-fill.warning { background: linear-gradient(90deg, var(--warning), #f97316); }
+    .vector-bar-fill.danger { background: linear-gradient(90deg, var(--danger), #f97316); }
+
+    .vector-value {
+      width: 36px;
+      text-align: right;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Timeline */
+    .timeline-track {
+      display: flex;
+      gap: 4px;
+      padding: 8px 0;
+      overflow-x: auto;
+    }
+
+    .timeline-step {
+      flex: 1;
+      min-width: 80px;
+      padding: 10px 8px;
+      border-radius: var(--radius-md);
+      background: rgba(148, 163, 184, 0.05);
+      border: 1px solid transparent;
+      text-align: center;
+      transition: var(--transition);
+      cursor: default;
+    }
+
+    .timeline-step.completed {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .timeline-step.current {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 0 20px -4px var(--accent-glow);
+    }
+
+    .timeline-step.next {
+      border: 1px dashed rgba(59, 130, 246, 0.3);
+    }
+
+    .step-icon {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .step-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+
+    .step-name {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Action Cards */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .action-card {
+      padding: 14px;
+      border-radius: var(--radius-md);
+      background: rgba(148, 163, 184, 0.03);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(59, 130, 246, 0.05));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .action-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px -10px var(--accent-glow);
+    }
+
+    .action-card:hover::before {
+      opacity: 1;
+    }
+
+    .action-card:active {
+      transform: translateY(0);
+    }
+
+    .action-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .action-type {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+
+    .action-impact {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+    }
+
+    .action-impact.high {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+    }
+
+    .action-impact.medium {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+    }
+
+    .action-impact.low {
+      background: rgba(148, 163, 184, 0.1);
+      color: var(--text-muted);
+    }
+
+    .action-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .action-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .action-btn {
+      margin-top: 10px;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      border: none;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      width: 100%;
+    }
+
+    .action-btn:hover {
+      box-shadow: 0 8px 20px -4px var(--accent-glow);
+      transform: scale(1.02);
+    }
+
+    /* Risk Section */
+    .risk-meter {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .risk-score {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--warning);
+    }
+
+    .risk-info {
+      flex: 1;
+    }
+
+    .risk-level {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--warning);
+    }
+
+    .risk-factors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .risk-tag {
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      background: rgba(148, 163, 184, 0.1);
+      color: var(--text-muted);
+    }
+
+    /* Notification */
+    .notification {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      color: white;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 1000;
+      animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .notification.success {
+      background: linear-gradient(135deg, var(--success), #059669);
+    }
+
+    .notification.error {
+      background: linear-gradient(135deg, var(--danger), #dc2626);
+    }
+
+    .notification-icon {
+      font-size: 18px;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .footer-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-mark">A</div>
+        <div class="brand-text">
+          <span class="brand-title">AUTUS OS · HUM</span>
+          <span class="brand-sub">Global Talent Kernel v3</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="status-badge">
+          <div class="status-dot"></div>
+          <span class="status-text">Live</span>
+        </div>
+        <div class="success-display">
+          <span class="success-label">Success</span>
+          <span class="success-value" id="success-rate">19.1%</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+      <!-- Left Column -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Identity -->
+        <div class="card">
+          <div class="identity-card">
+            <div class="avatar">M</div>
+            <div class="identity-info">
+              <div class="identity-name">Maria Santos</div>
+              <div class="identity-role">Healthcare Assistant Candidate</div>
+            </div>
+            <div class="identity-route">
+              <span>PH027</span>
+              <span class="route-arrow">→</span>
+              <span>PH → KR</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Journey Progress</span>
+            <span class="card-badge">Phase 71%</span>
+          </div>
+          <div class="progress-section">
+            <div class="progress-ring-container">
+              <svg class="progress-ring" width="120" height="120">
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#3b82f6" />
+                    <stop offset="100%" style="stop-color:#a855f7" />
+                  </linearGradient>
+                </defs>
+                <circle class="progress-ring-bg" cx="60" cy="60" r="54" />
+                <circle class="progress-ring-fill" id="progress-ring" cx="60" cy="60" r="54" />
+              </svg>
+              <div class="progress-center">
+                <span class="progress-value" id="progress-value">71%</span>
+                <span class="progress-label">Complete</span>
+              </div>
+            </div>
+            <div class="progress-info">
+              <div class="vector-grid" id="vector-bars">
+                <div class="vector-item"><span class="vector-label">DIR</span><div class="vector-bar-container"><div class="vector-bar-fill positive" id="bar-dir" style="width:33%"></div></div><span class="vector-value" id="val-dir">33</span></div>
+                <div class="vector-item"><span class="vector-label">FOR</span><div class="vector-bar-container"><div class="vector-bar-fill positive" id="bar-for" style="width:40%"></div></div><span class="vector-value" id="val-for">40</span></div>
+                <div class="vector-item"><span class="vector-label">GAP</span><div class="vector-bar-container"><div class="vector-bar-fill warning" id="bar-gap" style="width:71%"></div></div><span class="vector-value" id="val-gap">71</span></div>
+                <div class="vector-item"><span class="vector-label">UNC</span><div class="vector-bar-container"><div class="vector-bar-fill warning" id="bar-unc" style="width:60%"></div></div><span class="vector-value" id="val-unc">60</span></div>
+                <div class="vector-item"><span class="vector-label">TEM</span><div class="vector-bar-container"><div class="vector-bar-fill positive" id="bar-tem" style="width:50%"></div></div><span class="vector-value" id="val-tem">50</span></div>
+                <div class="vector-item"><span class="vector-label">INT</span><div class="vector-bar-container"><div class="vector-bar-fill positive" id="bar-int" style="width:27%"></div></div><span class="vector-value" id="val-int">27</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Journey Timeline</span>
+            <span class="card-badge">Bottleneck: Visa</span>
+          </div>
+          <div class="timeline-track">
+            <div class="timeline-step completed"><div class="step-icon">✓</div><div class="step-label">HUM</div><div class="step-name">Created</div></div>
+            <div class="timeline-step completed"><div class="step-icon">✓</div><div class="step-label">EDU</div><div class="step-name">Training</div></div>
+            <div class="timeline-step current"><div class="step-icon">●</div><div class="step-label">EMP</div><div class="step-name">Matched</div></div>
+            <div class="timeline-step next"><div class="step-icon">○</div><div class="step-label">GOV</div><div class="step-name">Visa</div></div>
+            <div class="timeline-step"><div class="step-icon">○</div><div class="step-label">EMP</div><div class="step-name">Started</div></div>
+            <div class="timeline-step"><div class="step-icon">○</div><div class="step-label">SOC</div><div class="step-name">Community</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Risk -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Risk Assessment</span>
+            <span class="card-badge">OS Score: 62</span>
+          </div>
+          <div class="risk-meter">
+            <div class="risk-score">62</div>
+            <div class="risk-info">
+              <div class="risk-level">Medium Risk · Visa-dependent</div>
+              <div class="risk-factors">
+                <span class="risk-tag">High GAP (71)</span>
+                <span class="risk-tag">UNC (60)</span>
+                <span class="risk-tag">Low INT (27)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card" style="flex:1;">
+          <div class="card-header">
+            <span class="card-title">Next Best Action</span>
+            <span class="card-badge">AI Recommended</span>
+          </div>
+          <div class="actions-grid">
+            <div class="action-card" data-action="visa">
+              <div class="action-header">
+                <span class="action-type">Visa</span>
+                <span class="action-impact high">High Impact</span>
+              </div>
+              <div class="action-title">Submit Documents</div>
+              <div class="action-desc">Complete visa application to reduce uncertainty.</div>
+              <button class="action-btn">Apply Event</button>
+            </div>
+            <div class="action-card" data-action="employment">
+              <div class="action-header">
+                <span class="action-type">Employment</span>
+                <span class="action-impact medium">Medium</span>
+              </div>
+              <div class="action-title">Lock Start Date</div>
+              <div class="action-desc">Confirm employment timeline with employer.</div>
+              <button class="action-btn">Apply Event</button>
+            </div>
+            <div class="action-card" data-action="training">
+              <div class="action-header">
+                <span class="action-type">Training</span>
+                <span class="action-impact medium">Medium</span>
+              </div>
+              <div class="action-title">KR Module</div>
+              <div class="action-desc">Assign Korea-specific training course.</div>
+              <button class="action-btn">Apply Event</button>
+            </div>
+            <div class="action-card" data-action="community">
+              <div class="action-header">
+                <span class="action-type">Community</span>
+                <span class="action-impact low">Long-term</span>
+              </div>
+              <div class="action-title">Connect Network</div>
+              <div class="action-desc">Join KR caregiver community group.</div>
+              <button class="action-btn">Apply Event</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-status">
+        <div class="footer-dot"></div>
+        <span>Now: Employment Matched → Next: Visa Approved</span>
+      </div>
+      <span>AUTUS HUM Kernel v3 · Lime Engine</span>
+    </footer>
+  </main>
+
+  <script>
+    const API = window.location.origin;
+    const HUM = 'PH027';
+
+    const events = {
+      visa: { source: 'GOV', code: 'GOV:VisaApproved', delta: { DIR: 0.20, UNC: -0.25, FOR: 0.15 } },
+      employment: { source: 'EMP', code: 'EMP:Started', delta: { DIR: 0.15, FOR: 0.20, INT: 0.15 } },
+      training: { source: 'EDU', code: 'EDU:Completed', delta: { DIR: 0.15, GAP: -0.20, UNC: -0.15, INT: 0.10 } },
+      community: { source: 'SOC', code: 'SOC:CommunityJoined', delta: { INT: 0.25, GAP: -0.15 } }
+    };
+
+    // Initialize progress ring
+    const ring = document.getElementById('progress-ring');
+    const circumference = 2 * Math.PI * 54;
+    ring.style.strokeDasharray = circumference;
+    setTimeout(() => { ring.style.strokeDashoffset = circumference * (1 - 0.71); }, 100);
+
+    function notify(msg, type) {
+      const el = document.createElement('div');
+      el.className = 'notification ' + type;
+      el.innerHTML = '<span class="notification-icon">' + (type === 'success' ? '✓' : '✕') + '</span>' + msg;
+      document.body.appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3000);
+    }
+
+    function updateUI(vector, success) {
+      ['dir','for','gap','unc','tem','int'].forEach(k => {
+        const v = vector[k.toUpperCase()] || 0;
+        const pct = Math.round(v * 100);
+        const bar = document.getElementById('bar-' + k);
+        bar.style.width = pct + '%';
+        document.getElementById('val-' + k).textContent = pct;
+        
+        // Update bar color based on value
+        bar.className = 'vector-bar-fill ' + (pct > 65 ? 'warning' : 'positive');
+      });
+      
+      document.getElementById('success-rate').textContent = success.toFixed(1) + '%';
+      
+      // Update progress ring
+      const avgProgress = (vector.DIR + vector.FOR + (1 - vector.GAP) + (1 - vector.UNC) + vector.TEM + vector.INT) / 6;
+      ring.style.strokeDashoffset = circumference * (1 - avgProgress);
+      document.getElementById('progress-value').textContent = Math.round(avgProgress * 100) + '%';
+    }
+
+    async function applyAction(type) {
+      const e = events[type];
+      if (!e) return;
+      
+      try {
+        const res = await fetch(API + '/kernel/lime/v3/event/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hum_id: HUM,
+            source: e.source,
+            event_code: e.code,
+            event_delta: e.delta,
+            days_since_last: 7
+          })
+        });
+        const data = await res.json();
+        if (data.vectors && data.vectors.after) {
+          updateUI(data.vectors.after, data.analysis?.success_probability || 20);
+          notify(e.code + ' applied! Success: ' + (data.analysis?.success_probability || 20).toFixed(1) + '%', 'success');
+        }
+      } catch (err) {
+        console.error(err);
+        notify('Error: ' + err.message, 'error');
+      }
+    }
+
+    document.querySelectorAll('.action-card').forEach(card => {
+      card.addEventListener('click', function() {
+        applyAction(this.getAttribute('data-action'));
+      });
+    });
+  </script>
+</body>
+</html>

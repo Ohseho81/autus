@@ -254,3 +254,66 @@ def phase_transition(entity_id: str, target_phase: str, force: bool = False):
         "target_phase": target_phase,
         "force": force,
     })
+
+
+# === Lime Kernel v2 ===
+from kernel.lime.core import EnhancedVectorEngine, AXES
+
+_lime_engine = EnhancedVectorEngine(country="KR", industry="education")
+
+class LimeVectorRequest(BaseModel):
+    profile: str = "standard"
+
+class LimeEventRequest(BaseModel):
+    current_vector: Dict[str, float]
+    source: str
+    event_delta: Dict[str, float]
+    days_since_last: int = 0
+    event_code: str = "UNKNOWN"
+
+class LimeSettlementRequest(BaseModel):
+    vector: Dict[str, float]
+
+@router.post("/lime/vector/create")
+def lime_create_vector(req: LimeVectorRequest):
+    """Lime Kernel v2 - 초기 벡터 생성"""
+    vector = _lime_engine.create_initial_vector(req.profile)
+    return {"profile": req.profile, "vector": vector, "axes": AXES, "version": "2.0.0"}
+
+@router.post("/lime/event/apply")
+def lime_apply_event(req: LimeEventRequest):
+    """Lime Kernel v2 - 이벤트 적용"""
+    result = _lime_engine.apply_event(
+        req.current_vector, req.source, req.event_delta,
+        req.days_since_last, req.event_code
+    )
+    return {
+        "old_vector": result.old_vector,
+        "new_vector": result.new_vector,
+        "delta": result.delta,
+        "cross_effects": result.cross_effects,
+        "temporal_decay": result.temporal_decay,
+        "version": "2.0.0"
+    }
+
+@router.post("/lime/settlement/check")
+def lime_check_settlement(req: LimeSettlementRequest):
+    """Lime Kernel v2 - 정착 조건 체크"""
+    result = _lime_engine.check_settlement(req.vector)
+    return {
+        "score": result.score,
+        "settled": result.settled,
+        "criteria": result.criteria,
+        "message": result.message,
+        "version": "2.0.0"
+    }
+
+@router.get("/lime/status")
+def lime_status():
+    """Lime Kernel v2 상태"""
+    return {
+        "status": "active",
+        "version": "2.0.0",
+        "features": ["calibrated_matrix", "cross_axis_correlations", "temporal_decay"],
+        "axes": AXES
+    }

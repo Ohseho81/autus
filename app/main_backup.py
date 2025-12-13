@@ -54,21 +54,3 @@ if os.path.exists(static_path):
 # Lime Kernel v3 Router
 from kernel.lime.v3.router import router as lime_v3_router
 app.include_router(lime_v3_router)
-
-# === AUTUS CORE ROUTERS ===
-try:
-    from app.routers.autus_pipeline import router as pipeline_router
-    from app.routers.autus_gmu import router as gmu_router
-    app.include_router(pipeline_router)
-    app.include_router(gmu_router)
-    print("✅ Autus Core routers loaded")
-except Exception as e:
-    print(f"⚠️ Autus Core routers not loaded: {e}")
-
-# Frontend static files
-from fastapi.staticfiles import StaticFiles
-try:
-    app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
-    print("✅ Frontend mounted")
-except:
-    pass
