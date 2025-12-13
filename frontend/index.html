@@ -20,9 +20,13 @@
         .slot-fill { height: 100%; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         button { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); padding: 8px 16px; border-radius: 4px; font-family: inherit; font-size: 11px; cursor: pointer; transition: all 0.3s; }
         button:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); color: #fff; }
-        .status-operational { color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.3); }
-        .status-blocked { color: #ff3366; text-shadow: 0 0 30px rgba(255,51,102,0.5); }
-        .gravity-ring { position: absolute; border: 1px solid rgba(0,212,255,0.3); border-radius: 50%; pointer-events: none; }
+        .status-stable { color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.3); }
+        .status-warning { color: #ffaa00; text-shadow: 0 0 20px rgba(255,170,0,0.4); }
+        .status-unstable { color: #ff6644; text-shadow: 0 0 25px rgba(255,102,68,0.5); }
+        .status-collapsed { color: #ff2244; text-shadow: 0 0 30px rgba(255,34,68,0.6); animation: pulse-red 0.5s infinite; }
+        @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .entropy-critical { color: #ff4466; }
+        .entropy-warning { color: #ffaa44; }
     </style>
 </head>
 <body>
@@ -32,10 +36,6 @@
     <script type="text/babel">
         const API = "https://solar.autus-ai.com";
         
-        // Physics Constants
-        const R_MIN = 0.9, R_MAX = 2.4;
-        const OMEGA_MIN = 0.002, OMEGA_MAX = 0.02;
-        const TILT_MIN = 0.0, TILT_MAX = 0.4;
         const LERP_ALPHA = 0.06;
         
         class DeepSpaceRenderer {
@@ -52,18 +52,15 @@
                 this.camera.lookAt(0, 0, 0);
                 
                 this.orbitGroups = [];
-                this.blocked = false;
                 this.time = 0;
                 
-                // Physics state
-                this.targetRadius = 1;
-                this.shownRadius = 1;
-                this.targetOmega = OMEGA_MIN;
-                this.omega = OMEGA_MIN;
-                this.targetTilt = 0;
-                this.shownTilt = 0;
+                // State
+                this.orbitStatus = 'STABLE';
+                this.entropy = 0;
                 this.gravity = 0.3;
-                this.targetGravity = 0.3;
+                this.targetOrbitRadius = 1.7;
+                this.shownOrbitRadius = 1.7;
+                this.collapseShake = 0;
                 
                 this.createDeepSpace();
                 this.animate();
@@ -79,10 +76,10 @@
             
             createDeepSpace() {
                 this.scene.add(new THREE.AmbientLight(0x111122, 0.5));
-                const sunLight = new THREE.PointLight(0x00d4ff, 2, 50);
-                this.scene.add(sunLight);
+                this.sunLight = new THREE.PointLight(0x00d4ff, 2, 50);
+                this.scene.add(this.sunLight);
                 
-                // Sun with gravity visualization
+                // Sun
                 const sunMat = new THREE.MeshPhysicalMaterial({
                     color: 0x001020, metalness: 0.1, roughness: 0.1,
                     transmission: 0.9, thickness: 2, clearcoat: 1,
@@ -91,7 +88,7 @@
                 this.sun = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), sunMat);
                 this.scene.add(this.sun);
                 
-                // Gravity field visualization (rings)
+                // Gravity rings
                 this.gravityRings = [];
                 for (let i = 0; i < 5; i++) {
                     const ring = new THREE.Mesh(
@@ -113,13 +110,13 @@
                 
                 // 7 Orbits
                 const orbitData = [
-                    { radius: 2.5, color: 0x4488ff, name: 'Brain' },
-                    { radius: 3.2, color: 0x44ff88, name: 'Sensors' },
-                    { radius: 3.9, color: 0xff4488, name: 'Heart' },
-                    { radius: 4.6, color: 0xffdd44, name: 'Core' },
-                    { radius: 5.3, color: 0xff8844, name: 'Engines' },
-                    { radius: 6.0, color: 0x8844ff, name: 'Base' },
-                    { radius: 6.7, color: 0xff2244, name: 'Boundary' }
+                    { radius: 2.5, color: 0x4488ff },
+                    { radius: 3.2, color: 0x44ff88 },
+                    { radius: 3.9, color: 0xff4488 },
+                    { radius: 4.6, color: 0xffdd44 },
+                    { radius: 5.3, color: 0xff8844 },
+                    { radius: 6.0, color: 0x8844ff },
+                    { radius: 6.7, color: 0xff2244 }
                 ];
                 
                 orbitData.forEach((data, i) => {
@@ -129,7 +126,7 @@
                         new THREE.MeshBasicMaterial({ color: data.color, transparent: true, opacity: 0.15 })
                     );
                     orbit.rotation.x = Math.PI / 2;
-                    orbit.userData = { baseRadius: data.radius, index: i, name: data.name };
+                    orbit.userData = { baseRadius: data.radius, index: i, baseColor: data.color };
                     group.add(orbit);
                     group.userData = { orbit, index: i };
                     this.orbitGroups.push(group);
@@ -162,65 +159,79 @@
             updateFromState(state) {
                 if (!state) return;
                 
-                this.blocked = state.blocked;
-                const energy = state.energy || {};
+                const orbit = state.orbit || {};
+                const entropy = state.entropy || {};
                 const gravity = state.gravity || {};
-                const twin = state.twin || {};
                 
-                // Gravity visualization
-                this.targetGravity = gravity.gravity || 0.3;
+                this.orbitStatus = orbit.status || 'STABLE';
+                this.entropy = entropy.value || 0;
+                this.gravity = gravity.gravity || 0.3;
+                this.targetOrbitRadius = orbit.radius || 1.7;
                 
-                // Sun color based on state
-                if (state.blocked) {
+                // Color based on status
+                const isCollapsed = this.orbitStatus === 'COLLAPSED';
+                const isUnstable = this.orbitStatus === 'UNSTABLE';
+                const isWarning = this.orbitStatus === 'WARNING';
+                
+                if (isCollapsed) {
                     this.sunGlow.material.color.setHex(0xff2244);
                     this.core.material.color.setHex(0xff4466);
+                    this.sunLight.color.setHex(0xff4466);
+                    this.sunGlow.material.opacity = 0.4;
+                    this.collapseShake = 0.15;
+                } else if (isUnstable) {
+                    this.sunGlow.material.color.setHex(0xff6644);
+                    this.core.material.color.setHex(0xff8866);
+                    this.sunLight.color.setHex(0xff8866);
                     this.sunGlow.material.opacity = 0.3;
+                    this.collapseShake = 0.08;
+                } else if (isWarning) {
+                    this.sunGlow.material.color.setHex(0xffaa00);
+                    this.core.material.color.setHex(0xffcc44);
+                    this.sunLight.color.setHex(0xffcc44);
+                    this.sunGlow.material.opacity = 0.2;
+                    this.collapseShake = 0.03;
                 } else {
-                    // Gravity affects sun intensity
-                    const gIntensity = Math.min(1, this.targetGravity * 2);
                     this.sunGlow.material.color.setHex(0x00d4ff);
                     this.core.material.color.setHex(0x00ffff);
-                    this.sunGlow.material.opacity = 0.1 + gIntensity * 0.2;
-                    this.sun.scale.setScalar(0.9 + gIntensity * 0.2);
+                    this.sunLight.color.setHex(0x00d4ff);
+                    this.sunGlow.material.opacity = 0.15;
+                    this.collapseShake = 0;
                 }
                 
-                // Update gravity rings
+                // Gravity rings
                 this.gravityRings.forEach((ring, i) => {
-                    const scale = 1 + (1 - this.targetGravity) * 0.5;
+                    const scale = 1 + (1 - this.gravity) * 0.5 + this.entropy * 0.2;
                     ring.scale.setScalar(scale);
-                    ring.material.opacity = 0.05 + this.targetGravity * 0.1 - i * 0.01;
+                    ring.material.opacity = Math.max(0.02, 0.08 - this.entropy * 0.02 - i * 0.01);
+                    
+                    if (isCollapsed || isUnstable) {
+                        ring.material.color.setHex(isCollapsed ? 0xff2244 : 0xff6644);
+                    } else {
+                        ring.material.color.setHex(0x00d4ff);
+                    }
                 });
                 
-                if (!this.blocked) {
-                    const engines = energy.Engines || 0.5;
-                    const sensors = energy.Sensors || 0.5;
-                    const brain = energy.Brain || 0.5;
-                    
-                    // Physics targets (gravity affects orbit)
-                    const orbitRadius = state.orbit_radius || 1.7;
-                    this.targetRadius = orbitRadius;
-                    
-                    // Omega based on engines + gravity
-                    this.targetOmega = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * engines * (1 + this.targetGravity * 0.5);
-                    
-                    // Tilt based on sensors + brain
-                    this.targetTilt = TILT_MIN + (TILT_MAX - TILT_MIN) * sensors * brain;
-                }
-                
-                // Update orbit colors
+                // Orbit colors
+                const energy = state.energy || {};
                 const slots = ['Brain', 'Sensors', 'Heart', 'Core', 'Engines', 'Base', 'Boundary'];
                 this.orbitGroups.forEach((group, i) => {
                     const orbit = group.userData.orbit;
                     const value = energy[slots[i]] || 0.5;
-                    orbit.material.opacity = 0.1 + value * 0.3;
                     
-                    // Gravity affects orbit radius
-                    const baseRadius = orbit.userData.baseRadius;
-                    const gravityEffect = 1 / (1 + this.targetGravity * 0.3);
-                    orbit.scale.setScalar(gravityEffect);
+                    // Scale based on entropy (orbits expand as entropy increases)
+                    const entropyScale = 1 + this.entropy * 0.15;
+                    orbit.scale.setScalar(entropyScale);
                     
-                    if (slots[i] === 'Boundary' && value > 0.5) {
+                    if (isCollapsed) {
                         orbit.material.color.setHex(0xff2244);
+                        orbit.material.opacity = 0.3 + Math.sin(this.time * 10 + i) * 0.1;
+                    } else if (isUnstable) {
+                        orbit.material.color.setHex(0xff6644);
+                        orbit.material.opacity = 0.2 + Math.sin(this.time * 5 + i) * 0.05;
+                    } else {
+                        orbit.material.color.setHex(orbit.userData.baseColor);
+                        orbit.material.opacity = 0.1 + value * 0.2;
                     }
                 });
             }
@@ -229,28 +240,50 @@
                 requestAnimationFrame(() => this.animate());
                 this.time += 0.016;
                 
-                // Gravity lerp
-                this.gravity = THREE.MathUtils.lerp(this.gravity, this.targetGravity, LERP_ALPHA);
+                // Lerp orbit radius
+                this.shownOrbitRadius = THREE.MathUtils.lerp(this.shownOrbitRadius, this.targetOrbitRadius, LERP_ALPHA);
                 
+                // Sun pulse
                 const pulse = 1 + Math.sin(this.time * 0.5) * 0.02;
                 this.sunGlow.scale.setScalar(pulse * (0.9 + this.gravity * 0.2));
                 
-                if (!this.blocked) {
-                    this.shownRadius = THREE.MathUtils.lerp(this.shownRadius, this.targetRadius, LERP_ALPHA);
-                    this.omega = THREE.MathUtils.lerp(this.omega, this.targetOmega, LERP_ALPHA);
-                    this.shownTilt = THREE.MathUtils.lerp(this.shownTilt, this.targetTilt, LERP_ALPHA);
+                // Collapse shake
+                if (this.collapseShake > 0) {
+                    const shake = this.collapseShake;
+                    this.sun.position.x = (Math.random() - 0.5) * shake;
+                    this.sun.position.y = (Math.random() - 0.5) * shake;
+                    this.sunGlow.position.copy(this.sun.position);
+                    this.core.position.copy(this.sun.position);
+                } else {
+                    this.sun.position.set(0, 0, 0);
+                    this.sunGlow.position.set(0, 0, 0);
+                    this.core.position.set(0, 0, 0);
+                }
+                
+                // Orbit rotation (slower when entropy high)
+                const rotationSpeed = Math.max(0.001, 0.01 - this.entropy * 0.003);
+                this.orbitGroups.forEach((group, i) => {
+                    group.rotation.z += rotationSpeed * (1 + i * 0.08);
                     
-                    this.orbitGroups.forEach((group, i) => {
-                        group.rotation.z += this.omega * (1 + i * 0.08);
-                        group.rotation.x = this.shownTilt * (1 + i * 0.1);
-                    });
-                    
-                    this.planet.userData.angle += this.omega * 0.8;
-                    this.planet.userData.radius = this.shownRadius * 2;
-                    const r = this.planet.userData.radius;
-                    this.planet.position.x = Math.cos(this.planet.userData.angle) * r;
-                    this.planet.position.z = Math.sin(this.planet.userData.angle) * r;
-                    this.planet.position.y = Math.sin(this.shownTilt) * r * 0.3;
+                    // Wobble when unstable
+                    if (this.orbitStatus === 'UNSTABLE' || this.orbitStatus === 'COLLAPSED') {
+                        group.rotation.x = Math.sin(this.time * 2 + i) * 0.1 * this.entropy;
+                    } else {
+                        group.rotation.x = THREE.MathUtils.lerp(group.rotation.x, 0, 0.05);
+                    }
+                });
+                
+                // Planet orbit
+                const planetSpeed = Math.max(0.002, 0.01 - this.entropy * 0.003);
+                this.planet.userData.angle += planetSpeed;
+                this.planet.userData.radius = this.shownOrbitRadius * 2;
+                const r = this.planet.userData.radius;
+                this.planet.position.x = Math.cos(this.planet.userData.angle) * r;
+                this.planet.position.z = Math.sin(this.planet.userData.angle) * r;
+                
+                // Planet wobble when collapsed
+                if (this.orbitStatus === 'COLLAPSED') {
+                    this.planet.position.y = Math.sin(this.time * 5) * 0.5;
                 }
                 
                 this.stars.rotation.y += 0.00005;
@@ -269,7 +302,7 @@
             React.useEffect(() => {
                 rendererRef.current = new DeepSpaceRenderer(document.getElementById('canvas-container'));
                 fetchState();
-                const interval = setInterval(fetchState, 1000);
+                const interval = setInterval(fetchState, 500);
                 return () => clearInterval(interval);
             }, []);
             
@@ -302,8 +335,18 @@
                 fetchState();
             };
             
+            const orbit = solar?.orbit || {};
+            const entropy = solar?.entropy || {};
             const gravity = solar?.gravity || {};
             const twin = solar?.twin || {};
+            const brain = solar?.brain || {};
+            
+            const statusClass = {
+                'STABLE': 'status-stable',
+                'WARNING': 'status-warning',
+                'UNSTABLE': 'status-unstable',
+                'COLLAPSED': 'status-collapsed'
+            }[orbit.status] || 'status-stable';
             
             return (
                 <>
@@ -311,56 +354,62 @@
                     <div className="ui-layer" style={{top: 32, left: 32, opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
                         <div style={{letterSpacing: '0.3em', fontSize: 11, fontWeight: 200}} className="text-dim">AUTUS</div>
                         <div style={{fontSize: 24, fontWeight: 200, marginTop: 4}} className="text-bright">Atlas</div>
-                        <div style={{fontSize: 9, marginTop: 8, letterSpacing: '0.1em'}} className="text-dim">GRAVITY v1.1</div>
+                        <div style={{fontSize: 9, marginTop: 8, letterSpacing: '0.1em'}} className="text-dim">PHYSICS v1.3</div>
                     </div>
                     
                     {/* Status */}
                     <div className="ui-layer" style={{top: 32, right: 32, textAlign: 'right', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
                         <div style={{fontSize: 11, letterSpacing: '0.2em'}} className="text-dim">CYCLE</div>
                         <div style={{fontSize: 32, fontWeight: 200}} className="text-bright">{solar?.cycle || 0}</div>
-                        <div style={{marginTop: 16, fontSize: 11, letterSpacing: '0.15em'}} className={solar?.blocked ? 'status-blocked' : 'status-operational'}>
-                            {solar?.blocked ? '● BLOCKED' : '● OPERATIONAL'}
+                        <div style={{fontSize: 10, marginTop: 4}} className="text-dim">tick {solar?.tick || 0}</div>
+                        <div style={{marginTop: 16, fontSize: 13, letterSpacing: '0.15em'}} className={statusClass}>
+                            ● {orbit.status || 'STABLE'}
                         </div>
-                        {solar?.blocked && <div style={{fontSize: 10, marginTop: 4}} className="text-dim">{solar.block_reason}</div>}
+                        {solar?.block_reason && <div style={{fontSize: 10, marginTop: 4}} className="text-dim">{solar.block_reason}</div>}
                     </div>
                     
-                    {/* Inner Gravity Panel */}
-                    <div className="ui-layer" style={{top: 120, right: 32, textAlign: 'right', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
-                        <div style={{fontSize: 10, letterSpacing: '0.2em', marginBottom: 12}} className="text-dim">INNER GRAVITY</div>
-                        <div style={{fontSize: 11, marginBottom: 6}}>
-                            <span className="text-dim">Talent </span>
-                            <span className="text-bright">{(gravity.talent * 100 || 50).toFixed(0)}%</span>
+                    {/* Entropy Panel */}
+                    <div className="ui-layer" style={{top: 140, right: 32, textAlign: 'right', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
+                        <div style={{fontSize: 10, letterSpacing: '0.2em', marginBottom: 8}} className="text-dim">ENTROPY</div>
+                        <div style={{fontSize: 28, fontWeight: 200}} className={entropy.value > 1 ? 'entropy-critical' : entropy.value > 0.5 ? 'entropy-warning' : 'text-bright'}>
+                            {(entropy.value || 0).toFixed(2)}
                         </div>
-                        <div style={{fontSize: 11, marginBottom: 6}}>
+                        <div style={{fontSize: 10, marginTop: 8}}>
+                            <span className="text-dim">Loss </span>
+                            <span className={entropy.loss > 0.05 ? 'entropy-warning' : 'text-bright'}>{(entropy.loss || 0).toFixed(3)}</span>
+                        </div>
+                        <div style={{fontSize: 10, marginTop: 4}}>
+                            <span className="text-dim">G_eff </span>
+                            <span className="text-bright">{(entropy.G_eff || 0).toFixed(3)}</span>
+                        </div>
+                    </div>
+                    
+                    {/* Gravity Panel */}
+                    <div className="ui-layer" style={{top: 280, right: 32, textAlign: 'right', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
+                        <div style={{fontSize: 10, letterSpacing: '0.2em', marginBottom: 8}} className="text-dim">GRAVITY</div>
+                        <div style={{fontSize: 11, marginBottom: 4}}>
+                            <span className="text-dim">Talent </span>
+                            <span className="text-bright">{((gravity.talent || 0.5) * 100).toFixed(0)}%</span>
+                        </div>
+                        <div style={{fontSize: 11, marginBottom: 4}}>
                             <span className="text-dim">Effort </span>
                             <span className="text-bright">{(gravity.effort || 0).toFixed(2)}</span>
                         </div>
-                        <div style={{fontSize: 11, marginBottom: 6}}>
+                        <div style={{fontSize: 11, marginBottom: 4}}>
                             <span className="text-dim">Context </span>
-                            <span className="text-bright">{(gravity.context * 100 || 50).toFixed(0)}%</span>
+                            <span className="text-bright">{((gravity.context || 0.5) * 100).toFixed(0)}%</span>
                         </div>
-                        <div style={{fontSize: 14, marginTop: 12, color: '#00d4ff'}}>
+                        <div style={{fontSize: 14, marginTop: 8, color: '#00d4ff'}}>
                             G = {(gravity.gravity || 0.3).toFixed(3)}
-                        </div>
-                        <div style={{fontSize: 10, marginTop: 4}} className="text-dim">
-                            Orbit R = {(solar?.orbit_radius || 1.7).toFixed(2)}
                         </div>
                     </div>
                     
-                    {/* Twin State Panel */}
-                    <div className="ui-layer" style={{top: 300, right: 32, textAlign: 'right', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
-                        <div style={{fontSize: 10, letterSpacing: '0.2em', marginBottom: 12}} className="text-dim">TWIN STATE</div>
-                        <div style={{fontSize: 11, marginBottom: 4}}>
-                            <span className="text-dim">P </span>
-                            <span style={{color: twin.P > 1 ? '#ff3366' : '#fff'}}>{(twin.P || 0).toFixed(2)}</span>
-                        </div>
-                        <div style={{fontSize: 11, marginBottom: 4}}>
-                            <span className="text-dim">E </span>
-                            <span className="text-bright">{(twin.E || 1).toFixed(2)}</span>
-                        </div>
-                        <div style={{fontSize: 11, marginBottom: 4}}>
-                            <span className="text-dim">K </span>
-                            <span className="text-bright">{(twin.K || 0.5).toFixed(2)}</span>
+                    {/* Orbit Panel */}
+                    <div className="ui-layer" style={{top: 420, right: 32, textAlign: 'right', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
+                        <div style={{fontSize: 10, letterSpacing: '0.2em', marginBottom: 8}} className="text-dim">ORBIT</div>
+                        <div style={{fontSize: 11}}>
+                            <span className="text-dim">Radius </span>
+                            <span className="text-bright">{(orbit.radius || 1.7).toFixed(2)}</span>
                         </div>
                     </div>
                     
@@ -375,8 +424,10 @@
                                 </div>
                                 <div className="slot-bar">
                                     <div className="slot-fill" style={{
-                                        width: `${value * 100}%`,
-                                        background: slot === 'Boundary' ? (value > 0.5 ? '#ff2244' : 'rgba(255,255,255,0.3)') : 'rgba(255,255,255,0.4)'
+                                        width: `${Math.max(0, Math.min(100, value * 100))}%`,
+                                        background: slot === 'Core' && value < 0.5 ? '#ff4466' : 
+                                                   slot === 'Boundary' && value > 0.5 ? '#ff2244' : 
+                                                   'rgba(255,255,255,0.4)'
                                     }}></div>
                                 </div>
                             </div>
@@ -388,7 +439,6 @@
                         <button onClick={runCycle}>CYCLE</button>
                         <button onClick={() => applyEnergy('Brain', 0.9)}>BRAIN</button>
                         <button onClick={() => applyEnergy('Sensors', 0.9)}>SENSORS</button>
-                        <button onClick={() => applyEnergy('Engines', 0.9)}>ENGINES</button>
                         <button onClick={() => applyEnergy('Boundary', 0.95)} style={{color: '#ff6688'}}>PRESSURE</button>
                         <button onClick={() => applyEnergy('Boundary', 0.0)} style={{color: '#00ff88'}}>RELEASE</button>
                         <button onClick={resetSolar} style={{opacity: 0.5}}>RESET</button>
