@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>AUTUS ATLAS Dashboard</title>
+    <title>AUTUS ATLAS - Solar System</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -12,9 +12,11 @@
         body { margin: 0; background: #000; color: #fff; font-family: 'SF Mono', monospace; overflow: hidden; }
         .glass { background: rgba(10,10,10,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         .glow-cyan { box-shadow: 0 0 20px rgba(0,255,255,0.3); }
-        .glow-red { box-shadow: 0 0 20px rgba(255,0,0,0.5); }
+        .glow-red { box-shadow: 0 0 30px rgba(255,0,0,0.6); }
         #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
         .panel { position: absolute; z-index: 10; }
+        .slot-bar { height: 6px; background: #1a1a1a; border-radius: 3px; overflow: hidden; }
+        .slot-fill { height: 100%; transition: width 0.5s ease; }
     </style>
 </head>
 <body>
@@ -24,19 +26,26 @@
     <script type="text/babel">
         const API = "http://localhost:8000";
         
-        // Organism 3D Renderer
-        class OrganismRenderer {
+        // Solar System 3D Renderer
+        class SolarRenderer {
             constructor(container) {
                 this.scene = new THREE.Scene();
                 this.camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
                 this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 this.renderer.setSize(window.innerWidth, window.innerHeight);
-                this.renderer.setClearColor(0x000000, 1);
+                this.renderer.setClearColor(0x000510, 1);
                 container.appendChild(this.renderer.domElement);
                 
-                this.camera.position.z = 8;
-                this.slots = {};
-                this.createOrganism();
+                this.camera.position.z = 12;
+                this.camera.position.y = 3;
+                this.camera.lookAt(0, 0, 0);
+                
+                this.orbits = [];
+                this.planets = [];
+                this.blocked = false;
+                this.orbitSpeed = 1;
+                
+                this.createSolarSystem();
                 this.animate();
                 
                 window.addEventListener('resize', () => {
@@ -46,151 +55,213 @@
                 });
             }
             
-            createOrganism() {
-                // Core sphere
-                const coreGeo = new THREE.SphereGeometry(0.8, 32, 32);
-                const coreMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true });
-                this.core = new THREE.Mesh(coreGeo, coreMat);
-                this.scene.add(this.core);
+            createSolarSystem() {
+                // Sun (Core)
+                const sunGeo = new THREE.SphereGeometry(1.2, 32, 32);
+                const sunMat = new THREE.MeshBasicMaterial({ 
+                    color: 0x00ffff, 
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                this.sun = new THREE.Mesh(sunGeo, sunMat);
+                this.scene.add(this.sun);
                 
-                // 7 Slots as orbiting rings
+                // Inner glow
+                const glowGeo = new THREE.SphereGeometry(1.0, 32, 32);
+                const glowMat = new THREE.MeshBasicMaterial({ 
+                    color: 0x00ffff, 
+                    transparent: true,
+                    opacity: 0.3
+                });
+                this.sunGlow = new THREE.Mesh(glowGeo, glowMat);
+                this.scene.add(this.sunGlow);
+                
+                // 7 Energy Orbits
+                const slotColors = [0x4488ff, 0x44ff88, 0xff4488, 0xffff44, 0xff8844, 0x8844ff, 0xff0000];
                 const slotNames = ['Brain', 'Sensors', 'Heart', 'Core', 'Engines', 'Base', 'Boundary'];
-                const colors = [0x4488ff, 0x44ff88, 0xff4488, 0xffff44, 0xff8844, 0x8844ff, 0x44ffff];
                 
                 slotNames.forEach((name, i) => {
-                    const ringGeo = new THREE.TorusGeometry(1.5 + i * 0.3, 0.02, 8, 64);
-                    const ringMat = new THREE.MeshBasicMaterial({ color: colors[i], transparent: true, opacity: 0.6 });
-                    const ring = new THREE.Mesh(ringGeo, ringMat);
-                    ring.rotation.x = Math.PI / 2 + (i * 0.2);
-                    ring.rotation.y = i * 0.3;
-                    this.slots[name] = { mesh: ring, baseOpacity: 0.6 };
-                    this.scene.add(ring);
+                    const radius = 2.0 + i * 0.6;
+                    const orbitGeo = new THREE.TorusGeometry(radius, 0.015, 8, 100);
+                    const orbitMat = new THREE.MeshBasicMaterial({ 
+                        color: slotColors[i], 
+                        transparent: true, 
+                        opacity: 0.4 
+                    });
+                    const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+                    orbit.rotation.x = Math.PI / 2;
+                    orbit.userData = { name, baseRadius: radius, baseOpacity: 0.4 };
+                    this.orbits.push(orbit);
+                    this.scene.add(orbit);
                 });
                 
-                // Particles
-                const particleGeo = new THREE.BufferGeometry();
-                const positions = [];
-                for (let i = 0; i < 500; i++) {
-                    positions.push((Math.random() - 0.5) * 20);
-                    positions.push((Math.random() - 0.5) * 20);
-                    positions.push((Math.random() - 0.5) * 20);
+                // Planets (Work & Growth)
+                const planetWork = this.createPlanet(0x00ff88, 2.5);
+                planetWork.userData = { name: 'Work', orbitRadius: 2.5, angle: 0 };
+                this.planets.push(planetWork);
+                this.scene.add(planetWork);
+                
+                const planetGrowth = this.createPlanet(0xffaa00, 3.5);
+                planetGrowth.userData = { name: 'Growth', orbitRadius: 3.5, angle: Math.PI };
+                this.planets.push(planetGrowth);
+                this.scene.add(planetGrowth);
+                
+                // Stars background
+                const starGeo = new THREE.BufferGeometry();
+                const starPositions = [];
+                for (let i = 0; i < 1000; i++) {
+                    starPositions.push((Math.random() - 0.5) * 100);
+                    starPositions.push((Math.random() - 0.5) * 100);
+                    starPositions.push((Math.random() - 0.5) * 100);
                 }
-                particleGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-                const particleMat = new THREE.PointsMaterial({ color: 0x00ffff, size: 0.05, transparent: true, opacity: 0.5 });
-                this.particles = new THREE.Points(particleGeo, particleMat);
-                this.scene.add(this.particles);
+                starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+                const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 0.6 });
+                this.stars = new THREE.Points(starGeo, starMat);
+                this.scene.add(this.stars);
             }
             
-            updateSlots(slotValues, blocked) {
-                Object.keys(slotValues).forEach(name => {
-                    if (this.slots[name]) {
-                        const val = Math.min(1, slotValues[name]);
-                        this.slots[name].mesh.material.opacity = 0.3 + val * 0.7;
-                        this.slots[name].mesh.scale.setScalar(0.8 + val * 0.4);
+            createPlanet(color, radius) {
+                const geo = new THREE.SphereGeometry(0.15, 16, 16);
+                const mat = new THREE.MeshBasicMaterial({ color });
+                const planet = new THREE.Mesh(geo, mat);
+                planet.position.x = radius;
+                return planet;
+            }
+            
+            updateFromState(state) {
+                if (!state) return;
+                
+                this.blocked = state.blocked;
+                
+                // Update sun color based on blocked state
+                if (state.blocked) {
+                    this.sun.material.color.setHex(0xff0000);
+                    this.sunGlow.material.color.setHex(0xff0000);
+                    this.orbitSpeed = 0; // Freeze
+                } else {
+                    this.sun.material.color.setHex(0x00ffff);
+                    this.sunGlow.material.color.setHex(0x00ffff);
+                    this.orbitSpeed = 1;
+                }
+                
+                // Update orbits based on energy
+                const energy = state.energy || {};
+                const slotNames = ['Brain', 'Sensors', 'Heart', 'Core', 'Engines', 'Base', 'Boundary'];
+                
+                slotNames.forEach((name, i) => {
+                    if (this.orbits[i]) {
+                        const value = energy[name] || 0;
+                        const orbit = this.orbits[i];
+                        
+                        // Scale orbit based on energy
+                        const scale = 0.8 + value * 0.4;
+                        orbit.scale.set(scale, scale, 1);
+                        
+                        // Opacity based on energy
+                        orbit.material.opacity = 0.2 + value * 0.6;
+                        
+                        // Boundary orbit turns red when high
+                        if (name === 'Boundary' && value > 0.8) {
+                            orbit.material.color.setHex(0xff0000);
+                            orbit.material.opacity = 0.9;
+                        } else if (name === 'Boundary') {
+                            orbit.material.color.setHex(0xff4444);
+                        }
                     }
                 });
                 
-                // Blocked state - red pulse
-                if (blocked) {
-                    this.core.material.color.setHex(0xff0000);
-                } else {
-                    this.core.material.color.setHex(0x00ffff);
-                }
+                // Update planet orbits
+                const vitality = (energy.Brain || 0.5) * 0.4 + (energy.Engines || 0.5) * 0.5 + (energy.Heart || 0.5) * 0.1;
+                this.planets[0].userData.orbitRadius = 2.0 + vitality * 2.0;
             }
             
             animate() {
                 requestAnimationFrame(() => this.animate());
                 
-                this.core.rotation.y += 0.005;
-                this.particles.rotation.y += 0.001;
+                // Sun rotation
+                this.sun.rotation.y += 0.003;
+                this.sunGlow.rotation.y -= 0.002;
                 
-                Object.values(this.slots).forEach((slot, i) => {
-                    slot.mesh.rotation.z += 0.002 * (i + 1);
-                });
+                // Orbit rotations (freeze when blocked)
+                if (!this.blocked) {
+                    this.orbits.forEach((orbit, i) => {
+                        orbit.rotation.z += 0.001 * (i + 1) * this.orbitSpeed;
+                    });
+                    
+                    // Planet orbits
+                    this.planets.forEach((planet, i) => {
+                        planet.userData.angle += 0.01 * (i + 1) * this.orbitSpeed;
+                        const r = planet.userData.orbitRadius;
+                        planet.position.x = Math.cos(planet.userData.angle) * r;
+                        planet.position.z = Math.sin(planet.userData.angle) * r;
+                    });
+                }
+                
+                // Stars slow rotation
+                this.stars.rotation.y += 0.0001;
                 
                 this.renderer.render(this.scene, this.camera);
             }
         }
         
         function App() {
-            const [state, setState] = React.useState({
-                mode: 'SEED', integrity: 100, energy: 100, gmu_count: 1, cycle: 0
-            });
-            const [guardrail, setGuardrail] = React.useState({ is_blocked: false, can_commit: true });
-            const [slots, setSlots] = React.useState({});
+            const [solar, setSolar] = React.useState(null);
             const [logs, setLogs] = React.useState([]);
-            const [input, setInput] = React.useState('');
-            const [view, setView] = React.useState('MAIN');
             const rendererRef = React.useRef(null);
             
             React.useEffect(() => {
                 const container = document.getElementById('canvas-container');
-                rendererRef.current = new OrganismRenderer(container);
-                fetchGuardrail();
-                const interval = setInterval(fetchGuardrail, 5000);
+                rendererRef.current = new SolarRenderer(container);
+                fetchSolar();
+                const interval = setInterval(fetchSolar, 1000);
                 return () => clearInterval(interval);
             }, []);
             
             React.useEffect(() => {
-                if (rendererRef.current) {
-                    rendererRef.current.updateSlots(slots, guardrail.is_blocked);
+                if (rendererRef.current && solar) {
+                    rendererRef.current.updateFromState(solar);
                 }
-            }, [slots, guardrail.is_blocked]);
+            }, [solar]);
             
-            const fetchGuardrail = async () => {
+            const fetchSolar = async () => {
                 try {
-                    const res = await fetch(`${API}/autus/guardrail/status`);
+                    const res = await fetch(`${API}/autus/solar/status`);
                     const data = await res.json();
-                    setGuardrail(data);
+                    setSolar(data);
                 } catch(e) {}
             };
             
-            const addLog = (msg) => setLogs(prev => [msg, ...prev].slice(0, 10));
+            const addLog = (msg) => setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 8));
             
-            const execute = async () => {
-                if (!input.trim()) return;
-                addLog(`> ${input}`);
-                try {
-                    const res = await fetch(`${API}/autus/pipeline/process`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ text: input })
-                    });
-                    const data = await res.json();
-                    if (data.state) setState(data.state);
-                    if (data.logs) data.logs.forEach(l => addLog(l));
-                    if (data.slots) setSlots(data.slots);
-                } catch(e) {
-                    addLog('ERROR: Connection failed');
-                }
-                setInput('');
-                fetchGuardrail();
+            const runTick = async () => {
+                const res = await fetch(`${API}/autus/solar/tick`, { method: 'POST' });
+                const data = await res.json();
+                setSolar(data);
+                addLog(`Cycle ${data.cycle} executed`);
             };
             
-            const testGuardrail = async (pressure, base) => {
-                try {
-                    const res = await fetch(`${API}/autus/guardrail/check`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ pressure, slots: { Base: base } })
-                    });
-                    const data = await res.json();
-                    addLog(`GUARDRAIL: ${data.evaluation.level.toUpperCase()}`);
-                    if (data.is_blocked) addLog('⛔ SYSTEM BLOCKED');
-                    fetchGuardrail();
-                } catch(e) {}
+            const applyEnergy = async (slot, value) => {
+                const res = await fetch(`${API}/autus/solar/input`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ slot, value })
+                });
+                const data = await res.json();
+                setSolar(data);
+                addLog(`${slot} → ${(data.energy[slot] * 100).toFixed(0)}%`);
             };
             
-            const testBoundary = async (event) => {
-                try {
-                    const res = await fetch(`${API}/autus/talent/boundary/check`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ gmu_id: 'STU_PH_001', event })
-                    });
-                    const data = await res.json();
-                    addLog(`BOUNDARY ${data.rule_id}: ${data.action.toUpperCase()}`);
-                } catch(e) {}
+            const resetSolar = async () => {
+                const res = await fetch(`${API}/autus/solar/reset`, { method: 'POST' });
+                const data = await res.json();
+                setSolar(data);
+                addLog('System reset');
+            };
+            
+            const slotColors = {
+                Brain: '#4488ff', Sensors: '#44ff88', Heart: '#ff4488',
+                Core: '#ffff44', Engines: '#ff8844', Base: '#8844ff', Boundary: '#ff4444'
             };
             
             return (
@@ -198,74 +269,84 @@
                     {/* Header */}
                     <div className="panel top-0 left-0 w-full p-4 flex justify-between items-center">
                         <div className="glass p-4 rounded-lg">
-                            <h1 className="text-3xl font-bold tracking-widest">AUTUS ATLAS</h1>
-                            <div className="text-xs text-cyan-400 mt-1">DECISION SAFETY ENGINE v2.0</div>
+                            <h1 className="text-2xl font-bold tracking-widest text-cyan-400">AUTUS ATLAS</h1>
+                            <div className="text-xs text-gray-400 mt-1">SOLAR DECISION ENGINE v2.0</div>
                         </div>
-                        <div className="flex gap-2">
-                            {['MAIN', 'CITY', 'TALENT', 'GUARDRAIL'].map(v => (
-                                <button key={v} onClick={() => setView(v)}
-                                    className={`glass px-4 py-2 rounded ${view === v ? 'glow-cyan text-cyan-400' : 'text-gray-400'}`}>
-                                    {v}
-                                </button>
-                            ))}
+                        <div className="glass p-3 rounded-lg">
+                            <span className="text-xs text-gray-500">CYCLE</span>
+                            <span className="text-2xl font-bold text-white ml-3">{solar?.cycle || 0}</span>
                         </div>
                     </div>
                     
-                    {/* Status Panel */}
+                    {/* Left Panel - Status */}
                     <div className="panel top-24 left-4 glass p-4 rounded-lg w-64">
-                        <div className="text-xs text-gray-500 mb-2">SYSTEM STATUS</div>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>MODE</div><div className="text-cyan-400">{state.mode}</div>
-                            <div>INTEGRITY</div><div className="text-green-400">{state.integrity}%</div>
-                            <div>ENERGY</div><div className="text-yellow-400">{state.energy}%</div>
-                            <div>GMU</div><div className="text-purple-400">{state.gmu_count}</div>
-                            <div>CYCLE</div><div className="text-gray-400">{state.cycle}</div>
+                        <div className="text-xs text-gray-500 mb-3">SYSTEM STATUS</div>
+                        <div className={`p-3 rounded text-center text-sm font-bold ${solar?.blocked ? 'bg-red-900 glow-red text-red-400' : 'bg-green-900/50 text-green-400'}`}>
+                            {solar?.blocked ? '⛔ BLOCKED' : '✅ OPERATIONAL'}
                         </div>
-                        <div className={`mt-3 p-2 rounded text-center text-sm ${guardrail.is_blocked ? 'bg-red-900 glow-red' : 'bg-green-900/50'}`}>
-                            {guardrail.is_blocked ? '⛔ BLOCKED' : '✅ OPERATIONAL'}
-                        </div>
-                    </div>
-                    
-                    {/* Logs Panel */}
-                    <div className="panel top-24 right-4 glass p-4 rounded-lg w-80 max-h-64 overflow-y-auto">
-                        <div className="text-xs text-gray-500 mb-2">ACTIVITY LOG</div>
-                        {logs.map((log, i) => (
-                            <div key={i} className="text-xs text-gray-300 py-1 border-b border-gray-800">{log}</div>
-                        ))}
-                    </div>
-                    
-                    {/* Control Panel */}
-                    <div className="panel bottom-4 left-4 glass p-4 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-2">GUARDRAIL TEST</div>
-                        <div className="flex gap-2">
-                            <button onClick={() => testGuardrail(0.5, 0.5)} className="glass px-3 py-1 text-xs rounded hover:bg-white/10">NORMAL</button>
-                            <button onClick={() => testGuardrail(0.8, 0.3)} className="glass px-3 py-1 text-xs rounded hover:bg-yellow-900/30 text-yellow-400">DANGER</button>
-                            <button onClick={() => testGuardrail(0.95, 0.1)} className="glass px-3 py-1 text-xs rounded hover:bg-red-900/30 text-red-400">CRITICAL</button>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-3 mb-2">BOUNDARY TEST</div>
-                        <div className="flex gap-2 flex-wrap">
-                            <button onClick={() => testBoundary('VISA_EXPIRY_D14')} className="glass px-3 py-1 text-xs rounded hover:bg-orange-900/30 text-orange-400">VISA D-14</button>
-                            <button onClick={() => testBoundary('WORK_HOUR_EXCEEDED')} className="glass px-3 py-1 text-xs rounded hover:bg-red-900/30 text-red-400">WORK HOUR</button>
-                        </div>
-                    </div>
-                    
-                    {/* Command Input */}
-                    <div className="panel bottom-4 left-1/2 -translate-x-1/2 w-96">
-                        <input value={input} onChange={e => setInput(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && execute()}
-                            className="glass w-full px-4 py-3 rounded-lg text-center outline-none focus:glow-cyan"
-                            placeholder="COMMAND INPUT" />
-                    </div>
-                    
-                    {/* Slot Values */}
-                    <div className="panel bottom-4 right-4 glass p-4 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-2">7-SLOT VALUES</div>
-                        {['Brain', 'Sensors', 'Heart', 'Core', 'Engines', 'Base', 'Boundary'].map(slot => (
-                            <div key={slot} className="flex justify-between text-xs py-1">
-                                <span className="text-gray-400">{slot}</span>
-                                <span className="text-cyan-400">{(slots[slot] || 0).toFixed(2)}</span>
+                        {solar?.blocked && (
+                            <div className="mt-2 text-xs text-red-400 text-center">
+                                {solar.block_reason}
+                            </div>
+                        )}
+                        
+                        <div className="text-xs text-gray-500 mt-4 mb-2">ENERGY FIELD (7-SLOT)</div>
+                        {solar?.energy && Object.entries(solar.energy).map(([slot, value]) => (
+                            <div key={slot} className="mb-2">
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span style={{color: slotColors[slot]}}>{slot}</span>
+                                    <span className="text-gray-400">{(value * 100).toFixed(0)}%</span>
+                                </div>
+                                <div className="slot-bar">
+                                    <div className="slot-fill" style={{
+                                        width: `${value * 100}%`,
+                                        background: slotColors[slot]
+                                    }}></div>
+                                </div>
                             </div>
                         ))}
+                    </div>
+                    
+                    {/* Right Panel - Logs */}
+                    <div className="panel top-24 right-4 glass p-4 rounded-lg w-72">
+                        <div className="text-xs text-gray-500 mb-2">ACTIVITY LOG</div>
+                        {logs.map((log, i) => (
+                            <div key={i} className="text-xs text-gray-400 py-1 border-b border-gray-800">{log}</div>
+                        ))}
+                        {logs.length === 0 && <div className="text-xs text-gray-600">No activity yet</div>}
+                    </div>
+                    
+                    {/* Bottom Panel - Controls */}
+                    <div className="panel bottom-4 left-4 glass p-4 rounded-lg">
+                        <div className="text-xs text-gray-500 mb-2">ENERGY INPUT</div>
+                        <div className="flex gap-2 flex-wrap mb-3">
+                            <button onClick={() => applyEnergy('Brain', 0.9)} className="glass px-3 py-1 text-xs rounded hover:bg-blue-900/30" style={{color: slotColors.Brain}}>Brain +</button>
+                            <button onClick={() => applyEnergy('Engines', 0.9)} className="glass px-3 py-1 text-xs rounded hover:bg-orange-900/30" style={{color: slotColors.Engines}}>Engines +</button>
+                            <button onClick={() => applyEnergy('Core', 0.9)} className="glass px-3 py-1 text-xs rounded hover:bg-yellow-900/30" style={{color: slotColors.Core}}>Core +</button>
+                        </div>
+                        <div className="text-xs text-gray-500 mb-2">BOUNDARY TEST</div>
+                        <div className="flex gap-2">
+                            <button onClick={() => applyEnergy('Boundary', 0.95)} className="glass px-3 py-1 text-xs rounded hover:bg-red-900/30 text-red-400">Pressure +</button>
+                            <button onClick={() => applyEnergy('Boundary', 0.0)} className="glass px-3 py-1 text-xs rounded hover:bg-green-900/30 text-green-400">Release</button>
+                        </div>
+                    </div>
+                    
+                    {/* Bottom Center - Cycle Control */}
+                    <div className="panel bottom-4 left-1/2 -translate-x-1/2 flex gap-3">
+                        <button onClick={runTick} className="glass px-6 py-3 rounded-lg text-cyan-400 font-bold hover:glow-cyan">
+                            RUN CYCLE
+                        </button>
+                        <button onClick={resetSolar} className="glass px-4 py-3 rounded-lg text-gray-400 hover:text-white">
+                            RESET
+                        </button>
+                    </div>
+                    
+                    {/* Legend */}
+                    <div className="panel bottom-4 right-4 glass p-3 rounded-lg text-xs">
+                        <div className="text-gray-500 mb-1">LEGEND</div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-cyan-400"></span> Sun (Core)</div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-400"></span> Planet Work</div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-orange-400"></span> Planet Growth</div>
                     </div>
                 </div>
             );
