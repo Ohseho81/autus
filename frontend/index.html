@@ -7,76 +7,21 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            background: #000000; 
-            color: #ffffff; 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 300;
-            overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-        #canvas-container { 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            z-index: 0; 
-        }
-        .ui-layer { 
-            position: fixed; 
-            z-index: 10; 
-            pointer-events: none;
-        }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; font-weight: 300; overflow: hidden; }
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+        .ui-layer { position: fixed; z-index: 10; pointer-events: none; }
         .ui-layer > * { pointer-events: auto; }
-        .glass {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
         .text-dim { color: rgba(255,255,255,0.4); }
         .text-bright { color: rgba(255,255,255,0.9); }
-        .text-accent { color: #00d4ff; }
-        .hidden { opacity: 0; transition: opacity 0.5s; }
-        .visible { opacity: 1; }
-        .slot-bar { 
-            height: 2px; 
-            background: rgba(255,255,255,0.08); 
-            border-radius: 1px; 
-            overflow: hidden; 
-        }
-        .slot-fill { 
-            height: 100%; 
-            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); 
-        }
-        button {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.7);
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-family: inherit;
-            font-size: 11px;
-            font-weight: 400;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        button:hover {
-            background: rgba(255,255,255,0.05);
-            border-color: rgba(255,255,255,0.3);
-            color: #fff;
-        }
-        .status-operational {
-            color: #00ff88;
-            text-shadow: 0 0 20px rgba(0,255,136,0.3);
-        }
-        .status-blocked {
-            color: #ff3366;
-            text-shadow: 0 0 30px rgba(255,51,102,0.5);
-        }
+        .slot-bar { height: 2px; background: rgba(255,255,255,0.08); border-radius: 1px; overflow: hidden; }
+        .slot-fill { height: 100%; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        button { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); padding: 8px 16px; border-radius: 4px; font-family: inherit; font-size: 11px; cursor: pointer; transition: all 0.3s; }
+        button:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); color: #fff; }
+        .status-operational { color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.3); }
+        .status-blocked { color: #ff3366; text-shadow: 0 0 30px rgba(255,51,102,0.5); }
     </style>
 </head>
 <body>
@@ -86,20 +31,19 @@
     <script type="text/babel">
         const API = "http://localhost:8000";
         
+        // Physics Constants
+        const R_MIN = 0.9, R_MAX = 2.4;
+        const OMEGA_MIN = 0.002, OMEGA_MAX = 0.015;
+        const LERP_ALPHA = 0.08;
+        
         class DeepSpaceRenderer {
             constructor(container) {
                 this.scene = new THREE.Scene();
                 this.camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 2000);
-                this.renderer = new THREE.WebGLRenderer({ 
-                    antialias: true, 
-                    alpha: false,
-                    powerPreference: "high-performance"
-                });
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
                 this.renderer.setSize(window.innerWidth, window.innerHeight);
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
                 this.renderer.setClearColor(0x000000, 1);
-                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-                this.renderer.toneMappingExposure = 1.2;
                 container.appendChild(this.renderer.domElement);
                 
                 this.camera.position.set(0, 8, 16);
@@ -108,6 +52,12 @@
                 this.orbits = [];
                 this.blocked = false;
                 this.time = 0;
+                
+                // Physics state
+                this.targetRadius = R_MIN;
+                this.shownRadius = R_MIN;
+                this.omega = OMEGA_MIN;
+                this.targetOmega = OMEGA_MIN;
                 
                 this.createDeepSpace();
                 this.animate();
@@ -122,53 +72,34 @@
             }
             
             createDeepSpace() {
-                // Ambient light - very subtle
-                const ambient = new THREE.AmbientLight(0x111122, 0.5);
-                this.scene.add(ambient);
+                // Ambient
+                this.scene.add(new THREE.AmbientLight(0x111122, 0.5));
                 
-                // Point light from sun
+                // Sun light
                 const sunLight = new THREE.PointLight(0x00d4ff, 2, 50);
-                sunLight.position.set(0, 0, 0);
                 this.scene.add(sunLight);
                 
-                // Core Sun - Glass sphere
+                // Sun core
                 const sunGeo = new THREE.SphereGeometry(1, 64, 64);
                 const sunMat = new THREE.MeshPhysicalMaterial({
-                    color: 0x001020,
-                    metalness: 0.1,
-                    roughness: 0.1,
-                    transmission: 0.9,
-                    thickness: 2,
-                    envMapIntensity: 1,
-                    clearcoat: 1,
-                    clearcoatRoughness: 0.1,
-                    emissive: 0x003344,
-                    emissiveIntensity: 0.5
+                    color: 0x001020, metalness: 0.1, roughness: 0.1,
+                    transmission: 0.9, thickness: 2, clearcoat: 1,
+                    emissive: 0x003344, emissiveIntensity: 0.5
                 });
                 this.sun = new THREE.Mesh(sunGeo, sunMat);
                 this.scene.add(this.sun);
                 
                 // Inner glow
-                const glowGeo = new THREE.SphereGeometry(0.8, 32, 32);
-                const glowMat = new THREE.MeshBasicMaterial({
-                    color: 0x00d4ff,
-                    transparent: true,
-                    opacity: 0.15
-                });
-                this.sunGlow = new THREE.Mesh(glowGeo, glowMat);
+                const glowMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.15 });
+                this.sunGlow = new THREE.Mesh(new THREE.SphereGeometry(0.8, 32, 32), glowMat);
                 this.scene.add(this.sunGlow);
                 
-                // Core bright center
-                const coreGeo = new THREE.SphereGeometry(0.3, 32, 32);
-                const coreMat = new THREE.MeshBasicMaterial({
-                    color: 0x00ffff,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                this.core = new THREE.Mesh(coreGeo, coreMat);
+                // Core
+                const coreMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 });
+                this.core = new THREE.Mesh(new THREE.SphereGeometry(0.3, 32, 32), coreMat);
                 this.scene.add(this.core);
                 
-                // Orbits - thin, elegant rings
+                // 7 Orbits
                 const orbitData = [
                     { radius: 2.5, color: 0x4488ff, opacity: 0.15 },
                     { radius: 3.2, color: 0x44ff88, opacity: 0.12 },
@@ -180,67 +111,36 @@
                 ];
                 
                 orbitData.forEach((data, i) => {
-                    const orbitGeo = new THREE.TorusGeometry(data.radius, 0.008, 8, 200);
-                    const orbitMat = new THREE.MeshBasicMaterial({
-                        color: data.color,
-                        transparent: true,
-                        opacity: data.opacity
-                    });
-                    const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+                    const orbit = new THREE.Mesh(
+                        new THREE.TorusGeometry(data.radius, 0.008, 8, 200),
+                        new THREE.MeshBasicMaterial({ color: data.color, transparent: true, opacity: data.opacity })
+                    );
                     orbit.rotation.x = Math.PI / 2;
-                    orbit.userData = { baseOpacity: data.opacity, baseRadius: data.radius };
+                    orbit.userData = { baseOpacity: data.opacity, baseRadius: data.radius, index: i };
                     this.orbits.push(orbit);
                     this.scene.add(orbit);
                 });
                 
-                // Planet - ceramic/glass sphere
-                const planetGeo = new THREE.SphereGeometry(0.18, 32, 32);
+                // Planet
                 const planetMat = new THREE.MeshPhysicalMaterial({
-                    color: 0xffffff,
-                    metalness: 0.3,
-                    roughness: 0.2,
-                    clearcoat: 1,
-                    clearcoatRoughness: 0.1
+                    color: 0xffffff, metalness: 0.3, roughness: 0.2, clearcoat: 1
                 });
-                this.planet = new THREE.Mesh(planetGeo, planetMat);
+                this.planet = new THREE.Mesh(new THREE.SphereGeometry(0.18, 32, 32), planetMat);
                 this.planet.position.x = 4;
                 this.planet.userData = { angle: 0, radius: 4 };
                 this.scene.add(this.planet);
                 
-                // Stars - sparse, diamond-like
-                this.createStars();
-            }
-            
-            createStars() {
+                // Stars
                 const starGeo = new THREE.BufferGeometry();
                 const positions = [];
-                const sizes = [];
-                
                 for (let i = 0; i < 800; i++) {
                     const theta = Math.random() * Math.PI * 2;
                     const phi = Math.acos(2 * Math.random() - 1);
                     const r = 50 + Math.random() * 150;
-                    
-                    positions.push(
-                        r * Math.sin(phi) * Math.cos(theta),
-                        r * Math.sin(phi) * Math.sin(theta),
-                        r * Math.cos(phi)
-                    );
-                    sizes.push(0.5 + Math.random() * 1.5);
+                    positions.push(r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi));
                 }
-                
                 starGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-                starGeo.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-                
-                const starMat = new THREE.PointsMaterial({
-                    color: 0xffffff,
-                    size: 0.15,
-                    transparent: true,
-                    opacity: 0.8,
-                    sizeAttenuation: true
-                });
-                
-                this.stars = new THREE.Points(starGeo, starMat);
+                this.stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.15, transparent: true, opacity: 0.8 }));
                 this.scene.add(this.stars);
             }
             
@@ -249,7 +149,7 @@
                 
                 this.blocked = state.blocked;
                 
-                // Sun color based on state
+                // Sun color
                 if (state.blocked) {
                     this.sunGlow.material.color.setHex(0xff2244);
                     this.core.material.color.setHex(0xff4466);
@@ -260,58 +160,63 @@
                     this.sunGlow.material.opacity = 0.15;
                 }
                 
-                // Update orbits based on energy
+                // Physics targets (only when not blocked)
+                if (!this.blocked) {
+                    const energy = state.energy || {};
+                    const engines = energy.Engines || 0.5;
+                    const progress = state.planet_progress || 0.5;
+                    
+                    // Target radius = f(progress)
+                    this.targetRadius = R_MIN + (R_MAX - R_MIN) * progress;
+                    
+                    // Target omega = f(Engines)
+                    this.targetOmega = OMEGA_MIN + (OMEGA_MAX - OMEGA_MIN) * engines;
+                }
+                
+                // Update orbit opacities
                 const energy = state.energy || {};
                 const slots = ['Brain', 'Sensors', 'Heart', 'Core', 'Engines', 'Base', 'Boundary'];
-                
                 slots.forEach((slot, i) => {
                     if (this.orbits[i]) {
                         const value = energy[slot] || 0;
-                        const orbit = this.orbits[i];
-                        
-                        // Opacity and scale based on energy
-                        orbit.material.opacity = orbit.userData.baseOpacity * (0.5 + value * 1.5);
-                        
-                        // Boundary turns red when high
+                        this.orbits[i].material.opacity = this.orbits[i].userData.baseOpacity * (0.5 + value * 1.5);
                         if (slot === 'Boundary' && value > 0.5) {
-                            orbit.material.color.setHex(0xff2244);
-                            orbit.material.opacity = 0.3 + value * 0.4;
+                            this.orbits[i].material.color.setHex(0xff2244);
+                            this.orbits[i].material.opacity = 0.3 + value * 0.4;
                         }
                     }
                 });
-                
-                // Planet orbit radius based on vitality
-                const vitality = ((energy.Brain || 0.5) + (energy.Engines || 0.5)) / 2;
-                this.planet.userData.radius = 3 + vitality * 3;
             }
             
             animate() {
                 requestAnimationFrame(() => this.animate());
-                
                 this.time += 0.016;
                 
-                // Subtle sun pulse
+                // Sun pulse
                 const pulse = 1 + Math.sin(this.time * 0.5) * 0.02;
                 this.sunGlow.scale.setScalar(pulse);
-                this.core.scale.setScalar(0.3 + Math.sin(this.time * 0.8) * 0.02);
                 
                 if (!this.blocked) {
-                    // Orbit subtle rotation
+                    // Lerp radius
+                    this.shownRadius = THREE.MathUtils.lerp(this.shownRadius, this.targetRadius, LERP_ALPHA);
+                    
+                    // Lerp omega
+                    this.omega = THREE.MathUtils.lerp(this.omega, this.targetOmega, LERP_ALPHA);
+                    
+                    // Apply omega to orbits (각속도 적용!)
                     this.orbits.forEach((orbit, i) => {
-                        orbit.rotation.z += 0.0003 * (i + 1);
+                        orbit.rotation.z += this.omega * (1 + i * 0.1);
                     });
                     
-                    // Planet orbit
-                    this.planet.userData.angle += 0.008;
+                    // Planet orbit with physics
+                    this.planet.userData.angle += this.omega * 0.8;
+                    this.planet.userData.radius = this.shownRadius * 1.5;
                     const r = this.planet.userData.radius;
                     this.planet.position.x = Math.cos(this.planet.userData.angle) * r;
                     this.planet.position.z = Math.sin(this.planet.userData.angle) * r;
                 }
                 
-                // Very slow star rotation
                 this.stars.rotation.y += 0.00005;
-                
-                // Subtle camera movement
                 this.camera.position.x = Math.sin(this.time * 0.1) * 0.5;
                 this.camera.lookAt(0, 0, 0);
                 
@@ -322,90 +227,65 @@
         function App() {
             const [solar, setSolar] = React.useState(null);
             const [showUI, setShowUI] = React.useState(true);
-            const [logs, setLogs] = React.useState([]);
             const rendererRef = React.useRef(null);
             
             React.useEffect(() => {
-                const container = document.getElementById('canvas-container');
-                rendererRef.current = new DeepSpaceRenderer(container);
-                fetchSolar();
-                const interval = setInterval(fetchSolar, 1000);
+                rendererRef.current = new DeepSpaceRenderer(document.getElementById('canvas-container'));
+                fetchState();
+                const interval = setInterval(fetchState, 1000);
                 return () => clearInterval(interval);
             }, []);
             
             React.useEffect(() => {
-                if (rendererRef.current && solar) {
-                    rendererRef.current.updateFromState(solar);
-                }
+                if (rendererRef.current && solar) rendererRef.current.updateFromState(solar);
             }, [solar]);
             
-            const fetchSolar = async () => {
+            const fetchState = async () => {
                 try {
                     const res = await fetch(`${API}/autus/solar/status`);
                     setSolar(await res.json());
                 } catch(e) {}
             };
             
-            const addLog = (msg) => setLogs(prev => [msg, ...prev].slice(0, 5));
-            
-            const runTick = async () => {
-                const res = await fetch(`${API}/autus/solar/tick`, { method: 'POST' });
-                const data = await res.json();
-                setSolar(data);
-                addLog(`Cycle ${data.cycle}`);
+            const runCycle = async () => {
+                await fetch(`${API}/autus/solar/tick`, { method: 'POST' });
+                fetchState();
             };
             
             const applyEnergy = async (slot, value) => {
-                const res = await fetch(`${API}/autus/solar/input`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                await fetch(`${API}/autus/solar/input`, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ slot, value })
                 });
-                const data = await res.json();
-                setSolar(data);
+                fetchState();
             };
             
             const resetSolar = async () => {
-                const res = await fetch(`${API}/autus/solar/reset`, { method: 'POST' });
-                setSolar(await res.json());
+                await fetch(`${API}/autus/solar/reset`, { method: 'POST' });
+                fetchState();
             };
             
             return (
                 <>
-                    {/* Top Left - Title */}
-                    <div className={`ui-layer ${showUI ? 'visible' : 'hidden'}`} style={{top: 32, left: 32}}>
-                        <div style={{letterSpacing: '0.3em', fontSize: 11, fontWeight: 200}} className="text-dim">
-                            AUTUS
-                        </div>
-                        <div style={{fontSize: 24, fontWeight: 200, marginTop: 4}} className="text-bright">
-                            Atlas
-                        </div>
+                    {/* Title */}
+                    <div className={`ui-layer ${showUI ? '' : 'hidden'}`} style={{top: 32, left: 32, opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
+                        <div style={{letterSpacing: '0.3em', fontSize: 11, fontWeight: 200}} className="text-dim">AUTUS</div>
+                        <div style={{fontSize: 24, fontWeight: 200, marginTop: 4}} className="text-bright">Atlas</div>
                     </div>
                     
-                    {/* Top Right - Status */}
-                    <div className={`ui-layer ${showUI ? 'visible' : 'hidden'}`} style={{top: 32, right: 32, textAlign: 'right'}}>
-                        <div style={{fontSize: 11, letterSpacing: '0.2em'}} className="text-dim">
-                            CYCLE
-                        </div>
-                        <div style={{fontSize: 32, fontWeight: 200}} className="text-bright">
-                            {solar?.cycle || 0}
-                        </div>
-                        <div style={{marginTop: 16, fontSize: 11, letterSpacing: '0.15em'}} 
-                             className={solar?.blocked ? 'status-blocked' : 'status-operational'}>
+                    {/* Status */}
+                    <div className={`ui-layer`} style={{top: 32, right: 32, textAlign: 'right', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
+                        <div style={{fontSize: 11, letterSpacing: '0.2em'}} className="text-dim">CYCLE</div>
+                        <div style={{fontSize: 32, fontWeight: 200}} className="text-bright">{solar?.cycle || 0}</div>
+                        <div style={{marginTop: 16, fontSize: 11, letterSpacing: '0.15em'}} className={solar?.blocked ? 'status-blocked' : 'status-operational'}>
                             {solar?.blocked ? '● BLOCKED' : '● OPERATIONAL'}
                         </div>
-                        {solar?.blocked && (
-                            <div style={{fontSize: 10, marginTop: 4}} className="text-dim">
-                                {solar.block_reason}
-                            </div>
-                        )}
+                        {solar?.blocked && <div style={{fontSize: 10, marginTop: 4}} className="text-dim">{solar.block_reason}</div>}
                     </div>
                     
-                    {/* Left - Energy Field */}
-                    <div className={`ui-layer ${showUI ? 'visible' : 'hidden'}`} style={{top: '50%', left: 32, transform: 'translateY(-50%)'}}>
-                        <div style={{fontSize: 10, letterSpacing: '0.2em', marginBottom: 16}} className="text-dim">
-                            ENERGY FIELD
-                        </div>
+                    {/* Energy Field */}
+                    <div className={`ui-layer`} style={{top: '50%', left: 32, transform: 'translateY(-50%)', opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
+                        <div style={{fontSize: 10, letterSpacing: '0.2em', marginBottom: 16}} className="text-dim">ENERGY FIELD</div>
                         {solar?.energy && Object.entries(solar.energy).map(([slot, value]) => (
                             <div key={slot} style={{marginBottom: 12, width: 120}}>
                                 <div style={{display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 4}}>
@@ -415,35 +295,26 @@
                                 <div className="slot-bar">
                                     <div className="slot-fill" style={{
                                         width: `${value * 100}%`,
-                                        background: slot === 'Boundary' ? 
-                                            (value > 0.5 ? '#ff2244' : 'rgba(255,255,255,0.3)') : 
-                                            'rgba(255,255,255,0.4)'
+                                        background: slot === 'Boundary' ? (value > 0.5 ? '#ff2244' : 'rgba(255,255,255,0.3)') : 'rgba(255,255,255,0.4)'
                                     }}></div>
                                 </div>
                             </div>
                         ))}
                     </div>
                     
-                    {/* Bottom Center - Controls */}
-                    <div className={`ui-layer ${showUI ? 'visible' : 'hidden'}`} 
-                         style={{bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 12}}>
-                        <button onClick={runTick}>CYCLE</button>
+                    {/* Controls */}
+                    <div className={`ui-layer`} style={{bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 12, opacity: showUI ? 1 : 0, transition: 'opacity 0.5s'}}>
+                        <button onClick={runCycle}>CYCLE</button>
                         <button onClick={() => applyEnergy('Brain', 0.9)}>BRAIN +</button>
                         <button onClick={() => applyEnergy('Engines', 0.9)}>ENGINES +</button>
-                        <button onClick={() => applyEnergy('Boundary', 0.95)} style={{borderColor: 'rgba(255,50,100,0.3)', color: '#ff6688'}}>
-                            PRESSURE
-                        </button>
-                        <button onClick={() => applyEnergy('Boundary', 0.0)} style={{borderColor: 'rgba(0,255,136,0.3)', color: '#00ff88'}}>
-                            RELEASE
-                        </button>
+                        <button onClick={() => applyEnergy('Boundary', 0.95)} style={{borderColor: 'rgba(255,50,100,0.3)', color: '#ff6688'}}>PRESSURE</button>
+                        <button onClick={() => applyEnergy('Boundary', 0.0)} style={{borderColor: 'rgba(0,255,136,0.3)', color: '#00ff88'}}>RELEASE</button>
                         <button onClick={resetSolar} style={{opacity: 0.5}}>RESET</button>
                     </div>
                     
-                    {/* Toggle UI */}
+                    {/* Toggle */}
                     <div className="ui-layer" style={{bottom: 32, right: 32}}>
-                        <button onClick={() => setShowUI(!showUI)} style={{opacity: 0.3, fontSize: 10}}>
-                            {showUI ? 'HIDE' : 'SHOW'}
-                        </button>
+                        <button onClick={() => setShowUI(!showUI)} style={{opacity: 0.3, fontSize: 10}}>{showUI ? 'HIDE' : 'SHOW'}</button>
                     </div>
                 </>
             );
