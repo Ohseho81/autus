@@ -45,3 +45,10 @@ try:
     print("✅ Frontend mounted")
 except Exception as e:
     print(f"⚠️ Frontend not mounted: {e}")
+
+# === FRONTEND ===
+from fastapi.staticfiles import StaticFiles
+import os
+if os.path.exists("frontend"):
+    app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
+    print("✅ Frontend mounted")
