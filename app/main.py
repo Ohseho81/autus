@@ -72,3 +72,11 @@ try:
     print("✅ Frontend mounted")
 except:
     pass
+
+# === JEFF DEAN LAYER ===
+try:
+    from app.routers.autus_patterns import router as patterns_router
+    app.include_router(patterns_router)
+    print("✅ Jeff Dean Layer loaded")
+except Exception as e:
+    print(f"⚠️ Jeff Dean Layer not loaded: {e}")
