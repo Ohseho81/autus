@@ -1,4 +1,4 @@
-"""AUTUS Solar Router - Tick Equation v1.0"""
+"""AUTUS Solar Router - v1.1"""
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from core.solar.solar_entity import get_sun
@@ -16,8 +16,13 @@ def get_status():
 
 @router.post("/tick")
 def do_tick():
-    """CYCLE: tick += 1"""
+    """TICK: tick += 1 (time only)"""
     return get_sun().do_tick()
+
+@router.post("/cycle")
+def do_cycle():
+    """CYCLE: tick += 1, cycle += 1"""
+    return get_sun().do_cycle()
 
 @router.post("/input")
 def do_input(req: InputRequest):
@@ -34,7 +39,7 @@ def do_input(req: InputRequest):
 
 @router.post("/reset")
 def do_reset():
-    """RESET: tick = 0"""
+    """RESET: tick = 0, cycle = 0"""
     return get_sun().do_reset()
 
-print("✅ Solar Router - Tick Equation v1.0 LOCKED")
+print("✅ Solar Router v1.1 - CYCLE = tick++ & cycle++")
