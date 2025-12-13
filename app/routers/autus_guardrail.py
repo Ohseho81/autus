@@ -33,3 +33,17 @@ def guardrail_status():
 @router.post("/rules")
 def check_rules(req: RuleCheckRequest):
     return evaluate_rules({"intent": req.intent, "competitors": req.competitors})
+
+# Elon Reflex API
+from core.guardrail.loop import guardrail_tick, observe_queue
+
+@router.get("/reflex")
+def get_reflex():
+    """실시간 Guardrail 반사 상태"""
+    return guardrail_tick(base=0.5)
+
+@router.post("/reflex/observe")
+def observe(queue_len: int = 10):
+    """큐 길이 관측"""
+    observe_queue(queue_len)
+    return guardrail_tick(base=0.5)

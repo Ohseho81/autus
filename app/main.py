@@ -52,3 +52,15 @@ import os
 if os.path.exists("frontend"):
     app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
     print("✅ Frontend mounted")
+
+# === ELON QUEUE MONITOR ===
+from app.middleware.queue_monitor import queue_monitor_middleware
+app.state.active_requests = 0
+
+@app.middleware("http")
+async def active_request_counter(request, call_next):
+    app.state.active_requests += 1
+    try:
+        return await call_next(request)
+    finally:
+        app.state.active_requests -= 1
