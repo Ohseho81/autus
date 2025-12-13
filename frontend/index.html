@@ -9,53 +9,78 @@
             background: #000; 
             color: #fff; 
             font-family: -apple-system, sans-serif;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 24px;
         }
-        .state { text-align: center; margin-bottom: 48px; }
-        .stability { font-size: 64px; font-weight: 200; letter-spacing: 0.1em; }
+        .header { font-size: 10px; letter-spacing: 0.3em; opacity: 0.4; margin-bottom: 8px; }
+        .stability { font-size: 56px; font-weight: 200; letter-spacing: 0.15em; margin-bottom: 32px; }
         .stability.STABLE { color: #00ff88; }
         .stability.WARNING { color: #ffaa00; }
         .stability.COLLAPSE { color: #ff2244; animation: pulse 0.5s infinite; }
-        @keyframes pulse { 50% { opacity: 0.5; } }
-        .metrics { display: flex; gap: 48px; margin-top: 24px; font-size: 14px; opacity: 0.6; }
-        .metric span { display: block; font-size: 28px; color: #fff; opacity: 1; margin-top: 4px; }
-        .entropy-bar { width: 200px; height: 4px; background: #222; border-radius: 2px; margin-top: 24px; }
+        @keyframes pulse { 50% { opacity: 0.4; } }
+        
+        .metrics { display: flex; gap: 40px; margin-bottom: 32px; text-align: center; }
+        .metric { opacity: 0.6; font-size: 12px; }
+        .metric span { display: block; font-size: 32px; color: #fff; opacity: 1; margin-top: 4px; font-weight: 200; }
+        
+        .entropy-container { width: 240px; margin-bottom: 40px; }
+        .entropy-label { display: flex; justify-content: space-between; font-size: 10px; opacity: 0.4; margin-bottom: 4px; }
+        .entropy-bar { height: 4px; background: #222; border-radius: 2px; position: relative; }
         .entropy-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
         .entropy-fill.low { background: #00ff88; }
         .entropy-fill.mid { background: #ffaa00; }
         .entropy-fill.high { background: #ff2244; }
-        .controls { display: flex; gap: 12px; }
+        .threshold { position: absolute; top: -2px; width: 1px; height: 8px; background: #666; }
+        
+        .controls { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
         button {
             background: transparent;
             border: 1px solid #333;
-            color: #888;
-            padding: 12px 24px;
-            font-size: 12px;
+            color: #666;
+            padding: 12px 20px;
+            font-size: 11px;
             letter-spacing: 0.1em;
             cursor: pointer;
             transition: all 0.2s;
         }
-        button:hover { border-color: #666; color: #fff; }
+        button:hover { border-color: #555; color: #fff; }
         button.decision { border-color: #00d4ff; color: #00d4ff; }
         button.decision:hover { background: #00d4ff22; }
-        .error { color: #ff2244; font-size: 12px; margin-top: 24px; }
-        .truth { position: fixed; bottom: 16px; font-size: 10px; opacity: 0.3; }
+        
+        .equation { 
+            position: fixed; 
+            bottom: 24px; 
+            font-size: 10px; 
+            opacity: 0.3; 
+            font-family: monospace;
+            text-align: center;
+        }
+        .error { color: #ff2244; font-size: 11px; margin-top: 16px; }
     </style>
 </head>
 <body>
-    <div class="state">
-        <div id="stability" class="stability">—</div>
-        <div class="metrics">
-            <div class="metric">tick<span id="tick">0</span></div>
-            <div class="metric">cycle<span id="cycle">0</span></div>
-            <div class="metric">entropy<span id="entropy">0</span></div>
+    <div class="header">AUTUS SOLAR</div>
+    <div id="stability" class="stability">—</div>
+    
+    <div class="metrics">
+        <div class="metric">tick<span id="tick">0</span></div>
+        <div class="metric">cycle<span id="cycle">0</span></div>
+        <div class="metric">gravity<span id="gravity">0</span></div>
+    </div>
+    
+    <div class="entropy-container">
+        <div class="entropy-label">
+            <span>entropy</span>
+            <span id="entropy-value">0</span>
         </div>
         <div class="entropy-bar">
             <div id="entropy-fill" class="entropy-fill low" style="width:0%"></div>
+            <div id="b1" class="threshold" style="left:25%"></div>
+            <div id="b2" class="threshold" style="left:80%"></div>
         </div>
     </div>
     
@@ -67,18 +92,21 @@
     </div>
     
     <div id="error" class="error"></div>
-    <div class="truth">Truth = /status</div>
+    
+    <div class="equation">
+        S(t+1) = S(t) + α·P - β·R - k·e + D·(-γ·e + Δ)<br>
+        Truth = /status
+    </div>
     
     <script>
         const API = location.hostname === 'localhost' 
             ? 'http://localhost:8000' 
             : 'https://solar.autus-ai.com';
         
-        async function fetch_status() {
+        async function fetchStatus() {
             try {
                 const res = await fetch(`${API}/autus/solar/status`);
-                const s = await res.json();
-                render(s);
+                render(await res.json());
             } catch(e) {
                 document.getElementById('error').textContent = e.message;
             }
@@ -87,8 +115,7 @@
         async function send(event) {
             try {
                 const res = await fetch(`${API}/autus/solar/${event}`, { method: 'POST' });
-                const s = await res.json();
-                render(s);
+                render(await res.json());
             } catch(e) {
                 document.getElementById('error').textContent = e.message;
             }
@@ -99,17 +126,21 @@
             document.getElementById('stability').className = 'stability ' + s.stability;
             document.getElementById('tick').textContent = s.tick;
             document.getElementById('cycle').textContent = s.cycle;
-            document.getElementById('entropy').textContent = s.entropy.toFixed(2);
+            document.getElementById('gravity').textContent = s.gravity.toFixed(2);
+            document.getElementById('entropy-value').textContent = s.entropy.toFixed(3);
             
             const pct = Math.min(100, (s.entropy / s.boundary) * 100);
             const fill = document.getElementById('entropy-fill');
             fill.style.width = pct + '%';
-            fill.className = 'entropy-fill ' + (pct < 25 ? 'low' : pct < 50 ? 'mid' : 'high');
+            fill.className = 'entropy-fill ' + (s.stability === 'STABLE' ? 'low' : s.stability === 'WARNING' ? 'mid' : 'high');
+            
+            document.getElementById('b1').style.left = (s.b1 / s.boundary * 100) + '%';
+            document.getElementById('b2').style.left = (s.b2 / s.boundary * 100) + '%';
             
             document.getElementById('error').textContent = s.error || '';
         }
         
-        fetch_status();
+        fetchStatus();
     </script>
 </body>
 </html>
