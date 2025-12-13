@@ -14,133 +14,101 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 24px;
         }
-        .header { font-size: 10px; letter-spacing: 0.3em; opacity: 0.4; margin-bottom: 8px; }
-        .stability { font-size: 56px; font-weight: 200; letter-spacing: 0.15em; margin-bottom: 32px; }
-        .stability.STABLE { color: #00ff88; }
-        .stability.WARNING { color: #ffaa00; }
-        .stability.COLLAPSE { color: #ff2244; animation: pulse 0.5s infinite; }
+        .header { font-size: 10px; letter-spacing: 0.3em; opacity: 0.4; margin-bottom: 12px; }
+        .status { font-size: 48px; font-weight: 200; letter-spacing: 0.1em; margin-bottom: 8px; }
+        .status.GREEN { color: #00ff88; }
+        .status.YELLOW { color: #ffaa00; }
+        .status.RED { color: #ff2244; animation: pulse 0.5s infinite; }
         @keyframes pulse { 50% { opacity: 0.4; } }
-        
-        .metrics { display: flex; gap: 40px; margin-bottom: 32px; text-align: center; }
-        .metric { opacity: 0.6; font-size: 12px; }
-        .metric span { display: block; font-size: 32px; color: #fff; opacity: 1; margin-top: 4px; font-weight: 200; }
-        
-        .entropy-container { width: 240px; margin-bottom: 40px; }
-        .entropy-label { display: flex; justify-content: space-between; font-size: 10px; opacity: 0.4; margin-bottom: 4px; }
-        .entropy-bar { height: 4px; background: #222; border-radius: 2px; position: relative; }
-        .entropy-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
-        .entropy-fill.low { background: #00ff88; }
-        .entropy-fill.mid { background: #ffaa00; }
-        .entropy-fill.high { background: #ff2244; }
-        .threshold { position: absolute; top: -2px; width: 1px; height: 8px; background: #666; }
-        
-        .controls { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        .failure { font-size: 12px; color: #ff6644; margin-bottom: 16px; height: 16px; }
+        .metrics { display: flex; gap: 32px; margin-bottom: 24px; }
+        .metric { text-align: center; font-size: 11px; opacity: 0.5; }
+        .metric span { display: block; font-size: 24px; color: #fff; opacity: 1; margin-top: 4px; }
+        .bars { display: flex; gap: 16px; margin-bottom: 32px; }
+        .bar-group { text-align: center; }
+        .bar-label { font-size: 9px; opacity: 0.4; margin-bottom: 4px; }
+        .bar { width: 50px; height: 4px; background: #222; border-radius: 2px; }
+        .bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+        .bar-fill.p { background: #ff6644; }
+        .bar-fill.r { background: #00ff88; }
+        .bar-fill.d { background: #00d4ff; }
+        .bar-fill.e { background: #ffaa00; }
+        .bar-fill.g { background: #aa88ff; }
+        .controls { display: flex; gap: 10px; }
         button {
             background: transparent;
             border: 1px solid #333;
             color: #666;
-            padding: 12px 20px;
-            font-size: 11px;
+            padding: 10px 18px;
+            font-size: 10px;
             letter-spacing: 0.1em;
             cursor: pointer;
             transition: all 0.2s;
         }
-        button:hover { border-color: #555; color: #fff; }
-        button.decision { border-color: #00d4ff; color: #00d4ff; }
-        button.decision:hover { background: #00d4ff22; }
-        
-        .equation { 
-            position: fixed; 
-            bottom: 24px; 
-            font-size: 10px; 
-            opacity: 0.3; 
-            font-family: monospace;
-            text-align: center;
-        }
-        .error { color: #ff2244; font-size: 11px; margin-top: 16px; }
+        button:hover:not(:disabled) { border-color: #666; color: #fff; }
+        button:disabled { opacity: 0.2; cursor: not-allowed; }
+        button.p { border-color: #ff6644; color: #ff6644; }
+        button.r { border-color: #00ff88; color: #00ff88; }
+        button.d { border-color: #00d4ff; color: #00d4ff; }
+        button.x { border-color: #ffaa00; color: #ffaa00; display: none; }
+        .hint { font-size: 10px; opacity: 0.4; margin-top: 16px; height: 14px; }
+        .hint.active { color: #ffaa00; opacity: 1; }
+        .footer { position: fixed; bottom: 12px; font-size: 9px; opacity: 0.2; }
     </style>
 </head>
 <body>
     <div class="header">AUTUS SOLAR</div>
-    <div id="stability" class="stability">—</div>
-    
+    <div id="status" class="status">—</div>
+    <div id="failure" class="failure"></div>
     <div class="metrics">
         <div class="metric">tick<span id="tick">0</span></div>
         <div class="metric">cycle<span id="cycle">0</span></div>
-        <div class="metric">gravity<span id="gravity">0</span></div>
     </div>
-    
-    <div class="entropy-container">
-        <div class="entropy-label">
-            <span>entropy</span>
-            <span id="entropy-value">0</span>
-        </div>
-        <div class="entropy-bar">
-            <div id="entropy-fill" class="entropy-fill low" style="width:0%"></div>
-            <div id="b1" class="threshold" style="left:25%"></div>
-            <div id="b2" class="threshold" style="left:80%"></div>
-        </div>
+    <div class="bars">
+        <div class="bar-group"><div class="bar-label">P</div><div class="bar"><div id="bp" class="bar-fill p"></div></div></div>
+        <div class="bar-group"><div class="bar-label">R</div><div class="bar"><div id="br" class="bar-fill r"></div></div></div>
+        <div class="bar-group"><div class="bar-label">D</div><div class="bar"><div id="bd" class="bar-fill d"></div></div></div>
+        <div class="bar-group"><div class="bar-label">E</div><div class="bar"><div id="be" class="bar-fill e"></div></div></div>
+        <div class="bar-group"><div class="bar-label">G</div><div class="bar"><div id="bg" class="bar-fill g"></div></div></div>
     </div>
-    
     <div class="controls">
-        <button onclick="send('pressure')">PRESSURE</button>
-        <button onclick="send('release')">RELEASE</button>
-        <button onclick="send('reset')">RESET</button>
-        <button onclick="send('decision')" class="decision">DECISION</button>
+        <button id="btnP" class="p" onclick="post('/event/add_work',{count:1,weight:1,actor_id:'UI'})">PRESSURE</button>
+        <button id="btnR" class="r" onclick="post('/event/remove_work',{count:1,weight:1,actor_id:'UI'})">RELEASE</button>
+        <button id="btnD" class="d" onclick="post('/event/commit_decision',{decision:'commit',actor_id:'UI'})">DECISION</button>
+        <button id="btnX" class="x" onclick="post('/execute',{action:'AUTO_STABILIZE',actor_id:'UI'})">EXECUTE</button>
     </div>
-    
-    <div id="error" class="error"></div>
-    
-    <div class="equation">
-        S(t+1) = S(t) + α·P - β·R - k·e + D·(-γ·e + Δ)<br>
-        Truth = /status
-    </div>
-    
+    <div id="hint" class="hint"></div>
+    <div class="footer">State Engine v1 | /status</div>
     <script>
-        const API = location.hostname === 'localhost' 
-            ? 'http://localhost:8000' 
-            : 'https://solar.autus-ai.com';
-        
-        async function fetchStatus() {
-            try {
-                const res = await fetch(`${API}/autus/solar/status`);
-                render(await res.json());
-            } catch(e) {
-                document.getElementById('error').textContent = e.message;
-            }
+        const API='';
+        async function get(){
+            const r=await fetch(API+'/autus/solar/status',{cache:'no-store'});
+            return r.ok?await r.json():null;
         }
-        
-        async function send(event) {
-            try {
-                const res = await fetch(`${API}/autus/solar/${event}`, { method: 'POST' });
-                render(await res.json());
-            } catch(e) {
-                document.getElementById('error').textContent = e.message;
-            }
+        async function post(p,b){
+            await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
         }
-        
-        function render(s) {
-            document.getElementById('stability').textContent = s.stability;
-            document.getElementById('stability').className = 'stability ' + s.stability;
-            document.getElementById('tick').textContent = s.tick;
-            document.getElementById('cycle').textContent = s.cycle;
-            document.getElementById('gravity').textContent = s.gravity.toFixed(2);
-            document.getElementById('entropy-value').textContent = s.entropy.toFixed(3);
-            
-            const pct = Math.min(100, (s.entropy / s.boundary) * 100);
-            const fill = document.getElementById('entropy-fill');
-            fill.style.width = pct + '%';
-            fill.className = 'entropy-fill ' + (s.stability === 'STABLE' ? 'low' : s.stability === 'WARNING' ? 'mid' : 'high');
-            
-            document.getElementById('b1').style.left = (s.b1 / s.boundary * 100) + '%';
-            document.getElementById('b2').style.left = (s.b2 / s.boundary * 100) + '%';
-            
-            document.getElementById('error').textContent = s.error || '';
+        function render(s){
+            if(!s||!s.signals)return;
+            document.getElementById('status').textContent=s.output.status;
+            document.getElementById('status').className='status '+s.output.status;
+            document.getElementById('tick').textContent=s.tick;
+            document.getElementById('cycle').textContent=s.cycle;
+            document.getElementById('bp').style.width=Math.min(100,s.signals.pressure*30)+'%';
+            document.getElementById('br').style.width=Math.min(100,s.signals.release*30)+'%';
+            document.getElementById('bd').style.width=s.signals.decision*100+'%';
+            document.getElementById('be').style.width=s.signals.entropy*100+'%';
+            document.getElementById('bg').style.width=s.signals.gravity*100+'%';
+            const f=document.getElementById('failure');
+            f.textContent=s.output.failure_in_ticks?'⚠ FAIL IN '+s.output.failure_in_ticks:'';
+            document.getElementById('btnP').disabled=s.output.status==='RED';
+            document.getElementById('btnX').style.display=s.output.status==='GREEN'?'none':'inline-block';
+            const h=document.getElementById('hint');
+            h.textContent=s.output.required_action!=='NONE'?'ACTION: '+s.output.required_action:'';
+            h.className=s.output.required_action!=='NONE'?'hint active':'hint';
         }
-        
-        fetchStatus();
+        (async function poll(){while(1){try{render(await get())}catch(e){}await new Promise(r=>setTimeout(r,1000))}})();
     </script>
 </body>
 </html>
