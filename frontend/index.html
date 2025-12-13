@@ -2,315 +2,200 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>AUTUS ATLAS</title>
+    <title>AUTUS ATLAS - Physics v2.3</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
-        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
-        .ui-layer { position: fixed; z-index: 10; pointer-events: none; }
-        .ui-layer > * { pointer-events: auto; }
-        .big-status { font-size: 42px; font-weight: 200; letter-spacing: 0.1em; transition: all 0.3s; }
-        .big-status.stable { color: #00ff88; }
-        .big-status.warning { color: #ffaa00; }
-        .big-status.unstable { color: #ff4466; animation: pulse 0.5s infinite; }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .meter { margin-bottom: 12px; }
-        .meter-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; opacity: 0.7; }
-        .meter-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; }
-        .meter-fill { height: 100%; border-radius: 3px; transition: all 0.3s; }
-        .meter-fill.good { background: linear-gradient(90deg, #00ff88, #00d4ff); }
-        .meter-fill.warn { background: linear-gradient(90deg, #ffaa00, #ff6644); }
-        .meter-fill.bad { background: linear-gradient(90deg, #ff6644, #ff2244); }
-        button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 20px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+        body { background: #000; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
+        .panel { position: fixed; z-index: 10; }
+        .glass { background: rgba(20,20,20,0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; }
+        .status { font-size: 48px; font-weight: 200; letter-spacing: 0.1em; }
+        .status.stable { color: #00ff88; }
+        .status.warning { color: #ffaa00; }
+        .status.unstable { color: #ff4466; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .meter { margin: 12px 0; }
+        .meter-label { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.7; margin-bottom: 4px; }
+        .meter-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .meter-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+        .fill-good { background: linear-gradient(90deg, #00ff88, #00d4ff); }
+        .fill-warn { background: linear-gradient(90deg, #ffaa00, #ff6644); }
+        .fill-bad { background: linear-gradient(90deg, #ff6644, #ff2244); }
+        button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
         button:hover { background: rgba(255,255,255,0.1); }
         button.danger { border-color: #ff4466; color: #ff4466; }
         button.success { border-color: #00ff88; color: #00ff88; }
-        button.active { background: rgba(0,255,136,0.2); border-color: #00ff88; }
-        .log { font-size: 10px; opacity: 0.6; max-height: 150px; overflow-y: auto; }
-        .log-entry { margin: 2px 0; }
-        .log-entry.up { color: #00ff88; }
-        .log-entry.down { color: #ff4466; }
-        .time-indicator { display: flex; align-items: center; gap: 8px; font-size: 11px; }
-        .time-dot { width: 8px; height: 8px; border-radius: 50%; background: #00ff88; animation: blink 1s infinite; }
+        .time-dot { width: 10px; height: 10px; border-radius: 50%; background: #00ff88; display: inline-block; margin-right: 8px; animation: blink 1s infinite; }
         .time-dot.paused { background: #666; animation: none; }
         @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .log { font-size: 11px; opacity: 0.6; max-height: 200px; overflow-y: auto; font-family: monospace; }
+        .log-up { color: #ff4466; }
+        .log-down { color: #00ff88; }
+        .canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, #0a0a15 0%, #000 100%); }
+        .sun { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, #00d4ff 0%, #004466 100%); box-shadow: 0 0 60px #00d4ff40; transition: all 0.3s; }
+        .sun.warning { background: radial-gradient(circle, #ffaa00 0%, #664400 100%); box-shadow: 0 0 60px #ffaa0040; }
+        .sun.unstable { background: radial-gradient(circle, #ff4466 0%, #440000 100%); box-shadow: 0 0 80px #ff446660; animation: shake 0.1s infinite; }
+        @keyframes shake { 0%,100% { transform: translate(-50%, -50%); } 50% { transform: translate(calc(-50% + 3px), calc(-50% - 2px)); } }
+        .orbit { position: absolute; top: 50%; left: 50%; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; transform: translate(-50%, -50%); transition: all 0.5s; }
     </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
+    <div class="canvas">
+        <div id="sun" class="sun"></div>
+        <div class="orbit" style="width:200px;height:200px"></div>
+        <div class="orbit" style="width:300px;height:300px"></div>
+        <div class="orbit" style="width:400px;height:400px"></div>
+    </div>
     <div id="root"></div>
     
     <script type="text/babel">
-        const API = "https://solar.autus-ai.com";
-        
-        class Renderer {
-            constructor(container) {
-                this.scene = new THREE.Scene();
-                this.camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 2000);
-                this.renderer = new THREE.WebGLRenderer({ antialias: true });
-                this.renderer.setSize(window.innerWidth, window.innerHeight);
-                this.renderer.setClearColor(0x000000);
-                container.appendChild(this.renderer.domElement);
-                this.camera.position.set(0, 10, 20);
-                this.camera.lookAt(0, 0, 0);
-                this.time = 0;
-                this.entropy = 0;
-                this.status = 'STABLE';
-                this.createScene();
-                this.animate();
-                window.addEventListener('resize', () => {
-                    this.camera.aspect = window.innerWidth / window.innerHeight;
-                    this.camera.updateProjectionMatrix();
-                    this.renderer.setSize(window.innerWidth, window.innerHeight);
-                });
-            }
-            
-            createScene() {
-                this.scene.add(new THREE.AmbientLight(0x222244, 0.5));
-                this.light = new THREE.PointLight(0x00d4ff, 3, 100);
-                this.scene.add(this.light);
-                
-                this.sun = new THREE.Mesh(
-                    new THREE.SphereGeometry(1.5, 64, 64),
-                    new THREE.MeshPhysicalMaterial({ color: 0x002040, emissive: 0x004488, emissiveIntensity: 0.5 })
-                );
-                this.scene.add(this.sun);
-                
-                this.glow = new THREE.Mesh(
-                    new THREE.SphereGeometry(2, 32, 32),
-                    new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.15 })
-                );
-                this.scene.add(this.glow);
-                
-                this.orbits = [];
-                const colors = [0x4488ff, 0x44ff88, 0xff4488, 0xffdd44, 0xff8844, 0x8844ff, 0xff4466];
-                for (let i = 0; i < 7; i++) {
-                    const orbit = new THREE.Mesh(
-                        new THREE.TorusGeometry(3 + i * 0.8, 0.02, 8, 200),
-                        new THREE.MeshBasicMaterial({ color: colors[i], transparent: true, opacity: 0.2 })
-                    );
-                    orbit.rotation.x = Math.PI / 2;
-                    orbit.userData = { baseColor: colors[i] };
-                    this.orbits.push(orbit);
-                    this.scene.add(orbit);
-                }
-                
-                this.planet = new THREE.Mesh(
-                    new THREE.SphereGeometry(0.3, 32, 32),
-                    new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.5 })
-                );
-                this.planet.userData = { angle: 0 };
-                this.scene.add(this.planet);
-                
-                const starGeo = new THREE.BufferGeometry();
-                const pos = [];
-                for (let i = 0; i < 1000; i++) pos.push((Math.random()-0.5)*400, (Math.random()-0.5)*400, (Math.random()-0.5)*400);
-                starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-                this.scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.2 })));
-            }
-            
-            update(state) {
-                if (!state) return;
-                this.entropy = state.entropy?.value || 0;
-                this.status = state.orbit?.status || 'STABLE';
-                
-                const isUnstable = this.status === 'UNSTABLE';
-                const isWarning = this.status === 'WARNING';
-                
-                if (isUnstable) {
-                    this.glow.material.color.setHex(0xff2244);
-                    this.light.color.setHex(0xff4466);
-                    this.sun.material.emissive.setHex(0x440000);
-                } else if (isWarning) {
-                    this.glow.material.color.setHex(0xffaa00);
-                    this.light.color.setHex(0xffcc44);
-                    this.sun.material.emissive.setHex(0x442200);
-                } else {
-                    this.glow.material.color.setHex(0x00d4ff);
-                    this.light.color.setHex(0x00d4ff);
-                    this.sun.material.emissive.setHex(0x004488);
-                }
-                
-                this.orbits.forEach((orbit, i) => {
-                    orbit.scale.setScalar(1 + this.entropy * 0.3);
-                    orbit.material.color.setHex(isUnstable ? 0xff2244 : orbit.userData.baseColor);
-                });
-            }
-            
-            animate() {
-                requestAnimationFrame(() => this.animate());
-                this.time += 0.016;
-                
-                this.glow.scale.setScalar(1 + Math.sin(this.time) * 0.05);
-                
-                if (this.status === 'UNSTABLE') {
-                    this.sun.position.x = (Math.random() - 0.5) * 0.2;
-                    this.sun.position.y = (Math.random() - 0.5) * 0.2;
-                } else {
-                    this.sun.position.set(0, 0, 0);
-                }
-                
-                const speed = Math.max(0.003, 0.01 - this.entropy * 0.003);
-                this.orbits.forEach((orbit, i) => orbit.rotation.z += speed * (1 + i * 0.1));
-                
-                this.planet.userData.angle += speed;
-                const r = 5 + this.entropy * 2;
-                this.planet.position.x = Math.cos(this.planet.userData.angle) * r;
-                this.planet.position.z = Math.sin(this.planet.userData.angle) * r;
-                
-                this.renderer.render(this.scene, this.camera);
-            }
-        }
+        const API = window.location.hostname === 'localhost' 
+            ? 'http://localhost:8000' 
+            : 'https://solar.autus-ai.com';
         
         function App() {
             const [state, setState] = React.useState(null);
-            const [prev, setPrev] = React.useState(null);
             const [logs, setLogs] = React.useState([]);
-            const [autoTime, setAutoTime] = React.useState(true);  // 자동 시간 루프!
-            const rendererRef = React.useRef(null);
+            const [auto, setAuto] = React.useState(true);
+            const prevRef = React.useRef(null);
             
-            React.useEffect(() => {
-                rendererRef.current = new Renderer(document.getElementById('canvas-container'));
-                fetchState();
-            }, []);
-            
-            // 자동 시간 루프: 1초마다 tick
-            React.useEffect(() => {
-                if (!autoTime) return;
-                const interval = setInterval(async () => {
-                    await fetch(`${API}/autus/solar/tick`, { method: 'POST' });
-                    fetchState();
-                }, 1000);
-                return () => clearInterval(interval);
-            }, [autoTime]);
-            
-            React.useEffect(() => {
-                if (rendererRef.current && state) rendererRef.current.update(state);
-            }, [state]);
-            
-            const addLog = (msg, type = '') => {
-                setLogs(l => [...l.slice(-19), { msg, type, t: Date.now() }]);
-            };
+            const addLog = (msg, type = '') => setLogs(l => [...l.slice(-29), { msg, type, t: Date.now() }]);
             
             const fetchState = async () => {
                 try {
                     const res = await fetch(`${API}/autus/solar/status`);
                     const data = await res.json();
-                    setPrev(state);
+                    
+                    // Delta 감지
+                    if (prevRef.current) {
+                        const prev = prevRef.current;
+                        const dS = (data.entropy?.value || 0) - (prev.entropy?.value || 0);
+                        if (Math.abs(dS) > 0.001) {
+                            addLog(`t=${data.tick} S=${data.entropy.value.toFixed(3)} ${dS > 0 ? '↑' : '↓'}${Math.abs(dS).toFixed(3)}`, dS > 0 ? 'up' : 'down');
+                        }
+                        if (prev.orbit?.status !== data.orbit?.status) {
+                            addLog(`STATUS → ${data.orbit.status}`, data.orbit.status === 'STABLE' ? 'down' : 'up');
+                        }
+                        if ((data.cycle || 0) > (prev.cycle || 0)) {
+                            addLog(`★ CYCLE ${data.cycle}`, 'down');
+                        }
+                    }
+                    prevRef.current = data;
                     setState(data);
-                } catch(e) {}
+                    
+                    // Sun 색상 업데이트
+                    const sun = document.getElementById('sun');
+                    sun.className = 'sun ' + (data.orbit?.status || 'stable').toLowerCase();
+                } catch(e) { console.error(e); }
             };
             
+            // 자동 시간 루프
             React.useEffect(() => {
-                if (prev && state) {
-                    const dS = (state.entropy?.value || 0) - (prev.entropy?.value || 0);
-                    if (Math.abs(dS) > 0.001) {
-                        addLog(`t=${state.tick} S=${state.entropy.value.toFixed(3)} (${dS > 0 ? '+' : ''}${dS.toFixed(3)})`, dS > 0 ? 'up' : 'down');
-                    }
-                    if (prev.orbit?.status !== state.orbit?.status) {
-                        addLog(`→ ${state.orbit.status}`, state.orbit.status === 'STABLE' ? 'down' : 'up');
-                    }
-                    if (state.cycle > (prev.cycle || 0)) {
-                        addLog(`★ CYCLE ${state.cycle}`, 'down');
-                    }
-                }
-            }, [state?.tick]);
+                fetchState();
+                if (!auto) return;
+                
+                const interval = setInterval(async () => {
+                    try {
+                        await fetch(`${API}/autus/solar/tick`, { method: 'POST' });
+                        await fetchState();
+                    } catch(e) {}
+                }, 1000);
+                
+                return () => clearInterval(interval);
+            }, [auto]);
             
             const pressure = async () => {
                 await fetch(`${API}/autus/solar/input`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ slot: 'Boundary', value: 1.0 }) });
-                addLog('PRESSURE', 'up');
+                addLog('→ PRESSURE', 'up');
                 fetchState();
             };
             
             const engines = async () => {
                 await fetch(`${API}/autus/solar/input`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ slot: 'Engines', value: 1.0 }) });
-                addLog('ENGINES', 'down');
+                addLog('→ ENGINES', 'down');
                 fetchState();
             };
             
             const reset = async () => {
                 await fetch(`${API}/autus/solar/reset`, { method: 'POST' });
-                setLogs([]);
-                addLog('RESET');
+                setLogs([{ msg: 'RESET', t: Date.now() }]);
                 fetchState();
             };
             
-            const S = state?.entropy?.value || 0;
-            const B = state?.twin?.B || 0;
-            const C = state?.cycle || 0;
-            const st = state?.orbit?.status || 'STABLE';
-            const stClass = st.toLowerCase();
+            if (!state) return <div style={{color:'#fff',padding:20}}>Loading...</div>;
+            
+            const S = state.entropy?.value || 0;
+            const B = state.twin?.B || 0;
+            const G = state.gravity?.gravity || 0;
+            const st = state.orbit?.status || 'STABLE';
             
             return (
                 <>
                     {/* Header */}
-                    <div className="ui-layer" style={{top: 24, left: 24}}>
+                    <div className="panel" style={{top: 24, left: 24}}>
                         <div style={{fontSize: 10, letterSpacing: '0.3em', opacity: 0.5}}>AUTUS</div>
-                        <div style={{fontSize: 24, fontWeight: 200}}>Atlas</div>
-                        <div style={{fontSize: 9, opacity: 0.4, marginTop: 4}}>PHYSICS v2.3</div>
+                        <div style={{fontSize: 28, fontWeight: 200}}>Atlas</div>
+                        <div style={{fontSize: 10, opacity: 0.4, marginTop: 4}}>PHYSICS v2.3</div>
                     </div>
                     
-                    {/* Time indicator */}
-                    <div className="ui-layer" style={{top: 24, left: '50%', transform: 'translateX(-50%)'}}>
-                        <div className="time-indicator">
-                            <div className={`time-dot ${autoTime ? '' : 'paused'}`}></div>
-                            <span style={{opacity: 0.6}}>tick {state?.tick || 0}</span>
-                            <button onClick={() => setAutoTime(!autoTime)} style={{padding: '4px 8px', fontSize: 10}}>
-                                {autoTime ? 'PAUSE' : 'PLAY'}
+                    {/* Time */}
+                    <div className="panel" style={{top: 24, left: '50%', transform: 'translateX(-50%)'}}>
+                        <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+                            <span className={`time-dot ${auto ? '' : 'paused'}`}></span>
+                            <span style={{fontSize: 14}}>tick {state.tick}</span>
+                            <button onClick={() => setAuto(!auto)} style={{padding: '6px 12px', fontSize: 10}}>
+                                {auto ? 'PAUSE' : 'PLAY'}
                             </button>
                         </div>
                     </div>
                     
                     {/* Status */}
-                    <div className="ui-layer" style={{top: 24, right: 24, textAlign: 'right'}}>
-                        <div className={`big-status ${stClass}`}>{st}</div>
-                        <div style={{fontSize: 12, opacity: 0.6, marginTop: 8}}>cycle {C}</div>
+                    <div className="panel" style={{top: 24, right: 24, textAlign: 'right'}}>
+                        <div className={`status ${st.toLowerCase()}`}>{st}</div>
+                        <div style={{fontSize: 14, opacity: 0.6, marginTop: 8}}>cycle {state.cycle}</div>
                     </div>
                     
                     {/* Meters */}
-                    <div className="ui-layer" style={{top: 100, right: 24, width: 180}}>
+                    <div className="panel glass" style={{top: 120, right: 24, width: 200}}>
                         <div className="meter">
                             <div className="meter-label"><span>ENTROPY</span><span>{S.toFixed(3)}</span></div>
                             <div className="meter-bar">
-                                <div className={`meter-fill ${S > 0.4 ? 'bad' : S > 0.2 ? 'warn' : 'good'}`} style={{width: `${Math.min(100, S * 200)}%`}}></div>
+                                <div className={`meter-fill ${S > 0.4 ? 'fill-bad' : S > 0.2 ? 'fill-warn' : 'fill-good'}`} style={{width: `${Math.min(100, S * 200)}%`}}></div>
                             </div>
                         </div>
                         <div className="meter">
                             <div className="meter-label"><span>BOUNDARY</span><span>{(B * 100).toFixed(0)}%</span></div>
                             <div className="meter-bar">
-                                <div className={`meter-fill ${B > 0.5 ? 'good' : 'warn'}`} style={{width: `${B * 100}%`}}></div>
+                                <div className={`meter-fill ${B > 0.5 ? 'fill-good' : 'fill-warn'}`} style={{width: `${B * 100}%`}}></div>
                             </div>
                         </div>
                         <div className="meter">
-                            <div className="meter-label"><span>GRAVITY</span><span>{(state?.gravity?.gravity || 0).toFixed(3)}</span></div>
+                            <div className="meter-label"><span>GRAVITY</span><span>{G.toFixed(3)}</span></div>
                             <div className="meter-bar">
-                                <div className="meter-fill good" style={{width: `${Math.min(100, (state?.gravity?.gravity || 0) * 200)}%`}}></div>
+                                <div className="meter-fill fill-good" style={{width: `${Math.min(100, G * 300)}%`}}></div>
                             </div>
                         </div>
                     </div>
                     
                     {/* Log */}
-                    <div className="ui-layer" style={{bottom: 80, left: 24, width: 250}}>
-                        <div style={{fontSize: 10, opacity: 0.5, marginBottom: 8}}>TRACE</div>
+                    <div className="panel glass" style={{bottom: 100, left: 24, width: 280}}>
+                        <div style={{fontSize: 10, opacity: 0.5, marginBottom: 8}}>INNER TRACE</div>
                         <div className="log">
-                            {logs.map((l, i) => <div key={l.t + i} className={`log-entry ${l.type}`}>{l.msg}</div>)}
+                            {logs.map((l, i) => <div key={l.t + i} className={`log-${l.type}`}>{l.msg}</div>)}
                         </div>
                     </div>
                     
                     {/* Controls */}
-                    <div className="ui-layer" style={{bottom: 24, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 12}}>
+                    <div className="panel" style={{bottom: 24, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 16}}>
                         <button className="danger" onClick={pressure}>PRESSURE</button>
                         <button className="success" onClick={engines}>ENGINES</button>
                         <button onClick={reset} style={{opacity: 0.6}}>RESET</button>
                     </div>
                     
                     {/* Hint */}
-                    <div className="ui-layer" style={{bottom: 24, right: 24, fontSize: 10, opacity: 0.4, textAlign: 'right'}}>
+                    <div className="panel" style={{bottom: 24, right: 24, fontSize: 11, opacity: 0.4, textAlign: 'right'}}>
                         <div>시간이 자동으로 흐릅니다</div>
                         <div>PRESSURE → 붕괴 / ENGINES → 복구</div>
                     </div>
