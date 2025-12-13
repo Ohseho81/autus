@@ -64,3 +64,11 @@ async def active_request_counter(request, call_next):
         return await call_next(request)
     finally:
         app.state.active_requests -= 1
+
+# === TRUST PASSPORT ===
+try:
+    from app.routers.autus_passport import router as passport_router
+    app.include_router(passport_router)
+    print("✅ Trust Passport loaded")
+except Exception as e:
+    print(f"⚠️ Trust Passport not loaded: {e}")
