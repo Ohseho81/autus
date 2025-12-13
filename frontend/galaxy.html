@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AUTUS Galaxy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: #000; 
+            color: #fff; 
+            font-family: -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        .title { font-size: 10px; letter-spacing: 0.3em; opacity: 0.4; }
+        .title span { font-size: 24px; letter-spacing: 0.1em; opacity: 1; display: block; margin-top: 4px; }
+        .galaxy-status {
+            text-align: right;
+            font-size: 12px;
+        }
+        .galaxy-status .stable { color: #00ff88; }
+        .galaxy-status .unstable { color: #ff2244; }
+        
+        .universe {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            position: relative;
+        }
+        .center-sun {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff 0%, #00d4ff 50%, #004466 100%);
+            box-shadow: 0 0 60px #00d4ff60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+        }
+        
+        .solars-container {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 48px;
+        }
+        
+        .solar-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 16px;
+            padding: 24px;
+            width: 280px;
+            transition: all 0.3s;
+        }
+        .solar-card:hover { border-color: #444; }
+        .solar-card.WARNING { border-color: #ffaa0066; }
+        .solar-card.COLLAPSE { border-color: #ff224466; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 50% { opacity: 0.7; } }
+        
+        .solar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .solar-name { font-size: 14px; font-weight: 500; }
+        .solar-stability { font-size: 12px; padding: 4px 8px; border-radius: 4px; }
+        .solar-stability.STABLE { background: #00ff8822; color: #00ff88; }
+        .solar-stability.WARNING { background: #ffaa0022; color: #ffaa00; }
+        .solar-stability.COLLAPSE { background: #ff224422; color: #ff2244; }
+        
+        .solar-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .metric { font-size: 11px; opacity: 0.6; }
+        .metric span { display: block; font-size: 18px; color: #fff; opacity: 1; margin-top: 2px; }
+        
+        .entropy-bar {
+            height: 4px;
+            background: #222;
+            border-radius: 2px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .entropy-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+        .entropy-fill.low { background: #00ff88; }
+        .entropy-fill.mid { background: #ffaa00; }
+        .entropy-fill.high { background: #ff2244; }
+        
+        .solar-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .solar-actions button {
+            flex: 1;
+            background: transparent;
+            border: 1px solid #333;
+            color: #666;
+            padding: 8px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .solar-actions button:hover { border-color: #666; color: #fff; }
+        .solar-actions button.decision { border-color: #00d4ff; color: #00d4ff; }
+        
+        .add-solar {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 32px;
+        }
+        .add-solar input {
+            background: #111;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 12px 16px;
+            font-size: 12px;
+            border-radius: 8px;
+            width: 200px;
+        }
+        .add-solar button {
+            background: #00d4ff22;
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            padding: 12px 24px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        
+        .transfer-panel {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 32px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .transfer-panel h3 { font-size: 12px; opacity: 0.6; margin-bottom: 16px; }
+        .transfer-panel select, .transfer-panel input {
+            background: #000;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+        .transfer-panel button {
+            background: transparent;
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+            padding: 8px 16px;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 48px;
+            font-size: 10px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">
+            AUTUS
+            <span>Galaxy</span>
+        </div>
+        <div class="galaxy-status">
+            <div>Solars: <span id="solar-count">0</span></div>
+            <div>Total Entropy: <span id="total-entropy">0</span></div>
+            <div id="galaxy-stable" class="stable">STABLE</div>
+        </div>
+    </div>
+    
+    <div class="add-solar">
+        <input type="text" id="new-solar-name" placeholder="New Solar Name (e.g. KOREA)">
+        <button onclick="addSolar()">+ Add Solar</button>
+    </div>
+    
+    <div id="solars" class="solars-container"></div>
+    
+    <div class="transfer-panel">
+        <h3>ENTROPY TRANSFER</h3>
+        <select id="from-solar"></select>
+        <span>→</span>
+        <select id="to-solar"></select>
+        <input type="number" id="transfer-delta" value="0.1" step="0.05" min="0" max="1" style="width:60px">
+        <button onclick="transferEntropy()">Transfer</button>
+    </div>
+    
+    <div class="footer">
+        S(t+1) = S(t) + α·P - β·R - k·e + D·(-γ·e + Δ)<br>
+        Energy Conservation: Σ entropy = constant
+    </div>
+    
+    <script>
+        const API = location.hostname === 'localhost' 
+            ? 'http://localhost:8000' 
+            : 'https://solar.autus-ai.com';
+        
+        let solarIds = [];
+        
+        async function fetchGalaxy() {
+            try {
+                const res = await fetch(`${API}/autus/galaxy/status`);
+                const g = await res.json();
+                
+                document.getElementById('solar-count').textContent = g.solar_count;
+                document.getElementById('total-entropy').textContent = g.total_entropy.toFixed(3);
+                
+                const stableEl = document.getElementById('galaxy-stable');
+                if (g.galaxy_stable) {
+                    stableEl.textContent = 'STABLE';
+                    stableEl.className = 'stable';
+                } else {
+                    stableEl.textContent = 'UNSTABLE';
+                    stableEl.className = 'unstable';
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        async function fetchSolars() {
+            const container = document.getElementById('solars');
+            container.innerHTML = '';
+            
+            const fromSelect = document.getElementById('from-solar');
+            const toSelect = document.getElementById('to-solar');
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+            
+            for (const id of solarIds) {
+                try {
+                    const res = await fetch(`${API}/autus/galaxy/solar/${id}/status`);
+                    const s = await res.json();
+                    
+                    const pct = Math.min(100, (s.entropy / s.boundary) * 100);
+                    const fillClass = s.stability === 'STABLE' ? 'low' : s.stability === 'WARNING' ? 'mid' : 'high';
+                    
+                    container.innerHTML += `
+                        <div class="solar-card ${s.stability}">
+                            <div class="solar-header">
+                                <div class="solar-name">${id}</div>
+                                <div class="solar-stability ${s.stability}">${s.stability}</div>
+                            </div>
+                            <div class="solar-metrics">
+                                <div class="metric">tick<span>${s.tick}</span></div>
+                                <div class="metric">cycle<span>${s.cycle}</span></div>
+                                <div class="metric">entropy<span>${s.entropy.toFixed(3)}</span></div>
+                                <div class="metric">gravity<span>${s.gravity.toFixed(3)}</span></div>
+                            </div>
+                            <div class="entropy-bar">
+                                <div class="entropy-fill ${fillClass}" style="width:${pct}%"></div>
+                            </div>
+                            <div class="solar-actions">
+                                <button onclick="solarAction('${id}','pressure')">P</button>
+                                <button onclick="solarAction('${id}','release')">R</button>
+                                <button onclick="solarAction('${id}','reset')">RST</button>
+                                <button onclick="solarAction('${id}','decision')" class="decision">D</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    fromSelect.innerHTML += `<option value="${id}">${id}</option>`;
+                    toSelect.innerHTML += `<option value="${id}">${id}</option>`;
+                } catch(e) {
+                    console.error(e);
+                }
+            }
+        }
+        
+        async function addSolar() {
+            const name = document.getElementById('new-solar-name').value.trim().toUpperCase();
+            if (!name) return;
+            
+            try {
+                await fetch(`${API}/autus/galaxy/solar/${name}`, { method: 'POST' });
+                solarIds.push(name);
+                document.getElementById('new-solar-name').value = '';
+                await refresh();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        async function solarAction(id, action) {
+            try {
+                await fetch(`${API}/autus/galaxy/solar/${id}/${action}`, { method: 'POST' });
+                await refresh();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        async function transferEntropy() {
+            const from = document.getElementById('from-solar').value;
+            const to = document.getElementById('to-solar').value;
+            const delta = parseFloat(document.getElementById('transfer-delta').value);
+            
+            if (from === to) return;
+            
+            try {
+                await fetch(`${API}/autus/galaxy/transfer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ from_id: from, to_id: to, delta })
+                });
+                await refresh();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        async function refresh() {
+            await fetchGalaxy();
+            await fetchSolars();
+        }
+        
+        // Init with some default solars
+        async function init() {
+            // Check existing solars
+            const defaultSolars = ['KOREA', 'JAPAN', 'USA'];
+            for (const name of defaultSolars) {
+                try {
+                    const res = await fetch(`${API}/autus/galaxy/solar/${name}/status`);
+                    if (res.ok) {
+                        solarIds.push(name);
+                    }
+                } catch(e) {}
+            }
+            
+            if (solarIds.length === 0) {
+                // Create defaults
+                for (const name of defaultSolars) {
+                    await fetch(`${API}/autus/galaxy/solar/${name}`, { method: 'POST' });
+                    solarIds.push(name);
+                }
+            }
+            
+            await refresh();
+        }
+        
+        init();
+    </script>
+</body>
+</html>
