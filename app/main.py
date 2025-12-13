@@ -88,3 +88,11 @@ try:
     print("✅ Hassabis v2 Layer loaded")
 except Exception as e:
     print(f"⚠️ Hassabis v2 Layer not loaded: {e}")
+
+# === CITY PACK ===
+try:
+    from app.routers.autus_city import router as city_router
+    app.include_router(city_router)
+    print("✅ City Pack loaded")
+except Exception as e:
+    print(f"⚠️ City Pack not loaded: {e}")

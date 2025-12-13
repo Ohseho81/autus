@@ -1,0 +1,16 @@
+name: city_pack
+version: 0.1.0
+autus_core: ">=0.6"
+
+gmu_templates:
+  - type: city
+  - type: district
+
+inputs:
+  - task_inputs
+  - pressure
+  - resource
+
+permissions:
+  read_only: false
+  commit: true
