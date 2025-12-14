@@ -125,3 +125,13 @@ class AlignmentEvent(BaseModel):
     incentive_match: float = 1.0
     risk_match: float = 1.0
     ts: float = 0
+
+# ============================================================
+# Pressure Event (signals 포함)
+# ============================================================
+class SignalsPressureEvent(BaseModel):
+    event_id: str
+    target: str  # external_id
+    signals: Dict[str, float]  # R, B, S, M
+    source: str = "manual"
+    ts: float = 0
