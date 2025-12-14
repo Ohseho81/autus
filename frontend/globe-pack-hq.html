@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS GlobePack HQ</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#020408;overflow:hidden;font-family:'Inter',system-ui,sans-serif}
+    
+    /* Frame */
+    .frame{position:fixed;top:24px;left:24px;right:24px;bottom:24px;border:1px solid rgba(0,212,255,.2);border-radius:6px;pointer-events:none;z-index:50}
+    .corner{position:absolute;width:14px;height:14px}
+    .corner::before,.corner::after{content:'';position:absolute;background:rgba(0,212,255,.4)}
+    .corner.tl{top:-1px;left:-1px}.corner.tl::before{width:14px;height:1px;top:0;left:0}.corner.tl::after{width:1px;height:14px;top:0;left:0}
+    .corner.br{bottom:-1px;right:-1px}.corner.br::before{width:14px;height:1px;bottom:0;right:0}.corner.br::after{width:1px;height:14px;bottom:0;right:0}
+    
+    /* Info Panel */
+    #info{position:fixed;top:40px;left:40px;color:#fff;font-size:10px;z-index:100}
+    #info h1{font-size:11px;font-weight:600;letter-spacing:.2em;color:#00d4ff;margin-bottom:12px}
+    .stat-row{display:flex;justify-content:space-between;width:160px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .stat-label{opacity:.5;font-size:9px}
+    .stat-value{color:#00d4ff;font-variant-numeric:tabular-nums}
+    
+    /* Metrics Panel */
+    #metrics{position:fixed;top:40px;right:40px;width:200px;z-index:100}
+    .metric-section{margin-bottom:16px}
+    .metric-title{font-size:8px;letter-spacing:.15em;color:rgba(0,212,255,.5);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(0,212,255,.1)}
+    .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .metric-card{background:rgba(0,20,40,.6);border:1px solid rgba(0,212,255,.15);border-radius:4px;padding:8px;text-align:center}
+    .metric-value{font-size:16px;font-weight:200;color:#00d4ff}
+    .metric-value.warning{color:#ffaa00}
+    .metric-value.danger{color:#ff4444}
+    .metric-label{font-size:7px;opacity:.4;margin-top:2px;letter-spacing:.1em}
+    
+    /* Data Feed */
+    #feed{position:fixed;bottom:40px;left:40px;right:40px;height:60px;z-index:100}
+    #feedCanvas{width:100%;height:100%;border-radius:4px}
+    
+    /* Controls */
+    #controls{position:fixed;bottom:40px;right:40px;display:flex;gap:6px;z-index:100}
+    #controls button{padding:8px 14px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);color:#00d4ff;border-radius:4px;font-size:9px;cursor:pointer}
+    #controls button:hover{background:rgba(0,212,255,.2)}
+    
+    /* Labels Layer */
+    #labels{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:60}
+    .node-label{position:absolute;color:#fff;font-size:9px;text-shadow:0 0 6px rgba(0,0,0,.9);white-space:nowrap;transform:translate(-50%,-100%)}
+    .node-label.L1{font-size:12px;font-weight:600;color:#00d4ff}
+    .node-label.L2{font-size:10px;font-weight:500}
+    .node-label.L3{font-size:8px;opacity:.7}
+  </style>
+</head>
+<body>
+  <!-- Frame -->
+  <div class="frame">
+    <div class="corner tl"></div>
+    <div class="corner br"></div>
+  </div>
+  
+  <!-- Info Panel -->
+  <div id="info">
+    <h1>GLOBEPACK HQ</h1>
+    <div class="stat-row"><span class="stat-label">NODES</span><span class="stat-value" id="s-nodes">0</span></div>
+    <div class="stat-row"><span class="stat-label">LINKS</span><span class="stat-value" id="s-links">0</span></div>
+    <div class="stat-row"><span class="stat-label">FPS</span><span class="stat-value" id="s-fps">60</span></div>
+    <div class="stat-row"><span class="stat-label">LOD</span><span class="stat-value" id="s-lod">HIGH</span></div>
+    <div class="stat-row"><span class="stat-label">ORBIT</span><span class="stat-value" id="s-orbit">0°</span></div>
+  </div>
+  
+  <!-- Metrics -->
+  <div id="metrics">
+    <div class="metric-section">
+      <div class="metric-title">TWIN STATE</div>
+      <div class="metric-grid">
+        <div class="metric-card"><div class="metric-value" id="m-energy">0.50</div><div class="metric-label">ENERGY</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-flow">0.30</div><div class="metric-label">FLOW</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-risk">0.10</div><div class="metric-label">RISK</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-entropy">0.05</div><div class="metric-label">ENTROPY</div></div>
+      </div>
+    </div>
+    <div class="metric-section">
+      <div class="metric-title">SYSTEM</div>
+      <div class="metric-grid">
+        <div class="metric-card"><div class="metric-value" id="m-uptime">99.9%</div><div class="metric-label">UPTIME</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-latency">12ms</div><div class="metric-label">LATENCY</div></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Data Feed -->
+  <div id="feed"><canvas id="feedCanvas"></canvas></div>
+  
+  <!-- Controls -->
+  <div id="controls">
+    <button onclick="toggleScan()">SCAN</button>
+    <button onclick="addNode()">+NODE</button>
+    <button onclick="toggleTerminator()">DAY/NIGHT</button>
+  </div>
+  
+  <!-- Labels -->
+  <div id="labels"></div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+// === State ===
+const state = {
+  energy: 0.5,
+  flow: 0.3,
+  risk: 0.1,
+  entropy: 0.05,
+  pressure: 0.2
+};
+
+let scanEnabled = true;
+let terminatorEnabled = true;
+
+// === Data ===
+let nodes = [];
+let links = [];
+
+async function loadData() {
+  try {
+    const r = await fetch('/frontend/data/sample-globe-data.json');
+    const data = await r.json();
+    nodes = data.nodes;
+    links = data.links;
+    createNodes();
+    createLinks();
+    document.getElementById('s-nodes').textContent = nodes.length;
+    document.getElementById('s-links').textContent = links.length;
+  } catch(e) {
+    console.log('Using default data');
+    generateDefaultData();
+  }
+}
+
+function generateDefaultData() {
+  // Generate sample nodes
+  for (let i = 0; i < 50; i++) {
+    nodes.push({
+      id: `node-${i}`,
+      lat: (Math.random() - 0.5) * 140,
+      lon: (Math.random() - 0.5) * 360,
+      weight: 0.3 + Math.random() * 0.7,
+      energy: Math.random(),
+      kind: ['city', 'org', 'system'][Math.floor(Math.random() * 3)],
+      label: i < 10 ? { text: `Node ${i}`, level: i < 3 ? 'L1' : 'L2' } : null
+    });
+  }
+  // Generate links
+  for (let i = 0; i < 80; i++) {
+    const a = Math.floor(Math.random() * nodes.length);
+    let b = Math.floor(Math.random() * nodes.length);
+    while (b === a) b = Math.floor(Math.random() * nodes.length);
+    links.push({
+      id: `link-${i}`,
+      a: nodes[a].id,
+      b: nodes[b].id,
+      strength: 0.3 + Math.random() * 0.7,
+      flow: Math.random()
+    });
+  }
+  createNodes();
+  createLinks();
+  document.getElementById('s-nodes').textContent = nodes.length;
+  document.getElementById('s-links').textContent = links.length;
+}
+
+// === Three.js Setup ===
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(1.5, devicePixelRatio));
+renderer.setClearColor(0x020408);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.insertBefore(renderer.domElement, document.body.firstChild);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 100);
+camera.position.set(0, 1, 4.5);
+camera.lookAt(0, 0, 0);
+
+// === Layer 1: Globe Core ===
+const globeGeo = new THREE.SphereGeometry(1.5, 128, 128);
+const globeMat = new THREE.ShaderMaterial({
+  uniforms: {
+    u_time: { value: 0 },
+    u_energy: { value: 0.5 },
+    u_terminator: { value: 0.3 },
+    u_dayColor: { value: new THREE.Color(0x1a4a7a) },
+    u_nightColor: { value: new THREE.Color(0x0a1525) }
+  },
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vUv;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = position;
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float u_time;
+    uniform float u_energy;
+    uniform float u_terminator;
+    uniform vec3 u_dayColor;
+    uniform vec3 u_nightColor;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vUv;
+    
+    void main() {
+      // Terminator (day/night)
+      float terminator = smoothstep(-0.2, 0.2, vPosition.x * cos(u_terminator) + vPosition.z * sin(u_terminator));
+      vec3 baseColor = mix(u_nightColor, u_dayColor, terminator);
+      
+      // Rim light
+      float rim = 1.0 - max(0.0, dot(vNormal, vec3(0.0, 0.0, 1.0)));
+      rim = pow(rim, 3.0) * u_energy;
+      
+      // Grid pattern
+      float grid = 0.0;
+      float lat = asin(vPosition.y / 1.5) * 10.0;
+      float lon = atan(vPosition.z, vPosition.x) * 10.0;
+      grid += smoothstep(0.95, 1.0, abs(sin(lat)));
+      grid += smoothstep(0.95, 1.0, abs(sin(lon)));
+      grid *= 0.15;
+      
+      vec3 finalColor = baseColor + vec3(0.0, 0.5, 1.0) * rim * 0.5 + vec3(0.0, 0.8, 1.0) * grid;
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `
+});
+const globe = new THREE.Mesh(globeGeo, globeMat);
+scene.add(globe);
+
+// === Layer 2: Atmosphere Ring ===
+const atmosGeo = new THREE.SphereGeometry(1.58, 64, 64);
+const atmosMat = new THREE.ShaderMaterial({
+  uniforms: { u_energy: { value: 0.5 } },
+  vertexShader: `
+    varying vec3 vNormal;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float u_energy;
+    varying vec3 vNormal;
+    void main() {
+      float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+      vec3 color = vec3(0.0, 0.5, 1.0) * intensity * u_energy;
+      gl_FragColor = vec4(color, intensity * 0.5);
+    }
+  `,
+  transparent: true,
+  side: THREE.BackSide,
+  blending: THREE.AdditiveBlending
+});
+scene.add(new THREE.Mesh(atmosGeo, atmosMat));
+
+// === Layer 3: Scan Overlay ===
+const scanGeo = new THREE.RingGeometry(1.52, 1.53, 64);
+const scanMat = new THREE.ShaderMaterial({
+  uniforms: {
+    u_time: { value: 0 },
+    u_flow: { value: 0.3 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float u_time;
+    uniform float u_flow;
+    varying vec2 vUv;
+    void main() {
+      float angle = atan(vUv.y - 0.5, vUv.x - 0.5);
+      float sweep = mod(u_time * (0.5 + u_flow), 6.28318);
+      float dist = mod(angle - sweep + 6.28318, 6.28318);
+      float intensity = smoothstep(1.0, 0.0, dist) * 0.8;
+      gl_FragColor = vec4(0.0, 0.8, 1.0, intensity);
+    }
+  `,
+  transparent: true,
+  side: THREE.DoubleSide
+});
+const scanRing = new THREE.Mesh(scanGeo, scanMat);
+scanRing.rotation.x = Math.PI / 2;
+scene.add(scanRing);
+
+// === Layer 4: Node Field (Instanced) ===
+const nodeGeo = new THREE.SphereGeometry(0.025, 8, 8);
+const nodeMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
+let nodeMesh = null;
+const nodePositions = [];
+
+function latLonToXYZ(lat, lon, r) {
+  const phi = (90 - lat) * Math.PI / 180;
+  const theta = (lon + 180) * Math.PI / 180;
+  return new THREE.Vector3(
+    -r * Math.sin(phi) * Math.cos(theta),
+    r * Math.cos(phi),
+    r * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+function createNodes() {
+  if (nodeMesh) scene.remove(nodeMesh);
+  nodePositions.length = 0;
+  
+  nodeMesh = new THREE.InstancedMesh(nodeGeo, nodeMat, nodes.length);
+  const dummy = new THREE.Object3D();
+  const color = new THREE.Color();
+  const kindColors = { city: 0x00d4ff, org: 0x00ff88, system: 0xaa88ff, asset: 0xffaa00, person: 0xff6644 };
+  
+  nodes.forEach((node, i) => {
+    const pos = latLonToXYZ(node.lat, node.lon, 1.52);
+    nodePositions.push({ node, pos, basePos: pos.clone() });
+    
+    dummy.position.copy(pos);
+    dummy.scale.setScalar(0.5 + node.weight);
+    dummy.updateMatrix();
+    nodeMesh.setMatrixAt(i, dummy.matrix);
+    
+    color.setHex(kindColors[node.kind] || 0xffffff);
+    nodeMesh.setColorAt(i, color);
+  });
+  
+  nodeMesh.instanceMatrix.needsUpdate = true;
+  if (nodeMesh.instanceColor) nodeMesh.instanceColor.needsUpdate = true;
+  scene.add(nodeMesh);
+}
+
+// === Layer 5: Link Arcs ===
+const linkGroup = new THREE.Group();
+scene.add(linkGroup);
+
+function createLinks() {
+  while (linkGroup.children.length) linkGroup.remove(linkGroup.children[0]);
+  
+  const nodeMap = new Map(nodes.map(n => [n.id, n]));
+  const kindColors = { data: 0x00d4ff, money: 0x00ff88, work: 0xffaa00, policy: 0xaa88ff };
+  
+  links.forEach(link => {
+    const nodeA = nodeMap.get(link.a);
+    const nodeB = nodeMap.get(link.b);
+    if (!nodeA || !nodeB) return;
+    
+    const posA = latLonToXYZ(nodeA.lat, nodeA.lon, 1.52);
+    const posB = latLonToXYZ(nodeB.lat, nodeB.lon, 1.52);
+    const mid = posA.clone().add(posB).multiplyScalar(0.5);
+    mid.normalize().multiplyScalar(1.52 + link.strength * 0.4);
+    
+    const curve = new THREE.QuadraticBezierCurve3(posA, mid, posB);
+    const points = curve.getPoints(24);
+    const geo = new THREE.BufferGeometry().setFromPoints(points);
+    const mat = new THREE.LineBasicMaterial({
+      color: kindColors[link.kind] || 0x00d4ff,
+      transparent: true,
+      opacity: 0.2 + link.strength * 0.5
+    });
+    linkGroup.add(new THREE.Line(geo, mat));
+  });
+}
+
+// === Layer 6: Data Feed Canvas ===
+const feedCanvas = document.getElementById('feedCanvas');
+const feedCtx = feedCanvas.getContext('2d');
+let feedData = Array(120).fill(0).map(() => Math.random() * 0.5);
+
+function drawFeed() {
+  const w = feedCanvas.width = feedCanvas.offsetWidth;
+  const h = feedCanvas.height = feedCanvas.offsetHeight;
+  
+  feedCtx.fillStyle = 'rgba(2,4,8,0.9)';
+  feedCtx.fillRect(0, 0, w, h);
+  
+  // Grid
+  feedCtx.strokeStyle = 'rgba(0,212,255,0.1)';
+  feedCtx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    feedCtx.beginPath();
+    feedCtx.moveTo(0, i * h / 4);
+    feedCtx.lineTo(w, i * h / 4);
+    feedCtx.stroke();
+  }
+  
+  // Feed line
+  feedCtx.strokeStyle = '#00d4ff';
+  feedCtx.lineWidth = 1.5;
+  feedCtx.beginPath();
+  feedData.forEach((v, i) => {
+    const x = (i / (feedData.length - 1)) * w;
+    const y = h - v * h;
+    if (i === 0) feedCtx.moveTo(x, y);
+    else feedCtx.lineTo(x, y);
+  });
+  feedCtx.stroke();
+  
+  // Glow
+  feedCtx.strokeStyle = 'rgba(0,212,255,0.3)';
+  feedCtx.lineWidth = 4;
+  feedCtx.stroke();
+}
+
+// === Layer 7: Labels ===
+function updateLabels() {
+  const labelsDiv = document.getElementById('labels');
+  labelsDiv.innerHTML = '';
+  
+  nodePositions.forEach(({ node, pos }) => {
+    if (!node.label) return;
+    
+    const screenPos = pos.clone().applyMatrix4(globe.matrixWorld).project(camera);
+    const x = (screenPos.x * 0.5 + 0.5) * innerWidth;
+    const y = (-screenPos.y * 0.5 + 0.5) * innerHeight;
+    
+    if (screenPos.z > 1 || x < 50 || x > innerWidth - 50 || y < 50 || y > innerHeight - 50) return;
+    
+    const label = document.createElement('div');
+    label.className = `node-label ${node.label.level}`;
+    label.textContent = node.label.text;
+    label.style.left = x + 'px';
+    label.style.top = (y - 10) + 'px';
+    labelsDiv.appendChild(label);
+  });
+}
+
+// === Animation ===
+let time = 0;
+let frames = 0, lastFPS = performance.now(), fps = 60;
+
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.016;
+  
+  // Motion 1: ORBIT
+  const orbitSpeed = 0.05 * (0.4 + state.flow);
+  globe.rotation.y += orbitSpeed * 0.016;
+  if (nodeMesh) nodeMesh.rotation.y = globe.rotation.y;
+  linkGroup.rotation.y = globe.rotation.y;
+  
+  // Motion 2: TERMINATOR_SHIFT
+  if (terminatorEnabled) {
+    globeMat.uniforms.u_terminator.value = 0.3 + 0.2 * Math.sin(time * 0.1);
+  }
+  
+  // Motion 3: SCAN
+  if (scanEnabled) {
+    scanMat.uniforms.u_time.value = time;
+    scanRing.rotation.y = globe.rotation.y;
+  }
+  
+  // Motion 4: NODE_PULSE
+  if (nodeMesh) {
+    const dummy = new THREE.Object3D();
+    nodePositions.forEach(({ node, pos }, i) => {
+      const pulse = Math.sin(time * 6 + i) * 0.1 * state.energy;
+      dummy.position.copy(pos);
+      dummy.scale.setScalar((0.5 + node.weight) * (1 + pulse));
+      dummy.updateMatrix();
+      nodeMesh.setMatrixAt(i, dummy.matrix);
+    });
+    nodeMesh.instanceMatrix.needsUpdate = true;
+  }
+  
+  // Motion 5: DATA_FEED
+  feedData.push(state.energy * 0.5 + Math.sin(time * 2) * 0.2 + Math.random() * state.entropy * 0.3);
+  feedData.shift();
+  
+  // Update uniforms
+  globeMat.uniforms.u_time.value = time;
+  globeMat.uniforms.u_energy.value = state.energy;
+  atmosMat.uniforms.u_energy.value = state.energy;
+  scanMat.uniforms.u_flow.value = state.flow;
+  
+  // FPS
+  frames++;
+  if (performance.now() - lastFPS >= 1000) {
+    fps = frames;
+    frames = 0;
+    lastFPS = performance.now();
+    document.getElementById('s-fps').textContent = fps;
+  }
+  
+  // UI
+  document.getElementById('s-orbit').textContent = Math.round(globe.rotation.y * 180 / Math.PI % 360) + '°';
+  document.getElementById('m-energy').textContent = state.energy.toFixed(2);
+  document.getElementById('m-flow').textContent = state.flow.toFixed(2);
+  document.getElementById('m-risk').textContent = state.risk.toFixed(2);
+  document.getElementById('m-entropy').textContent = state.entropy.toFixed(2);
+  
+  updateLabels();
+  drawFeed();
+  renderer.render(scene, camera);
+}
+
+// === Controls ===
+function toggleScan() { scanEnabled = !scanEnabled; scanRing.visible = scanEnabled; }
+function toggleTerminator() { terminatorEnabled = !terminatorEnabled; }
+function addNode() {
+  nodes.push({
+    id: `node-${nodes.length}`,
+    lat: (Math.random() - 0.5) * 140,
+    lon: (Math.random() - 0.5) * 360,
+    weight: 0.5 + Math.random() * 0.5,
+    energy: Math.random(),
+    kind: 'system',
+    label: { text: `New ${nodes.length}`, level: 'L3' }
+  });
+  createNodes();
+  document.getElementById('s-nodes').textContent = nodes.length;
+}
+
+// === Fetch State ===
+async function fetchState() {
+  try {
+    const r = await fetch('/status');
+    const s = await r.json();
+    state.energy = s.signals.gravity;
+    state.flow = s.signals.release;
+    state.risk = Math.min(1, s.signals.entropy * 1.5 + s.signals.pressure * 0.5);
+    state.entropy = s.signals.entropy;
+    state.pressure = s.signals.pressure;
+  } catch(e) {}
+}
+
+// === Init ===
+window.onresize = () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+};
+
+loadData();
+fetchState();
+setInterval(fetchState, 2000);
+animate();
+  </script>
+</body>
+</html>
