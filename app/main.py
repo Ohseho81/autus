@@ -1,9 +1,12 @@
 import os
 import time
 import threading
+import sqlite3
+import json
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Literal, Any, List
 from collections import defaultdict
+from contextlib import contextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,11 +14,56 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-# Security Config
+# Config
 AUTUS_API_KEY = os.getenv("AUTUS_API_KEY", "")
 RATE_LIMIT_PER_MIN = int(os.getenv("RATE_LIMIT_PER_MIN", "60"))
+DB_PATH = os.getenv("DB_PATH", "/tmp/autus.db")
 PROTECTED_PREFIXES = ("/execute", "/event/")
 rate_limit_store: Dict[str, List[float]] = defaultdict(list)
+
+# Database
+@contextmanager
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+def init_db():
+    with get_db() as conn:
+        conn.execute('''CREATE TABLE IF NOT EXISTS state (
+            id TEXT PRIMARY KEY,
+            tick INTEGER, cycle INTEGER,
+            pressure REAL, release REAL, decision REAL,
+            gravity REAL, entropy REAL,
+            status TEXT, bottleneck TEXT, required_action TEXT,
+            failure_in_ticks INTEGER,
+            updated_at INTEGER
+        )''')
+        conn.execute('''CREATE TABLE IF NOT EXISTS actors (
+            actor_id TEXT PRIMARY KEY,
+            total_pressure REAL DEFAULT 0,
+            total_release REAL DEFAULT 0,
+            total_decisions INTEGER DEFAULT 0,
+            last_event TEXT,
+            last_event_ts INTEGER,
+            risk_score REAL DEFAULT 0
+        )''')
+        conn.execute('''CREATE TABLE IF NOT EXISTS audit (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts INTEGER, event TEXT, actor_id TEXT,
+            data TEXT, state_snapshot TEXT
+        )''')
+        conn.execute('''CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit(ts)''')
+        conn.execute('''CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit(actor_id)''')
+        # Init state if not exists
+        cur = conn.execute("SELECT id FROM state WHERE id='SUN_001'")
+        if not cur.fetchone():
+            conn.execute('''INSERT INTO state (id, tick, cycle, pressure, release, decision, gravity, entropy, status, bottleneck, required_action, failure_in_ticks, updated_at)
+                VALUES ('SUN_001', 0, 0, 0, 0, 0, 0.34, 0.188, 'GREEN', 'NONE', 'NONE', NULL, ?)''', (int(time.time()),))
+        conn.commit()
 
 # Models
 class AddWorkIn(BaseModel):
@@ -36,34 +84,30 @@ class ExecuteIn(BaseModel):
     action: Literal["AUTO_STABILIZE", "REMOVE_LOW_IMPACT", "FORCE_DECISION"] = "AUTO_STABILIZE"
     actor_id: Optional[str] = Field(default=None, max_length=64)
 
-# State Engine
-@dataclass
-class SolarState:
-    id: str = "SUN_001"
-    name: str = "AUTUS Solar"
-    tick: int = 0
-    cycle: int = 0
-    pressure: float = 0.0
-    release: float = 0.0
-    decision: float = 0.0
-    gravity: float = 0.34
-    entropy: float = 0.188
-    status: Literal["GREEN", "YELLOW", "RED"] = "GREEN"
-    bottleneck: Literal["NONE", "DECISION_DELAY", "OVERLOAD", "NO_RELEASE"] = "NONE"
-    required_action: Literal["NONE", "DECIDE", "STOP", "REMOVE"] = "NONE"
-    failure_in_ticks: Optional[int] = None
-    last_updated_epoch: float = field(default_factory=lambda: time.time())
-    audit_log: List[Dict[str, Any]] = field(default_factory=list)
-    decay_pr: float = 0.92
-    decay_d: float = 0.85
-
+# State Engine with Persistence
 class Engine:
     def __init__(self):
-        self.state = SolarState()
         self._lock = threading.Lock()
         self._running = False
         self._thread = None
         self._tick_interval = float(os.getenv("TICK_INTERVAL_SEC", "1.0"))
+        init_db()
+        self._load_state()
+
+    def _load_state(self):
+        with get_db() as conn:
+            row = conn.execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
+            if row:
+                self._state = dict(row)
+            else:
+                self._state = {"id": "SUN_001", "tick": 0, "cycle": 0, "pressure": 0, "release": 0, "decision": 0, "gravity": 0.34, "entropy": 0.188, "status": "GREEN", "bottleneck": "NONE", "required_action": "NONE", "failure_in_ticks": None, "updated_at": int(time.time())}
+
+    def _save_state(self):
+        with get_db() as conn:
+            s = self._state
+            conn.execute('''UPDATE state SET tick=?, cycle=?, pressure=?, release=?, decision=?, gravity=?, entropy=?, status=?, bottleneck=?, required_action=?, failure_in_ticks=?, updated_at=? WHERE id='SUN_001' ''',
+                (s["tick"], s["cycle"], s["pressure"], s["release"], s["decision"], s["gravity"], s["entropy"], s["status"], s["bottleneck"], s["required_action"], s["failure_in_ticks"], int(time.time())))
+            conn.commit()
 
     def start(self):
         with self._lock:
@@ -79,94 +123,132 @@ class Engine:
 
     def _tick(self):
         with self._lock:
-            s = self.state
-            s.tick += 1
-            s.last_updated_epoch = time.time()
-            s.pressure *= s.decay_pr
-            s.release *= s.decay_pr
-            s.decision *= s.decay_d
-            imbalance = max(0.0, s.pressure - s.release)
-            s.entropy = max(0.0, min(1.0, s.entropy + 0.01*imbalance - 0.008*s.release))
-            s.gravity = max(0.0, min(1.0, 0.70*s.gravity + 0.20*min(s.release,3.0)/3.0 + 0.10*min(s.decision,1.0) - 0.15*s.entropy))
-            self._derive(s)
-            if s.tick % 60 == 0: s.cycle += 1
+            s = self._state
+            s["tick"] += 1
+            s["updated_at"] = int(time.time())
+            s["pressure"] *= 0.92
+            s["release"] *= 0.92
+            s["decision"] *= 0.85
+            imbalance = max(0.0, s["pressure"] - s["release"])
+            s["entropy"] = max(0.0, min(1.0, s["entropy"] + 0.01*imbalance - 0.008*s["release"]))
+            s["gravity"] = max(0.0, min(1.0, 0.70*s["gravity"] + 0.20*min(s["release"],3.0)/3.0 + 0.10*min(s["decision"],1.0) - 0.15*s["entropy"]))
+            self._derive()
+            if s["tick"] % 60 == 0: s["cycle"] += 1
+            if s["tick"] % 10 == 0: self._save_state()  # Save every 10 ticks
 
-    def _derive(self, s):
-        if s.entropy > 0.55 and s.pressure > s.release + 0.5:
-            s.bottleneck, s.required_action = "OVERLOAD", "REMOVE"
-        elif s.release < 0.20 and s.pressure > 0.30:
-            s.bottleneck, s.required_action = "NO_RELEASE", "REMOVE"
-        elif s.decision < 0.15 and s.pressure > 0.40:
-            s.bottleneck, s.required_action = "DECISION_DELAY", "DECIDE"
+    def _derive(self):
+        s = self._state
+        if s["entropy"] > 0.55 and s["pressure"] > s["release"] + 0.5:
+            s["bottleneck"], s["required_action"] = "OVERLOAD", "REMOVE"
+        elif s["release"] < 0.20 and s["pressure"] > 0.30:
+            s["bottleneck"], s["required_action"] = "NO_RELEASE", "REMOVE"
+        elif s["decision"] < 0.15 and s["pressure"] > 0.40:
+            s["bottleneck"], s["required_action"] = "DECISION_DELAY", "DECIDE"
         else:
-            s.bottleneck, s.required_action = "NONE", "NONE"
+            s["bottleneck"], s["required_action"] = "NONE", "NONE"
         
-        if s.entropy >= 0.70 or (s.gravity <= 0.15 and s.entropy >= 0.55):
-            s.status = "RED"
-        elif s.entropy >= 0.45 or s.gravity <= 0.30 or s.bottleneck != "NONE":
-            s.status = "YELLOW"
+        if s["entropy"] >= 0.70 or (s["gravity"] <= 0.15 and s["entropy"] >= 0.55):
+            s["status"] = "RED"
+        elif s["entropy"] >= 0.45 or s["gravity"] <= 0.30 or s["bottleneck"] != "NONE":
+            s["status"] = "YELLOW"
         else:
-            s.status = "GREEN"
+            s["status"] = "GREEN"
         
-        if s.status == "GREEN":
-            s.failure_in_ticks = None
+        if s["status"] == "GREEN":
+            s["failure_in_ticks"] = None
         else:
-            rate = 0.02 + (0.02 if s.pressure > s.release else 0) + (0.01 if s.decision < 0.2 else 0) + 0.03*s.entropy
-            margin = max(0.0, 0.85 - s.entropy)
+            rate = 0.02 + (0.02 if s["pressure"] > s["release"] else 0) + (0.01 if s["decision"] < 0.2 else 0) + 0.03*s["entropy"]
+            margin = max(0.0, 0.85 - s["entropy"])
             ticks = int(max(1, min(60, margin / max(rate, 1e-6))))
-            s.failure_in_ticks = min(ticks, 10 if s.status == "RED" else 30)
+            s["failure_in_ticks"] = min(ticks, 10 if s["status"] == "RED" else 30)
+
+    def _update_actor(self, actor_id: str, event: str, pressure_delta: float = 0, release_delta: float = 0, decision_delta: int = 0):
+        if not actor_id: return
+        with get_db() as conn:
+            conn.execute('''INSERT INTO actors (actor_id, total_pressure, total_release, total_decisions, last_event, last_event_ts, risk_score)
+                VALUES (?, ?, ?, ?, ?, ?, 0)
+                ON CONFLICT(actor_id) DO UPDATE SET
+                    total_pressure = total_pressure + ?,
+                    total_release = total_release + ?,
+                    total_decisions = total_decisions + ?,
+                    last_event = ?,
+                    last_event_ts = ?,
+                    risk_score = CASE WHEN total_pressure > total_release + 5 THEN 1.0 ELSE total_pressure / (total_release + 1) END
+            ''', (actor_id, pressure_delta, release_delta, decision_delta, event, int(time.time()),
+                  pressure_delta, release_delta, decision_delta, event, int(time.time())))
+            conn.commit()
+
+    def _audit(self, event: str, data: dict, actor_id: str):
+        with get_db() as conn:
+            conn.execute('''INSERT INTO audit (ts, event, actor_id, data, state_snapshot) VALUES (?, ?, ?, ?, ?)''',
+                (int(time.time()), event, actor_id or "", json.dumps(data), json.dumps(self.snapshot())))
+            conn.commit()
 
     def add_work(self, count, weight, actor_id):
         with self._lock:
-            self.state.pressure += count * weight
+            delta = count * weight
+            self._state["pressure"] += delta
+            self._update_actor(actor_id, "ADD_WORK", pressure_delta=delta)
             self._audit("ADD_WORK", {"count": count, "weight": weight}, actor_id)
+            self._save_state()
 
     def remove_work(self, count, weight, actor_id):
         with self._lock:
-            self.state.release += count * weight
+            delta = count * weight
+            self._state["release"] += delta
+            self._update_actor(actor_id, "REMOVE_WORK", release_delta=delta)
             self._audit("REMOVE_WORK", {"count": count, "weight": weight}, actor_id)
+            self._save_state()
 
     def commit_decision(self, decision, actor_id):
         with self._lock:
-            s = self.state
-            s.decision = min(1.0, s.decision + (1.0 if decision=="commit" else 0.4 if decision=="hold" else 0.8))
+            s = self._state
+            s["decision"] = min(1.0, s["decision"] + (1.0 if decision=="commit" else 0.4 if decision=="hold" else 0.8))
+            self._update_actor(actor_id, "COMMIT_DECISION", decision_delta=1)
             self._audit("COMMIT_DECISION", {"decision": decision}, actor_id)
+            self._save_state()
 
     def execute(self, action, actor_id):
         with self._lock:
-            s = self.state
+            s = self._state
             if action == "AUTO_STABILIZE":
-                s.release += 1.5
-                s.pressure = max(0, s.pressure - 1.0)
-                s.decision = min(1.0, s.decision + 0.6)
+                s["release"] += 1.5
+                s["pressure"] = max(0, s["pressure"] - 1.0)
+                s["decision"] = min(1.0, s["decision"] + 0.6)
             elif action == "REMOVE_LOW_IMPACT":
-                s.release += 1.0
-                s.pressure = max(0, s.pressure - 0.8)
+                s["release"] += 1.0
+                s["pressure"] = max(0, s["pressure"] - 0.8)
             elif action == "FORCE_DECISION":
-                s.decision = min(1.0, s.decision + 1.0)
+                s["decision"] = min(1.0, s["decision"] + 1.0)
             self._audit("EXECUTE", {"action": action}, actor_id)
-
-    def _audit(self, event, data, actor_id):
-        self.state.audit_log.append({"ts": int(time.time()), "event": event, "actor_id": actor_id or "", "data": data})
-        if len(self.state.audit_log) > 1000:
-            self.state.audit_log = self.state.audit_log[-500:]
+            self._save_state()
 
     def snapshot(self):
-        with self._lock:
-            s = self.state
-            return {
-                "id": s.id, "name": s.name, "tick": s.tick, "cycle": s.cycle,
-                "signals": {"pressure": round(s.pressure,4), "release": round(s.release,4), "decision": round(s.decision,4), "gravity": round(s.gravity,4), "entropy": round(s.entropy,4)},
-                "output": {"status": s.status, "bottleneck": s.bottleneck, "required_action": s.required_action, "failure_in_ticks": s.failure_in_ticks},
-                "truth": "/status", "ts": int(s.last_updated_epoch)
-            }
+        s = self._state
+        return {
+            "id": s["id"], "name": "AUTUS Solar", "tick": s["tick"], "cycle": s["cycle"],
+            "signals": {"pressure": round(s["pressure"],4), "release": round(s["release"],4), "decision": round(s["decision"],4), "gravity": round(s["gravity"],4), "entropy": round(s["entropy"],4)},
+            "output": {"status": s["status"], "bottleneck": s["bottleneck"], "required_action": s["required_action"], "failure_in_ticks": s["failure_in_ticks"]},
+            "truth": "/status", "ts": s["updated_at"]
+        }
+
+    def get_actors(self, limit=20):
+        with get_db() as conn:
+            rows = conn.execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT ?", (limit,)).fetchall()
+            return [dict(r) for r in rows]
+
+    def get_top_risk_actor(self):
+        with get_db() as conn:
+            row = conn.execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT 1").fetchone()
+            return dict(row) if row else None
 
     def audit_tail(self, n=50):
-        with self._lock:
-            return self.state.audit_log[-n:]
+        with get_db() as conn:
+            rows = conn.execute("SELECT ts, event, actor_id, data FROM audit ORDER BY id DESC LIMIT ?", (n,)).fetchall()
+            return [{"ts": r["ts"], "event": r["event"], "actor_id": r["actor_id"], "data": json.loads(r["data"])} for r in rows]
 
 # App
-app = FastAPI(title="AUTUS", version="1.0")
+app = FastAPI(title="AUTUS", version="1.1")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 ENGINE = Engine()
 
@@ -188,23 +270,30 @@ async def security(request: Request, call_next):
 @app.on_event("startup")
 def startup():
     ENGINE.start()
-    print(f"✅ AUTUS Started | API Key: {'ON' if AUTUS_API_KEY else 'OFF'}")
+    print(f"✅ AUTUS v1.1 Started | DB: {DB_PATH} | API Key: {'ON' if AUTUS_API_KEY else 'OFF'}")
 
 @app.get("/")
 def root():
-    return {"status": "AUTUS v1.0", "security": bool(AUTUS_API_KEY)}
+    return {"status": "AUTUS v1.1", "features": ["persistence", "actors", "audit"], "security": bool(AUTUS_API_KEY)}
 
 @app.get("/health")
 def health():
-    return {"ok": True, "security": bool(AUTUS_API_KEY)}
+    return {"ok": True, "version": "1.1", "security": bool(AUTUS_API_KEY)}
 
 @app.get("/status")
 def status():
-    return ENGINE.snapshot()
+    snap = ENGINE.snapshot()
+    top_risk = ENGINE.get_top_risk_actor()
+    snap["top_risk_actor"] = top_risk
+    return snap
 
 @app.get("/autus/solar/status")
 def solar_status():
     return ENGINE.snapshot()
+
+@app.get("/actors")
+def actors(limit: int = 20):
+    return {"count": limit, "actors": ENGINE.get_actors(min(100, max(1, limit)))}
 
 @app.get("/audit")
 def audit(n: int = 50):
