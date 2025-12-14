@@ -15,6 +15,22 @@
     #tooltip{position:fixed;padding:12px 16px;background:rgba(0,0,0,.9);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;font-size:11px;pointer-events:none;display:none;z-index:200}
     #tooltip .name{font-weight:700;margin-bottom:8px;color:#00d4ff}
     .status-GREEN{color:#00ff88}.status-YELLOW{color:#ffaa00}.status-RED{color:#ff4444}
+    
+    /* Outcome Overlay */
+    #outcome{position:fixed;top:140px;left:20px;background:rgba(0,0,0,.8);border:1px solid rgba(0,212,255,.3);border-radius:12px;padding:16px;color:#fff;z-index:100;min-width:200px}
+    #outcome h2{font-size:10px;letter-spacing:.15em;opacity:.5;margin-bottom:12px}
+    #outcome .delta-row{display:flex;justify-content:space-between;margin:6px 0;font-size:12px}
+    #outcome .delta-label{opacity:.6}
+    #outcome .delta-value{font-weight:600}
+    #outcome .delta-value.positive{color:#00ff88}
+    #outcome .delta-value.negative{color:#ff4444}
+    #outcome .delta-value.zero{color:#666}
+    #outcome .billable{margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1)}
+    #outcome .billable-label{font-size:10px;opacity:.5;letter-spacing:.1em}
+    #outcome .billable-value{font-size:24px;font-weight:200;color:#00d4ff;margin-top:4px}
+    #outcome .billable-note{font-size:9px;opacity:.3;margin-top:4px}
+    #outcome .baseline-btn{margin-top:12px;padding:8px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;font-size:10px;cursor:pointer;width:100%}
+    #outcome .baseline-btn:hover{background:rgba(255,255,255,.2)}
   </style>
 </head>
 <body>
@@ -24,90 +40,224 @@
     <div class="stat">Pressure: <span id="prs">0</span></div>
     <div class="stat">Entropy: <span id="ent">0</span></div>
   </div>
+  
+  <div id="outcome">
+    <h2>OUTCOME (THIS PERIOD)</h2>
+    <div class="delta-row">
+      <span class="delta-label">ΔEntropy</span>
+      <span class="delta-value" id="dEnt">+0.00</span>
+    </div>
+    <div class="delta-row">
+      <span class="delta-label">ΔPressure</span>
+      <span class="delta-value" id="dPrs">+0.00</span>
+    </div>
+    <div class="delta-row">
+      <span class="delta-label">ΔAlignment</span>
+      <span class="delta-value" id="dAli">+0.00</span>
+    </div>
+    <div class="billable">
+      <div class="billable-label">BILLABLE VALUE</div>
+      <div class="billable-value" id="billable">₩0</div>
+      <div class="billable-note">Preview · ORG scope</div>
+    </div>
+    <button class="baseline-btn" id="resetBtn">SET NEW BASELINE</button>
+  </div>
+  
   <a id="back" href="/frontend/index.html#/instrument">← SOLAR</a>
   <div id="tooltip"></div>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1000);
-const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight);
+// Baseline state
+let baseline = { entropy: 0, pressure: 0, alignment: 0.5 };
+let current = { entropy: 0, pressure: 0, alignment: 0.5 };
+
+// Pricing constants
+const WEIGHTS = { entropy: 0.45, pressure: 0.35, alignment: 0.20 };
+const PRICE_UNIT = 3000000;
+const SCOPE = 1.0;
+
+function calcDelta() {
+  return {
+    entropy: Math.max(0, baseline.entropy - current.entropy),
+    pressure: Math.max(0, baseline.pressure - current.pressure),
+    alignment: Math.max(0, current.alignment - baseline.alignment)
+  };
+}
+
+function calcOutcome(delta) {
+  return WEIGHTS.entropy * Math.min(1, delta.entropy) +
+         WEIGHTS.pressure * Math.min(1, delta.pressure) +
+         WEIGHTS.alignment * Math.min(1, delta.alignment);
+}
+
+function calcBillable(outcome) {
+  return Math.round(PRICE_UNIT * outcome * SCOPE);
+}
+
+function formatDelta(val, inverse = false) {
+  const sign = val > 0 ? '+' : '';
+  return sign + val.toFixed(3);
+}
+
+function updateOutcomeUI() {
+  const delta = calcDelta();
+  const outcome = calcOutcome(delta);
+  const billable = calcBillable(outcome);
+  
+  const dEntEl = document.getElementById('dEnt');
+  const dPrsEl = document.getElementById('dPrs');
+  const dAliEl = document.getElementById('dAli');
+  
+  dEntEl.textContent = formatDelta(delta.entropy);
+  dEntEl.className = 'delta-value ' + (delta.entropy > 0 ? 'positive' : 'zero');
+  
+  dPrsEl.textContent = formatDelta(delta.pressure);
+  dPrsEl.className = 'delta-value ' + (delta.pressure > 0 ? 'positive' : 'zero');
+  
+  dAliEl.textContent = formatDelta(delta.alignment);
+  dAliEl.className = 'delta-value ' + (delta.alignment > 0 ? 'positive' : 'zero');
+  
+  document.getElementById('billable').textContent = '₩' + billable.toLocaleString();
+}
+
+document.getElementById('resetBtn').onclick = () => {
+  baseline = { ...current };
+  updateOutcomeUI();
+};
+
+// Three.js setup
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
 document.body.appendChild(renderer.domElement);
-camera.position.set(0,30,50);
+camera.position.set(0, 30, 50);
 
-scene.add(new THREE.AmbientLight(0x404040,0.5));
-const pl=new THREE.PointLight(0xffffff,1,100);pl.position.set(0,20,0);scene.add(pl);
+scene.add(new THREE.AmbientLight(0x404040, 0.5));
+const pl = new THREE.PointLight(0xffffff, 1, 100);
+pl.position.set(0, 20, 0);
+scene.add(pl);
 
-const sg=new THREE.BufferGeometry();
-const sp=[];for(let i=0;i<2000;i++)sp.push((Math.random()-.5)*500,(Math.random()-.5)*500,(Math.random()-.5)*500);
-sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
-const stars=new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:0.5}));
+const sg = new THREE.BufferGeometry();
+const sp = [];
+for(let i=0; i<2000; i++) sp.push((Math.random()-.5)*500, (Math.random()-.5)*500, (Math.random()-.5)*500);
+sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+const stars = new THREE.Points(sg, new THREE.PointsMaterial({color:0xffffff, size:0.5}));
 scene.add(stars);
 
-scene.add(new THREE.Mesh(new THREE.SphereGeometry(2,32,32),new THREE.MeshBasicMaterial({color:0x000000})));
-const ring=new THREE.Mesh(new THREE.RingGeometry(2.5,4,64),new THREE.MeshBasicMaterial({color:0x00d4ff,side:THREE.DoubleSide,transparent:true,opacity:0.3}));
-ring.rotation.x=Math.PI/2;scene.add(ring);
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(2, 32, 32), new THREE.MeshBasicMaterial({color:0x000000})));
+const ring = new THREE.Mesh(new THREE.RingGeometry(2.5, 4, 64), new THREE.MeshBasicMaterial({color:0x00d4ff, side:THREE.DoubleSide, transparent:true, opacity:0.3}));
+ring.rotation.x = Math.PI/2;
+scene.add(ring);
 
-const col=s=>s==='GREEN'?0x00ff88:s==='YELLOW'?0xffaa00:0xff4444;
-let data=[],meshes=[];
+const col = s => s === 'GREEN' ? 0x00ff88 : s === 'YELLOW' ? 0xffaa00 : 0xff4444;
+let data = [], meshes = [];
 
-function mkSolar(d,i){
-  const a=(i/4)*Math.PI*2,r=15+i*6;
-  const m=new THREE.Mesh(new THREE.SphereGeometry(1.5,16,16),new THREE.MeshPhongMaterial({color:col(d.status),emissive:col(d.status),emissiveIntensity:0.3}));
-  m.position.set(Math.cos(a)*r,(Math.random()-.5)*4,Math.sin(a)*r);
-  m.userData={...d,a,r,by:m.position.y};
+function mkSolar(d, i) {
+  const a = (i/4)*Math.PI*2, r = 15 + i*6;
+  const m = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 16), new THREE.MeshPhongMaterial({color:col(d.status), emissive:col(d.status), emissiveIntensity:0.3}));
+  m.position.set(Math.cos(a)*r, (Math.random()-.5)*4, Math.sin(a)*r);
+  m.userData = {...d, a, r, by:m.position.y};
   scene.add(m);
-  const o=new THREE.Mesh(new THREE.RingGeometry(r-.1,r+.1,64),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide,transparent:true,opacity:0.05}));
-  o.rotation.x=Math.PI/2;scene.add(o);
+  const o = new THREE.Mesh(new THREE.RingGeometry(r-.1, r+.1, 64), new THREE.MeshBasicMaterial({color:0xffffff, side:THREE.DoubleSide, transparent:true, opacity:0.05}));
+  o.rotation.x = Math.PI/2;
+  scene.add(o);
   return m;
 }
 
-async function load(){
-  try{
-    const r=await fetch('/status');const s=await r.json();
-    data=[
-      {id:'SUN_001',name:'AUTUS Primary',status:s.output.status,p:s.signals.pressure,e:s.signals.entropy},
-      {id:'SUN_002',name:'Philippines Export',status:Math.random()>.7?'YELLOW':'GREEN',p:s.signals.pressure*.8,e:s.signals.entropy*.9},
-      {id:'SUN_003',name:'Education',status:'GREEN',p:s.signals.pressure*.5,e:s.signals.entropy*.6},
-      {id:'SUN_004',name:'Facility',status:s.signals.entropy>.3?'YELLOW':'GREEN',p:s.signals.pressure*.6,e:s.signals.entropy*1.1}
+async function load() {
+  try {
+    const r = await fetch('/status');
+    const s = await r.json();
+    
+    // Update current state
+    current.entropy = s.signals.entropy;
+    current.pressure = s.signals.pressure;
+    current.alignment = s.signals.gravity; // Using gravity as alignment proxy
+    
+    // Initialize baseline on first load
+    if (baseline.entropy === 0 && baseline.pressure === 0) {
+      baseline = { ...current };
+    }
+    
+    data = [
+      {id:'SUN_001', name:'AUTUS Primary', status:s.output.status, p:s.signals.pressure, e:s.signals.entropy},
+      {id:'SUN_002', name:'Philippines Export', status:Math.random()>.7?'YELLOW':'GREEN', p:s.signals.pressure*.8, e:s.signals.entropy*.9},
+      {id:'SUN_003', name:'Education', status:'GREEN', p:s.signals.pressure*.5, e:s.signals.entropy*.6},
+      {id:'SUN_004', name:'Facility', status:s.signals.entropy>.3?'YELLOW':'GREEN', p:s.signals.pressure*.6, e:s.signals.entropy*1.1}
     ];
-    document.getElementById('prs').textContent=data.reduce((a,x)=>a+x.p,0).toFixed(2);
-    document.getElementById('ent').textContent=(data.reduce((a,x)=>a+x.e,0)/4).toFixed(3);
-    if(!meshes.length)data.forEach((d,i)=>meshes.push(mkSolar(d,i)));
-    else meshes.forEach((m,i)=>{if(data[i]){m.material.color.setHex(col(data[i].status));m.material.emissive.setHex(col(data[i].status));Object.assign(m.userData,data[i]);}});
-  }catch(e){console.error(e);}
+    
+    document.getElementById('prs').textContent = current.pressure.toFixed(2);
+    document.getElementById('ent').textContent = current.entropy.toFixed(3);
+    
+    updateOutcomeUI();
+    
+    if (!meshes.length) data.forEach((d,i) => meshes.push(mkSolar(d,i)));
+    else meshes.forEach((m,i) => {
+      if(data[i]) {
+        m.material.color.setHex(col(data[i].status));
+        m.material.emissive.setHex(col(data[i].status));
+        Object.assign(m.userData, data[i]);
+      }
+    });
+  } catch(e) { console.error(e); }
 }
 
-const rc=new THREE.Raycaster(),ms=new THREE.Vector2(),tt=document.getElementById('tooltip');
-onmousemove=e=>{
-  ms.x=(e.clientX/innerWidth)*2-1;ms.y=-(e.clientY/innerHeight)*2+1;
-  rc.setFromCamera(ms,camera);
-  const h=rc.intersectObjects(meshes);
-  if(h.length){
-    const d=h[0].object.userData;
-    tt.style.display='block';tt.style.left=e.clientX+15+'px';tt.style.top=e.clientY+15+'px';
-    tt.innerHTML='<div class="name">'+d.name+'</div><div>Status: <span class="status-'+d.status+'">'+d.status+'</span></div><div>Pressure: '+d.p.toFixed(2)+'</div><div>Entropy: '+d.e.toFixed(3)+'</div>';
-    document.body.style.cursor='pointer';
-  }else{tt.style.display='none';document.body.style.cursor='default';}
+const rc = new THREE.Raycaster(), ms = new THREE.Vector2(), tt = document.getElementById('tooltip');
+onmousemove = e => {
+  ms.x = (e.clientX/innerWidth)*2-1;
+  ms.y = -(e.clientY/innerHeight)*2+1;
+  rc.setFromCamera(ms, camera);
+  const h = rc.intersectObjects(meshes);
+  if (h.length) {
+    const d = h[0].object.userData;
+    tt.style.display = 'block';
+    tt.style.left = e.clientX+15+'px';
+    tt.style.top = e.clientY+15+'px';
+    tt.innerHTML = '<div class="name">'+d.name+'</div><div>Status: <span class="status-'+d.status+'">'+d.status+'</span></div><div>Pressure: '+d.p.toFixed(2)+'</div><div>Entropy: '+d.e.toFixed(3)+'</div>';
+    document.body.style.cursor = 'pointer';
+  } else {
+    tt.style.display = 'none';
+    document.body.style.cursor = 'default';
+  }
 };
 
-let ca=0,cr=50,drag=0,lx=0;
-renderer.domElement.onmousedown=e=>{drag=1;lx=e.clientX;};
-onmouseup=()=>drag=0;
-renderer.domElement.onmousemove=e=>{if(drag){ca+=(e.clientX-lx)*.005;lx=e.clientX;}};
-renderer.domElement.onwheel=e=>{cr+=e.deltaY*.05;cr=Math.max(20,Math.min(100,cr));};
+let ca=0, cr=50, drag=0, lx=0;
+renderer.domElement.onmousedown = e => { drag=1; lx=e.clientX; };
+onmouseup = () => drag=0;
+renderer.domElement.onmousemove = e => { if(drag) { ca+=(e.clientX-lx)*.005; lx=e.clientX; } };
+renderer.domElement.onwheel = e => { cr+=e.deltaY*.05; cr=Math.max(20,Math.min(100,cr)); };
 
-let t=0;
-function anim(){
-  requestAnimationFrame(anim);t+=.01;
-  camera.position.x=Math.cos(ca)*cr;camera.position.z=Math.sin(ca)*cr;camera.position.y=30;camera.lookAt(0,0,0);
-  ring.rotation.z+=.002;
-  meshes.forEach((m,i)=>{m.userData.a+=.001*(1+i*.1);m.position.x=Math.cos(m.userData.a)*m.userData.r;m.position.z=Math.sin(m.userData.a)*m.userData.r;m.position.y=m.userData.by+Math.sin(t+i)*.5;if(m.userData.status!=='GREEN')m.material.emissiveIntensity=.3+Math.sin(t*3)*.2;});
-  stars.rotation.y+=.0001;
-  renderer.render(scene,camera);
+let t = 0;
+function anim() {
+  requestAnimationFrame(anim);
+  t += .01;
+  camera.position.x = Math.cos(ca)*cr;
+  camera.position.z = Math.sin(ca)*cr;
+  camera.position.y = 30;
+  camera.lookAt(0,0,0);
+  ring.rotation.z += .002;
+  meshes.forEach((m,i) => {
+    m.userData.a += .001*(1+i*.1);
+    m.position.x = Math.cos(m.userData.a)*m.userData.r;
+    m.position.z = Math.sin(m.userData.a)*m.userData.r;
+    m.position.y = m.userData.by + Math.sin(t+i)*.5;
+    if(m.userData.status !== 'GREEN') m.material.emissiveIntensity = .3+Math.sin(t*3)*.2;
+  });
+  stars.rotation.y += .0001;
+  renderer.render(scene, camera);
 }
-onresize=()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);};
-load();setInterval(load,3000);anim();
+
+onresize = () => {
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+};
+
+load();
+setInterval(load, 3000);
+anim();
   </script>
 </body>
 </html>
