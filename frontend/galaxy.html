@@ -31,239 +31,137 @@
     <div class="stat">Total Pressure: <span id="totalPressure">0</span></div>
     <div class="stat">Avg Entropy: <span id="avgEntropy">0</span></div>
   </div>
-  <a id="back" href="/frontend/index.html">← BACK TO SOLAR</a>
+  <a id="back" href="/frontend/index.html">BACK TO SOLAR</a>
   <div id="tooltip"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    // Scene setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     document.body.appendChild(renderer.domElement);
 
-    // Camera position
     camera.position.set(0, 30, 50);
     camera.lookAt(0, 0, 0);
 
-    // Lights
     const ambient = new THREE.AmbientLight(0x404040, 0.5);
     scene.add(ambient);
     const point = new THREE.PointLight(0xffffff, 1, 100);
     point.position.set(0, 20, 0);
     scene.add(point);
 
-    // Stars background
-    const starsGeometry = new THREE.BufferGeometry();
-    const starPositions = [];
-    for (let i = 0; i < 2000; i++) {
-      starPositions.push((Math.random() - 0.5) * 500);
-      starPositions.push((Math.random() - 0.5) * 500);
-      starPositions.push((Math.random() - 0.5) * 500);
+    const starsGeo = new THREE.BufferGeometry();
+    const starPos = [];
+    for(let i=0;i<2000;i++){
+      starPos.push((Math.random()-0.5)*500,(Math.random()-0.5)*500,(Math.random()-0.5)*500);
     }
-    starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
-    const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5, transparent: true, opacity: 0.8 });
-    const stars = new THREE.Points(starsGeometry, starsMaterial);
+    starsGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+    const stars = new THREE.Points(starsGeo, new THREE.PointsMaterial({color:0xffffff,size:0.5,transparent:true,opacity:0.8}));
     scene.add(stars);
 
-    // Galaxy center (black hole effect)
-    const centerGeometry = new THREE.SphereGeometry(2, 32, 32);
-    const centerMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    const center = new THREE.Mesh(centerGeometry, centerMaterial);
+    const center = new THREE.Mesh(new THREE.SphereGeometry(2,32,32), new THREE.MeshBasicMaterial({color:0x000000}));
     scene.add(center);
 
-    // Glow ring
-    const ringGeometry = new THREE.RingGeometry(2.5, 4, 64);
-    const ringMaterial = new THREE.MeshBasicMaterial({ color: 0x00d4ff, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
-    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-    ring.rotation.x = Math.PI / 2;
+    const ring = new THREE.Mesh(new THREE.RingGeometry(2.5,4,64), new THREE.MeshBasicMaterial({color:0x00d4ff,side:THREE.DoubleSide,transparent:true,opacity:0.3}));
+    ring.rotation.x = Math.PI/2;
     scene.add(ring);
 
-    // Solar systems data
-    let solarSystems = [];
-    let solarMeshes = [];
+    let solarData = [];
+    let meshes = [];
 
-    // Color by status
-    function getColor(status) {
-      if (status === 'GREEN') return 0x00ff88;
-      if (status === 'YELLOW') return 0xffaa00;
-      return 0xff4444;
-    }
+    function getColor(s){return s==='GREEN'?0x00ff88:s==='YELLOW'?0xffaa00:0xff4444;}
 
-    // Create solar mesh
-    function createSolar(data, index) {
-      const angle = (index / 12) * Math.PI * 2;
-      const radius = 15 + (index % 3) * 8;
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
-      const y = (Math.random() - 0.5) * 5;
-
-      const size = 1 + data.signals.pressure * 0.5;
-      const geometry = new THREE.SphereGeometry(size, 16, 16);
-      const material = new THREE.MeshPhongMaterial({
-        color: getColor(data.output.status),
-        emissive: getColor(data.output.status),
-        emissiveIntensity: 0.3,
-        transparent: true,
-        opacity: 0.9
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(x, y, z);
-      mesh.userData = data;
-      mesh.userData.baseY = y;
-      mesh.userData.angle = angle;
-      mesh.userData.radius = radius;
+    function createSolar(d, i){
+      const angle = (i/12)*Math.PI*2;
+      const radius = 15 + (i%3)*8;
+      const size = 1 + d.signals.pressure*0.5;
+      const geo = new THREE.SphereGeometry(size, 16, 16);
+      const mat = new THREE.MeshPhongMaterial({color:getColor(d.output.status),emissive:getColor(d.output.status),emissiveIntensity:0.3,transparent:true,opacity:0.9});
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(Math.cos(angle)*radius, (Math.random()-0.5)*5, Math.sin(angle)*radius);
+      mesh.userData = {...d, baseY:mesh.position.y, angle, radius};
       scene.add(mesh);
-
-      // Orbit ring
-      const orbitGeometry = new THREE.RingGeometry(radius - 0.1, radius + 0.1, 64);
-      const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.05 });
-      const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
-      orbit.rotation.x = Math.PI / 2;
+      const orbit = new THREE.Mesh(new THREE.RingGeometry(radius-0.1,radius+0.1,64), new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide,transparent:true,opacity:0.05}));
+      orbit.rotation.x = Math.PI/2;
       scene.add(orbit);
-
       return mesh;
     }
 
-    // Fetch data
-    async function fetchData() {
-      try {
+    async function fetchData(){
+      try{
         const res = await fetch('/status');
-        const data = await res.json();
-        
-        // Simulate multiple solars from single data
-        solarSystems = [
-          { ...data, id: 'SUN_001', name: 'AUTUS Primary' },
-          { ...data, id: 'SUN_002', name: 'Philippines Export', output: { ...data.output, status: Math.random() > 0.7 ? 'YELLOW' : 'GREEN' } },
-          { ...data, id: 'SUN_003', name: 'Education Sector', signals: { ...data.signals, pressure: data.signals.pressure * 0.5 }, output: { ...data.output, status: 'GREEN' } },
-          { ...data, id: 'SUN_004', name: 'Facility Mgmt', signals: { ...data.signals, entropy: data.signals.entropy * 1.2 }, output: { ...data.output, status: data.signals.entropy > 0.3 ? 'YELLOW' : 'GREEN' } },
+        const d = await res.json();
+        solarData = [
+          {...d, id:'SUN_001', name:'AUTUS Primary'},
+          {...d, id:'SUN_002', name:'Philippines Export', output:{...d.output,status:Math.random()>0.7?'YELLOW':'GREEN'}},
+          {...d, id:'SUN_003', name:'Education', signals:{...d.signals,pressure:d.signals.pressure*0.5}, output:{...d.output,status:'GREEN'}},
+          {...d, id:'SUN_004', name:'Facility', signals:{...d.signals,entropy:d.signals.entropy*1.2}, output:{...d.output,status:d.signals.entropy>0.3?'YELLOW':'GREEN'}}
         ];
-
-        // Update stats
-        document.getElementById('solarCount').textContent = solarSystems.length;
-        document.getElementById('totalPressure').textContent = solarSystems.reduce((a, s) => a + s.signals.pressure, 0).toFixed(2);
-        document.getElementById('avgEntropy').textContent = (solarSystems.reduce((a, s) => a + s.signals.entropy, 0) / solarSystems.length).toFixed(3);
-
-        // Create or update meshes
-        if (solarMeshes.length === 0) {
-          solarSystems.forEach((s, i) => {
-            solarMeshes.push(createSolar(s, i));
-          });
-        } else {
-          solarMeshes.forEach((mesh, i) => {
-            if (solarSystems[i]) {
-              mesh.material.color.setHex(getColor(solarSystems[i].output.status));
-              mesh.material.emissive.setHex(getColor(solarSystems[i].output.status));
-              mesh.userData = solarSystems[i];
-            }
-          });
+        document.getElementById('solarCount').textContent = solarData.length;
+        document.getElementById('totalPressure').textContent = solarData.reduce((a,s)=>a+s.signals.pressure,0).toFixed(2);
+        document.getElementById('avgEntropy').textContent = (solarData.reduce((a,s)=>a+s.signals.entropy,0)/solarData.length).toFixed(3);
+        if(meshes.length===0){
+          solarData.forEach((s,i)=>meshes.push(createSolar(s,i)));
+        }else{
+          meshes.forEach((m,i)=>{if(solarData[i]){m.material.color.setHex(getColor(solarData[i].output.status));m.material.emissive.setHex(getColor(solarData[i].output.status));m.userData={...solarData[i],baseY:m.userData.baseY,angle:m.userData.angle,radius:m.userData.radius};}});
         }
-      } catch (e) {
-        console.error('Fetch error:', e);
-      }
+      }catch(e){console.error(e);}
     }
 
-    // Raycaster for hover
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     const tooltip = document.getElementById('tooltip');
 
-    function onMouseMove(event) {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
+    window.addEventListener('mousemove', e=>{
+      mouse.x = (e.clientX/window.innerWidth)*2-1;
+      mouse.y = -(e.clientY/window.innerHeight)*2+1;
       raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(solarMeshes);
-
-      if (intersects.length > 0) {
-        const data = intersects[0].object.userData;
-        tooltip.style.display = 'block';
-        tooltip.style.left = event.clientX + 15 + 'px';
-        tooltip.style.top = event.clientY + 15 + 'px';
-        tooltip.innerHTML = `
-          <div class="name">${data.name || data.id}</div>
-          <div class="row"><span class="label">Status</span><span class="value status-${data.output.status}">${data.output.status}</span></div>
-          <div class="row"><span class="label">Pressure</span><span class="value">${data.signals.pressure.toFixed(2)}</span></div>
-          <div class="row"><span class="label">Release</span><span class="value">${data.signals.release.toFixed(2)}</span></div>
-          <div class="row"><span class="label">Entropy</span><span class="value">${data.signals.entropy.toFixed(3)}</span></div>
-          <div class="row"><span class="label">Gravity</span><span class="value">${data.signals.gravity.toFixed(3)}</span></div>
-        `;
-        document.body.style.cursor = 'pointer';
-      } else {
-        tooltip.style.display = 'none';
-        document.body.style.cursor = 'default';
-      }
-    }
-
-    window.addEventListener('mousemove', onMouseMove);
-
-    // Camera controls (simple orbit)
-    let cameraAngle = 0;
-    let cameraRadius = 50;
-    let cameraHeight = 30;
-    let isDragging = false;
-    let lastX = 0;
-
-    renderer.domElement.addEventListener('mousedown', (e) => { isDragging = true; lastX = e.clientX; });
-    renderer.domElement.addEventListener('mouseup', () => { isDragging = false; });
-    renderer.domElement.addEventListener('mousemove', (e) => {
-      if (isDragging) {
-        cameraAngle += (e.clientX - lastX) * 0.005;
-        lastX = e.clientX;
+      const hit = raycaster.intersectObjects(meshes);
+      if(hit.length>0){
+        const d = hit[0].object.userData;
+        tooltip.style.display='block';
+        tooltip.style.left=e.clientX+15+'px';
+        tooltip.style.top=e.clientY+15+'px';
+        tooltip.innerHTML=`<div class="name">${d.name||d.id}</div><div class="row"><span class="label">Status</span><span class="value status-${d.output.status}">${d.output.status}</span></div><div class="row"><span class="label">Pressure</span><span class="value">${d.signals.pressure.toFixed(2)}</span></div><div class="row"><span class="label">Entropy</span><span class="value">${d.signals.entropy.toFixed(3)}</span></div>`;
+        document.body.style.cursor='pointer';
+      }else{
+        tooltip.style.display='none';
+        document.body.style.cursor='default';
       }
     });
-    renderer.domElement.addEventListener('wheel', (e) => {
-      cameraRadius += e.deltaY * 0.05;
-      cameraRadius = Math.max(20, Math.min(100, cameraRadius));
-    });
 
-    // Animation
-    let time = 0;
-    function animate() {
+    let camAngle=0, camRadius=50, dragging=false, lastX=0;
+    renderer.domElement.addEventListener('mousedown',e=>{dragging=true;lastX=e.clientX;});
+    renderer.domElement.addEventListener('mouseup',()=>{dragging=false;});
+    renderer.domElement.addEventListener('mousemove',e=>{if(dragging){camAngle+=(e.clientX-lastX)*0.005;lastX=e.clientX;}});
+    renderer.domElement.addEventListener('wheel',e=>{camRadius+=e.deltaY*0.05;camRadius=Math.max(20,Math.min(100,camRadius));});
+
+    let t=0;
+    function animate(){
       requestAnimationFrame(animate);
-      time += 0.01;
-
-      // Camera orbit
-      camera.position.x = Math.cos(cameraAngle) * cameraRadius;
-      camera.position.z = Math.sin(cameraAngle) * cameraRadius;
-      camera.position.y = cameraHeight;
-      camera.lookAt(0, 0, 0);
-
-      // Rotate ring
-      ring.rotation.z += 0.002;
-
-      // Animate solars
-      solarMeshes.forEach((mesh, i) => {
-        // Orbit rotation
-        mesh.userData.angle += 0.001 * (1 + i * 0.1);
-        mesh.position.x = Math.cos(mesh.userData.angle) * mesh.userData.radius;
-        mesh.position.z = Math.sin(mesh.userData.angle) * mesh.userData.radius;
-        // Bobbing
-        mesh.position.y = mesh.userData.baseY + Math.sin(time + i) * 0.5;
-        // Pulse for non-green
-        if (mesh.userData.output && mesh.userData.output.status !== 'GREEN') {
-          mesh.material.emissiveIntensity = 0.3 + Math.sin(time * 3) * 0.2;
-        }
+      t+=0.01;
+      camera.position.x=Math.cos(camAngle)*camRadius;
+      camera.position.z=Math.sin(camAngle)*camRadius;
+      camera.position.y=30;
+      camera.lookAt(0,0,0);
+      ring.rotation.z+=0.002;
+      meshes.forEach((m,i)=>{
+        m.userData.angle+=0.001*(1+i*0.1);
+        m.position.x=Math.cos(m.userData.angle)*m.userData.radius;
+        m.position.z=Math.sin(m.userData.angle)*m.userData.radius;
+        m.position.y=m.userData.baseY+Math.sin(t+i)*0.5;
+        if(m.userData.output&&m.userData.output.status!=='GREEN'){m.material.emissiveIntensity=0.3+Math.sin(t*3)*0.2;}
       });
-
-      // Rotate stars slowly
-      stars.rotation.y += 0.0001;
-
-      renderer.render(scene, camera);
+      stars.rotation.y+=0.0001;
+      renderer.render(scene,camera);
     }
 
-    // Resize handler
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
 
-    // Init
     fetchData();
-    setInterval(fetchData, 3000);
+    setInterval(fetchData,3000);
     animate();
   </script>
 </body>
