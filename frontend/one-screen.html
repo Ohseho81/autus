@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS One-Screen v1</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#020408;color:#fff;font-family:system-ui,sans-serif;overflow:hidden}
+    
+    /* Layout Grid */
+    .screen{display:grid;grid-template-columns:200px 1fr 240px;height:100vh;gap:0}
+    
+    /* Left Rail - Intervention */
+    .left-rail{background:rgba(0,10,25,.9);border-right:1px solid rgba(255,102,68,.15);padding:16px;display:flex;flex-direction:column}
+    .rail-title{font-size:9px;letter-spacing:.2em;color:rgba(255,102,68,.5);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(255,102,68,.1)}
+    .force-control{margin:8px 0}
+    .force-label{display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px}
+    .force-name{color:rgba(255,255,255,.6)}
+    .force-value{color:#ff6644;font-variant-numeric:tabular-nums}
+    .force-slider{width:100%;height:4px;background:rgba(255,255,255,.1);border-radius:2px;appearance:none;cursor:pointer}
+    .force-slider::-webkit-slider-thumb{appearance:none;width:12px;height:12px;background:#ff6644;border-radius:50%;cursor:pointer}
+    .mode-toggle{margin-top:auto;padding:12px;background:rgba(255,102,68,.1);border:1px solid rgba(255,102,68,.3);border-radius:6px;text-align:center}
+    .mode-label{font-size:8px;letter-spacing:.15em;opacity:.5;margin-bottom:4px}
+    .mode-value{font-size:12px;color:#ff6644;font-weight:600}
+    .sim-btn{width:100%;margin-top:12px;padding:10px;background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);border-radius:6px;color:#00ff88;font-size:10px;cursor:pointer}
+    .sim-btn:hover{background:rgba(0,255,136,.2)}
+    .reset-btn{width:100%;margin-top:8px;padding:8px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:6px;color:rgba(255,255,255,.5);font-size:9px;cursor:pointer}
+    
+    /* Center Universe */
+    .center-universe{position:relative;background:#020408}
+    #universeCanvas{width:100%;height:100%}
+    .time-indicator{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:24px;font-size:9px;letter-spacing:.1em}
+    .time-item{text-align:center;opacity:.6}
+    .time-item.active{opacity:1;color:#00d4ff}
+    .time-dot{width:8px;height:8px;border-radius:50%;margin:0 auto 4px;background:rgba(255,255,255,.2)}
+    .time-item.past .time-dot{background:#666}
+    .time-item.now .time-dot{background:#00d4ff;box-shadow:0 0 8px #00d4ff}
+    .time-item.forecast .time-dot{background:#aa88ff;animation:pulse 1s infinite}
+    @keyframes pulse{50%{opacity:.5}}
+    
+    /* Right Rail - Intelligence */
+    .right-rail{background:rgba(0,10,25,.9);border-left:1px solid rgba(0,212,255,.15);padding:16px;overflow-y:auto}
+    .section{margin-bottom:20px}
+    .section-title{font-size:9px;letter-spacing:.2em;color:rgba(0,212,255,.5);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(0,212,255,.1)}
+    
+    /* Metrics */
+    .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .metric-card{background:rgba(0,20,40,.5);border:1px solid rgba(0,212,255,.15);border-radius:6px;padding:10px;text-align:center}
+    .metric-value{font-size:18px;font-weight:200;color:#00d4ff}
+    .metric-value.warning{color:#ffaa00}
+    .metric-value.danger{color:#ff4444}
+    .metric-label{font-size:7px;letter-spacing:.1em;opacity:.4;margin-top:4px}
+    
+    /* Bottleneck */
+    .bottleneck-item{display:flex;align-items:center;padding:10px;margin:6px 0;background:rgba(0,0,0,.3);border-left:3px solid #ff4444;border-radius:0 6px 6px 0}
+    .bottleneck-item.warning{border-color:#ffaa00}
+    .bottleneck-item.ok{border-color:#00ff88}
+    .bottleneck-icon{font-size:16px;margin-right:10px}
+    .bottleneck-info{flex:1}
+    .bottleneck-name{font-size:10px;font-weight:600}
+    .bottleneck-detail{font-size:8px;opacity:.5;margin-top:2px}
+    .bottleneck-value{font-size:12px;font-weight:600}
+    
+    /* Recommendations */
+    .rec-item{padding:10px;margin:6px 0;background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.2);border-radius:6px}
+    .rec-title{font-size:10px;font-weight:600;color:#00ff88;margin-bottom:4px}
+    .rec-reason{font-size:9px;opacity:.6}
+    
+    /* Frame */
+    .frame-corner{position:fixed;width:24px;height:24px;border:2px solid rgba(0,212,255,.3)}
+    .frame-corner.tl{top:8px;left:8px;border-right:none;border-bottom:none}
+    .frame-corner.tr{top:8px;right:8px;border-left:none;border-bottom:none}
+    .frame-corner.bl{bottom:8px;left:8px;border-right:none;border-top:none}
+    .frame-corner.br{bottom:8px;right:8px;border-left:none;border-top:none}
+  </style>
+</head>
+<body>
+  <!-- Frame Corners -->
+  <div class="frame-corner tl"></div>
+  <div class="frame-corner tr"></div>
+  <div class="frame-corner bl"></div>
+  <div class="frame-corner br"></div>
+  
+  <div class="screen">
+    <!-- Left Rail: Intervention -->
+    <aside class="left-rail">
+      <div class="rail-title">FORCE INTERVENTION</div>
+      
+      <div class="force-control">
+        <div class="force-label"><span class="force-name">E · Energy</span><span class="force-value" id="v-E">0.00</span></div>
+        <input type="range" class="force-slider" id="s-E" min="-100" max="100" value="0">
+      </div>
+      <div class="force-control">
+        <div class="force-label"><span class="force-name">R · Resistance</span><span class="force-value" id="v-R">0.00</span></div>
+        <input type="range" class="force-slider" id="s-R" min="-100" max="100" value="0">
+      </div>
+      <div class="force-control">
+        <div class="force-label"><span class="force-name">T · Time</span><span class="force-value" id="v-T">0.00</span></div>
+        <input type="range" class="force-slider" id="s-T" min="-100" max="100" value="0">
+      </div>
+      <div class="force-control">
+        <div class="force-label"><span class="force-name">Q · Quality</span><span class="force-value" id="v-Q">0.00</span></div>
+        <input type="range" class="force-slider" id="s-Q" min="-100" max="100" value="0">
+      </div>
+      <div class="force-control">
+        <div class="force-label"><span class="force-name">μ · Coupling</span><span class="force-value" id="v-mu">0.00</span></div>
+        <input type="range" class="force-slider" id="s-mu" min="-100" max="100" value="0">
+      </div>
+      
+      <div class="mode-toggle">
+        <div class="mode-label">MODE</div>
+        <div class="mode-value" id="modeDisplay">ADMIN</div>
+      </div>
+      
+      <button class="sim-btn" id="simBtn">▶ RUN SIMULATION</button>
+      <button class="reset-btn" id="resetBtn">RESET FORCES</button>
+    </aside>
+    
+    <!-- Center Universe -->
+    <main class="center-universe">
+      <canvas id="universeCanvas"></canvas>
+      <div class="time-indicator">
+        <div class="time-item past"><div class="time-dot"></div>PAST</div>
+        <div class="time-item now active"><div class="time-dot"></div>NOW</div>
+        <div class="time-item forecast"><div class="time-dot"></div>FORECAST</div>
+      </div>
+    </main>
+    
+    <!-- Right Rail: Intelligence -->
+    <aside class="right-rail">
+      <div class="section">
+        <div class="section-title">TWIN STATE</div>
+        <div class="metric-grid">
+          <div class="metric-card"><div class="metric-value" id="m-E">0.50</div><div class="metric-label">ENERGY</div></div>
+          <div class="metric-card"><div class="metric-value" id="m-R">0.20</div><div class="metric-label">RESISTANCE</div></div>
+          <div class="metric-card"><div class="metric-value" id="m-T">0.10</div><div class="metric-label">TIME</div></div>
+          <div class="metric-card"><div class="metric-value" id="m-Q">0.80</div><div class="metric-label">QUALITY</div></div>
+          <div class="metric-card"><div class="metric-value" id="m-VOL">0.10</div><div class="metric-label">VOLATILITY</div></div>
+          <div class="metric-card"><div class="metric-value" id="m-SHOCK">0.00</div><div class="metric-label">SHOCK</div></div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">BOTTLENECK DETECTION</div>
+        <div id="bottleneckList">
+          <div class="bottleneck-item ok">
+            <span class="bottleneck-icon">✓</span>
+            <div class="bottleneck-info">
+              <div class="bottleneck-name">All Clear</div>
+              <div class="bottleneck-detail">No bottlenecks detected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">RECOMMENDATIONS</div>
+        <div id="recList">
+          <div class="rec-item">
+            <div class="rec-title">Maintain Current State</div>
+            <div class="rec-reason">System is operating within optimal parameters</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">FORECAST DELTA</div>
+        <div class="metric-grid">
+          <div class="metric-card"><div class="metric-value" id="d-VOL">+0.00</div><div class="metric-label">ΔVOL</div></div>
+          <div class="metric-card"><div class="metric-value" id="d-SHOCK">+0.00</div><div class="metric-label">ΔSHOCK</div></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+// === State ===
+const realState = { time: 0, E: 0.5, R: 0.2, T: 0.1, Q: 0.8, mu: 0.3, VOL: 0.1, SHOCK: 0.0 };
+let simState = { ...realState };
+const forces = { E: 0, R: 0, T: 0, Q: 0, mu: 0 };
+let simRunning = false;
+
+function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+
+// === Force Controls ===
+['E', 'R', 'T', 'Q', 'mu'].forEach(key => {
+  const slider = document.getElementById('s-' + key);
+  const value = document.getElementById('v-' + key);
+  slider.oninput = () => {
+    forces[key] = slider.value / 100;
+    value.textContent = forces[key].toFixed(2);
+    applyForces();
+  };
+});
+
+function applyForces() {
+  simState.E = clamp01(realState.E + forces.E * 0.3);
+  simState.R = clamp01(realState.R + forces.R * 0.3);
+  simState.T = clamp01(realState.T + forces.T * 0.3);
+  simState.Q = clamp01(realState.Q + forces.Q * 0.3);
+  simState.mu = clamp01(realState.mu + forces.mu * 0.3);
+  
+  const totalForce = Object.values(forces).reduce((a, b) => a + Math.abs(b), 0);
+  simState.VOL = clamp01(realState.VOL + totalForce * 0.1);
+  simState.SHOCK = clamp01(realState.SHOCK + (totalForce > 0.3 ? totalForce * 0.2 : -0.05));
+  
+  updateUI();
+  updateBottlenecks();
+  updateRecommendations();
+}
+
+function resetForces() {
+  ['E', 'R', 'T', 'Q', 'mu'].forEach(key => {
+    forces[key] = 0;
+    document.getElementById('s-' + key).value = 0;
+    document.getElementById('v-' + key).textContent = '0.00';
+  });
+  simState = { ...realState };
+  updateUI();
+}
+
+document.getElementById('resetBtn').onclick = resetForces;
+
+// === UI Update ===
+function updateUI() {
+  document.getElementById('m-E').textContent = simState.E.toFixed(2);
+  document.getElementById('m-R').textContent = simState.R.toFixed(2);
+  document.getElementById('m-T').textContent = simState.T.toFixed(2);
+  document.getElementById('m-Q').textContent = simState.Q.toFixed(2);
+  document.getElementById('m-VOL').textContent = simState.VOL.toFixed(2);
+  document.getElementById('m-SHOCK').textContent = simState.SHOCK.toFixed(2);
+  
+  // Color coding
+  ['R', 'T', 'VOL', 'SHOCK'].forEach(key => {
+    const el = document.getElementById('m-' + key);
+    const v = simState[key];
+    el.className = 'metric-value' + (v > 0.7 ? ' danger' : v > 0.4 ? ' warning' : '');
+  });
+  
+  // Delta
+  document.getElementById('d-VOL').textContent = (simState.VOL - realState.VOL >= 0 ? '+' : '') + (simState.VOL - realState.VOL).toFixed(2);
+  document.getElementById('d-SHOCK').textContent = (simState.SHOCK - realState.SHOCK >= 0 ? '+' : '') + (simState.SHOCK - realState.SHOCK).toFixed(2);
+}
+
+function updateBottlenecks() {
+  const bottlenecks = [];
+  if (simState.R > 0.5) bottlenecks.push({ name: 'High Resistance', detail: `R = ${simState.R.toFixed(2)}`, level: simState.R > 0.7 ? 'danger' : 'warning', icon: '⚡' });
+  if (simState.T > 0.4) bottlenecks.push({ name: 'Time Delay', detail: `T = ${simState.T.toFixed(2)}`, level: simState.T > 0.6 ? 'danger' : 'warning', icon: '⏱' });
+  if (simState.SHOCK > 0.3) bottlenecks.push({ name: 'Shock Detected', detail: `SHOCK = ${simState.SHOCK.toFixed(2)}`, level: 'danger', icon: '💥' });
+  
+  const list = document.getElementById('bottleneckList');
+  if (bottlenecks.length === 0) {
+    list.innerHTML = '<div class="bottleneck-item ok"><span class="bottleneck-icon">✓</span><div class="bottleneck-info"><div class="bottleneck-name">All Clear</div><div class="bottleneck-detail">No bottlenecks detected</div></div></div>';
+  } else {
+    list.innerHTML = bottlenecks.map(b => `
+      <div class="bottleneck-item ${b.level === 'danger' ? '' : 'warning'}">
+        <span class="bottleneck-icon">${b.icon}</span>
+        <div class="bottleneck-info">
+          <div class="bottleneck-name">${b.name}</div>
+          <div class="bottleneck-detail">${b.detail}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+function updateRecommendations() {
+  const recs = [];
+  if (forces.E < -0.2) recs.push({ title: 'Increase Energy Input', reason: 'Current force is reducing system energy' });
+  if (simState.R > 0.5) recs.push({ title: 'Reduce Resistance', reason: 'Apply negative R force to clear bottleneck' });
+  if (simState.SHOCK > 0.3) recs.push({ title: 'Stabilize System', reason: 'Reduce force magnitude to lower SHOCK' });
+  if (recs.length === 0) recs.push({ title: 'Maintain Current State', reason: 'System is operating within optimal parameters' });
+  
+  document.getElementById('recList').innerHTML = recs.map(r => `
+    <div class="rec-item">
+      <div class="rec-title">${r.title}</div>
+      <div class="rec-reason">${r.reason}</div>
+    </div>
+  `).join('');
+}
+
+// === Three.js Universe ===
+const canvas = document.getElementById('universeCanvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+renderer.setPixelRatio(Math.min(1.5, devicePixelRatio));
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, canvas.offsetWidth / canvas.offsetHeight, 0.1, 100);
+camera.position.z = 6;
+
+// Sun (Center)
+const sunGeo = new THREE.SphereGeometry(0.5, 32, 32);
+const sunMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+const sun = new THREE.Mesh(sunGeo, sunMat);
+scene.add(sun);
+
+// Sun glow
+const glowGeo = new THREE.SphereGeometry(0.6, 32, 32);
+const glowMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.3 });
+const glow = new THREE.Mesh(glowGeo, glowMat);
+scene.add(glow);
+
+// Planets (9 axes)
+const planets = [];
+const planetData = [
+  { name: 'E', color: 0x00ff88, radius: 1.2 },
+  { name: 'R', color: 0xff4444, radius: 1.5 },
+  { name: 'T', color: 0xffaa00, radius: 1.8 },
+  { name: 'Q', color: 0x00d4ff, radius: 2.1 },
+  { name: 'μ', color: 0xaa88ff, radius: 2.4 },
+  { name: 'VOL', color: 0xff6644, radius: 2.7 },
+  { name: 'SHOCK', color: 0xff0066, radius: 3.0 },
+  { name: 'H', color: 0x00ffaa, radius: 3.3 },
+  { name: 'P', color: 0x8888ff, radius: 3.6 }
+];
+
+planetData.forEach((p, i) => {
+  // Orbit ring
+  const orbitGeo = new THREE.RingGeometry(p.radius - 0.01, p.radius + 0.01, 64);
+  const orbitMat = new THREE.MeshBasicMaterial({ color: p.color, transparent: true, opacity: 0.15, side: THREE.DoubleSide });
+  const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+  orbit.rotation.x = Math.PI / 2;
+  scene.add(orbit);
+  
+  // Planet
+  const planetGeo = new THREE.SphereGeometry(0.08, 16, 16);
+  const planetMat = new THREE.MeshBasicMaterial({ color: p.color });
+  const planet = new THREE.Mesh(planetGeo, planetMat);
+  planet.userData = { ...p, angle: Math.random() * Math.PI * 2, speed: 0.5 + Math.random() * 0.5 };
+  planets.push(planet);
+  scene.add(planet);
+});
+
+// 3중 시간 궤도 (Past/Now/Forecast)
+const orbitColors = [0x666666, 0x00d4ff, 0xaa88ff];
+const orbitLines = [];
+[1.0, 1.0, 1.0].forEach((scale, i) => {
+  const curve = new THREE.EllipseCurve(0, 0, 2 * scale, 1.5 * scale, 0, 2 * Math.PI);
+  const points = curve.getPoints(64);
+  const geo = new THREE.BufferGeometry().setFromPoints(points.map(p => new THREE.Vector3(p.x, 0, p.y)));
+  const mat = new THREE.LineBasicMaterial({ 
+    color: orbitColors[i], 
+    transparent: true, 
+    opacity: i === 1 ? 0.8 : 0.3,
+    linewidth: i === 1 ? 2 : 1
+  });
+  if (i === 2) mat.dashSize = 0.1; mat.gapSize = 0.05;
+  const line = new THREE.Line(geo, mat);
+  line.rotation.x = Math.PI / 6;
+  line.position.y = (i - 1) * 0.3;
+  scene.add(line);
+  orbitLines.push(line);
+});
+
+// Stars
+const starsGeo = new THREE.BufferGeometry();
+const starPositions = [];
+for (let i = 0; i < 1000; i++) {
+  starPositions.push((Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50);
+}
+starsGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+const stars = new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.05 }));
+scene.add(stars);
+
+// Animation
+let time = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.016;
+  
+  // Rotate sun
+  sun.rotation.y += 0.005;
+  glow.scale.setScalar(1 + Math.sin(time * 2) * 0.05);
+  
+  // Update planets based on state
+  planets.forEach((p, i) => {
+    p.userData.angle += p.userData.speed * 0.01;
+    const stateValue = simState[p.userData.name] || 0.5;
+    const r = p.userData.radius * (0.8 + stateValue * 0.4);
+    p.position.x = Math.cos(p.userData.angle) * r;
+    p.position.z = Math.sin(p.userData.angle) * r;
+    p.position.y = Math.sin(p.userData.angle * 2) * 0.2;
+    
+    // Scale by state
+    p.scale.setScalar(0.5 + stateValue);
+  });
+  
+  // Forecast orbit pulse
+  if (orbitLines[2]) {
+    orbitLines[2].material.opacity = 0.2 + Math.sin(time * 3) * 0.15;
+  }
+  
+  // Camera slight movement
+  camera.position.x = Math.sin(time * 0.1) * 0.3;
+  camera.position.y = Math.cos(time * 0.1) * 0.2 + 1;
+  camera.lookAt(0, 0, 0);
+  
+  renderer.render(scene, camera);
+}
+
+// Simulation run
+document.getElementById('simBtn').onclick = () => {
+  simRunning = !simRunning;
+  document.getElementById('simBtn').textContent = simRunning ? '⏸ PAUSE' : '▶ RUN SIMULATION';
+};
+
+// Resize
+window.onresize = () => {
+  const w = canvas.offsetWidth;
+  const h = canvas.offsetHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+};
+
+// Fetch real state
+async function fetchState() {
+  try {
+    const r = await fetch('/status');
+    const s = await r.json();
+    realState.E = s.signals.gravity;
+    realState.R = s.signals.pressure;
+    realState.T = s.signals.release;
+    realState.VOL = s.signals.entropy;
+    if (!Object.values(forces).some(f => f !== 0)) {
+      simState = { ...realState };
+      updateUI();
+    }
+  } catch(e) {}
+}
+fetchState();
+setInterval(fetchState, 2000);
+
+animate();
+  </script>
+</body>
+</html>
