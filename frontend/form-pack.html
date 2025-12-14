@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS FormPack</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#020408;color:#fff;font-family:system-ui,sans-serif;overflow:hidden}
+    
+    /* Layout */
+    .screen{display:grid;grid-template-columns:200px 1fr 240px;height:100vh}
+    
+    /* Left: Form Selector */
+    .left-rail{background:rgba(0,10,25,.9);border-right:1px solid rgba(0,212,255,.15);padding:16px}
+    .rail-title{font-size:9px;letter-spacing:.2em;color:rgba(0,212,255,.5);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(0,212,255,.1)}
+    .form-list{display:flex;flex-direction:column;gap:8px}
+    .form-item{padding:12px;background:rgba(0,20,40,.5);border:1px solid rgba(0,212,255,.15);border-radius:8px;cursor:pointer;transition:all .2s}
+    .form-item:hover{border-color:rgba(0,212,255,.3)}
+    .form-item.active{border-color:#00d4ff;background:rgba(0,212,255,.1)}
+    .form-icon{font-size:24px;margin-bottom:6px}
+    .form-name{font-size:11px;font-weight:600}
+    .form-desc{font-size:8px;opacity:.5;margin-top:4px}
+    
+    /* Center: 3D View */
+    .center{position:relative}
+    #canvas{width:100%;height:100%}
+    .form-label{position:absolute;top:20px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.2em;color:#00d4ff;background:rgba(0,0,0,.6);padding:8px 16px;border-radius:20px;border:1px solid rgba(0,212,255,.2)}
+    
+    /* Right: State Panel */
+    .right-rail{background:rgba(0,10,25,.9);border-left:1px solid rgba(0,212,255,.15);padding:16px;overflow-y:auto}
+    .section{margin-bottom:20px}
+    .section-title{font-size:9px;letter-spacing:.15em;color:rgba(0,212,255,.5);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(0,212,255,.1)}
+    
+    .state-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .state-card{background:rgba(0,20,40,.5);border:1px solid rgba(0,212,255,.15);border-radius:6px;padding:10px;text-align:center}
+    .state-value{font-size:18px;font-weight:200;color:#00d4ff}
+    .state-label{font-size:7px;opacity:.4;margin-top:4px;letter-spacing:.1em}
+    
+    .axis-list{display:flex;flex-direction:column;gap:6px}
+    .axis-item{display:flex;align-items:center;gap:8px}
+    .axis-dot{width:10px;height:10px;border-radius:50%}
+    .axis-name{font-size:10px;flex:1}
+    .axis-value{font-size:10px;color:#00d4ff;font-variant-numeric:tabular-nums}
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <!-- Left: Form Selector -->
+    <aside class="left-rail">
+      <div class="rail-title">ENTITY FORMS</div>
+      <div class="form-list">
+        <div class="form-item active" data-form="human">
+          <div class="form-icon">👤</div>
+          <div class="form-name">Human</div>
+          <div class="form-desc">Individual lifecycle</div>
+        </div>
+        <div class="form-item" data-form="company">
+          <div class="form-icon">🏢</div>
+          <div class="form-name">Company</div>
+          <div class="form-desc">Corporate engine</div>
+        </div>
+        <div class="form-item" data-form="city">
+          <div class="form-icon">🌆</div>
+          <div class="form-name">City</div>
+          <div class="form-desc">Urban system</div>
+        </div>
+        <div class="form-item" data-form="nation">
+          <div class="form-icon">🌍</div>
+          <div class="form-name">Nation</div>
+          <div class="form-desc">Country field</div>
+        </div>
+        <div class="form-item" data-form="admin">
+          <div class="form-icon">📊</div>
+          <div class="form-name">Admin Process</div>
+          <div class="form-desc">Workflow graph</div>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Center: 3D View -->
+    <main class="center">
+      <canvas id="canvas"></canvas>
+      <div class="form-label" id="formLabel">HUMAN FORM</div>
+    </main>
+    
+    <!-- Right: State Panel -->
+    <aside class="right-rail">
+      <div class="section">
+        <div class="section-title">TWIN STATE</div>
+        <div class="state-grid">
+          <div class="state-card"><div class="state-value" id="s-E">0.50</div><div class="state-label">ENERGY</div></div>
+          <div class="state-card"><div class="state-value" id="s-R">0.20</div><div class="state-label">RESISTANCE</div></div>
+          <div class="state-card"><div class="state-value" id="s-T">0.10</div><div class="state-label">TIME</div></div>
+          <div class="state-card"><div class="state-value" id="s-Q">0.80</div><div class="state-label">QUALITY</div></div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">9 PLANETS (AXES)</div>
+        <div class="axis-list" id="axisList"></div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">VOLATILITY</div>
+        <div class="state-grid">
+          <div class="state-card"><div class="state-value" id="s-VOL">0.10</div><div class="state-label">VOL</div></div>
+          <div class="state-card"><div class="state-value" id="s-SHOCK">0.00</div><div class="state-label">SHOCK</div></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+// === Form Definitions ===
+const FORMS = {
+  human: {
+    name: 'HUMAN FORM',
+    color: 0x00ff88,
+    axes: ['Health', 'Wealth', 'Career', 'Relations', 'Knowledge', 'Time', 'Purpose', 'Freedom', 'Legacy'],
+    shape: 'sphere'
+  },
+  company: {
+    name: 'COMPANY ENGINE',
+    color: 0x00d4ff,
+    axes: ['Revenue', 'Profit', 'Growth', 'Market', 'Talent', 'Tech', 'Brand', 'Ops', 'Risk'],
+    shape: 'cube'
+  },
+  city: {
+    name: 'CITY MAP',
+    color: 0xffaa00,
+    axes: ['Population', 'Economy', 'Transport', 'Housing', 'Health', 'Education', 'Safety', 'Environment', 'Culture'],
+    shape: 'cylinder'
+  },
+  nation: {
+    name: 'NATION FIELD',
+    color: 0xaa88ff,
+    axes: ['GDP', 'Population', 'Military', 'Diplomacy', 'Tech', 'Resources', 'Stability', 'Influence', 'Future'],
+    shape: 'globe'
+  },
+  admin: {
+    name: 'ADMIN PROCESS',
+    color: 0xff6644,
+    axes: ['Input', 'Process', 'Output', 'Feedback', 'Control', 'Monitor', 'Optimize', 'Scale', 'Secure'],
+    shape: 'torus'
+  }
+};
+
+let currentForm = 'human';
+const state = { E: 0.5, R: 0.2, T: 0.1, Q: 0.8, mu: 0.3, VOL: 0.1, SHOCK: 0.0 };
+const axisValues = Array(9).fill(0).map(() => 0.3 + Math.random() * 0.5);
+
+// === Three.js Setup ===
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+renderer.setPixelRatio(Math.min(1.5, devicePixelRatio));
+renderer.setClearColor(0x020408);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, canvas.offsetWidth / canvas.offsetHeight, 0.1, 100);
+camera.position.set(0, 2, 6);
+camera.lookAt(0, 0, 0);
+
+// Lights
+scene.add(new THREE.AmbientLight(0x404040, 0.5));
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(3, 5, 3);
+scene.add(light);
+
+// Center object (form representation)
+let centerObject = null;
+let orbitGroup = new THREE.Group();
+scene.add(orbitGroup);
+
+// Planets
+const planets = [];
+const planetGeo = new THREE.SphereGeometry(0.1, 16, 16);
+
+function createForm(formKey) {
+  const form = FORMS[formKey];
+  
+  // Remove old center object
+  if (centerObject) scene.remove(centerObject);
+  
+  // Create new center based on shape
+  let geo;
+  switch (form.shape) {
+    case 'sphere': geo = new THREE.SphereGeometry(0.8, 32, 32); break;
+    case 'cube': geo = new THREE.BoxGeometry(1.2, 1.2, 1.2); break;
+    case 'cylinder': geo = new THREE.CylinderGeometry(0.6, 0.8, 1.2, 32); break;
+    case 'globe': geo = new THREE.SphereGeometry(1, 48, 48); break;
+    case 'torus': geo = new THREE.TorusGeometry(0.7, 0.25, 16, 48); break;
+    default: geo = new THREE.SphereGeometry(0.8, 32, 32);
+  }
+  
+  const mat = new THREE.MeshPhongMaterial({
+    color: form.color,
+    emissive: form.color,
+    emissiveIntensity: 0.2,
+    transparent: true,
+    opacity: 0.8
+  });
+  
+  centerObject = new THREE.Mesh(geo, mat);
+  scene.add(centerObject);
+  
+  // Create orbit rings + planets
+  while (orbitGroup.children.length) orbitGroup.remove(orbitGroup.children[0]);
+  planets.length = 0;
+  
+  form.axes.forEach((axis, i) => {
+    const radius = 1.5 + i * 0.25;
+    
+    // Orbit ring
+    const ringGeo = new THREE.RingGeometry(radius - 0.01, radius + 0.01, 64);
+    const ringMat = new THREE.MeshBasicMaterial({ color: form.color, transparent: true, opacity: 0.1, side: THREE.DoubleSide });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2;
+    orbitGroup.add(ring);
+    
+    // Planet
+    const planetMat = new THREE.MeshBasicMaterial({ color: form.color });
+    const planet = new THREE.Mesh(planetGeo, planetMat);
+    planet.userData = { radius, angle: Math.random() * Math.PI * 2, speed: 0.3 + Math.random() * 0.3, axis };
+    planets.push(planet);
+    orbitGroup.add(planet);
+  });
+  
+  // Update UI
+  document.getElementById('formLabel').textContent = form.name;
+  updateAxisList(form);
+}
+
+function updateAxisList(form) {
+  const list = document.getElementById('axisList');
+  list.innerHTML = form.axes.map((axis, i) => {
+    const value = axisValues[i];
+    const color = value > 0.7 ? '#00ff88' : value > 0.4 ? '#00d4ff' : '#ffaa00';
+    return `
+      <div class="axis-item">
+        <div class="axis-dot" style="background:${color}"></div>
+        <span class="axis-name">${axis}</span>
+        <span class="axis-value">${value.toFixed(2)}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// === Form Selection ===
+document.querySelectorAll('.form-item').forEach(item => {
+  item.onclick = () => {
+    document.querySelectorAll('.form-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    currentForm = item.dataset.form;
+    createForm(currentForm);
+  };
+});
+
+// === Animation ===
+let time = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.016;
+  
+  // Rotate center
+  if (centerObject) {
+    centerObject.rotation.y += 0.005;
+    centerObject.rotation.x = Math.sin(time * 0.5) * 0.1;
+  }
+  
+  // Update planets
+  planets.forEach((planet, i) => {
+    planet.userData.angle += planet.userData.speed * 0.01;
+    const r = planet.userData.radius;
+    planet.position.x = Math.cos(planet.userData.angle) * r;
+    planet.position.z = Math.sin(planet.userData.angle) * r;
+    planet.position.y = Math.sin(planet.userData.angle * 2 + i) * 0.2;
+    
+    // Pulse based on axis value
+    const scale = 0.8 + axisValues[i] * 0.5 + Math.sin(time * 3 + i) * 0.1;
+    planet.scale.setScalar(scale);
+  });
+  
+  // Update state display
+  document.getElementById('s-E').textContent = state.E.toFixed(2);
+  document.getElementById('s-R').textContent = state.R.toFixed(2);
+  document.getElementById('s-T').textContent = state.T.toFixed(2);
+  document.getElementById('s-Q').textContent = state.Q.toFixed(2);
+  document.getElementById('s-VOL').textContent = state.VOL.toFixed(2);
+  document.getElementById('s-SHOCK').textContent = state.SHOCK.toFixed(2);
+  
+  renderer.render(scene, camera);
+}
+
+// === Resize ===
+window.onresize = () => {
+  const w = canvas.offsetWidth;
+  const h = canvas.offsetHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+};
+
+// === Init ===
+createForm('human');
+animate();
+
+// Fetch real state
+async function fetchState() {
+  try {
+    const r = await fetch('/status');
+    const s = await r.json();
+    state.E = s.signals.gravity;
+    state.R = s.signals.pressure;
+    state.T = s.signals.release;
+    state.VOL = s.signals.entropy;
+  } catch(e) {}
+}
+fetchState();
+setInterval(fetchState, 2000);
+  </script>
+</body>
+</html>
