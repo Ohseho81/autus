@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS Control HQ</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#030810;overflow:hidden;font-family:system-ui,sans-serif;color:#fff}
+    #info{position:fixed;top:20px;left:20px;z-index:100;font-size:10px;opacity:.8}
+    #info h1{font-size:11px;font-weight:700;letter-spacing:.2em;color:#ff6644;margin-bottom:10px}
+    #back{position:fixed;top:20px;right:20px;padding:8px 16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;text-decoration:none;border-radius:6px;font-size:11px;z-index:100}
+    
+    .control-container{position:fixed;top:60px;left:20px;right:20px;bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+    
+    .panel{background:rgba(0,20,40,.6);border:1px solid rgba(255,102,68,.2);border-radius:12px;padding:16px}
+    .panel-title{font-size:10px;letter-spacing:.15em;color:rgba(255,102,68,.6);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(255,102,68,.1)}
+    
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .toggle-label{font-size:11px}
+    .toggle-switch{width:44px;height:24px;background:rgba(255,255,255,.1);border-radius:12px;position:relative;cursor:pointer;transition:all .2s}
+    .toggle-switch.on{background:rgba(0,255,136,.3)}
+    .toggle-switch::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:2px;left:2px;transition:all .2s}
+    .toggle-switch.on::after{left:22px;background:#00ff88}
+    
+    .slider-row{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .slider-header{display:flex;justify-content:space-between;margin-bottom:8px}
+    .slider-label{font-size:11px}
+    .slider-value{font-size:11px;color:#ff6644}
+    .slider{width:100%;height:6px;background:rgba(255,255,255,.1);border-radius:3px;appearance:none;cursor:pointer}
+    .slider::-webkit-slider-thumb{appearance:none;width:16px;height:16px;background:#ff6644;border-radius:50%;cursor:pointer}
+    
+    .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .action-btn{padding:16px;background:rgba(0,0,0,.3);border:1px solid rgba(255,102,68,.2);border-radius:8px;text-align:center;cursor:pointer;transition:all .2s}
+    .action-btn:hover{border-color:#ff6644;background:rgba(255,102,68,.1)}
+    .action-btn.primary{border-color:#00ff88;color:#00ff88}
+    .action-btn.danger{border-color:#ff4444;color:#ff4444}
+    .action-icon{font-size:24px;margin-bottom:8px}
+    .action-label{font-size:10px;letter-spacing:.1em}
+    
+    .commit-section{margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,102,68,.2)}
+    .commit-btn{width:100%;padding:16px;background:rgba(255,102,68,.2);border:2px solid #ff6644;border-radius:8px;color:#ff6644;font-size:12px;font-weight:600;letter-spacing:.15em;cursor:pointer;transition:all .2s}
+    .commit-btn:hover{background:rgba(255,102,68,.3)}
+    .commit-btn.confirming{animation:confirm-pulse 0.5s infinite}
+    .commit-btn.committed{background:#00ff88;border-color:#00ff88;color:#000}
+    @keyframes confirm-pulse{50%{opacity:.5}}
+    
+    .log-list{max-height:200px;overflow-y:auto;margin-top:12px}
+    .log-item{padding:8px;margin:4px 0;background:rgba(0,0,0,.3);border-left:2px solid #ff6644;font-size:9px;display:flex;justify-content:space-between}
+    .log-time{opacity:.5}
+  </style>
+</head>
+<body>
+  <div id="info"><h1>CONTROL HQ · ACTION</h1></div>
+  <a id="back" href="/frontend/hq-command.html">← HQ</a>
+  
+  <div class="control-container">
+    <div class="panel">
+      <div class="panel-title">POLICY TOGGLES</div>
+      <div class="toggle-row">
+        <span class="toggle-label">Auto-Stabilize</span>
+        <div class="toggle-switch on" data-policy="auto-stabilize"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Alert Notifications</span>
+        <div class="toggle-switch on" data-policy="alerts"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Emergency Override</span>
+        <div class="toggle-switch" data-policy="override"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Maintenance Mode</span>
+        <div class="toggle-switch" data-policy="maintenance"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">External Sync</span>
+        <div class="toggle-switch on" data-policy="sync"></div>
+      </div>
+    </div>
+    
+    <div class="panel">
+      <div class="panel-title">RESOURCE ALLOCATOR</div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Processing Power</span>
+          <span class="slider-value" id="v-cpu">75%</span>
+        </div>
+        <input type="range" class="slider" id="s-cpu" value="75" min="0" max="100">
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Memory Allocation</span>
+          <span class="slider-value" id="v-mem">60%</span>
+        </div>
+        <input type="range" class="slider" id="s-mem" value="60" min="0" max="100">
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Network Bandwidth</span>
+          <span class="slider-value" id="v-net">80%</span>
+        </div>
+        <input type="range" class="slider" id="s-net" value="80" min="0" max="100">
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Storage Priority</span>
+          <span class="slider-value" id="v-sto">50%</span>
+        </div>
+        <input type="range" class="slider" id="s-sto" value="50" min="0" max="100">
+      </div>
+    </div>
+    
+    <div class="panel" style="display:flex;flex-direction:column">
+      <div class="panel-title">QUICK ACTIONS</div>
+      <div class="action-grid">
+        <div class="action-btn primary" data-action="stabilize">
+          <div class="action-icon">⚡</div>
+          <div class="action-label">STABILIZE</div>
+        </div>
+        <div class="action-btn" data-action="optimize">
+          <div class="action-icon">🔧</div>
+          <div class="action-label">OPTIMIZE</div>
+        </div>
+        <div class="action-btn" data-action="backup">
+          <div class="action-icon">💾</div>
+          <div class="action-label">BACKUP</div>
+        </div>
+        <div class="action-btn danger" data-action="emergency">
+          <div class="action-icon">🚨</div>
+          <div class="action-label">EMERGENCY</div>
+        </div>
+      </div>
+      
+      <div class="commit-section">
+        <button class="commit-btn" id="commitBtn">COMMIT CHANGES</button>
+        <div class="log-list" id="logList">
+          <div class="log-item"><span>System ready</span><span class="log-time">--:--</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+const logs = [];
+
+function addLog(msg) {
+  logs.unshift({ msg, time: new Date().toLocaleTimeString().slice(0,5) });
+  if (logs.length > 10) logs.pop();
+  renderLogs();
+}
+
+function renderLogs() {
+  document.getElementById('logList').innerHTML = logs.map(l => `
+    <div class="log-item"><span>${l.msg}</span><span class="log-time">${l.time}</span></div>
+  `).join('');
+}
+
+// Toggles
+document.querySelectorAll('.toggle-switch').forEach(sw => {
+  sw.onclick = () => {
+    sw.classList.toggle('on');
+    addLog(`${sw.dataset.policy}: ${sw.classList.contains('on') ? 'ON' : 'OFF'}`);
+  };
+});
+
+// Sliders
+['cpu', 'mem', 'net', 'sto'].forEach(id => {
+  const slider = document.getElementById('s-' + id);
+  const value = document.getElementById('v-' + id);
+  slider.oninput = () => {
+    value.textContent = slider.value + '%';
+  };
+  slider.onchange = () => {
+    addLog(`${id.toUpperCase()}: ${slider.value}%`);
+  };
+});
+
+// Actions
+document.querySelectorAll('.action-btn').forEach(btn => {
+  btn.onclick = () => {
+    addLog(`Action: ${btn.dataset.action.toUpperCase()}`);
+    btn.style.transform = 'scale(0.95)';
+    setTimeout(() => btn.style.transform = '', 100);
+  };
+});
+
+// Commit
+const commitBtn = document.getElementById('commitBtn');
+let commitState = 0;
+
+commitBtn.onclick = () => {
+  if (commitState === 0) {
+    commitState = 1;
+    commitBtn.textContent = 'CONFIRM?';
+    commitBtn.classList.add('confirming');
+    setTimeout(() => {
+      if (commitState === 1) {
+        commitState = 0;
+        commitBtn.textContent = 'COMMIT CHANGES';
+        commitBtn.classList.remove('confirming');
+      }
+    }, 3000);
+  } else if (commitState === 1) {
+    commitState = 2;
+    commitBtn.textContent = '✓ COMMITTED';
+    commitBtn.classList.remove('confirming');
+    commitBtn.classList.add('committed');
+    addLog('Changes committed');
+    setTimeout(() => {
+      commitState = 0;
+      commitBtn.textContent = 'COMMIT CHANGES';
+      commitBtn.classList.remove('committed');
+    }, 2000);
+  }
+};
+
+addLog('Control panel initialized');
+  </script>
+</body>
+</html>

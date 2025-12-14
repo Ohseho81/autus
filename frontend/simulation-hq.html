@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS Simulation HQ</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#030810;overflow:hidden;font-family:system-ui,sans-serif;color:#fff}
+    #info{position:fixed;top:20px;left:20px;z-index:100;font-size:10px;opacity:.8}
+    #info h1{font-size:11px;font-weight:700;letter-spacing:.2em;color:#aa88ff;margin-bottom:10px}
+    #back{position:fixed;top:20px;right:20px;padding:8px 16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;text-decoration:none;border-radius:6px;font-size:11px;z-index:100}
+    
+    .sim-container{position:fixed;top:60px;left:20px;right:20px;bottom:20px;display:grid;grid-template-columns:250px 1fr 300px;gap:16px}
+    
+    .scenario-panel{background:rgba(0,20,40,.6);border:1px solid rgba(170,136,255,.2);border-radius:12px;padding:16px;overflow-y:auto}
+    .scenario-title{font-size:10px;letter-spacing:.15em;color:rgba(170,136,255,.6);margin-bottom:12px}
+    .scenario-card{padding:12px;margin:8px 0;background:rgba(0,0,0,.3);border:1px solid rgba(170,136,255,.2);border-radius:8px;cursor:pointer;transition:all .2s}
+    .scenario-card:hover{border-color:#aa88ff}
+    .scenario-card.active{border-color:#aa88ff;background:rgba(170,136,255,.1)}
+    .scenario-name{font-size:12px;font-weight:600;margin-bottom:4px}
+    .scenario-desc{font-size:9px;opacity:.5}
+    .scenario-prob{margin-top:8px;font-size:11px;color:#aa88ff}
+    
+    .projection-panel{background:rgba(0,20,40,.6);border:1px solid rgba(170,136,255,.2);border-radius:12px;padding:16px}
+    .projection-title{font-size:10px;letter-spacing:.15em;color:rgba(170,136,255,.6);margin-bottom:12px}
+    #projectionCanvas{width:100%;height:calc(100% - 30px);border-radius:8px}
+    
+    .outcome-panel{background:rgba(0,20,40,.6);border:1px solid rgba(170,136,255,.2);border-radius:12px;padding:16px}
+    .outcome-title{font-size:10px;letter-spacing:.15em;color:rgba(170,136,255,.6);margin-bottom:12px}
+    .outcome-card{padding:12px;margin:8px 0;background:rgba(0,0,0,.3);border-radius:8px}
+    .outcome-label{font-size:9px;opacity:.5;margin-bottom:4px}
+    .outcome-value{font-size:20px;font-weight:200}
+    .outcome-value.positive{color:#00ff88}
+    .outcome-value.negative{color:#ff4444}
+    .confidence-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:8px;overflow:hidden}
+    .confidence-fill{height:100%;background:linear-gradient(90deg,#aa88ff,#00d4ff);border-radius:3px}
+    
+    .run-btn{margin-top:16px;width:100%;padding:12px;background:rgba(170,136,255,.2);border:1px solid #aa88ff;border-radius:8px;color:#aa88ff;font-size:11px;letter-spacing:.1em;cursor:pointer;transition:all .2s}
+    .run-btn:hover{background:rgba(170,136,255,.3)}
+    .run-btn.running{animation:pulse 1s infinite}
+    @keyframes pulse{50%{opacity:.5}}
+  </style>
+</head>
+<body>
+  <div id="info"><h1>SIMULATION HQ · FUTURE</h1></div>
+  <a id="back" href="/frontend/hq-command.html">← HQ</a>
+  
+  <div class="sim-container">
+    <div class="scenario-panel">
+      <div class="scenario-title">SCENARIOS</div>
+      <div id="scenarioList"></div>
+      <button class="run-btn" id="runBtn">▶ RUN SIMULATION</button>
+    </div>
+    
+    <div class="projection-panel">
+      <div class="projection-title">PROJECTION (T+30)</div>
+      <canvas id="projectionCanvas"></canvas>
+    </div>
+    
+    <div class="outcome-panel">
+      <div class="outcome-title">PREDICTED OUTCOME</div>
+      <div class="outcome-card">
+        <div class="outcome-label">ENTROPY DELTA</div>
+        <div class="outcome-value" id="o-entropy">+0.000</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-label">PRESSURE DELTA</div>
+        <div class="outcome-value" id="o-pressure">+0.00</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-label">RISK LEVEL</div>
+        <div class="outcome-value" id="o-risk">LOW</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-label">CONFIDENCE</div>
+        <div class="confidence-bar"><div class="confidence-fill" id="o-conf" style="width:85%"></div></div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-label">ESTIMATED BILLABLE</div>
+        <div class="outcome-value positive" id="o-billable">₩0</div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+const scenarios = [
+  { id: 1, name: 'Baseline', desc: 'Current trajectory, no intervention', prob: 0.85, entropy: 0.02, pressure: 0.01, risk: 'LOW' },
+  { id: 2, name: 'Growth Spike', desc: 'Rapid expansion scenario', prob: 0.65, entropy: 0.08, pressure: 0.15, risk: 'MEDIUM' },
+  { id: 3, name: 'Crisis Event', desc: 'External shock simulation', prob: 0.25, entropy: 0.25, pressure: 0.40, risk: 'HIGH' },
+  { id: 4, name: 'Optimization', desc: 'Aggressive cost reduction', prob: 0.70, entropy: -0.05, pressure: -0.10, risk: 'LOW' },
+  { id: 5, name: 'Merger', desc: 'Organizational integration', prob: 0.45, entropy: 0.15, pressure: 0.20, risk: 'MEDIUM' }
+];
+
+let activeScenario = scenarios[0];
+let running = false;
+
+function renderScenarios() {
+  document.getElementById('scenarioList').innerHTML = scenarios.map(s => `
+    <div class="scenario-card ${activeScenario.id === s.id ? 'active' : ''}" data-id="${s.id}">
+      <div class="scenario-name">${s.name}</div>
+      <div class="scenario-desc">${s.desc}</div>
+      <div class="scenario-prob">Probability: ${(s.prob * 100).toFixed(0)}%</div>
+    </div>
+  `).join('');
+  
+  document.querySelectorAll('.scenario-card').forEach(card => {
+    card.onclick = () => {
+      activeScenario = scenarios.find(s => s.id === parseInt(card.dataset.id));
+      renderScenarios();
+      updateOutcome();
+    };
+  });
+}
+
+function updateOutcome() {
+  const s = activeScenario;
+  
+  const eEl = document.getElementById('o-entropy');
+  eEl.textContent = (s.entropy >= 0 ? '+' : '') + s.entropy.toFixed(3);
+  eEl.className = 'outcome-value ' + (s.entropy > 0 ? 'negative' : 'positive');
+  
+  const pEl = document.getElementById('o-pressure');
+  pEl.textContent = (s.pressure >= 0 ? '+' : '') + s.pressure.toFixed(2);
+  pEl.className = 'outcome-value ' + (s.pressure > 0 ? 'negative' : 'positive');
+  
+  const rEl = document.getElementById('o-risk');
+  rEl.textContent = s.risk;
+  rEl.className = 'outcome-value ' + (s.risk === 'HIGH' ? 'negative' : s.risk === 'MEDIUM' ? '' : 'positive');
+  
+  document.getElementById('o-conf').style.width = (s.prob * 100) + '%';
+  
+  const billable = s.entropy < 0 ? Math.abs(s.entropy) * 3000000 : 0;
+  document.getElementById('o-billable').textContent = '₩' + billable.toLocaleString();
+}
+
+// Projection Canvas
+const canvas = document.getElementById('projectionCanvas');
+const ctx = canvas.getContext('2d');
+let projectionData = [];
+
+function initProjection() {
+  for (let i = 0; i < 60; i++) {
+    projectionData.push({
+      entropy: 0.1 + Math.random() * 0.05,
+      pressure: 0.2 + Math.random() * 0.1
+    });
+  }
+}
+
+function drawProjection() {
+  const w = canvas.width = canvas.offsetWidth;
+  const h = canvas.height = canvas.offsetHeight;
+  
+  ctx.clearRect(0, 0, w, h);
+  
+  // Grid
+  ctx.strokeStyle = 'rgba(170,136,255,0.1)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 6; i++) {
+    const y = i * h / 5;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+  
+  // Now line
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(w/2, 0);
+  ctx.lineTo(w/2, h);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Entropy projection
+  ctx.strokeStyle = '#ffaa00';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  projectionData.forEach((d, i) => {
+    const x = (i / (projectionData.length - 1)) * w;
+    const y = h - d.entropy * h * 2;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  
+  // Pressure projection
+  ctx.strokeStyle = '#aa88ff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  projectionData.forEach((d, i) => {
+    const x = (i / (projectionData.length - 1)) * w;
+    const y = h - d.pressure * h;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  
+  // Labels
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '9px system-ui';
+  ctx.fillText('NOW', w/2 + 4, 12);
+  ctx.fillText('T+30', w - 25, 12);
+}
+
+function runSimulation() {
+  if (running) return;
+  running = true;
+  document.getElementById('runBtn').classList.add('running');
+  document.getElementById('runBtn').textContent = 'SIMULATING...';
+  
+  const s = activeScenario;
+  let step = 0;
+  
+  const interval = setInterval(() => {
+    step++;
+    
+    // Update projection
+    for (let i = 30; i < 60; i++) {
+      projectionData[i].entropy += s.entropy * 0.01 * Math.random();
+      projectionData[i].pressure += s.pressure * 0.01 * Math.random();
+    }
+    
+    drawProjection();
+    
+    if (step > 30) {
+      clearInterval(interval);
+      running = false;
+      document.getElementById('runBtn').classList.remove('running');
+      document.getElementById('runBtn').textContent = '▶ RUN SIMULATION';
+    }
+  }, 50);
+}
+
+document.getElementById('runBtn').onclick = runSimulation;
+
+initProjection();
+renderScenarios();
+updateOutcome();
+drawProjection();
+setInterval(drawProjection, 100);
+  </script>
+</body>
+</html>
