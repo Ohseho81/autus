@@ -1,20 +1,89 @@
 :root{--bg:#070A10;--panel:#0E1422;--line:rgba(255,255,255,.10);--text:#EAF0FF;--muted:#9FB0D0;}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;}
 .shell{min-height:100%;display:flex;flex-direction:column}
-.topbar{display:flex;gap:18px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.03)}
-.brand{font-weight:900;letter-spacing:.18em}
-.nav{display:flex;gap:12px;flex-wrap:wrap}
-.nav a{color:var(--muted);text-decoration:none;padding:6px 10px;border:1px solid transparent;border-radius:10px}
+.topbar{display:flex;gap:18px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.03)}
+.brand{font-weight:900;letter-spacing:.18em;font-size:14px}
+.nav{display:flex;gap:8px;flex-wrap:wrap}
+.nav a{color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid transparent;border-radius:8px;font-size:12px}
 .nav a:hover{border-color:var(--line);color:var(--text)}
-.main{flex:1;display:flex;justify-content:center;padding:18px}
-.card{width:min(980px,96vw);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:16px}
-.h1{font-size:20px;font-weight:900;letter-spacing:.12em;margin:0 0 12px 0}
-.row{display:flex;gap:12px;flex-wrap:wrap}
-.box{flex:1;min-width:240px;border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(0,0,0,.25)}
-.k{color:var(--muted);font-size:12px;letter-spacing:.12em}
-.v{font-size:16px;font-weight:800;margin-top:6px}
-.btn{padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);font-weight:900;cursor:pointer}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.footer{padding:10px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
-pre{white-space:pre-wrap;word-break:break-word}
+.nav a.active{border-color:var(--line);color:var(--text);background:rgba(255,255,255,.05)}
+.main{flex:1;display:flex;justify-content:center;padding:16px}
+.card{width:min(1000px,96vw);background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;padding:20px}
+.h1{font-size:16px;font-weight:900;letter-spacing:.12em;margin:0 0 16px 0;opacity:.6}
+.footer{padding:8px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}
+
+/* Instrument */
+.instrument-grid{display:flex;flex-direction:column;gap:20px}
+.gauges-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.gauge-container{width:100px}
+.gauge-svg{width:100%;height:auto}
+.gauge-fill{transition:stroke-dasharray .5s}
+
+.status-panel{text-align:center;padding:20px;background:rgba(0,0,0,.3);border-radius:12px}
+.status-main{font-size:36px;font-weight:200;letter-spacing:.1em}
+.status-sub{font-size:14px;opacity:.6;margin-top:8px}
+.status-action{font-size:12px;color:#ffaa00;margin-top:4px}
+
+.charts-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.chart-box{flex:1;min-width:150px;max-width:250px;background:rgba(0,0,0,.2);border-radius:8px;padding:12px}
+.chart-label{font-size:9px;opacity:.4;letter-spacing:.1em;margin-bottom:8px}
+.mini-chart{width:100%;height:40px}
+.mini-chart-empty{height:40px;display:flex;align-items:center;justify-content:center;opacity:.3}
+
+.execute-row{display:flex;justify-content:center;margin-top:12px}
+.btn-execute{padding:14px 48px;font-size:14px;letter-spacing:.15em;border-radius:12px;border:2px solid #ffaa00;background:transparent;color:#ffaa00;cursor:pointer;font-weight:700;transition:all .2s}
+.btn-execute:hover:not(:disabled){background:#ffaa0022}
+.btn-execute:disabled{opacity:.3;cursor:not-allowed}
+.btn-execute.RED{border-color:#ff4444;color:#ff4444;animation:pulse .5s infinite}
+.btn-execute.RED:hover{background:#ff444422}
+@keyframes pulse{50%{opacity:.6}}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:400;font-size:10px;letter-spacing:.1em}
+.event-EXECUTE{color:#00d4ff}.event-ADD_WORK{color:#ff6644}.event-REMOVE_WORK{color:#00ff88}
+.high-risk{background:rgba(255,68,68,.1)}
+.risk-high{color:#ff4444}.risk-low{color:#00ff88}
 .status-GREEN{color:#00ff88}.status-YELLOW{color:#ffaa00}.status-RED{color:#ff4444}
+
+/* Admin */
+.admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.admin-box{background:rgba(0,0,0,.2);border-radius:12px;padding:16px}
+.admin-note{font-size:10px;opacity:.4;margin-top:8px}
+.threshold-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
+.k{color:var(--muted);font-size:10px;letter-spacing:.12em;margin-bottom:12px}
+.v{font-size:18px;font-weight:700}
+.v.large{font-size:32px}
+
+/* Packs */
+.packs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.pack-card{background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:12px;padding:20px;text-align:center}
+.pack-card.active{border-color:#00ff8844}
+.pack-status{font-size:10px;letter-spacing:.1em;color:#00ff88;margin-bottom:12px}
+.pack-status.draft{color:#ffaa00}
+.pack-name{font-size:16px;font-weight:700;margin-bottom:4px}
+.pack-id{font-size:11px;opacity:.4;margin-bottom:16px}
+
+/* Billing */
+.billing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.billing-box{background:rgba(0,0,0,.2);border-radius:12px;padding:20px}
+.billing-detail{font-size:11px;opacity:.5;margin-top:4px}
+
+/* Buttons */
+.btn{padding:10px 16px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--text);font-size:11px;letter-spacing:.1em;cursor:pointer;font-weight:600}
+.btn:hover{background:rgba(255,255,255,.1)}
+.btn-primary{border-color:#00d4ff;color:#00d4ff}
+.btn-danger{border-color:#ff4444;color:#ff4444}
+.btn-row{margin-top:16px;text-align:center}
+
+/* Mobile */
+@media(max-width:600px){
+  .topbar{flex-direction:column;gap:12px}
+  .nav{justify-content:center}
+  .gauges-row{gap:8px}
+  .gauge-container{width:60px}
+  .status-main{font-size:24px}
+  .charts-row{flex-direction:column}
+  .chart-box{max-width:100%}
+}
