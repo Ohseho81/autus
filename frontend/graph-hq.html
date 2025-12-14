@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS Graph HQ</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#030810;overflow:hidden;font-family:system-ui,sans-serif;color:#fff}
+    #info{position:fixed;top:20px;left:20px;z-index:100;font-size:10px;opacity:.8}
+    #info h1{font-size:11px;font-weight:700;letter-spacing:.2em;color:#00d4ff;margin-bottom:10px}
+    #back{position:fixed;top:20px;right:20px;padding:8px 16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;text-decoration:none;border-radius:6px;font-size:11px;z-index:100}
+    
+    .graph-container{position:fixed;top:60px;left:20px;right:20px;bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+    .graph-panel{background:rgba(0,20,40,.6);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:16px;display:flex;flex-direction:column}
+    .graph-title{font-size:10px;letter-spacing:.15em;color:rgba(0,212,255,.6);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+    .graph-value{font-size:14px;color:#00d4ff}
+    .graph-canvas{flex:1;position:relative}
+    .graph-canvas canvas{width:100%;height:100%}
+    .graph-legend{display:flex;gap:16px;margin-top:12px;font-size:9px}
+    .legend-item{display:flex;align-items:center;gap:6px}
+    .legend-dot{width:8px;height:8px;border-radius:2px}
+    
+    .controls{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:100}
+    .controls button{padding:8px 16px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:#00d4ff;border-radius:4px;font-size:10px;cursor:pointer}
+    .controls button:hover{background:rgba(0,212,255,.2)}
+  </style>
+</head>
+<body>
+  <div id="info"><h1>GRAPH HQ · ANALYTICS</h1></div>
+  <a id="back" href="/frontend/hq-command.html">← HQ</a>
+  
+  <div class="graph-container">
+    <!-- Line Graph -->
+    <div class="graph-panel">
+      <div class="graph-title">
+        <span>LINE GRAPH · ENTROPY</span>
+        <span class="graph-value" id="line-value">0.000</span>
+      </div>
+      <div class="graph-canvas"><canvas id="lineCanvas"></canvas></div>
+      <div class="graph-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#ffaa00"></div>Entropy</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#00d4ff"></div>Threshold</div>
+      </div>
+    </div>
+    
+    <!-- Area Graph -->
+    <div class="graph-panel">
+      <div class="graph-title">
+        <span>AREA GRAPH · FLOW</span>
+        <span class="graph-value" id="area-value">0.00</span>
+      </div>
+      <div class="graph-canvas"><canvas id="areaCanvas"></canvas></div>
+      <div class="graph-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#00ff88"></div>Inflow</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#aa88ff"></div>Outflow</div>
+      </div>
+    </div>
+    
+    <!-- Bar Graph -->
+    <div class="graph-panel">
+      <div class="graph-title">
+        <span>BAR GRAPH · SYSTEMS</span>
+        <span class="graph-value" id="bar-value">4</span>
+      </div>
+      <div class="graph-canvas"><canvas id="barCanvas"></canvas></div>
+      <div class="graph-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#00ff88"></div>Active</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff4444"></div>Alert</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="controls">
+    <button onclick="addData()">+ DATA</button>
+    <button onclick="addSpike()">+ SPIKE</button>
+    <button onclick="resetData()">RESET</button>
+  </div>
+  
+  <script>
+// Data
+const MAX_POINTS = 60;
+let lineData = Array(MAX_POINTS).fill(0).map(() => 0.1 + Math.random() * 0.1);
+let areaData1 = Array(MAX_POINTS).fill(0).map(() => 0.3 + Math.random() * 0.2);
+let areaData2 = Array(MAX_POINTS).fill(0).map(() => 0.2 + Math.random() * 0.15);
+let barData = [0.8, 0.6, 0.9, 0.4, 0.7, 0.5];
+
+function addData() {
+  lineData.push(lineData[lineData.length-1] + (Math.random() - 0.5) * 0.05);
+  lineData.shift();
+  areaData1.push(areaData1[areaData1.length-1] + (Math.random() - 0.5) * 0.1);
+  areaData1.shift();
+  areaData2.push(areaData2[areaData2.length-1] + (Math.random() - 0.5) * 0.08);
+  areaData2.shift();
+}
+
+function addSpike() {
+  lineData[lineData.length-1] += 0.2;
+  barData[Math.floor(Math.random() * barData.length)] = Math.min(1, barData[Math.floor(Math.random() * barData.length)] + 0.3);
+}
+
+function resetData() {
+  lineData = Array(MAX_POINTS).fill(0).map(() => 0.1 + Math.random() * 0.1);
+  areaData1 = Array(MAX_POINTS).fill(0).map(() => 0.3 + Math.random() * 0.2);
+  areaData2 = Array(MAX_POINTS).fill(0).map(() => 0.2 + Math.random() * 0.15);
+  barData = [0.8, 0.6, 0.9, 0.4, 0.7, 0.5];
+}
+
+// Line Graph
+const lineCanvas = document.getElementById('lineCanvas');
+const lineCtx = lineCanvas.getContext('2d');
+
+function drawLineGraph() {
+  const w = lineCanvas.width = lineCanvas.offsetWidth;
+  const h = lineCanvas.height = lineCanvas.offsetHeight;
+  
+  lineCtx.clearRect(0, 0, w, h);
+  
+  // Grid
+  lineCtx.strokeStyle = 'rgba(0,212,255,0.1)';
+  lineCtx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = i * h / 5;
+    lineCtx.beginPath();
+    lineCtx.moveTo(0, y);
+    lineCtx.lineTo(w, y);
+    lineCtx.stroke();
+  }
+  
+  // Threshold line
+  lineCtx.strokeStyle = '#00d4ff';
+  lineCtx.lineWidth = 1;
+  lineCtx.setLineDash([5, 5]);
+  lineCtx.beginPath();
+  lineCtx.moveTo(0, h * 0.6);
+  lineCtx.lineTo(w, h * 0.6);
+  lineCtx.stroke();
+  lineCtx.setLineDash([]);
+  
+  // Line
+  lineCtx.strokeStyle = '#ffaa00';
+  lineCtx.lineWidth = 2;
+  lineCtx.beginPath();
+  lineData.forEach((v, i) => {
+    const x = (i / (lineData.length - 1)) * w;
+    const y = h - Math.min(1, Math.max(0, v)) * h;
+    if (i === 0) lineCtx.moveTo(x, y);
+    else lineCtx.lineTo(x, y);
+  });
+  lineCtx.stroke();
+  
+  // Glow
+  lineCtx.strokeStyle = 'rgba(255,170,0,0.3)';
+  lineCtx.lineWidth = 6;
+  lineCtx.stroke();
+  
+  document.getElementById('line-value').textContent = lineData[lineData.length-1].toFixed(3);
+}
+
+// Area Graph
+const areaCanvas = document.getElementById('areaCanvas');
+const areaCtx = areaCanvas.getContext('2d');
+
+function drawAreaGraph() {
+  const w = areaCanvas.width = areaCanvas.offsetWidth;
+  const h = areaCanvas.height = areaCanvas.offsetHeight;
+  
+  areaCtx.clearRect(0, 0, w, h);
+  
+  // Grid
+  areaCtx.strokeStyle = 'rgba(0,212,255,0.1)';
+  for (let i = 0; i <= 5; i++) {
+    const y = i * h / 5;
+    areaCtx.beginPath();
+    areaCtx.moveTo(0, y);
+    areaCtx.lineTo(w, y);
+    areaCtx.stroke();
+  }
+  
+  // Area 1 (Inflow)
+  const grad1 = areaCtx.createLinearGradient(0, 0, 0, h);
+  grad1.addColorStop(0, 'rgba(0,255,136,0.4)');
+  grad1.addColorStop(1, 'rgba(0,255,136,0)');
+  
+  areaCtx.fillStyle = grad1;
+  areaCtx.beginPath();
+  areaCtx.moveTo(0, h);
+  areaData1.forEach((v, i) => {
+    const x = (i / (areaData1.length - 1)) * w;
+    const y = h - Math.min(1, Math.max(0, v)) * h;
+    areaCtx.lineTo(x, y);
+  });
+  areaCtx.lineTo(w, h);
+  areaCtx.closePath();
+  areaCtx.fill();
+  
+  // Area 2 (Outflow)
+  const grad2 = areaCtx.createLinearGradient(0, 0, 0, h);
+  grad2.addColorStop(0, 'rgba(170,136,255,0.3)');
+  grad2.addColorStop(1, 'rgba(170,136,255,0)');
+  
+  areaCtx.fillStyle = grad2;
+  areaCtx.beginPath();
+  areaCtx.moveTo(0, h);
+  areaData2.forEach((v, i) => {
+    const x = (i / (areaData2.length - 1)) * w;
+    const y = h - Math.min(1, Math.max(0, v)) * h;
+    areaCtx.lineTo(x, y);
+  });
+  areaCtx.lineTo(w, h);
+  areaCtx.closePath();
+  areaCtx.fill();
+  
+  // Lines
+  areaCtx.strokeStyle = '#00ff88';
+  areaCtx.lineWidth = 2;
+  areaCtx.beginPath();
+  areaData1.forEach((v, i) => {
+    const x = (i / (areaData1.length - 1)) * w;
+    const y = h - Math.min(1, Math.max(0, v)) * h;
+    if (i === 0) areaCtx.moveTo(x, y);
+    else areaCtx.lineTo(x, y);
+  });
+  areaCtx.stroke();
+  
+  areaCtx.strokeStyle = '#aa88ff';
+  areaCtx.beginPath();
+  areaData2.forEach((v, i) => {
+    const x = (i / (areaData2.length - 1)) * w;
+    const y = h - Math.min(1, Math.max(0, v)) * h;
+    if (i === 0) areaCtx.moveTo(x, y);
+    else areaCtx.lineTo(x, y);
+  });
+  areaCtx.stroke();
+  
+  document.getElementById('area-value').textContent = areaData1[areaData1.length-1].toFixed(2);
+}
+
+// Bar Graph
+const barCanvas = document.getElementById('barCanvas');
+const barCtx = barCanvas.getContext('2d');
+
+function drawBarGraph() {
+  const w = barCanvas.width = barCanvas.offsetWidth;
+  const h = barCanvas.height = barCanvas.offsetHeight;
+  
+  barCtx.clearRect(0, 0, w, h);
+  
+  // Grid
+  barCtx.strokeStyle = 'rgba(0,212,255,0.1)';
+  for (let i = 0; i <= 5; i++) {
+    const y = i * h / 5;
+    barCtx.beginPath();
+    barCtx.moveTo(0, y);
+    barCtx.lineTo(w, y);
+    barCtx.stroke();
+  }
+  
+  // Bars
+  const barWidth = w / barData.length * 0.6;
+  const gap = w / barData.length * 0.4;
+  
+  barData.forEach((v, i) => {
+    const x = i * (barWidth + gap) + gap / 2;
+    const barH = v * h * 0.9;
+    const y = h - barH;
+    
+    // Bar gradient
+    const grad = barCtx.createLinearGradient(x, y, x, h);
+    if (v > 0.8) {
+      grad.addColorStop(0, '#ff4444');
+      grad.addColorStop(1, '#ff2222');
+    } else {
+      grad.addColorStop(0, '#00ff88');
+      grad.addColorStop(1, '#00aa55');
+    }
+    
+    barCtx.fillStyle = grad;
+    barCtx.beginPath();
+    barCtx.roundRect(x, y, barWidth, barH, 4);
+    barCtx.fill();
+    
+    // Glow
+    barCtx.shadowColor = v > 0.8 ? '#ff4444' : '#00ff88';
+    barCtx.shadowBlur = 10;
+    barCtx.fill();
+    barCtx.shadowBlur = 0;
+    
+    // Label
+    barCtx.fillStyle = 'rgba(255,255,255,0.5)';
+    barCtx.font = '9px system-ui';
+    barCtx.textAlign = 'center';
+    barCtx.fillText(`S${i+1}`, x + barWidth/2, h - 4);
+  });
+  
+  document.getElementById('bar-value').textContent = barData.filter(v => v > 0.5).length;
+}
+
+// Animation
+function animate() {
+  // Decay
+  barData = barData.map(v => Math.max(0.1, v * 0.995));
+  
+  drawLineGraph();
+  drawAreaGraph();
+  drawBarGraph();
+  
+  requestAnimationFrame(animate);
+}
+
+// Auto add data
+setInterval(addData, 500);
+
+// Fetch real data
+async function fetchStatus() {
+  try {
+    const r = await fetch('/status');
+    const s = await r.json();
+    lineData[lineData.length-1] = s.signals.entropy;
+    areaData1[areaData1.length-1] = s.signals.release;
+    areaData2[areaData2.length-1] = s.signals.pressure;
+  } catch(e) {}
+}
+setInterval(fetchStatus, 1000);
+
+animate();
+  </script>
+</body>
+</html>
