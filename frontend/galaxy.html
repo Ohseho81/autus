@@ -1,192 +1,270 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>AUTUS Galaxy</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            background: #000; 
-            color: #fff; 
-            font-family: -apple-system, sans-serif;
-            min-height: 100vh;
-            padding: 24px;
-        }
-        .nav {
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            font-size: 10px;
-            opacity: 0.3;
-        }
-        .nav a { color: #fff; text-decoration: none; margin-right: 16px; }
-        .nav a:hover { opacity: 1; }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 32px;
-            margin-top: 32px;
-        }
-        .header h1 {
-            font-size: 12px;
-            letter-spacing: 0.3em;
-            opacity: 0.4;
-            font-weight: 400;
-        }
-        .header h2 {
-            font-size: 24px;
-            font-weight: 200;
-            margin-top: 8px;
-        }
-        
-        .actors-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .actor-card {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.2s;
-        }
-        .actor-card:hover { border-color: #444; }
-        .actor-card.high-risk { border-color: #ff664466; }
-        
-        .actor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .actor-id { font-size: 14px; font-weight: 500; }
-        .actor-risk {
-            font-size: 10px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: #222;
-        }
-        .actor-risk.high { background: #ff664422; color: #ff6644; }
-        .actor-risk.low { background: #00ff8822; color: #00ff88; }
-        
-        .actor-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .stat { font-size: 10px; opacity: 0.5; }
-        .stat span { display: block; font-size: 16px; color: #fff; opacity: 1; margin-top: 2px; }
-        
-        .actor-event {
-            font-size: 10px;
-            opacity: 0.4;
-            border-top: 1px solid #222;
-            padding-top: 12px;
-        }
-        
-        .summary {
-            text-align: center;
-            margin-bottom: 32px;
-            font-size: 12px;
-            opacity: 0.5;
-        }
-        .summary span { color: #fff; opacity: 1; margin: 0 8px; }
-        
-        .empty {
-            text-align: center;
-            opacity: 0.3;
-            margin-top: 64px;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS Galaxy</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#000;overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
+    #info{position:fixed;top:20px;left:20px;color:#fff;z-index:100;font-size:12px}
+    #info h1{font-size:14px;font-weight:900;letter-spacing:.2em;margin-bottom:12px;opacity:.6}
+    #info .stat{margin:6px 0;opacity:.7}
+    #info .stat span{color:#00d4ff}
+    #back{position:fixed;top:20px;right:20px;padding:10px 20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;text-decoration:none;border-radius:8px;font-size:12px;z-index:100}
+    #back:hover{background:rgba(255,255,255,.2)}
+    #tooltip{position:fixed;padding:12px 16px;background:rgba(0,0,0,.9);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;font-size:11px;pointer-events:none;display:none;z-index:200}
+    #tooltip .name{font-weight:700;margin-bottom:8px;color:#00d4ff}
+    #tooltip .row{display:flex;justify-content:space-between;gap:20px;margin:4px 0}
+    #tooltip .label{opacity:.5}
+    #tooltip .value{font-weight:600}
+    #tooltip .status-GREEN{color:#00ff88}
+    #tooltip .status-YELLOW{color:#ffaa00}
+    #tooltip .status-RED{color:#ff4444}
+    canvas{display:block}
+  </style>
 </head>
 <body>
-    <div class="nav">
-        <a href="/frontend/index.html">SOLAR</a>
-        <a href="/frontend/galaxy.html">GALAXY</a>
-    </div>
-    
-    <div class="header">
-        <h1>AUTUS</h1>
-        <h2>Galaxy</h2>
-    </div>
-    
-    <div class="summary" id="summary">
-        Actors: <span id="actor-count">0</span>
-        Total Pressure: <span id="total-pressure">0</span>
-        Total Release: <span id="total-release">0</span>
-    </div>
-    
-    <div class="actors-grid" id="actors-grid"></div>
-    <div class="empty" id="empty">No actors yet. Events will create actors.</div>
-    
-    <script>
-        async function fetchActors() {
-            try {
-                const r = await fetch('/actors?limit=50', {cache: 'no-store'});
-                if (!r.ok) return null;
-                return await r.json();
-            } catch(e) { return null; }
-        }
+  <div id="info">
+    <h1>AUTUS GALAXY</h1>
+    <div class="stat">Systems: <span id="solarCount">0</span></div>
+    <div class="stat">Total Pressure: <span id="totalPressure">0</span></div>
+    <div class="stat">Avg Entropy: <span id="avgEntropy">0</span></div>
+  </div>
+  <a id="back" href="/frontend/index.html">← BACK TO SOLAR</a>
+  <div id="tooltip"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // Scene setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    document.body.appendChild(renderer.domElement);
+
+    // Camera position
+    camera.position.set(0, 30, 50);
+    camera.lookAt(0, 0, 0);
+
+    // Lights
+    const ambient = new THREE.AmbientLight(0x404040, 0.5);
+    scene.add(ambient);
+    const point = new THREE.PointLight(0xffffff, 1, 100);
+    point.position.set(0, 20, 0);
+    scene.add(point);
+
+    // Stars background
+    const starsGeometry = new THREE.BufferGeometry();
+    const starPositions = [];
+    for (let i = 0; i < 2000; i++) {
+      starPositions.push((Math.random() - 0.5) * 500);
+      starPositions.push((Math.random() - 0.5) * 500);
+      starPositions.push((Math.random() - 0.5) * 500);
+    }
+    starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+    const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5, transparent: true, opacity: 0.8 });
+    const stars = new THREE.Points(starsGeometry, starsMaterial);
+    scene.add(stars);
+
+    // Galaxy center (black hole effect)
+    const centerGeometry = new THREE.SphereGeometry(2, 32, 32);
+    const centerMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const center = new THREE.Mesh(centerGeometry, centerMaterial);
+    scene.add(center);
+
+    // Glow ring
+    const ringGeometry = new THREE.RingGeometry(2.5, 4, 64);
+    const ringMaterial = new THREE.MeshBasicMaterial({ color: 0x00d4ff, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
+    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+    ring.rotation.x = Math.PI / 2;
+    scene.add(ring);
+
+    // Solar systems data
+    let solarSystems = [];
+    let solarMeshes = [];
+
+    // Color by status
+    function getColor(status) {
+      if (status === 'GREEN') return 0x00ff88;
+      if (status === 'YELLOW') return 0xffaa00;
+      return 0xff4444;
+    }
+
+    // Create solar mesh
+    function createSolar(data, index) {
+      const angle = (index / 12) * Math.PI * 2;
+      const radius = 15 + (index % 3) * 8;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      const y = (Math.random() - 0.5) * 5;
+
+      const size = 1 + data.signals.pressure * 0.5;
+      const geometry = new THREE.SphereGeometry(size, 16, 16);
+      const material = new THREE.MeshPhongMaterial({
+        color: getColor(data.output.status),
+        emissive: getColor(data.output.status),
+        emissiveIntensity: 0.3,
+        transparent: true,
+        opacity: 0.9
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(x, y, z);
+      mesh.userData = data;
+      mesh.userData.baseY = y;
+      mesh.userData.angle = angle;
+      mesh.userData.radius = radius;
+      scene.add(mesh);
+
+      // Orbit ring
+      const orbitGeometry = new THREE.RingGeometry(radius - 0.1, radius + 0.1, 64);
+      const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.05 });
+      const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
+      orbit.rotation.x = Math.PI / 2;
+      scene.add(orbit);
+
+      return mesh;
+    }
+
+    // Fetch data
+    async function fetchData() {
+      try {
+        const res = await fetch('/status');
+        const data = await res.json();
         
-        function render(data) {
-            if (!data || !data.actors) return;
-            
-            const actors = data.actors;
-            const grid = document.getElementById('actors-grid');
-            const empty = document.getElementById('empty');
-            
-            if (actors.length === 0) {
-                grid.innerHTML = '';
-                empty.style.display = 'block';
-                return;
+        // Simulate multiple solars from single data
+        solarSystems = [
+          { ...data, id: 'SUN_001', name: 'AUTUS Primary' },
+          { ...data, id: 'SUN_002', name: 'Philippines Export', output: { ...data.output, status: Math.random() > 0.7 ? 'YELLOW' : 'GREEN' } },
+          { ...data, id: 'SUN_003', name: 'Education Sector', signals: { ...data.signals, pressure: data.signals.pressure * 0.5 }, output: { ...data.output, status: 'GREEN' } },
+          { ...data, id: 'SUN_004', name: 'Facility Mgmt', signals: { ...data.signals, entropy: data.signals.entropy * 1.2 }, output: { ...data.output, status: data.signals.entropy > 0.3 ? 'YELLOW' : 'GREEN' } },
+        ];
+
+        // Update stats
+        document.getElementById('solarCount').textContent = solarSystems.length;
+        document.getElementById('totalPressure').textContent = solarSystems.reduce((a, s) => a + s.signals.pressure, 0).toFixed(2);
+        document.getElementById('avgEntropy').textContent = (solarSystems.reduce((a, s) => a + s.signals.entropy, 0) / solarSystems.length).toFixed(3);
+
+        // Create or update meshes
+        if (solarMeshes.length === 0) {
+          solarSystems.forEach((s, i) => {
+            solarMeshes.push(createSolar(s, i));
+          });
+        } else {
+          solarMeshes.forEach((mesh, i) => {
+            if (solarSystems[i]) {
+              mesh.material.color.setHex(getColor(solarSystems[i].output.status));
+              mesh.material.emissive.setHex(getColor(solarSystems[i].output.status));
+              mesh.userData = solarSystems[i];
             }
-            
-            empty.style.display = 'none';
-            
-            // Summary
-            document.getElementById('actor-count').textContent = actors.length;
-            const totalP = actors.reduce((s, a) => s + a.total_pressure, 0);
-            const totalR = actors.reduce((s, a) => s + a.total_release, 0);
-            document.getElementById('total-pressure').textContent = totalP.toFixed(1);
-            document.getElementById('total-release').textContent = totalR.toFixed(1);
-            
-            // Cards
-            grid.innerHTML = actors.map(a => {
-                const isHigh = a.risk_score > 0.5;
-                const riskClass = isHigh ? 'high' : 'low';
-                const cardClass = isHigh ? 'actor-card high-risk' : 'actor-card';
-                const ts = a.last_event_ts ? new Date(a.last_event_ts * 1000).toLocaleTimeString() : '-';
-                
-                return `
-                    <div class="${cardClass}">
-                        <div class="actor-header">
-                            <div class="actor-id">${a.actor_id}</div>
-                            <div class="actor-risk ${riskClass}">${a.risk_score.toFixed(2)}</div>
-                        </div>
-                        <div class="actor-stats">
-                            <div class="stat">Pressure<span>${a.total_pressure.toFixed(1)}</span></div>
-                            <div class="stat">Release<span>${a.total_release.toFixed(1)}</span></div>
-                            <div class="stat">Decisions<span>${a.total_decisions}</span></div>
-                        </div>
-                        <div class="actor-event">
-                            Last: ${a.last_event || '-'} @ ${ts}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+          });
         }
-        
-        (async function poll() {
-            while (1) {
-                try { render(await fetchActors()); } catch(e) {}
-                await new Promise(r => setTimeout(r, 2000));
-            }
-        })();
-    </script>
+      } catch (e) {
+        console.error('Fetch error:', e);
+      }
+    }
+
+    // Raycaster for hover
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const tooltip = document.getElementById('tooltip');
+
+    function onMouseMove(event) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(solarMeshes);
+
+      if (intersects.length > 0) {
+        const data = intersects[0].object.userData;
+        tooltip.style.display = 'block';
+        tooltip.style.left = event.clientX + 15 + 'px';
+        tooltip.style.top = event.clientY + 15 + 'px';
+        tooltip.innerHTML = `
+          <div class="name">${data.name || data.id}</div>
+          <div class="row"><span class="label">Status</span><span class="value status-${data.output.status}">${data.output.status}</span></div>
+          <div class="row"><span class="label">Pressure</span><span class="value">${data.signals.pressure.toFixed(2)}</span></div>
+          <div class="row"><span class="label">Release</span><span class="value">${data.signals.release.toFixed(2)}</span></div>
+          <div class="row"><span class="label">Entropy</span><span class="value">${data.signals.entropy.toFixed(3)}</span></div>
+          <div class="row"><span class="label">Gravity</span><span class="value">${data.signals.gravity.toFixed(3)}</span></div>
+        `;
+        document.body.style.cursor = 'pointer';
+      } else {
+        tooltip.style.display = 'none';
+        document.body.style.cursor = 'default';
+      }
+    }
+
+    window.addEventListener('mousemove', onMouseMove);
+
+    // Camera controls (simple orbit)
+    let cameraAngle = 0;
+    let cameraRadius = 50;
+    let cameraHeight = 30;
+    let isDragging = false;
+    let lastX = 0;
+
+    renderer.domElement.addEventListener('mousedown', (e) => { isDragging = true; lastX = e.clientX; });
+    renderer.domElement.addEventListener('mouseup', () => { isDragging = false; });
+    renderer.domElement.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        cameraAngle += (e.clientX - lastX) * 0.005;
+        lastX = e.clientX;
+      }
+    });
+    renderer.domElement.addEventListener('wheel', (e) => {
+      cameraRadius += e.deltaY * 0.05;
+      cameraRadius = Math.max(20, Math.min(100, cameraRadius));
+    });
+
+    // Animation
+    let time = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      time += 0.01;
+
+      // Camera orbit
+      camera.position.x = Math.cos(cameraAngle) * cameraRadius;
+      camera.position.z = Math.sin(cameraAngle) * cameraRadius;
+      camera.position.y = cameraHeight;
+      camera.lookAt(0, 0, 0);
+
+      // Rotate ring
+      ring.rotation.z += 0.002;
+
+      // Animate solars
+      solarMeshes.forEach((mesh, i) => {
+        // Orbit rotation
+        mesh.userData.angle += 0.001 * (1 + i * 0.1);
+        mesh.position.x = Math.cos(mesh.userData.angle) * mesh.userData.radius;
+        mesh.position.z = Math.sin(mesh.userData.angle) * mesh.userData.radius;
+        // Bobbing
+        mesh.position.y = mesh.userData.baseY + Math.sin(time + i) * 0.5;
+        // Pulse for non-green
+        if (mesh.userData.output && mesh.userData.output.status !== 'GREEN') {
+          mesh.material.emissiveIntensity = 0.3 + Math.sin(time * 3) * 0.2;
+        }
+      });
+
+      // Rotate stars slowly
+      stars.rotation.y += 0.0001;
+
+      renderer.render(scene, camera);
+    }
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Init
+    fetchData();
+    setInterval(fetchData, 3000);
+    animate();
+  </script>
 </body>
 </html>
