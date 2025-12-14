@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS HUD System</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#030508;color:#fff;font-family:system-ui,sans-serif;overflow-x:hidden}
+    
+    /* Navigation */
+    .nav{position:fixed;top:0;left:0;right:0;display:flex;gap:4px;padding:8px 12px;background:rgba(0,0,0,.9);border-bottom:1px solid rgba(0,212,255,.2);z-index:1000}
+    .nav a{padding:8px 16px;color:rgba(255,255,255,.5);text-decoration:none;font-size:11px;letter-spacing:.1em;border:1px solid transparent;border-radius:4px;transition:all .2s}
+    .nav a:hover{color:#fff;border-color:rgba(0,212,255,.3)}
+    .nav a.active{color:#00d4ff;border-color:#00d4ff;background:rgba(0,212,255,.1)}
+    .nav .brand{font-weight:900;letter-spacing:.2em;margin-right:20px;color:#00d4ff}
+    
+    /* Main */
+    .main{padding-top:50px;min-height:100vh}
+    .page{display:none;padding:20px}
+    .page.active{display:block}
+    
+    /* HUD Container */
+    .hud-container{display:grid;grid-template-columns:1fr 2fr 1fr;grid-template-rows:auto 1fr auto;gap:12px;height:calc(100vh - 90px)}
+    
+    /* Panels */
+    .panel{background:rgba(0,20,40,.6);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:12px;position:relative;overflow:hidden}
+    .panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.5),transparent)}
+    .panel-title{font-size:9px;letter-spacing:.15em;color:rgba(0,212,255,.6);margin-bottom:10px}
+    
+    /* KPI Strip */
+    .kpi-strip{grid-column:1/-1;display:flex;gap:20px;justify-content:center;padding:8px 20px}
+    .kpi{text-align:center}
+    .kpi-value{font-size:24px;font-weight:200;color:#00d4ff}
+    .kpi-label{font-size:8px;letter-spacing:.1em;opacity:.4;margin-top:2px}
+    
+    /* 3D Viewport */
+    .viewport{grid-column:2;grid-row:2;min-height:400px}
+    #canvas3d{width:100%;height:100%;border-radius:8px}
+    
+    /* Side Panels */
+    .left-panels,.right-panels{display:flex;flex-direction:column;gap:12px}
+    
+    /* Timeline */
+    .timeline{grid-column:1/-1;height:60px}
+    
+    /* Alert */
+    .alert-badge{position:fixed;top:60px;right:20px;padding:8px 16px;background:rgba(255,68,68,.2);border:1px solid #ff4444;border-radius:4px;font-size:10px;color:#ff4444;display:none}
+    .alert-badge.active{display:block;animation:alert-pulse 1s infinite}
+    @keyframes alert-pulse{50%{opacity:.5}}
+    
+    /* Status Indicator */
+    .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+    .status-dot.green{background:#00ff88;box-shadow:0 0 8px #00ff88}
+    .status-dot.yellow{background:#ffaa00;box-shadow:0 0 8px #ffaa00}
+    .status-dot.red{background:#ff4444;box-shadow:0 0 8px #ff4444}
+    
+    /* Gauge */
+    .gauge-row{display:flex;align-items:center;margin:6px 0;font-size:11px}
+    .gauge-label{width:60px;opacity:.5}
+    .gauge-bar{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+    .gauge-fill{height:100%;background:linear-gradient(90deg,#00d4ff,#00ff88);transition:width .3s}
+    .gauge-value{width:40px;text-align:right;font-size:10px;opacity:.6}
+    
+    /* List */
+    .incident-item{padding:6px 8px;margin:4px 0;background:rgba(255,255,255,.03);border-left:2px solid #00d4ff;font-size:10px}
+    .incident-item.warning{border-color:#ffaa00}
+    .incident-item.error{border-color:#ff4444}
+    
+    /* Footer */
+    .footer{position:fixed;bottom:0;left:0;right:0;padding:6px 12px;background:rgba(0,0,0,.9);border-top:1px solid rgba(0,212,255,.2);font-size:9px;color:rgba(255,255,255,.3);display:flex;justify-content:space-between}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <span class="brand">AUTUS</span>
+    <a href="#global" class="active" data-page="global">GLOBAL</a>
+    <a href="#flow" data-page="flow">FLOW</a>
+    <a href="#risk" data-page="risk">RISK</a>
+    <a href="#object" data-page="object">OBJECT</a>
+    <a href="#simulation" data-page="simulation">SIM</a>
+    <a href="#control" data-page="control">CONTROL</a>
+  </nav>
+  
+  <div class="alert-badge" id="alertBadge">⚠ HIGH ENTROPY</div>
+  
+  <main class="main">
+    <!-- PAGE 1: GLOBAL -->
+    <div class="page active" id="page-global">
+      <div class="hud-container">
+        <div class="kpi-strip panel">
+          <div class="kpi"><div class="kpi-value" id="kpi-systems">4</div><div class="kpi-label">SYSTEMS</div></div>
+          <div class="kpi"><div class="kpi-value" id="kpi-pressure">0.00</div><div class="kpi-label">PRESSURE</div></div>
+          <div class="kpi"><div class="kpi-value" id="kpi-entropy">0.000</div><div class="kpi-label">ENTROPY</div></div>
+          <div class="kpi"><div class="kpi-value" id="kpi-gravity">0.500</div><div class="kpi-label">GRAVITY</div></div>
+          <div class="kpi"><div class="kpi-value" id="kpi-status">GREEN</div><div class="kpi-label">STATUS</div></div>
+        </div>
+        
+        <div class="left-panels">
+          <div class="panel" style="flex:1">
+            <div class="panel-title">SOLAR STATE</div>
+            <div class="gauge-row"><span class="gauge-label">Pressure</span><div class="gauge-bar"><div class="gauge-fill" id="g-pressure" style="width:0%"></div></div><span class="gauge-value" id="v-pressure">0</span></div>
+            <div class="gauge-row"><span class="gauge-label">Release</span><div class="gauge-bar"><div class="gauge-fill" id="g-release" style="width:0%"></div></div><span class="gauge-value" id="v-release">0</span></div>
+            <div class="gauge-row"><span class="gauge-label">Decision</span><div class="gauge-bar"><div class="gauge-fill" id="g-decision" style="width:0%"></div></div><span class="gauge-value" id="v-decision">0</span></div>
+            <div class="gauge-row"><span class="gauge-label">Entropy</span><div class="gauge-bar"><div class="gauge-fill" id="g-entropy" style="width:0%"></div></div><span class="gauge-value" id="v-entropy">0</span></div>
+            <div class="gauge-row"><span class="gauge-label">Gravity</span><div class="gauge-bar"><div class="gauge-fill" id="g-gravity" style="width:0%"></div></div><span class="gauge-value" id="v-gravity">0</span></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">MOTION PARAMS</div>
+            <div class="gauge-row"><span class="gauge-label">Spin ω</span><div class="gauge-bar"><div class="gauge-fill" id="m-spin" style="width:35%"></div></div><span class="gauge-value" id="mv-spin">0.35</span></div>
+            <div class="gauge-row"><span class="gauge-label">Pulse</span><div class="gauge-bar"><div class="gauge-fill" id="m-pulse" style="width:85%"></div></div><span class="gauge-value" id="mv-pulse">0.85</span></div>
+            <div class="gauge-row"><span class="gauge-label">Flicker</span><div class="gauge-bar"><div class="gauge-fill" id="m-flicker" style="width:5%"></div></div><span class="gauge-value" id="mv-flicker">0.05</span></div>
+          </div>
+        </div>
+        
+        <div class="panel viewport">
+          <canvas id="canvas3d"></canvas>
+        </div>
+        
+        <div class="right-panels">
+          <div class="panel" style="flex:1">
+            <div class="panel-title">INCIDENTS</div>
+            <div class="incident-item">System initialized</div>
+            <div class="incident-item" id="inc-1">Tick running...</div>
+            <div class="incident-item" id="inc-2">All systems nominal</div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">OUTCOME</div>
+            <div class="gauge-row"><span class="gauge-label">ΔEntropy</span><div class="gauge-bar"><div class="gauge-fill" style="width:0%;background:#00ff88"></div></div><span class="gauge-value">+0.00</span></div>
+            <div class="gauge-row"><span class="gauge-label">ΔPressure</span><div class="gauge-bar"><div class="gauge-fill" style="width:0%;background:#00ff88"></div></div><span class="gauge-value">+0.00</span></div>
+            <div class="gauge-row"><span class="gauge-label">Billable</span><div class="gauge-bar"><div class="gauge-fill" style="width:0%;background:#00d4ff"></div></div><span class="gauge-value">₩0</span></div>
+          </div>
+        </div>
+        
+        <div class="panel timeline">
+          <div class="panel-title">TIMELINE</div>
+          <canvas id="timelineCanvas" style="width:100%;height:40px"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Other pages placeholder -->
+    <div class="page" id="page-flow"><div class="panel" style="margin:20px;padding:40px;text-align:center"><div class="panel-title">FLOW / NETWORK</div><p style="opacity:.3;margin-top:20px">Coming soon...</p></div></div>
+    <div class="page" id="page-risk"><div class="panel" style="margin:20px;padding:40px;text-align:center"><div class="panel-title">RISK / RADAR</div><p style="opacity:.3;margin-top:20px">Coming soon...</p></div></div>
+    <div class="page" id="page-object"><div class="panel" style="margin:20px;padding:40px;text-align:center"><div class="panel-title">OBJECT / ASSET</div><p style="opacity:.3;margin-top:20px">Coming soon...</p></div></div>
+    <div class="page" id="page-simulation"><div class="panel" style="margin:20px;padding:40px;text-align:center"><div class="panel-title">SIMULATION / FUTURE</div><p style="opacity:.3;margin-top:20px">Coming soon...</p></div></div>
+    <div class="page" id="page-control"><div class="panel" style="margin:20px;padding:40px;text-align:center"><div class="panel-title">CONTROL / ACTION</div><p style="opacity:.3;margin-top:20px">Coming soon...</p></div></div>
+  </main>
+  
+  <footer class="footer">
+    <span>AUTUS HUD System v1.0</span>
+    <span id="footerStatus">Connecting...</span>
+  </footer>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+// Navigation
+document.querySelectorAll('.nav a[data-page]').forEach(a => {
+  a.onclick = e => {
+    e.preventDefault();
+    document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    document.getElementById('page-' + a.dataset.page).classList.add('active');
+  };
+});
+
+// Three.js Globe
+const canvas = document.getElementById('canvas3d');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: true});
+renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+camera.position.z = 4;
+
+scene.add(new THREE.AmbientLight(0x404040, 0.5));
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(3, 2, 3);
+scene.add(light);
+
+// Globe
+const globe = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 64, 64),
+  new THREE.MeshPhongMaterial({color: 0x1a3a5c, emissive: 0x0a1525, emissiveIntensity: 0.3})
+);
+scene.add(globe);
+
+// Grid
+const grid = new THREE.Mesh(
+  new THREE.SphereGeometry(1.02, 24, 24),
+  new THREE.MeshBasicMaterial({color: 0x00d4ff, wireframe: true, transparent: true, opacity: 0.1})
+);
+scene.add(grid);
+
+// Orbit ring
+const ring = new THREE.Mesh(
+  new THREE.RingGeometry(1.5, 1.52, 64),
+  new THREE.MeshBasicMaterial({color: 0x00d4ff, side: THREE.DoubleSide, transparent: true, opacity: 0.2})
+);
+ring.rotation.x = Math.PI / 2;
+scene.add(ring);
+
+// Sweep
+const sweep = new THREE.Mesh(
+  new THREE.RingGeometry(0, 1.6, 32, 1, 0, 0.25),
+  new THREE.MeshBasicMaterial({color: 0x00ff88, transparent: true, opacity: 0.3, side: THREE.DoubleSide})
+);
+sweep.rotation.x = Math.PI / 2;
+scene.add(sweep);
+
+// Stars
+const starGeo = new THREE.BufferGeometry();
+const starPos = [];
+for(let i=0; i<500; i++) starPos.push((Math.random()-.5)*50, (Math.random()-.5)*50, (Math.random()-.5)*50);
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.2})));
+
+// Motion params (updated from API)
+let motionParams = {
+  spin: { omega: 0.35 },
+  sweep: { omega: 1.8 },
+  pulse: { freq: 0.8, amp: 0.15, bias: 0.85 },
+  flicker: { rate: 6, sigma: 0.05 }
+};
+
+// State
+let currentState = {};
+
+// Fetch status
+async function fetchStatus() {
+  try {
+    const r = await fetch('/status');
+    const s = await r.json();
+    currentState = s;
+    
+    const sig = s.signals;
+    
+    // Update KPIs
+    document.getElementById('kpi-pressure').textContent = sig.pressure.toFixed(2);
+    document.getElementById('kpi-entropy').textContent = sig.entropy.toFixed(3);
+    document.getElementById('kpi-gravity').textContent = sig.gravity.toFixed(3);
+    document.getElementById('kpi-status').textContent = s.output.status;
+    document.getElementById('kpi-status').style.color = s.output.status === 'GREEN' ? '#00ff88' : s.output.status === 'YELLOW' ? '#ffaa00' : '#ff4444';
+    
+    // Update gauges
+    document.getElementById('g-pressure').style.width = (sig.pressure * 100) + '%';
+    document.getElementById('v-pressure').textContent = sig.pressure.toFixed(2);
+    document.getElementById('g-release').style.width = (sig.release * 100) + '%';
+    document.getElementById('v-release').textContent = sig.release.toFixed(2);
+    document.getElementById('g-decision').style.width = (sig.decision * 100) + '%';
+    document.getElementById('v-decision').textContent = sig.decision.toFixed(2);
+    document.getElementById('g-entropy').style.width = (sig.entropy * 100) + '%';
+    document.getElementById('v-entropy').textContent = sig.entropy.toFixed(3);
+    document.getElementById('g-gravity').style.width = (sig.gravity * 100) + '%';
+    document.getElementById('v-gravity').textContent = sig.gravity.toFixed(3);
+    
+    // Update motion from state
+    motionParams.spin.omega = 0.3 + sig.gravity * 0.1;
+    motionParams.flicker.sigma = 0.02 + sig.entropy * 0.08;
+    motionParams.pulse.amp = 0.1 + sig.gravity * 0.15;
+    
+    document.getElementById('m-spin').style.width = (motionParams.spin.omega * 100) + '%';
+    document.getElementById('mv-spin').textContent = motionParams.spin.omega.toFixed(2);
+    document.getElementById('m-flicker').style.width = (motionParams.flicker.sigma * 500) + '%';
+    document.getElementById('mv-flicker').textContent = motionParams.flicker.sigma.toFixed(3);
+    
+    // Alert
+    const alert = document.getElementById('alertBadge');
+    if (sig.entropy > 0.4) {
+      alert.classList.add('active');
+      alert.textContent = '⚠ HIGH ENTROPY: ' + sig.entropy.toFixed(3);
+    } else {
+      alert.classList.remove('active');
+    }
+    
+    // Incidents
+    document.getElementById('inc-1').textContent = 'Tick: ' + s.tick;
+    document.getElementById('inc-2').textContent = 'Bottleneck: ' + s.output.bottleneck;
+    
+    document.getElementById('footerStatus').textContent = 'tick ' + s.tick + ' | ' + s.output.status;
+    
+  } catch(e) {
+    document.getElementById('footerStatus').textContent = 'Connection error';
+  }
+}
+
+// Animation
+let startTime = Date.now();
+function animate() {
+  requestAnimationFrame(animate);
+  
+  const t = (Date.now() - startTime) / 1000;
+  
+  // Spin
+  globe.rotation.y = motionParams.spin.omega * t;
+  grid.rotation.y = motionParams.spin.omega * t;
+  
+  // Sweep
+  sweep.rotation.z = motionParams.sweep.omega * t;
+  
+  // Pulse + Flicker
+  const pulse = motionParams.pulse.bias + motionParams.pulse.amp * Math.sin(2 * Math.PI * motionParams.pulse.freq * t);
+  const flicker = 1 + motionParams.flicker.sigma * Math.sin(t * motionParams.flicker.rate * 17.31) * Math.cos(t * motionParams.flicker.rate * 23.17);
+  
+  globe.material.emissiveIntensity = 0.2 + pulse * flicker * 0.3;
+  sweep.material.opacity = 0.2 + pulse * 0.2;
+  
+  renderer.render(scene, camera);
+}
+
+// Resize
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+window.addEventListener('resize', resize);
+setTimeout(resize, 100);
+
+// Start
+fetchStatus();
+setInterval(fetchStatus, 2000);
+animate();
+  </script>
+</body>
+</html>
