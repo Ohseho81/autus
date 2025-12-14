@@ -1,16 +1,23 @@
-# Redirect to app.main
-from app.main import app
-
-# Realtime routes
+"""
+Realtime API Routes
+"""
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 import asyncio
+import json
 
-@app.get("/stream")
+router = APIRouter()
+
+# SSE endpoint
+@router.get("/stream")
 async def stream_status():
+    """Server-Sent Events 스트림"""
     async def generate():
+        from main import state  # Import state engine
         while True:
             try:
                 status = state.get_status()
+                # TwinState 변환
                 sig = status.get("signals", {})
                 twin = {
                     "t": status.get("tick", 0),
@@ -28,15 +35,24 @@ async def stream_status():
     return StreamingResponse(
         generate(),
         media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "Access-Control-Allow-Origin": "*"}
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*"
+        }
     )
 
-@app.get("/status/batch")
+# Batch status (성능 최적화)
+@router.get("/status/batch")
 async def batch_status():
+    """여러 데이터를 한 번에 반환 (HTTP 요청 수 감소)"""
+    from main import state, audit_log
+    
     status = state.get_status()
     sig = status.get("signals", {})
     out = status.get("output", {})
     
+    # TwinState
     twin = {
         "timeSec": status.get("tick", 0),
         "energy": sig.get("gravity", 0.5),
@@ -46,6 +62,7 @@ async def batch_status():
         "pressure": sig.get("pressure", 0)
     }
     
+    # Uniforms
     uniforms = {
         "u_time": twin["timeSec"] % 1000,
         "u_energy": twin["energy"],
@@ -55,6 +72,7 @@ async def batch_status():
         "u_pressure": twin["pressure"]
     }
     
+    # Motion params
     motion = {
         "spin": {"omega": 0.3 + twin["energy"] * 0.1},
         "sweep": {"omega": 1.0 + twin["risk"] * 1.5},
@@ -67,5 +85,8 @@ async def batch_status():
         "twin": twin,
         "uniforms": uniforms,
         "motion": motion,
-        "beacon": {"state": out.get("status", "GREEN")}
+        "beacon": {
+            "state": out.get("status", "GREEN"),
+            "icon": "●" if out.get("status") == "GREEN" else "▲" if out.get("status") == "YELLOW" else "■"
+        }
     }
