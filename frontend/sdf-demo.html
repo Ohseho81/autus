@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS SDF Primitives</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#030508;color:#fff;font-family:system-ui,sans-serif;padding:20px}
+    h1{font-size:12px;letter-spacing:.2em;color:#00d4ff;margin-bottom:20px;font-weight:400}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+    .card{background:rgba(0,20,40,.5);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:16px;text-align:center}
+    .card h2{font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.5);margin-bottom:12px}
+    .card canvas{width:100%;height:150px;border-radius:4px;background:#000}
+    #back{position:fixed;top:20px;right:20px;padding:8px 16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;text-decoration:none;border-radius:6px;font-size:11px}
+  </style>
+</head>
+<body>
+  <h1>SDF/MSDF HUD PRIMITIVES v1.0</h1>
+  <a id="back" href="/frontend/hud-system.html">← HUD</a>
+  
+  <div class="grid">
+    <div class="card"><h2>LINE</h2><canvas id="c-line"></canvas></div>
+    <div class="card"><h2>CIRCLE / RING</h2><canvas id="c-circle"></canvas></div>
+    <div class="card"><h2>GRID</h2><canvas id="c-grid"></canvas></div>
+    <div class="card"><h2>PANEL</h2><canvas id="c-panel"></canvas></div>
+    <div class="card"><h2>BADGE / ALERT</h2><canvas id="c-badge"></canvas></div>
+    <div class="card"><h2>ARC</h2><canvas id="c-arc"></canvas></div>
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="/frontend/shaders/sdf-primitives.js"></script>
+  <script>
+function createSDF(canvas, fragmentShader, uniforms) {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+  
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  
+  const geo = new THREE.PlaneGeometry(2, 2);
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      u_time: { value: 0 },
+      u_resolution: { value: new THREE.Vector2(w, h) },
+      u_color: { value: new THREE.Color(0x00d4ff) },
+      u_emissive: { value: new THREE.Color(0x00ff88) },
+      u_glowGain: { value: 0.5 },
+      u_alert: { value: 0 },
+      ...uniforms
+    },
+    vertexShader: SDF_SHADERS.vertex,
+    fragmentShader: fragmentShader,
+    transparent: true
+  });
+  
+  scene.add(new THREE.Mesh(geo, mat));
+  
+  function animate() {
+    requestAnimationFrame(animate);
+    mat.uniforms.u_time.value = performance.now() / 1000;
+    renderer.render(scene, camera);
+  }
+  animate();
+  
+  return mat;
+}
+
+// Line
+createSDF(document.getElementById('c-line'), SDF_SHADERS.line, {
+  u_thickness: { value: 2.0 },
+  u_start: { value: new THREE.Vector2(0.1, 0.5) },
+  u_end: { value: new THREE.Vector2(0.9, 0.5) }
+});
+
+// Circle
+createSDF(document.getElementById('c-circle'), SDF_SHADERS.circle, {
+  u_radius: { value: 0.3 },
+  u_thickness: { value: 3.0 },
+  u_center: { value: new THREE.Vector2(0.5, 0.5) }
+});
+
+// Grid
+createSDF(document.getElementById('c-grid'), SDF_SHADERS.grid, {
+  u_spacing: { value: 30.0 },
+  u_lineWidth: { value: 1.0 },
+  u_fadeEdge: { value: 0.15 }
+});
+
+// Panel
+createSDF(document.getElementById('c-panel'), SDF_SHADERS.panel, {
+  u_borderWidth: { value: 2.0 },
+  u_cornerRadius: { value: 8.0 }
+});
+
+// Badge
+createSDF(document.getElementById('c-badge'), SDF_SHADERS.badge, {
+  u_size: { value: 15.0 },
+  u_pulseRate: { value: 3.0 }
+});
+
+// Arc (using circle with modification)
+createSDF(document.getElementById('c-arc'), SDF_SHADERS.circle, {
+  u_radius: { value: 0.35 },
+  u_thickness: { value: 4.0 },
+  u_center: { value: new THREE.Vector2(0.5, 0.5) }
+});
+  </script>
+</body>
+</html>
