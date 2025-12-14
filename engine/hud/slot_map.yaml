@@ -1,0 +1,56 @@
+# AUTUS 6-Page SlotMap v1.0
+# 페이지 추가 금지 - Pack만 교체
+
+pages:
+  PAGE1_GLOBAL:
+    name: "Global / Command"
+    slots:
+      MAIN: { pack: "GlobePack", size: "60%" }
+      LEFT: { pack: "PanelPack", size: "20%" }
+      RIGHT: { pack: "ListPack.KPI", size: "20%" }
+      BOTTOM: { pack: "GraphPack.Line", size: "80px" }
+
+  PAGE2_FLOW:
+    name: "Flow / Network"
+    slots:
+      MAIN: { pack: "NetworkPack", size: "60%" }
+      LEFT: { pack: "GraphPack.Area", size: "20%" }
+      RIGHT: { pack: "GraphPack.Bar", size: "20%" }
+      BOTTOM: { pack: "ListPack.Logs", size: "80px" }
+
+  PAGE3_RISK:
+    name: "Risk / Radar"
+    slots:
+      MAIN: { pack: "RadarPack", size: "60%" }
+      LEFT: { pack: "ListPack.Incidents", size: "20%" }
+      RIGHT: { pack: "PanelPack.Threshold", size: "20%" }
+      BOTTOM: { pack: "GraphPack.Line", size: "80px" }
+
+  PAGE4_OBJECT:
+    name: "Object / Asset"
+    slots:
+      MAIN: { pack: "AssetCardPack", size: "60%" }
+      LEFT: { pack: "GaugePack", size: "20%" }
+      RIGHT: { pack: "PanelPack.Compare", size: "20%" }
+      BOTTOM: { pack: "ListPack.Diagnostics", size: "80px" }
+
+  PAGE5_SIMULATION:
+    name: "Simulation / Future"
+    slots:
+      MAIN: { pack: "ProjectionPack", size: "60%" }
+      LEFT: { pack: "ScenarioPack", size: "20%" }
+      RIGHT: { pack: "ProbabilityPack", size: "20%" }
+      BOTTOM: { pack: "GraphPack.Delta", size: "80px" }
+
+  PAGE6_CONTROL:
+    name: "Control / Action"
+    slots:
+      MAIN: { pack: "ControlPack", size: "60%" }
+      LEFT: { pack: "PolicyPack", size: "20%" }
+      RIGHT: { pack: "AllocatorPack", size: "20%" }
+      BOTTOM: { pack: "CommitPack", size: "80px" }
+
+layout:
+  grid: "1fr 2fr 1fr"
+  gap: "12px"
+  padding: "16px"

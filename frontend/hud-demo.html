@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS HUD Demo - PAGE 1~3</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#030508;color:#fff;font-family:system-ui,sans-serif;overflow:hidden}
+    
+    .nav{position:fixed;top:0;left:0;right:0;display:flex;gap:4px;padding:8px 12px;background:rgba(0,0,0,.95);border-bottom:1px solid rgba(0,212,255,.2);z-index:1000}
+    .nav .brand{font-weight:900;letter-spacing:.2em;color:#00d4ff;margin-right:16px;font-size:12px}
+    .nav a{padding:8px 16px;color:rgba(255,255,255,.4);text-decoration:none;font-size:10px;letter-spacing:.1em;border:1px solid transparent;border-radius:4px}
+    .nav a:hover{color:#fff;border-color:rgba(0,212,255,.2)}
+    .nav a.active{color:#00d4ff;border-color:#00d4ff;background:rgba(0,212,255,.1)}
+    
+    .viewport{position:fixed;top:45px;left:0;right:0;bottom:30px}
+    .viewport iframe{width:100%;height:100%;border:none}
+    
+    .footer{position:fixed;bottom:0;left:0;right:0;padding:6px 12px;background:rgba(0,0,0,.95);border-top:1px solid rgba(0,212,255,.2);font-size:9px;color:rgba(255,255,255,.3);display:flex;justify-content:space-between}
+    
+    .status-bar{position:fixed;top:45px;left:0;right:0;display:flex;gap:20px;justify-content:center;padding:8px;background:rgba(0,0,0,.8);border-bottom:1px solid rgba(0,212,255,.1);z-index:100}
+    .status-item{text-align:center}
+    .status-value{font-size:18px;font-weight:200;color:#00d4ff}
+    .status-label{font-size:8px;letter-spacing:.1em;opacity:.4;margin-top:2px}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <span class="brand">AUTUS HUD</span>
+    <a href="#" class="active" data-page="globe">PAGE 1 · GLOBAL</a>
+    <a href="#" data-page="network">PAGE 2 · FLOW</a>
+    <a href="#" data-page="radar">PAGE 3 · RISK</a>
+  </nav>
+  
+  <div class="status-bar">
+    <div class="status-item"><div class="status-value" id="s-entropy">0.000</div><div class="status-label">ENTROPY</div></div>
+    <div class="status-item"><div class="status-value" id="s-pressure">0.00</div><div class="status-label">PRESSURE</div></div>
+    <div class="status-item"><div class="status-value" id="s-energy">0.50</div><div class="status-label">ENERGY</div></div>
+    <div class="status-item"><div class="status-value" id="s-risk">0.00</div><div class="status-label">RISK</div></div>
+    <div class="status-item"><div class="status-value" id="s-status">GREEN</div><div class="status-label">STATUS</div></div>
+  </div>
+  
+  <div class="viewport">
+    <iframe id="pageFrame" src="/frontend/globe-hq.html"></iframe>
+  </div>
+  
+  <footer class="footer">
+    <span>AUTUS HUD System v1.0 · 6-Page Architecture</span>
+    <span id="footerTime">--:--:--</span>
+  </footer>
+  
+  <script>
+const pages = {
+  globe: '/frontend/globe-hq.html',
+  network: '/frontend/hud-system.html#flow',
+  radar: '/frontend/radar-hq.html'
+};
+
+document.querySelectorAll('.nav a[data-page]').forEach(a => {
+  a.onclick = e => {
+    e.preventDefault();
+    document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    document.getElementById('pageFrame').src = pages[a.dataset.page];
+  };
+});
+
+async function fetchStatus() {
+  try {
+    const r = await fetch('/status');
+    const s = await r.json();
+    document.getElementById('s-entropy').textContent = s.signals.entropy.toFixed(3);
+    document.getElementById('s-pressure').textContent = s.signals.pressure.toFixed(2);
+    document.getElementById('s-energy').textContent = s.signals.gravity.toFixed(2);
+    document.getElementById('s-risk').textContent = (s.signals.entropy + s.signals.pressure * 0.5).toFixed(2);
+    document.getElementById('s-status').textContent = s.output.status;
+    document.getElementById('s-status').style.color = s.output.status === 'GREEN' ? '#00ff88' : s.output.status === 'YELLOW' ? '#ffaa00' : '#ff4444';
+  } catch(e) {}
+}
+
+function updateTime() {
+  document.getElementById('footerTime').textContent = new Date().toLocaleTimeString();
+}
+
+fetchStatus();
+setInterval(fetchStatus, 2000);
+setInterval(updateTime, 1000);
+updateTime();
+  </script>
+</body>
+</html>

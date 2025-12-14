@@ -1,0 +1,73 @@
+{
+  "version": "1.0",
+  "packs": {
+    "PanelPack": {
+      "id": "PanelPack.HQ.v1",
+      "layer": "HUDLayer",
+      "primitives": ["SDFPanel", "MSDFText", "SDFGrid"],
+      "components": {
+        "frame": { "corner_tick_pct": 0.03, "stroke": "lerp(0.6,1.3,u_energy)" },
+        "header": { "type": "MSDF", "badge": true },
+        "micro_labels": { "type": "MSDF", "positions": ["left", "right"] },
+        "inset_grid": { "opacity": 0.15 }
+      }
+    },
+    "GraphPack.Line": {
+      "id": "GraphPack.Line.v1",
+      "layer": "DataLayer",
+      "primitives": ["SDFLine", "SDFGrid", "MSDFText"],
+      "params": {
+        "glow": "0.4*u_energy",
+        "noise": "0.15*u_entropy"
+      },
+      "inputs": { "series": "float[]", "labels": "string[]" }
+    },
+    "GraphPack.Area": {
+      "id": "GraphPack.Area.v1",
+      "layer": "DataLayer",
+      "primitives": ["SDFArea", "SDFLine", "MSDFText"],
+      "params": {
+        "fill_gradient": true,
+        "fill_noise": 0.05
+      }
+    },
+    "GraphPack.Bar": {
+      "id": "GraphPack.Bar.v1",
+      "layer": "DataLayer",
+      "primitives": ["InstancedBars", "SDFGrid", "MSDFText"],
+      "params": {
+        "pulse": "PULSE(u_energy)",
+        "alert": "smoothstep(0.7,1.0,u_risk)"
+      }
+    },
+    "NetworkPack": {
+      "id": "NetworkPack.HQ.v1",
+      "layer": "DataLayer",
+      "primitives": ["InstancedNodes", "SDFLinks", "HeatOverlay"],
+      "params": {
+        "density": "u_flow",
+        "flicker": "u_entropy",
+        "link_threshold": 0.3
+      }
+    },
+    "ListPack": {
+      "id": "ListPack.HQ.v1",
+      "layer": "HUDLayer",
+      "primitives": ["SDFPanel", "MSDFText", "Badge"],
+      "row_format": ["badge", "title", "delta", "time"],
+      "params": {
+        "priority_lock": 5,
+        "scroll_spring": 0.8
+      }
+    },
+    "ControlPack": {
+      "id": "ControlPack.HQ.v1",
+      "layer": "HUDLayer",
+      "primitives": ["SDFPanel", "Toggle", "Slider", "CommitButton"],
+      "params": {
+        "commit_flash": true,
+        "risk_lock": "u_risk > 0.8"
+      }
+    }
+  }
+}
