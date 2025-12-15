@@ -405,3 +405,131 @@ def get_solar_state(entity_id: str):
         },
         "status": row["status"] or "GREEN",
     }
+
+# === Time Drift + Policy 확장 ===
+from core.physics import time_drift
+from core.policy import PolicyConstraint, apply_policy
+
+@app.get("/solar/state/v2/{entity_id}")
+def get_solar_state_v2(entity_id: str):
+    """Physics + Policy + Time Drift 통합 API"""
+    global _prev_metrics
+    
+    with get_db() as conn:
+        row = conn.execute("SELECT * FROM state WHERE id=?", (entity_id,)).fetchone()
+        if not row:
+            row = conn.execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
+    
+    if not row:
+        return {"error": "Entity not found"}
+    
+    entropy_val = row["entropy"] or 0
+    pressure_val = row["pressure"] or 0
+    gravity_val = row["gravity"] or 0.5
+    
+    metrics_now = {
+        "energy": gravity_val,
+        "stability": max(0.01, 1.0 - entropy_val),
+        "pressure": pressure_val,
+        "influence": gravity_val,
+        "trust": 1.0,
+        "risk": min(1.0, entropy_val * 0.8 + pressure_val * 0.2),
+        "demand": pressure_val + 0.3,
+        "flow": 1.0 - pressure_val,
+    }
+    
+    metrics_prev = _prev_metrics.get(entity_id, metrics_now.copy())
+    
+    # ΔState
+    dE = metrics_now["energy"] - metrics_prev.get("energy", metrics_now["energy"])
+    dS = metrics_now["stability"] - metrics_prev.get("stability", metrics_now["stability"])
+    dP = metrics_now["pressure"] - metrics_prev.get("pressure", metrics_now["pressure"])
+    dG = metrics_now["influence"] - metrics_prev.get("influence", metrics_now["influence"])
+    dR = metrics_now["risk"] - metrics_prev.get("risk", metrics_now["risk"])
+    
+    total_change = abs(dE) + abs(dS) + abs(dP) + abs(dG) + abs(dR)
+    
+    # Physics
+    S = entropy(total_change, dt=1.0)
+    P = pressure(metrics_now["demand"], metrics_now["energy"], metrics_now["stability"])
+    G = gravity(metrics_now["influence"], metrics_now["trust"])
+    
+    # Policy
+    policy = PolicyConstraint(
+        max_energy=1.0,
+        max_flow=1.0,
+        risk_cap=1.0,
+        friction=entropy_val * 0.3
+    )
+    
+    energy_adj, flow_adj, risk_adj = apply_policy(
+        metrics_now["energy"],
+        metrics_now["flow"],
+        metrics_now["risk"],
+        policy
+    )
+    
+    # Time Drift
+    TD = time_drift(total_change, dt=1.0, pressure=P)
+    
+    # Failure Horizon
+    risk_rate = abs(dR) if dR > 0 else 0.01
+    FH = failure_horizon(risk_adj, risk_rate, threshold=1.0)
+    
+    _prev_metrics[entity_id] = metrics_now.copy()
+    
+    return {
+        "entity_id": entity_id,
+        "tick": row["tick"] or 0,
+        "cycle": row["cycle"] or 0,
+        "delta": {
+            "dE": round(dE, 4),
+            "dS": round(dS, 4),
+            "dP": round(dP, 4),
+            "dG": round(dG, 4),
+            "dR": round(dR, 4),
+            "dT": round(TD, 4),
+        },
+        "physics": {
+            "entropy": round(S, 4),
+            "pressure": round(P, 4),
+            "gravity": round(G, 4),
+            "time_drift": round(TD, 4),
+            "failure_horizon": round(FH, 2) if FH != float('inf') else 9999,
+        },
+        "policy": policy.dict(),
+        "adjusted": {
+            "energy": round(energy_adj, 4),
+            "flow": round(flow_adj, 4),
+            "risk": round(risk_adj, 4),
+        },
+        "status": row["status"] or "GREEN",
+    }
+
+
+@app.get("/ui/bind/{entity_id}")
+def ui_bind(entity_id: str):
+    """WebGL 바인딩 전용 엔드포인트 - 계산 없이 바로 렌더"""
+    state = get_solar_state_v2(entity_id)
+    
+    if "error" in state:
+        return state
+    
+    physics = state.get("physics", {})
+    policy = state.get("policy", {})
+    
+    return {
+        "core": {
+            "scale": physics.get("gravity", 0.5),
+            "glow": physics.get("entropy", 0),
+        },
+        "orbits": {
+            "speed": 1.0 - physics.get("pressure", 0),
+            "distortion": physics.get("entropy", 0),
+        },
+        "time": {
+            "drift": physics.get("time_drift", 0),
+            "failure_horizon": physics.get("failure_horizon", 9999),
+        },
+        "policy_shadow": policy.get("friction", 0),
+    }

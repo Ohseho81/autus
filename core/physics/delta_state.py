@@ -7,6 +7,7 @@ class DeltaState(BaseModel):
     dP: float = 0.0   # Pressure 변화
     dG: float = 0.0   # Gravity 변화
     dR: float = 0.0   # Risk 변화
+    dT: float = 0.0   # Time Drift
     
     def total_change(self) -> float:
         """총 변화량 (절대값 합)"""
