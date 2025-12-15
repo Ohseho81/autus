@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS Layer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 300px;
+      background: linear-gradient(180deg, #0a0a0f 0%, #12121a 100%);
+      color: #f8f8ff;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    
+    /* Header */
+    .header {
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, transparent 100%);
+      border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+      text-align: center;
+    }
+    
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      color: #00d4ff;
+      text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+    
+    .tagline {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 6px;
+      letter-spacing: 0.1em;
+    }
+    
+    /* Status Section */
+    .status-section {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .status-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+    }
+    
+    .status-value {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    
+    .status-value.green { color: #00ff88; }
+    .status-value.yellow { color: #ffaa00; }
+    .status-value.red { color: #ff4444; }
+    .status-value.offline { color: rgba(255, 255, 255, 0.3); }
+    
+    /* Quick Stats */
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 18px;
+      font-weight: 300;
+      color: #00d4ff;
+    }
+    
+    .stat-label {
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+    
+    /* Settings */
+    .settings {
+      padding: 16px 20px;
+    }
+    
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+    
+    .setting-info {
+      flex: 1;
+    }
+    
+    .setting-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .setting-desc {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.35);
+      margin-top: 2px;
+    }
+    
+    /* Toggle Switch */
+    .toggle {
+      width: 42px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    
+    .toggle.active {
+      background: rgba(0, 212, 255, 0.4);
+    }
+    
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .toggle.active::after {
+      transform: translateX(18px);
+    }
+    
+    /* Select */
+    .select-wrapper {
+      position: relative;
+    }
+    
+    .entity-select {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 8px;
+      color: #f8f8ff;
+      font-size: 11px;
+      cursor: pointer;
+      appearance: none;
+      transition: all 0.3s ease;
+    }
+    
+    .entity-select:hover {
+      border-color: rgba(0, 212, 255, 0.4);
+    }
+    
+    .entity-select:focus {
+      outline: none;
+      border-color: #00d4ff;
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+    }
+    
+    .entity-select option {
+      background: #12121a;
+      color: #f8f8ff;
+    }
+    
+    .select-arrow {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 10px;
+    }
+    
+    /* Shortcuts */
+    .shortcuts {
+      padding: 12px 20px;
+      background: rgba(0, 0, 0, 0.2);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .shortcuts-title {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.4);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    
+    .shortcut-row:last-child {
+      margin-bottom: 0;
+    }
+    
+    .shortcut-keys {
+      display: flex;
+      gap: 4px;
+    }
+    
+    kbd {
+      padding: 3px 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .shortcut-desc {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+    
+    /* Footer */
+    .footer {
+      padding: 12px 20px;
+      background: rgba(0, 0, 0, 0.3);
+      text-align: center;
+      border-top: 1px solid rgba(0, 212, 255, 0.1);
+    }
+    
+    .footer a {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.3);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .footer a:hover {
+      color: #00d4ff;
+    }
+    
+    .version {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">AUTUS</div>
+    <div class="tagline">See the Future. Don't Touch It.</div>
+  </div>
+  
+  <div class="status-section">
+    <div class="status-row">
+      <span class="status-label">System Status</span>
+      <span class="status-value green" id="status">CONNECTING...</span>
+    </div>
+  </div>
+  
+  <div class="quick-stats">
+    <div class="stat">
+      <div class="stat-value" id="stat-energy">—</div>
+      <div class="stat-label">Energy</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-flow">—</div>
+      <div class="stat-label">Flow</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-risk">—</div>
+      <div class="stat-label">Risk</div>
+    </div>
+  </div>
+  
+  <div class="settings">
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Layer Enabled</div>
+        <div class="setting-desc">Show AUTUS on all pages</div>
+      </div>
+      <div class="toggle active" id="toggle-enabled"></div>
+    </div>
+    
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-label">Auto-expand</div>
+        <div class="setting-desc">Open panel on page load</div>
+      </div>
+      <div class="toggle" id="toggle-autoexpand"></div>
+    </div>
+    
+    <div class="setting-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
+      <div class="setting-info">
+        <div class="setting-label">Observation Target</div>
+        <div class="setting-desc">Select entity to monitor</div>
+      </div>
+      <div class="select-wrapper">
+        <select class="entity-select" id="entity-select">
+          <option value="company_abc">Company ABC</option>
+          <option value="person_001">Person 001</option>
+          <option value="city_seoul">City Seoul</option>
+          <option value="nation_kr">Nation KR</option>
+        </select>
+        <span class="select-arrow">▼</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="shortcuts">
+    <div class="shortcuts-title">Keyboard Shortcuts</div>
+    <div class="shortcut-row">
+      <div class="shortcut-keys"><kbd>Alt</kbd><kbd>A</kbd></div>
+      <span class="shortcut-desc">Toggle Panel</span>
+    </div>
+    <div class="shortcut-row">
+      <div class="shortcut-keys"><kbd>Alt</kbd><kbd>S</kbd></div>
+      <span class="shortcut-desc">Quick Status</span>
+    </div>
+    <div class="shortcut-row">
+      <div class="shortcut-keys"><kbd>Esc</kbd></div>
+      <span class="shortcut-desc">Close Panel</span>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <a href="https://solar.autus-ai.com" target="_blank">solar.autus-ai.com</a>
+    <div class="version">v2.0.0</div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

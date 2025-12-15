@@ -1,0 +1,709 @@
+/* ============================================
+   AUTUS Layer v2.0 — Complete Stylesheet
+   "See the Future. Don't Touch It."
+   ============================================ */
+
+:root {
+  --autus-void: #0a0a0f;
+  --autus-cosmos: rgba(10, 10, 15, 0.97);
+  --autus-surface: rgba(20, 20, 30, 0.95);
+  --autus-cyan: #00d4ff;
+  --autus-cyan-dim: rgba(0, 212, 255, 0.6);
+  --autus-green: #00ff88;
+  --autus-yellow: #ffaa00;
+  --autus-red: #ff4444;
+  --autus-white: #f8f8ff;
+  --autus-gold: #ffd700;
+  --autus-purple: #8b5cf6;
+  --autus-text: rgba(255, 255, 255, 0.9);
+  --autus-text-dim: rgba(255, 255, 255, 0.5);
+  --autus-border: rgba(0, 212, 255, 0.2);
+  --autus-glow: 0 0 20px rgba(0, 212, 255, 0.3);
+  --autus-radius: 12px;
+  --autus-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   Reset & Container
+   ============================================ */
+
+#autus-layer {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  pointer-events: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#autus-layer * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#autus-layer *:focus {
+  outline: none;
+}
+
+/* ============================================
+   Beacon (Minimized State)
+   ============================================ */
+
+#autus-beacon {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--autus-cosmos);
+  border: 2px solid var(--autus-cyan);
+  box-shadow: var(--autus-glow), inset 0 0 20px rgba(0, 212, 255, 0.05);
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--autus-transition);
+  animation: autus-beacon-idle 4s ease-in-out infinite;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+#autus-beacon:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.5), inset 0 0 25px rgba(0, 212, 255, 0.1);
+}
+
+#autus-beacon:active {
+  transform: scale(0.95);
+}
+
+#autus-beacon.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+}
+
+/* Status Colors */
+#autus-beacon.status-green { 
+  border-color: var(--autus-green); 
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+#autus-beacon.status-yellow { 
+  border-color: var(--autus-yellow); 
+  box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
+  animation: autus-beacon-warning 2s ease-in-out infinite;
+}
+#autus-beacon.status-red { 
+  border-color: var(--autus-red); 
+  box-shadow: 0 0 25px rgba(255, 68, 68, 0.4);
+  animation: autus-beacon-alert 0.8s ease-in-out infinite;
+}
+
+/* Beacon Core (Sun) */
+#autus-beacon-core {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff8dc, var(--autus-gold) 40%, #ff8c00 80%);
+  box-shadow: 0 0 12px var(--autus-gold), 0 0 25px rgba(255, 215, 0, 0.4);
+  animation: autus-core-pulse 3s ease-in-out infinite;
+}
+
+/* Beacon Animations */
+@keyframes autus-beacon-idle {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+  50% { box-shadow: 0 0 28px rgba(0, 212, 255, 0.45); }
+}
+
+@keyframes autus-beacon-warning {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 170, 0, 0.3); }
+  50% { box-shadow: 0 0 32px rgba(255, 170, 0, 0.5); }
+}
+
+@keyframes autus-beacon-alert {
+  0%, 100% { box-shadow: 0 0 25px rgba(255, 68, 68, 0.4); transform: scale(1); }
+  50% { box-shadow: 0 0 40px rgba(255, 68, 68, 0.7); transform: scale(1.03); }
+}
+
+@keyframes autus-core-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+/* ============================================
+   Panel (Expanded State)
+   ============================================ */
+
+#autus-panel {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 340px;
+  max-height: calc(100vh - 48px);
+  background: var(--autus-cosmos);
+  border: 1px solid var(--autus-border);
+  border-radius: var(--autus-radius);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(0, 212, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px) scale(0.95);
+  transition: all var(--autus-transition);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  overflow: hidden;
+}
+
+#autus-panel.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+/* ============================================
+   Panel Header
+   ============================================ */
+
+#autus-header {
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, transparent 100%);
+  border-bottom: 1px solid var(--autus-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#autus-logo {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: var(--autus-cyan);
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+#autus-entity {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--autus-text-dim);
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+#autus-status {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+#autus-status.green {
+  background: rgba(0, 255, 136, 0.15);
+  color: var(--autus-green);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
+}
+
+#autus-status.yellow {
+  background: rgba(255, 170, 0, 0.15);
+  color: var(--autus-yellow);
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.1);
+}
+
+#autus-status.red {
+  background: rgba(255, 68, 68, 0.15);
+  color: var(--autus-red);
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.1);
+  animation: autus-status-blink 1s ease-in-out infinite;
+}
+
+@keyframes autus-status-blink {
+  50% { opacity: 0.7; }
+}
+
+#autus-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--autus-text-dim);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--autus-transition);
+}
+
+#autus-close:hover {
+  background: rgba(255, 68, 68, 0.2);
+  color: var(--autus-red);
+}
+
+/* ============================================
+   Solar System View
+   ============================================ */
+
+#autus-solar {
+  height: 180px;
+  position: relative;
+  background: radial-gradient(ellipse at center, rgba(0, 30, 60, 0.4) 0%, transparent 70%);
+  border-bottom: 1px solid var(--autus-border);
+  overflow: hidden;
+}
+
+#autus-solar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+#autus-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Time Indicator */
+#autus-time-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--autus-text-dim);
+}
+
+.autus-time-segment {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.autus-time-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.autus-time-dot.past { background: var(--autus-cyan-dim); }
+.autus-time-dot.now { background: var(--autus-gold); box-shadow: 0 0 6px var(--autus-gold); }
+.autus-time-dot.forecast { background: transparent; border: 1px dashed var(--autus-text-dim); }
+
+/* ============================================
+   Twin State Section
+   ============================================ */
+
+#autus-twin {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--autus-border);
+}
+
+#autus-twin-title {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--autus-text-dim);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.autus-twin-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.autus-twin-row:last-child {
+  margin-bottom: 0;
+}
+
+.autus-twin-label {
+  width: 50px;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--autus-text-dim);
+  text-transform: uppercase;
+}
+
+.autus-twin-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.autus-twin-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.autus-twin-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+  border-radius: 0 3px 3px 0;
+}
+
+.autus-twin-fill.energy { background: linear-gradient(90deg, #00d4ff, #00ff88); }
+.autus-twin-fill.flow { background: linear-gradient(90deg, #8b5cf6, #00d4ff); }
+.autus-twin-fill.risk { background: linear-gradient(90deg, #ffaa00, #ff4444); }
+
+.autus-twin-fill.warning { background: linear-gradient(90deg, #ff8800, #ffaa00) !important; }
+.autus-twin-fill.danger { background: linear-gradient(90deg, #ff4444, #ff6666) !important; }
+
+.autus-twin-value {
+  width: 40px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--autus-text);
+}
+
+/* ============================================
+   9 Planets Grid
+   ============================================ */
+
+#autus-planets {
+  padding: 14px 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  border-bottom: 1px solid var(--autus-border);
+}
+
+.autus-planet {
+  text-align: center;
+  padding: 10px 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all var(--autus-transition);
+  cursor: default;
+}
+
+.autus-planet:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.autus-planet-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin: 0 auto 6px;
+  position: relative;
+}
+
+.autus-planet-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0.3;
+  filter: blur(4px);
+}
+
+.autus-planet-name {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--autus-text-dim);
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.autus-planet-value {
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--autus-text);
+}
+
+/* Planet Colors */
+.planet-output .autus-planet-dot { background: #4ecdc4; }
+.planet-quality .autus-planet-dot { background: #a8e6cf; }
+.planet-time .autus-planet-dot { background: #7b68ee; }
+.planet-friction .autus-planet-dot { background: #ff6b6b; }
+.planet-stability .autus-planet-dot { background: #45b7d1; }
+.planet-cohesion .autus-planet-dot { background: #f7dc6f; }
+.planet-recovery .autus-planet-dot { background: #82e0aa; }
+.planet-transfer .autus-planet-dot { background: #bb8fce; }
+.planet-shock .autus-planet-dot { background: #e74c3c; }
+
+/* ============================================
+   Forecast Section
+   ============================================ */
+
+#autus-forecast {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--autus-border);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+#autus-forecast-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--autus-cyan);
+  border-top-color: transparent;
+  animation: autus-spin 1.2s linear infinite;
+}
+
+@keyframes autus-spin {
+  to { transform: rotate(360deg); }
+}
+
+#autus-forecast-label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--autus-text-dim);
+  text-transform: uppercase;
+}
+
+#autus-forecast-time {
+  font-size: 10px;
+  color: var(--autus-text-dim);
+  margin-left: auto;
+}
+
+#autus-forecast-delta {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 50px;
+  text-align: right;
+}
+
+#autus-forecast-delta.positive { color: var(--autus-green); }
+#autus-forecast-delta.negative { color: var(--autus-red); }
+#autus-forecast-delta.neutral { color: var(--autus-text-dim); }
+
+/* ============================================
+   Bottleneck Alert
+   ============================================ */
+
+#autus-bottleneck {
+  padding: 10px 16px;
+  background: rgba(255, 68, 68, 0.1);
+  border-bottom: 1px solid rgba(255, 68, 68, 0.2);
+  display: none;
+}
+
+#autus-bottleneck.visible {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#autus-bottleneck-icon {
+  font-size: 14px;
+}
+
+#autus-bottleneck-text {
+  font-size: 10px;
+  color: var(--autus-red);
+  flex: 1;
+}
+
+#autus-bottleneck-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--autus-red);
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+
+#autus-footer {
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#autus-time {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--autus-text-dim);
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+}
+
+#autus-tagline {
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+#autus-connection {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  color: var(--autus-text-dim);
+}
+
+#autus-connection-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--autus-green);
+  animation: autus-connection-pulse 2s ease-in-out infinite;
+}
+
+#autus-connection-dot.offline {
+  background: var(--autus-red);
+  animation: none;
+}
+
+@keyframes autus-connection-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ============================================
+   Keyboard Shortcut Hint
+   ============================================ */
+
+#autus-shortcut-hint {
+  position: fixed;
+  bottom: 84px;
+  right: 24px;
+  padding: 6px 10px;
+  background: var(--autus-cosmos);
+  border: 1px solid var(--autus-border);
+  border-radius: 6px;
+  font-size: 9px;
+  color: var(--autus-text-dim);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all var(--autus-transition);
+  pointer-events: none;
+}
+
+#autus-shortcut-hint.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#autus-shortcut-hint kbd {
+  padding: 2px 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  font-family: inherit;
+  margin-right: 4px;
+}
+
+/* ============================================
+   Quick Status Toast
+   ============================================ */
+
+#autus-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  padding: 12px 20px;
+  background: var(--autus-cosmos);
+  border: 1px solid var(--autus-border);
+  border-radius: var(--autus-radius);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all var(--autus-transition);
+  pointer-events: none;
+}
+
+#autus-toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#autus-toast-status {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+#autus-toast-status.green { background: var(--autus-green); box-shadow: 0 0 10px var(--autus-green); }
+#autus-toast-status.yellow { background: var(--autus-yellow); box-shadow: 0 0 10px var(--autus-yellow); }
+#autus-toast-status.red { background: var(--autus-red); box-shadow: 0 0 10px var(--autus-red); }
+
+#autus-toast-text {
+  font-size: 11px;
+  color: var(--autus-text);
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 400px) {
+  #autus-panel {
+    width: calc(100vw - 32px);
+    right: 16px;
+    bottom: 16px;
+  }
+  
+  #autus-beacon {
+    right: 16px;
+    bottom: 16px;
+    width: 44px;
+    height: 44px;
+  }
+  
+  #autus-beacon-core {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* ============================================
+   Print (Hide)
+   ============================================ */
+
+@media print {
+  #autus-layer {
+    display: none !important;
+  }
+}
