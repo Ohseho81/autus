@@ -3,634 +3,597 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>AUTUS Solar System v2.0</title>
+  <title>AUTUS Solar System HQ</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{background:#000;color:#fff;font-family:'SF Pro Display',system-ui,sans-serif;overflow:hidden}
+    body{background:#020408;overflow:hidden;font-family:'Inter',system-ui,sans-serif}
     
-    #canvas{position:fixed;top:0;left:0;width:100%;height:100%}
+    /* Frame */
+    .frame{position:fixed;top:24px;left:24px;right:24px;bottom:24px;border:1px solid rgba(0,212,255,.2);border-radius:6px;pointer-events:none;z-index:50}
+    .corner{position:absolute;width:14px;height:14px}
+    .corner::before,.corner::after{content:'';position:absolute;background:rgba(0,212,255,.4)}
+    .corner.tl{top:-1px;left:-1px}.corner.tl::before{width:14px;height:1px;top:0;left:0}.corner.tl::after{width:1px;height:14px;top:0;left:0}
+    .corner.tr{top:-1px;right:-1px}.corner.tr::before{width:14px;height:1px;top:0;right:0}.corner.tr::after{width:1px;height:14px;top:0;right:0}
+    .corner.bl{bottom:-1px;left:-1px}.corner.bl::before{width:14px;height:1px;bottom:0;left:0}.corner.bl::after{width:1px;height:14px;bottom:0;left:0}
+    .corner.br{bottom:-1px;right:-1px}.corner.br::before{width:14px;height:1px;bottom:0;right:0}.corner.br::after{width:1px;height:14px;bottom:0;right:0}
     
-    /* HUD Overlay */
-    .hud{position:fixed;pointer-events:none;z-index:100}
-    .hud>*{pointer-events:auto}
+    /* Info Panel */
+    #info{position:fixed;top:40px;left:40px;color:#fff;font-size:10px;z-index:100}
+    #info h1{font-size:11px;font-weight:600;letter-spacing:.2em;color:#00d4ff;margin-bottom:12px}
+    .stat-row{display:flex;justify-content:space-between;width:160px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .stat-label{opacity:.5;font-size:9px}
+    .stat-value{color:#00d4ff;font-variant-numeric:tabular-nums}
     
-    /* Top Bar */
-    .top-bar{top:0;left:0;right:0;height:60px;background:linear-gradient(180deg,rgba(0,0,0,.8) 0%,transparent 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
-    .logo{font-size:14px;font-weight:700;letter-spacing:.2em;color:#00d4ff}
-    .logo span{color:#fff;opacity:.5}
-    .status-bar{display:flex;gap:24px}
-    .status-item{text-align:center}
-    .status-value{font-size:18px;font-weight:300;color:#00d4ff;font-family:'SF Mono',monospace}
-    .status-label{font-size:9px;letter-spacing:.15em;color:#666;margin-top:2px}
-    .status-badge{padding:6px 16px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:.1em}
-    .status-badge.green{background:rgba(0,255,136,.15);color:#00ff88;border:1px solid rgba(0,255,136,.3)}
-    .status-badge.yellow{background:rgba(255,170,0,.15);color:#ffaa00;border:1px solid rgba(255,170,0,.3)}
-    .status-badge.red{background:rgba(255,68,68,.15);color:#ff4444;border:1px solid rgba(255,68,68,.3)}
+    /* Planets Panel */
+    #planets-panel{position:fixed;top:200px;left:40px;width:180px;z-index:100}
+    .panel-title{font-size:8px;letter-spacing:.15em;color:rgba(0,212,255,.5);margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid rgba(0,212,255,.1)}
+    .planet-row{display:flex;align-items:center;gap:8px;padding:5px 8px;margin-bottom:4px;background:rgba(0,20,40,.4);border:1px solid rgba(0,212,255,.1);border-radius:4px;cursor:pointer;transition:all .2s}
+    .planet-row:hover{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.3)}
+    .planet-row.active{background:rgba(0,212,255,.15);border-color:#00d4ff}
+    .planet-dot{width:10px;height:10px;border-radius:50%}
+    .planet-name{font-size:9px;flex:1;color:#fff}
+    .planet-val{font-size:10px;font-weight:600;font-family:'SF Mono',monospace}
     
-    /* Left Panel */
-    .left-panel{left:0;top:60px;bottom:100px;width:280px;background:linear-gradient(90deg,rgba(0,0,0,.85) 0%,transparent 100%);padding:24px}
-    .panel-section{margin-bottom:24px}
-    .section-title{font-size:10px;letter-spacing:.2em;color:#00d4ff;opacity:.6;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(0,212,255,.1)}
-    
-    /* Planet List */
-    .planet-list{display:flex;flex-direction:column;gap:8px}
-    .planet-item{display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;cursor:pointer;transition:all .2s}
-    .planet-item:hover{background:rgba(255,255,255,.08);border-color:rgba(0,212,255,.3)}
-    .planet-item.active{background:rgba(0,212,255,.1);border-color:#00d4ff}
-    .planet-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px}
-    .planet-info{flex:1}
-    .planet-name{font-size:11px;font-weight:600;letter-spacing:.05em}
-    .planet-desc{font-size:9px;color:#666;margin-top:2px}
-    .planet-value{font-size:14px;font-weight:600;font-family:'SF Mono',monospace}
-    
-    /* Orbit Legend */
-    .orbit-legend{display:flex;flex-direction:column;gap:8px}
-    .legend-item{display:flex;align-items:center;gap:10px;font-size:11px}
-    .legend-line{width:24px;height:3px;border-radius:2px}
-    .legend-line.past{background:linear-gradient(90deg,#444,#666)}
-    .legend-line.now{background:linear-gradient(90deg,#00d4ff,#00ffff);box-shadow:0 0 8px rgba(0,212,255,.5)}
-    .legend-line.forecast{background:linear-gradient(90deg,#aa88ff,#ff88ff);opacity:.6}
-    .legend-label{color:#888}
-    .legend-desc{font-size:9px;color:#555;margin-left:auto}
-    
-    /* Right Panel */
-    .right-panel{right:0;top:60px;bottom:100px;width:260px;background:linear-gradient(-90deg,rgba(0,0,0,.85) 0%,transparent 100%);padding:24px}
+    /* Metrics Panel */
+    #metrics{position:fixed;top:40px;right:40px;width:200px;z-index:100}
+    .metric-section{margin-bottom:16px}
+    .metric-title{font-size:8px;letter-spacing:.15em;color:rgba(0,212,255,.5);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(0,212,255,.1)}
+    .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .metric-card{background:rgba(0,20,40,.6);border:1px solid rgba(0,212,255,.15);border-radius:4px;padding:8px;text-align:center}
+    .metric-value{font-size:16px;font-weight:200;color:#00d4ff}
+    .metric-value.warning{color:#ffaa00}
+    .metric-value.danger{color:#ff4444}
+    .metric-label{font-size:7px;opacity:.4;margin-top:2px;letter-spacing:.1em}
     
     /* Selected Planet Detail */
-    .detail-card{background:rgba(0,20,40,.6);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:16px;margin-bottom:16px}
-    .detail-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-    .detail-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px}
-    .detail-title{flex:1}
-    .detail-name{font-size:14px;font-weight:600}
-    .detail-sub{font-size:10px;color:#666;margin-top:2px}
-    .detail-value-big{font-size:32px;font-weight:200;text-align:center;margin:16px 0;font-family:'SF Mono',monospace}
-    .detail-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin:12px 0}
-    .detail-bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
-    .detail-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .stat-item{text-align:center;padding:8px;background:rgba(0,0,0,.3);border-radius:6px}
-    .stat-value{font-size:14px;font-weight:600;font-family:'SF Mono',monospace}
-    .stat-label{font-size:8px;color:#666;margin-top:2px;letter-spacing:.1em}
+    #planet-detail{position:fixed;bottom:120px;right:40px;width:200px;z-index:100}
+    .detail-card{background:rgba(0,20,40,.7);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:14px}
+    .detail-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    .detail-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .detail-info h3{font-size:11px;font-weight:600;color:#fff}
+    .detail-info p{font-size:8px;color:#666;margin-top:2px}
+    .detail-value{font-size:28px;font-weight:200;text-align:center;margin:10px 0;font-family:'SF Mono',monospace}
+    .detail-bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+    .detail-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+    .detail-orbit{display:flex;justify-content:space-between;margin-top:10px;font-size:8px;color:#666}
+    .detail-orbit span{color:#00d4ff}
+    
+    /* Orbit Legend */
+    #orbit-legend{position:fixed;bottom:40px;left:40px;display:flex;gap:20px;z-index:100}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:9px;color:#888;cursor:pointer;opacity:.7;transition:opacity .2s}
+    .legend-item:hover{opacity:1}
+    .legend-item.active{opacity:1;color:#fff}
+    .legend-dot{width:8px;height:8px;border-radius:50%}
+    .legend-dot.past{background:#555}
+    .legend-dot.now{background:#00d4ff;box-shadow:0 0 8px #00d4ff}
+    .legend-dot.forecast{background:#aa88ff;box-shadow:0 0 6px #aa88ff}
     
     /* Controls */
-    .controls{display:flex;flex-direction:column;gap:8px}
-    .control-btn{padding:10px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:#fff;font-size:10px;letter-spacing:.1em;cursor:pointer;transition:all .2s;text-align:center}
-    .control-btn:hover{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.3)}
-    .control-btn.active{background:rgba(0,212,255,.2);border-color:#00d4ff;color:#00d4ff}
-    
-    /* Bottom Bar */
-    .bottom-bar{bottom:0;left:0;right:0;height:80px;background:linear-gradient(0deg,rgba(0,0,0,.9) 0%,transparent 100%);display:flex;align-items:center;justify-content:center;gap:48px;padding:0 24px}
-    .time-control{display:flex;align-items:center;gap:24px}
-    .time-marker{text-align:center;cursor:pointer;opacity:.5;transition:all .2s}
-    .time-marker:hover{opacity:.8}
-    .time-marker.active{opacity:1}
-    .time-dot{width:12px;height:12px;border-radius:50%;margin:0 auto 8px}
-    .time-marker.past .time-dot{background:#666;box-shadow:0 0 10px rgba(102,102,102,.5)}
-    .time-marker.now .time-dot{background:#00d4ff;box-shadow:0 0 15px rgba(0,212,255,.8)}
-    .time-marker.forecast .time-dot{background:#aa88ff;box-shadow:0 0 15px rgba(170,136,255,.6);animation:pulse 2s ease-in-out infinite}
-    .time-label{font-size:10px;letter-spacing:.15em}
-    .time-sub{font-size:8px;color:#555;margin-top:4px}
-    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.1)}}
+    #controls{position:fixed;bottom:40px;right:40px;display:flex;gap:6px;z-index:100}
+    #controls button{padding:8px 14px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);color:#00d4ff;border-radius:4px;font-size:9px;cursor:pointer;transition:all .2s}
+    #controls button:hover{background:rgba(0,212,255,.2)}
+    #controls button.active{background:rgba(0,212,255,.25);border-color:#00d4ff}
     
     /* Tooltip */
-    .tooltip{position:fixed;background:rgba(0,20,40,.95);border:1px solid rgba(0,212,255,.3);border-radius:8px;padding:12px 16px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:200;max-width:200px}
-    .tooltip.visible{opacity:1}
-    .tooltip-title{font-size:12px;font-weight:600;margin-bottom:4px}
-    .tooltip-value{font-size:18px;font-weight:300;color:#00d4ff;font-family:'SF Mono',monospace}
-    .tooltip-desc{font-size:9px;color:#666;margin-top:4px}
-    
-    /* Loading */
-    .loading{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:1000}
-    .loading-text{font-size:12px;letter-spacing:.3em;color:#00d4ff;animation:blink 1s ease-in-out infinite}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    #tooltip{position:fixed;background:rgba(0,15,30,.95);border:1px solid rgba(0,212,255,.3);border-radius:6px;padding:10px 14px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:200}
+    #tooltip.visible{opacity:1}
+    #tooltip h4{font-size:10px;font-weight:600;color:#00d4ff;margin-bottom:4px}
+    #tooltip p{font-size:9px;color:#888}
+    #tooltip .val{font-size:16px;font-weight:300;color:#fff;margin-top:4px}
   </style>
 </head>
 <body>
-  <div class="loading" id="loading">
-    <div class="loading-text">INITIALIZING SOLAR SYSTEM</div>
-  </div>
-
-  <canvas id="canvas"></canvas>
-  
-  <!-- HUD -->
-  <div class="hud top-bar">
-    <div class="logo">AUTUS <span>SOLAR SYSTEM</span></div>
-    <div class="status-bar">
-      <div class="status-item">
-        <div class="status-value" id="entropyValue">0.188</div>
-        <div class="status-label">ENTROPY</div>
-      </div>
-      <div class="status-item">
-        <div class="status-value" id="pressureValue">0.00</div>
-        <div class="status-label">PRESSURE</div>
-      </div>
-      <div class="status-item">
-        <div class="status-value" id="riskValue">0.28</div>
-        <div class="status-label">RISK</div>
-      </div>
-      <div class="status-badge yellow" id="statusBadge">YELLOW</div>
-    </div>
+  <!-- Frame -->
+  <div class="frame">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
   </div>
   
-  <div class="hud left-panel">
-    <div class="panel-section">
-      <div class="section-title">9 PLANETS</div>
-      <div class="planet-list" id="planetList"></div>
-    </div>
-    
-    <div class="panel-section">
-      <div class="section-title">ORBIT TIMELINE</div>
-      <div class="orbit-legend">
-        <div class="legend-item">
-          <div class="legend-line past"></div>
-          <span class="legend-label">PAST</span>
-          <span class="legend-desc">확정된 기록</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-line now"></div>
-          <span class="legend-label">NOW</span>
-          <span class="legend-desc">현재 상태</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-line forecast"></div>
-          <span class="legend-label">FORECAST</span>
-          <span class="legend-desc">물리 기반 예측</span>
-        </div>
+  <!-- Info Panel -->
+  <div id="info">
+    <h1>SOLAR SYSTEM HQ</h1>
+    <div class="stat-row"><span class="stat-label">ENTITY</span><span class="stat-value" id="s-entity">SUN_001</span></div>
+    <div class="stat-row"><span class="stat-label">PLANETS</span><span class="stat-value">9</span></div>
+    <div class="stat-row"><span class="stat-label">FPS</span><span class="stat-value" id="s-fps">60</span></div>
+    <div class="stat-row"><span class="stat-label">STATUS</span><span class="stat-value" id="s-status">STABLE</span></div>
+    <div class="stat-row"><span class="stat-label">ORBIT</span><span class="stat-value" id="s-orbit">0°</span></div>
+  </div>
+  
+  <!-- Planets Panel -->
+  <div id="planets-panel">
+    <div class="panel-title">9 PLANETS</div>
+    <div id="planet-list"></div>
+  </div>
+  
+  <!-- Metrics -->
+  <div id="metrics">
+    <div class="metric-section">
+      <div class="metric-title">TWIN STATE</div>
+      <div class="metric-grid">
+        <div class="metric-card"><div class="metric-value" id="m-entropy">0.188</div><div class="metric-label">ENTROPY</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-pressure">0.00</div><div class="metric-label">PRESSURE</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-risk">0.28</div><div class="metric-label">RISK</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-flow">0.00</div><div class="metric-label">FLOW</div></div>
       </div>
     </div>
-    
-    <div class="panel-section">
-      <div class="section-title">VIEW CONTROLS</div>
-      <div class="controls">
-        <div class="control-btn active" data-view="orbit">🪐 Orbit View</div>
-        <div class="control-btn" data-view="top">🔭 Top View</div>
-        <div class="control-btn" data-view="entity">☀️ Entity Focus</div>
+    <div class="metric-section">
+      <div class="metric-title">SYSTEM</div>
+      <div class="metric-grid">
+        <div class="metric-card"><div class="metric-value" id="m-uptime">99.9%</div><div class="metric-label">UPTIME</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-latency">12ms</div><div class="metric-label">LATENCY</div></div>
       </div>
     </div>
   </div>
   
-  <div class="hud right-panel">
-    <div class="panel-section">
-      <div class="section-title">SELECTED PLANET</div>
-      <div class="detail-card" id="detailCard">
-        <div class="detail-header">
-          <div class="detail-icon" id="detailIcon">🔥</div>
-          <div class="detail-title">
-            <div class="detail-name" id="detailName">OUTPUT</div>
-            <div class="detail-sub" id="detailSub">생산량 · Engine</div>
-          </div>
-        </div>
-        <div class="detail-value-big" id="detailValue">72%</div>
-        <div class="detail-bar">
-          <div class="detail-bar-fill" id="detailBar" style="width:72%;background:linear-gradient(90deg,#00ff88,#00cc66)"></div>
-        </div>
-        <div class="detail-stats">
-          <div class="stat-item">
-            <div class="stat-value" id="statPast">68%</div>
-            <div class="stat-label">PAST</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value" id="statForecast">76%</div>
-            <div class="stat-label">FORECAST</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value" id="statDelta">+4%</div>
-            <div class="stat-label">DELTA</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value" id="statTrend">↗</div>
-            <div class="stat-label">TREND</div>
-          </div>
+  <!-- Selected Planet Detail -->
+  <div id="planet-detail">
+    <div class="detail-card">
+      <div class="detail-header">
+        <div class="detail-icon" id="d-icon" style="background:rgba(0,255,136,.15)">🔥</div>
+        <div class="detail-info">
+          <h3 id="d-name">OUTPUT</h3>
+          <p id="d-desc">생산량 · Engine</p>
         </div>
       </div>
-    </div>
-    
-    <div class="panel-section">
-      <div class="section-title">INTERACTION</div>
-      <div class="controls">
-        <div class="control-btn">🖱️ Drag: Rotate</div>
-        <div class="control-btn">🔍 Scroll: Zoom</div>
-        <div class="control-btn">👆 Click: Select</div>
+      <div class="detail-value" id="d-value" style="color:#00ff88">72%</div>
+      <div class="detail-bar"><div class="detail-bar-fill" id="d-bar" style="width:72%;background:#00ff88"></div></div>
+      <div class="detail-orbit">
+        <span>PAST: <span id="d-past">68%</span></span>
+        <span>NOW: <span id="d-now">72%</span></span>
+        <span>FORECAST: <span id="d-forecast">76%</span></span>
       </div>
     </div>
   </div>
   
-  <div class="hud bottom-bar">
-    <div class="time-control">
-      <div class="time-marker past active" data-time="past">
-        <div class="time-dot"></div>
-        <div class="time-label">PAST</div>
-        <div class="time-sub">t = -1</div>
-      </div>
-      <div class="time-marker now active" data-time="now">
-        <div class="time-dot"></div>
-        <div class="time-label">NOW</div>
-        <div class="time-sub">t = 0</div>
-      </div>
-      <div class="time-marker forecast active" data-time="forecast">
-        <div class="time-dot"></div>
-        <div class="time-label">FORECAST</div>
-        <div class="time-sub">t = +1</div>
-      </div>
-    </div>
+  <!-- Orbit Legend -->
+  <div id="orbit-legend">
+    <div class="legend-item active" data-orbit="past"><div class="legend-dot past"></div>PAST (t-1)</div>
+    <div class="legend-item active" data-orbit="now"><div class="legend-dot now"></div>NOW (t=0)</div>
+    <div class="legend-item active" data-orbit="forecast"><div class="legend-dot forecast"></div>FORECAST (t+1)</div>
   </div>
   
-  <div class="tooltip" id="tooltip">
-    <div class="tooltip-title">OUTPUT</div>
-    <div class="tooltip-value">72%</div>
-    <div class="tooltip-desc">생산량 · Engine Power</div>
+  <!-- Controls -->
+  <div id="controls">
+    <button onclick="resetView()">RESET</button>
+    <button onclick="toggleOrbits()" class="active">ORBITS</button>
+    <button onclick="toggleLabels()" class="active">LABELS</button>
+    <button onclick="toggleAuto()">AUTO</button>
+  </div>
+  
+  <!-- Tooltip -->
+  <div id="tooltip">
+    <h4>OUTPUT</h4>
+    <p>생산량 · Engine</p>
+    <div class="val">72%</div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    // === PLANET DEFINITIONS (각각 고유한 특성) ===
-    const PLANETS = [
-      { key: 'OUTPUT',    name: 'Output',    icon: '🔥', desc: '생산량 · Engine',     color: 0x00ff88, emissive: 0x004422, size: 0.35, orbitRadius: 2.2, speed: 0.8, rings: false },
-      { key: 'QUALITY',   name: 'Quality',   icon: '🛡️', desc: '품질 · Shield',       color: 0x00d4ff, emissive: 0x002244, size: 0.30, orbitRadius: 2.8, speed: 0.6, rings: true },
-      { key: 'TIME',      name: 'Time',      icon: '⏱️', desc: '시간효율 · Clock',    color: 0xffaa00, emissive: 0x442200, size: 0.28, orbitRadius: 3.4, speed: 1.0, rings: false },
-      { key: 'FRICTION',  name: 'Friction',  icon: '⚡', desc: '저항 · Drag',         color: 0xff4444, emissive: 0x440000, size: 0.32, orbitRadius: 4.0, speed: 0.5, rings: false },
-      { key: 'STABILITY', name: 'Stability', icon: '🎯', desc: '안정성 · Gyro',       color: 0x8844ff, emissive: 0x220044, size: 0.40, orbitRadius: 4.6, speed: 0.4, rings: true },
-      { key: 'COHESION',  name: 'Cohesion',  icon: '🔗', desc: '응집력 · Sync',       color: 0xff44aa, emissive: 0x440022, size: 0.25, orbitRadius: 5.2, speed: 0.7, rings: false },
-      { key: 'RECOVERY',  name: 'Recovery',  icon: '🔧', desc: '회복력 · Repair',     color: 0x44ff44, emissive: 0x004400, size: 0.27, orbitRadius: 5.8, speed: 0.55, rings: false },
-      { key: 'TRANSFER',  name: 'Transfer',  icon: '📡', desc: '전달효율 · Comm',     color: 0x44aaff, emissive: 0x002244, size: 0.22, orbitRadius: 6.4, speed: 0.9, rings: true },
-      { key: 'SHOCK',     name: 'Shock',     icon: '⚠️', desc: '충격위험 · Alert',    color: 0xff8800, emissive: 0x442200, size: 0.38, orbitRadius: 7.0, speed: 0.35, rings: false },
-    ];
+// === PLANET DEFINITIONS ===
+const PLANETS = [
+  { key: 'OUTPUT',    name: 'Output',    icon: '🔥', desc: '생산량 · Engine',    color: 0x00ff88, size: 0.18, orbit: 2.4, speed: 0.7,  tilt: 0.1 },
+  { key: 'QUALITY',   name: 'Quality',   icon: '🛡️', desc: '품질 · Shield',      color: 0x00d4ff, size: 0.15, orbit: 2.9, speed: 0.55, tilt: 0.05, rings: true },
+  { key: 'TIME',      name: 'Time',      icon: '⏱️', desc: '시간효율 · Clock',   color: 0xffaa00, size: 0.14, orbit: 3.4, speed: 0.85, tilt: 0.15 },
+  { key: 'FRICTION',  name: 'Friction',  icon: '⚡', desc: '저항 · Drag',        color: 0xff4444, size: 0.16, orbit: 3.9, speed: 0.45, tilt: 0.08 },
+  { key: 'STABILITY', name: 'Stability', icon: '🎯', desc: '안정성 · Gyro',      color: 0x8844ff, size: 0.20, orbit: 4.4, speed: 0.35, tilt: 0.12, rings: true },
+  { key: 'COHESION',  name: 'Cohesion',  icon: '🔗', desc: '응집력 · Sync',      color: 0xff44aa, size: 0.13, orbit: 4.9, speed: 0.6,  tilt: 0.07 },
+  { key: 'RECOVERY',  name: 'Recovery',  icon: '🔧', desc: '회복력 · Repair',    color: 0x44ff44, size: 0.14, orbit: 5.4, speed: 0.5,  tilt: 0.1 },
+  { key: 'TRANSFER',  name: 'Transfer',  icon: '📡', desc: '전달효율 · Comm',    color: 0x44aaff, size: 0.12, orbit: 5.9, speed: 0.75, tilt: 0.06, rings: true },
+  { key: 'SHOCK',     name: 'Shock',     icon: '⚠️', desc: '충격위험 · Alert',   color: 0xff8800, size: 0.19, orbit: 6.4, speed: 0.3,  tilt: 0.2 },
+];
 
-    // === STATE ===
-    let planets9 = {};
-    let selectedPlanet = 'OUTPUT';
-    let showOrbits = { past: true, now: true, forecast: true };
-    let cameraAngle = { theta: 0.5, phi: 0.8 };
-    let cameraDistance = 15;
-    let isDragging = false;
-    let lastMouse = { x: 0, y: 0 };
+// === STATE ===
+let planets9 = {};
+let selectedPlanet = 'OUTPUT';
+let showOrbits = { past: true, now: true, forecast: true };
+let showLabels = true;
+let autoRotate = false;
+let orbitAngle = 0;
+let isDragging = false;
+let lastMouse = { x: 0, y: 0 };
+let cameraTheta = 0.4;
+let cameraPhi = 1.0;
+let cameraDistance = 12;
+let frameCount = 0;
+let lastTime = performance.now();
 
-    // === THREE.JS SETUP ===
-    const canvas = document.getElementById('canvas');
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+// === THREE.JS ===
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+document.body.appendChild(renderer.domElement);
+
+// === LIGHTING ===
+scene.add(new THREE.AmbientLight(0x404050, 0.4));
+const sunLight = new THREE.PointLight(0xffffff, 1.5, 50);
+scene.add(sunLight);
+const rimLight = new THREE.DirectionalLight(0x00d4ff, 0.3);
+rimLight.position.set(10, 5, 10);
+scene.add(rimLight);
+
+// === STARFIELD ===
+const starsGeo = new THREE.BufferGeometry();
+const starPos = [];
+for (let i = 0; i < 2000; i++) {
+  const r = 40 + Math.random() * 60;
+  const t = Math.random() * Math.PI * 2;
+  const p = Math.acos(2 * Math.random() - 1);
+  starPos.push(r * Math.sin(p) * Math.cos(t), r * Math.sin(p) * Math.sin(t), r * Math.cos(p));
+}
+starsGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+const stars = new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.08 }));
+scene.add(stars);
+
+// === GLOBE (중심 Entity) ===
+const globeGroup = new THREE.Group();
+scene.add(globeGroup);
+
+// Globe sphere with grid
+const globeGeo = new THREE.SphereGeometry(1.5, 64, 64);
+const globeMat = new THREE.MeshPhongMaterial({
+  color: 0x0066aa,
+  emissive: 0x001133,
+  transparent: true,
+  opacity: 0.85,
+  shininess: 30,
+});
+const globe = new THREE.Mesh(globeGeo, globeMat);
+globeGroup.add(globe);
+
+// Globe wireframe (grid lines)
+const wireGeo = new THREE.SphereGeometry(1.52, 36, 18);
+const wireMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, wireframe: true, transparent: true, opacity: 0.15 });
+const wireframe = new THREE.Mesh(wireGeo, wireMat);
+globeGroup.add(wireframe);
+
+// Globe glow
+const glowGeo = new THREE.SphereGeometry(1.7, 32, 32);
+const glowMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.08, side: THREE.BackSide });
+globeGroup.add(new THREE.Mesh(glowGeo, glowMat));
+
+// Globe atmosphere
+const atmoGeo = new THREE.SphereGeometry(1.9, 32, 32);
+const atmoMat = new THREE.MeshBasicMaterial({ color: 0x0088ff, transparent: true, opacity: 0.03, side: THREE.BackSide });
+globeGroup.add(new THREE.Mesh(atmoGeo, atmoMat));
+
+// === 9 PLANETS ===
+const planetMeshes = {};
+const planetLabels = {};
+const orbitRings = { past: [], now: [], forecast: [] };
+
+PLANETS.forEach((p, i) => {
+  const group = new THREE.Group();
+  
+  // Planet sphere
+  const geo = new THREE.SphereGeometry(p.size, 24, 24);
+  const mat = new THREE.MeshStandardMaterial({
+    color: p.color,
+    emissive: p.color,
+    emissiveIntensity: 0.2,
+    metalness: 0.2,
+    roughness: 0.8,
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  group.add(mesh);
+  
+  // Planet glow
+  const glowG = new THREE.SphereGeometry(p.size * 1.3, 16, 16);
+  const glowM = new THREE.MeshBasicMaterial({ color: p.color, transparent: true, opacity: 0.15, side: THREE.BackSide });
+  group.add(new THREE.Mesh(glowG, glowM));
+  
+  // Rings for some planets
+  if (p.rings) {
+    const ringG = new THREE.RingGeometry(p.size * 1.5, p.size * 2.0, 32);
+    const ringM = new THREE.MeshBasicMaterial({ color: p.color, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+    const ring = new THREE.Mesh(ringG, ringM);
+    ring.rotation.x = Math.PI / 2.2;
+    group.add(ring);
+  }
+  
+  group.userData = p;
+  scene.add(group);
+  planetMeshes[p.key] = group;
+  
+  // Orbit rings (3 timelines)
+  const orbitConfigs = [
+    { key: 'past', color: 0x555555, opacity: 0.15, y: -0.2, dash: true },
+    { key: 'now', color: 0x00d4ff, opacity: 0.3, y: 0, dash: false },
+    { key: 'forecast', color: 0xaa88ff, opacity: 0.15, y: 0.2, dash: true },
+  ];
+  
+  orbitConfigs.forEach(cfg => {
+    const ringGeo = new THREE.RingGeometry(p.orbit - 0.015, p.orbit + 0.015, 128);
+    const ringMat = new THREE.MeshBasicMaterial({ color: cfg.color, transparent: true, opacity: cfg.opacity, side: THREE.DoubleSide });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = cfg.y;
+    scene.add(ring);
+    orbitRings[cfg.key].push(ring);
+  });
+  
+  // Label element
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.style.cssText = 'position:absolute;font-size:9px;color:#fff;pointer-events:none;text-shadow:0 0 6px rgba(0,0,0,.9);white-space:nowrap;opacity:0;transition:opacity .2s';
+  label.innerHTML = `<span style="color:#${p.color.toString(16).padStart(6,'0')}">${p.icon}</span> ${p.name}`;
+  document.body.appendChild(label);
+  planetLabels[p.key] = label;
+});
+
+// === ANIMATION ===
+let time = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.008;
+  frameCount++;
+  
+  // FPS counter
+  const now = performance.now();
+  if (now - lastTime >= 1000) {
+    document.getElementById('s-fps').textContent = frameCount;
+    frameCount = 0;
+    lastTime = now;
+  }
+  
+  // Auto rotate
+  if (autoRotate) cameraTheta += 0.002;
+  
+  // Camera
+  camera.position.x = cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+  camera.position.y = cameraDistance * Math.cos(cameraPhi);
+  camera.position.z = cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+  camera.lookAt(0, 0, 0);
+  
+  // Globe rotation
+  globeGroup.rotation.y += 0.002;
+  wireframe.rotation.y += 0.001;
+  
+  // Orbit angle display
+  orbitAngle = (cameraTheta * 180 / Math.PI) % 360;
+  document.getElementById('s-orbit').textContent = Math.round(orbitAngle) + '°';
+  
+  // Update planets
+  PLANETS.forEach((p, i) => {
+    const value = planets9[p.key] || 0.5;
+    const group = planetMeshes[p.key];
     
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
-
-    // === LIGHTING ===
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
-    scene.add(ambientLight);
+    // Orbit movement
+    const angle = time * p.speed + (i / PLANETS.length) * Math.PI * 2;
+    const r = p.orbit + (value - 0.5) * 0.3;
     
-    const sunLight = new THREE.PointLight(0xffffee, 2, 100);
-    sunLight.position.set(0, 0, 0);
-    scene.add(sunLight);
+    group.position.x = Math.cos(angle) * r;
+    group.position.z = Math.sin(angle) * r;
+    group.position.y = Math.sin(time * 0.3 + i) * 0.1 * p.tilt * 10;
     
-    const rimLight = new THREE.DirectionalLight(0x00d4ff, 0.3);
-    rimLight.position.set(5, 5, 5);
-    scene.add(rimLight);
-
-    // === STARFIELD ===
-    const starsGeometry = new THREE.BufferGeometry();
-    const starPositions = [];
-    for (let i = 0; i < 3000; i++) {
-      const r = 50 + Math.random() * 100;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      starPositions.push(
-        r * Math.sin(phi) * Math.cos(theta),
-        r * Math.sin(phi) * Math.sin(theta),
-        r * Math.cos(phi)
-      );
-    }
-    starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
-    const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.15, sizeAttenuation: true });
-    const stars = new THREE.Points(starsGeometry, starsMaterial);
-    scene.add(stars);
-
-    // === SUN (Entity Center) ===
-    const sunGeometry = new THREE.SphereGeometry(1.0, 64, 64);
-    const sunMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffdd00,
-      transparent: true,
-      opacity: 0.9,
-    });
-    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-    scene.add(sun);
-
-    // Sun glow
-    const glowGeometry = new THREE.SphereGeometry(1.3, 32, 32);
-    const glowMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffaa00,
-      transparent: true,
-      opacity: 0.2,
-      side: THREE.BackSide,
-    });
-    const sunGlow = new THREE.Mesh(glowGeometry, glowMaterial);
-    scene.add(sunGlow);
-
-    // Sun corona
-    const coronaGeometry = new THREE.SphereGeometry(1.6, 32, 32);
-    const coronaMaterial = new THREE.MeshBasicMaterial({
-      color: 0xff8800,
-      transparent: true,
-      opacity: 0.08,
-      side: THREE.BackSide,
-    });
-    const corona = new THREE.Mesh(coronaGeometry, coronaMaterial);
-    scene.add(corona);
-
-    // === PLANETS ===
-    const planetMeshes = {};
-    const orbitMeshes = { past: [], now: [], forecast: [] };
-    const planetGroup = new THREE.Group();
-    scene.add(planetGroup);
-
-    PLANETS.forEach((p, i) => {
-      // Planet sphere with realistic material
-      const geometry = new THREE.SphereGeometry(p.size, 32, 32);
-      const material = new THREE.MeshStandardMaterial({
-        color: p.color,
-        emissive: p.emissive,
-        emissiveIntensity: 0.3,
-        metalness: 0.3,
-        roughness: 0.7,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.userData = { planet: p };
-      planetGroup.add(mesh);
-      planetMeshes[p.key] = mesh;
-
-      // Planet rings (for some planets)
-      if (p.rings) {
-        const ringGeometry = new THREE.RingGeometry(p.size * 1.4, p.size * 1.8, 32);
-        const ringMaterial = new THREE.MeshBasicMaterial({
-          color: p.color,
-          transparent: true,
-          opacity: 0.3,
-          side: THREE.DoubleSide,
-        });
-        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-        ring.rotation.x = Math.PI / 2.5;
-        mesh.add(ring);
-      }
-
-      // Orbit rings for each timeline
-      const orbitConfigs = [
-        { key: 'past', color: 0x666666, opacity: 0.2, yOffset: -0.3 },
-        { key: 'now', color: 0x00d4ff, opacity: 0.4, yOffset: 0 },
-        { key: 'forecast', color: 0xaa88ff, opacity: 0.2, yOffset: 0.3 },
-      ];
-
-      orbitConfigs.forEach(cfg => {
-        const orbitGeometry = new THREE.RingGeometry(p.orbitRadius - 0.02, p.orbitRadius + 0.02, 128);
-        const orbitMaterial = new THREE.MeshBasicMaterial({
-          color: cfg.color,
-          transparent: true,
-          opacity: cfg.opacity,
-          side: THREE.DoubleSide,
-        });
-        const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
-        orbit.rotation.x = -Math.PI / 2;
-        orbit.position.y = cfg.yOffset;
-        scene.add(orbit);
-        orbitMeshes[cfg.key].push(orbit);
-      });
-    });
-
-    // === ANIMATION ===
-    let time = 0;
+    // Rotation
+    group.rotation.y += 0.02;
     
-    function updateCamera() {
-      camera.position.x = cameraDistance * Math.sin(cameraAngle.phi) * Math.cos(cameraAngle.theta);
-      camera.position.y = cameraDistance * Math.cos(cameraAngle.phi);
-      camera.position.z = cameraDistance * Math.sin(cameraAngle.phi) * Math.sin(cameraAngle.theta);
-      camera.lookAt(0, 0, 0);
-    }
-
-    function animate() {
-      requestAnimationFrame(animate);
-      time += 0.005;
-
-      // Sun animation
-      sunGlow.rotation.y += 0.002;
-      corona.rotation.y -= 0.001;
-      sun.scale.setScalar(1 + Math.sin(time * 2) * 0.02);
-
-      // Update planets
-      PLANETS.forEach((p, i) => {
-        const value = planets9[p.key] || 0.5;
-        const mesh = planetMeshes[p.key];
-        
-        // Orbit position
-        const angle = time * p.speed + (i / PLANETS.length) * Math.PI * 2;
-        const radius = p.orbitRadius + (value - 0.5) * 0.5;
-        
-        mesh.position.x = Math.cos(angle) * radius;
-        mesh.position.z = Math.sin(angle) * radius;
-        mesh.position.y = Math.sin(time * 0.5 + i) * 0.15;
-        
-        // Self rotation
-        mesh.rotation.y += 0.01;
-        
-        // Glow based on value
-        mesh.material.emissiveIntensity = 0.2 + value * 0.5;
-        
-        // Scale based on selection
-        const isSelected = p.key === selectedPlanet;
-        const targetScale = isSelected ? 1.3 : 1;
-        mesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
-      });
-
-      // Orbit visibility
-      Object.keys(orbitMeshes).forEach(key => {
-        orbitMeshes[key].forEach(orbit => {
-          orbit.visible = showOrbits[key];
-        });
-      });
-
-      // Stars slow rotation
-      stars.rotation.y += 0.0001;
-
-      updateCamera();
-      renderer.render(scene, camera);
-    }
-
-    // === INTERACTION ===
-    canvas.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      lastMouse = { x: e.clientX, y: e.clientY };
-    });
-
-    canvas.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      const dx = e.clientX - lastMouse.x;
-      const dy = e.clientY - lastMouse.y;
-      cameraAngle.theta += dx * 0.005;
-      cameraAngle.phi = Math.max(0.2, Math.min(Math.PI - 0.2, cameraAngle.phi + dy * 0.005));
-      lastMouse = { x: e.clientX, y: e.clientY };
-    });
-
-    canvas.addEventListener('mouseup', () => isDragging = false);
-    canvas.addEventListener('mouseleave', () => isDragging = false);
-
-    canvas.addEventListener('wheel', (e) => {
-      cameraDistance = Math.max(8, Math.min(30, cameraDistance + e.deltaY * 0.01));
-    });
-
-    // Raycaster for planet selection
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    canvas.addEventListener('click', (e) => {
-      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-      raycaster.setFromCamera(mouse, camera);
-      
-      const meshes = Object.values(planetMeshes);
-      const intersects = raycaster.intersectObjects(meshes);
-      
-      if (intersects.length > 0) {
-        const planet = intersects[0].object.userData.planet;
-        selectPlanet(planet.key);
-      }
-    });
-
-    // === UI ===
-    function renderPlanetList() {
-      const container = document.getElementById('planetList');
-      container.innerHTML = PLANETS.map(p => {
-        const value = Math.round((planets9[p.key] || 0.5) * 100);
-        const isActive = p.key === selectedPlanet;
-        return `
-          <div class="planet-item ${isActive ? 'active' : ''}" data-planet="${p.key}">
-            <div class="planet-icon" style="background:${hexToRgba(p.color, 0.2)}">${p.icon}</div>
-            <div class="planet-info">
-              <div class="planet-name">${p.name}</div>
-              <div class="planet-desc">${p.desc}</div>
-            </div>
-            <div class="planet-value" style="color:#${p.color.toString(16).padStart(6, '0')}">${value}%</div>
-          </div>
-        `;
-      }).join('');
-
-      // Add click handlers
-      container.querySelectorAll('.planet-item').forEach(item => {
-        item.addEventListener('click', () => selectPlanet(item.dataset.planet));
-      });
-    }
-
-    function selectPlanet(key) {
-      selectedPlanet = key;
-      const p = PLANETS.find(x => x.key === key);
-      const value = Math.round((planets9[key] || 0.5) * 100);
-      const pastValue = Math.round(value * 0.95);
-      const forecastValue = Math.round(value * 1.05);
-      const delta = forecastValue - value;
-
-      document.getElementById('detailIcon').textContent = p.icon;
-      document.getElementById('detailIcon').style.background = hexToRgba(p.color, 0.2);
-      document.getElementById('detailName').textContent = p.name.toUpperCase();
-      document.getElementById('detailSub').textContent = p.desc;
-      document.getElementById('detailValue').textContent = value + '%';
-      document.getElementById('detailValue').style.color = '#' + p.color.toString(16).padStart(6, '0');
-      document.getElementById('detailBar').style.width = value + '%';
-      document.getElementById('detailBar').style.background = `linear-gradient(90deg, #${p.color.toString(16).padStart(6, '0')}, #${p.emissive.toString(16).padStart(6, '0')})`;
-      document.getElementById('statPast').textContent = pastValue + '%';
-      document.getElementById('statForecast').textContent = forecastValue + '%';
-      document.getElementById('statDelta').textContent = (delta >= 0 ? '+' : '') + delta + '%';
-      document.getElementById('statTrend').textContent = delta > 0 ? '↗' : delta < 0 ? '↘' : '→';
-
-      renderPlanetList();
-    }
-
-    function hexToRgba(hex, alpha) {
-      const r = (hex >> 16) & 255;
-      const g = (hex >> 8) & 255;
-      const b = hex & 255;
-      return `rgba(${r},${g},${b},${alpha})`;
-    }
-
-    // Time markers
-    document.querySelectorAll('.time-marker').forEach(marker => {
-      marker.addEventListener('click', () => {
-        const time = marker.dataset.time;
-        marker.classList.toggle('active');
-        showOrbits[time] = marker.classList.contains('active');
-      });
-    });
-
-    // View controls
-    document.querySelectorAll('.control-btn[data-view]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.control-btn[data-view]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        switch(btn.dataset.view) {
-          case 'orbit':
-            cameraAngle = { theta: 0.5, phi: 0.8 };
-            cameraDistance = 15;
-            break;
-          case 'top':
-            cameraAngle = { theta: 0, phi: 0.1 };
-            cameraDistance = 20;
-            break;
-          case 'entity':
-            cameraAngle = { theta: 0.5, phi: 1.2 };
-            cameraDistance = 10;
-            break;
-        }
-      });
-    });
-
-    // === API ===
-    async function fetchShadow() {
-      try {
-        const res = await fetch('/shadow/snapshot/ENT_001');
-        const data = await res.json();
-        if (data.shadow) {
-          PLANETS.forEach(p => {
-            planets9[p.key] = data.shadow[p.key.toLowerCase()] || 0.5;
-          });
-          
-          // Update top bar
-          const entropy = data.shadow.entropy || planets9.SHOCK || 0.188;
-          const risk = planets9.SHOCK || 0.28;
-          document.getElementById('entropyValue').textContent = entropy.toFixed(3);
-          document.getElementById('riskValue').textContent = risk.toFixed(2);
-          
-          const status = risk > 0.6 ? 'RED' : risk > 0.3 ? 'YELLOW' : 'GREEN';
-          const badge = document.getElementById('statusBadge');
-          badge.textContent = status;
-          badge.className = 'status-badge ' + status.toLowerCase();
-          
-          renderPlanetList();
-          selectPlanet(selectedPlanet);
-        }
-      } catch (e) {
-        // Use simulated data
-        PLANETS.forEach((p, i) => {
-          planets9[p.key] = 0.4 + Math.random() * 0.4;
-        });
-        renderPlanetList();
-        selectPlanet(selectedPlanet);
+    // Emissive based on value
+    group.children[0].material.emissiveIntensity = 0.15 + value * 0.4;
+    
+    // Scale selected
+    const isSelected = p.key === selectedPlanet;
+    const scale = isSelected ? 1.4 : 1;
+    group.scale.setScalar(scale);
+    
+    // Update label position
+    if (showLabels) {
+      const pos = group.position.clone().project(camera);
+      const label = planetLabels[p.key];
+      if (pos.z < 1) {
+        label.style.left = ((pos.x + 1) / 2 * window.innerWidth) + 'px';
+        label.style.top = ((-pos.y + 1) / 2 * window.innerHeight - 25) + 'px';
+        label.style.opacity = isSelected ? '1' : '0.6';
+      } else {
+        label.style.opacity = '0';
       }
     }
+  });
+  
+  // Orbit visibility
+  Object.keys(orbitRings).forEach(key => {
+    orbitRings[key].forEach(ring => ring.visible = showOrbits[key]);
+  });
+  
+  // Stars
+  stars.rotation.y += 0.0001;
+  
+  renderer.render(scene, camera);
+}
 
-    // === INIT ===
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+// === UI FUNCTIONS ===
+function renderPlanetList() {
+  const container = document.getElementById('planet-list');
+  container.innerHTML = PLANETS.map(p => {
+    const value = Math.round((planets9[p.key] || 0.5) * 100);
+    const isActive = p.key === selectedPlanet;
+    const colorHex = '#' + p.color.toString(16).padStart(6, '0');
+    return `
+      <div class="planet-row ${isActive ? 'active' : ''}" data-key="${p.key}">
+        <div class="planet-dot" style="background:${colorHex}"></div>
+        <span class="planet-name">${p.icon} ${p.name}</span>
+        <span class="planet-val" style="color:${colorHex}">${value}%</span>
+      </div>
+    `;
+  }).join('');
+  
+  container.querySelectorAll('.planet-row').forEach(row => {
+    row.addEventListener('click', () => selectPlanet(row.dataset.key));
+  });
+}
 
-    // Initialize
-    fetchShadow();
-    setInterval(fetchShadow, 5000);
-    animate();
+function selectPlanet(key) {
+  selectedPlanet = key;
+  const p = PLANETS.find(x => x.key === key);
+  const value = Math.round((planets9[key] || 0.5) * 100);
+  const colorHex = '#' + p.color.toString(16).padStart(6, '0');
+  
+  document.getElementById('d-icon').textContent = p.icon;
+  document.getElementById('d-icon').style.background = colorHex + '22';
+  document.getElementById('d-name').textContent = p.name.toUpperCase();
+  document.getElementById('d-desc').textContent = p.desc;
+  document.getElementById('d-value').textContent = value + '%';
+  document.getElementById('d-value').style.color = colorHex;
+  document.getElementById('d-bar').style.width = value + '%';
+  document.getElementById('d-bar').style.background = colorHex;
+  
+  const past = Math.round(value * 0.95);
+  const forecast = Math.min(100, Math.round(value * 1.06));
+  document.getElementById('d-past').textContent = past + '%';
+  document.getElementById('d-now').textContent = value + '%';
+  document.getElementById('d-forecast').textContent = forecast + '%';
+  
+  renderPlanetList();
+}
 
-    // Hide loading
-    setTimeout(() => {
-      document.getElementById('loading').style.opacity = '0';
-      setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
-    }, 1500);
+function updateMetrics() {
+  const shock = planets9.SHOCK || 0.28;
+  const friction = planets9.FRICTION || 0.2;
+  const risk = Math.min(1, shock * 1.2 + friction * 0.3);
+  
+  document.getElementById('m-entropy').textContent = (planets9.SHOCK || 0.188).toFixed(3);
+  document.getElementById('m-pressure').textContent = (planets9.FRICTION || 0).toFixed(2);
+  document.getElementById('m-risk').textContent = risk.toFixed(2);
+  document.getElementById('m-flow').textContent = (planets9.TRANSFER || 0).toFixed(2);
+  
+  const riskEl = document.getElementById('m-risk');
+  riskEl.className = 'metric-value' + (risk > 0.6 ? ' danger' : risk > 0.35 ? ' warning' : '');
+  
+  const status = risk > 0.6 ? 'CRITICAL' : risk > 0.35 ? 'WARNING' : 'STABLE';
+  document.getElementById('s-status').textContent = status;
+  document.getElementById('s-status').style.color = risk > 0.6 ? '#ff4444' : risk > 0.35 ? '#ffaa00' : '#00ff88';
+}
+
+// === CONTROLS ===
+function resetView() {
+  cameraTheta = 0.4;
+  cameraPhi = 1.0;
+  cameraDistance = 12;
+}
+
+function toggleOrbits() {
+  const allOn = showOrbits.past && showOrbits.now && showOrbits.forecast;
+  showOrbits.past = showOrbits.now = showOrbits.forecast = !allOn;
+  document.querySelectorAll('.legend-item').forEach(el => el.classList.toggle('active', !allOn));
+  document.querySelector('#controls button:nth-child(2)').classList.toggle('active', !allOn);
+}
+
+function toggleLabels() {
+  showLabels = !showLabels;
+  Object.values(planetLabels).forEach(l => l.style.display = showLabels ? 'block' : 'none');
+  document.querySelector('#controls button:nth-child(3)').classList.toggle('active', showLabels);
+}
+
+function toggleAuto() {
+  autoRotate = !autoRotate;
+  document.querySelector('#controls button:nth-child(4)').classList.toggle('active', autoRotate);
+}
+
+// Orbit legend clicks
+document.querySelectorAll('.legend-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const orbit = item.dataset.orbit;
+    showOrbits[orbit] = !showOrbits[orbit];
+    item.classList.toggle('active', showOrbits[orbit]);
+  });
+});
+
+// === INTERACTION ===
+renderer.domElement.addEventListener('mousedown', e => {
+  isDragging = true;
+  lastMouse = { x: e.clientX, y: e.clientY };
+});
+
+renderer.domElement.addEventListener('mousemove', e => {
+  // Tooltip
+  const tooltip = document.getElementById('tooltip');
+  const mouse = new THREE.Vector2(
+    (e.clientX / window.innerWidth) * 2 - 1,
+    -(e.clientY / window.innerHeight) * 2 + 1
+  );
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, camera);
+  
+  const meshes = Object.values(planetMeshes).map(g => g.children[0]);
+  const intersects = raycaster.intersectObjects(meshes);
+  
+  if (intersects.length > 0) {
+    const parent = intersects[0].object.parent;
+    const p = parent.userData;
+    const val = Math.round((planets9[p.key] || 0.5) * 100);
+    tooltip.innerHTML = `<h4>${p.icon} ${p.name}</h4><p>${p.desc}</p><div class="val">${val}%</div>`;
+    tooltip.style.left = (e.clientX + 15) + 'px';
+    tooltip.style.top = (e.clientY + 15) + 'px';
+    tooltip.classList.add('visible');
+  } else {
+    tooltip.classList.remove('visible');
+  }
+  
+  // Drag
+  if (!isDragging) return;
+  const dx = e.clientX - lastMouse.x;
+  const dy = e.clientY - lastMouse.y;
+  cameraTheta += dx * 0.005;
+  cameraPhi = Math.max(0.3, Math.min(2.5, cameraPhi + dy * 0.005));
+  lastMouse = { x: e.clientX, y: e.clientY };
+});
+
+renderer.domElement.addEventListener('mouseup', () => isDragging = false);
+renderer.domElement.addEventListener('mouseleave', () => isDragging = false);
+
+renderer.domElement.addEventListener('wheel', e => {
+  cameraDistance = Math.max(6, Math.min(25, cameraDistance + e.deltaY * 0.01));
+});
+
+renderer.domElement.addEventListener('click', e => {
+  const mouse = new THREE.Vector2(
+    (e.clientX / window.innerWidth) * 2 - 1,
+    -(e.clientY / window.innerHeight) * 2 + 1
+  );
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, camera);
+  
+  const meshes = Object.values(planetMeshes).map(g => g.children[0]);
+  const intersects = raycaster.intersectObjects(meshes);
+  
+  if (intersects.length > 0) {
+    const p = intersects[0].object.parent.userData;
+    selectPlanet(p.key);
+  }
+});
+
+// === API ===
+async function fetchData() {
+  try {
+    const res = await fetch('/shadow/snapshot/ENT_001');
+    const data = await res.json();
+    if (data.shadow) {
+      PLANETS.forEach(p => planets9[p.key] = data.shadow[p.key.toLowerCase()] || 0.5);
+    }
+  } catch (e) {
+    // Simulated
+    PLANETS.forEach((p, i) => planets9[p.key] = 0.4 + Math.sin(Date.now() / 3000 + i) * 0.3);
+  }
+  renderPlanetList();
+  selectPlanet(selectedPlanet);
+  updateMetrics();
+}
+
+// === INIT ===
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+fetchData();
+setInterval(fetchData, 5000);
+animate();
   </script>
 </body>
 </html>
