@@ -327,3 +327,81 @@ def execute(body: ExecuteIn):
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.exists(frontend_path):
     app.mount("/frontend", StaticFiles(directory=frontend_path, html=True), name="frontend")
+
+# === Solar State API (Physics Kernel) ===
+from core.physics import entropy, pressure, gravity, failure_horizon, DeltaState
+
+_prev_metrics = {}
+
+@app.get("/solar/state/{entity_id}")
+def get_solar_state(entity_id: str):
+    """물리 수식 커널 기반 Solar State 조회"""
+    global _prev_metrics
+    
+    # 현재 상태 조회
+    with get_db() as conn:
+        row = conn.execute("SELECT * FROM state WHERE id=?", (entity_id,)).fetchone()
+        if not row:
+            row = conn.execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
+    
+    if not row:
+        return {"error": "Entity not found"}
+    
+    # 현재 메트릭스
+    entropy_val = row["entropy"] or 0
+    pressure_val = row["pressure"] or 0
+    gravity_val = row["gravity"] or 0.5
+    
+    metrics_now = {
+        "energy": gravity_val,
+        "stability": max(0.01, 1.0 - entropy_val),
+        "pressure": pressure_val,
+        "influence": gravity_val,
+        "trust": 1.0,
+        "risk": min(1.0, entropy_val * 0.8 + pressure_val * 0.2),
+        "demand": pressure_val + 0.3,
+    }
+    
+    # 이전 메트릭스
+    metrics_prev = _prev_metrics.get(entity_id, metrics_now.copy())
+    
+    # ΔState 계산
+    delta = DeltaState(
+        dE=metrics_now["energy"] - metrics_prev.get("energy", metrics_now["energy"]),
+        dS=metrics_now["stability"] - metrics_prev.get("stability", metrics_now["stability"]),
+        dP=metrics_now["pressure"] - metrics_prev.get("pressure", metrics_now["pressure"]),
+        dG=metrics_now["influence"] - metrics_prev.get("influence", metrics_now["influence"]),
+        dR=metrics_now["risk"] - metrics_prev.get("risk", metrics_now["risk"]),
+    )
+    
+    # Risk Rate
+    risk_rate = abs(delta.dR) if delta.dR > 0 else 0.01
+    
+    # 물리량 계산
+    total_change = abs(delta.dE) + abs(delta.dS) + abs(delta.dP) + abs(delta.dG) + abs(delta.dR)
+    S = entropy(total_change, dt=1.0)
+    P = pressure(metrics_now["demand"], metrics_now["energy"], metrics_now["stability"])
+    G = gravity(metrics_now["influence"], metrics_now["trust"])
+    FH = failure_horizon(metrics_now["risk"], risk_rate, threshold=1.0)
+    
+    # 상태 저장
+    _prev_metrics[entity_id] = metrics_now.copy()
+    
+    return {
+        "entity_id": entity_id,
+        "tick": row["tick"] or 0,
+        "cycle": row["cycle"] or 0,
+        "delta": delta.dict(),
+        "physics": {
+            "entropy": round(S, 4),
+            "pressure": round(P, 4),
+            "gravity": round(G, 4),
+            "failure_horizon": round(FH, 2) if FH != float('inf') else 9999,
+        },
+        "metrics": {
+            "energy": round(metrics_now["energy"], 4),
+            "stability": round(metrics_now["stability"], 4),
+            "risk": round(metrics_now["risk"], 4),
+        },
+        "status": row["status"] or "GREEN",
+    }

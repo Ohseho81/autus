@@ -1,0 +1,187 @@
+# scenario_shock.json
+# 시나리오 3: 충격/위기 (Shock/Crisis)
+#
+# 설명: SHOCK 급등, 전체 시스템 불안정
+# 대상: 모든 사용자 (User + Admin)
+# 기대: Solar에서 ShockFX 활성화, Cockpit에서 Critical 알림
+
+{
+  "scenario": {
+    "id": "SCENARIO_SHOCK",
+    "name": "Shock/Crisis",
+    "name_ko": "충격/위기",
+    "description": "Sudden shock event causing system-wide instability",
+    "duration_ms": 60000,
+    "mode": "both"
+  },
+  
+  "entity": {
+    "entity_id": "ENT_DEMO_SHOCK",
+    "entity_type": "company",
+    "name": "Crisis Corp"
+  },
+  
+  "initial_shadow": {
+    "shadow32f": [
+      0.65, 0.68, 0.62, 0.66, 0.70, 0.64, 0.67, 0.63,
+      0.72, 0.69, 0.71, 0.65, 0.68, 0.66, 0.70, 0.67,
+      0.64, 0.69, 0.65, 0.68, 0.66, 0.70, 0.67, 0.64,
+      0.69, 0.65, 0.68, 0.66, 0.70, 0.67, 0.64, 0.25
+    ],
+    "planets9": {
+      "OUTPUT": 0.66,
+      "QUALITY": 0.70,
+      "TIME": 0.65,
+      "FRICTION": 0.35,
+      "STABILITY": 0.68,
+      "COHESION": 0.70,
+      "RECOVERY": 0.64,
+      "TRANSFER": 0.40,
+      "SHOCK": 0.25
+    }
+  },
+  
+  "events": [
+    {
+      "ts_offset_ms": 0,
+      "kind": "SCENARIO_START",
+      "tags": ["demo", "shock"],
+      "payload": { "message": "Shock scenario started - stable baseline" }
+    },
+    {
+      "ts_offset_ms": 5000,
+      "kind": "STABILITY_CHECK",
+      "tags": ["stability", "baseline"],
+      "payload": { "status": "normal" }
+    },
+    {
+      "ts_offset_ms": 10000,
+      "kind": "SHOCK_EVENT",
+      "tags": ["shock", "critical", "sudden"],
+      "payload": { 
+        "trigger": "external_disruption",
+        "shock_delta": 0.55,
+        "affected_planets": ["STABILITY", "COHESION", "RECOVERY"]
+      }
+    },
+    {
+      "ts_offset_ms": 12000,
+      "kind": "CASCADE_EFFECT",
+      "tags": ["cascade", "stability"],
+      "payload": { 
+        "planet": "STABILITY",
+        "delta": -0.35,
+        "cause": "shock_propagation"
+      }
+    },
+    {
+      "ts_offset_ms": 15000,
+      "kind": "COHESION_BREAKDOWN",
+      "tags": ["cohesion", "critical"],
+      "payload": { 
+        "planet": "COHESION",
+        "delta": -0.30,
+        "status": "fragmenting"
+      }
+    },
+    {
+      "ts_offset_ms": 18000,
+      "kind": "RECOVERY_ACTIVATION",
+      "tags": ["recovery", "response"],
+      "payload": { 
+        "planet": "RECOVERY",
+        "action": "auto_response",
+        "effectiveness": 0.4
+      }
+    },
+    {
+      "ts_offset_ms": 25000,
+      "kind": "ADMIN_INTERVENTION",
+      "tags": ["admin", "sim", "emergency"],
+      "payload": { 
+        "action": "sim_preview",
+        "forces": { "Q": 0.9, "MU": 0.8, "E": 0.5, "R": 0.4 }
+      }
+    },
+    {
+      "ts_offset_ms": 35000,
+      "kind": "SHOCK_MITIGATION",
+      "tags": ["shock", "decreasing"],
+      "payload": { 
+        "planet": "SHOCK",
+        "delta": -0.25,
+        "status": "stabilizing"
+      }
+    },
+    {
+      "ts_offset_ms": 45000,
+      "kind": "STABILITY_RECOVERY",
+      "tags": ["stability", "improving"],
+      "payload": { 
+        "planet": "STABILITY",
+        "delta": 0.20,
+        "status": "recovering"
+      }
+    },
+    {
+      "ts_offset_ms": 55000,
+      "kind": "POST_CRISIS_ASSESSMENT",
+      "tags": ["assessment", "post-crisis"],
+      "payload": { 
+        "damage_assessment": "moderate",
+        "recovery_timeline": "ongoing"
+      }
+    },
+    {
+      "ts_offset_ms": 60000,
+      "kind": "SCENARIO_END",
+      "tags": ["demo", "complete"],
+      "payload": { "result": "crisis_managed" }
+    }
+  ],
+  
+  "shock_timeline": {
+    "baseline_shock": 0.25,
+    "peak_shock": 0.85,
+    "peak_at_ms": 12000,
+    "final_shock": 0.45
+  },
+  
+  "sim_preview_config": {
+    "show_at_ms": 25000,
+    "forces": {
+      "E": 0.5,
+      "R": 0.4,
+      "T": 0.3,
+      "Q": 0.9,
+      "MU": 0.8
+    },
+    "expected_improvement": {
+      "SHOCK": -0.30,
+      "STABILITY": 0.25,
+      "COHESION": 0.20
+    }
+  },
+  
+  "expected_results": {
+    "shock_peak_reached": true,
+    "recovery_initiated": true,
+    "stability_restored_partial": true,
+    "ui_indicators": {
+      "shock_fx_triggered": true,
+      "shock_fx_peak_intensity": 0.85,
+      "critical_alerts": 3,
+      "warning_alerts": 2
+    }
+  },
+  
+  "verification": {
+    "checkpoints": [
+      { "ts_offset_ms": 8000, "check": "planets9.SHOCK <= 0.30" },
+      { "ts_offset_ms": 12000, "check": "planets9.SHOCK >= 0.75" },
+      { "ts_offset_ms": 20000, "check": "planets9.STABILITY <= 0.40" },
+      { "ts_offset_ms": 40000, "check": "planets9.SHOCK <= 0.55" },
+      { "ts_offset_ms": 60000, "check": "planets9.STABILITY >= 0.50" }
+    ]
+  }
+}

@@ -1,0 +1,134 @@
+# scenario_delay.json
+# 시나리오 2: 지연/병목 (Delay/Bottleneck)
+#
+# 설명: FRICTION 증가, TIME 감소로 인한 병목 상황
+# 대상: 관리자 (Admin 모드)
+# 기대: SimPreview로 개선 시뮬레이션, Cockpit에서 경고 표시
+
+{
+  "scenario": {
+    "id": "SCENARIO_DELAY",
+    "name": "Delay/Bottleneck",
+    "name_ko": "지연/병목",
+    "description": "High friction causing delays and bottlenecks",
+    "duration_ms": 45000,
+    "mode": "admin"
+  },
+  
+  "entity": {
+    "entity_id": "ENT_DEMO_DELAY",
+    "entity_type": "company",
+    "name": "Bottleneck Inc"
+  },
+  
+  "initial_shadow": {
+    "shadow32f": [
+      0.55, 0.52, 0.58, 0.50, 0.48, 0.53, 0.51, 0.56,
+      0.60, 0.58, 0.55, 0.52, 0.48, 0.50, 0.53, 0.56,
+      0.72, 0.75, 0.78, 0.80, 0.70, 0.68, 0.65, 0.62,
+      0.45, 0.48, 0.42, 0.40, 0.38, 0.35, 0.32, 0.28
+    ],
+    "planets9": {
+      "OUTPUT": 0.52,
+      "QUALITY": 0.55,
+      "TIME": 0.28,
+      "FRICTION": 0.72,
+      "STABILITY": 0.48,
+      "COHESION": 0.50,
+      "RECOVERY": 0.42,
+      "TRANSFER": 0.25,
+      "SHOCK": 0.35
+    }
+  },
+  
+  "events": [
+    {
+      "ts_offset_ms": 0,
+      "kind": "SCENARIO_START",
+      "tags": ["demo", "delay"],
+      "payload": { "message": "Delay scenario started" }
+    },
+    {
+      "ts_offset_ms": 3000,
+      "kind": "BOTTLENECK_DETECTED",
+      "tags": ["friction", "warning"],
+      "payload": { "planet": "FRICTION", "value": 0.72, "threshold": 0.6 }
+    },
+    {
+      "ts_offset_ms": 8000,
+      "kind": "TIME_DEGRADATION",
+      "tags": ["time", "critical"],
+      "payload": { "planet": "TIME", "value": 0.25, "trend": "decreasing" }
+    },
+    {
+      "ts_offset_ms": 12000,
+      "kind": "ADMIN_INTERVENTION",
+      "tags": ["admin", "sim"],
+      "payload": { 
+        "action": "sim_preview",
+        "forces": { "R": 0.8, "T": 0.6, "E": 0.3 }
+      }
+    },
+    {
+      "ts_offset_ms": 20000,
+      "kind": "FRICTION_REDUCTION",
+      "tags": ["friction", "improving"],
+      "payload": { "planet": "FRICTION", "delta": -0.15 }
+    },
+    {
+      "ts_offset_ms": 28000,
+      "kind": "TIME_RECOVERY",
+      "tags": ["time", "improving"],
+      "payload": { "planet": "TIME", "delta": 0.20 }
+    },
+    {
+      "ts_offset_ms": 35000,
+      "kind": "STABILITY_CHECK",
+      "tags": ["stability", "monitoring"],
+      "payload": { "status": "recovering" }
+    },
+    {
+      "ts_offset_ms": 45000,
+      "kind": "SCENARIO_END",
+      "tags": ["demo", "complete"],
+      "payload": { "result": "resolved_with_intervention" }
+    }
+  ],
+  
+  "sim_preview_config": {
+    "show_at_ms": 12000,
+    "forces": {
+      "E": 0.3,
+      "R": 0.8,
+      "T": 0.6,
+      "Q": 0.2,
+      "MU": 0.4
+    },
+    "expected_improvement": {
+      "FRICTION": -0.25,
+      "TIME": 0.30,
+      "OUTPUT": 0.10
+    }
+  },
+  
+  "expected_results": {
+    "initial_state": "bottleneck",
+    "final_state": "recovering",
+    "friction_reduced": true,
+    "time_improved": true,
+    "ui_indicators": {
+      "initial_color": "yellow",
+      "final_color": "green",
+      "alerts_triggered": 2
+    }
+  },
+  
+  "verification": {
+    "checkpoints": [
+      { "ts_offset_ms": 5000, "check": "planets9.FRICTION >= 0.65" },
+      { "ts_offset_ms": 15000, "check": "sim_preview_active === true" },
+      { "ts_offset_ms": 30000, "check": "planets9.FRICTION <= 0.55" },
+      { "ts_offset_ms": 45000, "check": "planets9.TIME >= 0.40" }
+    ]
+  }
+}
