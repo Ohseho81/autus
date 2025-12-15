@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS Solar Lens v1.0</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#020408;color:#fff;font-family:system-ui,sans-serif;overflow:hidden}
+    
+    /* Layout */
+    .container{display:grid;grid-template-columns:200px 1fr 240px;height:100vh}
+    
+    /* Left Panel - Mode & Entity */
+    .left-panel{background:rgba(0,10,25,.9);border-right:1px solid rgba(0,212,255,.15);padding:16px;display:flex;flex-direction:column;gap:16px}
+    .panel-title{font-size:9px;letter-spacing:.2em;color:rgba(0,212,255,.5);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(0,212,255,.1)}
+    
+    /* Entity Selector */
+    .entity-select{width:100%;padding:10px;background:rgba(0,20,40,.8);border:1px solid rgba(0,212,255,.3);border-radius:6px;color:#00d4ff;font-size:11px}
+    .entity-select option{background:#0a0a14;color:#fff}
+    
+    /* Lens Toggle */
+    .lens-toggle{display:flex;gap:4px}
+    .lens-btn{flex:1;padding:10px 8px;background:rgba(0,20,40,.5);border:1px solid rgba(0,212,255,.2);border-radius:6px;color:rgba(255,255,255,.5);font-size:10px;cursor:pointer;text-align:center}
+    .lens-btn.active{background:rgba(0,212,255,.15);border-color:#00d4ff;color:#00d4ff}
+    .lens-btn:hover{border-color:rgba(0,212,255,.5)}
+    
+    /* Orbit Toggle */
+    .orbit-toggle{display:flex;flex-direction:column;gap:6px}
+    .orbit-item{display:flex;align-items:center;gap:8px;padding:8px;background:rgba(0,0,0,.3);border-radius:4px;cursor:pointer}
+    .orbit-item input{accent-color:#00d4ff}
+    .orbit-item label{font-size:10px;cursor:pointer}
+    .orbit-item.past label{color:#666}
+    .orbit-item.now label{color:#00d4ff}
+    .orbit-item.forecast label{color:#aa88ff}
+    
+    /* Center - Three.js Canvas */
+    .center-canvas{position:relative;background:radial-gradient(ellipse at center,#0a1628 0%,#020408 100%)}
+    #solarCanvas{width:100%;height:100%;display:block}
+    
+    /* HUD Overlay */
+    .hud-overlay{position:absolute;top:16px;left:16px;right:16px;display:flex;justify-content:space-between;pointer-events:none}
+    .hud-left,.hud-right{pointer-events:auto}
+    .hud-title{font-size:12px;font-weight:600;color:#00d4ff;letter-spacing:.1em}
+    .hud-subtitle{font-size:9px;color:rgba(255,255,255,.4);margin-top:4px}
+    .hud-status{display:flex;align-items:center;gap:8px}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px #00ff88}
+    .status-dot.yellow{background:#ffaa00;box-shadow:0 0 8px #ffaa00}
+    .status-dot.red{background:#ff4444;box-shadow:0 0 8px #ff4444}
+    .status-text{font-size:10px;color:#888}
+    
+    /* Time Indicator */
+    .time-indicator{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:32px}
+    .time-item{text-align:center;opacity:.6;cursor:pointer}
+    .time-item.active{opacity:1}
+    .time-dot{width:10px;height:10px;border-radius:50%;margin:0 auto 6px}
+    .time-item.past .time-dot{background:#666}
+    .time-item.now .time-dot{background:#00d4ff;box-shadow:0 0 10px #00d4ff}
+    .time-item.forecast .time-dot{background:#aa88ff;animation:pulse 1.5s infinite}
+    .time-label{font-size:9px;letter-spacing:.1em}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    
+    /* Right Panel - Planets */
+    .right-panel{background:rgba(0,10,25,.9);border-left:1px solid rgba(0,212,255,.15);padding:16px;overflow-y:auto}
+    
+    /* Planet Card */
+    .planet-card{background:rgba(0,20,40,.5);border:1px solid rgba(0,212,255,.15);border-radius:8px;padding:12px;margin-bottom:10px}
+    .planet-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .planet-name{font-size:10px;font-weight:600;letter-spacing:.05em}
+    .planet-value{font-size:16px;font-weight:300;color:#00d4ff}
+    .planet-bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+    .planet-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+    
+    /* Planet Colors */
+    .planet-OUTPUT .planet-bar-fill{background:linear-gradient(90deg,#00ff88,#00cc66)}
+    .planet-QUALITY .planet-bar-fill{background:linear-gradient(90deg,#00d4ff,#0088cc)}
+    .planet-TIME .planet-bar-fill{background:linear-gradient(90deg,#ffaa00,#ff8800)}
+    .planet-FRICTION .planet-bar-fill{background:linear-gradient(90deg,#ff4444,#cc2222)}
+    .planet-STABILITY .planet-bar-fill{background:linear-gradient(90deg,#8844ff,#6622cc)}
+    .planet-COHESION .planet-bar-fill{background:linear-gradient(90deg,#ff44aa,#cc2288)}
+    .planet-RECOVERY .planet-bar-fill{background:linear-gradient(90deg,#44ff44,#22cc22)}
+    .planet-TRANSFER .planet-bar-fill{background:linear-gradient(90deg,#44aaff,#2288cc)}
+    .planet-SHOCK .planet-bar-fill{background:linear-gradient(90deg,#ff8800,#ff4400)}
+    
+    /* Frame Corners */
+    .frame-corner{position:fixed;width:20px;height:20px;border:2px solid rgba(0,212,255,.3)}
+    .frame-corner.tl{top:8px;left:8px;border-right:none;border-bottom:none}
+    .frame-corner.tr{top:8px;right:8px;border-left:none;border-bottom:none}
+    .frame-corner.bl{bottom:8px;left:8px;border-right:none;border-top:none}
+    .frame-corner.br{bottom:8px;right:8px;border-left:none;border-top:none}
+  </style>
+</head>
+<body>
+  <!-- Frame Corners -->
+  <div class="frame-corner tl"></div>
+  <div class="frame-corner tr"></div>
+  <div class="frame-corner bl"></div>
+  <div class="frame-corner br"></div>
+
+  <div class="container">
+    <!-- Left Panel -->
+    <aside class="left-panel">
+      <div>
+        <div class="panel-title">ENTITY</div>
+        <select class="entity-select" id="entitySelect">
+          <option value="ENT_001">ENT_001 (Human)</option>
+          <option value="ENT_002">ENT_002 (Company)</option>
+          <option value="CITY_001">CITY_001 (City)</option>
+          <option value="NATION_KR">NATION_KR (Nation)</option>
+        </select>
+      </div>
+      
+      <div>
+        <div class="panel-title">LENS</div>
+        <div class="lens-toggle">
+          <a href="globe-pack-hq.html" class="lens-btn">GLOBE</a>
+          <div class="lens-btn active">SOLAR</div>
+          <a href="cockpit.html" class="lens-btn">COCKPIT</a>
+        </div>
+      </div>
+      
+      <div>
+        <div class="panel-title">ORBIT</div>
+        <div class="orbit-toggle">
+          <div class="orbit-item past">
+            <input type="checkbox" id="showPast" checked>
+            <label for="showPast">Past (t-1)</label>
+          </div>
+          <div class="orbit-item now">
+            <input type="checkbox" id="showNow" checked>
+            <label for="showNow">Now (t=0)</label>
+          </div>
+          <div class="orbit-item forecast">
+            <input type="checkbox" id="showForecast" checked>
+            <label for="showForecast">Forecast (t+1)</label>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top:auto">
+        <div class="panel-title">CONNECTION</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="status-dot" id="wsStatus"></div>
+          <span class="status-text" id="wsText">Connecting...</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center Canvas -->
+    <main class="center-canvas">
+      <canvas id="solarCanvas"></canvas>
+      
+      <!-- HUD Overlay -->
+      <div class="hud-overlay">
+        <div class="hud-left">
+          <div class="hud-title">☀️ SOLAR LENS</div>
+          <div class="hud-subtitle">9 Planets · 3 Orbits · Physics First</div>
+        </div>
+        <div class="hud-right">
+          <div class="hud-status">
+            <div class="status-dot" id="statusDot"></div>
+            <span class="status-text" id="statusText">STABLE</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Time Indicator -->
+      <div class="time-indicator">
+        <div class="time-item past active" data-orbit="past">
+          <div class="time-dot"></div>
+          <div class="time-label">PAST</div>
+        </div>
+        <div class="time-item now active" data-orbit="now">
+          <div class="time-dot"></div>
+          <div class="time-label">NOW</div>
+        </div>
+        <div class="time-item forecast active" data-orbit="forecast">
+          <div class="time-dot"></div>
+          <div class="time-label">FORECAST</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Panel - Planets -->
+    <aside class="right-panel">
+      <div class="panel-title">9 PLANETS</div>
+      <div id="planetCards"></div>
+    </aside>
+  </div>
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // === CONFIG ===
+    const API_BASE = '';  // Same origin
+    const PLANETS = ['OUTPUT','QUALITY','TIME','FRICTION','STABILITY','COHESION','RECOVERY','TRANSFER','SHOCK'];
+    const PLANET_COLORS = {
+      OUTPUT: 0x00ff88, QUALITY: 0x00d4ff, TIME: 0xffaa00,
+      FRICTION: 0xff4444, STABILITY: 0x8844ff, COHESION: 0xff44aa,
+      RECOVERY: 0x44ff44, TRANSFER: 0x44aaff, SHOCK: 0xff8800
+    };
+
+    // === STATE ===
+    let planets9 = {};
+    let entityId = 'ENT_001';
+    let showOrbits = { past: true, now: true, forecast: true };
+
+    // === THREE.JS SETUP ===
+    const canvas = document.getElementById('solarCanvas');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+    camera.position.set(0, 8, 12);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Sun (Entity)
+    const sunGeo = new THREE.SphereGeometry(0.8, 32, 32);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffdd00 });
+    const sun = new THREE.Mesh(sunGeo, sunMat);
+    scene.add(sun);
+
+    // Sun glow
+    const glowGeo = new THREE.SphereGeometry(1.0, 32, 32);
+    const glowMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.3 });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    scene.add(glow);
+
+    // Planets
+    const planetMeshes = {};
+    const orbitLines = { past: [], now: [], forecast: [] };
+
+    PLANETS.forEach((name, i) => {
+      // Planet sphere
+      const geo = new THREE.SphereGeometry(0.15 + Math.random() * 0.1, 16, 16);
+      const mat = new THREE.MeshBasicMaterial({ color: PLANET_COLORS[name] });
+      const mesh = new THREE.Mesh(geo, mat);
+      scene.add(mesh);
+      planetMeshes[name] = mesh;
+
+      // Orbit rings
+      ['past', 'now', 'forecast'].forEach((orbit, j) => {
+        const radius = 2 + i * 0.5;
+        const ringGeo = new THREE.RingGeometry(radius - 0.02, radius + 0.02, 64);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: orbit === 'past' ? 0x666666 : orbit === 'now' ? 0x00d4ff : 0xaa88ff,
+          transparent: true,
+          opacity: 0.2,
+          side: THREE.DoubleSide
+        });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = (j - 1) * 0.3;
+        scene.add(ring);
+        orbitLines[orbit].push(ring);
+      });
+    });
+
+    // Animation
+    let time = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      time += 0.005;
+
+      // Rotate sun glow
+      glow.rotation.y += 0.002;
+
+      // Update planet positions
+      PLANETS.forEach((name, i) => {
+        const value = planets9[name] || 0.5;
+        const radius = 2 + i * 0.5 + value * 0.5;
+        const speed = 0.2 + (1 - value) * 0.3;
+        const angle = time * speed + (i / PLANETS.length) * Math.PI * 2;
+
+        const mesh = planetMeshes[name];
+        mesh.position.x = Math.cos(angle) * radius;
+        mesh.position.z = Math.sin(angle) * radius;
+        mesh.position.y = Math.sin(time + i) * 0.2;
+      });
+
+      // Update orbit visibility
+      ['past', 'now', 'forecast'].forEach(orbit => {
+        orbitLines[orbit].forEach(ring => {
+          ring.visible = showOrbits[orbit];
+        });
+      });
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    });
+
+    // === UI ===
+    function renderPlanetCards() {
+      const container = document.getElementById('planetCards');
+      container.innerHTML = PLANETS.map(name => {
+        const value = planets9[name] || 0.5;
+        const percent = Math.round(value * 100);
+        return `
+          <div class="planet-card planet-${name}">
+            <div class="planet-header">
+              <span class="planet-name">${name}</span>
+              <span class="planet-value">${percent}%</span>
+            </div>
+            <div class="planet-bar">
+              <div class="planet-bar-fill" style="width:${percent}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateStatus() {
+      const shock = planets9.SHOCK || 0;
+      const friction = planets9.FRICTION || 0;
+      const dot = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+
+      if (shock > 0.7 || friction > 0.8) {
+        dot.className = 'status-dot red';
+        text.textContent = 'CRITICAL';
+      } else if (shock > 0.4 || friction > 0.5) {
+        dot.className = 'status-dot yellow';
+        text.textContent = 'WARNING';
+      } else {
+        dot.className = 'status-dot';
+        text.textContent = 'STABLE';
+      }
+    }
+
+    // === API ===
+    async function fetchShadow() {
+      try {
+        const res = await fetch(`${API_BASE}/shadow/snapshot/${entityId}`);
+        const data = await res.json();
+        if (data.shadow) {
+          // Convert lowercase to uppercase
+          PLANETS.forEach(p => {
+            planets9[p] = data.shadow[p.toLowerCase()] || 0.5;
+          });
+          renderPlanetCards();
+          updateStatus();
+        }
+      } catch (e) {
+        console.error('Fetch error:', e);
+      }
+    }
+
+    // === EVENTS ===
+    document.getElementById('entitySelect').addEventListener('change', (e) => {
+      entityId = e.target.value;
+      fetchShadow();
+    });
+
+    ['showPast', 'showNow', 'showForecast'].forEach(id => {
+      document.getElementById(id).addEventListener('change', (e) => {
+        const orbit = id.replace('show', '').toLowerCase();
+        showOrbits[orbit] = e.target.checked;
+        document.querySelector(`.time-item.${orbit}`).classList.toggle('active', e.target.checked);
+      });
+    });
+
+    // === INIT ===
+    fetchShadow();
+    setInterval(fetchShadow, 3000);
+
+    // WS Status simulation
+    setTimeout(() => {
+      document.getElementById('wsStatus').className = 'status-dot';
+      document.getElementById('wsText').textContent = 'Connected';
+    }, 1000);
+  </script>
+</body>
+</html>
