@@ -311,7 +311,7 @@
 
             async fetchData() {
                 try {
-                    const response = await fetch('https://solar.autus-ai.com/realtime/state');
+                    const response = await fetch('https://solar.autus-ai.com/autus/solar/status');
                     
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}`);

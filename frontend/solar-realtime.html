@@ -171,7 +171,7 @@
     // Fallback polling
     async function poll() {
       try {
-        const res = await fetch(`${API}/realtime/state`);
+        const res = await fetch(`${API}/autus/solar/status`);
         const state = await res.json();
         updateUI(state);
       } catch (e) {}
