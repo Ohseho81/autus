@@ -1,0 +1,33 @@
+mkdir -p observer
+nano observer/action_observer.py
+
+MIN_DURATION = 10      # seconds
+MIN_INTENSITY = 0.2
+
+def observe_action(event):
+    intensity = float(event.get("intensity", 0.5))
+    duration = float(event.get("duration", 1))
+
+    # Threshold gate
+    if duration < MIN_DURATION or intensity < MIN_INTENSITY:
+        return None
+
+    focus_delta = intensity * min(1.0, duration / 300)
+    energy_delta = intensity * 0.05
+    entropy_delta = max(0.0, 0.1 - intensity)
+
+    return {
+        "focus_delta": focus_delta,
+        "energy_delta": energy_delta,
+        "entropy_delta": entropy_delta,
+    }
+
+
+
+
+
+
+
+
+
+
