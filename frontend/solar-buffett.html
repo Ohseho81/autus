@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS Buffett HUD - Value Investing Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: #1a1a2e;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .hud-container {
+            display: grid;
+            grid-template-areas: 
+                "risk risk risk"
+                "competence value scorecard"
+                "planets planets planets";
+            grid-template-rows: 25% 50% 25%;
+            grid-template-columns: 1fr 1fr 1fr;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .panel {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid #2ecc71;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .panel-title {
+            color: #2ecc71;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .risk-panel {
+            grid-area: risk;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .gauge {
+            width: 120px;
+            height: 60px;
+            position: relative;
+        }
+
+        .gauge-bg {
+            width: 100%;
+            height: 100%;
+            border: 3px solid #333;
+            border-bottom: none;
+            border-radius: 120px 120px 0 0;
+            position: relative;
+        }
+
+        .gauge-needle {
+            width: 2px;
+            height: 50px;
+            background: #f39c12;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform-origin: bottom center;
+            transition: transform 0.5s ease;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .fear-greed {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .value-panel {
+            grid-area: value;
+            text-align: center;
+        }
+
+        .value-meter {
+            width: 200px;
+            height: 200px;
+            border: 4px solid #333;
+            border-radius: 50%;
+            margin: 20px auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .value-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #2ecc71 0deg, #2ecc71 var(--fill-angle), transparent var(--fill-angle));
+        }
+
+        .competence-panel {
+            grid-area: competence;
+        }
+
+        .competence-circle {
+            width: 150px;
+            height: 150px;
+            border: 3px solid #2ecc71;
+            border-radius: 50%;
+            margin: 10px auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .unc-highlight {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+
+        .scorecard-panel {
+            grid-area: scorecard;
+        }
+
+        .ratio-display {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+
+        .planets-panel {
+            grid-area: planets;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .planet {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .planet:hover {
+            transform: scale(1.1);
+        }
+
+        .buy { background: #2ecc71; color: #1a1a2e; }
+        .hold { background: #f39c12; color: #1a1a2e; }
+        .sell { background: #e74c3c; color: white; }
+
+        .quote {
+            position: absolute;
+            bottom: 5px;
+            left: 10px;
+            font-size: 10px;
+            color: #f39c12;
+            font-style: italic;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2ecc71;
+        }
+
+        .compound-viz {
+            height: 40px;
+            background: linear-gradient(90deg, #2ecc71 0%, #f39c12 50%, #e74c3c 100%);
+            border-radius: 4px;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .compound-marker {
+            position: absolute;
+            top: -5px;
+            width: 2px;
+            height: 50px;
+            background: white;
+            transition: left 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="hud-container">
+        <!-- Risk Assessment Panel -->
+        <div class="panel risk-panel">
+            <div class="status-indicator"></div>
+            <div>
+                <div class="panel-title">Margin of Safety</div>
+                <div class="metric-value" id="marginSafety">--</div>
+            </div>
+            <div>
+                <div class="panel-title">Current Risk</div>
+                <div class="gauge">
+                    <div class="gauge-bg">
+                        <div class="gauge-needle" id="riskNeedle"></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="panel-title">Market Sentiment</div>
+                <div class="fear-greed">
+                    <div class="indicator" id="fearIndicator"></div>
+                    <span id="sentimentText">NEUTRAL</span>
+                    <div class="indicator" id="greedIndicator"></div>
+                </div>
+            </div>
+            <div class="quote">"Risk comes from not knowing what you are doing"</div>
+        </div>
+
+        <!-- Circle of Competence Panel -->
+        <div class="panel competence-panel">
+            <div class="panel-title">Circle of Competence</div>
+            <div class="competence-circle">
+                <div class="unc-highlight">UNC</div>
+                <div>
+                    <div style="color: #2ecc71;">KNOW: <span id="knowPercent">--</span>%</div>
+                    <div style="color: #e74c3c;">GAP: <span id="gapPercent">--</span>%</div>
+                </div>
+            </div>
+            <div class="quote">"Be fearful when others are greedy"</div>
+        </div>
+
+        <!-- Value Meter Panel -->
+        <div class="panel value-panel">
+            <div class="panel-title">Intrinsic Value</div>
+            <div class="value-meter">
+                <div class="value-fill" id="valueFill"></div>
+                <div>
+                    <div id="valueStatus">FAIR</div>
+                    <div style="font-size: 12px;" id="entropyLevel">Entropy: LOW</div>
+                </div>
+            </div>
+            <div class="compound-viz">
+                <div class="compound-marker" id="compoundMarker"></div>
+            </div>
+            <div class="quote">"Price is what you pay, value is what you get"</div>
+        </div>
+
+        <!-- Long-term Scorecard Panel -->
+        <div class="panel scorecard-panel">
+            <div class="panel-title">Long-term Scorecard</div>
+            <div class="ratio-display">
+                <span>TICK/CYCLE:</span>
+                <span id="tickCycleRatio" class="metric-value">--</span>
+            </div>
+            <div class="ratio-display">
+                <span>PATIENCE:</span>
+                <span id="patienceLevel" class="metric-value">--</span>
+            </div>
+            <div class="panel-title" style="margin-top: 20px;">Compound Effect</div>
+            <div class="compound-viz">
+                <div class="compound-marker" id="compoundProgress"></div>
+            </div>
+        </div>
+
+        <!-- Planets Investment Panel -->
+        <div class="panel planets-panel">
+            <div class="panel-title" style="position: absolute; top: 5px; left: 15px;">Solar System Portfolio</div>
+            <div class="planet buy" id="mercury">MERC<br>BUY</div>
+            <div class="planet hold" id="venus">VEN<br>HOLD</div>
+            <div class="planet buy" id="earth">EART<br>BUY</div>
+            <div class="planet sell" id="mars">MARS<br>SELL</div>
+            <div class="planet buy" id="jupiter">JUP<br>BUY</div>
+            <div class="planet hold" id="saturn">SAT<br>HOLD</div>
+            <div class="planet sell" id="uranus">URA<br>SELL</div>
+            <div class="planet hold" id="neptune">NEP<br>HOLD</div>
+            <div class="planet buy" id="pluto">PLU<br>BUY</div>
+        </div>
+    </div>
+
+    <script>
+        // API polling and data management
+        let solarData = null;
+        const API_URL = 'https://solar.autus-ai.com/autus/solar/status';
+
+        // Fetch data from API
+        async function fetchSolarData() {
+            try {
+                const response = await fetch(API_URL);
+                if (response.ok) {
+                    solarData = await response.json();
+                    updateHUD();
+                    document.querySelector('.status-indicator').style.background = '#2ecc71';
+                }
+            } catch (error) {
+                console.error('API fetch error:', error);
+                document.querySelector('.status-indicator').style.background = '#e74c3c';
+                generateMockData();
+            }
+        }
+
+        // Generate mock data for demonstration
+        function generateMockData() {
+            solarData = {
+                entropy: Math.random() * 100,
+                cycle: Math.random() * 100,
+                tick: Math.random() * 100,
+                unc: Math.random() * 50,
+                gap: Math.random() * 30,
+                planets: Array.from({length: 9}, () => ({
+                    value: Math.random() * 100,
+                    risk: Math.random() * 100
+                }))
+            };
+            updateHUD();
+        }
+
+        // Update HUD with current data
+        function updateHUD() {
+            if (!solarData) return;
+
+            // Calculate derived metrics
+            const marginSafety = Math.max(0, 100 - solarData.entropy);
+            const riskLevel = solarData.entropy;
+            const sentiment = riskLevel > 70 ? 'GREED' : riskLevel < 30 ? 'FEAR' : 'NEUTRAL';
+            const intrinsicValue = (solarData.cycle / (solarData.tick + 1)) * 100;
+            const tickCycleRatio = (solarData.tick / Math.max(solarData.cycle, 1)).toFixed(2);
+            const patienceLevel = Math.max(0, 100 - solarData.tick);
+
+            // Update Risk Assessment
+            document.getElementById('marginSafety').textContent = `${marginSafety.toFixed(1)}%`;
+            document.getElementById('riskNeedle').style.transform = `rotate(${(riskLevel / 100) * 180 - 90}deg)`;
+            
+            // Update sentiment indicators
+            document.getElementById('sentimentText').textContent = sentiment;
+            document.getElementById('fearIndicator').style.background = sentiment === 'FEAR' ? '#e74c3c' : '#333';
+            document.getElementById('greedIndicator').style.background = sentiment === 'GREED' ? '#e74c3c' : '#333';
+
+            // Update Circle of Competence
+            const knowPercent = Math.max(0, 100 - solarData.unc - solarData.gap);
+            document.getElementById('knowPercent').textContent = knowPercent.toFixed(1);
+            document.getElementById('gapPercent').textContent = solarData.gap.toFixed(1);
+
+            // Update Value Meter
+            const valueAngle = Math.min(360, (intrinsicValue / 100) * 360);
+            document.getElementById('valueFill').style.setProperty('--fill-angle', `${valueAngle}deg`);
+            
+            let valueStatus = 'FAIR';
+            if (intrinsicValue > 120) valueStatus = 'OVERVALUED';
+            else if (intrinsicValue < 80) valueStatus = 'UNDERVALUED';
+            document.getElementById('valueStatus').textContent = valueStatus;
+            
+            const entropyLevel = solarData.entropy > 70 ? 'HIGH' : solarData.entropy < 30 ? 'LOW' : 'MEDIUM';
+            document.getElementById('entropyLevel').textContent = `Entropy: ${entropyLevel}`;
+
+            // Update Scorecard
+            document.getElementById('tickCycleRatio').textContent = tickCycleRatio;
+            document.getElementById('patienceLevel').textContent = `${patienceLevel.toFixed(0)}%`;
+            
+            // Update compound effect visualization
+            document.getElementById('compoundMarker').style.left = `${Math.min(100, solarData.cycle)}%`;
+            document.getElementById('compoundProgress').style.left = `${Math.min(100, solarData.cycle)}%`;
+
+            // Update planets
+            updatePlanets();
+        }
+
+        // Update planet recommendations
+        function updatePlanets() {
+            const planets = ['mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto

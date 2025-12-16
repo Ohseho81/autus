@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS - 7 Global Entrepreneurs</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #0a0a0f; 
+      color: #fff; 
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    h1 { 
+      font-size: 48px; 
+      font-weight: 200; 
+      letter-spacing: 0.3em; 
+      margin-bottom: 10px;
+      color: #00d4ff;
+    }
+    .subtitle { 
+      font-size: 14px; 
+      color: #666; 
+      letter-spacing: 0.2em; 
+      margin-bottom: 60px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      width: 100%;
+    }
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 30px;
+      text-decoration: none;
+      color: #fff;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .card:hover::before { opacity: 1; }
+    .card-icon { font-size: 40px; margin-bottom: 15px; }
+    .card-name { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
+    .card-role { font-size: 12px; color: #666; letter-spacing: 0.1em; margin-bottom: 15px; }
+    .card-desc { font-size: 13px; color: #888; line-height: 1.6; }
+    .card-quote { 
+      font-size: 11px; 
+      color: #555; 
+      font-style: italic; 
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .jobs { --accent: #00d4ff; }
+    .musk { --accent: #00ff88; }
+    .bezos { --accent: #ff9900; }
+    .huang { --accent: #76b900; }
+    .thiel { --accent: #8b5cf6; }
+    .buffett { --accent: #2ecc71; }
+    .altman { --accent: #ff6600; }
+    
+    .main-link {
+      margin-top: 40px;
+      padding: 15px 40px;
+      background: linear-gradient(135deg, #00d4ff, #0088ff);
+      border: none;
+      border-radius: 30px;
+      color: #fff;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .main-link:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(0,212,255,0.3);
+    }
+  </style>
+</head>
+<body>
+  <h1>AUTUS</h1>
+  <p class="subtitle">7 GLOBAL ENTREPRENEURS EDITION</p>
+  
+  <div class="grid">
+    <a href="solar-globe-hq.html" class="card jobs">
+      <div class="card-icon">🍎</div>
+      <div class="card-name">Steve Jobs</div>
+      <div class="card-role">SIMPLICITY · DESIGN</div>
+      <div class="card-desc">단순함은 진실의 증거. 복잡함을 제거하고 본질만 남긴다.</div>
+      <div class="card-quote">"Design is not just what it looks like. Design is how it works."</div>
+    </a>
+    
+    <a href="solar-musk.html" class="card musk">
+      <div class="card-icon">🚀</div>
+      <div class="card-name">Elon Musk</div>
+      <div class="card-role">PHYSICS · FIRST PRINCIPLES</div>
+      <div class="card-desc">모든 것은 물리법칙. 제1원리로 사고하고 불가능을 가능으로.</div>
+      <div class="card-quote">"Physics is the law, everything else is a recommendation."</div>
+    </a>
+    
+    <a href="solar-bezos.html" class="card bezos">
+      <div class="card-icon">📦</div>
+      <div class="card-name">Jeff Bezos</div>
+      <div class="card-role">CUSTOMER · LONG-TERM</div>
+      <div class="card-desc">고객에서 역산. Day 1 정신으로 장기적 플라이휠 구축.</div>
+      <div class="card-quote">"Your margin is my opportunity."</div>
+    </a>
+    
+    <a href="solar-huang.html" class="card huang">
+      <div class="card-icon">💚</div>
+      <div class="card-name">Jensen Huang</div>
+      <div class="card-role">PARALLEL · ACCELERATE</div>
+      <div class="card-desc">모든 것을 병렬화하고 가속한다. 규모의 법칙.</div>
+      <div class="card-quote">"The more you buy, the more you save."</div>
+    </a>
+    
+    <a href="solar-thiel.html" class="card thiel">
+      <div class="card-icon">🦄</div>
+      <div class="card-name">Peter Thiel</div>
+      <div class="card-role">CONTRARIAN · SECRETS</div>
+      <div class="card-desc">0에서 1로. 경쟁은 패자의 게임. 비밀을 찾아라.</div>
+      <div class="card-quote">"Competition is for losers."</div>
+    </a>
+    
+    <a href="solar-buffett.html" class="card buffett">
+      <div class="card-icon">💰</div>
+      <div class="card-name">Warren Buffett</div>
+      <div class="card-role">VALUE · RISK</div>
+      <div class="card-desc">위험은 모르는 것에서 온다. 안전마진을 확보하라.</div>
+      <div class="card-quote">"Be fearful when others are greedy."</div>
+    </a>
+    
+    <a href="solar-altman.html" class="card altman">
+      <div class="card-icon">⚡</div>
+      <div class="card-name">Sam Altman</div>
+      <div class="card-role">SCALE · TIME</div>
+      <div class="card-desc">빠르게 움직여라. 시간이 가장 중요한 자원이다.</div>
+      <div class="card-quote">"Move fast. Scale rules."</div>
+    </a>
+  </div>
+  
+  <a href="solar-globe-hq.html" class="main-link">ENTER SOLAR HQ →</a>
+</body>
+</html>
