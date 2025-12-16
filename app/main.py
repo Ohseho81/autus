@@ -1,6 +1,7 @@
 import os
 import time
 import threading
+import sqlite3
 import json
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Literal, Any, List
@@ -16,99 +17,72 @@ from pydantic import BaseModel, Field
 # Config
 AUTUS_API_KEY = os.getenv("AUTUS_API_KEY", "")
 RATE_LIMIT_PER_MIN = int(os.getenv("RATE_LIMIT_PER_MIN", "60"))
+DB_PATH = os.getenv("DB_PATH", "/tmp/autus.db")
 PROTECTED_PREFIXES = ("/execute", "/event/")
 rate_limit_store: Dict[str, List[float]] = defaultdict(list)
 
-# Database - PostgreSQL + SQLite Fallback
-DATABASE_URL = os.getenv("DATABASE_URL")
-USE_POSTGRES = False
-
-if DATABASE_URL:
-    try:
-        import psycopg2
-        from psycopg2.extras import RealDictCursor
-        USE_POSTGRES = True
-        print("✅ PostgreSQL 연결")
-    except ImportError:
-        import sqlite3
-        DB_PATH = os.getenv("DB_PATH", "/tmp/autus.db")
-        print("⚠️ psycopg2 없음, SQLite 사용")
-else:
-    import sqlite3
-    DB_PATH = os.getenv("DB_PATH", "/tmp/autus.db")
-
+# Database
 @contextmanager
 def get_db():
-    if USE_POSTGRES:
-        conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-        try:
-            yield conn
-            conn.commit()
-        except Exception as e:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+def db_query(conn, sql, params=None, fetch_one=False, fetch_all=False):
+    """PostgreSQL/SQLite 호환 쿼리"""
+    cur = conn.cursor()
+    if USE_POSTGRES and params:
+        sql = sql.replace('?', '%s')
+    if params:
+        cur.execute(sql, params)
     else:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        try:
-            yield conn
-        finally:
-            conn.close()
+        cur.execute(sql)
+    if fetch_one:
+        row = cur.fetchone()
+        return dict(row) if row else None
+    if fetch_all:
+        return [dict(r) for r in cur.fetchall()]
+    conn.commit()
+    return cur
+
+
 
 def init_db():
     with get_db() as conn:
-        if USE_POSTGRES:
-            cur = conn.cursor()
-            cur.execute("""CREATE TABLE IF NOT EXISTS state (
-                id TEXT PRIMARY KEY, tick INTEGER, cycle INTEGER,
-                pressure REAL, release REAL, decision REAL,
-                gravity REAL, entropy REAL, status TEXT, 
-                bottleneck TEXT, required_action TEXT,
-                failure_in_ticks INTEGER, updated_at BIGINT
-            )""")
-            cur.execute("""CREATE TABLE IF NOT EXISTS actors (
-                actor_id TEXT PRIMARY KEY, total_pressure REAL DEFAULT 0,
-                total_release REAL DEFAULT 0, total_decisions INTEGER DEFAULT 0,
-                last_event TEXT, last_event_ts BIGINT, risk_score REAL DEFAULT 0
-            )""")
-            cur.execute("""CREATE TABLE IF NOT EXISTS audit (
-                id SERIAL PRIMARY KEY, ts BIGINT, event TEXT, actor_id TEXT,
-                data TEXT, state_snapshot TEXT
-            )""")
-            conn.commit()
-            # Init state
-            cur.execute("SELECT id FROM state WHERE id='SUN_001'")
-            if not cur.fetchone():
-                cur.execute("""INSERT INTO state (id, tick, cycle, pressure, release, decision, gravity, entropy, status, bottleneck, required_action, failure_in_ticks, updated_at)
-                    VALUES ('SUN_001', 0, 0, 0, 0, 0, 0.34, 0.188, 'GREEN', 'NONE', 'NONE', NULL, %s)""", (int(time.time()),))
-                conn.commit()
-        else:
-            conn.cursor().execute("""CREATE TABLE IF NOT EXISTS state (
-                id TEXT PRIMARY KEY, tick INTEGER, cycle INTEGER,
-                pressure REAL, release REAL, decision REAL,
-                gravity REAL, entropy REAL, status TEXT,
-                bottleneck TEXT, required_action TEXT,
-                failure_in_ticks INTEGER, updated_at INTEGER
-            )""")
-            conn.cursor().execute("""CREATE TABLE IF NOT EXISTS actors (
-                actor_id TEXT PRIMARY KEY, total_pressure REAL DEFAULT 0,
-                total_release REAL DEFAULT 0, total_decisions INTEGER DEFAULT 0,
-                last_event TEXT, last_event_ts INTEGER, risk_score REAL DEFAULT 0
-            )""")
-            conn.cursor().execute("""CREATE TABLE IF NOT EXISTS audit (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, event TEXT,
-                actor_id TEXT, data TEXT, state_snapshot TEXT
-            )""")
-            conn.cursor().execute('CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit(ts)')
-            conn.cursor().execute('CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit(actor_id)')
-            cur = conn.cursor().execute("SELECT id FROM state WHERE id='SUN_001'")
-            if not cur.fetchone():
-                conn.cursor().execute("""INSERT INTO state (id, tick, cycle, pressure, release, decision, gravity, entropy, status, bottleneck, required_action, failure_in_ticks, updated_at)
-                    VALUES ('SUN_001', 0, 0, 0, 0, 0, 0.34, 0.188, 'GREEN', 'NONE', 'NONE', NULL, ?)""", (int(time.time()),))
-            conn.commit()
-
+        conn.execute('''CREATE TABLE IF NOT EXISTS state (
+            id TEXT PRIMARY KEY,
+            tick INTEGER, cycle INTEGER,
+            pressure REAL, release REAL, decision REAL,
+            gravity REAL, entropy REAL,
+            status TEXT, bottleneck TEXT, required_action TEXT,
+            failure_in_ticks INTEGER,
+            updated_at INTEGER
+        )''')
+        conn.execute('''CREATE TABLE IF NOT EXISTS actors (
+            actor_id TEXT PRIMARY KEY,
+            total_pressure REAL DEFAULT 0,
+            total_release REAL DEFAULT 0,
+            total_decisions INTEGER DEFAULT 0,
+            last_event TEXT,
+            last_event_ts INTEGER,
+            risk_score REAL DEFAULT 0
+        )''')
+        conn.execute('''CREATE TABLE IF NOT EXISTS audit (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts INTEGER, event TEXT, actor_id TEXT,
+            data TEXT, state_snapshot TEXT
+        )''')
+        conn.execute('''CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit(ts)''')
+        conn.execute('''CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit(actor_id)''')
+        # Init state if not exists
+        cur = conn.execute("SELECT id FROM state WHERE id='SUN_001'")
+        if not cur.fetchone():
+            conn.execute('''INSERT INTO state (id, tick, cycle, pressure, release, decision, gravity, entropy, status, bottleneck, required_action, failure_in_ticks, updated_at)
+                VALUES ('SUN_001', 0, 0, 0, 0, 0, 0.34, 0.188, 'GREEN', 'NONE', 'NONE', NULL, ?)''', (int(time.time()),))
+        conn.commit()
 
 # Models
 class AddWorkIn(BaseModel):
@@ -141,7 +115,7 @@ class Engine:
 
     def _load_state(self):
         with get_db() as conn:
-            row = conn.cursor().execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
+            row = db_query(conn, "SELECT * FROM state WHERE id='SUN_001'", fetch_one=True)
             if row:
                 self._state = dict(row)
             else:
@@ -150,7 +124,7 @@ class Engine:
     def _save_state(self):
         with get_db() as conn:
             s = self._state
-            conn.cursor().execute('''UPDATE state SET tick=?, cycle=?, pressure=?, release=?, decision=?, gravity=?, entropy=?, status=?, bottleneck=?, required_action=?, failure_in_ticks=?, updated_at=? WHERE id='SUN_001' ''',
+            conn.execute('''UPDATE state SET tick=?, cycle=?, pressure=?, release=?, decision=?, gravity=?, entropy=?, status=?, bottleneck=?, required_action=?, failure_in_ticks=?, updated_at=? WHERE id='SUN_001' ''',
                 (s["tick"], s["cycle"], s["pressure"], s["release"], s["decision"], s["gravity"], s["entropy"], s["status"], s["bottleneck"], s["required_action"], s["failure_in_ticks"], int(time.time())))
             conn.commit()
 
@@ -210,7 +184,7 @@ class Engine:
     def _update_actor(self, actor_id: str, event: str, pressure_delta: float = 0, release_delta: float = 0, decision_delta: int = 0):
         if not actor_id: return
         with get_db() as conn:
-            conn.cursor().execute('''INSERT INTO actors (actor_id, total_pressure, total_release, total_decisions, last_event, last_event_ts, risk_score)
+            conn.execute('''INSERT INTO actors (actor_id, total_pressure, total_release, total_decisions, last_event, last_event_ts, risk_score)
                 VALUES (?, ?, ?, ?, ?, ?, 0)
                 ON CONFLICT(actor_id) DO UPDATE SET
                     total_pressure = total_pressure + ?,
@@ -225,7 +199,7 @@ class Engine:
 
     def _audit(self, event: str, data: dict, actor_id: str):
         with get_db() as conn:
-            conn.cursor().execute('''INSERT INTO audit (ts, event, actor_id, data, state_snapshot) VALUES (?, ?, ?, ?, ?)''',
+            conn.execute('''INSERT INTO audit (ts, event, actor_id, data, state_snapshot) VALUES (?, ?, ?, ?, ?)''',
                 (int(time.time()), event, actor_id or "", json.dumps(data), json.dumps(self.snapshot())))
             conn.commit()
 
@@ -279,17 +253,17 @@ class Engine:
 
     def get_actors(self, limit=20):
         with get_db() as conn:
-            rows = conn.cursor().execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT ?", (limit,)).fetchall()
+            rows = conn.execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT ?", (limit,)).fetchall()
             return [dict(r) for r in rows]
 
     def get_top_risk_actor(self):
         with get_db() as conn:
-            row = conn.cursor().execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT 1").fetchone()
+            row = conn.execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT 1").fetchone()
             return dict(row) if row else None
 
     def audit_tail(self, n=50):
         with get_db() as conn:
-            rows = conn.cursor().execute("SELECT ts, event, actor_id, data FROM audit ORDER BY id DESC LIMIT ?", (n,)).fetchall()
+            rows = conn.execute("SELECT ts, event, actor_id, data FROM audit ORDER BY id DESC LIMIT ?", (n,)).fetchall()
             return [{"ts": r["ts"], "event": r["event"], "actor_id": r["actor_id"], "data": json.loads(r["data"])} for r in rows]
 
 # App
@@ -385,9 +359,9 @@ def get_solar_state(entity_id: str):
     
     # 현재 상태 조회
     with get_db() as conn:
-        row = conn.cursor().execute("SELECT * FROM state WHERE id=?", (entity_id,)).fetchone()
+        row = conn.execute("SELECT * FROM state WHERE id=?", (entity_id,)).fetchone()
         if not row:
-            row = conn.cursor().execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
+            row = db_query(conn, "SELECT * FROM state WHERE id='SUN_001'", fetch_one=True)
     
     if not row:
         return {"error": "Entity not found"}
@@ -461,9 +435,9 @@ def get_solar_state_v2(entity_id: str):
     global _prev_metrics
     
     with get_db() as conn:
-        row = conn.cursor().execute("SELECT * FROM state WHERE id=?", (entity_id,)).fetchone()
+        row = conn.execute("SELECT * FROM state WHERE id=?", (entity_id,)).fetchone()
         if not row:
-            row = conn.cursor().execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
+            row = db_query(conn, "SELECT * FROM state WHERE id='SUN_001'", fetch_one=True)
     
     if not row:
         return {"error": "Entity not found"}
