@@ -533,3 +533,19 @@ def ui_bind(entity_id: str):
         },
         "policy_shadow": policy.get("friction", 0),
     }
+
+# === Observer API ===
+try:
+    from app.api.observer_api import router as observer_router
+    app.include_router(observer_router)
+    print("✅ Observer API loaded")
+except Exception as e:
+    print(f"⚠️ Observer API not loaded: {e}")
+
+# === Realtime API ===
+try:
+    from app.api.realtime_api import router as realtime_router
+    app.include_router(realtime_router)
+    print("✅ Realtime API loaded")
+except Exception as e:
+    print(f"⚠️ Realtime API not loaded: {e}")

@@ -1,0 +1,91 @@
+{
+  "pack_id": "RulePack::UniversityReadiness",
+  "version": "1.0.0",
+  "description": "대학 준비도 평가 - API 연동 및 데이터 피드 조건 검증",
+  
+  "listens_to": [
+    "EVT::UNI_CONTACT",
+    "EVT::UNI_REQUIREMENTS_REGISTERED",
+    "EVT::UNI_ADMISSION_API_READY",
+    "EVT::UNI_MOU_DRAFTED",
+    "EVT::UNI_MOU_SIGNED",
+    "EVT::UNI_FIRST_BATCH",
+    "EVT::UNI_DATA_FEED_STARTED"
+  ],
+  
+  "conditions": [
+    {
+      "id": "min_departments",
+      "field": "department_count",
+      "op": ">=",
+      "value": 2,
+      "weight": 0.25,
+      "required": true
+    },
+    {
+      "id": "api_test_success",
+      "field": "test_success_rate",
+      "op": ">=",
+      "value": 0.80,
+      "weight": 0.30,
+      "required": true
+    },
+    {
+      "id": "feed_success",
+      "field": "feed_success_rate",
+      "op": ">=",
+      "value": 0.80,
+      "weight": 0.25,
+      "required": false
+    },
+    {
+      "id": "mou_signed",
+      "field": "mou_status",
+      "op": "==",
+      "value": "signed",
+      "weight": 0.20,
+      "required": false
+    }
+  ],
+  
+  "evaluation_mode": "weighted",
+  "threshold": 0.70,
+  
+  "on_pass": {
+    "trigger_flow": "Flow::UNI_INTEGRATION",
+    "emit_event": "EVT::UNI_READY_FOR_INTEGRATION",
+    "notify": ["edu_team", "uni_manager"],
+    "log_level": "info"
+  },
+  
+  "on_fail": {
+    "retry_after_seconds": 172800,
+    "fallback_flow": "Flow::UNI_SUPPORT",
+    "notify": ["edu_team"],
+    "log_level": "warn"
+  },
+  
+  "delta_overrides": {
+    "KR": {
+      "conditions": [
+        {
+          "id": "min_departments",
+          "field": "department_count",
+          "op": ">=",
+          "value": 3
+        }
+      ]
+    },
+    "PH": {
+      "conditions": [
+        {
+          "id": "api_test_success",
+          "field": "test_success_rate",
+          "op": ">=",
+          "value": 0.75
+        }
+      ],
+      "threshold": 0.65
+    }
+  }
+}

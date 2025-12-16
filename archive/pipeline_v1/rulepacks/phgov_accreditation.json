@@ -1,0 +1,69 @@
+{
+  "pack_id": "RulePack::PHGovAccreditation",
+  "version": "1.0.0",
+  "description": "필리핀 정부 인증 평가 - Fraud 검증 및 파트너 품질 조건",
+  
+  "listens_to": [
+    "EVT::PHGOV_CONTACT",
+    "EVT::PHGOV_PARTNER_REGISTERED",
+    "EVT::PHGOV_MOA_DRAFTED",
+    "EVT::PHGOV_FRAUD_CHECK_COMPLETED",
+    "EVT::PHGOV_APPROVED",
+    "EVT::PHGOV_ACCREDITED",
+    "EVT::PHGOV_PILOT_BATCH"
+  ],
+  
+  "conditions": [
+    {
+      "id": "fraud_risk_low",
+      "field": "fraud_risk_score",
+      "op": "<=",
+      "value": 0.001,
+      "weight": 0.40,
+      "required": true
+    },
+    {
+      "id": "partner_score_threshold",
+      "field": "partner_score",
+      "op": ">=",
+      "value": 75,
+      "weight": 0.30,
+      "required": true
+    },
+    {
+      "id": "partner_verified",
+      "field": "partner_verification_status",
+      "op": "==",
+      "value": "verified",
+      "weight": 0.20,
+      "required": true
+    },
+    {
+      "id": "moa_approved",
+      "field": "moa_status",
+      "op": "==",
+      "value": "approved",
+      "weight": 0.10,
+      "required": false
+    }
+  ],
+  
+  "evaluation_mode": "all",
+  "threshold": 1.0,
+  
+  "on_pass": {
+    "trigger_flow": "Flow::PH_ACCREDITATION",
+    "emit_event": "EVT::PHGOV_READY_FOR_ACCREDITATION",
+    "notify": ["compliance_team", "ph_manager", "legal_team"],
+    "log_level": "critical"
+  },
+  
+  "on_fail": {
+    "retry_after_seconds": 604800,
+    "fallback_flow": "Flow::PH_REMEDIATION",
+    "notify": ["compliance_team", "ph_manager"],
+    "log_level": "critical"
+  },
+  
+  "delta_overrides": {}
+}

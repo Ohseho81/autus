@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LimePass Event Schema",
+  "description": "Schema for defining events in the LimePass OS pipeline",
+  "type": "object",
+  "patternProperties": {
+    "^EVT::[A-Z_]+$": {
+      "type": "object",
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "enum": ["manual", "auto", "webhook", "scheduled"],
+          "description": "How this event is triggered"
+        },
+        "required_fields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Fields that must be present when event fires"
+        },
+        "optional_fields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Optional metadata fields"
+        },
+        "emits_to": {
+          "type": "string",
+          "pattern": "^RulePack::[A-Za-z]+$",
+          "description": "Which RulePack evaluates this event"
+        },
+        "description": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Corresponding stage in the 100-step manual"
+        }
+      },
+      "required": ["trigger", "required_fields", "emits_to"],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

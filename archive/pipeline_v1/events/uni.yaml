@@ -1,0 +1,121 @@
+# LimePass Kernel - University Events
+# Domain: UNI (대학)
+# Version: 1.0.0
+
+EVT::UNI_CONTACT:
+  trigger: manual
+  required_fields:
+    - uni_id
+    - uni_name
+    - contact_person
+    - contact_date
+  optional_fields:
+    - department
+    - student_capacity
+    - country_code
+  emits_to: RulePack::UniversityReadiness
+  description: "대학 최초 접촉"
+  stage: 3
+
+EVT::UNI_REQUIREMENTS_REGISTERED:
+  trigger: webhook
+  required_fields:
+    - uni_id
+    - department_count
+    - requirements_data
+    - registered_at
+  optional_fields:
+    - gpa_minimum
+    - language_requirements
+  emits_to: RulePack::UniversityReadiness
+  description: "입학 요건 등록 완료 (최소 2개 학과)"
+  stage: 15
+
+EVT::UNI_ADMISSION_API_READY:
+  trigger: auto
+  required_fields:
+    - uni_id
+    - api_endpoint
+    - api_key_hash
+    - test_success_rate
+    - tested_at
+  optional_fields:
+    - rate_limit
+    - documentation_url
+  emits_to: RulePack::UniversityReadiness
+  description: "Admission API 연결 및 테스트 완료"
+  stage: 20
+
+EVT::UNI_MOU_DRAFTED:
+  trigger: auto
+  required_fields:
+    - uni_id
+    - mou_document_id
+    - draft_version
+    - created_at
+  optional_fields:
+    - legal_review_status
+    - special_terms
+  emits_to: RulePack::UniversityReadiness
+  description: "대학 MOU 초안 생성"
+  stage: 25
+
+EVT::UNI_MOU_SIGNED:
+  trigger: manual
+  required_fields:
+    - uni_id
+    - mou_document_hash
+    - signed_at
+    - signatory_name
+    - signatory_title
+  optional_fields:
+    - department_heads
+    - effective_date
+  emits_to: RulePack::UniversityReadiness
+  description: "대학 MOU 서명 완료"
+  stage: 28
+
+EVT::UNI_FIRST_BATCH:
+  trigger: auto
+  required_fields:
+    - uni_id
+    - batch_id
+    - student_count
+    - start_semester
+    - enrolled_at
+  optional_fields:
+    - department_breakdown
+    - scholarship_count
+  emits_to: RulePack::UniversityReadiness
+  description: "첫 학생 배치 완료"
+  stage: 35
+
+EVT::UNI_DATA_FEED_STARTED:
+  trigger: webhook
+  required_fields:
+    - uni_id
+    - feed_type
+    - feed_success_rate
+    - started_at
+  optional_fields:
+    - sync_interval
+    - last_sync_at
+  emits_to: RulePack::UniversityReadiness
+  description: "출석/GPA 데이터 피드 시작"
+  stage: 40
+
+EVT::UNI_SCORECARD_UPDATED:
+  trigger: auto
+  required_fields:
+    - uni_id
+    - scorecard_id
+    - score_total
+    - updated_at
+    - score_hash
+  optional_fields:
+    - attendance_feed_score
+    - gpa_feed_score
+    - data_quality_score
+  emits_to: RulePack::GovernmentCertification
+  description: "대학 ScoreCard 업데이트"
+  stage: 55

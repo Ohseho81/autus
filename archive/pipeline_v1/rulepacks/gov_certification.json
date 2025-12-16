@@ -1,0 +1,96 @@
+{
+  "pack_id": "RulePack::GovernmentCertification",
+  "version": "1.0.0",
+  "description": "중앙정부 인증 평가 - 지자체/대학/국가 파일럿 성공 조건",
+  
+  "listens_to": [
+    "EVT::LGO_SCORECARD_UPDATED",
+    "EVT::UNI_SCORECARD_UPDATED",
+    "EVT::EMP_SCORE_UPDATED",
+    "EVT::PHGOV_ACCREDITED",
+    "EVT::GOV_REPORT_SUBMITTED",
+    "EVT::GOV_POLICY_ALIGNMENT_CHECKED",
+    "EVT::GOV_SUPPORT_GRANTED",
+    "EVT::GOV_AUDIT_COMPLETED",
+    "EVT::GOV_CERTIFIED"
+  ],
+  
+  "conditions": [
+    {
+      "id": "lgo_success_count",
+      "field": "successful_lgo_count",
+      "op": ">=",
+      "value": 3,
+      "weight": 0.30,
+      "required": true
+    },
+    {
+      "id": "uni_success_count",
+      "field": "successful_uni_count",
+      "op": ">=",
+      "value": 2,
+      "weight": 0.25,
+      "required": true
+    },
+    {
+      "id": "national_pilot_success",
+      "field": "national_pilot_count",
+      "op": ">=",
+      "value": 1,
+      "weight": 0.25,
+      "required": true
+    },
+    {
+      "id": "audit_passed",
+      "field": "audit_result",
+      "op": "==",
+      "value": "passed",
+      "weight": 0.10,
+      "required": false
+    },
+    {
+      "id": "policy_alignment",
+      "field": "policy_alignment_score",
+      "op": ">=",
+      "value": 80,
+      "weight": 0.10,
+      "required": false
+    }
+  ],
+  
+  "evaluation_mode": "all",
+  "threshold": 1.0,
+  
+  "on_pass": {
+    "trigger_flow": "Flow::GOV_NATIONAL_PROJECT",
+    "emit_event": "EVT::GOV_CERTIFICATION_READY",
+    "notify": ["exec_team", "gov_relations", "legal_team", "compliance_team"],
+    "log_level": "critical"
+  },
+  
+  "on_fail": {
+    "retry_after_seconds": 2592000,
+    "fallback_flow": "Flow::GOV_PREPARATION",
+    "notify": ["gov_relations", "ops_team"],
+    "log_level": "warn"
+  },
+  
+  "delta_overrides": {
+    "JP": {
+      "conditions": [
+        {
+          "id": "lgo_success_count",
+          "field": "successful_lgo_count",
+          "op": ">=",
+          "value": 5
+        },
+        {
+          "id": "uni_success_count",
+          "field": "successful_uni_count",
+          "op": ">=",
+          "value": 3
+        }
+      ]
+    }
+  }
+}

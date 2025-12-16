@@ -1,0 +1,123 @@
+{
+  "flow_id": "Flow::PH_ACCREDITATION",
+  "version": "1.0.0",
+  "description": "필리핀 정부 인증 프로세스 - Fraud 검증부터 설명회까지",
+  
+  "triggered_by": ["RulePack::PHGovAccreditation"],
+  "execution_mode": "async",
+  "timeout_seconds": 1209600,
+  
+  "retry_policy": {
+    "max_retries": 2,
+    "backoff_multiplier": 3,
+    "initial_delay_seconds": 86400
+  },
+  
+  "steps": [
+    {
+      "step_id": "step_1_fraud_verification",
+      "order": 1,
+      "name": "Fraud 데이터 검증",
+      "action_type": "data_validation",
+      "action_config": {
+        "validation_type": "fraud_detection",
+        "data_sources": ["partner_records", "student_applications", "document_hashes"],
+        "algorithms": ["duplicate_detection", "anomaly_scoring", "document_authenticity"],
+        "threshold": 0.001,
+        "output_report": "/reports/compliance/{{phgov_agency_id}}_fraud_report.json"
+      },
+      "execution_mode": "sync",
+      "on_success": {
+        "next_step": "step_2_calculate_partner_score"
+      },
+      "on_failure": {
+        "retry": false,
+        "notify": ["compliance_team", "legal_team", "exec_team"]
+      }
+    },
+    {
+      "step_id": "step_2_calculate_partner_score",
+      "order": 2,
+      "name": "PH Partner Score 계산",
+      "action_type": "api_call",
+      "action_config": {
+        "endpoint": "/api/v1/scoring/partner",
+        "method": "POST",
+        "payload_template": {
+          "partner_id": "{{partner_id}}",
+          "metrics": [
+            "verification_status",
+            "historical_performance",
+            "capacity_utilization",
+            "complaint_ratio"
+          ]
+        }
+      },
+      "execution_mode": "sync",
+      "on_success": {
+        "next_step": "step_3_generate_approval_doc"
+      },
+      "on_failure": {
+        "retry": true,
+        "notify": ["compliance_team"]
+      }
+    },
+    {
+      "step_id": "step_3_generate_approval_doc",
+      "order": 3,
+      "name": "정부 승인서 생성",
+      "action_type": "generate_document",
+      "action_config": {
+        "template_id": "ph_gov_approval_v1",
+        "output_format": "pdf",
+        "variables": ["agency_name", "accreditation_scope", "validity_period", "conditions"],
+        "storage_path": "/documents/gov/ph/",
+        "requires_signature": true,
+        "signature_type": "digital"
+      },
+      "execution_mode": "sync",
+      "on_success": {
+        "next_step": "step_4_schedule_briefing"
+      },
+      "on_failure": {
+        "retry": true,
+        "notify": ["legal_team"]
+      }
+    },
+    {
+      "step_id": "step_4_schedule_briefing",
+      "order": 4,
+      "name": "설명회 Flow 자동 생성",
+      "action_type": "create_record",
+      "action_config": {
+        "record_type": "event",
+        "event_type": "briefing_session",
+        "auto_schedule": true,
+        "scheduling_rules": {
+          "days_from_approval": 14,
+          "preferred_days": ["tuesday", "thursday"],
+          "duration_hours": 2,
+          "venue_type": "hybrid"
+        },
+        "notification_targets": ["registered_partners", "govt_officials", "university_contacts"]
+      },
+      "execution_mode": "async",
+      "on_success": {
+        "emit_event": "EVT::PHGOV_BRIEFING_SCHEDULED"
+      },
+      "on_failure": {
+        "retry": true,
+        "notify": ["ph_manager", "ops_team"]
+      }
+    }
+  ],
+  
+  "on_complete": {
+    "emit_event": "EVT::PH_ACCREDITATION_FLOW_COMPLETED",
+    "update_scorecard": true,
+    "notify": ["compliance_team", "ph_manager", "exec_team", "legal_team"],
+    "rekor_log": true
+  },
+  
+  "delta_overrides": {}
+}

@@ -1,0 +1,156 @@
+# LimePass Kernel - Japan Delta Configuration
+# Country Code: JP
+# Version: 1.0.0
+# Status: TEMPLATE (for future expansion)
+
+meta:
+  country_code: JP
+  country_name: 日本
+  timezone: Asia/Tokyo
+  currency: JPY
+  language: ja
+  effective_date: "2025-01-01"
+  status: template
+
+# RulePack Overrides
+rulepacks:
+  LocalGovReadiness:
+    conditions:
+      data_submission_threshold:
+        value: 0.80
+    threshold: 0.75
+    
+  UniversityReadiness:
+    conditions:
+      min_departments:
+        value: 3
+      api_test_success:
+        value: 0.85
+        
+  EmployerQuality:
+    conditions:
+      worklog_upload_rate:
+        value: 0.90
+    threshold: 0.85
+    
+  GovernmentCertification:
+    conditions:
+      lgo_success_count:
+        value: 5
+      uni_success_count:
+        value: 3
+
+# Flow Overrides
+flows:
+  LGO_MOU:
+    steps:
+      step_2_request_approval:
+        action_config:
+          required_roles:
+            - lgo_manager
+            - legal_review
+            - jp_compliance
+          deadline_hours: 120
+          
+  GOV_NATIONAL_PROJECT:
+    steps:
+      step_4_public_materials:
+        action_config:
+          localization:
+            - ja
+            - en
+
+# ScoreCard Overrides
+scorecards:
+  LocalGov:
+    metrics:
+      data_submission:
+        thresholds:
+          excellent: 0.98
+          good: 0.90
+          fair: 0.80
+          poor: 0.60
+          
+  Employer:
+    metrics:
+      worklog_accuracy:
+        thresholds:
+          excellent: 0.98
+          good: 0.92
+          fair: 0.85
+          poor: 0.70
+
+# Compliance Requirements
+compliance:
+  labor_law:
+    minimum_wage_hourly_national: 1004
+    minimum_wage_hourly_tokyo: 1113
+    max_weekly_hours: 40
+    overtime_limit_monthly: 45
+    overtime_multiplier: 1.25
+    late_night_multiplier: 1.50
+    mandatory_benefits:
+      - health_insurance
+      - pension
+      - employment_insurance
+      - workers_comp
+    
+  data_protection:
+    appi_compliant: true
+    ppc_notification_required: true
+    data_retention_years: 3
+    cross_border_transfer_rules: strict
+    
+  education:
+    mext_accreditation: true
+    jasso_scholarship_eligible: true
+    
+  immigration:
+    visa_types:
+      - student
+      - designated_activities
+      - specified_skilled_worker_1
+      - specified_skilled_worker_2
+    residence_card_required: true
+    activity_permission_required: true
+
+# Quality Standards (Japan-specific high standards)
+quality_standards:
+  response_time_sla:
+    urgent: 2
+    standard: 24
+    non_urgent: 72
+  data_accuracy_minimum: 0.98
+  customer_satisfaction_minimum: 4.5
+
+# Notification Templates
+notifications:
+  language: ja
+  templates:
+    mou_approval:
+      subject: "[LimePass] MOU承認依頼"
+      template_id: "jp_mou_approval_v1"
+    economic_report:
+      subject: "[LimePass] 地域経済効果レポート"
+      template_id: "jp_economic_report_v1"
+    compliance_notice:
+      subject: "[LimePass] コンプライアンス通知"
+      template_id: "jp_compliance_v1"
+
+# Integration Endpoints (Japan-specific)
+integrations:
+  government:
+    e_gov_api: "https://e-gov.go.jp/api"
+    mhlw_api: "https://mhlw.go.jp/api"
+    mext_api: "https://mext.go.jp/api"
+    
+  education:
+    jasso_api: "https://jasso.go.jp/api"
+    
+  employers:
+    shakai_hoken_api: "https://nenkin.go.jp/api"
+    hello_work_api: "https://hellowork.mhlw.go.jp/api"
+    
+  banking:
+    zengin_system: true
+    jba_integration: true

@@ -1,0 +1,117 @@
+# LimePass Kernel - Philippines Delta Configuration
+# Country Code: PH
+# Version: 1.0.0
+
+meta:
+  country_code: PH
+  country_name: Philippines
+  timezone: Asia/Manila
+  currency: PHP
+  language: en
+  effective_date: "2024-01-01"
+
+# RulePack Overrides
+rulepacks:
+  UniversityReadiness:
+    conditions:
+      api_test_success:
+        value: 0.75
+    threshold: 0.65
+    
+  PHGovAccreditation:
+    # No overrides - strict compliance required
+    conditions: {}
+
+# Flow Overrides
+flows:
+  UNI_INTEGRATION:
+    steps:
+      step_3_test_feeds:
+        action_config:
+          success_threshold: 0.75
+          test_duration_hours: 72
+
+# ScoreCard Overrides
+scorecards:
+  University:
+    metrics:
+      attendance_feed:
+        thresholds:
+          excellent: 0.90
+          good: 0.80
+          fair: 0.65
+          poor: 0.45
+
+# Compliance Requirements
+compliance:
+  labor_law:
+    minimum_wage_daily_ncr: 610
+    minimum_wage_daily_region: 400
+    max_weekly_hours: 48
+    overtime_multiplier: 1.25
+    mandatory_benefits:
+      - sss
+      - philhealth
+      - pagibig
+      - thirteenth_month
+    
+  data_protection:
+    dpa_compliant: true
+    npc_registered: true
+    data_retention_years: 5
+    consent_required: true
+    
+  education:
+    ched_accreditation_required: true
+    tesda_certification_eligible: true
+    
+  immigration:
+    pwp_required: true
+    acr_card: true
+    student_visa_types:
+      - 9f_student
+      - special_study_permit
+
+# Fraud Prevention (Critical for PH)
+fraud_prevention:
+  enabled: true
+  risk_threshold: 0.001
+  verification_steps:
+    - document_authenticity
+    - identity_verification
+    - address_verification
+    - employment_history
+  blacklist_check: true
+  partner_audit_frequency_days: 30
+
+# Notification Templates
+notifications:
+  language: en
+  templates:
+    moa_approval:
+      subject: "[LimePass] MOA Approval Request"
+      template_id: "ph_moa_approval_v1"
+    accreditation_notice:
+      subject: "[LimePass] Accreditation Status Update"
+      template_id: "ph_accreditation_v1"
+    fraud_alert:
+      subject: "[URGENT] Fraud Detection Alert"
+      template_id: "ph_fraud_alert_v1"
+      priority: critical
+
+# Integration Endpoints (Philippines-specific)
+integrations:
+  government:
+    ched_api: "https://ched.gov.ph/api"
+    tesda_api: "https://tesda.gov.ph/api"
+    poea_api: "https://poea.gov.ph/api"
+    dole_api: "https://dole.gov.ph/api"
+    
+  verification:
+    nbi_clearance: "https://clearance.nbi.gov.ph/api"
+    psa_verification: "https://psa.gov.ph/api"
+    
+  banking:
+    instapay: true
+    pesonet: true
+    gcash_integration: true

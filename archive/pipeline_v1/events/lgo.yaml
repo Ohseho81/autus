@@ -1,0 +1,120 @@
+# LimePass Kernel - Local Government Events
+# Domain: LGO (지자체)
+# Version: 1.0.0
+
+EVT::LGO_CONTACT_MADE:
+  trigger: manual
+  required_fields:
+    - lgo_id
+    - lgo_name
+    - contact_person
+    - contact_date
+  optional_fields:
+    - region_code
+    - population
+    - notes
+  emits_to: RulePack::LocalGovReadiness
+  description: "지자체 최초 접촉 완료"
+  stage: 1
+
+EVT::LGO_PROPOSAL_SENT:
+  trigger: auto
+  required_fields:
+    - lgo_id
+    - proposal_document_id
+    - sent_at
+    - recipient_email
+  optional_fields:
+    - proposal_version
+    - attachments
+  emits_to: RulePack::LocalGovReadiness
+  description: "지자체에 제안서 발송"
+  stage: 5
+
+EVT::LGO_DATA_SHARED:
+  trigger: webhook
+  required_fields:
+    - lgo_id
+    - data_type
+    - data_submission_rate
+    - submitted_at
+  optional_fields:
+    - file_hash
+    - record_count
+  emits_to: RulePack::LocalGovReadiness
+  description: "지자체 데이터 공유 완료 (유학생/청년 현황 등)"
+  stage: 12
+
+EVT::LGO_MOU_DRAFTED:
+  trigger: auto
+  required_fields:
+    - lgo_id
+    - mou_document_id
+    - draft_version
+    - created_at
+  optional_fields:
+    - legal_review_status
+    - expiry_date
+  emits_to: RulePack::LocalGovReadiness
+  description: "MOU 초안 생성"
+  stage: 18
+
+EVT::LGO_MOU_SIGNED:
+  trigger: manual
+  required_fields:
+    - lgo_id
+    - mou_document_hash
+    - signed_at
+    - signatory_name
+    - signatory_title
+  optional_fields:
+    - witness
+    - effective_date
+  emits_to: RulePack::LocalGovReadiness
+  description: "MOU 서명 완료"
+  stage: 22
+
+EVT::LGO_PILOT_STARTED:
+  trigger: auto
+  required_fields:
+    - lgo_id
+    - pilot_id
+    - start_date
+    - target_student_count
+    - duration_months
+  optional_fields:
+    - pilot_manager
+    - budget_allocated
+  emits_to: RulePack::LocalGovReadiness
+  description: "파일럿 프로그램 시작"
+  stage: 30
+
+EVT::LGO_ECONOMIC_REPORT_GENERATED:
+  trigger: auto
+  required_fields:
+    - lgo_id
+    - report_id
+    - generated_at
+    - economic_impact_score
+  optional_fields:
+    - job_creation_estimate
+    - tax_revenue_estimate
+    - pdf_url
+  emits_to: RulePack::SupportEligibility
+  description: "지역경제효과 보고서 자동 생성"
+  stage: 45
+
+EVT::LGO_SCORECARD_UPDATED:
+  trigger: auto
+  required_fields:
+    - lgo_id
+    - scorecard_id
+    - score_total
+    - updated_at
+    - score_hash
+  optional_fields:
+    - score_breakdown
+    - previous_score
+  emits_to: RulePack::GovernmentCertification
+  description: "지자체 ScoreCard 업데이트"
+  stage: 50

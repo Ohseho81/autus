@@ -1,0 +1,107 @@
+# LimePass Kernel - Central Government Events
+# Domain: GOV (중앙정부)
+# Version: 1.0.0
+
+EVT::GOV_REPORT_SUBMITTED:
+  trigger: auto
+  required_fields:
+    - report_id
+    - report_type
+    - submitted_at
+    - submission_target
+    - document_hash
+  optional_fields:
+    - attachments
+    - summary
+  emits_to: RulePack::GovernmentCertification
+  description: "중앙정부 보고서 제출"
+  stage: 70
+
+EVT::GOV_POLICY_ALIGNMENT_CHECKED:
+  trigger: auto
+  required_fields:
+    - check_id
+    - policy_ids
+    - alignment_score
+    - checked_at
+  optional_fields:
+    - gaps_identified
+    - recommendations
+  emits_to: RulePack::GovernmentCertification
+  description: "정책 정렬도 점검"
+  stage: 75
+
+EVT::GOV_FUNDING_APPLICATION_SUBMITTED:
+  trigger: auto
+  required_fields:
+    - application_id
+    - program_name
+    - requested_amount
+    - submitted_at
+    - document_hash
+  optional_fields:
+    - co_applicants
+    - project_duration
+  emits_to: RulePack::SupportEligibility
+  description: "공모사업/지원금 신청"
+  stage: 78
+
+EVT::GOV_SUPPORT_GRANTED:
+  trigger: manual
+  required_fields:
+    - grant_id
+    - program_name
+    - approved_amount
+    - granted_at
+    - validity_period
+  optional_fields:
+    - conditions
+    - milestones
+  emits_to: RulePack::GovernmentCertification
+  description: "정부 지원 승인"
+  stage: 85
+
+EVT::GOV_AUDIT_COMPLETED:
+  trigger: manual
+  required_fields:
+    - audit_id
+    - auditor_name
+    - audit_result
+    - completed_at
+    - report_hash
+  optional_fields:
+    - findings
+    - recommendations
+  emits_to: RulePack::GovernmentCertification
+  description: "정부 감사 완료"
+  stage: 88
+
+EVT::GOV_CERTIFIED:
+  trigger: manual
+  required_fields:
+    - certification_id
+    - certification_type
+    - certified_at
+    - valid_until
+    - certifier_name
+  optional_fields:
+    - scope
+    - level
+  emits_to: RulePack::GovernmentCertification
+  description: "중앙정부 인증 획득"
+  stage: 95
+
+EVT::GOV_NATIONAL_PROJECT_STARTED:
+  trigger: auto
+  required_fields:
+    - project_id
+    - project_name
+    - started_at
+    - budget
+    - duration_months
+  optional_fields:
+    - partner_ministries
+    - kpis
+  emits_to: RulePack::GovernmentCertification
+  description: "국가 프로젝트 시작"
+  stage: 100

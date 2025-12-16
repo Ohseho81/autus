@@ -1,0 +1,145 @@
+{
+  "flow_id": "Flow::LGO_MOU",
+  "version": "1.0.0",
+  "description": "지자체 MOU 체결 프로세스 - 문서 생성부터 언론보도까지",
+  
+  "triggered_by": ["RulePack::LocalGovReadiness"],
+  "execution_mode": "hybrid",
+  "timeout_seconds": 604800,
+  
+  "retry_policy": {
+    "max_retries": 3,
+    "backoff_multiplier": 2,
+    "initial_delay_seconds": 3600
+  },
+  
+  "steps": [
+    {
+      "step_id": "step_1_generate_mou",
+      "order": 1,
+      "name": "MOU 문서 자동 생성",
+      "action_type": "generate_document",
+      "action_config": {
+        "template_id": "mou_lgo_template_v1",
+        "output_format": "pdf",
+        "variables": ["lgo_name", "lgo_id", "contact_person", "effective_date", "terms"],
+        "storage_path": "/documents/mou/lgo/"
+      },
+      "execution_mode": "sync",
+      "on_success": {
+        "next_step": "step_2_request_approval"
+      },
+      "on_failure": {
+        "retry": true,
+        "notify": ["ops_team"]
+      }
+    },
+    {
+      "step_id": "step_2_request_approval",
+      "order": 2,
+      "name": "담당자 승인 요청",
+      "action_type": "human_approval",
+      "action_config": {
+        "approval_type": "mou_review",
+        "required_roles": ["lgo_manager", "legal_review"],
+        "deadline_hours": 72,
+        "reminder_intervals": [24, 48]
+      },
+      "execution_mode": "async",
+      "required_approvals": ["lgo_manager"],
+      "on_success": {
+        "next_step": "step_3_create_portal"
+      },
+      "on_failure": {
+        "fallback_step": "step_1_generate_mou",
+        "notify": ["ops_team", "lgo_manager"]
+      }
+    },
+    {
+      "step_id": "step_3_create_portal",
+      "order": 3,
+      "name": "지자체 포털 계정 생성",
+      "action_type": "api_call",
+      "action_config": {
+        "endpoint": "/api/v1/portal/accounts",
+        "method": "POST",
+        "payload_template": {
+          "entity_type": "lgo",
+          "entity_id": "{{lgo_id}}",
+          "admin_email": "{{contact_email}}",
+          "permissions": ["dashboard", "reports", "student_data"]
+        }
+      },
+      "execution_mode": "sync",
+      "on_success": {
+        "next_step": "step_4_init_scorecard"
+      },
+      "on_failure": {
+        "retry": true,
+        "notify": ["tech_team"]
+      }
+    },
+    {
+      "step_id": "step_4_init_scorecard",
+      "order": 4,
+      "name": "ScoreCard 연동 초기화",
+      "action_type": "create_record",
+      "action_config": {
+        "record_type": "scorecard",
+        "entity_type": "lgo",
+        "initial_score": 0,
+        "scoring_config": "scorecard_lgo_v1"
+      },
+      "execution_mode": "sync",
+      "on_success": {
+        "next_step": "step_5_generate_press"
+      },
+      "on_failure": {
+        "retry": true,
+        "notify": ["tech_team"]
+      }
+    },
+    {
+      "step_id": "step_5_generate_press",
+      "order": 5,
+      "name": "언론 보도문 자동 생성",
+      "action_type": "generate_document",
+      "action_config": {
+        "template_id": "press_release_mou_v1",
+        "output_format": "docx",
+        "variables": ["lgo_name", "signing_date", "expected_students", "economic_impact"],
+        "storage_path": "/documents/press/",
+        "notify_on_complete": ["pr_team"]
+      },
+      "execution_mode": "async",
+      "on_success": {
+        "emit_event": "EVT::LGO_PRESS_READY"
+      },
+      "on_failure": {
+        "retry": true,
+        "notify": ["pr_team"]
+      }
+    }
+  ],
+  
+  "on_complete": {
+    "emit_event": "EVT::LGO_MOU_FLOW_COMPLETED",
+    "update_scorecard": true,
+    "notify": ["ops_team", "exec_team", "lgo_manager"],
+    "rekor_log": true
+  },
+  
+  "delta_overrides": {
+    "JP": {
+      "steps": [
+        {
+          "step_id": "step_2_request_approval",
+          "action_config": {
+            "required_roles": ["lgo_manager", "legal_review", "jp_compliance"],
+            "deadline_hours": 120
+          }
+        }
+      ]
+    }
+  }
+}

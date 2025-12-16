@@ -1,0 +1,159 @@
+{
+  "scorecard_id": "ScoreCard::LocalGov",
+  "version": "1.0.0",
+  "entity_type": "lgo",
+  "description": "지자체 성과 측정 - 데이터 제출, 홍보 참여, 승인 속도, 경제 효과",
+  "max_score": 100,
+  
+  "metrics": [
+    {
+      "metric_id": "data_submission",
+      "name": "데이터 제출율",
+      "weight": 0.30,
+      "max_points": 30,
+      "calculation_type": "percentage",
+      "data_source": "lgo_data_submissions",
+      "update_frequency": "daily",
+      "thresholds": {
+        "excellent": 0.95,
+        "good": 0.85,
+        "fair": 0.70,
+        "poor": 0.50
+      }
+    },
+    {
+      "metric_id": "pr_engagement",
+      "name": "홍보 참여도",
+      "weight": 0.25,
+      "max_points": 25,
+      "calculation_type": "threshold",
+      "data_source": "lgo_pr_activities",
+      "update_frequency": "weekly",
+      "thresholds": {
+        "excellent": 5,
+        "good": 3,
+        "fair": 2,
+        "poor": 1
+      }
+    },
+    {
+      "metric_id": "approval_speed",
+      "name": "승인/검토 속도",
+      "weight": 0.20,
+      "max_points": 20,
+      "calculation_type": "linear",
+      "data_source": "lgo_approval_times",
+      "update_frequency": "daily",
+      "thresholds": {
+        "excellent": 24,
+        "good": 48,
+        "fair": 72,
+        "poor": 168
+      }
+    },
+    {
+      "metric_id": "economic_impact",
+      "name": "지역경제 효과",
+      "weight": 0.25,
+      "max_points": 25,
+      "calculation_type": "logarithmic",
+      "data_source": "lgo_economic_reports",
+      "update_frequency": "monthly",
+      "thresholds": {
+        "excellent": 90,
+        "good": 75,
+        "fair": 60,
+        "poor": 40
+      }
+    }
+  ],
+  
+  "tiers": [
+    {
+      "tier_name": "Platinum",
+      "min_score": 90,
+      "max_score": 100,
+      "benefits": [
+        "우선 학생 배정",
+        "프리미엄 리포트",
+        "전담 매니저",
+        "정부 지원사업 우선 추천"
+      ],
+      "badge": "🏆"
+    },
+    {
+      "tier_name": "Gold",
+      "min_score": 75,
+      "max_score": 89,
+      "benefits": [
+        "우선 학생 배정",
+        "월간 성과 리포트",
+        "지원사업 추천"
+      ],
+      "badge": "🥇"
+    },
+    {
+      "tier_name": "Silver",
+      "min_score": 60,
+      "max_score": 74,
+      "benefits": [
+        "표준 학생 배정",
+        "분기 리포트"
+      ],
+      "badge": "🥈"
+    },
+    {
+      "tier_name": "Bronze",
+      "min_score": 40,
+      "max_score": 59,
+      "benefits": [
+        "기본 서비스"
+      ],
+      "badge": "🥉"
+    },
+    {
+      "tier_name": "Inactive",
+      "min_score": 0,
+      "max_score": 39,
+      "benefits": [],
+      "badge": "⚠️"
+    }
+  ],
+  
+  "decay_rules": {
+    "enabled": true,
+    "decay_rate_per_day": 0.1,
+    "minimum_score": 20,
+    "exemption_conditions": [
+      "active_pilot_running",
+      "pending_approval",
+      "holiday_period"
+    ]
+  },
+  
+  "audit_config": {
+    "rekor_log": true,
+    "hash_algorithm": "sha256",
+    "immutable_fields": [
+      "scorecard_id",
+      "entity_id",
+      "score_history"
+    ]
+  },
+  
+  "delta_overrides": {
+    "JP": {
+      "metrics": [
+        {
+          "metric_id": "data_submission",
+          "thresholds": {
+            "excellent": 0.98,
+            "good": 0.90,
+            "fair": 0.80,
+            "poor": 0.60
+          }
+        }
+      ]
+    }
+  }
+}

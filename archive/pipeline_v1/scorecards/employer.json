@@ -1,0 +1,195 @@
+{
+  "scorecard_id": "ScoreCard::Employer",
+  "version": "1.0.0",
+  "entity_type": "employer",
+  "description": "고용처 성과 측정 - 근무일지 정확도, Payroll 품질, 평가 응답률, 이탈률, 만족도",
+  "max_score": 100,
+  
+  "metrics": [
+    {
+      "metric_id": "worklog_accuracy",
+      "name": "근무일지 정확도",
+      "weight": 0.30,
+      "max_points": 30,
+      "calculation_type": "percentage",
+      "data_source": "emp_worklogs",
+      "update_frequency": "daily",
+      "thresholds": {
+        "excellent": 0.95,
+        "good": 0.85,
+        "fair": 0.70,
+        "poor": 0.50
+      }
+    },
+    {
+      "metric_id": "payroll_quality",
+      "name": "Payroll 품질",
+      "weight": 0.25,
+      "max_points": 25,
+      "calculation_type": "percentage",
+      "data_source": "emp_payroll_validations",
+      "update_frequency": "weekly",
+      "thresholds": {
+        "excellent": 0.98,
+        "good": 0.90,
+        "fair": 0.80,
+        "poor": 0.60
+      }
+    },
+    {
+      "metric_id": "evaluation_response",
+      "name": "태도/평가 응답률",
+      "weight": 0.20,
+      "max_points": 20,
+      "calculation_type": "percentage",
+      "data_source": "emp_evaluations",
+      "update_frequency": "monthly",
+      "thresholds": {
+        "excellent": 0.90,
+        "good": 0.75,
+        "fair": 0.60,
+        "poor": 0.40
+      }
+    },
+    {
+      "metric_id": "retention_improvement",
+      "name": "이탈률 감소",
+      "weight": 0.15,
+      "max_points": 15,
+      "calculation_type": "linear",
+      "data_source": "emp_retention_data",
+      "update_frequency": "monthly",
+      "thresholds": {
+        "excellent": 0.05,
+        "good": 0.10,
+        "fair": 0.15,
+        "poor": 0.25
+      }
+    },
+    {
+      "metric_id": "satisfaction_score",
+      "name": "만족도",
+      "weight": 0.10,
+      "max_points": 10,
+      "calculation_type": "linear",
+      "data_source": "student_feedback",
+      "update_frequency": "monthly",
+      "thresholds": {
+        "excellent": 4.5,
+        "good": 4.0,
+        "fair": 3.5,
+        "poor": 3.0
+      }
+    }
+  ],
+  
+  "tiers": [
+    {
+      "tier_name": "Premium Employer",
+      "min_score": 90,
+      "max_score": 100,
+      "benefits": [
+        "최우선 학생 배정",
+        "프리미엄 인재 풀 접근",
+        "브랜드 홍보 파트너십",
+        "전담 채용 매니저"
+      ],
+      "badge": "⭐"
+    },
+    {
+      "tier_name": "Preferred Employer",
+      "min_score": 75,
+      "max_score": 89,
+      "benefits": [
+        "우선 학생 배정",
+        "확장된 인재 풀",
+        "채용 리포트"
+      ],
+      "badge": "🏅"
+    },
+    {
+      "tier_name": "Standard Employer",
+      "min_score": 55,
+      "max_score": 74,
+      "benefits": [
+        "표준 학생 배정",
+        "기본 서비스"
+      ],
+      "badge": "✓"
+    },
+    {
+      "tier_name": "Probation",
+      "min_score": 35,
+      "max_score": 54,
+      "benefits": [
+        "제한된 배정",
+        "개선 가이드"
+      ],
+      "badge": "⚠️"
+    },
+    {
+      "tier_name": "Suspended",
+      "min_score": 0,
+      "max_score": 34,
+      "benefits": [],
+      "badge": "🚫"
+    }
+  ],
+  
+  "decay_rules": {
+    "enabled": true,
+    "decay_rate_per_day": 0.15,
+    "minimum_score": 10,
+    "exemption_conditions": [
+      "no_active_students",
+      "pending_review",
+      "approved_leave"
+    ]
+  },
+  
+  "audit_config": {
+    "rekor_log": true,
+    "hash_algorithm": "sha256",
+    "immutable_fields": [
+      "scorecard_id",
+      "entity_id",
+      "score_history",
+      "violation_records"
+    ]
+  },
+  
+  "delta_overrides": {
+    "KR": {
+      "metrics": [
+        {
+          "metric_id": "payroll_quality",
+          "thresholds": {
+            "excellent": 0.99,
+            "good": 0.95,
+            "fair": 0.90,
+            "poor": 0.80
+          }
+        }
+      ],
+      "tiers": [
+        {
+          "tier_name": "Premium Employer",
+          "min_score": 92
+        }
+      ]
+    },
+    "JP": {
+      "metrics": [
+        {
+          "metric_id": "worklog_accuracy",
+          "thresholds": {
+            "excellent": 0.98,
+            "good": 0.92,
+            "fair": 0.85,
+            "poor": 0.70
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "pack_id": "RulePack::SupportEligibility",
+  "version": "1.0.0",
+  "description": "지원사업 적격 평가 - 경제효과 및 학생 유지율 조건",
+  
+  "listens_to": [
+    "EVT::LGO_ECONOMIC_REPORT_GENERATED",
+    "EVT::GOV_FUNDING_APPLICATION_SUBMITTED"
+  ],
+  
+  "conditions": [
+    {
+      "id": "economic_impact_threshold",
+      "field": "economic_impact_score",
+      "op": ">=",
+      "value": 70,
+      "weight": 0.40,
+      "required": true
+    },
+    {
+      "id": "student_retention_rate",
+      "field": "student_retention_rate",
+      "op": ">=",
+      "value": 0.88,
+      "weight": 0.30,
+      "required": true
+    },
+    {
+      "id": "lgo_count_threshold",
+      "field": "active_lgo_count",
+      "op": ">=",
+      "value": 2,
+      "weight": 0.15,
+      "required": false
+    },
+    {
+      "id": "uni_count_threshold",
+      "field": "active_uni_count",
+      "op": ">=",
+      "value": 1,
+      "weight": 0.15,
+      "required": false
+    }
+  ],
+  
+  "evaluation_mode": "weighted",
+  "threshold": 0.70,
+  
+  "on_pass": {
+    "trigger_flow": "Flow::SUPPORT_APPLICATION",
+    "emit_event": "EVT::SUPPORT_ELIGIBLE",
+    "notify": ["biz_dev_team", "finance_team"],
+    "log_level": "info"
+  },
+  
+  "on_fail": {
+    "retry_after_seconds": 2592000,
+    "notify": ["biz_dev_team"],
+    "log_level": "info"
+  },
+  
+  "delta_overrides": {
+    "KR": {
+      "conditions": [
+        {
+          "id": "lgo_count_threshold",
+          "field": "active_lgo_count",
+          "op": ">=",
+          "value": 3
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "flow_id": "Flow::UNI_INTEGRATION",
+  "version": "1.0.0",
+  "description": "대학 시스템 통합 프로세스 - 입학요건 변환부터 ScoreCard 시작까지",
+  
+  "triggered_by": ["RulePack::UniversityReadiness"],
+  "execution_mode": "async",
+  "timeout_seconds": 259200,
+  
+  "retry_policy": {
+    "max_retries": 5,
+    "backoff_multiplier": 2,
+    "initial_delay_seconds": 1800
+  },
+  
+  "steps": [
+    {
+      "step_id": "step_1_convert_requirements",
+      "order": 1,
+      "name": "입학 요건 표준 형식 변환",
+      "action_type": "data_validation",
+      "action_config": {
+        "source_format": "raw_university",
+        "target_format": "limepass_admission_v1",
+        "validation_rules": ["gpa_range", "language_cert", "document_list"],
+        "output_path": "/data/universities/{{uni_id}}/requirements.json"
+      },
+      "execution_mode": "sync",
+      "on_success": {
+        "next_step": "step_2_connect_api"
+      },
+      "on_failure": {
+        "retry": true,
+        "notify": ["edu_team", "tech_team"]
+      }
+    },
+    {
+      "step_id": "step_2_connect_api",
+      "order": 2,
+      "name": "Admission API 연결",
+      "action_type": "api_call",
+      "action_config": {
+        "endpoint": "/api/v1/integrations/university",
+        "method": "POST",
+        "payload_template": {
+          "uni_id": "{{uni_id}}",
+          "api_endpoint": "{{uni_api_endpoint}}",
+          "api_key_encrypted": "{{uni_api_key_enc}}",
+          "sync_interval_hours": 24
+        },
+        "health_check": true,
+        "health_check_interval": 3600
+      },
+      "execution_mode": "sync",
+      "on_success": {
+        "next_step": "step_3_test_feeds"
+      },
+      "on_failure": {
+        "retry": true,
+        "fallback_step": "step_1_convert_requirements",
+        "notify": ["tech_team"]
+      }
+    },
+    {
+      "step_id": "step_3_test_feeds",
+      "order": 3,
+      "name": "출석/GPA Feed 테스트",
+      "action_type": "data_validation",
+      "action_config": {
+        "test_types": ["attendance_feed", "gpa_feed"],
+        "sample_size": 100,
+        "success_threshold": 0.80,
+        "test_duration_hours": 48,
+        "output_report": "/reports/integration/{{uni_id}}_feed_test.json"
+      },
+      "execution_mode": "async",
+      "on_success": {
+        "next_step": "step_4_init_scorecard"
+      },
+      "on_failure": {
+        "retry": true,
+        "notify": ["edu_team", "tech_team", "uni_manager"]
+      }
+    },
+    {
+      "step_id": "step_4_init_scorecard",
+      "order": 4,
+      "name": "대학 ScoreCard 시작",
+      "action_type": "create_record",
+      "action_config": {
+        "record_type": "scorecard",
+        "entity_type": "university",
+        "initial_score": 0,
+        "scoring_config": "scorecard_uni_v1",
+        "metrics": [
+          {"name": "attendance_feed_completion", "weight": 0.35},
+          {"name": "gpa_feed_completion", "weight": 0.25},
+          {"name": "department_participation", "weight": 0.20},
+          {"name": "tuition_data_quality", "weight": 0.20}
+        ]
+      },
+      "execution_mode": "sync",
+      "on_success": {
+        "emit_event": "EVT::UNI_SCORECARD_INITIALIZED"
+      },
+      "on_failure": {
+        "retry": true,
+        "notify": ["tech_team"]
+      }
+    }
+  ],
+  
+  "on_complete": {
+    "emit_event": "EVT::UNI_INTEGRATION_COMPLETED",
+    "update_scorecard": true,
+    "notify": ["edu_team", "uni_manager", "ops_team"],
+    "rekor_log": true
+  },
+  
+  "delta_overrides": {
+    "PH": {
+      "steps": [
+        {
+          "step_id": "step_3_test_feeds",
+          "action_config": {
+            "success_threshold": 0.75,
+            "test_duration_hours": 72
+          }
+        }
+      ]
+    }
+  }
+}

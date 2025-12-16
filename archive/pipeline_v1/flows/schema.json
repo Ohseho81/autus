@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LimePass Flow Schema",
+  "description": "Schema for defining executable flows triggered by RulePacks",
+  "type": "object",
+  "properties": {
+    "flow_id": {
+      "type": "string",
+      "pattern": "^Flow::[A-Z_]+$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "triggered_by": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^RulePack::[A-Za-z]+$"
+      }
+    },
+    "execution_mode": {
+      "type": "string",
+      "enum": ["sync", "async", "hybrid"],
+      "default": "async"
+    },
+    "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 300
+    },
+    "retry_policy": {
+      "type": "object",
+      "properties": {
+        "max_retries": { "type": "integer", "default": 3 },
+        "backoff_multiplier": { "type": "number", "default": 2 },
+        "initial_delay_seconds": { "type": "integer", "default": 10 }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "properties": {
+          "step_id": { "type": "string" },
+          "order": { "type": "integer", "minimum": 1 },
+          "name": { "type": "string" },
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "generate_document",
+              "send_notification",
+              "api_call",
+              "create_record",
+              "update_scorecard",
+              "human_approval",
+              "data_validation",
+              "report_generation"
+            ]
+          },
+          "action_config": {
+            "type": "object",
+            "description": "Action-specific configuration"
+          },
+          "execution_mode": {
+            "type": "string",
+            "enum": ["sync", "async"],
+            "default": "async"
+          },
+          "on_success": {
+            "type": "object",
+            "properties": {
+              "next_step": { "type": "string" },
+              "emit_event": { "type": "string" }
+            }
+          },
+          "on_failure": {
+            "type": "object",
+            "properties": {
+              "retry": { "type": "boolean", "default": true },
+              "fallback_step": { "type": "string" },
+              "notify": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "required_approvals": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Roles that must approve before step executes"
+          }
+        },
+        "required": ["step_id", "order", "name", "action_type"]
+      }
+    },
+    "on_complete": {
+      "type": "object",
+      "properties": {
+        "emit_event": {
+          "type": "string",
+          "pattern": "^EVT::[A-Z_]+$"
+        },
+        "update_scorecard": { "type": "boolean" },
+        "notify": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "rekor_log": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to create immutable log entry"
+        }
+      }
+    },
+    "delta_overrides": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object"
+      }
+    }
+  },
+  "required": ["flow_id", "version", "steps", "on_complete"]
+}

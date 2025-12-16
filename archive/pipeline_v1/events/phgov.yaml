@@ -1,0 +1,103 @@
+# LimePass Kernel - Philippine Government Events
+# Domain: PHGOV (필리핀 정부)
+# Version: 1.0.0
+
+EVT::PHGOV_CONTACT:
+  trigger: manual
+  required_fields:
+    - phgov_agency_id
+    - agency_name
+    - contact_person
+    - contact_date
+  optional_fields:
+    - department
+    - jurisdiction
+  emits_to: RulePack::PHGovAccreditation
+  description: "필리핀 정부 기관 최초 접촉"
+  stage: 8
+
+EVT::PHGOV_PARTNER_REGISTERED:
+  trigger: webhook
+  required_fields:
+    - partner_id
+    - partner_name
+    - registration_date
+    - partner_type
+  optional_fields:
+    - license_number
+    - capacity
+  emits_to: RulePack::PHGovAccreditation
+  description: "필리핀 파트너 기관 등록"
+  stage: 16
+
+EVT::PHGOV_MOA_DRAFTED:
+  trigger: auto
+  required_fields:
+    - phgov_agency_id
+    - moa_document_id
+    - draft_version
+    - created_at
+  optional_fields:
+    - legal_review_status
+    - special_conditions
+  emits_to: RulePack::PHGovAccreditation
+  description: "MOA 초안 생성"
+  stage: 32
+
+EVT::PHGOV_FRAUD_CHECK_COMPLETED:
+  trigger: auto
+  required_fields:
+    - check_id
+    - fraud_risk_score
+    - checked_at
+    - records_scanned
+  optional_fields:
+    - flagged_records
+    - false_positive_rate
+  emits_to: RulePack::PHGovAccreditation
+  description: "Fraud 검증 완료"
+  stage: 38
+
+EVT::PHGOV_APPROVED:
+  trigger: manual
+  required_fields:
+    - phgov_agency_id
+    - approval_document_id
+    - approved_at
+    - approver_name
+    - approver_title
+  optional_fields:
+    - conditions
+    - validity_period
+  emits_to: RulePack::PHGovAccreditation
+  description: "정부 승인 획득"
+  stage: 48
+
+EVT::PHGOV_ACCREDITED:
+  trigger: manual
+  required_fields:
+    - accreditation_id
+    - accreditation_number
+    - accredited_at
+    - valid_until
+  optional_fields:
+    - scope
+    - restrictions
+  emits_to: RulePack::GovernmentCertification
+  description: "정식 인증 획득"
+  stage: 60
+
+EVT::PHGOV_PILOT_BATCH:
+  trigger: auto
+  required_fields:
+    - pilot_id
+    - batch_id
+    - student_count
+    - started_at
+    - partner_id
+  optional_fields:
+    - target_employers
+    - success_criteria
+  emits_to: RulePack::PHGovAccreditation
+  description: "필리핀 파일럿 배치 시작"
+  stage: 65
