@@ -20,6 +20,7 @@ RATE_LIMIT_PER_MIN = int(os.getenv("RATE_LIMIT_PER_MIN", "60"))
 DB_PATH = os.getenv("DB_PATH", "/tmp/autus.db")
 PROTECTED_PREFIXES = ("/execute", "/event/")
 rate_limit_store: Dict[str, List[float]] = defaultdict(list)
+USE_POSTGRES = False
 
 # Database
 @contextmanager
