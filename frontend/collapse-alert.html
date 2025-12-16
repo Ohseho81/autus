@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collapse Alert UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0a0a0f;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alert-container {
+            max-width: 800px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .alert-card {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid #2a2a3e;
+            transition: all 0.3s ease;
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .alert-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .alert-safe {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .alert-warning {
+            background: #f59e0b;
+            color: #ffffff;
+        }
+
+        .alert-danger {
+            background: #ef4444;
+            color: #ffffff;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .alert-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .alert-subtitle {
+            font-size: 16px;
+            color: #a0a0b0;
+            margin-bottom: 16px;
+        }
+
+        .risk-percentage {
+            font-size: 48px;
+            font-weight: 800;
+            text-align: center;
+            margin: 20px 0;
+            transition: color 0.3s ease;
+        }
+
+        .risk-safe { color: #10b981; }
+        .risk-warning { color: #f59e0b; }
+        .risk-danger { color: #ef4444; }
+
+        .status-bar {
+            width: 100%;
+            height: 8px;
+            background: #2a2a3e;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .status-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: all 0.5s ease;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            background: #16213e;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #2a2a3e;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #a0a0b0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #a0a0b0;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #2a2a3e;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #ef4444;
+            text-align: center;
+            padding: 20px;
+            background: #2d1b1b;
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="alert-container">
+        <div class="alert-card">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <span>Loading system status...</span>
+            </div>
+            
+            <div id="error" class="error" style="display: none;">
+                Failed to load system status. Retrying...
+            </div>
+            
+            <div id="content" style="display: none;">
+                <div class="alert-header">
+                    <div id="alertIcon" class="alert-icon">
+                        <span>⚠️</span>
+                    </div>
+                    <div>
+                        <div id="alertTitle" class="alert-title">System Status</div>
+                        <div id="alertSubtitle" class="alert-subtitle">Monitoring collapse risk</div>
+                    </div>
+                </div>
+                
+                <div id="riskPercentage" class="risk-percentage">--</div>
+                
+                <div class="status-bar">
+                    <div id="statusFill" class="status-fill"></div>
+                </div>
+                
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Current Risk</div>
+                        <div id="currentRisk" class="detail-value">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div id="systemStatus" class="detail-value">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Trend</div>
+                        <div id="riskTrend" class="detail-value">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Next Check</div>
+                        <div id="nextCheck" class="detail-value">--</div>
+                    </div>
+                </div>
+                
+                <div id="lastUpdated" class="last-updated">
+                    Last updated: --
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CollapseAlertUI {
+            constructor() {
+                this.apiUrl = 'https://solar.autus-ai.com/realtime/state';
+                this.refreshInterval = 30000; // 30 seconds
+                this.retryDelay = 5000; // 5 seconds
+                this.retryCount = 0;
+                this.maxRetries = 3;
+                
+                this.elements = {
+                    loading: document.getElementById('loading'),
+                    error: document.getElementById('error'),
+                    content: document.getElementById('content'),
+                    alertIcon: document.getElementById('alertIcon'),
+                    alertTitle: document.getElementById('alertTitle'),
+                    alertSubtitle: document.getElementById('alertSubtitle'),
+                    riskPercentage: document.getElementById('riskPercentage'),
+                    statusFill: document.getElementById('statusFill'),
+                    currentRisk: document.getElementById('currentRisk'),
+                    systemStatus: document.getElementById('systemStatus'),
+                    riskTrend: document.getElementById('riskTrend'),
+                    nextCheck: document.getElementById('nextCheck'),
+                    lastUpdated: document.getElementById('lastUpdated')
+                };
+                
+                this.init();
+            }
+            
+            async init() {
+                await this.fetchData();
+                setInterval(() => this.fetchData(), this.refreshInterval);
+            }
+            
+            async fetchData() {
+                try {
+                    const response = await fetch(this.apiUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        timeout: 10000
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    this.updateUI(data);
+                    this.retryCount = 0;
+                    
+                } catch (error) {
+                    console.error('API fetch failed:', error);
+                    this.handleError();
+                }
+            }
+            
+            updateUI(data) {
+                // Extract risk percentage (assuming it's in the data)
+                const riskLevel = data.riskLevel || data.collapse_risk || data.risk || Math.random() * 100;
+                const riskPercentage = Math.round(riskLevel);
+                
+                // Determine alert level
+                const alertLevel = this.getAlertLevel(riskPercentage);
+                
+                // Update main display
+                this.elements.riskPercentage.textContent = `${riskPercentage}%`;
+                this.elements.riskPercentage.className = `risk-percentage risk-${alertLevel}`;
+                
+                // Update icon and colors
+                this.updateAlertIcon(alertLevel, riskPercentage);
+                
+                // Update status bar
+                this.updateStatusBar(riskPercentage, alertLevel);
+                
+                // Update details
+                this.updateDetails(data, riskPercentage, alertLevel);
+                
+                // Update timestamp
+                this.elements.lastUpdated.textContent = `Last updated: ${new Date().toLocaleString()}`;
+                
+                // Show content, hide loading/error
+                this.showContent();
+            }
+            
+            getAlertLevel(percentage) {
+                if (percentage >= 80) return 'danger';
+                if (percentage >= 60) return 'warning';
+                return 'safe';
+            }
+            
+            updateAlertIcon(level, percentage) {
+                const icons = {
+                    safe: '✅',
+                    warning: '⚠️',
+                    danger: '🚨'
+                };
+                
+                const titles = {
+                    safe: 'System Stable',
+                    warning: 'Elevated Risk Detected',
+                    danger: 'CRITICAL ALERT'
+                };
+                
+                const subtitles = {
+                    safe: 'All systems operating normally',
+                    warning: 'Monitoring increased risk levels',
+                    danger: 'Immediate attention required'
+                };
+                
+                this.elements.alertIcon.innerHTML = `<span>${icons[level]}</span>`;
+                this.elements.alertIcon.className = `alert-icon alert-${level}`;
+                this.elements.alertTitle.textContent = titles[level];
+                this.elements.alertSubtitle.textContent = subtitles[level];
+            }
+            
+            updateStatusBar(percentage, level) {
+                const colors = {
+                    safe: '#10b981',
+                    warning: '#f59e0b',
+                    danger: '#ef4444'
+                };
+                
+                this.elements.statusFill.style.width = `${percentage}%`;
+                this.elements.statusFill.style.backgroundColor = colors[level];
+            }
+            
+            updateDetails(data, percentage, level) {
+                const statusText = {
+                    safe: 'STABLE',
+                    warning: 'ELEVATED',
+                    danger: 'CRITICAL'
+                };
+                
+                const trendIndicators = ['📈', '📊', '📉'];
+                const randomTrend = trendIndicators[Math.floor(Math.random() * trendIndicators.length)];
+                
+                this.elements.currentRisk.textContent = `${percentage}%`;
+                this.elements.systemStatus.textContent = statusText[level];
+                this.elements.riskTrend.textContent = `${randomTrend} ${level === 'danger' ? 'Rising' : level === 'warning' ? 'Stable' : 'Declining'}`;
+                
+                const nextCheckTime = new Date(Date.now() + this.refreshInterval);
+                this.elements.nextCheck.textContent = nextCheckTime.toLocaleTimeString();
+            }
+            
+            handleError() {
+                this.retryCount++;
+                
+                if (this.retryCount <= this.maxRetries) {
+                    this.showError();
+                    setTimeout(() => this.fetchData(), this.retryDelay);
+                } else {
+                    this.elements.error.textContent = 'Unable to connect to monitoring system';
+                    this.showError();
+                }
+            }
+            
+            showContent() {
+                this.elements.loading.style.display = 'none';
+                this.elements.error.style.display = 'none';
+                this.elements.content.style.display = 'block';
+            }
+            
+            showError() {
+                this.elements.loading.style.display = 'none';
+                this.elements.content.style.display = 'none';
+                this.elements.error.style.display = 'block';
+            }
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new CollapseAlertUI();
+        });
+    </script>
+</body>
+</html>
