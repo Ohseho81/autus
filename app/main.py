@@ -85,27 +85,27 @@ def init_db():
                     VALUES ('SUN_001', 0, 0, 0, 0, 0, 0.34, 0.188, 'GREEN', 'NONE', 'NONE', NULL, %s)""", (int(time.time()),))
                 conn.commit()
         else:
-            conn.execute("""CREATE TABLE IF NOT EXISTS state (
+            conn.cursor().execute("""CREATE TABLE IF NOT EXISTS state (
                 id TEXT PRIMARY KEY, tick INTEGER, cycle INTEGER,
                 pressure REAL, release REAL, decision REAL,
                 gravity REAL, entropy REAL, status TEXT,
                 bottleneck TEXT, required_action TEXT,
                 failure_in_ticks INTEGER, updated_at INTEGER
             )""")
-            conn.execute("""CREATE TABLE IF NOT EXISTS actors (
+            conn.cursor().execute("""CREATE TABLE IF NOT EXISTS actors (
                 actor_id TEXT PRIMARY KEY, total_pressure REAL DEFAULT 0,
                 total_release REAL DEFAULT 0, total_decisions INTEGER DEFAULT 0,
                 last_event TEXT, last_event_ts INTEGER, risk_score REAL DEFAULT 0
             )""")
-            conn.execute("""CREATE TABLE IF NOT EXISTS audit (
+            conn.cursor().execute("""CREATE TABLE IF NOT EXISTS audit (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, event TEXT,
                 actor_id TEXT, data TEXT, state_snapshot TEXT
             )""")
-            conn.execute('CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit(ts)')
-            conn.execute('CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit(actor_id)')
-            cur = conn.execute("SELECT id FROM state WHERE id='SUN_001'")
+            conn.cursor().execute('CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit(ts)')
+            conn.cursor().execute('CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit(actor_id)')
+            cur = conn.cursor().execute("SELECT id FROM state WHERE id='SUN_001'")
             if not cur.fetchone():
-                conn.execute("""INSERT INTO state (id, tick, cycle, pressure, release, decision, gravity, entropy, status, bottleneck, required_action, failure_in_ticks, updated_at)
+                conn.cursor().execute("""INSERT INTO state (id, tick, cycle, pressure, release, decision, gravity, entropy, status, bottleneck, required_action, failure_in_ticks, updated_at)
                     VALUES ('SUN_001', 0, 0, 0, 0, 0, 0.34, 0.188, 'GREEN', 'NONE', 'NONE', NULL, ?)""", (int(time.time()),))
             conn.commit()
 
@@ -141,7 +141,7 @@ class Engine:
 
     def _load_state(self):
         with get_db() as conn:
-            row = conn.execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
+            row = conn.cursor().execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
             if row:
                 self._state = dict(row)
             else:
@@ -150,7 +150,7 @@ class Engine:
     def _save_state(self):
         with get_db() as conn:
             s = self._state
-            conn.execute('''UPDATE state SET tick=?, cycle=?, pressure=?, release=?, decision=?, gravity=?, entropy=?, status=?, bottleneck=?, required_action=?, failure_in_ticks=?, updated_at=? WHERE id='SUN_001' ''',
+            conn.cursor().execute('''UPDATE state SET tick=?, cycle=?, pressure=?, release=?, decision=?, gravity=?, entropy=?, status=?, bottleneck=?, required_action=?, failure_in_ticks=?, updated_at=? WHERE id='SUN_001' ''',
                 (s["tick"], s["cycle"], s["pressure"], s["release"], s["decision"], s["gravity"], s["entropy"], s["status"], s["bottleneck"], s["required_action"], s["failure_in_ticks"], int(time.time())))
             conn.commit()
 
@@ -210,7 +210,7 @@ class Engine:
     def _update_actor(self, actor_id: str, event: str, pressure_delta: float = 0, release_delta: float = 0, decision_delta: int = 0):
         if not actor_id: return
         with get_db() as conn:
-            conn.execute('''INSERT INTO actors (actor_id, total_pressure, total_release, total_decisions, last_event, last_event_ts, risk_score)
+            conn.cursor().execute('''INSERT INTO actors (actor_id, total_pressure, total_release, total_decisions, last_event, last_event_ts, risk_score)
                 VALUES (?, ?, ?, ?, ?, ?, 0)
                 ON CONFLICT(actor_id) DO UPDATE SET
                     total_pressure = total_pressure + ?,
@@ -225,7 +225,7 @@ class Engine:
 
     def _audit(self, event: str, data: dict, actor_id: str):
         with get_db() as conn:
-            conn.execute('''INSERT INTO audit (ts, event, actor_id, data, state_snapshot) VALUES (?, ?, ?, ?, ?)''',
+            conn.cursor().execute('''INSERT INTO audit (ts, event, actor_id, data, state_snapshot) VALUES (?, ?, ?, ?, ?)''',
                 (int(time.time()), event, actor_id or "", json.dumps(data), json.dumps(self.snapshot())))
             conn.commit()
 
@@ -279,17 +279,17 @@ class Engine:
 
     def get_actors(self, limit=20):
         with get_db() as conn:
-            rows = conn.execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT ?", (limit,)).fetchall()
+            rows = conn.cursor().execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT ?", (limit,)).fetchall()
             return [dict(r) for r in rows]
 
     def get_top_risk_actor(self):
         with get_db() as conn:
-            row = conn.execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT 1").fetchone()
+            row = conn.cursor().execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT 1").fetchone()
             return dict(row) if row else None
 
     def audit_tail(self, n=50):
         with get_db() as conn:
-            rows = conn.execute("SELECT ts, event, actor_id, data FROM audit ORDER BY id DESC LIMIT ?", (n,)).fetchall()
+            rows = conn.cursor().execute("SELECT ts, event, actor_id, data FROM audit ORDER BY id DESC LIMIT ?", (n,)).fetchall()
             return [{"ts": r["ts"], "event": r["event"], "actor_id": r["actor_id"], "data": json.loads(r["data"])} for r in rows]
 
 # App
@@ -385,9 +385,9 @@ def get_solar_state(entity_id: str):
     
     # 현재 상태 조회
     with get_db() as conn:
-        row = conn.execute("SELECT * FROM state WHERE id=?", (entity_id,)).fetchone()
+        row = conn.cursor().execute("SELECT * FROM state WHERE id=?", (entity_id,)).fetchone()
         if not row:
-            row = conn.execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
+            row = conn.cursor().execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
     
     if not row:
         return {"error": "Entity not found"}
@@ -461,9 +461,9 @@ def get_solar_state_v2(entity_id: str):
     global _prev_metrics
     
     with get_db() as conn:
-        row = conn.execute("SELECT * FROM state WHERE id=?", (entity_id,)).fetchone()
+        row = conn.cursor().execute("SELECT * FROM state WHERE id=?", (entity_id,)).fetchone()
         if not row:
-            row = conn.execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
+            row = conn.cursor().execute("SELECT * FROM state WHERE id='SUN_001'").fetchone()
     
     if not row:
         return {"error": "Entity not found"}
