@@ -42,7 +42,7 @@ def db_query(conn, sql, params=None, fetch_one=False, fetch_all=False):
         cur.execute(sql)
     if fetch_one:
         row = cur.fetchone()
-        return dict(row) if row else None
+        return dict(zip([d[0] for d in cur.description], row)) if row else None
     if fetch_all:
         return [dict(r) for r in cur.fetchall()]
     conn.commit()
@@ -259,7 +259,7 @@ class Engine:
     def get_top_risk_actor(self):
         with get_db() as conn:
             row = conn.execute("SELECT * FROM actors ORDER BY risk_score DESC LIMIT 1").fetchone()
-            return dict(row) if row else None
+            return dict(zip([d[0] for d in cur.description], row)) if row else None
 
     def audit_tail(self, n=50):
         with get_db() as conn:
