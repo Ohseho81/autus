@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from datetime import datetime, timezone
 
 # Config
 AUTUS_API_KEY = os.getenv("AUTUS_API_KEY", "")
@@ -103,6 +104,18 @@ class CommitDecisionIn(BaseModel):
 class ExecuteIn(BaseModel):
     action: Literal["AUTO_STABILIZE", "REMOVE_LOW_IMPACT", "FORCE_DECISION"] = "AUTO_STABILIZE"
     actor_id: Optional[str] = Field(default=None, max_length=64)
+
+# === Solar HQ State Schema ===
+class SolarHQState(BaseModel):
+    ts: str
+    entity_id: str
+    status: str
+    fps: int
+    orbit_deg: int
+    planets: Dict[str, float]
+    twin: Dict[str, float]
+    system: Dict[str, float]
+    ui: Dict[str, Any]
 
 # State Engine with Persistence
 class Engine:
@@ -306,6 +319,68 @@ def status():
     top_risk = ENGINE.get_top_risk_actor()
     snap["top_risk_actor"] = top_risk
     return snap
+
+@app.get("/api/state", response_model=SolarHQState)
+def get_solar_hq_state():
+    """Solar System HQ 프론트엔드용 통합 상태 API"""
+    snap = ENGINE.snapshot()
+    sig = snap.get("signals", {})
+    out = snap.get("output", {})
+    
+    # 9 Planets 값 계산 (Physics 기반)
+    entropy_val = sig.get("entropy", 0.188)
+    pressure_val = sig.get("pressure", 0)
+    gravity_val = sig.get("gravity", 0.5)
+    release_val = sig.get("release", 0)
+    decision_val = sig.get("decision", 0)
+    
+    # Risk 계산
+    risk = min(1.0, entropy_val * 1.2 + pressure_val * 0.3)
+    
+    # Status 계산
+    if risk > 0.6:
+        status = "CRITICAL"
+    elif risk > 0.35:
+        status = "WARNING"
+    else:
+        status = "STABLE"
+    
+    # 9 Planets 매핑
+    planets = {
+        "recovery": max(0.1, min(1.0, gravity_val * 0.8 + release_val * 0.2)),
+        "stability": max(0.1, min(1.0, 1.0 - entropy_val)),
+        "cohesion": max(0.1, min(1.0, decision_val * 0.5 + gravity_val * 0.5)),
+        "shock": max(0.1, min(1.0, entropy_val)),
+        "friction": max(0.1, min(1.0, pressure_val * 0.8)),
+        "transfer": max(0.1, min(1.0, release_val * 0.7 + gravity_val * 0.3)),
+        "time": max(0.1, min(1.0, 1.0 - pressure_val * 0.5)),
+        "quality": max(0.1, min(1.0, decision_val * 0.6 + (1.0 - entropy_val) * 0.4)),
+        "output": max(0.1, min(1.0, gravity_val * 0.6 + release_val * 0.4)),
+    }
+    
+    return SolarHQState(
+        ts=datetime.now(timezone.utc).isoformat(),
+        entity_id="SUN_001",
+        status=status,
+        fps=120,
+        orbit_deg=int((snap.get("tick", 0) * 3) % 360),
+        planets=planets,
+        twin={
+            "entropy": round(entropy_val, 4),
+            "pressure": round(pressure_val, 4),
+            "risk": round(risk, 4),
+            "flow": round(release_val, 4),
+        },
+        system={
+            "uptime_pct": 0.999,
+            "latency_ms": 12,
+        },
+        ui={
+            "selected_planet": "recovery",
+            "type": "SOURCE",
+            "auto": True,
+        },
+    )
 
 @app.get("/autus/solar/status")
 def solar_status():

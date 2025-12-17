@@ -707,3 +707,302 @@
     display: none !important;
   }
 }
+/* ============================================
+   AUTUS Layer v2.1 — Bezos Edition CSS
+   SLA Strip, AUTO Button, Action Log
+   ============================================ */
+
+/* ============================================
+   SLA STRIP (Bezos Policy 1)
+   ============================================ */
+
+#autus-sla-strip {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0, 20, 40, 0.6);
+  border-bottom: 1px solid var(--autus-border);
+  gap: 8px;
+}
+
+.sla-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.sla-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--autus-green);
+  transition: all 0.3s ease;
+}
+
+.sla-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--autus-text-dim);
+}
+
+.sla-status {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* SLA States */
+.sla-item.sla-ok .sla-dot { background: var(--autus-green); box-shadow: 0 0 6px var(--autus-green); }
+.sla-item.sla-ok .sla-status { color: var(--autus-green); }
+
+.sla-item.sla-at_risk { background: rgba(255, 170, 0, 0.15); }
+.sla-item.sla-at_risk .sla-dot { background: var(--autus-yellow); box-shadow: 0 0 8px var(--autus-yellow); animation: pulse-warning 1.5s infinite; }
+.sla-item.sla-at_risk .sla-status { color: var(--autus-yellow); }
+
+.sla-item.sla-breach { background: rgba(255, 68, 68, 0.2); }
+.sla-item.sla-breach .sla-dot { background: var(--autus-red); box-shadow: 0 0 10px var(--autus-red); animation: pulse-danger 1s infinite; }
+.sla-item.sla-breach .sla-status { color: var(--autus-red); font-weight: 800; }
+
+@keyframes pulse-warning {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+/* ============================================
+   AUTO ZONE (Bezos Policy 3)
+   ============================================ */
+
+#autus-auto-zone {
+  padding: 10px 12px;
+  background: rgba(0, 20, 40, 0.4);
+  border-top: 1px solid var(--autus-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+#autus-auto-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--autus-cyan);
+  border-radius: 6px;
+  background: rgba(0, 212, 255, 0.1);
+  color: var(--autus-cyan);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#autus-auto-btn:hover {
+  background: rgba(0, 212, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+#autus-auto-btn.auto-on {
+  border-color: var(--autus-green);
+  background: rgba(0, 255, 136, 0.15);
+  color: var(--autus-green);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+#autus-auto-btn.auto-off {
+  border-color: var(--autus-red);
+  background: rgba(255, 68, 68, 0.15);
+  color: var(--autus-red);
+  animation: pulse-danger 2s infinite;
+}
+
+#autus-auto-btn.auto-locked {
+  cursor: not-allowed;
+  border-color: var(--autus-yellow);
+  background: rgba(255, 170, 0, 0.15);
+  color: var(--autus-yellow);
+}
+
+#autus-gate-status {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+#autus-gate-status.gate-critical {
+  color: var(--autus-red);
+  animation: blink 1s infinite;
+}
+
+#autus-gate-status.gate-caution {
+  color: var(--autus-yellow);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ============================================
+   ACTION LOG (Bezos Policy 4)
+   ============================================ */
+
+#autus-action-log {
+  padding: 8px 12px;
+  background: rgba(0, 10, 20, 0.6);
+  border-top: 1px solid var(--autus-border);
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.action-log-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--autus-text-dim);
+  margin-bottom: 6px;
+}
+
+#autus-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.action-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.action-time {
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 9px;
+  color: var(--autus-text-dim);
+  flex-shrink: 0;
+}
+
+.action-msg {
+  color: var(--autus-text);
+  word-break: break-word;
+}
+
+/* Action Types */
+.action-entry.action-info { border-left: 2px solid var(--autus-cyan); }
+.action-entry.action-warning { border-left: 2px solid var(--autus-yellow); background: rgba(255, 170, 0, 0.1); }
+.action-entry.action-breach { border-left: 2px solid var(--autus-red); background: rgba(255, 68, 68, 0.15); }
+.action-entry.action-auto { border-left: 2px solid var(--autus-green); background: rgba(0, 255, 136, 0.1); }
+
+/* ============================================
+   TWIN STATE (Internal - Collapsed by default)
+   ============================================ */
+
+#autus-twin-details {
+  border-top: 1px solid var(--autus-border);
+}
+
+#autus-twin-details summary {
+  padding: 8px 12px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--autus-text-dim);
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+#autus-twin-details summary:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+#autus-twin-details[open] summary {
+  border-bottom: 1px solid var(--autus-border);
+}
+
+/* ============================================
+   STATUS BADGE (CRITICAL emphasis)
+   ============================================ */
+
+#autus-status.critical {
+  background: rgba(255, 68, 68, 0.3) !important;
+  color: var(--autus-red) !important;
+  animation: pulse-danger 1s infinite;
+  font-weight: 800;
+  padding: 4px 10px;
+}
+
+/* ============================================
+   FORECAST
+   ============================================ */
+
+#autus-forecast {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(0, 20, 40, 0.3);
+  border-top: 1px solid var(--autus-border);
+}
+
+#autus-forecast-label {
+  font-size: 9px;
+  color: var(--autus-text-dim);
+  letter-spacing: 0.05em;
+}
+
+#autus-forecast-time {
+  font-size: 10px;
+  color: var(--autus-text);
+}
+
+#autus-forecast-delta {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'SF Mono', monospace;
+}
+
+#autus-forecast-delta.positive { color: var(--autus-green); }
+#autus-forecast-delta.negative { color: var(--autus-red); }
+#autus-forecast-delta.neutral { color: var(--autus-text-dim); }
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+#autus-action-log::-webkit-scrollbar {
+  width: 4px;
+}
+
+#autus-action-log::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#autus-action-log::-webkit-scrollbar-thumb {
+  background: var(--autus-border);
+  border-radius: 2px;
+}
+
+#autus-action-log::-webkit-scrollbar-thumb:hover {
+  background: var(--autus-cyan-dim);
+}

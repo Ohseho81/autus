@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS Thiel HUD - Zero to One</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .hud-container {
+            display: grid;
+            grid-template-areas: 
+                "question question question"
+                "secrets meter monopoly"
+                "planets planets planets";
+            grid-template-rows: 15% 65% 20%;
+            grid-template-columns: 25% 50% 25%;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .question-panel {
+            grid-area: question;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            border: 1px solid #8b5cf6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            color: #8b5cf6;
+            margin-bottom: 10px;
+        }
+
+        .contrarian-score {
+            font-size: 2em;
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88;
+        }
+
+        .secrets-panel {
+            grid-area: secrets;
+            background: linear-gradient(135deg, #1a0a1a, #2a1a2a);
+            border: 1px solid #8b5cf6;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .monopoly-panel {
+            grid-area: monopoly;
+            background: linear-gradient(135deg, #0a1a0a, #1a2a1a);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .meter-panel {
+            grid-area: meter;
+            background: radial-gradient(circle, #1a1a1a, #0a0a0a);
+            border: 2px solid #8b5cf6;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 20px;
+        }
+
+        .circular-gauge {
+            width: 200px;
+            height: 200px;
+            position: relative;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: #333;
+            stroke-width: 8;
+        }
+
+        .gauge-fill {
+            fill: none;
+            stroke: #8b5cf6;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dasharray 1s ease;
+            filter: drop-shadow(0 0 10px #8b5cf6);
+        }
+
+        .gauge-value {
+            font-size: 3em;
+            color: #8b5cf6;
+            text-shadow: 0 0 15px #8b5cf6;
+        }
+
+        .cycle-status {
+            margin-top: 10px;
+            font-size: 1.1em;
+            color: #00ff88;
+        }
+
+        .planets-panel {
+            grid-area: planets;
+            background: linear-gradient(90deg, #0a0a1a, #1a1a0a);
+            border: 1px solid #8b5cf6;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .planet {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #666, #333);
+            border: 2px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .planet.contrarian {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 15px #8b5cf6;
+            background: radial-gradient(circle at 30% 30%, #8b5cf6, #4c1d95);
+        }
+
+        .planet:hover {
+            transform: scale(1.1);
+        }
+
+        .metric-item {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 4px;
+        }
+
+        .metric-label {
+            color: #8b5cf6;
+            font-size: 0.9em;
+        }
+
+        .metric-value {
+            color: #00ff88;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .thiel-quote {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #8b5cf6;
+            font-style: italic;
+            opacity: 0.7;
+            font-size: 0.9em;
+        }
+
+        .panel-title {
+            color: #8b5cf6;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .shock-indicator {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .shock-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #ff4444);
+            transition: width 1s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulsing {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="hud-container">
+        <!-- Question Panel -->
+        <div class="question-panel">
+            <div class="question-text">What important truth do few people agree with you on?</div>
+            <div class="contrarian-score pulsing" id="contrarianScore">73%</div>
+        </div>
+
+        <!-- Secrets Panel -->
+        <div class="secrets-panel">
+            <div class="panel-title">Secrets</div>
+            <div class="metric-item">
+                <div class="metric-label">UNCERTAINTY (UNC)</div>
+                <div class="metric-value" id="uncertainty">42.7</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Hidden Variables</div>
+                <div class="metric-value" id="hiddenVars">7</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Shock Potential</div>
+                <div class="shock-indicator">
+                    <div class="shock-fill" id="shockFill" style="width: 68%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Meter -->
+        <div class="meter-panel">
+            <svg class="circular-gauge" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="80" class="gauge-bg"></circle>
+                <circle cx="100" cy="100" r="80" class="gauge-fill" id="gaugeFill" 
+                        stroke-dasharray="0 502" transform="rotate(-90 100 100)"></circle>
+            </svg>
+            <div class="gauge-value" id="gaugeValue">0.7</div>
+            <div class="cycle-status" id="cycleStatus">CREATING</div>
+        </div>
+
+        <!-- Monopoly Panel -->
+        <div class="monopoly-panel">
+            <div class="panel-title">Monopoly Metrics</div>
+            <div class="metric-item">
+                <div class="metric-label">Competition Level</div>
+                <div class="metric-value" id="competition">LOW</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Stability Score</div>
+                <div class="metric-value" id="stability">8.4</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Moat Strength</div>
+                <div class="metric-value" id="moatStrength">STRONG</div>
+            </div>
+        </div>
+
+        <!-- Planets Panel -->
+        <div class="planets-panel">
+            <div class="planet contrarian" data-planet="0">AI</div>
+            <div class="planet" data-planet="1">BIO</div>
+            <div class="planet contrarian" data-planet="2">WEB3</div>
+            <div class="planet" data-planet="3">SPACE</div>
+            <div class="planet" data-planet="4">NANO</div>
+            <div class="planet contrarian" data-planet="5">NEURO</div>
+            <div class="planet" data-planet="6">CLEAN</div>
+            <div class="planet" data-planet="7">QUANTUM</div>
+            <div class="planet contrarian" data-planet="8">META</div>
+        </div>
+
+        <div class="thiel-quote" id="thielQuote">Competition is for losers</div>
+    </div>
+
+    <script>
+        // Thiel quotes rotation
+        const thielQuotes = [
+            "Competition is for losers",
+            "What valuable company is nobody building?",
+            "Secrets are hidden in plain sight",
+            "The most contrarian thing is to think for yourself",
+            "Monopoly is the condition of every successful business"
+        ];
+
+        let currentQuoteIndex = 0;
+        let solarData = null;
+
+        // API polling
+        async function fetchSolarData() {
+            try {
+                const response = await fetch('https://solar.autus-ai.com/autus/solar/status');
+                const data = await response.json();
+                solarData = data;
+                updateHUD(data);
+            } catch (error) {
+                console.log('API unavailable, using simulation');
+                simulateData();
+            }
+        }
+
+        // Update HUD with real or simulated data
+        function updateHUD(data) {
+            // Extract metrics from solar data or use simulation
+            const zeroToOneValue = data?.cycle_position || (Math.sin(Date.now() / 10000) + 1) / 2;
+            const contrarianScore = Math.floor((data?.contrarian_metric || Math.random()) * 100);
+            const uncertainty = data?.uncertainty || (Math.random() * 50 + 25);
+            
+            // Update 0-to-1 gauge
+            const circumference = 2 * Math.PI * 80;
+            const progress = zeroToOneValue * circumference;
+            document.getElementById('gaugeFill').style.strokeDasharray = `${progress} ${circumference}`;
+            document.getElementById('gaugeValue').textContent = zeroToOneValue.toFixed(1);
+            document.getElementById('cycleStatus').textContent = zeroToOneValue > 0.5 ? 'CREATING' : 'COPYING';
+
+            // Update contrarian score
+            document.getElementById('contrarianScore').textContent = `${contrarianScore}%`;
+
+            // Update secrets panel
+            document.getElementById('uncertainty').textContent = uncertainty.toFixed(1);
+            document.getElementById('hiddenVars').textContent = Math.floor(Math.random() * 10 + 3);
+            document.getElementById('shockFill').style.width = `${Math.random() * 100}%`;
+
+            // Update monopoly metrics
+            const competitionLevels = ['NONE', 'LOW', 'MEDIUM', 'HIGH'];
+            document.getElementById('competition').textContent = competitionLevels[Math.floor(Math.random() * 4)];
+            document.getElementById('stability').textContent = (Math.random() * 10).toFixed(1);
+            document.getElementById('moatStrength').textContent = Math.random() > 0.5 ? 'STRONG' : 'WEAK';
+
+            // Randomly highlight contrarian planets
+            document.querySelectorAll('.planet').forEach((planet, index) => {
+                if (Math.random() > 0.7) {
+                    planet.classList.add('contrarian');
+                } else if (Math.random() > 0.8) {
+                    planet.classList.remove('contrarian');
+                }
+            });
+        }
+
+        // Simulate data when API is unavailable
+        function simulateData() {
+            const simulatedData = {
+                cycle_position: (Math.sin(Date.now() / 10000) + 1) / 2,
+                contrarian_metric: Math.random(),
+                uncertainty: Math.random() * 50 + 25
+            };
+            updateHUD(simulatedData);
+        }
+
+        // Rotate Thiel quotes
+        function rotateQuote() {
+            currentQuoteIndex = (currentQuoteIndex + 1) % thielQuotes.length;
+            document.getElementById('thielQuote').textContent = thielQuotes[currentQuoteIndex];
+        }
+
+        // Planet click handler
+        document.querySelectorAll('.planet').forEach(planet => {
+            planet.addEventListener('click', () => {
+                planet.classList.toggle('contrarian');
+            });
+        });
+
+        // Initialize
+        fetchSolarData();
+        setInterval(fetchSolarData, 1000); // Poll every second
+        setInterval(rotateQuote, 5000); // Rotate quotes every 5 seconds
+    </script>
+</body>
+</html>
