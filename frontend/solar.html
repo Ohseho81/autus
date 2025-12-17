@@ -436,13 +436,13 @@
         <div class="metric-card"><div class="metric-value" id="m-flow">0.00</div><div class="metric-label">FLOW</div></div>
       </div>
     </div>
-  </div>
+      </div>
   
   <!-- Action Log -->
   <div id="action-log">
     <div class="log-title">L3 · ACTION LOG</div>
     <div id="log-items"></div>
-  </div>
+    </div>
   
   <!-- L3 ACTION HUD -->
   <div id="layer-action">
@@ -507,7 +507,7 @@
   <div class="keyboard-hint">
     [C] Core · [S] Simulation · [A] Action · [M] Memory · [ESC] Close
   </div>
-
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -761,10 +761,9 @@ function previewAction(action) {
   
   logAction(`Preview: ${action.toUpperCase()}`, 'warning');
   
-  // Hold for 3s → AUDIT
+  // 바로 AUDIT 열기
   currentAuditAction = { action, delta };
-  clearTimeout(actionHoldTimer);
-  actionHoldTimer = setTimeout(() => openAudit(action, delta), 3000);
+  openAudit(action, delta);
 }
 
 function updateActionHUD() {
@@ -909,7 +908,7 @@ function renderPlanetList() {
     return `
       <div class="planet-row ${isActive ? 'active' : ''} ${isCollapsed ? 'collapsed' : ''}" data-key="${p.key}" onclick="selectPlanet('${p.key}')">
         <div class="planet-dot" style="background:${colorHex}"></div>
-        <span class="planet-name">${p.icon} ${p.name}</span>
+      <span class="planet-name">${p.icon} ${p.name}</span>
         <span class="planet-val" style="color:${colorHex}">${value}%</span>
       </div>
     `;
@@ -922,7 +921,7 @@ function selectPlanet(key) {
     return;
   }
   selectedPlanet = key;
-  renderPlanetList();
+      renderPlanetList();
 }
 
 // ═══════════════════════════════════════════════════════════════
