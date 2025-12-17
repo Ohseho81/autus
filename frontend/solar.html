@@ -821,27 +821,38 @@ function openAudit(action, delta) {
   logAction('L4 AUDIT opened', 'warning');
 }
 
-function auditDecision(verdict) {
+async function auditDecision(verdict) {
   clearInterval(auditTimer);
   document.getElementById('layer-audit').classList.remove('active');
   
-  const record = {
-    time: new Date().toISOString(),
-    action: currentAuditAction?.action || 'unknown',
-    verdict: verdict,
-    delta: currentAuditAction?.delta || {}
-  };
-  
-  memoryLog.unshift(record);
-  renderMemoryList();
+  const action = currentAuditAction?.action || 'unknown';
+  const delta = currentAuditAction?.delta || {};
   
   if (verdict === 'LOCK') {
-    logAction(`LOCKED: ${record.action.toUpperCase()}`, 'warning');
+    // 실제 API 호출
+    try {
+      const response = await fetch('/autus/solar/release', { method: 'POST' });
+      const result = await response.json();
+      logAction(`LOCKED: ${action.toUpperCase()} → API OK`, 'warning');
+      logAction(`Result: entropy=${result.signals?.entropy?.toFixed(2) || '?'}`);
+    } catch (e) {
+      logAction(`LOCKED: ${action.toUpperCase()} (offline)`, 'warning');
+    }
   } else if (verdict === 'REJECT') {
-    logAction(`REJECTED: ${record.action.toUpperCase()}`);
+    logAction(`REJECTED: ${action.toUpperCase()}`);
   } else {
-    logAction(`HOLD: ${record.action.toUpperCase()}`);
+    logAction(`HOLD: ${action.toUpperCase()}`);
   }
+  
+  // L5 MEMORY에 기록
+  const record = {
+    time: new Date().toISOString(),
+    action: action,
+    verdict: verdict,
+    delta: delta
+  };
+  memoryLog.unshift(record);
+  renderMemoryList();
   
   currentAuditAction = null;
 }
