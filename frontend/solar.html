@@ -203,7 +203,7 @@
     #action-log .log-item.critical{color:#ff6666}
     
     /* ============================================
-       L4 AUDIT - 판정 오버레이
+       L4 AUDIT - 판정 오버레이 (강화)
        ============================================ */
     #layer-audit{
       position:fixed;top:0;left:0;right:0;bottom:0;
@@ -213,51 +213,89 @@
       justify-content:center;
       align-items:center;
       z-index:500;
+      opacity:0;
+      transition:opacity 0.4s ease;
     }
-    #layer-audit.active{display:flex}
+    #layer-audit.active{
+      display:flex;
+      animation:auditFadeIn 0.4s ease forwards;
+    }
+    @keyframes auditFadeIn{from{opacity:0}to{opacity:1}}
+    
     .audit-card{
-      background:rgba(0,20,40,0.95);
-      border:2px solid rgba(0,212,255,0.3);
+      background:rgba(0,20,40,0.98);
+      border:2px solid rgba(0,212,255,0.4);
       border-radius:16px;
       padding:40px 50px;
       text-align:center;
-      max-width:400px;
+      max-width:420px;
+      box-shadow:0 0 60px rgba(0,212,255,0.3), 0 0 120px rgba(0,212,255,0.1);
+      transform:scale(1);
+      transition:all 0.3s ease;
     }
+    .audit-card.locking{animation:lockShrink 0.6s ease forwards}
+    @keyframes lockShrink{
+      0%{transform:scale(1);opacity:1}
+      50%{transform:scale(0.8);opacity:0.8}
+      100%{transform:scale(0.3) translateX(-200px);opacity:0}
+    }
+    .audit-card.rejecting{animation:rejectFade 0.3s ease forwards}
+    @keyframes rejectFade{to{transform:scale(0.95);opacity:0}}
+    
     .audit-card h2{
-      font-size:14px;letter-spacing:0.3em;color:rgba(0,212,255,0.8);
-      margin-bottom:30px;
+      font-size:14px;letter-spacing:0.3em;color:rgba(0,212,255,0.9);
+      margin-bottom:30px;text-shadow:0 0 20px rgba(0,212,255,0.5);
     }
     .audit-summary{
-      background:rgba(0,0,0,0.3);
-      border-radius:8px;
+      background:rgba(0,0,0,0.4);
+      border:1px solid rgba(0,212,255,0.15);
+      border-radius:10px;
       padding:20px;
       margin-bottom:30px;
       text-align:left;
     }
     .audit-summary .row{
       display:flex;justify-content:space-between;
-      padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);
-      font-size:12px;
+      padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);
+      font-size:13px;
     }
     .audit-summary .row:last-child{border-bottom:none}
     .audit-summary .label{color:#888}
-    .audit-summary .value{color:#00d4ff;font-family:'SF Mono',monospace}
+    .audit-summary .value{color:#00d4ff;font-family:'SF Mono',monospace;font-weight:500}
     .audit-summary .value.positive{color:#00ff88}
     .audit-summary .value.negative{color:#ff4444}
+    
     .audit-buttons{display:flex;gap:15px;justify-content:center}
     .audit-btn{
-      padding:14px 30px;border-radius:8px;font-size:12px;font-weight:600;
-      letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;
+      padding:16px 35px;border-radius:8px;font-size:13px;font-weight:600;
+      letter-spacing:0.12em;cursor:pointer;transition:all 0.2s;
+      position:relative;overflow:hidden;
     }
-    .audit-btn:hover{transform:scale(1.05)}
-    .audit-btn.lock{background:rgba(0,255,136,0.2);border:2px solid #00ff88;color:#00ff88}
-    .audit-btn.reject{background:rgba(255,68,68,0.2);border:2px solid #ff4444;color:#ff4444}
-    .audit-btn.hold{background:rgba(255,170,0,0.2);border:2px solid #ffaa00;color:#ffaa00}
-    .audit-timer{font-size:10px;color:#666;margin-top:20px;letter-spacing:0.1em;transition:color 0.3s}
-    .audit-timer.warning{color:#ff4444;animation:timerPulse 1s infinite}
+    .audit-btn:hover{transform:scale(1.08)}
+    .audit-btn:active{transform:scale(0.98)}
+    .audit-btn.lock{
+      background:linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,255,136,0.1));
+      border:2px solid #00ff88;color:#00ff88;
+      box-shadow:0 0 20px rgba(0,255,136,0.2);
+    }
+    .audit-btn.lock:hover{box-shadow:0 0 30px rgba(0,255,136,0.4)}
+    .audit-btn.reject{
+      background:linear-gradient(135deg, rgba(255,68,68,0.2), rgba(255,68,68,0.1));
+      border:2px solid #ff4444;color:#ff4444;
+      box-shadow:0 0 20px rgba(255,68,68,0.2);
+    }
+    .audit-btn.reject:hover{box-shadow:0 0 30px rgba(255,68,68,0.4)}
+    .audit-btn.hold{
+      background:linear-gradient(135deg, rgba(255,170,0,0.2), rgba(255,170,0,0.1));
+      border:2px solid #ffaa00;color:#ffaa00;
+    }
+    
+    .audit-timer{
+      font-size:12px;color:#666;margin-top:25px;letter-spacing:0.1em;transition:all 0.3s;
+    }
+    .audit-timer.urgent{color:#ff4444;font-weight:600;animation:timerPulse 0.5s infinite}
     @keyframes timerPulse{0%,100%{opacity:1}50%{opacity:0.5}}
-    .audit-card{transition:transform 0.5s cubic-bezier(0.4,0,0.2,1),opacity 0.4s}
-    .audit-card.locking{transform:scale(0.2) translateX(-600px) translateY(400px);opacity:0}
+    .audit-timer .countdown{font-size:24px;font-weight:200;margin-left:8px}
     
     /* ============================================
        L5 MEMORY - 타임라인 (좌측 슬라이드)
@@ -472,7 +510,7 @@
         <button class="audit-btn hold" onclick="auditDecision('HOLD')">HOLD</button>
         <button class="audit-btn reject" onclick="auditDecision('REJECT')">REJECT</button>
       </div>
-      <div class="audit-timer">Auto-reject in <span id="audit-countdown">10</span>s</div>
+      <div class="audit-timer">Auto-reject in <span id="audit-countdown" class="countdown">30</span>s</div>
     </div>
   </div>
   
@@ -796,43 +834,44 @@ function updateActionHUD() {
 // ═══════════════════════════════════════════════════════════════
 // L4 AUDIT
 // ═══════════════════════════════════════════════════════════════
-let auditPaused = false;
+window.auditActive = false;
 
 function openAudit(action, delta) {
-  // 기존 타이머 정리
   clearInterval(auditTimer);
   clearTimeout(actionHoldTimer);
   
-  // 태양계 회전 정지
-  auditPaused = true;
+  // 태양계 정지
+  window.auditActive = true;
   
-  // 카드 초기화 (애니메이션 리셋)
-  const card = document.querySelector('.audit-card');
-  card.classList.remove('locking');
+  const auditEl = document.getElementById('layer-audit');
+  const cardEl = auditEl.querySelector('.audit-card');
+  cardEl.classList.remove('locking', 'rejecting');
   
-  document.getElementById('layer-audit').classList.add('active');
+  auditEl.classList.add('active');
+  
   document.getElementById('audit-action').textContent = action.toUpperCase();
   document.getElementById('audit-rec').textContent = `${delta.recovery > 0 ? '+' : ''}${Math.round(delta.recovery * 100)}%`;
+  document.getElementById('audit-rec').className = 'value ' + (delta.recovery > 0 ? 'positive' : 'negative');
   document.getElementById('audit-fri').textContent = `${delta.friction > 0 ? '+' : ''}${Math.round((delta.friction || 0) * 100)}%`;
+  document.getElementById('audit-fri').className = 'value ' + ((delta.friction || 0) < 0 ? 'positive' : 'negative');
   
   const newRisk = Math.max(0, state.risk - 0.16);
   document.getElementById('audit-risk').textContent = `${state.risk.toFixed(2)} → ${newRisk.toFixed(2)}`;
   document.getElementById('audit-conf').textContent = `${75 + Math.floor(Math.random() * 20)}%`;
   
-  // 카운트다운 30초
   let countdown = 30;
-  const timerEl = document.querySelector('.audit-timer');
-  const countdownEl = document.getElementById('audit-countdown');
-  countdownEl.textContent = countdown;
-  timerEl.classList.remove('warning');
+  const timerEl = document.getElementById('audit-countdown');
+  const timerContainer = timerEl.parentElement;
+  timerEl.textContent = countdown;
+  timerContainer.classList.remove('urgent');
   
   auditTimer = setInterval(() => {
     countdown--;
-    countdownEl.textContent = countdown;
+    timerEl.textContent = countdown;
     
-    // 10초 이하: 빨간색 펄스
+    // 10초 이하: 긴급 표시
     if (countdown <= 10) {
-      timerEl.classList.add('warning');
+      timerContainer.classList.add('urgent');
     }
     
     if (countdown <= 0) {
@@ -846,44 +885,47 @@ function openAudit(action, delta) {
 async function auditDecision(verdict) {
   clearInterval(auditTimer);
   
+  const auditEl = document.getElementById('layer-audit');
+  const cardEl = auditEl.querySelector('.audit-card');
   const action = currentAuditAction?.action || 'unknown';
   const delta = currentAuditAction?.delta || {};
-  const card = document.querySelector('.audit-card');
-  const timerEl = document.querySelector('.audit-timer');
-  
-  // 타이머 경고 클래스 제거
-  timerEl.classList.remove('warning');
   
   if (verdict === 'LOCK') {
-    // LOCK 애니메이션: 축소 → L5 방향 낙하
-    card.classList.add('locking');
+    // LOCK 애니메이션
+    cardEl.classList.add('locking');
     
-    // 애니메이션 후 닫기
-    setTimeout(() => {
-      document.getElementById('layer-audit').classList.remove('active');
-      card.classList.remove('locking');
-    }, 500);
-    
-    // 실제 API 호출
+    // API 호출
     try {
       const response = await fetch('/autus/solar/release', { method: 'POST' });
       const result = await response.json();
       logAction(`LOCKED: ${action.toUpperCase()} → API OK`, 'warning');
-      logAction(`Result: entropy=${result.signals?.entropy?.toFixed(2) || '?'}`);
+      logAction(`entropy=${result.signals?.entropy?.toFixed(2) || '?'}`);
     } catch (e) {
       logAction(`LOCKED: ${action.toUpperCase()} (offline)`, 'warning');
     }
+    
+    // 애니메이션 후 닫기
+    setTimeout(() => {
+      auditEl.classList.remove('active');
+      cardEl.classList.remove('locking');
+      window.auditActive = false;
+    }, 600);
+    
   } else if (verdict === 'REJECT') {
-    document.getElementById('layer-audit').classList.remove('active');
+    cardEl.classList.add('rejecting');
     logAction(`REJECTED: ${action.toUpperCase()}`);
+    
+    setTimeout(() => {
+      auditEl.classList.remove('active');
+      cardEl.classList.remove('rejecting');
+      window.auditActive = false;
+    }, 300);
+    
   } else {
-    // HOLD: 타이머 멈추고 대기
     logAction(`HOLD: ${action.toUpperCase()}`);
-    return; // 오버레이 유지
+    // HOLD는 타이머만 멈추고 대기
+    return;
   }
-  
-  // 태양계 회전 재개
-  auditPaused = false;
   
   // L5 MEMORY에 기록
   const record = {
@@ -1026,7 +1068,7 @@ function animate() {
   time += 0.016;
   
   // L4 AUDIT 열려있으면 태양계 정지
-  if (!auditPaused) {
+  if (!window.auditActive) {
     globeGroup.rotation.y += 0.003;
   }
   
