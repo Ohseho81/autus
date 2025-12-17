@@ -832,6 +832,44 @@ function updateActionHUD() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// OUTCOME CLASSIFICATION (Failure / Near-miss 판정)
+// ═══════════════════════════════════════════════════════════════
+const CRITICAL_THRESHOLD = 0.60;
+const EPSILON = 0.05;
+
+function classifyOutcome(riskBefore, riskAfter, recoveryBefore, recoveryAfter) {
+  const gateAfter = riskAfter > CRITICAL_THRESHOLD ? 'AMBER' : recoveryAfter < 0.30 ? 'RED' : 'GREEN';
+  
+  // FAILURE: 상황 악화 또는 RED 진입
+  if (riskAfter > riskBefore) {
+    return { outcome: 'FAILURE', reason: 'risk increased', icon: '✗', type: 'critical' };
+  }
+  if (gateAfter === 'RED') {
+    return { outcome: 'FAILURE', reason: 'gate RED', icon: '✗', type: 'critical' };
+  }
+  if (recoveryAfter < recoveryBefore) {
+    return { outcome: 'FAILURE', reason: 'recovery decreased', icon: '✗', type: 'critical' };
+  }
+  
+  // NEAR_MISS: CRITICAL 경계 근접
+  const boundaryDistance = Math.abs(riskAfter - CRITICAL_THRESHOLD);
+  if (boundaryDistance <= EPSILON) {
+    return { outcome: 'NEAR_MISS', reason: 'near boundary', icon: '⚠', type: 'warning' };
+  }
+  if (riskBefore > CRITICAL_THRESHOLD && riskAfter <= CRITICAL_THRESHOLD) {
+    return { outcome: 'NEAR_MISS', reason: 'escaped critical', icon: '⚠', type: 'warning' };
+  }
+  
+  // SUCCESS: 개선됨
+  if (riskAfter < riskBefore && recoveryAfter > recoveryBefore) {
+    return { outcome: 'SUCCESS', reason: 'improved', icon: '✓', type: 'info' };
+  }
+  
+  // NEUTRAL: 변화 없음
+  return { outcome: 'NEUTRAL', reason: 'no change', icon: '○', type: 'info' };
+}
+
+// ═══════════════════════════════════════════════════════════════
 // L4 AUDIT
 // ═══════════════════════════════════════════════════════════════
 window.auditActive = false;
@@ -894,14 +932,31 @@ async function auditDecision(verdict) {
     // LOCK 애니메이션
     cardEl.classList.add('locking');
     
-    // API 호출
+    // API 호출 + Outcome 판정
+    const riskBefore = state.risk;
+    const recoveryBefore = planets9.RECOVERY || 0.5;
+    
     try {
       const response = await fetch('/autus/solar/release', { method: 'POST' });
       const result = await response.json();
-      logAction(`LOCKED: ${action.toUpperCase()} → API OK`, 'warning');
-      logAction(`entropy=${result.signals?.entropy?.toFixed(2) || '?'}`);
+      
+      // 새 상태 가져오기
+      const riskAfter = result.signals?.entropy * 1.2 + (result.signals?.pressure || 0) * 0.3;
+      const recoveryAfter = recoveryBefore + (delta.recovery || 0);
+      
+      // Outcome 판정
+      const outcome = classifyOutcome(riskBefore, riskAfter, recoveryBefore, recoveryAfter);
+      const icon = outcome.icon;
+      const reason = outcome.reason;
+      
+      logAction(`${icon} LOCKED: ${action.toUpperCase()} → ${reason}`, outcome.type);
+      logAction(`risk: ${riskBefore.toFixed(2)} → ${riskAfter.toFixed(2)}`);
     } catch (e) {
-      logAction(`LOCKED: ${action.toUpperCase()} (offline)`, 'warning');
+      // 오프라인: 예상 결과로 판정
+      const riskAfter = Math.max(0, riskBefore - 0.15);
+      const recoveryAfter = recoveryBefore + (delta.recovery || 0);
+      const outcome = classifyOutcome(riskBefore, riskAfter, recoveryBefore, recoveryAfter);
+      logAction(`${outcome.icon} LOCKED: ${action.toUpperCase()} → ${outcome.reason}`, outcome.type);
     }
     
     // 애니메이션 후 닫기
