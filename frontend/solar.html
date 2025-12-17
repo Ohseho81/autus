@@ -253,7 +253,11 @@
     .audit-btn.lock{background:rgba(0,255,136,0.2);border:2px solid #00ff88;color:#00ff88}
     .audit-btn.reject{background:rgba(255,68,68,0.2);border:2px solid #ff4444;color:#ff4444}
     .audit-btn.hold{background:rgba(255,170,0,0.2);border:2px solid #ffaa00;color:#ffaa00}
-    .audit-timer{font-size:10px;color:#666;margin-top:20px;letter-spacing:0.1em}
+    .audit-timer{font-size:10px;color:#666;margin-top:20px;letter-spacing:0.1em;transition:color 0.3s}
+    .audit-timer.warning{color:#ff4444;animation:timerPulse 1s infinite}
+    @keyframes timerPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+    .audit-card{transition:transform 0.5s cubic-bezier(0.4,0,0.2,1),opacity 0.4s}
+    .audit-card.locking{transform:scale(0.2) translateX(-600px) translateY(400px);opacity:0}
     
     /* ============================================
        L5 MEMORY - 타임라인 (좌측 슬라이드)
@@ -792,10 +796,19 @@ function updateActionHUD() {
 // ═══════════════════════════════════════════════════════════════
 // L4 AUDIT
 // ═══════════════════════════════════════════════════════════════
+let auditPaused = false;
+
 function openAudit(action, delta) {
   // 기존 타이머 정리
   clearInterval(auditTimer);
   clearTimeout(actionHoldTimer);
+  
+  // 태양계 회전 정지
+  auditPaused = true;
+  
+  // 카드 초기화 (애니메이션 리셋)
+  const card = document.querySelector('.audit-card');
+  card.classList.remove('locking');
   
   document.getElementById('layer-audit').classList.add('active');
   document.getElementById('audit-action').textContent = action.toUpperCase();
@@ -806,13 +819,22 @@ function openAudit(action, delta) {
   document.getElementById('audit-risk').textContent = `${state.risk.toFixed(2)} → ${newRisk.toFixed(2)}`;
   document.getElementById('audit-conf').textContent = `${75 + Math.floor(Math.random() * 20)}%`;
   
-  // 카운트다운 30초로 늘림
+  // 카운트다운 30초
   let countdown = 30;
-  document.getElementById('audit-countdown').textContent = countdown;
+  const timerEl = document.querySelector('.audit-timer');
+  const countdownEl = document.getElementById('audit-countdown');
+  countdownEl.textContent = countdown;
+  timerEl.classList.remove('warning');
   
   auditTimer = setInterval(() => {
     countdown--;
-    document.getElementById('audit-countdown').textContent = countdown;
+    countdownEl.textContent = countdown;
+    
+    // 10초 이하: 빨간색 펄스
+    if (countdown <= 10) {
+      timerEl.classList.add('warning');
+    }
+    
     if (countdown <= 0) {
       auditDecision('REJECT');
     }
@@ -823,12 +845,25 @@ function openAudit(action, delta) {
 
 async function auditDecision(verdict) {
   clearInterval(auditTimer);
-  document.getElementById('layer-audit').classList.remove('active');
   
   const action = currentAuditAction?.action || 'unknown';
   const delta = currentAuditAction?.delta || {};
+  const card = document.querySelector('.audit-card');
+  const timerEl = document.querySelector('.audit-timer');
+  
+  // 타이머 경고 클래스 제거
+  timerEl.classList.remove('warning');
   
   if (verdict === 'LOCK') {
+    // LOCK 애니메이션: 축소 → L5 방향 낙하
+    card.classList.add('locking');
+    
+    // 애니메이션 후 닫기
+    setTimeout(() => {
+      document.getElementById('layer-audit').classList.remove('active');
+      card.classList.remove('locking');
+    }, 500);
+    
     // 실제 API 호출
     try {
       const response = await fetch('/autus/solar/release', { method: 'POST' });
@@ -839,10 +874,16 @@ async function auditDecision(verdict) {
       logAction(`LOCKED: ${action.toUpperCase()} (offline)`, 'warning');
     }
   } else if (verdict === 'REJECT') {
+    document.getElementById('layer-audit').classList.remove('active');
     logAction(`REJECTED: ${action.toUpperCase()}`);
   } else {
+    // HOLD: 타이머 멈추고 대기
     logAction(`HOLD: ${action.toUpperCase()}`);
+    return; // 오버레이 유지
   }
+  
+  // 태양계 회전 재개
+  auditPaused = false;
   
   // L5 MEMORY에 기록
   const record = {
@@ -984,7 +1025,10 @@ function animate() {
   requestAnimationFrame(animate);
   time += 0.016;
   
-  globeGroup.rotation.y += 0.003;
+  // L4 AUDIT 열려있으면 태양계 정지
+  if (!auditPaused) {
+    globeGroup.rotation.y += 0.003;
+  }
   
   if (planetsVisible) {
     PLANETS.forEach((p, i) => {
