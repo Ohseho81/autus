@@ -23,6 +23,43 @@
   -->
   <style>
     /* ============================================
+       CSS VARIABLES & FREEZE STATES
+       ============================================ */
+    :root {
+      --freeze-level: 0;
+      --primary-hue: 190;
+      --alert-hue: 190;
+      --motion-speed: 1.0;
+      --global-opacity: 1.0;
+      --overlay-opacity: 0;
+    }
+    
+    body.freeze-caution {
+      --freeze-level: 1;
+      --primary-hue: 45;
+      --alert-hue: 45;
+      --motion-speed: 0.7;
+    }
+    
+    body.freeze-frozen {
+      --freeze-level: 2;
+      --primary-hue: 210;
+      --alert-hue: 210;
+      --motion-speed: 0.2;
+      --global-opacity: 0.8;
+      --overlay-opacity: 0.15;
+    }
+    
+    body.freeze-lockdown {
+      --freeze-level: 3;
+      --primary-hue: 0;
+      --alert-hue: 0;
+      --motion-speed: 0;
+      --global-opacity: 0.9;
+      --overlay-opacity: 0.25;
+    }
+    
+    /* ============================================
        RESET & BASE
        ============================================ */
     *{margin:0;padding:0;box-sizing:border-box}
@@ -31,7 +68,11 @@
       overflow:hidden;
       font-family:'Inter','SF Pro Display',system-ui,sans-serif;
       color:#fff;
+      transition: filter 0.5s ease;
     }
+    
+    body.freeze-frozen { filter: saturate(0.7) brightness(0.9); }
+    body.freeze-lockdown { filter: saturate(0.5) brightness(0.85); }
     
     /* ============================================
        FRAME
@@ -298,6 +339,70 @@
     .audit-timer .countdown{font-size:24px;font-weight:200;margin-left:8px}
     
     /* ============================================
+       FREEZE OVERLAYS
+       ============================================ */
+    .freeze-overlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      pointer-events:none;z-index:400;opacity:0;transition:opacity 0.5s;
+    }
+    
+    /* Frost Overlay (FROZEN) */
+    body.freeze-frozen .frost-overlay{
+      opacity:1;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(100,150,255,0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(100,150,255,0.12) 0%, transparent 50%);
+      backdrop-filter:blur(1px);
+    }
+    body.freeze-frozen .frost-overlay::before{
+      content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+      background:repeating-linear-gradient(60deg,transparent,transparent 10px,rgba(150,200,255,0.02) 10px,rgba(150,200,255,0.02) 20px);
+      animation:frostShimmer 8s infinite;
+    }
+    @keyframes frostShimmer{0%,100%{opacity:0.3}50%{opacity:0.8}}
+    
+    /* Lockdown Overlay */
+    body.freeze-lockdown .lockdown-overlay{
+      opacity:1;
+      background:repeating-linear-gradient(0deg,transparent 0px,transparent 2px,rgba(255,0,0,0.03) 2px,rgba(255,0,0,0.03) 4px);
+      animation:scanLines 0.1s linear infinite;
+    }
+    @keyframes scanLines{0%{background-position:0 0}100%{background-position:0 4px}}
+    
+    body.freeze-lockdown::after{
+      content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+      pointer-events:none;z-index:399;
+      background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.4) 100%);
+    }
+    
+    /* Freeze indicator */
+    .freeze-indicator{
+      position:fixed;top:80px;left:50%;transform:translateX(-50%);
+      padding:10px 24px;border-radius:8px;font-size:12px;font-weight:600;
+      letter-spacing:0.15em;z-index:450;opacity:0;transition:opacity 0.3s;
+      pointer-events:none;
+    }
+    body.freeze-caution .freeze-indicator{opacity:1;background:rgba(255,180,0,0.2);border:1px solid #ffb400;color:#ffb400}
+    body.freeze-frozen .freeze-indicator{opacity:1;background:rgba(100,150,255,0.2);border:1px solid #6496ff;color:#6496ff}
+    body.freeze-lockdown .freeze-indicator{opacity:1;background:rgba(255,60,60,0.3);border:1px solid #ff4444;color:#ff4444;animation:lockdownPulse 0.5s infinite}
+    @keyframes lockdownPulse{0%,100%{box-shadow:0 0 10px rgba(255,60,60,0.3)}50%{box-shadow:0 0 25px rgba(255,60,60,0.6)}}
+    
+    /* Frame color changes */
+    body.freeze-caution .frame{border-color:rgba(255,180,0,0.3)}
+    body.freeze-caution .corner::before,body.freeze-caution .corner::after{background:rgba(255,180,0,0.5)}
+    body.freeze-frozen .frame{border-color:rgba(100,150,255,0.25)}
+    body.freeze-frozen .corner::before,body.freeze-frozen .corner::after{background:rgba(100,150,255,0.4)}
+    body.freeze-lockdown .frame{border-color:rgba(255,60,60,0.4);animation:framePulse 0.5s infinite}
+    body.freeze-lockdown .corner::before,body.freeze-lockdown .corner::after{background:rgba(255,60,60,0.6)}
+    @keyframes framePulse{0%,100%{border-color:rgba(255,60,60,0.4)}50%{border-color:rgba(255,60,60,0.7)}}
+    
+    /* Action buttons freeze states */
+    body.freeze-frozen .action-btn{opacity:0.4;pointer-events:none}
+    body.freeze-lockdown .action-btn.defriction,body.freeze-lockdown .action-btn.shock-damp{opacity:0.3;pointer-events:none;border-color:#666}
+    body.freeze-lockdown .action-btn.recover{animation:recoverPulse 1s infinite}
+    @keyframes recoverPulse{0%,100%{box-shadow:0 0 10px rgba(0,255,136,0.3)}50%{box-shadow:0 0 30px rgba(0,255,136,0.6)}}
+    
+    /* ============================================
        L5 MEMORY - 타임라인 (좌측 슬라이드)
        ============================================ */
     #layer-memory{
@@ -410,6 +515,11 @@
     <div class="corner bl"></div>
     <div class="corner br"></div>
   </div>
+  
+  <!-- Freeze Overlays -->
+  <div class="freeze-overlay frost-overlay"></div>
+  <div class="freeze-overlay lockdown-overlay"></div>
+  <div class="freeze-indicator" id="freeze-indicator">NORMAL</div>
   
   <!-- L7 SYSTEM BAR -->
   <div class="system-bar">
@@ -832,6 +942,50 @@ function updateActionHUD() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// FREEZE VISUAL STATES
+// ═══════════════════════════════════════════════════════════════
+window.freezeLevel = 0;
+window.freezeMotionMultiplier = 1.0;
+
+const FREEZE_LABELS = ['NORMAL', 'CAUTION ⚠', 'FROZEN ❄', 'LOCKDOWN 🔒'];
+
+function applyFreezeVisual(level) {
+  const body = document.body;
+  const indicator = document.getElementById('freeze-indicator');
+  
+  // 기존 클래스 제거
+  body.classList.remove('freeze-caution', 'freeze-frozen', 'freeze-lockdown');
+  
+  // 새 클래스 적용
+  if (level === 1) body.classList.add('freeze-caution');
+  if (level === 2) body.classList.add('freeze-frozen');
+  if (level === 3) body.classList.add('freeze-lockdown');
+  
+  // 모션 속도 조정
+  window.freezeLevel = level;
+  window.freezeMotionMultiplier = [1.0, 0.7, 0.2, 0][level];
+  
+  // 인디케이터 업데이트
+  indicator.textContent = FREEZE_LABELS[level];
+  
+  // 로그
+  logAction(`Freeze: ${FREEZE_LABELS[level]}`, level >= 2 ? 'critical' : level === 1 ? 'warning' : 'info');
+  
+  // LOCKDOWN 시 버튼 상태 (CSS로 처리되지만 추가 로직)
+  if (level === 3) {
+    logAction('RECOVERY ONLY mode', 'critical');
+  }
+}
+
+// 자동 Freeze 레벨 결정
+function autoFreezeLevel(risk, failureRate) {
+  if (failureRate > 0.05) return 3; // LOCKDOWN
+  if (risk > 0.70) return 2;        // FROZEN
+  if (risk > 0.50) return 1;        // CAUTION
+  return 0;                          // NORMAL
+}
+
+// ═══════════════════════════════════════════════════════════════
 // OUTCOME CLASSIFICATION (Failure / Near-miss 판정)
 // ═══════════════════════════════════════════════════════════════
 const CRITICAL_THRESHOLD = 0.60;
@@ -1110,6 +1264,12 @@ document.addEventListener('keydown', e => {
     clearTimeout(actionHoldTimer);
     clearInterval(auditTimer);
   }
+  
+  // Freeze 테스트 모드 (숫자 키)
+  if (e.key === '0') applyFreezeVisual(0); // NORMAL
+  if (e.key === '1') applyFreezeVisual(1); // CAUTION
+  if (e.key === '2') applyFreezeVisual(2); // FROZEN
+  if (e.key === '3') applyFreezeVisual(3); // LOCKDOWN
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -1122,16 +1282,17 @@ function animate() {
   requestAnimationFrame(animate);
   time += 0.016;
   
-  // L4 AUDIT 열려있으면 태양계 정지
+  // L4 AUDIT 열려있으면 태양계 정지, Freeze 레벨에 따라 속도 조절
+  const motionMult = window.freezeMotionMultiplier || 1.0;
   if (!window.auditActive) {
-    globeGroup.rotation.y += 0.003;
+    globeGroup.rotation.y += 0.003 * motionMult;
   }
   
   if (planetsVisible) {
     PLANETS.forEach((p, i) => {
       const value = planets9[p.key] || 0.5;
       const group = planetMeshes[p.key];
-      const angle = time * p.speed * 0.3 + (i / PLANETS.length) * Math.PI * 2;
+      const angle = time * p.speed * 0.3 * motionMult + (i / PLANETS.length) * Math.PI * 2;
       const r = p.orbit + (value - 0.5) * 0.2;
       
       group.position.x = Math.cos(angle) * r;
@@ -1161,8 +1322,8 @@ function animate() {
     
     innerRingMat.color.setHex((rec + sta) / 2 > 0.4 ? 0x00ffaa : 0xff4444);
     outerRingMat.color.setHex((shk + fri) / 2 > 0.5 ? 0xff8844 : 0x44aaff);
-    innerRing.rotation.z += 0.003;
-    outerRing.rotation.z -= 0.002;
+    innerRing.rotation.z += 0.003 * motionMult;
+    outerRing.rotation.z -= 0.002 * motionMult;
   }
   
   // FPS
