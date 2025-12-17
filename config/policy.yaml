@@ -1,0 +1,205 @@
+# ═══════════════════════════════════════════════════════════════
+# AUTUS Policy Registry v1.0
+# Last Updated: 2025-12-17
+# STATUS: LOCKED
+# ═══════════════════════════════════════════════════════════════
+
+version: "1.0.0"
+build_date: "2025-12-17"
+
+# ═══════════════════════════════════════════════════════════════
+# 1. IMMUTABLE (변경 불가 — 헌법)
+# ═══════════════════════════════════════════════════════════════
+CONSTITUTION:
+  # 절대 자동 변경 금지
+  RECOVERY_RED: 0.30           # RED 게이트 기준
+  CRITICAL_THRESHOLD: 0.60     # CRITICAL 진입 기준
+  COLLAPSE_PLANETS:
+    - OUTPUT
+    - QUALITY
+    - TIME
+  PRIORITY_ORDER:
+    - RECOVERY
+    - STABILITY
+    - COHESION
+    - SHOCK
+    - FRICTION
+    - TRANSFER
+    - TIME
+    - QUALITY
+    - OUTPUT
+  
+  # 인간 결정 필수
+  HUMAN_LOCK_REQUIRED: true
+  AUTO_EXECUTE: false
+  
+  # 변경 금지 사유
+  _rationale: "인간의 판단 없이 시스템이 자동으로 실행하면 안전 위험"
+
+# ═══════════════════════════════════════════════════════════════
+# 2. MUTABLE_GUARDED (승인 필요 변경)
+# ═══════════════════════════════════════════════════════════════
+GUARDED:
+  # AMBER 이하에서만 변경 가능, Shadow 검증 후
+  RECOVERY_AMBER:
+    value: 0.60
+    range: [0.50, 0.70]
+    description: "AMBER 게이트 기준"
+    
+  AUDIT_TIMEOUT:
+    value: 30
+    unit: seconds
+    range: [15, 60]
+    description: "L4 AUDIT 자동 거부 시간"
+    
+  CONFIDENCE_MIN:
+    value: 0.70
+    range: [0.60, 0.85]
+    description: "최소 신뢰도 표시 기준"
+  
+  # 변경 규칙
+  change_rules:
+    approval: HUMAN
+    shadow_test_required: true
+    max_delta_per_change: 0.05   # 한 번에 최대 5%p
+
+# ═══════════════════════════════════════════════════════════════
+# 3. MUTABLE_AUTO (자동 미세조정 허용)
+# ═══════════════════════════════════════════════════════════════
+AUTO_TUNABLE:
+  # Resolution Auto-Tuner 대상
+  risk_weights:
+    SHOCK:
+      value: 1.2
+      range: [1.0, 1.5]
+    FRICTION:
+      value: 0.3
+      range: [0.2, 0.5]
+  
+  # UI 연출 (안전)
+  ui:
+    GLOW_INTENSITY:
+      value: 0.3
+      range: [0.1, 0.5]
+    ORBIT_SPEED_MULTIPLIER:
+      value: 1.0
+      range: [0.5, 2.0]
+    RING_OPACITY:
+      value: 0.25
+      range: [0.15, 0.40]
+  
+  # 자동 조정 제한
+  auto_limits:
+    max_delta_per_day: 0.10      # 하루 최대 10%
+    freeze_on_failure_rate: 0.05 # 실패율 5% 초과 시 동결
+
+# ═══════════════════════════════════════════════════════════════
+# 4. FREEZE RULES (자동 동결 조건)
+# ═══════════════════════════════════════════════════════════════
+FREEZE_TRIGGERS:
+  - id: FREEZE_001
+    condition: "failure_rate > 0.05"
+    action: FREEZE_ALL_MUTABLE
+    notify: ADMIN
+    
+  - id: FREEZE_002
+    condition: "drift_rate > 0.15"
+    action: FREEZE_AUTO_TUNABLE
+    rollback: LAST_STABLE
+    
+  - id: FREEZE_003
+    condition: "gate == RED"
+    action: FREEZE_GUARDED
+    allow_only:
+      - RECOVER
+
+# ═══════════════════════════════════════════════════════════════
+# 5. PROOF CAPSULE SCHEMA (증거 저장)
+# ═══════════════════════════════════════════════════════════════
+PROOF_CAPSULE:
+  # 원천 데이터 폐기, 이것만 저장
+  fields:
+    - name: id
+      type: uuid
+    - name: timestamp
+      type: ISO8601
+    - name: action
+      type: enum
+      values: [RECOVER, DEFRICTION, SHOCK_DAMP]
+    - name: verdict
+      type: enum
+      values: [LOCK, REJECT, TIMEOUT]
+    - name: delta_state
+      type: object
+      properties:
+        recovery: float
+        friction: float
+        shock: float
+    - name: risk_before
+      type: float
+    - name: risk_after
+      type: float
+    - name: confidence
+      type: float
+    - name: context_tag
+      type: string
+      examples: ["CRITICAL", "AMBER", "GREEN"]
+    - name: payload_hash
+      type: sha256
+      description: "원천 폐기 증명"
+    
+  retention:
+    success: 7d      # 통계만
+    failure: 90d     # 상세
+    near_miss: 30d
+
+# ═══════════════════════════════════════════════════════════════
+# 6. UI 매핑
+# ═══════════════════════════════════════════════════════════════
+UI_MAPPING:
+  - ui_element: "GATE: AMBER"
+    policy_param: GUARDED.RECOVERY_AMBER
+    type: GUARDED
+    
+  - ui_element: "GATE: RED"
+    policy_param: CONSTITUTION.RECOVERY_RED
+    type: IMMUTABLE
+    
+  - ui_element: "STATUS: CRITICAL"
+    policy_param: CONSTITUTION.CRITICAL_THRESHOLD
+    type: IMMUTABLE
+    
+  - ui_element: "Auto-reject 30s"
+    policy_param: GUARDED.AUDIT_TIMEOUT
+    type: GUARDED
+    
+  - ui_element: "Confidence %"
+    policy_param: GUARDED.CONFIDENCE_MIN
+    type: GUARDED
+    
+  - ui_element: "Risk calculation"
+    policy_param: AUTO_TUNABLE.risk_weights
+    type: AUTO
+    
+  - ui_element: "Ring opacity"
+    policy_param: AUTO_TUNABLE.ui.RING_OPACITY
+    type: AUTO
+    
+  - ui_element: "Planet orbit speed"
+    policy_param: AUTO_TUNABLE.ui.ORBIT_SPEED_MULTIPLIER
+    type: AUTO
+
+# ═══════════════════════════════════════════════════════════════
+# CHANGE LOG
+# ═══════════════════════════════════════════════════════════════
+changelog:
+  - version: "1.0.0"
+    date: "2025-12-17"
+    changes:
+      - "Initial policy registry creation"
+      - "CONSTITUTION locked"
+      - "GUARDED parameters defined"
+      - "AUTO_TUNABLE ranges set"
+      - "FREEZE triggers configured"
+      - "PROOF_CAPSULE schema defined"
+
