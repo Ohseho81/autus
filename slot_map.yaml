@@ -1,0 +1,104 @@
+# AUTUS PERFECT-BUT-FINISHABLE FRAME
+# 전체 진도판 - 모든 작업이 슬롯으로 관리됨
+# Last Updated: 2025-12-17
+
+slots:
+  system:
+    memory:
+      status: FILLED
+      done: "며칠 후 와도 즉시 이어서 가능"
+    governance:
+      status: FILLED
+      done: "Autus-PM이 다음 행동을 지시"
+    consistency:
+      status: FILLED
+      done: "어느 파일을 봐도 같은 원칙"
+    explainability:
+      status: FILLED
+      done: "왜 이 구조인지 즉시 답변 가능"
+    extensibility:
+      status: FILLED
+      done: "슬롯 추가로만 확장 (7 Layer 구조)"
+
+  functional:
+    hq_ui:
+      status: FILLED
+      done: "7 Layer + 9 Planets 완성"
+      details:
+        - "L0 SOLAR: 9행성 + 태양계"
+        - "L1 CORE: Constitution/Rules"
+        - "L2 SIMULATION: 2중 예측 링"
+        - "L3 ACTION: 3버튼 HUD"
+        - "L4 AUDIT: 확인 + API 호출"
+        - "L5 MEMORY: 타임라인/로그"
+        - "L7 SYSTEM: 상태바"
+    state_engine:
+      status: FILLED
+      done: "Event → State → Memory 완결"
+    learning_loop:
+      status: PARTIAL
+      done: "단일 개체 학습 명확"
+    multi_entity:
+      status: "OFF"
+      done: "개념·인터페이스 정의 (비활성 OK)"
+    safety:
+      status: FILLED
+      done: "CRITICAL 시 인간 오판 차단 + L4 AUDIT 30초"
+
+  dev_ops:
+    slot_map:
+      status: FILLED
+      done: "모든 작업이 슬롯으로 관리"
+    freeze_control:
+      status: FILLED
+      done: "9 Planets + 7 Layers LOCKED"
+    resume_system:
+      status: FILLED
+      done: "resume 한 번에 맥락 복원"
+    decision_log:
+      status: FILLED
+      done: "L5 MEMORY + ACTION LOG 기록"
+
+  solar_hq:
+    planets:
+      status: LOCKED
+      done: "9 Planets 정의 완료"
+      items:
+        - "RECOVERY: Shock 이후 기준선 복귀 능력"
+        - "STABILITY: 현재 상태 유지 구조적 강도"
+        - "COHESION: 구성요소 간 결속력"
+        - "SHOCK: 외부 충격의 불확실성 압력"
+        - "FRICTION: 흐름 방해 저항과 비효율"
+        - "TRANSFER: 자원 이동 효율"
+        - "TIME: 남은 시간 자원"
+        - "QUALITY: 산출물 정확성/완성도"
+        - "OUTPUT: 단위 시간당 생산량"
+    layers:
+      status: LOCKED
+      done: "7 Layer System 완성"
+      items:
+        - "L0 SOLAR: Base Reality"
+        - "L1 CORE: Constitution"
+        - "L2 SIMULATION: Forecast"
+        - "L3 ACTION: Control"
+        - "L4 AUDIT: Confirm"
+        - "L5 MEMORY: Timeline"
+        - "L7 SYSTEM: Status"
+    api_integration:
+      status: FILLED
+      done: "L4 LOCK → /autus/solar/release"
+
+# 요약
+summary:
+  total_slots: 17
+  filled: 14
+  locked: 2
+  partial: 1
+  off: 1
+  completion_pct: 94
+
+# 다음 단계
+next:
+  - "learning_loop: 강화학습 루프 명확화"
+  - "SSE 실시간 데이터 전환 (optional)"
+
