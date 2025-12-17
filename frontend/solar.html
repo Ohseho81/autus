@@ -793,6 +793,10 @@ function updateActionHUD() {
 // L4 AUDIT
 // ═══════════════════════════════════════════════════════════════
 function openAudit(action, delta) {
+  // 기존 타이머 정리
+  clearInterval(auditTimer);
+  clearTimeout(actionHoldTimer);
+  
   document.getElementById('layer-audit').classList.add('active');
   document.getElementById('audit-action').textContent = action.toUpperCase();
   document.getElementById('audit-rec').textContent = `${delta.recovery > 0 ? '+' : ''}${Math.round(delta.recovery * 100)}%`;
@@ -802,9 +806,10 @@ function openAudit(action, delta) {
   document.getElementById('audit-risk').textContent = `${state.risk.toFixed(2)} → ${newRisk.toFixed(2)}`;
   document.getElementById('audit-conf').textContent = `${75 + Math.floor(Math.random() * 20)}%`;
   
-  let countdown = 10;
+  // 카운트다운 30초로 늘림
+  let countdown = 30;
   document.getElementById('audit-countdown').textContent = countdown;
-  clearInterval(auditTimer);
+  
   auditTimer = setInterval(() => {
     countdown--;
     document.getElementById('audit-countdown').textContent = countdown;
@@ -813,7 +818,7 @@ function openAudit(action, delta) {
     }
   }, 1000);
   
-  logAction('AUDIT opened', 'warning');
+  logAction('L4 AUDIT opened', 'warning');
 }
 
 function auditDecision(verdict) {
