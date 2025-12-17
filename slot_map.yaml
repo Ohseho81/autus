@@ -36,8 +36,8 @@ slots:
       status: FILLED
       done: "Event → State → Memory 완결"
     learning_loop:
-      status: PARTIAL
-      done: "단일 개체 학습 명확"
+      status: FILLED
+      done: "Trigger → Capture → Apply → Measure 완결"
     multi_entity:
       status: "OFF"
       done: "개념·인터페이스 정의 (비활성 OK)"
@@ -91,11 +91,11 @@ slots:
 # 요약
 summary:
   total_slots: 17
-  filled: 14
+  filled: 15
   locked: 2
-  partial: 1
+  partial: 0
   off: 1
-  completion_pct: 94
+  completion_pct: 100
 
 # 다음 단계
 next:
