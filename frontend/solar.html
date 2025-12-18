@@ -17,7 +17,8 @@
     ║  L6 GOVERNANCE - Phase 2 (미구현)                             ║
     ║  L7 SYSTEM     - 엔진/성능 상태                                ║
     ║                                                               ║
-    ║  PHYSICS ENGINE v2.0 — Law 4/5/6/7 Applied                    ║
+    ║  PHYSICS KERNEL v2.1 — FROZEN                                  ║
+    ║  Law 4/5/6/7 + Single Bottleneck                              ║
     ║  BUILD: 2025-12-18                                            ║
     ╚═══════════════════════════════════════════════════════════════╝
   -->
@@ -576,9 +577,9 @@
     </div>
   </div>
   
-  <!-- PHYSICS DISPLAY (NEW) -->
+  <!-- KERNEL DISPLAY (v2.1) -->
   <div class="physics-display">
-    <div class="title">FAILURE RING · PHYSICS</div>
+    <div class="title">KERNEL v2.1 · FROZEN</div>
     <div class="physics-row"><span class="physics-key">radiusScale</span><span class="physics-val" id="phy-radius">1.00</span></div>
     <div class="physics-row"><span class="physics-key">thickness</span><span class="physics-val" id="phy-thick">0.15</span></div>
     <div class="physics-row"><span class="physics-key">pulseHz</span><span class="physics-val" id="phy-pulse">0.50</span></div>
@@ -738,6 +739,43 @@ const TAU = Object.freeze({
 });
 
 // ═══════════════════════════════════════════════════════════════
+// BOTTLENECK WEIGHTS & ANGLES (FROZEN v2.1)
+// ═══════════════════════════════════════════════════════════════
+const BOTTLENECK_WEIGHTS = Object.freeze({
+  RECOVERY:  0.20,   // 가장 중요한 양성 지표
+  STABILITY: 0.15,
+  COHESION:  0.10,
+  SHOCK:     0.25,   // 가장 위험한 음성 지표 ⚠️
+  FRICTION:  0.15,
+  TRANSFER:  0.05,
+  TIME:      0.05,
+  QUALITY:   0.03,
+  OUTPUT:    0.02,
+});
+
+const BOTTLENECK_ANGLES = Object.freeze({
+  RECOVERY:  0,                    // 0° (12시 방향)
+  STABILITY: Math.PI * 0.25,       // 45°
+  COHESION:  Math.PI * 0.5,        // 90° (3시 방향)
+  SHOCK:     Math.PI * 1.25,       // 225° (7시 반 방향)
+  FRICTION:  Math.PI * 0.75,       // 135° (4시 반 방향)
+  TRANSFER:  Math.PI * 1.5,        // 270° (9시 방향)
+  TIME:      Math.PI * 1.75,       // 315°
+  QUALITY:   Math.PI,              // 180° (6시 방향)
+  OUTPUT:    Math.PI * 0.125,      // 22.5°
+});
+
+// Positive indicators (higher is better)
+const POSITIVE_INDICATORS = Object.freeze([
+  'RECOVERY', 'STABILITY', 'COHESION', 'TRANSFER', 'QUALITY', 'OUTPUT'
+]);
+
+// Negative indicators (higher is worse)
+const NEGATIVE_INDICATORS = Object.freeze([
+  'SHOCK', 'FRICTION', 'TIME'
+]);
+
+// ═══════════════════════════════════════════════════════════════
 // POLICY (FROZEN)
 // ═══════════════════════════════════════════════════════════════
 const POLICY = Object.freeze({
@@ -878,18 +916,38 @@ function calculateDerivedState() {
   // Flow: Transfer efficiency
   state.flow = clamp(0.4 * tra + 0.3 * (1 - fri) + 0.3 * (1 - tim));
   
-  // Determine bottleneck (worst factor)
-  const factors = [
-    { name: 'SHOCK', value: shk, angle: Math.PI * 1.25 },
-    { name: 'FRICTION', value: fri, angle: Math.PI * 0.75 },
-    { name: 'TIME', value: tim, angle: Math.PI * 1.75 }
-  ];
-  const worst = factors.reduce((a, b) => a.value > b.value ? a : b);
-  PhysicsFrame.bottleneck = {
-    axis: worst.name,
-    value: worst.value,
-    angle: worst.angle
-  };
+  // Bottleneck calculated by separate single-source function
+  computeBottleneck();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BOTTLENECK — SINGLE SOURCE (FROZEN v2.1)
+// ═══════════════════════════════════════════════════════════════
+function computeBottleneck() {
+  let maxBadness = -Infinity;
+  let maxAxis = 'SHOCK';
+  
+  // Iterate all planets
+  for (const key in planets9) {
+    const value = planets9[key] || 0.5;
+    const weight = BOTTLENECK_WEIGHTS[key] || 0.05;
+    
+    // badness = 1 - value (positive indicators)
+    // badness = value     (negative indicators)
+    const isPositive = POSITIVE_INDICATORS.includes(key);
+    const badness = isPositive ? (1 - value) : value;
+    const weighted = weight * badness;
+    
+    if (weighted > maxBadness) {
+      maxBadness = weighted;
+      maxAxis = key;
+    }
+  }
+  
+  // Update PhysicsFrame.bottleneck (Single Source)
+  PhysicsFrame.bottleneck.axis = maxAxis;
+  PhysicsFrame.bottleneck.value = planets9[maxAxis] || 0.5;
+  PhysicsFrame.bottleneck.angle = BOTTLENECK_ANGLES[maxAxis] || 0;
 }
 
 // TwinState → PhysicsFrame 변환 (Law 4,5,6,7)
@@ -928,8 +986,8 @@ function updatePhysicsFrame() {
   PhysicsFrame.ring.targetAsymAngle = PhysicsFrame.bottleneck.angle;
 }
 
-// UPDATE PHYSICS DISPLAY
-function updatePhysicsDisplay() {
+// UPDATE KERNEL DISPLAY (역참조 PhysicsFrame)
+function updateKernelDisplay() {
   const r = PhysicsFrame.ring;
   
   const radiusEl = document.getElementById('phy-radius');
@@ -1803,8 +1861,8 @@ function animate() {
     // Law 7: 시간 상수 기반 애니메이션
     animatePhysicsFrame(dt);
     
-    // Update physics display panel
-    updatePhysicsDisplay();
+    // Update kernel display panel (역참조)
+    updateKernelDisplay();
     
     // Failure Ring 변형 (Law 4,5,6 적용)
     deformFailureRing(time * motionMult);
@@ -1908,12 +1966,15 @@ window.onresize = () => {
 
 console.log('═══════════════════════════════════════════════════════════════');
 console.log('═══════════════════════════════════════════════════════════════');
-console.log('  AUTUS SOLAR HQ — PHYSICS ENGINE v2.0');
-console.log('  Law 4 (Shock Asymmetry) + Law 5 (Failure Horizon)');
-console.log('  Law 6 (Entropy Pulse) + Law 7 (Time Constant)');
+console.log('  AUTUS SOLAR HQ — PHYSICS KERNEL v2.1 FROZEN');
 console.log('═══════════════════════════════════════════════════════════════');
+console.log('  Law 4: asymStrength = 0.95 × max(shock, friction)');
+console.log('  Law 5: radiusScale = 1 - 0.65 × risk');
+console.log('  Law 6: pulseHz = 0.5 × (1 + 2 × entropy)  [A안 확정]');
+console.log('  Law 7: τ-based exponential approach');
+console.log('═══════════════════════════════════════════════════════════════');
+console.log('  Bottleneck: SINGLE SOURCE (argmax weighted badness)');
 console.log('  τ Values: Radius=0.8s, Thickness=0.6s, Pulse=0.4s');
-console.log('            AsymStrength=0.7s, AsymAngle=0.9s');
 console.log('═══════════════════════════════════════════════════════════════');
 
 // Initialize physics
