@@ -17,8 +17,8 @@
     ║  L6 GOVERNANCE - Phase 2 (미구현)                             ║
     ║  L7 SYSTEM     - 엔진/성능 상태                                ║
     ║                                                               ║
-    ║  PHYSICS KERNEL v2.1 — FROZEN                                  ║
-    ║  Law 4/5/6/7 + Single Bottleneck                              ║
+    ║  PHYSICS KERNEL v2.2 — FROZEN                                  ║
+    ║  Law 4/5/6/7 + Single Bottleneck + ImpulseProfiles            ║
     ║  BUILD: 2025-12-18                                            ║
     ╚═══════════════════════════════════════════════════════════════╝
   -->
@@ -579,7 +579,7 @@
   
   <!-- KERNEL DISPLAY (v2.1) -->
   <div class="physics-display">
-    <div class="title">KERNEL v2.1 · FROZEN</div>
+    <div class="title">KERNEL v2.2 · FROZEN</div>
     <div class="physics-row"><span class="physics-key">radiusScale</span><span class="physics-val" id="phy-radius">1.00</span></div>
     <div class="physics-row"><span class="physics-key">thickness</span><span class="physics-val" id="phy-thick">0.15</span></div>
     <div class="physics-row"><span class="physics-key">pulseHz</span><span class="physics-val" id="phy-pulse">0.50</span></div>
@@ -774,6 +774,68 @@ const POSITIVE_INDICATORS = Object.freeze([
 const NEGATIVE_INDICATORS = Object.freeze([
   'SHOCK', 'FRICTION', 'TIME'
 ]);
+
+// ═══════════════════════════════════════════════════════════════
+// IMPULSE PROFILES (FROZEN v2.2)
+// ═══════════════════════════════════════════════════════════════
+// 각 Action이 TwinState에 적용하는 Δ값
+// Preview: Ghost Ring에만 적용, TwinState 불변
+// Lock: TwinState에 실제 적용
+// ═══════════════════════════════════════════════════════════════
+const IMPULSE_PROFILES = Object.freeze({
+  // ┌─────────────────────────────────────────────────────────────┐
+  // │ RECOVER — 회복 우선 (Recovery First)                        │
+  // │ 목적: Recovery↑, 부수적으로 Stability↑, Friction/Shock↓    │
+  // │ 트레이드오프: 없음 (순수 회복)                               │
+  // └─────────────────────────────────────────────────────────────┘
+  recover: Object.freeze({
+    label: 'RECOVER',
+    description: 'Recovery First — 회복 최우선',
+    delta: Object.freeze({
+      RECOVERY:  +0.15,   // Primary effect
+      STABILITY: +0.05,   // Secondary effect
+      FRICTION:  -0.05,   // Side benefit
+      SHOCK:     -0.05    // Side benefit
+    }),
+    color: 0x00ff88,
+    priority: 1           // CRITICAL 시 유일하게 활성화
+  }),
+  
+  // ┌─────────────────────────────────────────────────────────────┐
+  // │ DEFRICTION — 마찰 제거 (Flow Optimization)                  │
+  // │ 목적: Friction↓↓, Transfer↑, Recovery↑                     │
+  // │ 트레이드오프: 없음 (순수 최적화)                             │
+  // └─────────────────────────────────────────────────────────────┘
+  defriction: Object.freeze({
+    label: 'DEFRICTION',
+    description: 'Flow Optimization — 마찰 제거',
+    delta: Object.freeze({
+      FRICTION:  -0.20,   // Primary effect (강력)
+      TRANSFER:  +0.10,   // Secondary effect
+      RECOVERY:  +0.05    // Side benefit
+    }),
+    color: 0x44aaff,
+    priority: 2
+  }),
+  
+  // ┌─────────────────────────────────────────────────────────────┐
+  // │ SHOCK_DAMP — 충격 흡수 (Stability Focus)                    │
+  // │ 목적: Shock↓↓↓, Stability↑, Cohesion↑                      │
+  // │ 트레이드오프: Recovery↓ (에너지 소모)                        │
+  // └─────────────────────────────────────────────────────────────┘
+  shock_damp: Object.freeze({
+    label: 'SHOCK DAMP',
+    description: 'Stability Focus — 충격 흡수',
+    delta: Object.freeze({
+      SHOCK:     -0.25,   // Primary effect (매우 강력)
+      STABILITY: +0.08,   // Secondary effect
+      COHESION:  +0.05,   // Side benefit
+      RECOVERY:  -0.10    // Trade-off ⚠️
+    }),
+    color: 0xffaa00,
+    priority: 3
+  })
+});
 
 // ═══════════════════════════════════════════════════════════════
 // POLICY (FROZEN)
@@ -1354,11 +1416,15 @@ function updateGateSLA() {
 let actionHoldTimer = null;
 
 function previewAction(action) {
-  const delta = {
-    recover: { RECOVERY: +0.15, STABILITY: +0.05, FRICTION: -0.05, SHOCK: -0.05 },
-    defriction: { FRICTION: -0.20, TRANSFER: +0.10, RECOVERY: +0.05 },
-    shock_damp: { SHOCK: -0.25, STABILITY: +0.08, COHESION: +0.05, RECOVERY: -0.10 }
-  }[action];
+  // ═══════════════════════════════════════════════════════════════
+  // IMPULSE PROFILE 참조 (FROZEN v2.2)
+  // ═══════════════════════════════════════════════════════════════
+  const profile = IMPULSE_PROFILES[action];
+  if (!profile) {
+    console.error(`Unknown action: ${action}`);
+    return;
+  }
+  const delta = profile.delta;
   
   // Flash rings
   innerRingMat.opacity = 0.6;
@@ -1531,11 +1597,17 @@ function openAudit(action, delta) {
   
   auditEl.classList.add('active');
   
-  document.getElementById('audit-action').textContent = action.toUpperCase();
-  document.getElementById('audit-rec').textContent = `${delta.recovery > 0 ? '+' : ''}${Math.round(delta.recovery * 100)}%`;
-  document.getElementById('audit-rec').className = 'value ' + (delta.recovery > 0 ? 'positive' : 'negative');
-  document.getElementById('audit-fri').textContent = `${delta.friction > 0 ? '+' : ''}${Math.round((delta.friction || 0) * 100)}%`;
-  document.getElementById('audit-fri').className = 'value ' + ((delta.friction || 0) < 0 ? 'positive' : 'negative');
+  // IMPULSE_PROFILES 참조 (v2.2)
+  const profile = IMPULSE_PROFILES[action];
+  const label = profile?.label || action.toUpperCase();
+  const recDelta = delta.RECOVERY || 0;
+  const friDelta = delta.FRICTION || 0;
+  
+  document.getElementById('audit-action').textContent = label;
+  document.getElementById('audit-rec').textContent = `${recDelta > 0 ? '+' : ''}${Math.round(recDelta * 100)}%`;
+  document.getElementById('audit-rec').className = 'value ' + (recDelta > 0 ? 'positive' : recDelta < 0 ? 'negative' : '');
+  document.getElementById('audit-fri').textContent = `${friDelta > 0 ? '+' : ''}${Math.round(friDelta * 100)}%`;
+  document.getElementById('audit-fri').className = 'value ' + (friDelta < 0 ? 'positive' : friDelta > 0 ? 'negative' : '');
   
   // PhysicsFrame에서 계산된 미래 Risk 사용
   const futureRisk = currentAuditAction?.futureRisk || Math.max(0, state.risk - 0.16);
@@ -1966,7 +2038,7 @@ window.onresize = () => {
 
 console.log('═══════════════════════════════════════════════════════════════');
 console.log('═══════════════════════════════════════════════════════════════');
-console.log('  AUTUS SOLAR HQ — PHYSICS KERNEL v2.1 FROZEN');
+console.log('  AUTUS SOLAR HQ — PHYSICS KERNEL v2.2 FROZEN');
 console.log('═══════════════════════════════════════════════════════════════');
 console.log('  Law 4: asymStrength = 0.95 × max(shock, friction)');
 console.log('  Law 5: radiusScale = 1 - 0.65 × risk');
@@ -1974,7 +2046,7 @@ console.log('  Law 6: pulseHz = 0.5 × (1 + 2 × entropy)  [A안 확정]');
 console.log('  Law 7: τ-based exponential approach');
 console.log('═══════════════════════════════════════════════════════════════');
 console.log('  Bottleneck: SINGLE SOURCE (argmax weighted badness)');
-console.log('  τ Values: Radius=0.8s, Thickness=0.6s, Pulse=0.4s');
+console.log('  ImpulseProfiles: RECOVER / DEFRICTION / SHOCK_DAMP');
 console.log('═══════════════════════════════════════════════════════════════');
 
 // Initialize physics
