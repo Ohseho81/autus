@@ -1,0 +1,2067 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS Solar HQ — 7 Layer Complete</title>
+  <!--
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║  AUTUS SOLAR HQ — 7 LAYER COMPLETE                            ║
+    ║                                                               ║
+    ║  L0 SOLAR      - Base Reality (9행성 태양계)                   ║
+    ║  L1 CORE       - 헌법/기준/제약                                ║
+    ║  L2 SIMULATION - 예측 링 (Forecast)                           ║
+    ║  L3 ACTION     - HUD 버튼 (Preview-only)                      ║
+    ║  L4 AUDIT      - 판정/락인 오버레이                            ║
+    ║  L5 MEMORY     - 타임라인/로그                                 ║
+    ║  L6 GOVERNANCE - Phase 2 (미구현)                             ║
+    ║  L7 SYSTEM     - 엔진/성능 상태                                ║
+    ║                                                               ║
+    ║  PHYSICS KERNEL v2.2 — FROZEN                                  ║
+    ║  Law 4/5/6/7 + Single Bottleneck + ImpulseProfiles            ║
+    ║  BUILD: 2025-12-18                                            ║
+    ╚═══════════════════════════════════════════════════════════════╝
+  -->
+  <style>
+    /* ============================================
+       CSS VARIABLES & FREEZE STATES
+       ============================================ */
+    :root {
+      --freeze-level: 0;
+      --primary-hue: 190;
+      --alert-hue: 190;
+      --motion-speed: 1.0;
+      --global-opacity: 1.0;
+      --overlay-opacity: 0;
+    }
+    
+    body.freeze-caution {
+      --freeze-level: 1;
+      --primary-hue: 45;
+      --alert-hue: 45;
+      --motion-speed: 0.7;
+    }
+    
+    body.freeze-frozen {
+      --freeze-level: 2;
+      --primary-hue: 210;
+      --alert-hue: 210;
+      --motion-speed: 0.2;
+      --global-opacity: 0.8;
+      --overlay-opacity: 0.15;
+    }
+    
+    body.freeze-lockdown {
+      --freeze-level: 3;
+      --primary-hue: 0;
+      --alert-hue: 0;
+      --motion-speed: 0;
+      --global-opacity: 0.9;
+      --overlay-opacity: 0.25;
+    }
+    
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      background:#020408;
+      overflow:hidden;
+      font-family:'Inter','SF Pro Display',system-ui,sans-serif;
+      color:#fff;
+      transition: filter 0.5s ease;
+    }
+    
+    body.freeze-frozen { filter: saturate(0.7) brightness(0.9); }
+    body.freeze-lockdown { filter: saturate(0.5) brightness(0.85); }
+    
+    /* ============================================
+       FRAME
+       ============================================ */
+    .frame{position:fixed;top:24px;left:24px;right:24px;bottom:24px;border:1px solid rgba(0,212,255,.2);border-radius:6px;pointer-events:none;z-index:50}
+    .corner{position:absolute;width:14px;height:14px}
+    .corner::before,.corner::after{content:'';position:absolute;background:rgba(0,212,255,.4)}
+    .corner.tl{top:-1px;left:-1px}.corner.tl::before{width:14px;height:1px}.corner.tl::after{width:1px;height:14px}
+    .corner.tr{top:-1px;right:-1px}.corner.tr::before{width:14px;height:1px;right:0}.corner.tr::after{width:1px;height:14px;right:0}
+    .corner.bl{bottom:-1px;left:-1px}.corner.bl::before{width:14px;height:1px;bottom:0}.corner.bl::after{width:1px;height:14px;bottom:0}
+    .corner.br{bottom:-1px;right:-1px}.corner.br::before{width:14px;height:1px;bottom:0;right:0}.corner.br::after{width:1px;height:14px;bottom:0;right:0}
+    
+    /* ============================================
+       L7 SYSTEM - TOP BAR (확장)
+       ============================================ */
+    .system-bar{
+      position:fixed;
+      top:0;left:0;right:0;
+      height:24px;
+      background:rgba(0,10,20,0.95);
+      border-bottom:1px solid rgba(0,212,255,0.15);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:0 40px;
+      font-size:9px;
+      letter-spacing:0.08em;
+      z-index:300;
+    }
+    .system-bar .left{display:flex;gap:20px;color:#666}
+    .system-bar .right{display:flex;gap:20px;color:#00d4ff}
+    .system-bar .status-dot{width:6px;height:6px;border-radius:50%;margin-right:5px;display:inline-block}
+    .system-bar .status-dot.ok{background:#00ff88}
+    .system-bar .status-dot.warn{background:#ffaa00}
+    .system-bar .status-dot.err{background:#ff4444}
+    
+    /* ============================================
+       GATE + SLA TOPBAR
+       ============================================ */
+    .autus-topbar{
+      position:fixed;top:32px;left:50%;transform:translateX(-50%);
+      display:flex;gap:16px;align-items:center;z-index:200;
+    }
+    .gate-badge{
+      padding:10px 20px;border:2px solid rgba(255,255,255,.2);border-radius:8px;
+      font-size:14px;font-weight:700;letter-spacing:.15em;text-shadow:0 0 12px currentColor;
+    }
+    .gate-green{background:rgba(0,255,120,.15);color:#00ff88;border-color:#00ff88}
+    .gate-amber{background:rgba(255,180,0,.15);color:#ffb400;border-color:#ffb400}
+    .gate-red{background:rgba(255,60,60,.15);color:#ff4444;border-color:#ff4444}
+    .sla-strip{display:flex;gap:8px;font-size:11px}
+    .sla-strip span{padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.4)}
+    .sla-ok{color:#00ff88;border-color:rgba(0,255,136,.4)!important}
+    .sla-risk{color:#ffb400;border-color:rgba(255,180,0,.4)!important;background:rgba(255,180,0,.1)!important}
+    .sla-breach{color:#ff4444;border-color:rgba(255,60,60,.4)!important;background:rgba(255,60,60,.1)!important}
+    
+    /* ============================================
+       PHYSICS DISPLAY (NEW)
+       ============================================ */
+    .physics-display{
+      position:fixed;top:90px;right:40px;width:220px;
+      background:rgba(0,20,40,0.95);
+      border:1px solid rgba(255,77,109,0.4);
+      border-radius:8px;padding:14px;
+      backdrop-filter:blur(10px);
+      z-index:150;
+    }
+    .physics-display .title{
+      font-size:9px;letter-spacing:0.2em;color:rgba(255,77,109,0.8);
+      margin-bottom:12px;padding-bottom:8px;
+      border-bottom:1px solid rgba(255,77,109,0.3);
+    }
+    .physics-row{
+      display:flex;justify-content:space-between;
+      padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);
+      font-size:10px;
+    }
+    .physics-row:last-child{border-bottom:none}
+    .physics-key{color:#888}
+    .physics-val{font-family:'SF Mono',monospace;font-weight:600}
+    .physics-val.danger{color:#ff4444}
+    .physics-val.warning{color:#ffaa00}
+    .physics-val.safe{color:#00d4aa}
+    
+    /* ============================================
+       L1 CORE - 헌법/기준 패널 (좌측)
+       ============================================ */
+    #layer-core{
+      position:fixed;top:90px;left:40px;width:200px;
+      background:rgba(0,20,40,0.9);
+      border:1px solid rgba(0,212,255,0.25);
+      border-radius:8px;padding:14px;
+      backdrop-filter:blur(10px);
+      z-index:100;
+      display:none;
+    }
+    #layer-core.active{display:block}
+    #layer-core .layer-title{
+      font-size:9px;letter-spacing:0.2em;color:rgba(0,212,255,0.7);
+      margin-bottom:12px;padding-bottom:8px;
+      border-bottom:1px solid rgba(0,212,255,0.2);
+    }
+    #layer-core .rule-item{
+      font-size:10px;padding:6px 0;
+      border-bottom:1px solid rgba(255,255,255,0.04);
+      display:flex;justify-content:space-between;
+    }
+    #layer-core .rule-item:last-child{border-bottom:none}
+    #layer-core .rule-key{color:#888}
+    #layer-core .rule-val{color:#00d4ff;font-family:'SF Mono',monospace}
+    #layer-core .rule-val.violated{color:#ff4444}
+    #layer-core .priority-list{
+      margin-top:12px;padding-top:10px;
+      border-top:1px solid rgba(0,212,255,0.15);
+      font-size:9px;color:#666;line-height:1.8;
+    }
+    #layer-core .priority-list strong{color:#00d4ff}
+    
+    /* ============================================
+       INFO PANEL (좌측)
+       ============================================ */
+    #info{position:fixed;top:90px;left:40px;font-size:10px;z-index:95}
+    #info.shifted{top:320px}
+    #info h1{font-size:12px;font-weight:600;letter-spacing:.25em;color:#00d4ff;margin-bottom:14px}
+    .stat-row{display:flex;justify-content:space-between;width:160px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+    .stat-label{opacity:.5;font-size:9px}
+    .stat-value{color:#00d4ff;font-variant-numeric:tabular-nums;font-weight:500}
+    .stat-value.critical{color:#ff4444!important;font-weight:700}
+    .stat-value.warning{color:#ffaa00!important}
+    
+    /* ============================================
+       PLANETS PANEL (좌측)
+       ============================================ */
+    #planets{position:fixed;top:280px;left:40px;width:175px;z-index:95}
+    #planets.shifted{top:500px}
+    .panel-title{font-size:8px;letter-spacing:.18em;color:rgba(0,212,255,.6);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(0,212,255,.15)}
+    .planet-row{
+      display:flex;align-items:center;gap:8px;padding:6px 10px;margin-bottom:4px;
+      background:rgba(0,20,40,.5);border:1px solid rgba(0,212,255,.12);border-radius:5px;
+      cursor:pointer;transition:all .2s;
+    }
+    .planet-row:hover{background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.35);transform:translateX(3px)}
+    .planet-row.active{background:rgba(0,212,255,.18);border-color:#00d4ff}
+    .planet-row.collapsed{opacity:.25;pointer-events:none;height:0;padding:0;margin:0;overflow:hidden;border:none}
+    .planet-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .planet-name{font-size:9px;flex:1;color:#ccc}
+    .planet-val{font-size:10px;font-weight:600;font-family:'SF Mono',monospace}
+    
+    /* ============================================
+       METRICS PANEL (우측)
+       ============================================ */
+    #metrics{position:fixed;top:320px;right:40px;width:220px;z-index:100}
+    .metric-section{margin-bottom:18px}
+    .metric-title{font-size:8px;letter-spacing:.18em;color:rgba(0,212,255,.6);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(0,212,255,.15)}
+    .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .metric-card{background:rgba(0,20,40,.7);border:1px solid rgba(0,212,255,.18);border-radius:6px;padding:10px;text-align:center}
+    .metric-value{font-size:18px;font-weight:200;color:#00d4ff}
+    .metric-value.warning{color:#ffaa00}
+    .metric-value.danger{color:#ff4444}
+    .metric-label{font-size:7px;opacity:.45;margin-top:3px;letter-spacing:.12em}
+    
+    /* ============================================
+       L3 ACTION HUD (우측 하단)
+       ============================================ */
+    #layer-action{
+      position:fixed;bottom:160px;right:40px;
+      display:flex;flex-direction:column;gap:10px;z-index:150;
+    }
+    .action-btn{
+      padding:14px 28px;border-radius:8px;font-size:11px;font-weight:600;
+      letter-spacing:.12em;cursor:pointer;transition:all .2s;text-align:center;min-width:150px;
+    }
+    .action-btn:hover:not(:disabled){transform:scale(1.05);box-shadow:0 0 20px currentColor}
+    .action-btn:disabled{opacity:.25;cursor:not-allowed;transform:none}
+    .action-btn.recover{background:rgba(0,255,136,.15);border:1px solid #00ff88;color:#00ff88}
+    .action-btn.defriction{background:rgba(68,170,255,.15);border:1px solid #44aaff;color:#44aaff}
+    .action-btn.shock-damp{background:rgba(255,170,0,.15);border:1px solid #ffaa00;color:#ffaa00}
+    .action-btn.critical-highlight{animation:criticalPulse 1s infinite}
+    @keyframes criticalPulse{0%,100%{box-shadow:0 0 5px currentColor}50%{box-shadow:0 0 25px currentColor,0 0 40px currentColor}}
+    .preview-label{font-size:8px;color:#666;text-align:center;margin-top:4px;letter-spacing:.12em}
+    
+    /* ============================================
+       ACTION LOG
+       ============================================ */
+    #action-log{
+      position:fixed;right:40px;bottom:350px;width:210px;max-height:160px;
+      overflow-y:auto;z-index:150;
+      border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:12px;
+      background:rgba(0,10,20,.9);font-size:9px;line-height:1.6;
+    }
+    #action-log::-webkit-scrollbar{width:4px}
+    #action-log::-webkit-scrollbar-thumb{background:rgba(0,212,255,.3);border-radius:2px}
+    #action-log .log-title{font-size:8px;letter-spacing:.18em;color:rgba(0,212,255,.7);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(0,212,255,.2)}
+    #action-log .log-item{color:#8ac;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+    #action-log .log-item:last-child{border-bottom:none}
+    #action-log .log-item.warning{color:#ffb400}
+    #action-log .log-item.critical{color:#ff6666}
+    
+    /* ============================================
+       L4 AUDIT - 판정 오버레이 (강화)
+       ============================================ */
+    #layer-audit{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.92);
+      backdrop-filter:blur(20px);
+      display:none;
+      justify-content:center;
+      align-items:center;
+      z-index:500;
+      opacity:0;
+      transition:opacity 0.4s ease;
+    }
+    #layer-audit.active{
+      display:flex;
+      animation:auditFadeIn 0.4s ease forwards;
+    }
+    @keyframes auditFadeIn{from{opacity:0}to{opacity:1}}
+    
+    .audit-card{
+      background:rgba(0,20,40,0.98);
+      border:2px solid rgba(0,212,255,0.4);
+      border-radius:16px;
+      padding:40px 50px;
+      text-align:center;
+      max-width:420px;
+      box-shadow:0 0 60px rgba(0,212,255,0.3), 0 0 120px rgba(0,212,255,0.1);
+      transform:scale(1);
+      transition:all 0.3s ease;
+    }
+    .audit-card.locking{animation:lockShrink 0.6s ease forwards}
+    @keyframes lockShrink{
+      0%{transform:scale(1);opacity:1}
+      50%{transform:scale(0.8);opacity:0.8}
+      100%{transform:scale(0.3) translateX(-200px);opacity:0}
+    }
+    .audit-card.rejecting{animation:rejectFade 0.3s ease forwards}
+    @keyframes rejectFade{to{transform:scale(0.95);opacity:0}}
+    
+    .audit-card h2{
+      font-size:14px;letter-spacing:0.3em;color:rgba(0,212,255,0.9);
+      margin-bottom:30px;text-shadow:0 0 20px rgba(0,212,255,0.5);
+    }
+    .audit-summary{
+      background:rgba(0,0,0,0.4);
+      border:1px solid rgba(0,212,255,0.15);
+      border-radius:10px;
+      padding:20px;
+      margin-bottom:30px;
+      text-align:left;
+    }
+    .audit-summary .row{
+      display:flex;justify-content:space-between;
+      padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);
+      font-size:13px;
+    }
+    .audit-summary .row:last-child{border-bottom:none}
+    .audit-summary .label{color:#888}
+    .audit-summary .value{color:#00d4ff;font-family:'SF Mono',monospace;font-weight:500}
+    .audit-summary .value.positive{color:#00ff88}
+    .audit-summary .value.negative{color:#ff4444}
+    
+    .audit-buttons{display:flex;gap:15px;justify-content:center}
+    .audit-btn{
+      padding:16px 35px;border-radius:8px;font-size:13px;font-weight:600;
+      letter-spacing:0.12em;cursor:pointer;transition:all 0.2s;
+      position:relative;overflow:hidden;
+    }
+    .audit-btn:hover{transform:scale(1.08)}
+    .audit-btn:active{transform:scale(0.98)}
+    .audit-btn.lock{
+      background:linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,255,136,0.1));
+      border:2px solid #00ff88;color:#00ff88;
+      box-shadow:0 0 20px rgba(0,255,136,0.2);
+    }
+    .audit-btn.lock:hover{box-shadow:0 0 30px rgba(0,255,136,0.4)}
+    .audit-btn.reject{
+      background:linear-gradient(135deg, rgba(255,68,68,0.2), rgba(255,68,68,0.1));
+      border:2px solid #ff4444;color:#ff4444;
+      box-shadow:0 0 20px rgba(255,68,68,0.2);
+    }
+    .audit-btn.reject:hover{box-shadow:0 0 30px rgba(255,68,68,0.4)}
+    .audit-btn.hold{
+      background:linear-gradient(135deg, rgba(255,170,0,0.2), rgba(255,170,0,0.1));
+      border:2px solid #ffaa00;color:#ffaa00;
+    }
+    
+    .audit-timer{
+      font-size:12px;color:#666;margin-top:25px;letter-spacing:0.1em;transition:all 0.3s;
+    }
+    .audit-timer.urgent{color:#ff4444;font-weight:600;animation:timerPulse 0.5s infinite}
+    @keyframes timerPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+    .audit-timer .countdown{font-size:24px;font-weight:200;margin-left:8px}
+    
+    /* ============================================
+       FREEZE OVERLAYS
+       ============================================ */
+    .freeze-overlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      pointer-events:none;z-index:400;opacity:0;transition:opacity 0.5s;
+    }
+    
+    /* Frost Overlay (FROZEN) */
+    body.freeze-frozen .frost-overlay{
+      opacity:1;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(100,150,255,0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(100,150,255,0.12) 0%, transparent 50%);
+      backdrop-filter:blur(1px);
+    }
+    body.freeze-frozen .frost-overlay::before{
+      content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+      background:repeating-linear-gradient(60deg,transparent,transparent 10px,rgba(150,200,255,0.02) 10px,rgba(150,200,255,0.02) 20px);
+      animation:frostShimmer 8s infinite;
+    }
+    @keyframes frostShimmer{0%,100%{opacity:0.3}50%{opacity:0.8}}
+    
+    /* Lockdown Overlay */
+    body.freeze-lockdown .lockdown-overlay{
+      opacity:1;
+      background:repeating-linear-gradient(0deg,transparent 0px,transparent 2px,rgba(255,0,0,0.03) 2px,rgba(255,0,0,0.03) 4px);
+      animation:scanLines 0.1s linear infinite;
+    }
+    @keyframes scanLines{0%{background-position:0 0}100%{background-position:0 4px}}
+    
+    body.freeze-lockdown::after{
+      content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+      pointer-events:none;z-index:399;
+      background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.4) 100%);
+    }
+    
+    /* Freeze indicator */
+    .freeze-indicator{
+      position:fixed;top:80px;left:50%;transform:translateX(-50%);
+      padding:10px 24px;border-radius:8px;font-size:12px;font-weight:600;
+      letter-spacing:0.15em;z-index:450;opacity:0;transition:opacity 0.3s;
+      pointer-events:none;
+    }
+    body.freeze-caution .freeze-indicator{opacity:1;background:rgba(255,180,0,0.2);border:1px solid #ffb400;color:#ffb400}
+    body.freeze-frozen .freeze-indicator{opacity:1;background:rgba(100,150,255,0.2);border:1px solid #6496ff;color:#6496ff}
+    body.freeze-lockdown .freeze-indicator{opacity:1;background:rgba(255,60,60,0.3);border:1px solid #ff4444;color:#ff4444;animation:lockdownPulse 0.5s infinite}
+    @keyframes lockdownPulse{0%,100%{box-shadow:0 0 10px rgba(255,60,60,0.3)}50%{box-shadow:0 0 25px rgba(255,60,60,0.6)}}
+    
+    /* Frame color changes */
+    body.freeze-caution .frame{border-color:rgba(255,180,0,0.3)}
+    body.freeze-caution .corner::before,body.freeze-caution .corner::after{background:rgba(255,180,0,0.5)}
+    body.freeze-frozen .frame{border-color:rgba(100,150,255,0.25)}
+    body.freeze-frozen .corner::before,body.freeze-frozen .corner::after{background:rgba(100,150,255,0.4)}
+    body.freeze-lockdown .frame{border-color:rgba(255,60,60,0.4);animation:framePulse 0.5s infinite}
+    body.freeze-lockdown .corner::before,body.freeze-lockdown .corner::after{background:rgba(255,60,60,0.6)}
+    @keyframes framePulse{0%,100%{border-color:rgba(255,60,60,0.4)}50%{border-color:rgba(255,60,60,0.7)}}
+    
+    /* Action buttons freeze states */
+    body.freeze-frozen .action-btn{opacity:0.4;pointer-events:none}
+    body.freeze-lockdown .action-btn.defriction,body.freeze-lockdown .action-btn.shock-damp{opacity:0.3;pointer-events:none;border-color:#666}
+    body.freeze-lockdown .action-btn.recover{animation:recoverPulse 1s infinite}
+    @keyframes recoverPulse{0%,100%{box-shadow:0 0 10px rgba(0,255,136,0.3)}50%{box-shadow:0 0 30px rgba(0,255,136,0.6)}}
+    
+    /* ============================================
+       L5 MEMORY - 타임라인 (좌측 슬라이드)
+       ============================================ */
+    #layer-memory{
+      position:fixed;top:24px;left:24px;bottom:24px;width:320px;
+      background:rgba(0,10,20,0.98);
+      border-right:1px solid rgba(0,212,255,0.2);
+      transform:translateX(-100%);
+      transition:transform 0.3s ease;
+      z-index:400;
+      overflow-y:auto;
+      padding:20px;
+    }
+    #layer-memory.active{transform:translateX(0)}
+    #layer-memory .memory-title{
+      font-size:10px;letter-spacing:0.25em;color:rgba(0,212,255,0.8);
+      margin-bottom:20px;padding-bottom:12px;
+      border-bottom:1px solid rgba(0,212,255,0.2);
+    }
+    #layer-memory .memory-filters{
+      display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;
+    }
+    #layer-memory .filter-btn{
+      padding:6px 12px;font-size:9px;border-radius:4px;
+      background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);
+      color:#888;cursor:pointer;transition:all 0.2s;
+    }
+    #layer-memory .filter-btn:hover{color:#00d4ff;border-color:#00d4ff}
+    #layer-memory .filter-btn.active{background:rgba(0,212,255,0.2);color:#00d4ff;border-color:#00d4ff}
+    .memory-item{
+      background:rgba(0,20,40,0.5);
+      border:1px solid rgba(0,212,255,0.1);
+      border-radius:8px;
+      padding:14px;
+      margin-bottom:10px;
+    }
+    .memory-item .time{font-size:9px;color:#666;margin-bottom:6px}
+    .memory-item .action{font-size:11px;color:#fff;margin-bottom:8px}
+    .memory-item .verdict{
+      display:inline-block;padding:3px 10px;border-radius:4px;font-size:9px;font-weight:600;
+    }
+    .memory-item .verdict.lock{background:rgba(0,255,136,0.2);color:#00ff88}
+    .memory-item .verdict.reject{background:rgba(255,68,68,0.2);color:#ff4444}
+    .memory-item .delta{font-size:9px;color:#888;margin-top:8px}
+    
+    /* ============================================
+       LAYER TOGGLE BUTTONS
+       ============================================ */
+    #layer-toggles{
+      position:fixed;bottom:40px;left:40px;
+      display:flex;gap:8px;z-index:200;
+    }
+    .layer-toggle{
+      padding:10px 16px;background:rgba(0,20,40,0.8);
+      border:1px solid rgba(0,212,255,0.25);border-radius:6px;
+      font-size:9px;letter-spacing:0.1em;color:#888;
+      cursor:pointer;transition:all 0.2s;
+    }
+    .layer-toggle:hover{color:#00d4ff;border-color:#00d4ff}
+    .layer-toggle.active{background:rgba(0,212,255,0.15);color:#00d4ff;border-color:#00d4ff}
+    
+    /* ============================================
+       SINGLE QUESTION
+       ============================================ */
+    #single-question{
+      position:fixed;left:40px;bottom:100px;max-width:300px;
+      padding:14px 18px;background:rgba(0,20,40,.9);
+      border:1px solid rgba(0,212,255,.3);border-radius:10px;
+      z-index:150;font-size:11px;color:#9ab;line-height:1.5;
+    }
+    #single-question strong{color:#00d4ff}
+    
+    /* ============================================
+       CONTROLS
+       ============================================ */
+    #controls{
+      position:fixed;bottom:40px;right:40px;
+      display:flex;gap:8px;z-index:100;
+    }
+    #controls button{
+      padding:10px 16px;background:rgba(0,212,255,.1);
+      border:1px solid rgba(0,212,255,.25);color:#00d4ff;
+      border-radius:5px;font-size:9px;cursor:pointer;transition:all .2s;
+    }
+    #controls button:hover{background:rgba(0,212,255,.2)}
+    #controls button.active{background:rgba(0,212,255,.25);border-color:#00d4ff}
+    
+    /* ============================================
+       PLANET LABELS
+       ============================================ */
+    .planet-label{
+      position:absolute;font-size:10px;color:#fff;
+      pointer-events:none;text-shadow:0 0 10px rgba(0,0,0,.95);
+      white-space:nowrap;transition:opacity .2s;
+    }
+    
+    /* ============================================
+       KEYBOARD HINTS
+       ============================================ */
+    .keyboard-hint{
+      position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+      font-size:9px;color:#444;letter-spacing:0.1em;z-index:50;
+    }
+  </style>
+</head>
+<body>
+  <!-- Frame -->
+  <div class="frame">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+  </div>
+  
+  <!-- Freeze Overlays -->
+  <div class="freeze-overlay frost-overlay"></div>
+  <div class="freeze-overlay lockdown-overlay"></div>
+  <div class="freeze-indicator" id="freeze-indicator">NORMAL</div>
+  
+  <!-- L7 SYSTEM BAR -->
+  <div class="system-bar">
+    <div class="left">
+      <span><span class="status-dot ok"></span>API</span>
+      <span><span class="status-dot ok"></span>DB</span>
+      <span><span class="status-dot ok"></span>WORKER</span>
+      <span>SYNC: 2s ago</span>
+    </div>
+    <div class="right">
+      <span>POLICY v1.0</span>
+      <span>FPS: <span id="sys-fps">60</span></span>
+      <span>UPTIME: 99.9%</span>
+      <span>LATENCY: 12ms</span>
+    </div>
+  </div>
+  
+  <!-- GATE + SLA TOPBAR -->
+  <div class="autus-topbar">
+    <div id="gate-badge" class="gate-badge gate-green">GATE: GREEN</div>
+    <div id="sla-strip" class="sla-strip">
+      <span data-sla="worker" class="sla-ok">WORKER · OK</span>
+      <span data-sla="employer" class="sla-ok">EMPLOYER · OK</span>
+      <span data-sla="ops" class="sla-ok">OPS · OK</span>
+      <span data-sla="reg" class="sla-ok">REG · OK</span>
+    </div>
+  </div>
+  
+  <!-- KERNEL DISPLAY (v2.1) -->
+  <div class="physics-display">
+    <div class="title">KERNEL v2.2 · FROZEN</div>
+    <div class="physics-row"><span class="physics-key">radiusScale</span><span class="physics-val" id="phy-radius">1.00</span></div>
+    <div class="physics-row"><span class="physics-key">thickness</span><span class="physics-val" id="phy-thick">0.15</span></div>
+    <div class="physics-row"><span class="physics-key">pulseHz</span><span class="physics-val" id="phy-pulse">0.50</span></div>
+    <div class="physics-row"><span class="physics-key">asymStrength</span><span class="physics-val" id="phy-asym">0.00</span></div>
+    <div class="physics-row"><span class="physics-key">asymAngle</span><span class="physics-val" id="phy-angle">0°</span></div>
+    <div class="physics-row" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,77,109,0.2)">
+      <span class="physics-key">BOTTLENECK</span><span class="physics-val danger" id="phy-bottleneck">—</span>
+    </div>
+  </div>
+  
+  <!-- L1 CORE -->
+  <div id="layer-core">
+    <div class="layer-title">L1 · CORE · CONSTITUTION</div>
+    <div class="rule-item"><span class="rule-key">RECOVERY_AMBER</span><span class="rule-val" id="rule-amber">0.60</span></div>
+    <div class="rule-item"><span class="rule-key">RECOVERY_RED</span><span class="rule-val" id="rule-red">0.30</span></div>
+    <div class="rule-item"><span class="rule-key">CRITICAL_THRESHOLD</span><span class="rule-val">0.60</span></div>
+    <div class="rule-item"><span class="rule-key">COLLAPSE</span><span class="rule-val">OUT/QUA/TIM</span></div>
+    <div class="priority-list">
+      <strong>PRIORITY:</strong><br>
+      REC → STA → COH → SHK → FRI → TRA → TIM → QUA → OUT
+    </div>
+  </div>
+  
+  <!-- Info Panel -->
+  <div id="info">
+    <h1>SOLAR HQ · 7 LAYER</h1>
+    <div class="stat-row"><span class="stat-label">VERSION</span><span class="stat-value">1.0</span></div>
+    <div class="stat-row"><span class="stat-label">LAYERS</span><span class="stat-value" id="s-layers">L0</span></div>
+    <div class="stat-row"><span class="stat-label">PLANETS</span><span class="stat-value">9/9 🔒</span></div>
+    <div class="stat-row"><span class="stat-label">STATUS</span><span class="stat-value" id="s-status">STABLE</span></div>
+    <div class="stat-row"><span class="stat-label">ORBIT</span><span class="stat-value" id="s-orbit">0°</span></div>
+  </div>
+  
+  <!-- Planets Panel -->
+  <div id="planets">
+    <div class="panel-title">9 PLANETS · PRIORITY ORDER</div>
+    <div id="planet-list"></div>
+  </div>
+  
+  <!-- Metrics -->
+  <div id="metrics">
+    <div class="metric-section">
+      <div class="metric-title">TWIN STATE</div>
+      <div class="metric-grid">
+        <div class="metric-card"><div class="metric-value" id="m-entropy">0.00</div><div class="metric-label">ENTROPY</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-pressure">0.00</div><div class="metric-label">PRESSURE</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-risk">0.00</div><div class="metric-label">RISK</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-flow">0.00</div><div class="metric-label">FLOW</div></div>
+      </div>
+    </div>
+      </div>
+  
+  <!-- Action Log -->
+  <div id="action-log">
+    <div class="log-title">L3 · ACTION LOG</div>
+    <div id="log-items"></div>
+    </div>
+  
+  <!-- L3 ACTION HUD -->
+  <div id="layer-action">
+    <button class="action-btn recover" onclick="previewAction('recover')">RECOVER</button>
+    <button class="action-btn defriction" onclick="previewAction('defriction')">DEFRICTION</button>
+    <button class="action-btn shock-damp" onclick="previewAction('shock_damp')">SHOCK DAMP</button>
+    <div class="preview-label">▲ PREVIEW ONLY · Hold 3s for AUDIT</div>
+  </div>
+  
+  <!-- L4 AUDIT OVERLAY -->
+  <div id="layer-audit">
+    <div class="audit-card">
+      <h2>L4 · AUDIT · CONFIRM</h2>
+      <div class="audit-summary">
+        <div class="row"><span class="label">Action</span><span class="value" id="audit-action">RECOVER</span></div>
+        <div class="row"><span class="label">Δ Recovery</span><span class="value positive" id="audit-rec">+15%</span></div>
+        <div class="row"><span class="label">Δ Friction</span><span class="value positive" id="audit-fri">-5%</span></div>
+        <div class="row"><span class="label">Risk</span><span class="value" id="audit-risk">0.58 → 0.42</span></div>
+        <div class="row"><span class="label">Confidence</span><span class="value" id="audit-conf">87%</span></div>
+      </div>
+      <div class="audit-buttons">
+        <button class="audit-btn lock" onclick="auditDecision('LOCK')">LOCK</button>
+        <button class="audit-btn hold" onclick="auditDecision('HOLD')">HOLD</button>
+        <button class="audit-btn reject" onclick="auditDecision('REJECT')">REJECT</button>
+      </div>
+      <div class="audit-timer">Auto-reject in <span id="audit-countdown" class="countdown">30</span>s</div>
+    </div>
+  </div>
+  
+  <!-- L5 MEMORY PANEL -->
+  <div id="layer-memory">
+    <div class="memory-title">L5 · MEMORY · TIMELINE</div>
+    <div class="memory-filters">
+      <button class="filter-btn active" data-filter="all">ALL</button>
+      <button class="filter-btn" data-filter="lock">LOCK</button>
+      <button class="filter-btn" data-filter="reject">REJECT</button>
+      <button class="filter-btn" data-filter="today">TODAY</button>
+    </div>
+    <div id="memory-list"></div>
+  </div>
+  
+  <!-- Single Question -->
+  <div id="single-question">
+    <strong>Q →</strong> What single action raises Recovery fastest?
+  </div>
+  
+  <!-- Layer Toggle Buttons -->
+  <div id="layer-toggles">
+    <button class="layer-toggle" data-layer="core" onclick="toggleLayer('core')">L1 CORE</button>
+    <button class="layer-toggle active" data-layer="sim" onclick="toggleLayer('sim')">L2 SIM</button>
+    <button class="layer-toggle active" data-layer="action" onclick="toggleLayer('action')">L3 ACTION</button>
+    <button class="layer-toggle" data-layer="memory" onclick="toggleLayer('memory')">L5 MEMORY</button>
+  </div>
+  
+  <!-- Controls -->
+  <div id="controls">
+    <button onclick="togglePlanets()" class="active">PLANETS</button>
+    <button onclick="toggleOrbits()">ORBITS</button>
+  </div>
+  
+  <!-- Keyboard Hints -->
+  <div class="keyboard-hint">
+    [C] Core · [S] Simulation · [A] Action · [M] Memory · [ESC] Close
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+/* ═══════════════════════════════════════════════════════════════
+   AUTUS SOLAR HQ — 7 LAYER COMPLETE
+   BUILD: 2025-12-17
+   ═══════════════════════════════════════════════════════════════ */
+
+// ═══════════════════════════════════════════════════════════════
+// PHYSICS CONSTANTS — 7 LAWS (FROZEN)
+// ═══════════════════════════════════════════════════════════════
+const PHYSICS = Object.freeze({
+  // Law 5: Failure Horizon
+  RING_RISK_COMPRESSION: 0.65,     // α: radiusScale = 1 - α*risk
+  RING_BASE_RADIUS: 8.0,
+  
+  // Law 5: Pressure → Thickness
+  RING_PRESSURE_MULT: 1.2,         // γ: thickness = base*(1 + γ*pressure)
+  RING_BASE_THICKNESS: 0.15,
+  
+  // Law 6: Entropy → Pulse
+  RING_ENTROPY_MULT: 2.0,          // δ: pulseHz = base*(1 + δ*entropy)
+  RING_BASE_PULSE: 0.5,
+  
+  // Law 4: Shock → Asymmetry
+  RING_SHOCK_ASYM: 0.95,           // β: asymStrength = β*shock
+});
+
+// Time Constants (τ) in SECONDS
+const TAU = Object.freeze({
+  radiusScale: 0.8,    // τ=0.8s for Risk→Radius
+  thickness: 0.6,      // τ=0.6s for Pressure→Thickness
+  pulseHz: 0.4,        // τ=0.4s for Entropy→Pulse
+  asymStrength: 0.7,   // τ=0.7s for Shock→Asymmetry
+  asymAngle: 0.9,      // τ=0.9s for Bottleneck direction
+});
+
+// ═══════════════════════════════════════════════════════════════
+// BOTTLENECK WEIGHTS & ANGLES (FROZEN v2.1)
+// ═══════════════════════════════════════════════════════════════
+const BOTTLENECK_WEIGHTS = Object.freeze({
+  RECOVERY:  0.20,   // 가장 중요한 양성 지표
+  STABILITY: 0.15,
+  COHESION:  0.10,
+  SHOCK:     0.25,   // 가장 위험한 음성 지표 ⚠️
+  FRICTION:  0.15,
+  TRANSFER:  0.05,
+  TIME:      0.05,
+  QUALITY:   0.03,
+  OUTPUT:    0.02,
+});
+
+const BOTTLENECK_ANGLES = Object.freeze({
+  RECOVERY:  0,                    // 0° (12시 방향)
+  STABILITY: Math.PI * 0.25,       // 45°
+  COHESION:  Math.PI * 0.5,        // 90° (3시 방향)
+  SHOCK:     Math.PI * 1.25,       // 225° (7시 반 방향)
+  FRICTION:  Math.PI * 0.75,       // 135° (4시 반 방향)
+  TRANSFER:  Math.PI * 1.5,        // 270° (9시 방향)
+  TIME:      Math.PI * 1.75,       // 315°
+  QUALITY:   Math.PI,              // 180° (6시 방향)
+  OUTPUT:    Math.PI * 0.125,      // 22.5°
+});
+
+// Positive indicators (higher is better)
+const POSITIVE_INDICATORS = Object.freeze([
+  'RECOVERY', 'STABILITY', 'COHESION', 'TRANSFER', 'QUALITY', 'OUTPUT'
+]);
+
+// Negative indicators (higher is worse)
+const NEGATIVE_INDICATORS = Object.freeze([
+  'SHOCK', 'FRICTION', 'TIME'
+]);
+
+// ═══════════════════════════════════════════════════════════════
+// IMPULSE PROFILES (FROZEN v2.2)
+// ═══════════════════════════════════════════════════════════════
+// 각 Action이 TwinState에 적용하는 Δ값
+// Preview: Ghost Ring에만 적용, TwinState 불변
+// Lock: TwinState에 실제 적용
+// ═══════════════════════════════════════════════════════════════
+const IMPULSE_PROFILES = Object.freeze({
+  // ┌─────────────────────────────────────────────────────────────┐
+  // │ RECOVER — 회복 우선 (Recovery First)                        │
+  // │ 목적: Recovery↑, 부수적으로 Stability↑, Friction/Shock↓    │
+  // │ 트레이드오프: 없음 (순수 회복)                               │
+  // └─────────────────────────────────────────────────────────────┘
+  recover: Object.freeze({
+    label: 'RECOVER',
+    description: 'Recovery First — 회복 최우선',
+    delta: Object.freeze({
+      RECOVERY:  +0.15,   // Primary effect
+      STABILITY: +0.05,   // Secondary effect
+      FRICTION:  -0.05,   // Side benefit
+      SHOCK:     -0.05    // Side benefit
+    }),
+    color: 0x00ff88,
+    priority: 1           // CRITICAL 시 유일하게 활성화
+  }),
+  
+  // ┌─────────────────────────────────────────────────────────────┐
+  // │ DEFRICTION — 마찰 제거 (Flow Optimization)                  │
+  // │ 목적: Friction↓↓, Transfer↑, Recovery↑                     │
+  // │ 트레이드오프: 없음 (순수 최적화)                             │
+  // └─────────────────────────────────────────────────────────────┘
+  defriction: Object.freeze({
+    label: 'DEFRICTION',
+    description: 'Flow Optimization — 마찰 제거',
+    delta: Object.freeze({
+      FRICTION:  -0.20,   // Primary effect (강력)
+      TRANSFER:  +0.10,   // Secondary effect
+      RECOVERY:  +0.05    // Side benefit
+    }),
+    color: 0x44aaff,
+    priority: 2
+  }),
+  
+  // ┌─────────────────────────────────────────────────────────────┐
+  // │ SHOCK_DAMP — 충격 흡수 (Stability Focus)                    │
+  // │ 목적: Shock↓↓↓, Stability↑, Cohesion↑                      │
+  // │ 트레이드오프: Recovery↓ (에너지 소모)                        │
+  // └─────────────────────────────────────────────────────────────┘
+  shock_damp: Object.freeze({
+    label: 'SHOCK DAMP',
+    description: 'Stability Focus — 충격 흡수',
+    delta: Object.freeze({
+      SHOCK:     -0.25,   // Primary effect (매우 강력)
+      STABILITY: +0.08,   // Secondary effect
+      COHESION:  +0.05,   // Side benefit
+      RECOVERY:  -0.10    // Trade-off ⚠️
+    }),
+    color: 0xffaa00,
+    priority: 3
+  })
+});
+
+// ═══════════════════════════════════════════════════════════════
+// POLICY (FROZEN)
+// ═══════════════════════════════════════════════════════════════
+const POLICY = Object.freeze({
+  RECOVERY_AMBER: 0.60,
+  RECOVERY_RED: 0.30,
+  CRITICAL_THRESHOLD: 0.60,
+  CRITICAL_COLLAPSE: ['OUTPUT', 'QUALITY', 'TIME'],
+  PRIORITY: ['RECOVERY', 'STABILITY', 'COHESION', 'SHOCK', 'FRICTION', 'TRANSFER', 'TIME', 'QUALITY', 'OUTPUT']
+});
+
+// ═══════════════════════════════════════════════════════════════
+// PLANETS (9/9 LOCKED)
+// ═══════════════════════════════════════════════════════════════
+const PLANETS = Object.freeze([
+  { key: 'RECOVERY',  name: 'Recovery',  icon: '🔧', color: 0x44ff44, size: 0.14, orbit: 5.4, speed: 0.50 },
+  { key: 'STABILITY', name: 'Stability', icon: '🎯', color: 0x8844ff, size: 0.20, orbit: 4.4, speed: 0.35, rings: true },
+  { key: 'COHESION',  name: 'Cohesion',  icon: '🔗', color: 0xff44aa, size: 0.13, orbit: 4.9, speed: 0.60 },
+  { key: 'SHOCK',     name: 'Shock',     icon: '⚠️', color: 0xff8800, size: 0.19, orbit: 6.4, speed: 0.30 },
+  { key: 'FRICTION',  name: 'Friction',  icon: '⚡', color: 0xff4444, size: 0.16, orbit: 3.9, speed: 0.45 },
+  { key: 'TRANSFER',  name: 'Transfer',  icon: '📡', color: 0x44aaff, size: 0.12, orbit: 5.9, speed: 0.75, rings: true },
+  { key: 'TIME',      name: 'Time',      icon: '⏱️', color: 0xffaa00, size: 0.14, orbit: 3.4, speed: 0.85 },
+  { key: 'QUALITY',   name: 'Quality',   icon: '🛡️', color: 0x00d4ff, size: 0.15, orbit: 2.9, speed: 0.55, rings: true },
+  { key: 'OUTPUT',    name: 'Output',    icon: '🔥', color: 0x00ff88, size: 0.18, orbit: 2.4, speed: 0.70 }
+]);
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let planets9 = {
+  RECOVERY: 0.42,
+  STABILITY: 0.55,
+  COHESION: 0.62,
+  SHOCK: 0.72,      // High shock → bottleneck
+  FRICTION: 0.79,   // High friction → bottleneck
+  TRANSFER: 0.60,
+  TIME: 0.50,
+  QUALITY: 0.68,
+  OUTPUT: 0.55
+};
+let selectedPlanet = 'RECOVERY';
+let state = { risk: 0.75, entropy: 0.50, pressure: 0.50, flow: 0.50 };
+let planetsVisible = true;
+let orbitsVisible = true;
+let lastCriticalState = false;
+let activeLayers = { core: false, sim: true, action: true, memory: false };
+let memoryLog = [];
+let auditTimer = null;
+let currentAuditAction = null;
+
+// ═══════════════════════════════════════════════════════════════
+// PHYSICS FRAME — 물리 기반 UI 상태
+// ═══════════════════════════════════════════════════════════════
+const PhysicsFrame = {
+  ring: {
+    // 현재 값 (렌더링용)
+    radiusScale: 1.0,     // 0.5 ~ 1.0 (Risk↑ → 수축)
+    thickness: 0.15,      // 0.1 ~ 0.4 (Pressure↑ → 두꺼움)
+    pulseHz: 0.5,         // 0.3 ~ 2.0 (Entropy↑ → 빠른 맥동)
+    asymStrength: 0.0,    // 0.0 ~ 0.3 (Shock↑ → 비대칭)
+    asymAngle: 0.0,       // 0 ~ 2π (Bottleneck 방향)
+    
+    // 목표 값 (TwinState에서 계산)
+    targetRadiusScale: 1.0,
+    targetThickness: 0.15,
+    targetPulseHz: 0.5,
+    targetAsymStrength: 0.0,
+    targetAsymAngle: 0.0
+  },
+  
+  // Preview (Ghost) 상태
+  preview: {
+    active: false,
+    radiusScale: 1.0,
+    thickness: 0.15,
+    asymStrength: 0.0,
+    asymAngle: 0.0
+  },
+  
+  // Bottleneck info
+  bottleneck: {
+    axis: 'FRICTION',
+    value: 0.79,
+    angle: Math.PI * 0.75
+  }
+};
+
+// 시간 상수 (초 → 프레임 변환: 60fps 기준)
+const TAU = {
+  radiusScale: 0.8,   // Law 5: Failure Horizon
+  thickness: 0.6,
+  pulseHz: 0.4,       // Law 6: Entropy Pulse
+  asymStrength: 0.7,  // Law 4: Shock Asymmetry
+  asymAngle: 0.9
+};
+
+// Lerp with τ (시간 상수 기반 지수 감쇠)
+function lerpTau(current, target, tau, dt = 0.016) {
+  const alpha = 1 - Math.exp(-dt / tau);
+  return current + (target - current) * alpha;
+}
+
+// Clamp utility
+function clamp(v, min = 0, max = 1) {
+  return Math.max(min, Math.min(max, v));
+}
+
+// Calculate derived state from planets
+function calculateDerivedState() {
+  const rec = planets9.RECOVERY || 0.5;
+  const sta = planets9.STABILITY || 0.5;
+  const coh = planets9.COHESION || 0.5;
+  const shk = planets9.SHOCK || 0.5;
+  const fri = planets9.FRICTION || 0.5;
+  const tra = planets9.TRANSFER || 0.5;
+  const tim = planets9.TIME || 0.5;
+  const qua = planets9.QUALITY || 0.5;
+  const out = planets9.OUTPUT || 0.5;
+  
+  // Risk: weighted sum of negative factors
+  state.risk = clamp(
+    0.20 * (1 - rec) +
+    0.15 * (1 - sta) +
+    0.10 * (1 - coh) +
+    0.25 * shk +
+    0.15 * fri +
+    0.05 * (1 - tra) +
+    0.05 * tim +
+    0.03 * (1 - qua) +
+    0.02 * (1 - out)
+  );
+  
+  // Entropy: mainly from Shock
+  state.entropy = clamp(0.3 * shk + 0.2 * fri + 0.2 * tim + 0.3 * (1 - coh));
+  
+  // Pressure: from Shock + Friction
+  state.pressure = clamp(0.4 * shk + 0.3 * fri + 0.3 * (1 - rec));
+  
+  // Flow: Transfer efficiency
+  state.flow = clamp(0.4 * tra + 0.3 * (1 - fri) + 0.3 * (1 - tim));
+  
+  // Bottleneck calculated by separate single-source function
+  computeBottleneck();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BOTTLENECK — SINGLE SOURCE (FROZEN v2.1)
+// ═══════════════════════════════════════════════════════════════
+function computeBottleneck() {
+  let maxBadness = -Infinity;
+  let maxAxis = 'SHOCK';
+  
+  // Iterate all planets
+  for (const key in planets9) {
+    const value = planets9[key] || 0.5;
+    const weight = BOTTLENECK_WEIGHTS[key] || 0.05;
+    
+    // badness = 1 - value (positive indicators)
+    // badness = value     (negative indicators)
+    const isPositive = POSITIVE_INDICATORS.includes(key);
+    const badness = isPositive ? (1 - value) : value;
+    const weighted = weight * badness;
+    
+    if (weighted > maxBadness) {
+      maxBadness = weighted;
+      maxAxis = key;
+    }
+  }
+  
+  // Update PhysicsFrame.bottleneck (Single Source)
+  PhysicsFrame.bottleneck.axis = maxAxis;
+  PhysicsFrame.bottleneck.value = planets9[maxAxis] || 0.5;
+  PhysicsFrame.bottleneck.angle = BOTTLENECK_ANGLES[maxAxis] || 0;
+}
+
+// TwinState → PhysicsFrame 변환 (Law 4,5,6,7)
+function updatePhysicsFrame() {
+  const risk = state.risk || 0;
+  const pressure = state.pressure || 0;
+  const entropy = state.entropy || 0;
+  const shock = Math.max(planets9.SHOCK || 0.5, planets9.FRICTION || 0.5);
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Law 5: Failure Horizon — Risk↑ → Radius↓
+  // radiusScale = 1 - 0.65 * risk
+  // Risk 0.75 → radiusScale = 1 - 0.65 * 0.75 = 0.5125
+  // ═══════════════════════════════════════════════════════════════
+  PhysicsFrame.ring.targetRadiusScale = 1.0 - PHYSICS.RING_RISK_COMPRESSION * risk;
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Law 5: Pressure → Thickness
+  // thickness = base * (1 + 1.2 * pressure)
+  // ═══════════════════════════════════════════════════════════════
+  PhysicsFrame.ring.targetThickness = PHYSICS.RING_BASE_THICKNESS * (1 + PHYSICS.RING_PRESSURE_MULT * pressure);
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Law 6: Entropy Pulse — Entropy↑ → PulseHz↑
+  // pulseHz = base * (1 + 2.0 * entropy)
+  // ═══════════════════════════════════════════════════════════════
+  PhysicsFrame.ring.targetPulseHz = PHYSICS.RING_BASE_PULSE * (1 + PHYSICS.RING_ENTROPY_MULT * entropy);
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Law 4: Shock Asymmetry — Shock↑ → AsymStrength↑
+  // asymStrength = 0.95 * max(shock, friction)
+  // ═══════════════════════════════════════════════════════════════
+  PhysicsFrame.ring.targetAsymStrength = PHYSICS.RING_SHOCK_ASYM * shock;
+  
+  // Asymmetry angle: bottleneck direction
+  PhysicsFrame.ring.targetAsymAngle = PhysicsFrame.bottleneck.angle;
+}
+
+// UPDATE KERNEL DISPLAY (역참조 PhysicsFrame)
+function updateKernelDisplay() {
+  const r = PhysicsFrame.ring;
+  
+  const radiusEl = document.getElementById('phy-radius');
+  radiusEl.textContent = r.radiusScale.toFixed(2);
+  radiusEl.className = 'physics-val ' + (r.radiusScale < 0.6 ? 'danger' : r.radiusScale < 0.8 ? 'warning' : 'safe');
+  
+  const thickEl = document.getElementById('phy-thick');
+  thickEl.textContent = r.thickness.toFixed(2);
+  thickEl.className = 'physics-val ' + (r.thickness > 0.25 ? 'warning' : 'safe');
+  
+  const pulseEl = document.getElementById('phy-pulse');
+  pulseEl.textContent = r.pulseHz.toFixed(2);
+  pulseEl.className = 'physics-val ' + (r.pulseHz > 1.0 ? 'warning' : 'safe');
+  
+  const asymEl = document.getElementById('phy-asym');
+  asymEl.textContent = r.asymStrength.toFixed(2);
+  asymEl.className = 'physics-val ' + (r.asymStrength > 0.5 ? 'danger' : r.asymStrength > 0.3 ? 'warning' : 'safe');
+  
+  document.getElementById('phy-angle').textContent = Math.round(r.asymAngle * 180 / Math.PI) + '°';
+  
+  const bnEl = document.getElementById('phy-bottleneck');
+  bnEl.textContent = `${PhysicsFrame.bottleneck.axis} (${Math.round(PhysicsFrame.bottleneck.value * 100)}%)`;
+}
+
+// PhysicsFrame 애니메이션 (매 프레임 호출)
+function animatePhysicsFrame(dt = 0.016) {
+  const r = PhysicsFrame.ring;
+  
+  // Law 7: Time Constant 적용
+  r.radiusScale = lerpTau(r.radiusScale, r.targetRadiusScale, TAU.radiusScale, dt);
+  r.thickness = lerpTau(r.thickness, r.targetThickness, TAU.thickness, dt);
+  r.pulseHz = lerpTau(r.pulseHz, r.targetPulseHz, TAU.pulseHz, dt);
+  r.asymStrength = lerpTau(r.asymStrength, r.targetAsymStrength, TAU.asymStrength, dt);
+  r.asymAngle = lerpTau(r.asymAngle, r.targetAsymAngle, TAU.asymAngle, dt);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// THREE.JS SETUP
+// ═══════════════════════════════════════════════════════════════
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 1000);
+camera.position.set(0, 8, 14);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0x404050, 0.5));
+scene.add(new THREE.PointLight(0xffffff, 1.5, 50));
+
+// Starfield
+const starsGeo = new THREE.BufferGeometry();
+const starPos = [];
+for (let i = 0; i < 2500; i++) {
+  const r = 45 + Math.random() * 70;
+  const t = Math.random() * Math.PI * 2;
+  const p = Math.acos(2 * Math.random() - 1);
+  starPos.push(r * Math.sin(p) * Math.cos(t), r * Math.sin(p) * Math.sin(t), r * Math.cos(p));
+}
+starsGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+scene.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.08 })));
+
+// Globe
+const globeGroup = new THREE.Group();
+scene.add(globeGroup);
+const globe = new THREE.Mesh(
+  new THREE.SphereGeometry(1.5, 64, 64),
+  new THREE.MeshPhongMaterial({ color: 0x0066aa, emissive: 0x001133, transparent: true, opacity: 0.85 })
+);
+globeGroup.add(globe);
+globeGroup.add(new THREE.Mesh(
+  new THREE.SphereGeometry(1.52, 36, 18),
+  new THREE.MeshBasicMaterial({ color: 0x00d4ff, wireframe: true, transparent: true, opacity: 0.15 })
+));
+
+// L2 SIMULATION RINGS → FAILURE HORIZON RING (Physics-based)
+const simGroup = new THREE.Group();
+const RING_SEGMENTS = 128;
+const BASE_RADIUS = 8.0;
+
+// ═══════════════════════════════════════════════════════════════
+// FAILURE RING (Main) — 동적 변형 가능한 TorusGeometry
+// ═══════════════════════════════════════════════════════════════
+const failureRingGeo = new THREE.TorusGeometry(BASE_RADIUS, 0.15, 16, RING_SEGMENTS);
+const failureRingMat = new THREE.MeshBasicMaterial({
+  color: 0xff4444,
+  transparent: true,
+  opacity: 0.6,
+  side: THREE.DoubleSide
+});
+const failureRing = new THREE.Mesh(failureRingGeo, failureRingMat);
+failureRing.rotation.x = Math.PI / 2;
+failureRing.position.y = 0.3;
+simGroup.add(failureRing);
+
+// 원본 정점 저장 (변형 기준)
+const failureRingBasePositions = failureRingGeo.attributes.position.array.slice();
+
+// ═══════════════════════════════════════════════════════════════
+// GHOST RING (Preview) — Action Preview 시 표시
+// ═══════════════════════════════════════════════════════════════
+const ghostRingGeo = new THREE.TorusGeometry(BASE_RADIUS, 0.1, 8, RING_SEGMENTS);
+const ghostRingMat = new THREE.MeshBasicMaterial({
+  color: 0x00d4ff,
+  transparent: true,
+  opacity: 0.0,
+  wireframe: true
+});
+const ghostRing = new THREE.Mesh(ghostRingGeo, ghostRingMat);
+ghostRing.rotation.x = Math.PI / 2;
+ghostRing.position.y = 0.35;
+simGroup.add(ghostRing);
+const ghostRingBasePositions = ghostRingGeo.attributes.position.array.slice();
+
+// ═══════════════════════════════════════════════════════════════
+// INNER HEALTH RING (Recovery/Stability 기반)
+// ═══════════════════════════════════════════════════════════════
+const innerRingMat = new THREE.MeshBasicMaterial({ color: 0x00ffaa, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+const innerRing = new THREE.Mesh(new THREE.RingGeometry(6.5, 6.7, 64), innerRingMat);
+innerRing.rotation.x = -Math.PI / 2;
+innerRing.position.y = 0.25;
+simGroup.add(innerRing);
+
+// ═══════════════════════════════════════════════════════════════
+// OUTER PRESSURE RING (Shock/Friction 기반)
+// ═══════════════════════════════════════════════════════════════
+const outerRingMat = new THREE.MeshBasicMaterial({ color: 0xff8844, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
+const outerRing = new THREE.Mesh(new THREE.RingGeometry(9.0, 9.2, 64), outerRingMat);
+outerRing.rotation.x = -Math.PI / 2;
+outerRing.position.y = 0.35;
+simGroup.add(outerRing);
+
+scene.add(simGroup);
+
+// ═══════════════════════════════════════════════════════════════
+// FAILURE RING DEFORMATION — 물리 기반 변형 함수
+// ═══════════════════════════════════════════════════════════════
+function deformFailureRing(time) {
+  const pf = PhysicsFrame.ring;
+  const positions = failureRingGeo.attributes.position.array;
+  const basePos = failureRingBasePositions;
+  
+  // Pulse amplitude (Law 6: Entropy)
+  const pulseAmp = 0.1 + pf.thickness * 0.5;
+  const pulse = Math.sin(time * pf.pulseHz * Math.PI * 2) * pulseAmp;
+  
+  for (let i = 0; i < positions.length; i += 3) {
+    const bx = basePos[i];
+    const by = basePos[i + 1];
+    const bz = basePos[i + 2];
+    
+    // Vertex angle in XZ plane
+    const angle = Math.atan2(bz, bx);
+    
+    // ═══════════════════════════════════════════════════════════════
+    // Law 5: Radius scaling (Risk-based compression)
+    // ═══════════════════════════════════════════════════════════════
+    const radiusMult = pf.radiusScale;
+    
+    // ═══════════════════════════════════════════════════════════════
+    // Law 4: Asymmetry (Shock-based distortion)
+    // Compress toward bottleneck angle, expand opposite
+    // ═══════════════════════════════════════════════════════════════
+    const asymOffset = Math.cos(angle - pf.asymAngle) * pf.asymStrength * 0.4;
+    
+    // ═══════════════════════════════════════════════════════════════
+    // Law 6: Pulse (Entropy-based pulsation)
+    // ═══════════════════════════════════════════════════════════════
+    const pulseMult = 1 + pulse * 0.15;
+    
+    // Combined scale
+    const scale = radiusMult * (1 + asymOffset) * pulseMult;
+    
+    // Apply deformation
+    positions[i] = bx * scale;
+    positions[i + 1] = by * (1 + pf.thickness * 3); // Thickness
+    positions[i + 2] = bz * scale;
+  }
+  
+  failureRingGeo.attributes.position.needsUpdate = true;
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Color based on Risk level
+  // ═══════════════════════════════════════════════════════════════
+  const risk = state.risk;
+  if (risk > 0.6) {
+    failureRingMat.color.setHex(0xff4444); // Critical: Red
+  } else if (risk > 0.4) {
+    failureRingMat.color.setHex(0xffaa00); // Warning: Orange
+  } else {
+    failureRingMat.color.setHex(0x00d4aa); // Safe: Cyan
+  }
+  failureRingMat.opacity = 0.4 + risk * 0.5;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GHOST RING DEFORMATION — Preview 시 미래 상태 표시
+// ═══════════════════════════════════════════════════════════════
+function deformGhostRing(time) {
+  const pv = PhysicsFrame.preview;
+  if (!pv.active) {
+    ghostRingMat.opacity = 0;
+    return;
+  }
+  
+  ghostRingMat.opacity = 0.4;
+  const positions = ghostRingGeo.attributes.position.array;
+  const basePos = ghostRingBasePositions;
+  
+  for (let i = 0; i < positions.length; i += 3) {
+    const bx = basePos[i];
+    const by = basePos[i + 1];
+    const bz = basePos[i + 2];
+    
+    const angle = Math.atan2(bz, bx);
+    const radiusMult = pv.radiusScale;
+    const asymOffset = Math.cos(angle - pv.asymAngle) * pv.asymStrength;
+    const scale = radiusMult * (1 + asymOffset);
+    
+    positions[i] = bx * scale;
+    positions[i + 1] = by * (1 + pv.thickness * 2);
+    positions[i + 2] = bz * scale;
+  }
+  
+  ghostRingGeo.attributes.position.needsUpdate = true;
+}
+
+// Planets
+const planetGroup = new THREE.Group();
+scene.add(planetGroup);
+const planetMeshes = {};
+const planetLabelsEl = {};
+const orbitRings = [];
+
+PLANETS.forEach((p, i) => {
+  const group = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color: p.color, emissive: p.color, emissiveIntensity: 0.3 });
+  group.add(new THREE.Mesh(new THREE.SphereGeometry(p.size, 24, 24), mat));
+  group.add(new THREE.Mesh(
+    new THREE.SphereGeometry(p.size * 1.3, 16, 16),
+    new THREE.MeshBasicMaterial({ color: p.color, transparent: true, opacity: 0.15, side: THREE.BackSide })
+  ));
+  if (p.rings) {
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(p.size * 1.5, p.size * 2, 32),
+      new THREE.MeshBasicMaterial({ color: p.color, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
+    );
+    ring.rotation.x = Math.PI / 2.2;
+    group.add(ring);
+  }
+  planetGroup.add(group);
+  planetMeshes[p.key] = group;
+  
+  // Orbit ring
+  const oRing = new THREE.Mesh(
+    new THREE.RingGeometry(p.orbit - 0.015, p.orbit + 0.015, 64),
+    new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.2, side: THREE.DoubleSide })
+  );
+  oRing.rotation.x = -Math.PI / 2;
+  scene.add(oRing);
+  orbitRings.push(oRing);
+  
+  // Label
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.innerHTML = `<span style="color:#${p.color.toString(16).padStart(6,'0')}">${p.icon}</span> ${p.name}`;
+  document.body.appendChild(label);
+  planetLabelsEl[p.key] = label;
+});
+
+// ═══════════════════════════════════════════════════════════════
+// LAYER MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+function toggleLayer(layer) {
+  activeLayers[layer] = !activeLayers[layer];
+  
+  const btn = document.querySelector(`.layer-toggle[data-layer="${layer}"]`);
+  btn.classList.toggle('active', activeLayers[layer]);
+  
+  if (layer === 'core') {
+    document.getElementById('layer-core').classList.toggle('active', activeLayers.core);
+    document.getElementById('info').classList.toggle('shifted', activeLayers.core);
+    document.getElementById('planets').classList.toggle('shifted', activeLayers.core);
+  }
+  if (layer === 'sim') simGroup.visible = activeLayers.sim;
+  if (layer === 'action') document.getElementById('layer-action').style.display = activeLayers.action ? 'flex' : 'none';
+  if (layer === 'memory') document.getElementById('layer-memory').classList.toggle('active', activeLayers.memory);
+  
+  updateLayerDisplay();
+  logAction(`Layer ${layer.toUpperCase()} ${activeLayers[layer] ? 'ON' : 'OFF'}`);
+}
+
+function updateLayerDisplay() {
+  const active = ['L0'];
+  if (activeLayers.core) active.push('L1');
+  if (activeLayers.sim) active.push('L2');
+  if (activeLayers.action) active.push('L3');
+  if (activeLayers.memory) active.push('L5');
+  active.push('L7');
+  document.getElementById('s-layers').textContent = active.join('+');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACTION LOG
+// ═══════════════════════════════════════════════════════════════
+function logAction(msg, type = 'info') {
+  const container = document.getElementById('log-items');
+  if (!container) return;
+  const item = document.createElement('div');
+  item.className = 'log-item' + (type === 'warning' ? ' warning' : type === 'critical' ? ' critical' : '');
+  const ts = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  item.textContent = `[${ts}] ${msg}`;
+  container.insertBefore(item, container.firstChild);
+  while (container.children.length > 20) container.removeChild(container.lastChild);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GATE & SLA
+// ═══════════════════════════════════════════════════════════════
+function computeGate(rec, risk) {
+  if (risk > POLICY.CRITICAL_THRESHOLD) return 'AMBER';
+  if (rec < POLICY.RECOVERY_RED) return 'RED';
+  if (rec < POLICY.RECOVERY_AMBER) return 'AMBER';
+  return 'GREEN';
+}
+
+function updateGateSLA() {
+  const rec = planets9.RECOVERY || 0.5;
+  const sta = planets9.STABILITY || 0.5;
+  const coh = planets9.COHESION || 0.5;
+  const shk = planets9.SHOCK || 0.5;
+  
+  const gate = computeGate(rec, state.risk);
+  const gateEl = document.getElementById('gate-badge');
+  gateEl.className = 'gate-badge gate-' + gate.toLowerCase();
+  gateEl.textContent = 'GATE: ' + gate;
+  
+  // Update L1 CORE violation highlights
+  document.getElementById('rule-amber').classList.toggle('violated', rec < POLICY.RECOVERY_AMBER);
+  document.getElementById('rule-red').classList.toggle('violated', rec < POLICY.RECOVERY_RED);
+  
+  // SLA
+  const sla = {
+    worker: rec < 0.35 ? 'BREACH' : rec < 0.50 ? 'AT_RISK' : 'OK',
+    employer: (sta < 0.20 || coh < 0.25) ? 'AT_RISK' : 'OK',
+    ops: shk > 0.75 ? 'BREACH' : shk > 0.60 ? 'AT_RISK' : 'OK',
+    reg: shk > 0.85 ? 'BREACH' : 'OK'
+  };
+  const classMap = { OK: 'sla-ok', AT_RISK: 'sla-risk', BREACH: 'sla-breach' };
+  for (const [key, value] of Object.entries(sla)) {
+    const el = document.querySelector(`#sla-strip span[data-sla="${key}"]`);
+    if (el) {
+      el.className = classMap[value];
+      el.textContent = `${key.toUpperCase()} · ${value.replace('_', ' ')}`;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// L3 ACTION
+// ═══════════════════════════════════════════════════════════════
+let actionHoldTimer = null;
+
+function previewAction(action) {
+  // ═══════════════════════════════════════════════════════════════
+  // IMPULSE PROFILE 참조 (FROZEN v2.2)
+  // ═══════════════════════════════════════════════════════════════
+  const profile = IMPULSE_PROFILES[action];
+  if (!profile) {
+    console.error(`Unknown action: ${action}`);
+    return;
+  }
+  const delta = profile.delta;
+  
+  // Flash rings
+  innerRingMat.opacity = 0.6;
+  outerRingMat.opacity = 0.6;
+  setTimeout(() => { innerRingMat.opacity = 0.25; outerRingMat.opacity = 0.2; }, 800);
+  
+  // ═══════════════════════════════════════════════════════════════
+  // GHOST RING PREVIEW — Calculate future state
+  // ═══════════════════════════════════════════════════════════════
+  const futureState = {};
+  for (const key in planets9) {
+    futureState[key] = clamp((planets9[key] || 0.5) + (delta[key] || 0));
+  }
+  
+  // Calculate future risk
+  const futureRisk = clamp(
+    0.20 * (1 - futureState.RECOVERY) +
+    0.15 * (1 - futureState.STABILITY) +
+    0.10 * (1 - futureState.COHESION) +
+    0.25 * futureState.SHOCK +
+    0.15 * futureState.FRICTION +
+    0.05 * (1 - futureState.TRANSFER) +
+    0.05 * futureState.TIME +
+    0.03 * (1 - futureState.QUALITY) +
+    0.02 * (1 - futureState.OUTPUT)
+  );
+  
+  const futurePressure = clamp(0.4 * futureState.SHOCK + 0.3 * futureState.FRICTION + 0.3 * (1 - futureState.RECOVERY));
+  const futureShock = Math.max(futureState.SHOCK, futureState.FRICTION);
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Ghost Ring Preview (Law 5/4 applied to future state)
+  // ═══════════════════════════════════════════════════════════════
+  PhysicsFrame.preview.active = true;
+  PhysicsFrame.preview.radiusScale = 1.0 - PHYSICS.RING_RISK_COMPRESSION * futureRisk;
+  PhysicsFrame.preview.thickness = PHYSICS.RING_BASE_THICKNESS * (1 + PHYSICS.RING_PRESSURE_MULT * futurePressure);
+  PhysicsFrame.preview.asymStrength = PHYSICS.RING_SHOCK_ASYM * futureShock;
+  PhysicsFrame.preview.asymAngle = PhysicsFrame.bottleneck.angle;
+  
+  // Ghost color: green if improved, red if worse
+  ghostRingMat.color.setHex(futureRisk < state.risk ? 0x00ff88 : 0xff4444);
+  
+  logAction(`Preview: ${action.toUpperCase()} (Risk ${(state.risk * 100).toFixed(0)}% → ${(futureRisk * 100).toFixed(0)}%)`, 'warning');
+  
+  // Open audit
+  currentAuditAction = { action, delta, futureRisk, futureState };
+  openAudit(action, delta);
+}
+
+function updateActionHUD() {
+  const rec = planets9.RECOVERY || 0.5;
+  const fri = planets9.FRICTION || 0.5;
+  const shk = planets9.SHOCK || 0.5;
+  const isCritical = state.risk > POLICY.CRITICAL_THRESHOLD;
+  
+  const recoverBtn = document.querySelector('.action-btn.recover');
+  const defrictionBtn = document.querySelector('.action-btn.defriction');
+  const shockBtn = document.querySelector('.action-btn.shock-damp');
+  
+  if (isCritical) {
+    recoverBtn.disabled = false;
+    recoverBtn.classList.add('critical-highlight');
+    defrictionBtn.disabled = true;
+    shockBtn.disabled = true;
+  } else {
+    recoverBtn.disabled = rec > 0.7;
+    recoverBtn.classList.remove('critical-highlight');
+    defrictionBtn.disabled = fri < 0.4;
+    shockBtn.disabled = shk < 0.4;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FREEZE VISUAL STATES
+// ═══════════════════════════════════════════════════════════════
+window.freezeLevel = 0;
+window.freezeMotionMultiplier = 1.0;
+
+const FREEZE_LABELS = ['NORMAL', 'CAUTION ⚠', 'FROZEN ❄', 'LOCKDOWN 🔒'];
+
+function applyFreezeVisual(level) {
+  const body = document.body;
+  const indicator = document.getElementById('freeze-indicator');
+  
+  // 기존 클래스 제거
+  body.classList.remove('freeze-caution', 'freeze-frozen', 'freeze-lockdown');
+  
+  // 새 클래스 적용
+  if (level === 1) body.classList.add('freeze-caution');
+  if (level === 2) body.classList.add('freeze-frozen');
+  if (level === 3) body.classList.add('freeze-lockdown');
+  
+  // 모션 속도 조정
+  window.freezeLevel = level;
+  window.freezeMotionMultiplier = [1.0, 0.7, 0.2, 0][level];
+  
+  // 인디케이터 업데이트
+  indicator.textContent = FREEZE_LABELS[level];
+  
+  // 로그
+  logAction(`Freeze: ${FREEZE_LABELS[level]}`, level >= 2 ? 'critical' : level === 1 ? 'warning' : 'info');
+  
+  // LOCKDOWN 시 버튼 상태 (CSS로 처리되지만 추가 로직)
+  if (level === 3) {
+    logAction('RECOVERY ONLY mode', 'critical');
+  }
+}
+
+// 자동 Freeze 레벨 결정
+function autoFreezeLevel(risk, failureRate) {
+  if (failureRate > 0.05) return 3; // LOCKDOWN
+  if (risk > 0.70) return 2;        // FROZEN
+  if (risk > 0.50) return 1;        // CAUTION
+  return 0;                          // NORMAL
+}
+
+// ═══════════════════════════════════════════════════════════════
+// OUTCOME CLASSIFICATION (Failure / Near-miss 판정)
+// ═══════════════════════════════════════════════════════════════
+const CRITICAL_THRESHOLD = 0.60;
+const EPSILON = 0.05;
+
+function classifyOutcome(riskBefore, riskAfter, recoveryBefore, recoveryAfter) {
+  const gateAfter = riskAfter > CRITICAL_THRESHOLD ? 'AMBER' : recoveryAfter < 0.30 ? 'RED' : 'GREEN';
+  
+  // FAILURE: 상황 악화 또는 RED 진입
+  if (riskAfter > riskBefore) {
+    return { outcome: 'FAILURE', reason: 'risk increased', icon: '✗', type: 'critical' };
+  }
+  if (gateAfter === 'RED') {
+    return { outcome: 'FAILURE', reason: 'gate RED', icon: '✗', type: 'critical' };
+  }
+  if (recoveryAfter < recoveryBefore) {
+    return { outcome: 'FAILURE', reason: 'recovery decreased', icon: '✗', type: 'critical' };
+  }
+  
+  // NEAR_MISS: CRITICAL 경계 근접
+  const boundaryDistance = Math.abs(riskAfter - CRITICAL_THRESHOLD);
+  if (boundaryDistance <= EPSILON) {
+    return { outcome: 'NEAR_MISS', reason: 'near boundary', icon: '⚠', type: 'warning' };
+  }
+  if (riskBefore > CRITICAL_THRESHOLD && riskAfter <= CRITICAL_THRESHOLD) {
+    return { outcome: 'NEAR_MISS', reason: 'escaped critical', icon: '⚠', type: 'warning' };
+  }
+  
+  // SUCCESS: 개선됨
+  if (riskAfter < riskBefore && recoveryAfter > recoveryBefore) {
+    return { outcome: 'SUCCESS', reason: 'improved', icon: '✓', type: 'info' };
+  }
+  
+  // NEUTRAL: 변화 없음
+  return { outcome: 'NEUTRAL', reason: 'no change', icon: '○', type: 'info' };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// L4 AUDIT
+// ═══════════════════════════════════════════════════════════════
+window.auditActive = false;
+
+function openAudit(action, delta) {
+  clearInterval(auditTimer);
+  clearTimeout(actionHoldTimer);
+  
+  // 태양계 정지
+  window.auditActive = true;
+  
+  const auditEl = document.getElementById('layer-audit');
+  const cardEl = auditEl.querySelector('.audit-card');
+  cardEl.classList.remove('locking', 'rejecting');
+  
+  auditEl.classList.add('active');
+  
+  // IMPULSE_PROFILES 참조 (v2.2)
+  const profile = IMPULSE_PROFILES[action];
+  const label = profile?.label || action.toUpperCase();
+  const recDelta = delta.RECOVERY || 0;
+  const friDelta = delta.FRICTION || 0;
+  
+  document.getElementById('audit-action').textContent = label;
+  document.getElementById('audit-rec').textContent = `${recDelta > 0 ? '+' : ''}${Math.round(recDelta * 100)}%`;
+  document.getElementById('audit-rec').className = 'value ' + (recDelta > 0 ? 'positive' : recDelta < 0 ? 'negative' : '');
+  document.getElementById('audit-fri').textContent = `${friDelta > 0 ? '+' : ''}${Math.round(friDelta * 100)}%`;
+  document.getElementById('audit-fri').className = 'value ' + (friDelta < 0 ? 'positive' : friDelta > 0 ? 'negative' : '');
+  
+  // PhysicsFrame에서 계산된 미래 Risk 사용
+  const futureRisk = currentAuditAction?.futureRisk || Math.max(0, state.risk - 0.16);
+  const riskImproved = futureRisk < state.risk;
+  document.getElementById('audit-risk').textContent = `${state.risk.toFixed(2)} → ${futureRisk.toFixed(2)}`;
+  document.getElementById('audit-risk').className = 'value ' + (riskImproved ? 'positive' : 'negative');
+  document.getElementById('audit-conf').textContent = `${75 + Math.floor(Math.random() * 20)}%`;
+  
+  let countdown = 30;
+  const timerEl = document.getElementById('audit-countdown');
+  const timerContainer = timerEl.parentElement;
+  timerEl.textContent = countdown;
+  timerContainer.classList.remove('urgent');
+  
+  auditTimer = setInterval(() => {
+    countdown--;
+    timerEl.textContent = countdown;
+    
+    // 10초 이하: 긴급 표시
+    if (countdown <= 10) {
+      timerContainer.classList.add('urgent');
+    }
+    
+    if (countdown <= 0) {
+      auditDecision('REJECT');
+    }
+  }, 1000);
+  
+  logAction('L4 AUDIT opened', 'warning');
+}
+
+async function auditDecision(verdict) {
+  clearInterval(auditTimer);
+  
+  // Ghost Ring 비활성화
+  PhysicsFrame.preview.active = false;
+  
+  const auditEl = document.getElementById('layer-audit');
+  const cardEl = auditEl.querySelector('.audit-card');
+  const action = currentAuditAction?.action || 'unknown';
+  const delta = currentAuditAction?.delta || {};
+  
+  if (verdict === 'LOCK') {
+    // LOCK 애니메이션
+    cardEl.classList.add('locking');
+    
+    // API 호출 + Outcome 판정
+    const riskBefore = state.risk;
+    const recoveryBefore = planets9.RECOVERY || 0.5;
+    
+    // ═══════════════════════════════════════════════════════════════
+    // LOCK: 실제 상태 변경 (Delta 적용)
+    // ═══════════════════════════════════════════════════════════════
+    const applyDelta = () => {
+      // Delta를 planets9에 적용 (0~1 범위 유지)
+      for (const key in delta) {
+        if (planets9.hasOwnProperty(key)) {
+          planets9[key] = clamp((planets9[key] || 0.5) + delta[key]);
+        }
+      }
+      
+      // Recalculate derived state
+      calculateDerivedState();
+      
+      // UI 업데이트
+      renderPlanetList();
+    };
+    
+    try {
+      const response = await fetch('/autus/solar/release', { method: 'POST' });
+      const result = await response.json();
+      
+      // 서버 응답으로 상태 업데이트 (있으면)
+      if (result.signals) {
+        planets9.SHOCK = result.signals.entropy || planets9.SHOCK;
+        planets9.FRICTION = result.signals.pressure || planets9.FRICTION;
+        state.risk = Math.min(1, (planets9.SHOCK || 0.5) * 1.2 + (planets9.FRICTION || 0.5) * 0.3);
+      } else {
+        applyDelta();
+      }
+      
+      const riskAfter = state.risk;
+      const recoveryAfter = planets9.RECOVERY || 0.5;
+      
+      // Outcome 판정
+      const outcome = classifyOutcome(riskBefore, riskAfter, recoveryBefore, recoveryAfter);
+      logAction(`${outcome.icon} LOCKED: ${action.toUpperCase()} → ${outcome.reason}`, outcome.type);
+      logAction(`Risk: ${riskBefore.toFixed(2)} → ${riskAfter.toFixed(2)}`, riskAfter < riskBefore ? 'info' : 'warning');
+    } catch (e) {
+      // 오프라인: 예상 결과로 상태 변경
+      applyDelta();
+      
+      const riskAfter = state.risk;
+      const recoveryAfter = planets9.RECOVERY || 0.5;
+      const outcome = classifyOutcome(riskBefore, riskAfter, recoveryBefore, recoveryAfter);
+      logAction(`${outcome.icon} LOCKED: ${action.toUpperCase()} → ${outcome.reason}`, outcome.type);
+      logAction(`Risk: ${riskBefore.toFixed(2)} → ${riskAfter.toFixed(2)}`, riskAfter < riskBefore ? 'info' : 'warning');
+    }
+    
+    // 애니메이션 후 닫기
+    setTimeout(() => {
+      auditEl.classList.remove('active');
+      cardEl.classList.remove('locking');
+      window.auditActive = false;
+      renderPlanetList();
+    }, 600);
+    
+  } else if (verdict === 'REJECT') {
+    cardEl.classList.add('rejecting');
+    logAction(`REJECTED: ${action.toUpperCase()}`);
+    
+    setTimeout(() => {
+      auditEl.classList.remove('active');
+      cardEl.classList.remove('rejecting');
+      window.auditActive = false;
+    }, 300);
+    
+  } else {
+    logAction(`HOLD: ${action.toUpperCase()}`);
+    // HOLD는 타이머만 멈추고 대기
+    return;
+  }
+  
+  // L5 MEMORY에 기록
+  const record = {
+    time: new Date().toISOString(),
+    action: action,
+    verdict: verdict,
+    delta: delta
+  };
+  memoryLog.unshift(record);
+  renderMemoryList();
+  
+  currentAuditAction = null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// L5 MEMORY
+// ═══════════════════════════════════════════════════════════════
+function renderMemoryList() {
+  const container = document.getElementById('memory-list');
+  container.innerHTML = memoryLog.slice(0, 20).map(item => {
+    const time = new Date(item.time).toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    return `
+      <div class="memory-item">
+        <div class="time">${time}</div>
+        <div class="action">${item.action.toUpperCase()}</div>
+        <span class="verdict ${item.verdict.toLowerCase()}">${item.verdict}</span>
+        <div class="delta">ΔREC: ${item.delta?.recovery || 0}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Memory filters
+document.querySelectorAll('#layer-memory .filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#layer-memory .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Filter logic here if needed
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// CRITICAL PROTECTION
+// ═══════════════════════════════════════════════════════════════
+function enforceCriticalProtection() {
+  const isCritical = state.risk > POLICY.CRITICAL_THRESHOLD;
+  
+  if (isCritical && !lastCriticalState) {
+    logAction('CRITICAL state entered', 'critical');
+  }
+  if (!isCritical && lastCriticalState) {
+    logAction('CRITICAL state cleared');
+  }
+  lastCriticalState = isCritical;
+  
+  POLICY.CRITICAL_COLLAPSE.forEach(key => {
+    const row = document.querySelector(`.planet-row[data-key="${key}"]`);
+    if (row) row.classList.toggle('collapsed', isCritical);
+  });
+  
+  const statusEl = document.getElementById('s-status');
+  statusEl.textContent = isCritical ? 'CRITICAL' : state.risk > 0.35 ? 'WARNING' : 'STABLE';
+  statusEl.className = 'stat-value' + (isCritical ? ' critical' : state.risk > 0.35 ? ' warning' : '');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PLANET LIST
+// ═══════════════════════════════════════════════════════════════
+function renderPlanetList() {
+  const container = document.getElementById('planet-list');
+  const isCritical = state.risk > POLICY.CRITICAL_THRESHOLD;
+  
+  container.innerHTML = PLANETS.map(p => {
+    const value = Math.round((planets9[p.key] || 0.5) * 100);
+    const isActive = p.key === selectedPlanet;
+    const colorHex = '#' + p.color.toString(16).padStart(6, '0');
+    const isCollapsed = isCritical && POLICY.CRITICAL_COLLAPSE.includes(p.key);
+    
+    return `
+      <div class="planet-row ${isActive ? 'active' : ''} ${isCollapsed ? 'collapsed' : ''}" data-key="${p.key}" onclick="selectPlanet('${p.key}')">
+        <div class="planet-dot" style="background:${colorHex}"></div>
+      <span class="planet-name">${p.icon} ${p.name}</span>
+        <span class="planet-val" style="color:${colorHex}">${value}%</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectPlanet(key) {
+  if (state.risk > POLICY.CRITICAL_THRESHOLD && POLICY.CRITICAL_COLLAPSE.includes(key)) {
+    logAction(`${key} blocked in CRITICAL`, 'warning');
+    return;
+  }
+  selectedPlanet = key;
+      renderPlanetList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════════════
+function togglePlanets() {
+  planetsVisible = !planetsVisible;
+  planetGroup.visible = planetsVisible;
+  Object.values(planetLabelsEl).forEach(el => el.style.display = planetsVisible ? 'block' : 'none');
+  document.querySelector('#controls button:nth-child(1)').classList.toggle('active', planetsVisible);
+}
+
+function toggleOrbits() {
+  orbitsVisible = !orbitsVisible;
+  orbitRings.forEach(r => r.visible = orbitsVisible);
+  document.querySelector('#controls button:nth-child(2)').classList.toggle('active', orbitsVisible);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'c' || e.key === 'C') toggleLayer('core');
+  if (e.key === 's' || e.key === 'S') toggleLayer('sim');
+  if (e.key === 'a' || e.key === 'A') toggleLayer('action');
+  if (e.key === 'm' || e.key === 'M') toggleLayer('memory');
+  if (e.key === 'Escape') {
+    document.getElementById('layer-audit').classList.remove('active');
+    document.getElementById('layer-memory').classList.remove('active');
+    activeLayers.memory = false;
+    document.querySelector('.layer-toggle[data-layer="memory"]').classList.remove('active');
+    clearTimeout(actionHoldTimer);
+    clearInterval(auditTimer);
+  }
+  
+  // Freeze 테스트 모드 (숫자 키)
+  if (e.key === '0') applyFreezeVisual(0); // NORMAL
+  if (e.key === '1') applyFreezeVisual(1); // CAUTION
+  if (e.key === '2') applyFreezeVisual(2); // FROZEN
+  if (e.key === '3') applyFreezeVisual(3); // LOCKDOWN
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ANIMATION
+// ═══════════════════════════════════════════════════════════════
+let time = 0;
+let frames = 0, lastFPS = performance.now();
+let lastFrameTime = performance.now();
+
+function animate() {
+  requestAnimationFrame(animate);
+  
+  // Delta time 계산 (실제 물리 시뮬레이션용)
+  const now = performance.now();
+  const dt = (now - lastFrameTime) / 1000;
+  lastFrameTime = now;
+  
+  time += 0.016;
+  
+  // L4 AUDIT 열려있으면 태양계 정지, Freeze 레벨에 따라 속도 조절
+  const motionMult = window.freezeMotionMultiplier || 1.0;
+  if (!window.auditActive) {
+    globeGroup.rotation.y += 0.003 * motionMult;
+  }
+  
+  if (planetsVisible) {
+    PLANETS.forEach((p, i) => {
+      const value = planets9[p.key] || 0.5;
+      const group = planetMeshes[p.key];
+      const angle = time * p.speed * 0.3 * motionMult + (i / PLANETS.length) * Math.PI * 2;
+      const r = p.orbit + (value - 0.5) * 0.2;
+      
+      group.position.x = Math.cos(angle) * r;
+      group.position.z = Math.sin(angle) * r;
+      group.position.y = Math.sin(time * 0.2 + i) * 0.1;
+      group.rotation.y += 0.02;
+      group.scale.setScalar(p.key === selectedPlanet ? 1.5 : 1);
+      
+      const label = planetLabelsEl[p.key];
+      const screenPos = group.position.clone().project(camera);
+      if (screenPos.z < 1) {
+        label.style.left = ((screenPos.x + 1) / 2 * innerWidth) + 'px';
+        label.style.top = ((-screenPos.y + 1) / 2 * innerHeight - 22) + 'px';
+        label.style.opacity = p.key === selectedPlanet ? '1' : '0.5';
+      } else {
+        label.style.opacity = '0';
+      }
+    });
+  }
+  
+  // ═══════════════════════════════════════════════════════════════
+  // L2 PHYSICS-BASED FAILURE RING
+  // ═══════════════════════════════════════════════════════════════
+  if (activeLayers.sim) {
+    const rec = planets9.RECOVERY || 0.5;
+    const sta = planets9.STABILITY || 0.5;
+    const shk = planets9.SHOCK || 0.5;
+    const fri = planets9.FRICTION || 0.5;
+    
+    // Calculate derived state from planets
+    calculateDerivedState();
+    
+    // PhysicsFrame 업데이트 (TwinState → 물리값)
+    updatePhysicsFrame();
+    
+    // Law 7: 시간 상수 기반 애니메이션
+    animatePhysicsFrame(dt);
+    
+    // Update kernel display panel (역참조)
+    updateKernelDisplay();
+    
+    // Failure Ring 변형 (Law 4,5,6 적용)
+    deformFailureRing(time * motionMult);
+    
+    // Ghost Ring 변형 (Preview 시)
+    deformGhostRing(time * motionMult);
+    
+    // Inner Health Ring (기존 유지)
+    innerRingMat.color.setHex((rec + sta) / 2 > 0.4 ? 0x00ffaa : 0xff4444);
+    innerRing.rotation.z += 0.003 * motionMult;
+    
+    // Outer Pressure Ring (기존 유지)
+    outerRingMat.color.setHex((shk + fri) / 2 > 0.5 ? 0xff8844 : 0x44aaff);
+    outerRing.rotation.z -= 0.002 * motionMult;
+    
+    // Failure Ring 천천히 회전
+    failureRing.rotation.z += 0.001 * motionMult;
+  }
+  
+  // FPS
+  frames++;
+  if (performance.now() - lastFPS >= 1000) {
+    document.getElementById('sys-fps').textContent = frames;
+    frames = 0;
+    lastFPS = performance.now();
+  }
+  
+  document.getElementById('s-orbit').textContent = Math.round(globeGroup.rotation.y * 180 / Math.PI % 360) + '°';
+  document.getElementById('m-entropy').textContent = (planets9.SHOCK || 0.5).toFixed(2);
+  document.getElementById('m-pressure').textContent = (planets9.FRICTION || 0.5).toFixed(2);
+  document.getElementById('m-risk').textContent = state.risk.toFixed(2);
+  document.getElementById('m-flow').textContent = (planets9.TRANSFER || 0.5).toFixed(2);
+  
+  const riskEl = document.getElementById('m-risk');
+  riskEl.className = 'metric-value' + (state.risk > 0.6 ? ' danger' : state.risk > 0.35 ? ' warning' : '');
+  
+  updateGateSLA();
+  updateActionHUD();
+  enforceCriticalProtection();
+  
+  renderer.render(scene, camera);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FETCH STATE
+// ═══════════════════════════════════════════════════════════════
+async function fetchState() {
+  try {
+    const r = await fetch('/shadow/snapshot/ENT_001');
+    const data = await r.json();
+    if (data.shadow) {
+      PLANETS.forEach(p => planets9[p.key] = data.shadow[p.key.toLowerCase()] || 0.5);
+    }
+  } catch(e) {
+    const base = { RECOVERY: 0.45, STABILITY: 0.32, COHESION: 0.38, SHOCK: 0.55, FRICTION: 0.48, TRANSFER: 0.62, TIME: 0.59, QUALITY: 0.70, OUTPUT: 0.53 };
+    PLANETS.forEach(p => planets9[p.key] = base[p.key] || 0.5);
+  }
+  
+  state.risk = Math.min(1, (planets9.SHOCK || 0.5) * 1.2 + (planets9.FRICTION || 0.5) * 0.3);
+  renderPlanetList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CAMERA
+// ═══════════════════════════════════════════════════════════════
+let isDragging = false, prevMouse = { x: 0, y: 0 };
+let cameraTheta = 0, cameraPhi = 1.0, cameraDistance = 16;
+
+renderer.domElement.addEventListener('mousedown', e => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+renderer.domElement.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  cameraTheta += (e.clientX - prevMouse.x) * 0.005;
+  cameraPhi = Math.max(0.3, Math.min(2.5, cameraPhi + (e.clientY - prevMouse.y) * 0.005));
+  prevMouse = { x: e.clientX, y: e.clientY };
+  camera.position.set(
+    cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta),
+    cameraDistance * Math.cos(cameraPhi),
+    cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta)
+  );
+  camera.lookAt(0, 0, 0);
+});
+renderer.domElement.addEventListener('mouseup', () => isDragging = false);
+renderer.domElement.addEventListener('wheel', e => {
+  cameraDistance = Math.max(8, Math.min(30, cameraDistance + e.deltaY * 0.02));
+  camera.position.set(
+    cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta),
+    cameraDistance * Math.cos(cameraPhi),
+    cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta)
+  );
+  camera.lookAt(0, 0, 0);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.onresize = () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+};
+
+console.log('═══════════════════════════════════════════════════════════════');
+console.log('═══════════════════════════════════════════════════════════════');
+console.log('  AUTUS SOLAR HQ — PHYSICS KERNEL v2.2 FROZEN');
+console.log('═══════════════════════════════════════════════════════════════');
+console.log('  Law 4: asymStrength = 0.95 × max(shock, friction)');
+console.log('  Law 5: radiusScale = 1 - 0.65 × risk');
+console.log('  Law 6: pulseHz = 0.5 × (1 + 2 × entropy)  [A안 확정]');
+console.log('  Law 7: τ-based exponential approach');
+console.log('═══════════════════════════════════════════════════════════════');
+console.log('  Bottleneck: SINGLE SOURCE (argmax weighted badness)');
+console.log('  ImpulseProfiles: RECOVER / DEFRICTION / SHOCK_DAMP');
+console.log('═══════════════════════════════════════════════════════════════');
+
+// Initialize physics
+calculateDerivedState();
+updatePhysicsFrame();
+
+logAction('Physics Engine v2.0 initialized');
+logAction(`Risk: ${(state.risk * 100).toFixed(0)}% | Bottleneck: ${PhysicsFrame.bottleneck.axis}`, 'warning');
+
+updateLayerDisplay();
+fetchState();
+setInterval(fetchState, 3000);
+renderPlanetList();
+animate();
+  </script>
+</body>
+</html>
+

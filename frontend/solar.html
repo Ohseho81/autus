@@ -461,9 +461,6 @@
       50%{box-shadow:0 0 0 8px rgba(0,255,136,0)}
     }
   </style>
-  
-  <!-- AUTUS Choice System -->
-  <link rel="stylesheet" href="autus-choice-system.css">
 </head>
 <body>
   <div class="frame">
@@ -1743,94 +1740,15 @@ setTimeout(() => runAcceptanceTests(), 500);
 animate();
   </script>
   
-  <!-- Future Simulator Module -->
-  <link rel="stylesheet" href="simulator.css">
-  <script src="future-simulator.js"></script>
-  <script src="simulator-ui.js"></script>
+  <!-- 
+    ═══════════════════════════════════════════════════════════════
+    AUTUS CHOICE SYSTEM v1.0 (Production)
+    - 모든 Legacy 스크립트 비활성화
+    - autus-choice-inject.js 만 사용
+    ═══════════════════════════════════════════════════════════════
+  -->
   
-  <!-- Choice Card System (버튼 OS → 선택 OS) -->
-  <link rel="stylesheet" href="choice-card.css">
-  <script src="choice-card.js"></script>
-  <script src="choice-card-ui.js"></script>
-  
-  <!-- Causality Log (인과관계 기록) -->
-  <link rel="stylesheet" href="causality-log.css">
-  <script src="causality-log.js"></script>
-  
-  <!-- Strategic Mode (Gate RED 위기 대응) -->
-  <link rel="stylesheet" href="strategic-mode.css">
-  <script src="strategic-mode.js"></script>
-  
-  <!-- Learning Loop (가중치 자동 조정) -->
-  <script src="learning-loop.js"></script>
-  <script src="choice-card-integration.js"></script>
-  <script src="learning-debug.js"></script>
-  
-  <!-- Legacy Action Control (버튼 → 디버그 격하) -->
-  <link rel="stylesheet" href="legacy-action.css">
-  <script src="legacy-action-control.js"></script>
-  
-  <!-- Choice Bottleneck Proof (병목 → 선택 증명) -->
-  <link rel="stylesheet" href="choice-bottleneck.css">
-  <script src="choice-bottleneck-proof.js"></script>
-  <script src="choice-card-enhanced.js"></script>
-  
-  <!-- AUTUS 10조 (Constitution — FROZEN) -->
-  <script src="autus-constitution.js"></script>
-  <script src="constitution-ui.js"></script>
-  
-  <!-- AUTUS Final Cleanup (반드시 마지막에 로드) -->
-  <script src="cleanup-final.js"></script>
-  
-  <!-- Phantom Orbit System (미래 궤도 오버레이) -->
-  <link rel="stylesheet" href="phantom-orbit.css">
-  <script src="phantom-orbit.js"></script>
-  <script src="phantom-choice-bridge.js"></script>
-  
-  <!-- Phantom UI Elements -->
-  <div id="phantom-legend">
-    <div class="legend-section-title">TIMEFRAME</div>
-    <div class="legend-item">
-      <div class="legend-ring h1"></div>
-      <span>+1h</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-ring h24"></div>
-      <span>+24h</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-ring d7"></div>
-      <span>+7d</span>
-    </div>
-    <div class="color-legend">
-      <div class="legend-section-title">RISK LEVEL</div>
-      <div class="color-item">
-        <div class="color-dot stable"></div>
-        <span>Stable (Δrisk < -15%)</span>
-      </div>
-      <div class="color-item">
-        <div class="color-dot unstable"></div>
-        <span>Unstable (Δrisk < -5%)</span>
-      </div>
-      <div class="color-item">
-        <div class="color-dot critical"></div>
-        <span>Critical (Δrisk ≥ -5%)</span>
-      </div>
-    </div>
-  </div>
-  <div id="phantom-hint" class="visible">HOVER CHOICE TO SEE FUTURE ORBIT</div>
-  
-  <!-- Phantom Indicators -->
-  <div class="phantom-indicator">
-    <div class="phantom-dot" data-phantom="A"></div>
-    <div class="phantom-dot" data-phantom="B"></div>
-    <div class="phantom-dot" data-phantom="C"></div>
-  </div>
-  
-  <!-- AUTUS Choice System (Production Bundle) -->
-  <script src="autus-choice-system.js"></script>
-  
-  <!-- AUTUS Choice Inject (배포 버전 전용) -->
+  <!-- AUTUS Choice Inject (배포 버전 전용 - 유일한 Choice 시스템) -->
   <script src="autus-choice-inject.js"></script>
 </body>
 </html>

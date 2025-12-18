@@ -566,36 +566,21 @@
   }
 
   function hideLegacy() {
-    // L3 ACTION LOG 섹션의 버튼들
+    // Legacy 숨김 비활성화 - UI 안정성 우선
+    console.log('[AUTUS] Legacy hiding disabled for stability');
+    return;
+    
+    /* 아래 코드는 비활성화됨
     document.querySelectorAll('button').forEach(btn => {
       const text = btn.textContent.toUpperCase();
       if (['RECOVER', 'DEFRICTION', 'SHOCK DAMP', 'SHOCK_DAMP'].some(t => text.includes(t))) {
-        // Choice 카드 내부가 아니면 숨김
-        if (!btn.closest('.autus-choice-card')) {
-          const section = btn.closest('section, div');
-          if (section) section.classList.add('autus-legacy-dimmed');
-        }
-      }
-      
-      // L4 AUDIT 버튼
-      if (['LOCK', 'HOLD', 'REJECT'].some(t => text === t)) {
         if (!btn.closest('.autus-choice-card')) {
           const section = btn.closest('section, div');
           if (section) section.classList.add('autus-legacy-dimmed');
         }
       }
     });
-
-    // 특정 텍스트 숨김
-    const hideTexts = ['PREVIEW ONLY', 'Hold 3s for AUDIT', 'Auto-reject'];
-    document.querySelectorAll('*').forEach(el => {
-      if (el.childNodes.length <= 2) {
-        const text = el.textContent || '';
-        if (hideTexts.some(t => text.includes(t))) {
-          el.style.display = 'none';
-        }
-      }
-    });
+    */
   }
 
   function bindEvents() {
