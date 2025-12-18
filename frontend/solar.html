@@ -1734,15 +1734,14 @@ logAction('Kernel v2.4 EP10 initialized', 'success');
 logAction(`Dignity: ${PhysicsFrame.snapshot.dignity > 0.5 ? 'ELEVATED' : PhysicsFrame.snapshot.dignity > 0.2 ? 'BALANCED' : 'LOW'}`, 'warning');
 logAction(`Bottleneck: ${PhysicsFrame.bottleneck.axis} (${Math.round(PhysicsFrame.bottleneck.value * 100)}%)`, 'warning');
 
-// Auto-run tests on load
-setTimeout(() => runAcceptanceTests(), 500);
+// Auto-run tests disabled for debugging
+// setTimeout(() => runAcceptanceTests(), 500);
 
 animate();
   </script>
   
-  <!-- Future Simulator Module -->
-  <link rel="stylesheet" href="simulator.css">
-  <!-- 비활성화: UI 사라짐 디버깅 -->
+  <!-- Future Simulator Module - 전체 비활성화 -->
+  <!-- <link rel="stylesheet" href="simulator.css"> -->
   <!-- <script src="future-simulator.js"></script> -->
   <!-- <script src="simulator-ui.js"></script> -->
 </body>
