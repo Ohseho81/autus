@@ -17,8 +17,8 @@
     ║  L6 GOVERNANCE - Phase 2 (미구현)                             ║
     ║  L7 SYSTEM     - 엔진/성능 상태                                ║
     ║                                                               ║
-    ║  9 PLANETS LOCKED                                             ║
-    ║  BUILD: 2025-12-17                                            ║
+    ║  PHYSICS ENGINE v2.0 — Law 4/5/6/7 Applied                    ║
+    ║  BUILD: 2025-12-18                                            ║
     ╚═══════════════════════════════════════════════════════════════╝
   -->
   <style>
@@ -130,6 +130,34 @@
     .sla-breach{color:#ff4444;border-color:rgba(255,60,60,.4)!important;background:rgba(255,60,60,.1)!important}
     
     /* ============================================
+       PHYSICS DISPLAY (NEW)
+       ============================================ */
+    .physics-display{
+      position:fixed;top:90px;right:40px;width:220px;
+      background:rgba(0,20,40,0.95);
+      border:1px solid rgba(255,77,109,0.4);
+      border-radius:8px;padding:14px;
+      backdrop-filter:blur(10px);
+      z-index:150;
+    }
+    .physics-display .title{
+      font-size:9px;letter-spacing:0.2em;color:rgba(255,77,109,0.8);
+      margin-bottom:12px;padding-bottom:8px;
+      border-bottom:1px solid rgba(255,77,109,0.3);
+    }
+    .physics-row{
+      display:flex;justify-content:space-between;
+      padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);
+      font-size:10px;
+    }
+    .physics-row:last-child{border-bottom:none}
+    .physics-key{color:#888}
+    .physics-val{font-family:'SF Mono',monospace;font-weight:600}
+    .physics-val.danger{color:#ff4444}
+    .physics-val.warning{color:#ffaa00}
+    .physics-val.safe{color:#00d4aa}
+    
+    /* ============================================
        L1 CORE - 헌법/기준 패널 (좌측)
        ============================================ */
     #layer-core{
@@ -196,7 +224,7 @@
     /* ============================================
        METRICS PANEL (우측)
        ============================================ */
-    #metrics{position:fixed;top:90px;right:40px;width:210px;z-index:100}
+    #metrics{position:fixed;top:320px;right:40px;width:220px;z-index:100}
     .metric-section{margin-bottom:18px}
     .metric-title{font-size:8px;letter-spacing:.18em;color:rgba(0,212,255,.6);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(0,212,255,.15)}
     .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -548,6 +576,19 @@
     </div>
   </div>
   
+  <!-- PHYSICS DISPLAY (NEW) -->
+  <div class="physics-display">
+    <div class="title">FAILURE RING · PHYSICS</div>
+    <div class="physics-row"><span class="physics-key">radiusScale</span><span class="physics-val" id="phy-radius">1.00</span></div>
+    <div class="physics-row"><span class="physics-key">thickness</span><span class="physics-val" id="phy-thick">0.15</span></div>
+    <div class="physics-row"><span class="physics-key">pulseHz</span><span class="physics-val" id="phy-pulse">0.50</span></div>
+    <div class="physics-row"><span class="physics-key">asymStrength</span><span class="physics-val" id="phy-asym">0.00</span></div>
+    <div class="physics-row"><span class="physics-key">asymAngle</span><span class="physics-val" id="phy-angle">0°</span></div>
+    <div class="physics-row" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,77,109,0.2)">
+      <span class="physics-key">BOTTLENECK</span><span class="physics-val danger" id="phy-bottleneck">—</span>
+    </div>
+  </div>
+  
   <!-- L1 CORE -->
   <div id="layer-core">
     <div class="layer-title">L1 · CORE · CONSTITUTION</div>
@@ -668,6 +709,35 @@
    ═══════════════════════════════════════════════════════════════ */
 
 // ═══════════════════════════════════════════════════════════════
+// PHYSICS CONSTANTS — 7 LAWS (FROZEN)
+// ═══════════════════════════════════════════════════════════════
+const PHYSICS = Object.freeze({
+  // Law 5: Failure Horizon
+  RING_RISK_COMPRESSION: 0.65,     // α: radiusScale = 1 - α*risk
+  RING_BASE_RADIUS: 8.0,
+  
+  // Law 5: Pressure → Thickness
+  RING_PRESSURE_MULT: 1.2,         // γ: thickness = base*(1 + γ*pressure)
+  RING_BASE_THICKNESS: 0.15,
+  
+  // Law 6: Entropy → Pulse
+  RING_ENTROPY_MULT: 2.0,          // δ: pulseHz = base*(1 + δ*entropy)
+  RING_BASE_PULSE: 0.5,
+  
+  // Law 4: Shock → Asymmetry
+  RING_SHOCK_ASYM: 0.95,           // β: asymStrength = β*shock
+});
+
+// Time Constants (τ) in SECONDS
+const TAU = Object.freeze({
+  radiusScale: 0.8,    // τ=0.8s for Risk→Radius
+  thickness: 0.6,      // τ=0.6s for Pressure→Thickness
+  pulseHz: 0.4,        // τ=0.4s for Entropy→Pulse
+  asymStrength: 0.7,   // τ=0.7s for Shock→Asymmetry
+  asymAngle: 0.9,      // τ=0.9s for Bottleneck direction
+});
+
+// ═══════════════════════════════════════════════════════════════
 // POLICY (FROZEN)
 // ═══════════════════════════════════════════════════════════════
 const POLICY = Object.freeze({
@@ -696,9 +766,19 @@ const PLANETS = Object.freeze([
 // ═══════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════
-let planets9 = {};
+let planets9 = {
+  RECOVERY: 0.42,
+  STABILITY: 0.55,
+  COHESION: 0.62,
+  SHOCK: 0.72,      // High shock → bottleneck
+  FRICTION: 0.79,   // High friction → bottleneck
+  TRANSFER: 0.60,
+  TIME: 0.50,
+  QUALITY: 0.68,
+  OUTPUT: 0.55
+};
 let selectedPlanet = 'RECOVERY';
-let state = { risk: 0.28, entropy: 0.2, pressure: 0.2, flow: 0.5 };
+let state = { risk: 0.75, entropy: 0.50, pressure: 0.50, flow: 0.50 };
 let planetsVisible = true;
 let orbitsVisible = true;
 let lastCriticalState = false;
@@ -734,6 +814,13 @@ const PhysicsFrame = {
     thickness: 0.15,
     asymStrength: 0.0,
     asymAngle: 0.0
+  },
+  
+  // Bottleneck info
+  bottleneck: {
+    axis: 'FRICTION',
+    value: 0.79,
+    angle: Math.PI * 0.75
   }
 };
 
@@ -752,33 +839,119 @@ function lerpTau(current, target, tau, dt = 0.016) {
   return current + (target - current) * alpha;
 }
 
+// Clamp utility
+function clamp(v, min = 0, max = 1) {
+  return Math.max(min, Math.min(max, v));
+}
+
+// Calculate derived state from planets
+function calculateDerivedState() {
+  const rec = planets9.RECOVERY || 0.5;
+  const sta = planets9.STABILITY || 0.5;
+  const coh = planets9.COHESION || 0.5;
+  const shk = planets9.SHOCK || 0.5;
+  const fri = planets9.FRICTION || 0.5;
+  const tra = planets9.TRANSFER || 0.5;
+  const tim = planets9.TIME || 0.5;
+  const qua = planets9.QUALITY || 0.5;
+  const out = planets9.OUTPUT || 0.5;
+  
+  // Risk: weighted sum of negative factors
+  state.risk = clamp(
+    0.20 * (1 - rec) +
+    0.15 * (1 - sta) +
+    0.10 * (1 - coh) +
+    0.25 * shk +
+    0.15 * fri +
+    0.05 * (1 - tra) +
+    0.05 * tim +
+    0.03 * (1 - qua) +
+    0.02 * (1 - out)
+  );
+  
+  // Entropy: mainly from Shock
+  state.entropy = clamp(0.3 * shk + 0.2 * fri + 0.2 * tim + 0.3 * (1 - coh));
+  
+  // Pressure: from Shock + Friction
+  state.pressure = clamp(0.4 * shk + 0.3 * fri + 0.3 * (1 - rec));
+  
+  // Flow: Transfer efficiency
+  state.flow = clamp(0.4 * tra + 0.3 * (1 - fri) + 0.3 * (1 - tim));
+  
+  // Determine bottleneck (worst factor)
+  const factors = [
+    { name: 'SHOCK', value: shk, angle: Math.PI * 1.25 },
+    { name: 'FRICTION', value: fri, angle: Math.PI * 0.75 },
+    { name: 'TIME', value: tim, angle: Math.PI * 1.75 }
+  ];
+  const worst = factors.reduce((a, b) => a.value > b.value ? a : b);
+  PhysicsFrame.bottleneck = {
+    axis: worst.name,
+    value: worst.value,
+    angle: worst.angle
+  };
+}
+
 // TwinState → PhysicsFrame 변환 (Law 4,5,6,7)
 function updatePhysicsFrame() {
-  const risk = state.risk;
-  const entropy = planets9.SHOCK || 0.5;
-  const pressure = planets9.FRICTION || 0.5;
-  const shock = planets9.SHOCK || 0.5;
-  const friction = planets9.FRICTION || 0.5;
+  const risk = state.risk || 0;
+  const pressure = state.pressure || 0;
+  const entropy = state.entropy || 0;
+  const shock = Math.max(planets9.SHOCK || 0.5, planets9.FRICTION || 0.5);
   
+  // ═══════════════════════════════════════════════════════════════
   // Law 5: Failure Horizon — Risk↑ → Radius↓
-  // radiusScale: 1.0 (risk=0) → 0.5 (risk=1)
-  PhysicsFrame.ring.targetRadiusScale = 1.0 - risk * 0.5;
+  // radiusScale = 1 - 0.65 * risk
+  // Risk 0.75 → radiusScale = 1 - 0.65 * 0.75 = 0.5125
+  // ═══════════════════════════════════════════════════════════════
+  PhysicsFrame.ring.targetRadiusScale = 1.0 - PHYSICS.RING_RISK_COMPRESSION * risk;
   
-  // Pressure↑ → Thickness↑
-  // thickness: 0.1 (pressure=0) → 0.4 (pressure=1)
-  PhysicsFrame.ring.targetThickness = 0.1 + pressure * 0.3;
+  // ═══════════════════════════════════════════════════════════════
+  // Law 5: Pressure → Thickness
+  // thickness = base * (1 + 1.2 * pressure)
+  // ═══════════════════════════════════════════════════════════════
+  PhysicsFrame.ring.targetThickness = PHYSICS.RING_BASE_THICKNESS * (1 + PHYSICS.RING_PRESSURE_MULT * pressure);
   
-  // Law 6: Entropy Pulse — Entropy↑ → Pulse↑
-  // pulseHz: 0.3 (entropy=0) → 2.0 (entropy=1)
-  PhysicsFrame.ring.targetPulseHz = 0.3 + entropy * 1.7;
+  // ═══════════════════════════════════════════════════════════════
+  // Law 6: Entropy Pulse — Entropy↑ → PulseHz↑
+  // pulseHz = base * (1 + 2.0 * entropy)
+  // ═══════════════════════════════════════════════════════════════
+  PhysicsFrame.ring.targetPulseHz = PHYSICS.RING_BASE_PULSE * (1 + PHYSICS.RING_ENTROPY_MULT * entropy);
   
+  // ═══════════════════════════════════════════════════════════════
   // Law 4: Shock Asymmetry — Shock↑ → AsymStrength↑
-  // asymStrength: 0.0 (shock=0) → 0.3 (shock=1)
-  PhysicsFrame.ring.targetAsymStrength = shock * 0.3;
+  // asymStrength = 0.95 * max(shock, friction)
+  // ═══════════════════════════════════════════════════════════════
+  PhysicsFrame.ring.targetAsymStrength = PHYSICS.RING_SHOCK_ASYM * shock;
   
-  // Bottleneck 방향: Friction > Shock면 왼쪽, 아니면 오른쪽
-  const bottleneckAngle = friction > shock ? Math.PI * 0.75 : Math.PI * 1.25;
-  PhysicsFrame.ring.targetAsymAngle = bottleneckAngle;
+  // Asymmetry angle: bottleneck direction
+  PhysicsFrame.ring.targetAsymAngle = PhysicsFrame.bottleneck.angle;
+}
+
+// UPDATE PHYSICS DISPLAY
+function updatePhysicsDisplay() {
+  const r = PhysicsFrame.ring;
+  
+  const radiusEl = document.getElementById('phy-radius');
+  radiusEl.textContent = r.radiusScale.toFixed(2);
+  radiusEl.className = 'physics-val ' + (r.radiusScale < 0.6 ? 'danger' : r.radiusScale < 0.8 ? 'warning' : 'safe');
+  
+  const thickEl = document.getElementById('phy-thick');
+  thickEl.textContent = r.thickness.toFixed(2);
+  thickEl.className = 'physics-val ' + (r.thickness > 0.25 ? 'warning' : 'safe');
+  
+  const pulseEl = document.getElementById('phy-pulse');
+  pulseEl.textContent = r.pulseHz.toFixed(2);
+  pulseEl.className = 'physics-val ' + (r.pulseHz > 1.0 ? 'warning' : 'safe');
+  
+  const asymEl = document.getElementById('phy-asym');
+  asymEl.textContent = r.asymStrength.toFixed(2);
+  asymEl.className = 'physics-val ' + (r.asymStrength > 0.5 ? 'danger' : r.asymStrength > 0.3 ? 'warning' : 'safe');
+  
+  document.getElementById('phy-angle').textContent = Math.round(r.asymAngle * 180 / Math.PI) + '°';
+  
+  const bnEl = document.getElementById('phy-bottleneck');
+  bnEl.textContent = `${PhysicsFrame.bottleneck.axis} (${Math.round(PhysicsFrame.bottleneck.value * 100)}%)`;
 }
 
 // PhysicsFrame 애니메이션 (매 프레임 호출)
@@ -901,50 +1074,57 @@ function deformFailureRing(time) {
   const positions = failureRingGeo.attributes.position.array;
   const basePos = failureRingBasePositions;
   
-  // Pulse amplitude (맥동)
-  const pulseAmp = 0.15 + pf.thickness * 0.5;
-  const pulse = Math.sin(time * pf.pulseHz * Math.PI * 2) * pulseAmp * 0.3;
+  // Pulse amplitude (Law 6: Entropy)
+  const pulseAmp = 0.1 + pf.thickness * 0.5;
+  const pulse = Math.sin(time * pf.pulseHz * Math.PI * 2) * pulseAmp;
   
   for (let i = 0; i < positions.length; i += 3) {
     const bx = basePos[i];
     const by = basePos[i + 1];
     const bz = basePos[i + 2];
     
-    // 정점의 각도 계산 (XZ 평면)
+    // Vertex angle in XZ plane
     const angle = Math.atan2(bz, bx);
     
-    // Law 5: Radius scaling (Risk 기반)
+    // ═══════════════════════════════════════════════════════════════
+    // Law 5: Radius scaling (Risk-based compression)
+    // ═══════════════════════════════════════════════════════════════
     const radiusMult = pf.radiusScale;
     
-    // Law 4: Asymmetry (Shock 기반 비대칭)
-    // asymAngle 방향으로 수축, 반대 방향으로 확장
-    const asymOffset = Math.cos(angle - pf.asymAngle) * pf.asymStrength;
+    // ═══════════════════════════════════════════════════════════════
+    // Law 4: Asymmetry (Shock-based distortion)
+    // Compress toward bottleneck angle, expand opposite
+    // ═══════════════════════════════════════════════════════════════
+    const asymOffset = Math.cos(angle - pf.asymAngle) * pf.asymStrength * 0.4;
     
-    // Law 6: Pulse (Entropy 기반 맥동)
-    const pulseMult = 1 + pulse;
+    // ═══════════════════════════════════════════════════════════════
+    // Law 6: Pulse (Entropy-based pulsation)
+    // ═══════════════════════════════════════════════════════════════
+    const pulseMult = 1 + pulse * 0.15;
     
-    // 최종 스케일
+    // Combined scale
     const scale = radiusMult * (1 + asymOffset) * pulseMult;
     
+    // Apply deformation
     positions[i] = bx * scale;
-    positions[i + 1] = by * (1 + pf.thickness * 2); // 두께 증가
+    positions[i + 1] = by * (1 + pf.thickness * 3); // Thickness
     positions[i + 2] = bz * scale;
   }
   
   failureRingGeo.attributes.position.needsUpdate = true;
   
-  // 색상 변화: Risk에 따라 녹색 → 노랑 → 빨강
+  // ═══════════════════════════════════════════════════════════════
+  // Color based on Risk level
+  // ═══════════════════════════════════════════════════════════════
   const risk = state.risk;
-  let ringColor;
-  if (risk < 0.35) {
-    ringColor = new THREE.Color(0x00d4aa); // 안전: 시안
-  } else if (risk < 0.6) {
-    ringColor = new THREE.Color(0xffaa00); // 경고: 주황
+  if (risk > 0.6) {
+    failureRingMat.color.setHex(0xff4444); // Critical: Red
+  } else if (risk > 0.4) {
+    failureRingMat.color.setHex(0xffaa00); // Warning: Orange
   } else {
-    ringColor = new THREE.Color(0xff4444); // 위험: 빨강
+    failureRingMat.color.setHex(0x00d4aa); // Safe: Cyan
   }
-  failureRingMat.color = ringColor;
-  failureRingMat.opacity = 0.4 + risk * 0.4;
+  failureRingMat.opacity = 0.4 + risk * 0.5;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1117,9 +1297,9 @@ let actionHoldTimer = null;
 
 function previewAction(action) {
   const delta = {
-    recover: { recovery: +0.15, stability: +0.05, friction: -0.05, shock: -0.05 },
-    defriction: { friction: -0.20, transfer: +0.10, recovery: +0.05, shock: 0 },
-    shock_damp: { shock: -0.15, stability: +0.10, recovery: +0.05, friction: -0.05 }
+    recover: { RECOVERY: +0.15, STABILITY: +0.05, FRICTION: -0.05, SHOCK: -0.05 },
+    defriction: { FRICTION: -0.20, TRANSFER: +0.10, RECOVERY: +0.05 },
+    shock_damp: { SHOCK: -0.25, STABILITY: +0.08, COHESION: +0.05, RECOVERY: -0.10 }
   }[action];
   
   // Flash rings
@@ -1128,30 +1308,45 @@ function previewAction(action) {
   setTimeout(() => { innerRingMat.opacity = 0.25; outerRingMat.opacity = 0.2; }, 800);
   
   // ═══════════════════════════════════════════════════════════════
-  // GHOST RING PREVIEW — 예상 미래 상태 계산
+  // GHOST RING PREVIEW — Calculate future state
   // ═══════════════════════════════════════════════════════════════
-  const futureShock = Math.max(0, Math.min(1, (planets9.SHOCK || 0.5) + (delta.shock || 0)));
-  const futureFriction = Math.max(0, Math.min(1, (planets9.FRICTION || 0.5) + (delta.friction || 0)));
-  const futureRisk = Math.min(1, futureShock * 1.2 + futureFriction * 0.3);
-  
-  // Ghost Ring에 미래 상태 적용
-  PhysicsFrame.preview.active = true;
-  PhysicsFrame.preview.radiusScale = 1.0 - futureRisk * 0.5;
-  PhysicsFrame.preview.thickness = 0.1 + futureFriction * 0.3;
-  PhysicsFrame.preview.asymStrength = futureShock * 0.3;
-  PhysicsFrame.preview.asymAngle = futureFriction > futureShock ? Math.PI * 0.75 : Math.PI * 1.25;
-  
-  // Ghost Ring 색상: 개선되면 녹색, 악화되면 빨강
-  if (futureRisk < state.risk) {
-    ghostRingMat.color.setHex(0x00ff88); // 개선: 녹색
-  } else {
-    ghostRingMat.color.setHex(0xff4444); // 악화: 빨강
+  const futureState = {};
+  for (const key in planets9) {
+    futureState[key] = clamp((planets9[key] || 0.5) + (delta[key] || 0));
   }
   
-  logAction(`Preview: ${action.toUpperCase()} (Risk ${state.risk.toFixed(2)} → ${futureRisk.toFixed(2)})`, 'warning');
+  // Calculate future risk
+  const futureRisk = clamp(
+    0.20 * (1 - futureState.RECOVERY) +
+    0.15 * (1 - futureState.STABILITY) +
+    0.10 * (1 - futureState.COHESION) +
+    0.25 * futureState.SHOCK +
+    0.15 * futureState.FRICTION +
+    0.05 * (1 - futureState.TRANSFER) +
+    0.05 * futureState.TIME +
+    0.03 * (1 - futureState.QUALITY) +
+    0.02 * (1 - futureState.OUTPUT)
+  );
   
-  // 바로 AUDIT 열기
-  currentAuditAction = { action, delta, futureRisk };
+  const futurePressure = clamp(0.4 * futureState.SHOCK + 0.3 * futureState.FRICTION + 0.3 * (1 - futureState.RECOVERY));
+  const futureShock = Math.max(futureState.SHOCK, futureState.FRICTION);
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Ghost Ring Preview (Law 5/4 applied to future state)
+  // ═══════════════════════════════════════════════════════════════
+  PhysicsFrame.preview.active = true;
+  PhysicsFrame.preview.radiusScale = 1.0 - PHYSICS.RING_RISK_COMPRESSION * futureRisk;
+  PhysicsFrame.preview.thickness = PHYSICS.RING_BASE_THICKNESS * (1 + PHYSICS.RING_PRESSURE_MULT * futurePressure);
+  PhysicsFrame.preview.asymStrength = PHYSICS.RING_SHOCK_ASYM * futureShock;
+  PhysicsFrame.preview.asymAngle = PhysicsFrame.bottleneck.angle;
+  
+  // Ghost color: green if improved, red if worse
+  ghostRingMat.color.setHex(futureRisk < state.risk ? 0x00ff88 : 0xff4444);
+  
+  logAction(`Preview: ${action.toUpperCase()} (Risk ${(state.risk * 100).toFixed(0)}% → ${(futureRisk * 100).toFixed(0)}%)`, 'warning');
+  
+  // Open audit
+  currentAuditAction = { action, delta, futureRisk, futureState };
   openAudit(action, delta);
 }
 
@@ -1338,14 +1533,14 @@ async function auditDecision(verdict) {
     // ═══════════════════════════════════════════════════════════════
     const applyDelta = () => {
       // Delta를 planets9에 적용 (0~1 범위 유지)
-      if (delta.recovery) planets9.RECOVERY = Math.max(0, Math.min(1, (planets9.RECOVERY || 0.5) + delta.recovery));
-      if (delta.stability) planets9.STABILITY = Math.max(0, Math.min(1, (planets9.STABILITY || 0.5) + delta.stability));
-      if (delta.friction) planets9.FRICTION = Math.max(0, Math.min(1, (planets9.FRICTION || 0.5) + delta.friction));
-      if (delta.shock) planets9.SHOCK = Math.max(0, Math.min(1, (planets9.SHOCK || 0.5) + delta.shock));
-      if (delta.transfer) planets9.TRANSFER = Math.max(0, Math.min(1, (planets9.TRANSFER || 0.5) + delta.transfer));
+      for (const key in delta) {
+        if (planets9.hasOwnProperty(key)) {
+          planets9[key] = clamp((planets9[key] || 0.5) + delta[key]);
+        }
+      }
       
-      // Risk 재계산
-      state.risk = Math.min(1, (planets9.SHOCK || 0.5) * 1.2 + (planets9.FRICTION || 0.5) * 0.3);
+      // Recalculate derived state
+      calculateDerivedState();
       
       // UI 업데이트
       renderPlanetList();
@@ -1599,11 +1794,17 @@ function animate() {
     const shk = planets9.SHOCK || 0.5;
     const fri = planets9.FRICTION || 0.5;
     
+    // Calculate derived state from planets
+    calculateDerivedState();
+    
     // PhysicsFrame 업데이트 (TwinState → 물리값)
     updatePhysicsFrame();
     
     // Law 7: 시간 상수 기반 애니메이션
     animatePhysicsFrame(dt);
+    
+    // Update physics display panel
+    updatePhysicsDisplay();
     
     // Failure Ring 변형 (Law 4,5,6 적용)
     deformFailureRing(time * motionMult);
@@ -1706,13 +1907,21 @@ window.onresize = () => {
 };
 
 console.log('═══════════════════════════════════════════════════════════════');
-console.log('  AUTUS SOLAR HQ — 7 LAYER COMPLETE');
-console.log('  L0(SOLAR) + L1(CORE) + L2(SIM) + L3(ACTION) + L4(AUDIT) + L5(MEMORY) + L7(SYSTEM)');
+console.log('═══════════════════════════════════════════════════════════════');
+console.log('  AUTUS SOLAR HQ — PHYSICS ENGINE v2.0');
+console.log('  Law 4 (Shock Asymmetry) + Law 5 (Failure Horizon)');
+console.log('  Law 6 (Entropy Pulse) + Law 7 (Time Constant)');
+console.log('═══════════════════════════════════════════════════════════════');
+console.log('  τ Values: Radius=0.8s, Thickness=0.6s, Pulse=0.4s');
+console.log('            AsymStrength=0.7s, AsymAngle=0.9s');
 console.log('═══════════════════════════════════════════════════════════════');
 
-logAction('7 Layer System initialized');
-logAction('L0+L2+L3+L7 active');
-logAction('Press C/S/A/M for layers');
+// Initialize physics
+calculateDerivedState();
+updatePhysicsFrame();
+
+logAction('Physics Engine v2.0 initialized');
+logAction(`Risk: ${(state.risk * 100).toFixed(0)}% | Bottleneck: ${PhysicsFrame.bottleneck.axis}`, 'warning');
 
 updateLayerDisplay();
 fetchState();
