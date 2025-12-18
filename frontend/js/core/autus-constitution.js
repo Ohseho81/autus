@@ -5,8 +5,25 @@
 // "Autus는 미래를 맞히는 시스템이 아니라,
 //  사람이 더 품위 있는 선택을 하도록 미래의 차이를 보여주는 시스템이다."
 //
-// BUILD: 2025-12-18 v1.0 LOCKED
+// BUILD: 2025-12-18 v1.1 PATCHED
 // ═══════════════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🛡️ Safe DOM Utilities (Illegal invocation 방지)
+// ═══════════════════════════════════════════════════════════════════════════
+const QS = (sel, root = document) => {
+  try { return root.querySelector(sel); } catch { return null; }
+};
+const QSA = (sel, root = document) => {
+  try { return Array.from(root.querySelectorAll(sel)); } catch { return []; }
+};
+const ON = (target, type, handler, opts) => {
+  try { target?.addEventListener?.(type, handler, opts); } catch {}
+};
+const safeClosest = (el, sel) => {
+  if (!(el instanceof Element)) return null;
+  try { return el.closest(sel); } catch { return null; }
+};
 
 const AUTUS_CONSTITUTION = Object.freeze({
   
@@ -160,13 +177,21 @@ const AUTUS_CONSTITUTION = Object.freeze({
 class ConstitutionGuard {
   constructor() {
     this.violations = [];
-    this.init();
+    try {
+      this.init();
+    } catch (err) {
+      console.warn('[Constitution] Guard init error (safe):', err.message);
+    }
   }
 
   init() {
-    this.displayConstitution();
-    this.startWatch();
-    console.log('[AUTUS] Constitution Guard initialized — 10조 LOCKED');
+    try {
+      this.displayConstitution();
+      this.startWatch();
+      console.log('[AUTUS] Constitution Guard initialized — 10조 LOCKED');
+    } catch (err) {
+      console.warn('[Constitution] init() error (safe):', err.message);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -209,19 +234,25 @@ class ConstitutionGuard {
   }
 
   watchNonIntervention() {
-    // "추천" 문구 감지
+    // "추천" 문구 감지 (안전한 DOM 접근)
     setInterval(() => {
-      const forbidden = ['추천합니다', 'recommend', '선택하세요', 'should choose'];
-      document.querySelectorAll('*').forEach(el => {
-        forbidden.forEach(word => {
-          if (el.textContent && el.textContent.toLowerCase().includes(word.toLowerCase())) {
-            // Choice 카드 내부가 아닌 곳에서 발견 시
-            if (!el.closest('.choice-card') && !el.closest('#choice-container')) {
-              this.reportViolation(4, `Forbidden word detected: "${word}"`);
+      try {
+        const forbidden = ['추천합니다', 'recommend', '선택하세요', 'should choose'];
+        QSA('*').forEach(el => {
+          if (!(el instanceof Element)) return;
+          forbidden.forEach(word => {
+            const text = el.textContent || '';
+            if (text.toLowerCase().includes(word.toLowerCase())) {
+              // Choice 카드 내부가 아닌 곳에서 발견 시
+              if (!safeClosest(el, '.choice-card') && !safeClosest(el, '#choice-container')) {
+                this.reportViolation(4, `Forbidden word detected: "${word}"`);
+              }
             }
-          }
+          });
         });
-      });
+      } catch (err) {
+        console.warn('[Constitution] watchNonIntervention error:', err.message);
+      }
     }, 10000);
   }
 

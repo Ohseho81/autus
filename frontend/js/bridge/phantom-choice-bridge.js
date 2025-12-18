@@ -1,7 +1,19 @@
 // ═══════════════════════════════════════════════════════════════
-// AUTUS Phantom-Choice Bridge v1.0
+// AUTUS Phantom-Choice Bridge v1.1 PATCHED
 // Choice 카드 Hover/Hold/Lock → Phantom Orbit 연결
 // ═══════════════════════════════════════════════════════════════
+
+// 🛡️ Safe Element Utilities (closest 에러 방지)
+const getElement = (e) => {
+  const t = e?.target;
+  if (t instanceof Element) return t;
+  if (t && t.nodeType === 3) return t.parentElement; // Text node
+  return null;
+};
+const safeClosest = (el, sel) => {
+  if (!(el instanceof Element)) return null;
+  try { return el.closest(sel); } catch { return null; }
+};
 
 class PhantomChoiceBridge {
   constructor() {
@@ -9,20 +21,28 @@ class PhantomChoiceBridge {
     this.choiceEngine = window.choiceEngine;
     this.hoverTimeout = null;
     this.holdTimer = null;
-    this.init();
+    try {
+      this.init();
+    } catch (err) {
+      console.warn('[PhantomBridge] Constructor error (safe):', err.message);
+    }
   }
 
   init() {
-    // Phantom 캔버스 찾기 또는 생성
-    this.setupCanvas();
-    
-    // Choice 카드 이벤트 연결
-    this.bindChoiceEvents();
-    
-    // Gate 상태 감시
-    this.watchGate();
-    
-    console.log('[PhantomBridge] Initialized');
+    try {
+      // Phantom 캔버스 찾기 또는 생성
+      this.setupCanvas();
+      
+      // Choice 카드 이벤트 연결
+      this.bindChoiceEvents();
+      
+      // Gate 상태 감시
+      this.watchGate();
+      
+      console.log('[PhantomBridge] Initialized');
+    } catch (err) {
+      console.warn('[PhantomBridge] init() error (safe):', err.message);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -89,32 +109,37 @@ class PhantomChoiceBridge {
   // Choice 이벤트 바인딩
   // ─────────────────────────────────────────────────────────────
   bindChoiceEvents() {
-    // Choice 카드 호버
+    // Choice 카드 호버 (안전한 Element 접근)
     document.addEventListener('mouseenter', (e) => {
-      if (!(e.target instanceof Element)) return;
-      const card = e.target.closest('.choice-card');
-      if (card) {
-        this.onChoiceHover(card.dataset.choiceId);
-      }
+      try {
+        const el = getElement(e);
+        if (!el) return;
+        const card = safeClosest(el, '.choice-card');
+        if (card) this.onChoiceHover(card.dataset.choiceId);
+      } catch {}
     }, true);
 
     document.addEventListener('mouseleave', (e) => {
-      if (!(e.target instanceof Element)) return;
-      const card = e.target.closest('.choice-card');
-      if (card) {
-        this.onChoiceLeave(card.dataset.choiceId);
-      }
+      try {
+        const el = getElement(e);
+        if (!el) return;
+        const card = safeClosest(el, '.choice-card');
+        if (card) this.onChoiceLeave(card.dataset.choiceId);
+      } catch {}
     }, true);
 
     // HOLD 버튼 (길게 누르기)
     document.addEventListener('mousedown', (e) => {
-      if (!(e.target instanceof Element)) return;
-      const card = e.target.closest('.choice-card');
-      if (card && !e.target.classList.contains('card-lock-btn')) {
-        this.holdTimer = setTimeout(() => {
-          this.onChoiceHold(card.dataset.choiceId);
-        }, 500);
-      }
+      try {
+        const el = getElement(e);
+        if (!el) return;
+        const card = safeClosest(el, '.choice-card');
+        if (card && !el.classList?.contains('card-lock-btn')) {
+          this.holdTimer = setTimeout(() => {
+            this.onChoiceHold(card.dataset.choiceId);
+          }, 500);
+        }
+      } catch {}
     });
 
     document.addEventListener('mouseup', () => {
@@ -123,13 +148,14 @@ class PhantomChoiceBridge {
 
     // LOCK 버튼
     document.addEventListener('click', (e) => {
-      if (!(e.target instanceof Element)) return;
-      if (e.target.classList.contains('card-lock-btn')) {
-        const card = e.target.closest('.choice-card');
-        if (card) {
-          this.onChoiceLock(card.dataset.choiceId);
+      try {
+        const el = getElement(e);
+        if (!el) return;
+        if (el.classList?.contains('card-lock-btn')) {
+          const card = safeClosest(el, '.choice-card');
+          if (card) this.onChoiceLock(card.dataset.choiceId);
         }
-      }
+      } catch {}
     });
 
     // 기존 액션 버튼 지원
