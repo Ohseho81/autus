@@ -1,0 +1,88 @@
+/* ═══════════════════════════════════════════════════════════════
+   AUTUS Legacy Action Control Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 기본 숨김 */
+.legacy-hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* 디버그 모드에서 노출 */
+.legacy-debug-visible {
+  display: block !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  opacity: 0.7;
+  border: 2px dashed rgba(147, 51, 234, 0.5) !important;
+  position: relative;
+}
+
+.legacy-debug-visible::before {
+  content: '🔧 DEBUG ONLY';
+  position: absolute;
+  top: -24px;
+  left: 0;
+  background: rgba(147, 51, 234, 0.8);
+  color: white;
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  z-index: 10;
+}
+
+/* 디버그 버튼 스타일 */
+.debug-action-btn {
+  background: rgba(147, 51, 234, 0.1) !important;
+  border: 1px dashed rgba(147, 51, 234, 0.4) !important;
+  color: rgba(147, 51, 234, 0.8) !important;
+  font-size: 10px !important;
+  opacity: 0.8;
+}
+
+.debug-action-btn:hover {
+  background: rgba(147, 51, 234, 0.2) !important;
+}
+
+/* 디버그 배지 */
+#debug-context-badge {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  background: rgba(147, 51, 234, 0.9);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  z-index: 99999;
+  box-shadow: 0 4px 20px rgba(147, 51, 234, 0.4);
+  animation: badgePulse 2s infinite;
+}
+
+#debug-context-badge.hidden {
+  display: none;
+}
+
+#debug-context-badge .badge-icon {
+  font-size: 14px;
+}
+
+#debug-context-badge .badge-text {
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+#debug-context-badge .badge-hint {
+  opacity: 0.7;
+  font-size: 9px;
+}
+
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(147, 51, 234, 0.4); }
+  50% { box-shadow: 0 4px 30px rgba(147, 51, 234, 0.6); }
+}

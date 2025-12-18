@@ -1,0 +1,183 @@
+/* ═══════════════════════════════════════════════════════════════
+   AUTUS Choice Bottleneck Proof Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 병목 → 선택 1줄 증명 */
+.bottleneck-proof {
+  padding: 10px 12px;
+  margin: 12px 0;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  font-size: 11px;
+  border-left: 3px solid transparent;
+}
+
+.bottleneck-proof .proof-direct {
+  color: #22c55e;
+}
+
+.choice-card:has(.proof-direct) .bottleneck-proof {
+  border-left-color: #22c55e;
+}
+
+.bottleneck-proof .proof-secondary {
+  color: #3b82f6;
+}
+
+.choice-card:has(.proof-secondary) .bottleneck-proof {
+  border-left-color: #3b82f6;
+}
+
+.bottleneck-proof .proof-indirect {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.choice-card:has(.proof-indirect) .bottleneck-proof {
+  border-left-color: rgba(255, 255, 255, 0.3);
+}
+
+.bottleneck-proof strong {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* Direct match 카드 강조 */
+.choice-card:has(.proof-direct) {
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+/* Forecast Mini Bar */
+.forecast-mini-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mini-bar-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 1px;
+  width: 50px;
+}
+
+.mini-bar-container {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mini-bar-current {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(239, 68, 68, 0.5);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.mini-bar-predicted {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(34, 197, 94, 0.8);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.mini-bar-delta {
+  font-size: 11px;
+  font-weight: 600;
+  width: 50px;
+  text-align: right;
+}
+
+.mini-bar-delta.positive {
+  color: #22c55e;
+}
+
+.mini-bar-delta.negative {
+  color: #ef4444;
+}
+
+/* Choice 카드 최적화 - 더 컴팩트하게 */
+.choice-card .card-reasoning {
+  font-size: 12px;
+  padding: 10px;
+}
+
+.choice-card .card-forecast {
+  padding: 10px;
+}
+
+.choice-card .forecast-row {
+  padding: 3px 0;
+}
+
+/* Primary Bottleneck 표시 */
+.primary-bottleneck-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  font-size: 10px;
+  color: #ef4444;
+  margin: 12px 0;
+}
+
+.primary-bottleneck-badge .bn-icon {
+  font-size: 12px;
+}
+
+.primary-bottleneck-badge .bn-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.primary-bottleneck-badge .bn-name {
+  font-weight: 600;
+}
+
+.primary-bottleneck-badge .bn-value {
+  font-weight: 700;
+  font-family: 'SF Mono', monospace;
+}
+
+/* PRIMARY/SECONDARY/TERTIARY 라벨 */
+.card-rank.primary {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #22c55e !important;
+}
+
+.card-rank.secondary {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: #3b82f6 !important;
+}
+
+.card-rank.tertiary {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.choice-card.primary {
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.05), transparent) !important;
+}
+
+.choice-card.secondary {
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.choice-card.tertiary {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  opacity: 0.85;
+}
