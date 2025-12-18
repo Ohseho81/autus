@@ -533,36 +533,34 @@
   // 5. DOM 삽입 및 Legacy 숨김
   // ─────────────────────────────────────────────────────────────
   function inject() {
-    const state = extractState();
-    const choices = defineChoices(state);
-    const html = renderChoiceContainer(choices, state);
+    try {
+      const state = extractState();
+      const choices = defineChoices(state);
+      const html = renderChoiceContainer(choices, state);
 
-    // L3 ACTION LOG 찾기
-    let l3Section = null;
-    document.querySelectorAll('*').forEach(el => {
-      if (el.textContent && el.textContent.includes('L3') && el.textContent.includes('ACTION LOG')) {
-        l3Section = el.closest('section, div.layer, div');
+      // 삽입 위치 결정 - 안전하게
+      const container = document.createElement('div');
+      container.innerHTML = html;
+      const choiceElement = container.firstElementChild;
+
+      // #layer-action 바로 위에 삽입 시도
+      const layerAction = document.getElementById('layer-action');
+      if (layerAction && layerAction.parentElement) {
+        layerAction.parentElement.insertBefore(choiceElement, layerAction);
+        console.log('[AUTUS] Choice cards inserted before #layer-action');
+      } else {
+        // fallback: body 끝에 삽입
+        document.body.appendChild(choiceElement);
+        console.log('[AUTUS] Choice cards appended to body');
       }
-    });
 
-    // 삽입 위치 결정
-    const container = document.createElement('div');
-    container.innerHTML = html;
-    const choiceElement = container.firstElementChild;
-
-    if (l3Section && l3Section.parentElement) {
-      l3Section.parentElement.insertBefore(choiceElement, l3Section);
-    } else {
-      // fallback: 페이지 중간에 삽입
-      const main = document.querySelector('main, .main, .content, body');
-      main.appendChild(choiceElement);
+      // 이벤트 바인딩
+      bindEvents();
+      
+      console.log('[AUTUS] inject() completed successfully');
+    } catch (e) {
+      console.error('[AUTUS] inject() error:', e);
     }
-
-    // Legacy 숨김 (L3 버튼, L4 버튼)
-    hideLegacy();
-
-    // 이벤트 바인딩
-    bindEvents();
   }
 
   function hideLegacy() {
@@ -616,15 +614,21 @@
   // 6. 초기화
   // ─────────────────────────────────────────────────────────────
   function init() {
-    injectStyles();
-    inject();
-    console.log('[AUTUS] Choice System injected ✓');
+    try {
+      console.log('[AUTUS] Starting Choice System init...');
+      injectStyles();
+      inject();
+      console.log('[AUTUS] Choice System injected ✓');
+    } catch (e) {
+      console.error('[AUTUS] init() error:', e);
+    }
   }
 
+  // 안전한 초기화 - 1초 후 실행
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(init, 300));
+    document.addEventListener('DOMContentLoaded', () => setTimeout(init, 1000));
   } else {
-    setTimeout(init, 300);
+    setTimeout(init, 1000);
   }
 
 })();
