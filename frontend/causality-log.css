@@ -1,0 +1,263 @@
+/* ═══════════════════════════════════════════════════════════════
+   AUTUS Causality Log Styles v1.0
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Panel */
+.causality-panel {
+  position: fixed;
+  bottom: 40px;
+  left: 40px;
+  width: 320px;
+  background: rgba(10, 12, 18, 0.95);
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-radius: 12px;
+  z-index: 200;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+  max-height: 50px;
+  overflow: hidden;
+}
+
+.causality-panel.expanded {
+  max-height: 500px;
+}
+
+/* Header */
+.causality-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.causality-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.causality-icon {
+  font-size: 14px;
+}
+
+.entry-count {
+  color: rgba(0, 212, 255, 0.7);
+  font-size: 9px;
+}
+
+.causality-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.causality-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s;
+}
+
+.causality-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Body */
+.causality-body {
+  padding: 12px;
+}
+
+/* Filters */
+.causality-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.filter-btn.active {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.3);
+  color: #00d4ff;
+}
+
+/* Entries */
+.causality-entries {
+  max-height: 280px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.causality-entry {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.causality-entry.lock {
+  border-left: 3px solid #22c55e;
+}
+
+.causality-entry.hold {
+  border-left: 3px solid #eab308;
+}
+
+.causality-entry.reject {
+  border-left: 3px solid #ef4444;
+}
+
+.entry-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 9px;
+}
+
+.entry-type {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.causality-entry.lock .entry-type { color: #22c55e; }
+.causality-entry.hold .entry-type { color: #eab308; }
+.causality-entry.reject .entry-type { color: #ef4444; }
+
+.entry-time {
+  color: rgba(255, 255, 255, 0.3);
+  font-family: 'SF Mono', monospace;
+}
+
+.entry-gate {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.entry-gate.gate-green { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+.entry-gate.gate-amber { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+.entry-gate.gate-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+.entry-content {
+  font-size: 11px;
+}
+
+.entry-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.choice-id {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.choice-name {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.accuracy {
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.accuracy.good { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+.accuracy.ok { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+.accuracy.bad { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+.pending {
+  color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
+  font-size: 9px;
+}
+
+.entry-state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+
+.entry-state .arrow {
+  color: rgba(0, 212, 255, 0.6);
+}
+
+.entry-reasoning {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.entry-note {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Summary */
+.causality-summary {
+  display: flex;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.summary-item {
+  flex: 1;
+  text-align: center;
+}
+
+.summary-label {
+  display: block;
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.summary-value.good { color: #22c55e; }
+.summary-value.ok { color: #eab308; }
+.summary-value.bad { color: #ef4444; }
