@@ -1750,25 +1750,49 @@ animate();
   <script src="choice-card.js"></script>
   <script src="choice-card-ui.js"></script>
   
-  <!-- Phantom Orbit (미래 궤도 오버레이) -->
+  <!-- Phantom Orbit System (미래 궤도 오버레이) -->
   <link rel="stylesheet" href="phantom-orbit.css">
   <script src="phantom-orbit.js"></script>
+  <script src="phantom-choice-bridge.js"></script>
   
   <!-- Phantom UI Elements -->
-  <div class="phantom-legend" id="phantom-legend">
+  <div id="phantom-legend">
+    <div class="legend-section-title">TIMEFRAME</div>
     <div class="legend-item">
-      <span class="legend-dot current"></span>
-      <span class="legend-text">CURRENT</span>
+      <div class="legend-ring h1"></div>
+      <span>+1h</span>
     </div>
     <div class="legend-item">
-      <span class="legend-dot future-good"></span>
-      <span class="legend-text">FUTURE (improved)</span>
+      <div class="legend-ring h24"></div>
+      <span>+24h</span>
     </div>
     <div class="legend-item">
-      <span class="legend-dot future-bad"></span>
-      <span class="legend-text">FUTURE (worse)</span>
+      <div class="legend-ring d7"></div>
+      <span>+7d</span>
+    </div>
+    <div class="color-legend">
+      <div class="legend-section-title">RISK LEVEL</div>
+      <div class="color-item">
+        <div class="color-dot stable"></div>
+        <span>Stable (Δrisk < -15%)</span>
+      </div>
+      <div class="color-item">
+        <div class="color-dot unstable"></div>
+        <span>Unstable (Δrisk < -5%)</span>
+      </div>
+      <div class="color-item">
+        <div class="color-dot critical"></div>
+        <span>Critical (Δrisk ≥ -5%)</span>
+      </div>
     </div>
   </div>
-  <div class="phantom-hint" id="phantom-hint">HOVER CHOICE TO SEE FUTURE ORBIT</div>
+  <div id="phantom-hint" class="visible">HOVER CHOICE TO SEE FUTURE ORBIT</div>
+  
+  <!-- Phantom Indicators -->
+  <div class="phantom-indicator">
+    <div class="phantom-dot" data-phantom="A"></div>
+    <div class="phantom-dot" data-phantom="B"></div>
+    <div class="phantom-dot" data-phantom="C"></div>
+  </div>
 </body>
 </html>
