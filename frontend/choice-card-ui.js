@@ -28,10 +28,10 @@ class ChoiceCardUI {
       this.container = document.createElement('div');
       this.container.id = 'choice-container';
       
-      // 기존 layer-action 영역 대체
+      // 기존 layer-action 영역은 그대로 유지 (숨기지 않음)
       const oldActionArea = document.getElementById('layer-action');
       if (oldActionArea) {
-        oldActionArea.style.display = 'none';
+        // oldActionArea.style.display = 'none'; // 비활성화: layer-action 숨기지 않음
         oldActionArea.parentNode.insertBefore(this.container, oldActionArea);
       } else {
         document.body.appendChild(this.container);

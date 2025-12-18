@@ -24,6 +24,11 @@ class LegacyActionControl {
   // Legacy Block 완전 숨김 (기본 상태)
   // ─────────────────────────────────────────────────────────────
   hideLegacyBlock() {
+    // 비활성화: 기존 UI 요소들을 숨기지 않음
+    console.log('[AUTUS] Legacy Action Block hiding DISABLED - preserving layer-action');
+    return;
+    
+    /* DISABLED - 이 코드가 #layer-action을 숨기는 원인
     const selectors = [
       '.recommended-action',
       '.recommendation-banner',
@@ -31,14 +36,11 @@ class LegacyActionControl {
       '.legacy-actions',
       '.action-buttons',
       '[data-legacy-action]',
-      // 기존 버튼들
       '.recover-btn:not([data-choice])',
       '.defriction-btn:not([data-choice])',
       '.shock-btn:not([data-choice])',
-      // Future Simulator 팝업 (이제 Choice 카드로 대체)
       '#future-sim-panel',
       '.future-sim-panel',
-      // Hover sim cards
       '.hover-sim-card'
     ];
 
@@ -50,7 +52,6 @@ class LegacyActionControl {
       });
     });
 
-    // RECOMMENDED 텍스트 제거
     document.querySelectorAll('*').forEach(el => {
       if (el.textContent && 
           el.textContent.includes('RECOMMENDED ACTION') && 
@@ -61,6 +62,7 @@ class LegacyActionControl {
     });
 
     console.log('[AUTUS] Legacy Action Block hidden');
+    */
   }
 
   // ─────────────────────────────────────────────────────────────
