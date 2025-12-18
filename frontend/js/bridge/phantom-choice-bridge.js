@@ -1,7 +1,10 @@
 // ═══════════════════════════════════════════════════════════════
-// AUTUS Phantom-Choice Bridge v1.1 PATCHED
+// AUTUS Phantom-Choice Bridge v1.2 PATCHED
 // Choice 카드 Hover/Hold/Lock → Phantom Orbit 연결
 // ═══════════════════════════════════════════════════════════════
+
+// 🔖 실행 버전 증거 (이 로그가 콘솔에 없으면 구버전 캐시)
+console.info("[AUTUS_BUILD] phantom-choice-bridge.js v1.2 FIX_CLOSEST_20251218");
 
 // 🛡️ Safe Element Utilities (closest 에러 방지)
 const getElement = (e) => {
