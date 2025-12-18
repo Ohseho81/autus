@@ -50,8 +50,11 @@ class LegacyActionControl {
       });
     });
 
-    // RECOMMENDED 텍스트 제거
+    // RECOMMENDED 텍스트 제거 (html, body 제외)
     document.querySelectorAll('*').forEach(el => {
+      // html, body는 절대 숨기지 않음
+      if (el === document.documentElement || el === document.body) return;
+      
       if (el.textContent && 
           el.textContent.includes('RECOMMENDED ACTION') && 
           !el.closest('.choice-card') &&

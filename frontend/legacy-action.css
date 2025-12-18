@@ -2,11 +2,20 @@
    AUTUS Legacy Action Control Styles
    ═══════════════════════════════════════════════════════════════ */
 
-/* 기본 숨김 */
-.legacy-hidden {
+/* 기본 숨김 (html, body 제외) */
+.legacy-hidden:not(html):not(body) {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+/* html, body는 절대 숨기지 않음 */
+html.legacy-hidden,
+body.legacy-hidden {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 /* 디버그 모드에서 노출 */
