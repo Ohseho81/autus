@@ -708,6 +708,92 @@ let auditTimer = null;
 let currentAuditAction = null;
 
 // ═══════════════════════════════════════════════════════════════
+// PHYSICS FRAME — 물리 기반 UI 상태
+// ═══════════════════════════════════════════════════════════════
+const PhysicsFrame = {
+  ring: {
+    // 현재 값 (렌더링용)
+    radiusScale: 1.0,     // 0.5 ~ 1.0 (Risk↑ → 수축)
+    thickness: 0.15,      // 0.1 ~ 0.4 (Pressure↑ → 두꺼움)
+    pulseHz: 0.5,         // 0.3 ~ 2.0 (Entropy↑ → 빠른 맥동)
+    asymStrength: 0.0,    // 0.0 ~ 0.3 (Shock↑ → 비대칭)
+    asymAngle: 0.0,       // 0 ~ 2π (Bottleneck 방향)
+    
+    // 목표 값 (TwinState에서 계산)
+    targetRadiusScale: 1.0,
+    targetThickness: 0.15,
+    targetPulseHz: 0.5,
+    targetAsymStrength: 0.0,
+    targetAsymAngle: 0.0
+  },
+  
+  // Preview (Ghost) 상태
+  preview: {
+    active: false,
+    radiusScale: 1.0,
+    thickness: 0.15,
+    asymStrength: 0.0,
+    asymAngle: 0.0
+  }
+};
+
+// 시간 상수 (초 → 프레임 변환: 60fps 기준)
+const TAU = {
+  radiusScale: 0.8,   // Law 5: Failure Horizon
+  thickness: 0.6,
+  pulseHz: 0.4,       // Law 6: Entropy Pulse
+  asymStrength: 0.7,  // Law 4: Shock Asymmetry
+  asymAngle: 0.9
+};
+
+// Lerp with τ (시간 상수 기반 지수 감쇠)
+function lerpTau(current, target, tau, dt = 0.016) {
+  const alpha = 1 - Math.exp(-dt / tau);
+  return current + (target - current) * alpha;
+}
+
+// TwinState → PhysicsFrame 변환 (Law 4,5,6,7)
+function updatePhysicsFrame() {
+  const risk = state.risk;
+  const entropy = planets9.SHOCK || 0.5;
+  const pressure = planets9.FRICTION || 0.5;
+  const shock = planets9.SHOCK || 0.5;
+  const friction = planets9.FRICTION || 0.5;
+  
+  // Law 5: Failure Horizon — Risk↑ → Radius↓
+  // radiusScale: 1.0 (risk=0) → 0.5 (risk=1)
+  PhysicsFrame.ring.targetRadiusScale = 1.0 - risk * 0.5;
+  
+  // Pressure↑ → Thickness↑
+  // thickness: 0.1 (pressure=0) → 0.4 (pressure=1)
+  PhysicsFrame.ring.targetThickness = 0.1 + pressure * 0.3;
+  
+  // Law 6: Entropy Pulse — Entropy↑ → Pulse↑
+  // pulseHz: 0.3 (entropy=0) → 2.0 (entropy=1)
+  PhysicsFrame.ring.targetPulseHz = 0.3 + entropy * 1.7;
+  
+  // Law 4: Shock Asymmetry — Shock↑ → AsymStrength↑
+  // asymStrength: 0.0 (shock=0) → 0.3 (shock=1)
+  PhysicsFrame.ring.targetAsymStrength = shock * 0.3;
+  
+  // Bottleneck 방향: Friction > Shock면 왼쪽, 아니면 오른쪽
+  const bottleneckAngle = friction > shock ? Math.PI * 0.75 : Math.PI * 1.25;
+  PhysicsFrame.ring.targetAsymAngle = bottleneckAngle;
+}
+
+// PhysicsFrame 애니메이션 (매 프레임 호출)
+function animatePhysicsFrame(dt = 0.016) {
+  const r = PhysicsFrame.ring;
+  
+  // Law 7: Time Constant 적용
+  r.radiusScale = lerpTau(r.radiusScale, r.targetRadiusScale, TAU.radiusScale, dt);
+  r.thickness = lerpTau(r.thickness, r.targetThickness, TAU.thickness, dt);
+  r.pulseHz = lerpTau(r.pulseHz, r.targetPulseHz, TAU.pulseHz, dt);
+  r.asymStrength = lerpTau(r.asymStrength, r.targetAsymStrength, TAU.asymStrength, dt);
+  r.asymAngle = lerpTau(r.asymAngle, r.targetAsymAngle, TAU.asymAngle, dt);
+}
+
+// ═══════════════════════════════════════════════════════════════
 // THREE.JS SETUP
 // ═══════════════════════════════════════════════════════════════
 const scene = new THREE.Scene();
@@ -748,20 +834,150 @@ globeGroup.add(new THREE.Mesh(
   new THREE.MeshBasicMaterial({ color: 0x00d4ff, wireframe: true, transparent: true, opacity: 0.15 })
 ));
 
-// L2 SIMULATION RINGS
+// L2 SIMULATION RINGS → FAILURE HORIZON RING (Physics-based)
 const simGroup = new THREE.Group();
+const RING_SEGMENTS = 128;
+const BASE_RADIUS = 8.0;
+
+// ═══════════════════════════════════════════════════════════════
+// FAILURE RING (Main) — 동적 변형 가능한 TorusGeometry
+// ═══════════════════════════════════════════════════════════════
+const failureRingGeo = new THREE.TorusGeometry(BASE_RADIUS, 0.15, 16, RING_SEGMENTS);
+const failureRingMat = new THREE.MeshBasicMaterial({
+  color: 0xff4444,
+  transparent: true,
+  opacity: 0.6,
+  side: THREE.DoubleSide
+});
+const failureRing = new THREE.Mesh(failureRingGeo, failureRingMat);
+failureRing.rotation.x = Math.PI / 2;
+failureRing.position.y = 0.3;
+simGroup.add(failureRing);
+
+// 원본 정점 저장 (변형 기준)
+const failureRingBasePositions = failureRingGeo.attributes.position.array.slice();
+
+// ═══════════════════════════════════════════════════════════════
+// GHOST RING (Preview) — Action Preview 시 표시
+// ═══════════════════════════════════════════════════════════════
+const ghostRingGeo = new THREE.TorusGeometry(BASE_RADIUS, 0.1, 8, RING_SEGMENTS);
+const ghostRingMat = new THREE.MeshBasicMaterial({
+  color: 0x00d4ff,
+  transparent: true,
+  opacity: 0.0,
+  wireframe: true
+});
+const ghostRing = new THREE.Mesh(ghostRingGeo, ghostRingMat);
+ghostRing.rotation.x = Math.PI / 2;
+ghostRing.position.y = 0.35;
+simGroup.add(ghostRing);
+const ghostRingBasePositions = ghostRingGeo.attributes.position.array.slice();
+
+// ═══════════════════════════════════════════════════════════════
+// INNER HEALTH RING (Recovery/Stability 기반)
+// ═══════════════════════════════════════════════════════════════
 const innerRingMat = new THREE.MeshBasicMaterial({ color: 0x00ffaa, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
-const innerRing = new THREE.Mesh(new THREE.RingGeometry(7.5, 7.7, 64), innerRingMat);
+const innerRing = new THREE.Mesh(new THREE.RingGeometry(6.5, 6.7, 64), innerRingMat);
 innerRing.rotation.x = -Math.PI / 2;
-innerRing.position.y = 0.3;
+innerRing.position.y = 0.25;
 simGroup.add(innerRing);
 
+// ═══════════════════════════════════════════════════════════════
+// OUTER PRESSURE RING (Shock/Friction 기반)
+// ═══════════════════════════════════════════════════════════════
 const outerRingMat = new THREE.MeshBasicMaterial({ color: 0xff8844, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
-const outerRing = new THREE.Mesh(new THREE.RingGeometry(8.2, 8.5, 64), outerRingMat);
+const outerRing = new THREE.Mesh(new THREE.RingGeometry(9.0, 9.2, 64), outerRingMat);
 outerRing.rotation.x = -Math.PI / 2;
-outerRing.position.y = 0.3;
+outerRing.position.y = 0.35;
 simGroup.add(outerRing);
+
 scene.add(simGroup);
+
+// ═══════════════════════════════════════════════════════════════
+// FAILURE RING DEFORMATION — 물리 기반 변형 함수
+// ═══════════════════════════════════════════════════════════════
+function deformFailureRing(time) {
+  const pf = PhysicsFrame.ring;
+  const positions = failureRingGeo.attributes.position.array;
+  const basePos = failureRingBasePositions;
+  
+  // Pulse amplitude (맥동)
+  const pulseAmp = 0.15 + pf.thickness * 0.5;
+  const pulse = Math.sin(time * pf.pulseHz * Math.PI * 2) * pulseAmp * 0.3;
+  
+  for (let i = 0; i < positions.length; i += 3) {
+    const bx = basePos[i];
+    const by = basePos[i + 1];
+    const bz = basePos[i + 2];
+    
+    // 정점의 각도 계산 (XZ 평면)
+    const angle = Math.atan2(bz, bx);
+    
+    // Law 5: Radius scaling (Risk 기반)
+    const radiusMult = pf.radiusScale;
+    
+    // Law 4: Asymmetry (Shock 기반 비대칭)
+    // asymAngle 방향으로 수축, 반대 방향으로 확장
+    const asymOffset = Math.cos(angle - pf.asymAngle) * pf.asymStrength;
+    
+    // Law 6: Pulse (Entropy 기반 맥동)
+    const pulseMult = 1 + pulse;
+    
+    // 최종 스케일
+    const scale = radiusMult * (1 + asymOffset) * pulseMult;
+    
+    positions[i] = bx * scale;
+    positions[i + 1] = by * (1 + pf.thickness * 2); // 두께 증가
+    positions[i + 2] = bz * scale;
+  }
+  
+  failureRingGeo.attributes.position.needsUpdate = true;
+  
+  // 색상 변화: Risk에 따라 녹색 → 노랑 → 빨강
+  const risk = state.risk;
+  let ringColor;
+  if (risk < 0.35) {
+    ringColor = new THREE.Color(0x00d4aa); // 안전: 시안
+  } else if (risk < 0.6) {
+    ringColor = new THREE.Color(0xffaa00); // 경고: 주황
+  } else {
+    ringColor = new THREE.Color(0xff4444); // 위험: 빨강
+  }
+  failureRingMat.color = ringColor;
+  failureRingMat.opacity = 0.4 + risk * 0.4;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GHOST RING DEFORMATION — Preview 시 미래 상태 표시
+// ═══════════════════════════════════════════════════════════════
+function deformGhostRing(time) {
+  const pv = PhysicsFrame.preview;
+  if (!pv.active) {
+    ghostRingMat.opacity = 0;
+    return;
+  }
+  
+  ghostRingMat.opacity = 0.4;
+  const positions = ghostRingGeo.attributes.position.array;
+  const basePos = ghostRingBasePositions;
+  
+  for (let i = 0; i < positions.length; i += 3) {
+    const bx = basePos[i];
+    const by = basePos[i + 1];
+    const bz = basePos[i + 2];
+    
+    const angle = Math.atan2(bz, bx);
+    const radiusMult = pv.radiusScale;
+    const asymOffset = Math.cos(angle - pv.asymAngle) * pv.asymStrength;
+    const scale = radiusMult * (1 + asymOffset);
+    
+    positions[i] = bx * scale;
+    positions[i + 1] = by * (1 + pv.thickness * 2);
+    positions[i + 2] = bz * scale;
+  }
+  
+  ghostRingGeo.attributes.position.needsUpdate = true;
+}
 
 // Planets
 const planetGroup = new THREE.Group();
@@ -901,9 +1117,9 @@ let actionHoldTimer = null;
 
 function previewAction(action) {
   const delta = {
-    recover: { recovery: +0.15, stability: +0.05, friction: -0.05 },
-    defriction: { friction: -0.20, transfer: +0.10, recovery: +0.05 },
-    shock_damp: { shock: -0.15, stability: +0.10, recovery: +0.05 }
+    recover: { recovery: +0.15, stability: +0.05, friction: -0.05, shock: -0.05 },
+    defriction: { friction: -0.20, transfer: +0.10, recovery: +0.05, shock: 0 },
+    shock_damp: { shock: -0.15, stability: +0.10, recovery: +0.05, friction: -0.05 }
   }[action];
   
   // Flash rings
@@ -911,10 +1127,31 @@ function previewAction(action) {
   outerRingMat.opacity = 0.6;
   setTimeout(() => { innerRingMat.opacity = 0.25; outerRingMat.opacity = 0.2; }, 800);
   
-  logAction(`Preview: ${action.toUpperCase()}`, 'warning');
+  // ═══════════════════════════════════════════════════════════════
+  // GHOST RING PREVIEW — 예상 미래 상태 계산
+  // ═══════════════════════════════════════════════════════════════
+  const futureShock = Math.max(0, Math.min(1, (planets9.SHOCK || 0.5) + (delta.shock || 0)));
+  const futureFriction = Math.max(0, Math.min(1, (planets9.FRICTION || 0.5) + (delta.friction || 0)));
+  const futureRisk = Math.min(1, futureShock * 1.2 + futureFriction * 0.3);
+  
+  // Ghost Ring에 미래 상태 적용
+  PhysicsFrame.preview.active = true;
+  PhysicsFrame.preview.radiusScale = 1.0 - futureRisk * 0.5;
+  PhysicsFrame.preview.thickness = 0.1 + futureFriction * 0.3;
+  PhysicsFrame.preview.asymStrength = futureShock * 0.3;
+  PhysicsFrame.preview.asymAngle = futureFriction > futureShock ? Math.PI * 0.75 : Math.PI * 1.25;
+  
+  // Ghost Ring 색상: 개선되면 녹색, 악화되면 빨강
+  if (futureRisk < state.risk) {
+    ghostRingMat.color.setHex(0x00ff88); // 개선: 녹색
+  } else {
+    ghostRingMat.color.setHex(0xff4444); // 악화: 빨강
+  }
+  
+  logAction(`Preview: ${action.toUpperCase()} (Risk ${state.risk.toFixed(2)} → ${futureRisk.toFixed(2)})`, 'warning');
   
   // 바로 AUDIT 열기
-  currentAuditAction = { action, delta };
+  currentAuditAction = { action, delta, futureRisk };
   openAudit(action, delta);
 }
 
@@ -1047,8 +1284,11 @@ function openAudit(action, delta) {
   document.getElementById('audit-fri').textContent = `${delta.friction > 0 ? '+' : ''}${Math.round((delta.friction || 0) * 100)}%`;
   document.getElementById('audit-fri').className = 'value ' + ((delta.friction || 0) < 0 ? 'positive' : 'negative');
   
-  const newRisk = Math.max(0, state.risk - 0.16);
-  document.getElementById('audit-risk').textContent = `${state.risk.toFixed(2)} → ${newRisk.toFixed(2)}`;
+  // PhysicsFrame에서 계산된 미래 Risk 사용
+  const futureRisk = currentAuditAction?.futureRisk || Math.max(0, state.risk - 0.16);
+  const riskImproved = futureRisk < state.risk;
+  document.getElementById('audit-risk').textContent = `${state.risk.toFixed(2)} → ${futureRisk.toFixed(2)}`;
+  document.getElementById('audit-risk').className = 'value ' + (riskImproved ? 'positive' : 'negative');
   document.getElementById('audit-conf').textContent = `${75 + Math.floor(Math.random() * 20)}%`;
   
   let countdown = 30;
@@ -1077,6 +1317,9 @@ function openAudit(action, delta) {
 async function auditDecision(verdict) {
   clearInterval(auditTimer);
   
+  // Ghost Ring 비활성화
+  PhysicsFrame.preview.active = false;
+  
   const auditEl = document.getElementById('layer-audit');
   const cardEl = auditEl.querySelector('.audit-card');
   const action = currentAuditAction?.action || 'unknown';
@@ -1090,27 +1333,53 @@ async function auditDecision(verdict) {
     const riskBefore = state.risk;
     const recoveryBefore = planets9.RECOVERY || 0.5;
     
+    // ═══════════════════════════════════════════════════════════════
+    // LOCK: 실제 상태 변경 (Delta 적용)
+    // ═══════════════════════════════════════════════════════════════
+    const applyDelta = () => {
+      // Delta를 planets9에 적용 (0~1 범위 유지)
+      if (delta.recovery) planets9.RECOVERY = Math.max(0, Math.min(1, (planets9.RECOVERY || 0.5) + delta.recovery));
+      if (delta.stability) planets9.STABILITY = Math.max(0, Math.min(1, (planets9.STABILITY || 0.5) + delta.stability));
+      if (delta.friction) planets9.FRICTION = Math.max(0, Math.min(1, (planets9.FRICTION || 0.5) + delta.friction));
+      if (delta.shock) planets9.SHOCK = Math.max(0, Math.min(1, (planets9.SHOCK || 0.5) + delta.shock));
+      if (delta.transfer) planets9.TRANSFER = Math.max(0, Math.min(1, (planets9.TRANSFER || 0.5) + delta.transfer));
+      
+      // Risk 재계산
+      state.risk = Math.min(1, (planets9.SHOCK || 0.5) * 1.2 + (planets9.FRICTION || 0.5) * 0.3);
+      
+      // UI 업데이트
+      renderPlanetList();
+    };
+    
     try {
       const response = await fetch('/autus/solar/release', { method: 'POST' });
       const result = await response.json();
       
-      // 새 상태 가져오기
-      const riskAfter = result.signals?.entropy * 1.2 + (result.signals?.pressure || 0) * 0.3;
-      const recoveryAfter = recoveryBefore + (delta.recovery || 0);
+      // 서버 응답으로 상태 업데이트 (있으면)
+      if (result.signals) {
+        planets9.SHOCK = result.signals.entropy || planets9.SHOCK;
+        planets9.FRICTION = result.signals.pressure || planets9.FRICTION;
+        state.risk = Math.min(1, (planets9.SHOCK || 0.5) * 1.2 + (planets9.FRICTION || 0.5) * 0.3);
+      } else {
+        applyDelta();
+      }
+      
+      const riskAfter = state.risk;
+      const recoveryAfter = planets9.RECOVERY || 0.5;
       
       // Outcome 판정
       const outcome = classifyOutcome(riskBefore, riskAfter, recoveryBefore, recoveryAfter);
-      const icon = outcome.icon;
-      const reason = outcome.reason;
-      
-      logAction(`${icon} LOCKED: ${action.toUpperCase()} → ${reason}`, outcome.type);
-      logAction(`risk: ${riskBefore.toFixed(2)} → ${riskAfter.toFixed(2)}`);
+      logAction(`${outcome.icon} LOCKED: ${action.toUpperCase()} → ${outcome.reason}`, outcome.type);
+      logAction(`Risk: ${riskBefore.toFixed(2)} → ${riskAfter.toFixed(2)}`, riskAfter < riskBefore ? 'info' : 'warning');
     } catch (e) {
-      // 오프라인: 예상 결과로 판정
-      const riskAfter = Math.max(0, riskBefore - 0.15);
-      const recoveryAfter = recoveryBefore + (delta.recovery || 0);
+      // 오프라인: 예상 결과로 상태 변경
+      applyDelta();
+      
+      const riskAfter = state.risk;
+      const recoveryAfter = planets9.RECOVERY || 0.5;
       const outcome = classifyOutcome(riskBefore, riskAfter, recoveryBefore, recoveryAfter);
       logAction(`${outcome.icon} LOCKED: ${action.toUpperCase()} → ${outcome.reason}`, outcome.type);
+      logAction(`Risk: ${riskBefore.toFixed(2)} → ${riskAfter.toFixed(2)}`, riskAfter < riskBefore ? 'info' : 'warning');
     }
     
     // 애니메이션 후 닫기
@@ -1118,6 +1387,7 @@ async function auditDecision(verdict) {
       auditEl.classList.remove('active');
       cardEl.classList.remove('locking');
       window.auditActive = false;
+      renderPlanetList();
     }, 600);
     
   } else if (verdict === 'REJECT') {
@@ -1277,9 +1547,16 @@ document.addEventListener('keydown', e => {
 // ═══════════════════════════════════════════════════════════════
 let time = 0;
 let frames = 0, lastFPS = performance.now();
+let lastFrameTime = performance.now();
 
 function animate() {
   requestAnimationFrame(animate);
+  
+  // Delta time 계산 (실제 물리 시뮬레이션용)
+  const now = performance.now();
+  const dt = (now - lastFrameTime) / 1000;
+  lastFrameTime = now;
+  
   time += 0.016;
   
   // L4 AUDIT 열려있으면 태양계 정지, Freeze 레벨에 따라 속도 조절
@@ -1313,17 +1590,37 @@ function animate() {
     });
   }
   
-  // L2 Simulation rings
+  // ═══════════════════════════════════════════════════════════════
+  // L2 PHYSICS-BASED FAILURE RING
+  // ═══════════════════════════════════════════════════════════════
   if (activeLayers.sim) {
     const rec = planets9.RECOVERY || 0.5;
     const sta = planets9.STABILITY || 0.5;
     const shk = planets9.SHOCK || 0.5;
     const fri = planets9.FRICTION || 0.5;
     
+    // PhysicsFrame 업데이트 (TwinState → 물리값)
+    updatePhysicsFrame();
+    
+    // Law 7: 시간 상수 기반 애니메이션
+    animatePhysicsFrame(dt);
+    
+    // Failure Ring 변형 (Law 4,5,6 적용)
+    deformFailureRing(time * motionMult);
+    
+    // Ghost Ring 변형 (Preview 시)
+    deformGhostRing(time * motionMult);
+    
+    // Inner Health Ring (기존 유지)
     innerRingMat.color.setHex((rec + sta) / 2 > 0.4 ? 0x00ffaa : 0xff4444);
-    outerRingMat.color.setHex((shk + fri) / 2 > 0.5 ? 0xff8844 : 0x44aaff);
     innerRing.rotation.z += 0.003 * motionMult;
+    
+    // Outer Pressure Ring (기존 유지)
+    outerRingMat.color.setHex((shk + fri) / 2 > 0.5 ? 0xff8844 : 0x44aaff);
     outerRing.rotation.z -= 0.002 * motionMult;
+    
+    // Failure Ring 천천히 회전
+    failureRing.rotation.z += 0.001 * motionMult;
   }
   
   // FPS
