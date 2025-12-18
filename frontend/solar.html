@@ -23,19 +23,6 @@
     ╚═══════════════════════════════════════════════════════════════╝
   -->
   <style>
-    /* 🛡️ CRITICAL: html/body 보호 - 절대 숨김 방지 */
-    html, body {
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      pointer-events: auto !important;
-    }
-    html.legacy-hidden, body.legacy-hidden {
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-    }
-    
     :root {
       --bg-primary: #020408;
       --bg-panel: rgba(0,20,40,0.95);
@@ -1753,24 +1740,6 @@ logAction(`Bottleneck: ${PhysicsFrame.bottleneck.axis} (${Math.round(PhysicsFram
 animate();
   </script>
 
-  <!-- 🛡️ UI 보호 스크립트 - 모든 스크립트 후 실행 -->
-  <script>
-  (function protectUI() {
-    function forceVisible() {
-      document.documentElement.classList.remove('legacy-hidden');
-      document.body.classList.remove('legacy-hidden');
-      document.documentElement.style.cssText = 'display:block!important;visibility:visible!important;opacity:1!important;';
-      document.body.style.cssText += 'display:block!important;visibility:visible!important;opacity:1!important;';
-    }
-    forceVisible();
-    setInterval(forceVisible, 500);
-    new MutationObserver(forceVisible).observe(document.documentElement, {attributes:true,attributeFilter:['class','style']});
-    new MutationObserver(forceVisible).observe(document.body, {attributes:true,attributeFilter:['class','style']});
-    console.log('[AUTUS] UI Protection active');
-  })();
-  </script>
-
-  <!-- 외부 모듈 비활성화 (안정화 완료 후 재활성화) -->
 
 </body>
 </html>
