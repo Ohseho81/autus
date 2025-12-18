@@ -376,6 +376,90 @@
       background:rgba(138,92,246,0.1);border:1px solid rgba(138,92,246,0.3);
       border-radius:4px;font-size:9px;color:#8a5cf6;
     }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════
+       PHASE 1: HOVER SIMULATION CARD + CONFIDENCE + PHYSICS REASON
+       ═══════════════════════════════════════════════════════════════════════════ */
+    
+    .hover-sim-card{
+      position:absolute;left:calc(100% + 16px);top:0;width:300px;
+      background:var(--bg-panel);border:1px solid rgba(0,212,255,0.4);
+      border-radius:10px;padding:16px;z-index:300;
+      opacity:0;visibility:hidden;transition:all 0.2s ease;
+      box-shadow:0 10px 40px rgba(0,0,0,0.5);
+    }
+    .action-btn-wrapper:hover .hover-sim-card{
+      opacity:1;visibility:visible;
+    }
+    .hover-sim-card .sim-title{
+      font-size:10px;letter-spacing:0.15em;color:var(--accent-cyan);
+      margin-bottom:12px;padding-bottom:8px;
+      border-bottom:1px solid rgba(0,212,255,0.2);
+    }
+    
+    /* BEST/LIKELY/WORST Branches */
+    .sim-branch{
+      padding:10px;margin-bottom:8px;border-radius:6px;
+      background:rgba(0,0,0,0.3);position:relative;
+    }
+    .sim-branch.best{border-left:3px solid var(--accent-green)}
+    .sim-branch.likely{border-left:3px solid var(--accent-cyan)}
+    .sim-branch.worst{border-left:3px solid var(--accent-red)}
+    .sim-branch .branch-tag{
+      position:absolute;top:8px;right:8px;
+      font-size:8px;font-weight:700;letter-spacing:0.1em;
+      padding:2px 6px;border-radius:3px;
+    }
+    .sim-branch.best .branch-tag{background:rgba(0,255,136,0.2);color:var(--accent-green)}
+    .sim-branch.likely .branch-tag{background:rgba(0,212,255,0.2);color:var(--accent-cyan)}
+    .sim-branch.worst .branch-tag{background:rgba(255,68,68,0.2);color:var(--accent-red)}
+    .sim-branch .branch-delta{
+      font-size:11px;font-weight:600;margin-bottom:4px;
+    }
+    .sim-branch .branch-metrics{
+      font-size:9px;color:#888;
+    }
+    .sim-branch .branch-metrics span{margin-right:8px}
+    
+    /* Confidence Bar */
+    .confidence-row{
+      display:flex;align-items:center;gap:8px;margin-top:4px;
+    }
+    .confidence-bar{
+      flex:1;height:4px;background:rgba(255,255,255,0.1);
+      border-radius:2px;overflow:hidden;
+    }
+    .confidence-fill{
+      height:100%;border-radius:2px;transition:width 0.3s;
+    }
+    .confidence-fill.high{background:var(--accent-green)}
+    .confidence-fill.mid{background:var(--accent-cyan)}
+    .confidence-fill.low{background:var(--accent-red)}
+    .confidence-pct{
+      font-size:9px;font-weight:600;min-width:32px;text-align:right;
+    }
+    
+    /* Physics Reason */
+    .physics-reason{
+      margin-top:12px;padding:10px;
+      background:rgba(255,170,0,0.08);border:1px solid rgba(255,170,0,0.25);
+      border-radius:6px;font-size:9px;line-height:1.5;
+    }
+    .physics-reason .reason-icon{margin-right:6px}
+    .physics-reason .reason-text{color:var(--accent-orange)}
+    
+    /* Recommended Badge */
+    .recommended-badge{
+      position:absolute;top:-8px;right:-8px;
+      background:var(--accent-green);color:#000;
+      font-size:8px;font-weight:700;letter-spacing:0.1em;
+      padding:3px 8px;border-radius:10px;
+      animation:pulse-badge 2s infinite;
+    }
+    @keyframes pulse-badge{
+      0%,100%{box-shadow:0 0 0 0 rgba(0,255,136,0.4)}
+      50%{box-shadow:0 0 0 8px rgba(0,255,136,0)}
+    }
   </style>
 </head>
 <body>
@@ -501,7 +585,7 @@
   </div>
   
   <div id="layer-action">
-    <div class="action-btn-wrapper">
+    <div class="action-btn-wrapper" id="wrapper-recover">
       <button class="action-btn recover" onclick="previewAction('recover')">RECOVER</button>
       <div class="value-indicators" id="vi-recover">
         <span class="value-ind"><span class="icon">💰</span><span class="val down">−8%</span></span>
@@ -509,8 +593,9 @@
         <span class="value-ind"><span class="icon">🏛️</span><span class="val up">+0.2</span></span>
         <span class="value-ind"><span class="icon">🌍</span><span class="val up">+0.1σ</span></span>
       </div>
+      <div class="hover-sim-card" id="sim-recover"></div>
     </div>
-    <div class="action-btn-wrapper">
+    <div class="action-btn-wrapper" id="wrapper-defriction">
       <button class="action-btn defriction" onclick="previewAction('defriction')">DEFRICTION</button>
       <div class="value-indicators" id="vi-defriction">
         <span class="value-ind"><span class="icon">💰</span><span class="val down">−12%</span></span>
@@ -518,8 +603,9 @@
         <span class="value-ind"><span class="icon">🏛️</span><span class="val">+0.1</span></span>
         <span class="value-ind"><span class="icon">🌍</span><span class="val up">+0.2σ</span></span>
       </div>
+      <div class="hover-sim-card" id="sim-defriction"></div>
     </div>
-    <div class="action-btn-wrapper">
+    <div class="action-btn-wrapper" id="wrapper-shock_damp">
       <button class="action-btn shock-damp" onclick="previewAction('shock_damp')">SHOCK DAMP</button>
       <div class="value-indicators" id="vi-shock_damp">
         <span class="value-ind"><span class="icon">💰</span><span class="val down">−32%</span></span>
@@ -527,8 +613,9 @@
         <span class="value-ind"><span class="icon">🏛️</span><span class="val up">+0.3</span></span>
         <span class="value-ind"><span class="icon">🌍</span><span class="val up">+0.6σ</span></span>
       </div>
+      <div class="hover-sim-card" id="sim-shock_damp"></div>
     </div>
-    <div class="preview-label">▲ 미래 가치 생성기 · PREVIEW → AUDIT → LOCK</div>
+    <div class="preview-label">▲ 미래 가치 생성기 · HOVER로 시뮬레이션 · CLICK으로 AUDIT</div>
   </div>
   
   <div id="layer-audit">
@@ -793,6 +880,182 @@ function computeActionValue(currentState, currentDerived, actionKey) {
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 1: FUTURE BRANCH SIMULATION — BEST / LIKELY / WORST
+// ═══════════════════════════════════════════════════════════════════════════
+function simulateFutureBranches(actionKey) {
+  const profile = IMPULSE_PROFILES[actionKey];
+  if (!profile) return null;
+  
+  const currentDerived = computeDerived(TwinState);
+  const futureState = applyImpulse(TwinState, actionKey);
+  const futureDerived = computeDerived(futureState);
+  
+  // BEST scenario: 120% effectiveness
+  const bestState = { ...TwinState };
+  for (const key in profile.delta) {
+    if (bestState.hasOwnProperty(key)) bestState[key] = clamp(bestState[key] + profile.delta[key] * 1.2);
+  }
+  const bestDerived = computeDerived(bestState);
+  
+  // LIKELY scenario: 100% effectiveness (normal)
+  const likelyDerived = futureDerived;
+  
+  // WORST scenario: 50% effectiveness + entropy spike
+  const worstState = { ...TwinState };
+  for (const key in profile.delta) {
+    if (worstState.hasOwnProperty(key)) worstState[key] = clamp(worstState[key] + profile.delta[key] * 0.5);
+  }
+  worstState.SHOCK = clamp(worstState.SHOCK + 0.05); // Small entropy spike
+  const worstDerived = computeDerived(worstState);
+  
+  return {
+    best: {
+      recovery: Math.round((bestState.RECOVERY - TwinState.RECOVERY) * 100),
+      risk: Math.round((currentDerived.risk - bestDerived.risk) * 100),
+      entropy: Math.round((currentDerived.entropy - bestDerived.entropy) * 100),
+      confidence: profile.confidence + 5
+    },
+    likely: {
+      recovery: Math.round((futureState.RECOVERY - TwinState.RECOVERY) * 100),
+      risk: Math.round((currentDerived.risk - likelyDerived.risk) * 100),
+      entropy: Math.round((currentDerived.entropy - likelyDerived.entropy) * 100),
+      confidence: profile.confidence
+    },
+    worst: {
+      recovery: Math.round((worstState.RECOVERY - TwinState.RECOVERY) * 100),
+      risk: Math.round((currentDerived.risk - worstDerived.risk) * -100),
+      entropy: Math.round((worstDerived.entropy - currentDerived.entropy) * 100),
+      confidence: Math.max(5, profile.confidence - 60)
+    }
+  };
+}
+
+// Generate physics-based reason for action recommendation
+function generatePhysicsReason(actionKey) {
+  const bn = PhysicsFrame.bottleneck;
+  const snap = PhysicsFrame.snapshot;
+  const recovery = TwinState.RECOVERY;
+  const shock = TwinState.SHOCK;
+  const friction = TwinState.FRICTION;
+  
+  const reasons = {
+    recover: () => {
+      if (recovery < 0.5) return `Recovery ${Math.round(recovery*100)}% < Critical(50%). 복구 없이 시스템 붕괴 가속.`;
+      if (snap.entropy > 0.6) return `Entropy ${snap.entropy.toFixed(2)} 높음. Recovery로 안정화 필요.`;
+      return `Recovery 확보로 전체 Risk ${Math.round(snap.risk*100)}% 감소 가능.`;
+    },
+    defriction: () => {
+      if (friction > 0.7) return `Friction ${Math.round(friction*100)}% 병목. 마찰 제거로 Flow 개선.`;
+      if (snap.pressure > 0.6) return `Pressure ${snap.pressure.toFixed(2)} 과다. Defriction으로 해소.`;
+      return `마찰 감소로 Time/Cost 절감 효과.`;
+    },
+    shock_damp: () => {
+      if (shock > 0.7) return `Shock ${Math.round(shock*100)}% 위험. 즉시 감쇠 필요.`;
+      if (bn.axis === 'SHOCK') return `SHOCK이 현재 병목. 감쇠 시 전체 안정화.`;
+      return `충격 감쇠로 Reputation 보호 및 미래 위험 차단.`;
+    }
+  };
+  
+  return reasons[actionKey] ? reasons[actionKey]() : '';
+}
+
+// Rank actions by physics score
+function rankActions() {
+  const snap = PhysicsFrame.snapshot;
+  const bn = PhysicsFrame.bottleneck;
+  const recovery = TwinState.RECOVERY;
+  
+  const scores = {
+    recover: 0,
+    defriction: 0,
+    shock_damp: 0
+  };
+  
+  // Recovery urgency
+  if (recovery < 0.5) scores.recover += 30;
+  if (recovery < 0.4) scores.recover += 20;
+  
+  // Bottleneck alignment
+  if (bn.axis === 'SHOCK') scores.shock_damp += 25;
+  if (bn.axis === 'FRICTION') scores.defriction += 25;
+  if (bn.axis === 'RECOVERY') scores.recover += 25;
+  
+  // Risk mitigation
+  scores.shock_damp += snap.risk * 20;
+  scores.recover += snap.entropy * 15;
+  scores.defriction += snap.pressure * 15;
+  
+  // Reputation protection
+  if (TwinState.SHOCK > 0.7) scores.shock_damp += 20;
+  
+  return Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .map(([action, score], idx) => ({ action, score, rank: idx + 1 }));
+}
+
+// Update hover simulation cards
+function updateHoverSimCards() {
+  const ranked = rankActions();
+  const topAction = ranked[0].action;
+  
+  ['recover', 'defriction', 'shock_damp'].forEach(key => {
+    const sim = simulateFutureBranches(key);
+    const reason = generatePhysicsReason(key);
+    const isTop = key === topAction;
+    const el = document.getElementById(`sim-${key}`);
+    if (!el || !sim) return;
+    
+    const profile = IMPULSE_PROFILES[key];
+    
+    el.innerHTML = `
+      ${isTop ? '<div class="recommended-badge">🎯 RECOMMENDED</div>' : ''}
+      <div class="sim-title">${profile.name} 선택 시 예측</div>
+      
+      <div class="sim-branch best">
+        <span class="branch-tag">BEST</span>
+        <div class="branch-delta">Recovery ${sim.best.recovery > 0 ? '+' : ''}${sim.best.recovery}% | Risk −${sim.best.risk}%</div>
+        <div class="branch-metrics">
+          <span>Entropy ↓${sim.best.entropy}%</span>
+        </div>
+        <div class="confidence-row">
+          <div class="confidence-bar"><div class="confidence-fill high" style="width:${sim.best.confidence}%"></div></div>
+          <span class="confidence-pct">${sim.best.confidence}%</span>
+        </div>
+      </div>
+      
+      <div class="sim-branch likely">
+        <span class="branch-tag">LIKELY</span>
+        <div class="branch-delta">Recovery ${sim.likely.recovery > 0 ? '+' : ''}${sim.likely.recovery}% | Risk −${sim.likely.risk}%</div>
+        <div class="branch-metrics">
+          <span>Entropy ↓${sim.likely.entropy}%</span>
+        </div>
+        <div class="confidence-row">
+          <div class="confidence-bar"><div class="confidence-fill mid" style="width:${sim.likely.confidence}%"></div></div>
+          <span class="confidence-pct">${sim.likely.confidence}%</span>
+        </div>
+      </div>
+      
+      <div class="sim-branch worst">
+        <span class="branch-tag">WORST</span>
+        <div class="branch-delta">Recovery ${sim.worst.recovery > 0 ? '+' : ''}${sim.worst.recovery}% | Risk +${sim.worst.risk}%</div>
+        <div class="branch-metrics">
+          <span>Entropy ↑${sim.worst.entropy}%</span>
+        </div>
+        <div class="confidence-row">
+          <div class="confidence-bar"><div class="confidence-fill low" style="width:${sim.worst.confidence}%"></div></div>
+          <span class="confidence-pct">${sim.worst.confidence}%</span>
+        </div>
+      </div>
+      
+      <div class="physics-reason">
+        <span class="reason-icon">💡</span>
+        <span class="reason-text">${reason}</span>
+      </div>
+    `;
+  });
+}
+
 // Compute bottleneck from any state object
 function computeBottleneckFrom(state) {
   let maxBadness = -1, maxAxis = 'RECOVERY';
@@ -854,6 +1117,9 @@ function updateFullState() {
   updateForecastPanel();
   updateValueIndicators();
   updateDignityDisplay();
+  
+  // 7. PHASE 1: Update hover simulation cards
+  updateHoverSimCards();
 }
 
 function animatePhysicsFrame(dt) {
@@ -1473,5 +1739,10 @@ setTimeout(() => runAcceptanceTests(), 500);
 
 animate();
   </script>
+  
+  <!-- Future Simulator Module -->
+  <link rel="stylesheet" href="simulator.css">
+  <script src="future-simulator.js"></script>
+  <script src="simulator-ui.js"></script>
 </body>
 </html>
