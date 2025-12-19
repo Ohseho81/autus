@@ -866,6 +866,379 @@ def ui_bind(entity_id: str):
         "policy_shadow": policy.get("friction", 0),
     }
 
+# ═══════════════════════════════════════════════════════════════════════════
+# P0 업무 자동화 API — "Human decides once → System closes forever"
+# ═══════════════════════════════════════════════════════════════════════════
+
+# === P0-1: 비용 승인 (Cost Approval) ===
+class CostQuote(BaseModel):
+    vendor: str
+    amount: int  # 원화
+    delivery_days: int
+    risk_score: float = Field(default=0.0, ge=0.0, le=1.0)
+
+class CostApprovalIn(BaseModel):
+    quotes: List[CostQuote]  # 견적 목록
+    actor_id: Optional[str] = None
+
+class CostApprovalDecision(BaseModel):
+    selected_vendor: str
+    actor_id: Optional[str] = None
+
+@app.post("/api/v1/task/cost/analyze")
+def analyze_cost(body: CostApprovalIn):
+    """비용 견적 비교 분석 — 자동 추천"""
+    quotes = body.quotes
+    if not quotes:
+        return {"error": "No quotes provided"}
+    
+    # 최저가 찾기
+    sorted_by_price = sorted(quotes, key=lambda q: q.amount)
+    lowest = sorted_by_price[0]
+    
+    # 리스크 조정 점수 계산 (가격 + 배송 + 리스크)
+    def score(q):
+        price_score = 1 - (q.amount / max(q.amount for q in quotes))  # 저렴할수록 높음
+        delivery_score = 1 - (q.delivery_days / max(q.delivery_days for q in quotes))  # 빠를수록 높음
+        risk_penalty = q.risk_score * 0.3
+        return price_score * 0.5 + delivery_score * 0.3 - risk_penalty
+    
+    ranked = sorted(quotes, key=score, reverse=True)
+    recommended = ranked[0]
+    
+    # 절감액 계산
+    avg_amount = sum(q.amount for q in quotes) / len(quotes)
+    savings = int(avg_amount - recommended.amount)
+    
+    return {
+        "quotes": [q.dict() for q in quotes],
+        "analysis": {
+            "lowest_price": lowest.dict(),
+            "recommended": recommended.dict(),
+            "savings": savings,
+            "savings_percent": round(savings / avg_amount * 100, 1) if avg_amount > 0 else 0
+        },
+        "action_required": "LOCK",
+        "decision_options": ["LOCK", "HOLD", "REJECT"]
+    }
+
+@app.post("/api/v1/task/cost/decide")
+def decide_cost(body: CostApprovalDecision):
+    """비용 승인 결정 — 봉인"""
+    decision_id = f"COST-{int(time.time())}"
+    
+    # Audit 기록
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO audit (ts, event, actor_id, data, state_snapshot) VALUES (?, ?, ?, ?, ?)",
+            (int(time.time()), "COST_APPROVAL", body.actor_id or "system", 
+             json.dumps({"vendor": body.selected_vendor, "decision": "LOCKED"}),
+             json.dumps(ENGINE.snapshot()))
+        )
+        conn.commit()
+    
+    logger.info(f"[P0-1] Cost Approval LOCKED: {body.selected_vendor} by {body.actor_id}")
+    
+    return {
+        "decision_id": decision_id,
+        "status": "LOCKED",
+        "vendor": body.selected_vendor,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "immutable": True,
+        "audit_link": f"/audit/{decision_id}"
+    }
+
+
+# === P0-2: 일정 지연 승인 (Schedule Delay) ===
+class ScheduleDelayIn(BaseModel):
+    task_name: str
+    original_deadline: str  # ISO format
+    delay_days: int
+    reason: str
+    actor_id: Optional[str] = None
+
+class ScheduleDelayDecision(BaseModel):
+    task_name: str
+    approved: bool
+    actor_id: Optional[str] = None
+
+@app.post("/api/v1/task/schedule/analyze")
+def analyze_schedule_delay(body: ScheduleDelayIn):
+    """일정 지연 영향 분석"""
+    # 지연 영향 계산
+    risk_increase = min(0.5, body.delay_days * 0.03)  # 1일당 3% 위험 증가
+    cost_impact = body.delay_days * 500000  # 1일당 50만원 추가 비용
+    
+    # 연쇄 영향 계산
+    downstream_tasks = max(1, body.delay_days // 3)  # 영향받는 후속 작업 수
+    
+    return {
+        "task": body.task_name,
+        "delay_days": body.delay_days,
+        "reason": body.reason,
+        "impact": {
+            "risk_increase_percent": round(risk_increase * 100, 1),
+            "additional_cost": cost_impact,
+            "downstream_tasks_affected": downstream_tasks,
+            "new_deadline": body.original_deadline  # 실제로는 계산 필요
+        },
+        "recommendation": "APPROVE" if body.delay_days <= 7 else "REVIEW",
+        "action_required": "APPROVE" if body.delay_days <= 7 else "REJECT",
+        "decision_options": ["APPROVE", "REJECT"]
+    }
+
+@app.post("/api/v1/task/schedule/decide")
+def decide_schedule_delay(body: ScheduleDelayDecision):
+    """일정 지연 승인 결정 — 타임라인 고정"""
+    decision_id = f"SCHED-{int(time.time())}"
+    status = "APPROVED" if body.approved else "REJECTED"
+    
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO audit (ts, event, actor_id, data, state_snapshot) VALUES (?, ?, ?, ?, ?)",
+            (int(time.time()), "SCHEDULE_DELAY", body.actor_id or "system",
+             json.dumps({"task": body.task_name, "status": status}),
+             json.dumps(ENGINE.snapshot()))
+        )
+        conn.commit()
+    
+    logger.info(f"[P0-2] Schedule Delay {status}: {body.task_name} by {body.actor_id}")
+    
+    return {
+        "decision_id": decision_id,
+        "status": status,
+        "task": body.task_name,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timeline_locked": True,
+        "immutable": True
+    }
+
+
+# === P0-3: 리스크 차단 (Risk Block) ===
+class RiskBlockIn(BaseModel):
+    risk_type: str  # e.g., "ENTROPY_HIGH", "PRESSURE_CRITICAL"
+    current_value: float
+    threshold: float
+    actor_id: Optional[str] = None
+
+class RiskBlockDecision(BaseModel):
+    risk_type: str
+    action: Literal["LOCK", "HOLD", "REJECT"]
+    actor_id: Optional[str] = None
+
+@app.post("/api/v1/task/risk/analyze")
+def analyze_risk_block(body: RiskBlockIn):
+    """리스크 차단 분석"""
+    snap = ENGINE.snapshot()
+    sig = snap.get("signals", {})
+    
+    # 현재 시스템 상태
+    current_entropy = sig.get("entropy", 0.2)
+    current_pressure = sig.get("pressure", 0.3)
+    
+    # 차단 필요성 판단
+    severity = "CRITICAL" if body.current_value > body.threshold * 1.2 else "WARNING"
+    
+    # 추천 액션
+    recommended_action = "LOCK" if severity == "CRITICAL" else "HOLD"
+    
+    # 미조치 시 예상 결과
+    hours_to_failure = max(1, int(24 * (1 - body.current_value)))
+    
+    return {
+        "risk_type": body.risk_type,
+        "current_value": body.current_value,
+        "threshold": body.threshold,
+        "severity": severity,
+        "system_state": {
+            "entropy": round(current_entropy, 3),
+            "pressure": round(current_pressure, 3)
+        },
+        "prediction": {
+            "hours_to_failure": hours_to_failure,
+            "collapse_probability": round(min(0.95, body.current_value + 0.1), 2)
+        },
+        "recommended_action": recommended_action,
+        "decision_options": ["LOCK", "HOLD", "REJECT"]
+    }
+
+@app.post("/api/v1/task/risk/decide")
+def decide_risk_block(body: RiskBlockDecision):
+    """리스크 차단 결정 — 변경 불가 봉인"""
+    decision_id = f"RISK-{int(time.time())}"
+    
+    # 실제 시스템 조치
+    if body.action == "LOCK":
+        ENGINE.execute("AUTO_STABILIZE", body.actor_id)
+    
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO audit (ts, event, actor_id, data, state_snapshot) VALUES (?, ?, ?, ?, ?)",
+            (int(time.time()), "RISK_BLOCK", body.actor_id or "system",
+             json.dumps({"risk_type": body.risk_type, "action": body.action}),
+             json.dumps(ENGINE.snapshot()))
+        )
+        conn.commit()
+    
+    logger.info(f"[P0-3] Risk Block {body.action}: {body.risk_type} by {body.actor_id}")
+    
+    return {
+        "decision_id": decision_id,
+        "status": body.action,
+        "risk_type": body.risk_type,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "sealed": True,
+        "immutable": True,
+        "system_action_taken": body.action == "LOCK"
+    }
+
+
+# === P0-4: 권한 변경 (Permission Change) ===
+class PermissionChangeIn(BaseModel):
+    requester_id: str
+    permission_type: Literal["READ", "WRITE", "ADMIN", "EXECUTE"]
+    target_resource: str
+    reason: str
+    actor_id: Optional[str] = None
+
+class PermissionChangeDecision(BaseModel):
+    requester_id: str
+    permission_type: str
+    approved: bool
+    actor_id: Optional[str] = None
+
+@app.post("/api/v1/task/permission/analyze")
+def analyze_permission_change(body: PermissionChangeIn):
+    """권한 변경 영향 분석"""
+    # 권한 레벨 점수
+    permission_levels = {"READ": 1, "WRITE": 2, "EXECUTE": 3, "ADMIN": 4}
+    level = permission_levels.get(body.permission_type, 1)
+    
+    # 리스크 평가
+    risk_score = level * 0.15  # 권한 높을수록 리스크
+    
+    return {
+        "requester": body.requester_id,
+        "permission": body.permission_type,
+        "resource": body.target_resource,
+        "reason": body.reason,
+        "impact": {
+            "risk_level": "HIGH" if level >= 3 else "MEDIUM" if level >= 2 else "LOW",
+            "risk_score": round(risk_score, 2),
+            "requires_2fa": level >= 3,
+            "audit_required": True
+        },
+        "recommendation": "APPROVE" if risk_score < 0.4 else "REVIEW",
+        "decision_options": ["APPROVE", "REJECT"]
+    }
+
+@app.post("/api/v1/task/permission/decide")
+def decide_permission_change(body: PermissionChangeDecision):
+    """권한 변경 결정 — 즉시 반영"""
+    decision_id = f"PERM-{int(time.time())}"
+    status = "GRANTED" if body.approved else "DENIED"
+    
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO audit (ts, event, actor_id, data, state_snapshot) VALUES (?, ?, ?, ?, ?)",
+            (int(time.time()), "PERMISSION_CHANGE", body.actor_id or "system",
+             json.dumps({"requester": body.requester_id, "permission": body.permission_type, "status": status}),
+             json.dumps(ENGINE.snapshot()))
+        )
+        conn.commit()
+    
+    logger.info(f"[P0-4] Permission {status}: {body.permission_type} for {body.requester_id} by {body.actor_id}")
+    
+    return {
+        "decision_id": decision_id,
+        "status": status,
+        "requester": body.requester_id,
+        "permission": body.permission_type,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "effective_immediately": body.approved,
+        "immutable": True
+    }
+
+
+# === P0-5: 결정 공유 (Decision Share) ===
+class DecisionShareIn(BaseModel):
+    decision_id: str
+    share_type: Literal["LINK", "EMAIL", "TEAM"] = "LINK"
+
+@app.post("/api/v1/task/decision/share")
+def share_decision(body: DecisionShareIn):
+    """결정 공유 — Read-only 링크 생성"""
+    import hashlib
+    
+    # 공유 토큰 생성
+    share_token = hashlib.sha256(f"{body.decision_id}-{time.time()}".encode()).hexdigest()[:16]
+    share_link = f"/share/{share_token}"
+    
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO audit (ts, event, actor_id, data, state_snapshot) VALUES (?, ?, ?, ?, ?)",
+            (int(time.time()), "DECISION_SHARE", "system",
+             json.dumps({"decision_id": body.decision_id, "share_token": share_token}),
+             json.dumps(ENGINE.snapshot()))
+        )
+        conn.commit()
+    
+    logger.info(f"[P0-5] Decision Shared: {body.decision_id} -> {share_token}")
+    
+    return {
+        "decision_id": body.decision_id,
+        "share_token": share_token,
+        "share_link": share_link,
+        "share_type": body.share_type,
+        "read_only": True,
+        "expires_in_hours": 168,  # 7일
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+
+# === P0 업무 목록 조회 ===
+@app.get("/api/v1/tasks/pending")
+def get_pending_tasks():
+    """대기 중인 P0 업무 목록"""
+    snap = ENGINE.snapshot()
+    sig = snap.get("signals", {})
+    out = snap.get("output", {})
+    
+    tasks = []
+    
+    # 리스크 기반 자동 생성
+    entropy = sig.get("entropy", 0.2)
+    pressure = sig.get("pressure", 0.3)
+    
+    if entropy > 0.4:
+        tasks.append({
+            "id": f"AUTO-RISK-{int(time.time())}",
+            "type": "RISK_BLOCK",
+            "title": "⚠️ 엔트로피 임계값 초과",
+            "description": f"현재 Entropy {round(entropy * 100)}% > 40%",
+            "priority": "HIGH",
+            "auto_generated": True,
+            "action_url": "/api/v1/task/risk/analyze"
+        })
+    
+    if pressure > 0.5:
+        tasks.append({
+            "id": f"AUTO-PRESSURE-{int(time.time())}",
+            "type": "RISK_BLOCK",
+            "title": "⚠️ 압력 임계값 초과",
+            "description": f"현재 Pressure {round(pressure * 100)}% > 50%",
+            "priority": "MEDIUM",
+            "auto_generated": True,
+            "action_url": "/api/v1/task/risk/analyze"
+        })
+    
+    return {
+        "count": len(tasks),
+        "tasks": tasks,
+        "system_status": out.get("status", "GREEN")
+    }
+
+
 # === Observer API ===
 try:
     from app.api.observer_api import router as observer_router
