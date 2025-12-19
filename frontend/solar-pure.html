@@ -403,40 +403,310 @@
     /* #demo-hint { display: none; } */
     
     /* ═══════════════════════════════════════════════════════════════════
-       모바일 대응
+       (G) AUDIT 화면 — 판정 토큰 낙하
+       
+       물리 수치 스펙 (LOCK):
+       - 토큰 반지름: 14px (모바일 10px)
+       - 질량: 가상값 1.0 (튀지 않게)
+       - 재질: 무광 세라믹 (반사 없음)
+       - 회전: 0 (상징적 정지)
+       
+       낙하:
+       - 시작점: SOLAR 중심 (Y ≈ 430)
+       - 도착점: 화면 하단 기준선 (Y ≈ 760)
+       - 거리: 화면 높이의 38%
+       - 시간: 0.9초 (고정)
+       - 가속: Ease-in only (감속 ❌, Bounce ❌)
+       - 수식: y(t) = y0 + 0.5 × g × t², g = 2.4
+       
+       충돌:
+       - 화면 진동: 2px, 60ms
+       - 저주파 사운드: 30Hz, 80ms
+       - 모든 애니메이션 즉시 정지
+       - 파티클 ❌, 빛 ❌, 텍스트 ❌
        ═══════════════════════════════════════════════════════════════════ */
     
+    #audit-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(5, 6, 8, 0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    #audit-overlay.visible {
+      display: flex;
+    }
+    
+    /* 토큰 */
+    #audit-token {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+      box-shadow: 
+        inset 0 2px 4px rgba(255,255,255,0.1),
+        0 4px 12px rgba(0,0,0,0.5);
+      /* 무광 세라믹 느낌 */
+      opacity: 0;
+      transform: translateX(-50%);
+    }
+    
+    #audit-token.falling {
+      opacity: 1;
+      animation: token-fall 0.9s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+    
+    @keyframes token-fall {
+      0% {
+        top: 38%;
+        opacity: 1;
+      }
+      100% {
+        top: 76%;
+        opacity: 1;
+      }
+    }
+    
+    /* 착지 기준선 */
+    #audit-baseline {
+      position: absolute;
+      bottom: 24%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 2px;
+      background: rgba(230, 230, 230, 0.15);
+      border-radius: 1px;
+    }
+    
+    /* 충돌 시 화면 진동 */
+    @keyframes screen-shake {
+      0%, 100% { transform: translate(0, 0); }
+      10% { transform: translate(-2px, 0); }
+      30% { transform: translate(2px, 0); }
+      50% { transform: translate(-1px, 0); }
+      70% { transform: translate(1px, 0); }
+    }
+    
+    body.audit-impact {
+      animation: screen-shake 60ms ease-out;
+    }
+    
+    /* AUDIT 완료 상태 */
+    #audit-complete {
+      position: absolute;
+      bottom: 18%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: rgba(230, 230, 230, 0.4);
+      opacity: 0;
+      transition: opacity 0.5s ease 0.3s;
+    }
+    
+    #audit-overlay.complete #audit-complete {
+      opacity: 1;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════
+       ③ 모바일 리스폰시브 규칙 (LOCK)
+       
+       목적: 모바일에서도 '정보 축소'가 아니라 '의미 보존'
+       
+       규칙:
+       - 최소 지원 폭: 360px
+       - 스크롤 ❌, 제스처 ❌
+       - 햄버거 메뉴 ❌, 탭 ❌, 드로어 ❌, 설명 ❌
+       
+       SOLAR:
+       - 반경: 220px → 140px
+       - 태양: 32px → 22px
+       - 궤도: 3개 → 2개
+       
+       RISK:
+       - 위치: 좌하단 → SOLAR 하단 중앙
+       - 숫자: 72px → 56px
+       
+       ACTION:
+       - 버튼 지름: 64px (터치 최적, 엄지 도달 영역)
+       
+       AUDIT:
+       - 토큰 낙하 거리: 화면 높이의 42%
+       - 진동 강도: 0.6×
+       - 사운드: 기본 OFF (OS 진동 대체)
+       ═══════════════════════════════════════════════════════════════════ */
+    
+    /* 모바일 대응 */
+    
+    /* 태블릿 (768px 이하) */
     @media (max-width: 768px) {
       #solar-canvas {
-        width: 300px;
-        height: 300px;
+        width: 320px;
+        height: 320px;
       }
       
-      .orbit-track.inner { width: 100px; height: 100px; }
-      .orbit-track.middle { width: 170px; height: 170px; }
-      .orbit-track.outer { width: 240px; height: 240px; }
+      #sun { width: 26px; height: 26px; }
+      
+      .orbit-track.inner { width: 120px; height: 120px; }
+      .orbit-track.middle { width: 200px; height: 200px; }
+      .orbit-track.outer { width: 280px; height: 280px; }
+      
+      .orbit-obj { width: 12px; height: 12px; }
       
       #risk-display {
-        bottom: 60px;
-        left: 40px;
+        bottom: 70px;
+        left: 50px;
       }
       
       #risk-value {
-        font-size: 48px;
+        font-size: 56px;
       }
       
       #status-dot {
-        bottom: 80px;
-        right: 40px;
+        bottom: 90px;
+        right: 50px;
+        width: 10px;
+        height: 10px;
       }
       
       #action-area {
-        bottom: 40px;
+        bottom: 50px;
       }
       
       .action-btn {
-        padding: 12px 32px;
-        font-size: 12px;
+        padding: 14px 36px;
+        font-size: 13px;
+      }
+      
+      /* AUDIT 토큰 */
+      #audit-token {
+        width: 22px;
+        height: 22px;
+      }
+    }
+    
+    /* 모바일 (480px 이하) — LOCK 스펙 */
+    @media (max-width: 480px) {
+      #solar-canvas {
+        width: 280px;
+        height: 280px;
+        top: 40%;
+      }
+      
+      #sun { width: 22px; height: 22px; }
+      
+      /* 궤도 2개만 (outer 숨김) */
+      .orbit-track.inner { width: 100px; height: 100px; }
+      .orbit-track.middle { width: 160px; height: 160px; }
+      .orbit-track.outer { display: none; }
+      
+      .orbit-obj { width: 10px; height: 10px; }
+      
+      /* 3번째 궤도 객체 숨김 */
+      #orbit-3 { display: none; }
+      
+      /* RISK — SOLAR 하단 중앙 */
+      #risk-display {
+        position: fixed;
+        bottom: auto;
+        top: 62%;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+      
+      #risk-label {
+        font-size: 10px;
+        letter-spacing: 0.25em;
+      }
+      
+      #risk-value {
+        font-size: 56px;
+      }
+      
+      /* STATUS DOT — SOLAR 상단 */
+      #status-dot {
+        position: fixed;
+        top: 28%;
+        bottom: auto;
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 8px;
+        height: 8px;
+      }
+      
+      /* ACTION — 64px 터치 최적 */
+      #action-area {
+        bottom: 60px;
+      }
+      
+      .action-btn {
+        width: 64px;
+        height: 64px;
+        padding: 0;
+        border-radius: 50%;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      /* ROLE INDICATOR */
+      #role-indicator {
+        top: 20px;
+        font-size: 8px;
+      }
+      
+      /* DEMO HINT 숨김 */
+      #demo-hint {
+        display: none;
+      }
+      
+      /* AUDIT 토큰 (모바일) */
+      #audit-token {
+        width: 20px;
+        height: 20px;
+      }
+      
+      @keyframes token-fall {
+        0% {
+          top: 32%;
+          opacity: 1;
+        }
+        100% {
+          top: 74%; /* 42% 낙하 거리 */
+          opacity: 1;
+        }
+      }
+      
+      /* 진동 강도 0.6× */
+      @keyframes screen-shake {
+        0%, 100% { transform: translate(0, 0); }
+        10% { transform: translate(-1.2px, 0); }
+        30% { transform: translate(1.2px, 0); }
+        50% { transform: translate(-0.6px, 0); }
+        70% { transform: translate(0.6px, 0); }
+      }
+    }
+    
+    /* 최소 지원 폭 (360px) */
+    @media (max-width: 360px) {
+      #solar-canvas {
+        width: 240px;
+        height: 240px;
+      }
+      
+      .orbit-track.inner { width: 80px; height: 80px; }
+      .orbit-track.middle { width: 140px; height: 140px; }
+      
+      #risk-value {
+        font-size: 48px;
       }
     }
   </style>
@@ -478,7 +748,14 @@
     
     <!-- (F) DEMO HINT (개발용 — 실제 배포 시 숨김) -->
     <div id="demo-hint">
-      <span>DEMO: 1-4 학생 | 5-6 ATB | 7-8 기업 | 9-0 정부</span>
+      <span>DEMO: 1-4 학생 | 5-6 ATB | 7-8 기업 | 9-0 정부 | A=AUDIT</span>
+    </div>
+    
+    <!-- (G) AUDIT OVERLAY — 판정 토큰 낙하 -->
+    <div id="audit-overlay">
+      <div id="audit-token"></div>
+      <div id="audit-baseline"></div>
+      <div id="audit-complete">SEALED</div>
     </div>
   </div>
   
@@ -850,15 +1127,147 @@
     }
     
     // ═══════════════════════════════════════════════════════════════════════════
-    // ACTION 버튼 클릭
+    // ACTION 버튼 클릭 → AUDIT 화면
     // ═══════════════════════════════════════════════════════════════════════════
     
     document.getElementById('action-btn').addEventListener('click', async () => {
       if (!state.actionVisible) return;
       
-      // ACTION 실행 → solar.html로 이동
-      const actionPage = `${window.location.origin}/frontend/solar.html?action=${state.actionType}&risk=${state.risk}`;
-      window.location.href = actionPage;
+      // AUDIT 화면 표시
+      showAudit();
+    });
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // AUDIT 화면 — 판정 토큰 낙하
+    // 
+    // 물리 스펙:
+    // - 낙하 시간: 0.9초 (고정)
+    // - 가속: Ease-in only (cubic-bezier(0.4, 0, 1, 1))
+    // - 충돌: 화면 진동 2px/60ms + 30Hz 사운드 80ms
+    // - 완료 후: 모든 애니메이션 정지, "SEALED" 표시
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    let auditState = {
+      active: false,
+      completed: false
+    };
+    
+    function showAudit() {
+      if (auditState.active) return;
+      
+      auditState.active = true;
+      auditState.completed = false;
+      
+      const overlay = document.getElementById('audit-overlay');
+      const token = document.getElementById('audit-token');
+      
+      // SOLAR 정지
+      state.orbitsPaused = true;
+      
+      // 오버레이 표시
+      overlay.classList.add('visible');
+      overlay.classList.remove('complete');
+      
+      // 토큰 초기화
+      token.classList.remove('falling');
+      token.style.left = '50%';
+      
+      // 약간의 딜레이 후 낙하 시작
+      setTimeout(() => {
+        token.classList.add('falling');
+        
+        // 0.9초 후 충돌
+        setTimeout(() => {
+          triggerImpact();
+        }, 900);
+      }, 200);
+    }
+    
+    function triggerImpact() {
+      const body = document.body;
+      const overlay = document.getElementById('audit-overlay');
+      
+      // 화면 진동 (60ms)
+      body.classList.add('audit-impact');
+      setTimeout(() => {
+        body.classList.remove('audit-impact');
+      }, 60);
+      
+      // 모바일: OS 진동 (사운드 대신)
+      if (navigator.vibrate && window.innerWidth <= 480) {
+        navigator.vibrate(80);
+      } else {
+        // 데스크톱: 저주파 사운드 (30Hz, 80ms)
+        playImpactSound();
+      }
+      
+      // 완료 상태
+      auditState.completed = true;
+      overlay.classList.add('complete');
+      
+      // API 호출 (결정 봉인)
+      sealDecision();
+      
+      console.log('[AUDIT] Impact — Decision sealed');
+    }
+    
+    // 저주파 사운드 (30Hz, 80ms)
+    function playImpactSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.frequency.value = 30; // 30Hz
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.08); // 80ms
+      } catch (e) {
+        console.warn('[AUDIT] Sound not available');
+      }
+    }
+    
+    // 결정 봉인 API
+    async function sealDecision() {
+      try {
+        const res = await fetch(`${API_BASE}/execute`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: state.actionType === 'action' ? 'recover' : 'confirm',
+            risk: state.risk
+          })
+        });
+        
+        if (res.ok) {
+          console.log('[AUDIT] Decision sealed via API');
+        }
+      } catch (e) {
+        console.warn('[AUDIT] API seal failed');
+      }
+    }
+    
+    // AUDIT 오버레이 클릭 시 닫기 (완료 후에만)
+    document.getElementById('audit-overlay').addEventListener('click', () => {
+      if (!auditState.completed) return;
+      
+      const overlay = document.getElementById('audit-overlay');
+      const token = document.getElementById('audit-token');
+      
+      overlay.classList.remove('visible', 'complete');
+      token.classList.remove('falling');
+      
+      auditState.active = false;
+      
+      // SOLAR 상태 초기화
+      updateRisk(0);
     });
     
     // ═══════════════════════════════════════════════════════════════════════════
@@ -936,6 +1345,13 @@
       
       if (keyMap[key]) {
         applyScenario(keyMap[key]);
+      }
+      
+      // A = AUDIT 데모
+      if (key.toLowerCase() === 'a') {
+        state.actionVisible = true;
+        state.actionType = 'action';
+        showAudit();
       }
     });
     
