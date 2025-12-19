@@ -172,19 +172,20 @@
     .metric-label{font-size:7px;opacity:.45;margin-top:3px;letter-spacing:.12em}
     
     #layer-action{
-      position:fixed;bottom:100px;right:40px;
-      display:flex;flex-direction:column;gap:10px;z-index:150;
+      position:fixed;bottom:80px;right:50px;
+      display:flex;flex-direction:column;gap:16px;z-index:150;
     }
     .action-btn{
-      padding:14px 28px;border-radius:8px;font-size:11px;font-weight:600;
-      letter-spacing:.12em;cursor:pointer;transition:all .2s;text-align:center;min-width:200px;
+      padding:18px 36px;border-radius:12px;font-size:14px;font-weight:700;
+      letter-spacing:.15em;cursor:pointer;transition:all .25s;text-align:center;min-width:240px;
       position:relative;
+      box-shadow:0 4px 20px rgba(0,0,0,0.3);
     }
-    .action-btn:hover:not(:disabled){transform:scale(1.05);box-shadow:0 0 20px currentColor}
+    .action-btn:hover:not(:disabled){transform:scale(1.08);box-shadow:0 8px 30px currentColor}
     .action-btn:disabled{opacity:.25;cursor:not-allowed}
-    .action-btn.recover{background:rgba(0,255,136,.15);border:1px solid var(--accent-green);color:var(--accent-green)}
-    .action-btn.defriction{background:rgba(68,170,255,.15);border:1px solid #44aaff;color:#44aaff}
-    .action-btn.shock-damp{background:rgba(255,170,0,.15);border:1px solid var(--accent-orange);color:var(--accent-orange)}
+    .action-btn.recover{background:rgba(0,255,136,.2);border:2px solid var(--accent-green);color:var(--accent-green)}
+    .action-btn.defriction{background:rgba(68,170,255,.2);border:2px solid #44aaff;color:#44aaff}
+    .action-btn.shock-damp{background:rgba(255,170,0,.2);border:2px solid var(--accent-orange);color:var(--accent-orange)}
     .action-btn .btn-cost{
       position:absolute;right:10px;top:50%;transform:translateY(-50%);
       font-size:8px;opacity:0.6;
@@ -345,17 +346,17 @@
     
     /* Action Value Indicators */
     .action-btn-wrapper{
-      position:relative;margin-bottom:12px;
+      position:relative;margin-bottom:8px;
     }
     .action-btn{
       width:100%;margin-bottom:0;
     }
     .value-indicators{
       display:flex;justify-content:space-around;
-      padding:8px 10px;margin-top:-1px;
-      background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);
-      border-top:none;border-radius:0 0 8px 8px;
-      font-size:9px;
+      padding:10px 12px;margin-top:-1px;
+      background:rgba(0,0,0,0.5);border:2px solid rgba(255,255,255,0.15);
+      border-top:none;border-radius:0 0 12px 12px;
+      font-size:11px;
     }
     .value-ind{display:flex;align-items:center;gap:3px}
     .value-ind .icon{font-size:10px}
