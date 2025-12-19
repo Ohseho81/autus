@@ -3930,254 +3930,274 @@ animate();
   </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     AUTUS ELON EDITION
-     "The best part is no part"
-     
-     요소: 5개
-     설명: 0
-     자동 실행: 3초
+     AUTUS BEGINNER/EXPERT MODE
+     Beginner: 1문장 Verdict + Root Cause + Primary Action
+     Expert: 기존 UI 전체
      ═══════════════════════════════════════════════════════════════════════════ -->
 <script>
 (function() {
   'use strict';
   
-  const AUTO_SECONDS = 3;
-  let countdown = AUTO_SECONDS;
-  let timer = null;
+  // ═══════════════════════════════════════════════════════════
+  // 설정 및 상태
+  // ═══════════════════════════════════════════════════════════
+  let currentMode = 'beginner'; // 'beginner' | 'expert'
   
-  // ═══════════════════════════════════════════════════════════
-  // 상태 저장
-  // ═══════════════════════════════════════════════════════════
-  let STATE = {
-    risk: 0.48,
-    gate: 'AMBER',
-    impact_percent: -48,
-    source: 'local'
+  // Bottleneck 한글/영문 매핑
+  const AXIS_LABELS = {
+    RECOVERY: { ko: '회복력', en: 'Recovery' },
+    STABILITY: { ko: '안정성', en: 'Stability' },
+    COHESION: { ko: '연결', en: 'Cohesion' },
+    SHOCK: { ko: '충격', en: 'Shock' },
+    FRICTION: { ko: '마찰', en: 'Friction' },
+    TRANSFER: { ko: '이전', en: 'Transfer' },
+    TIME: { ko: '시간', en: 'Time' },
+    QUALITY: { ko: '품질', en: 'Quality' },
+    OUTPUT: { ko: '산출', en: 'Output' }
   };
   
-  const API_BASE = window.location.hostname === 'localhost' 
-    ? 'http://localhost:8000' 
-    : 'https://autus-production.up.railway.app';
+  // Bottleneck → Action 매핑
+  const BOTTLENECK_ACTION_MAP = {
+    SHOCK: 'shock_damp',
+    FRICTION: 'defriction'
+  };
   
   // ═══════════════════════════════════════════════════════════
   // 초기화
   // ═══════════════════════════════════════════════════════════
-  async function init() {
-    // URL 파라미터로 비활성화 가능
+  function init() {
     const params = new URLSearchParams(location.search);
-    if (params.get('elon') === 'false') return;
-
+    
+    // URL 파라미터로 모드 지정 가능 (?mode=expert)
+    if (params.get('mode') === 'expert') {
+      currentMode = 'expert';
+    }
+    
     injectStyles();
-    hideEverything();
+    createBeginnerUI();
     
-    // API에서 상태 가져오기
-    await fetchState();
+    if (currentMode === 'beginner') {
+      showBeginnerMode();
+    } else {
+      showExpertMode();
+    }
     
-    createElonUI();
-    startAutoExec();
+    // snapshot 갱신 시 UI도 갱신
+    setInterval(updateBeginnerUI, 500);
     
-    // 30초마다 상태 갱신
-    setInterval(fetchState, 30000);
-    
-    console.log('[ELON] Simplified. 5 elements only. Source:', STATE.source);
+    console.log('[MODE] 초기화:', currentMode);
   }
   
   // ═══════════════════════════════════════════════════════════
-  // API에서 상태 가져오기
-  // ═══════════════════════════════════════════════════════════
-  async function fetchState() {
-    try {
-      const res = await fetch(`${API_BASE}/api/v1/snapshot/current`);
-      if (res.ok) {
-        const data = await res.json();
-        STATE.risk = (data.risk || 0) / 100;  // % → 소수
-        STATE.impact_percent = data.impact_percent || -Math.round(STATE.risk * 100);
-        STATE.source = data.source || 'api';
-        
-        // GATE 결정
-        if (STATE.risk < 0.3) STATE.gate = 'GREEN';
-        else if (STATE.risk >= 0.5) STATE.gate = 'RED';
-        else STATE.gate = 'AMBER';
-        
-        updateUI();
-        console.log('[ELON] State updated from', STATE.source, '- Risk:', Math.round(STATE.risk * 100) + '%');
-      }
-    } catch (e) {
-      console.warn('[ELON] API offline, using local state');
-      
-      // PhysicsFrame에서 가져오기 (fallback)
-      if (typeof PhysicsFrame !== 'undefined' && PhysicsFrame.snapshot) {
-        STATE.risk = PhysicsFrame.snapshot.risk || 0.48;
-        STATE.source = 'physics';
-      }
-    }
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // UI 업데이트
-  // ═══════════════════════════════════════════════════════════
-  function updateUI() {
-    // GATE 배지 업데이트
-    const gateBadge = document.querySelector('.gate-badge');
-    if (gateBadge) {
-      gateBadge.className = 'gate-badge ' + STATE.gate.toLowerCase();
-      gateBadge.textContent = 'GATE: ' + STATE.gate;
-    }
-    
-    // Impact 업데이트
-    const impactEl = document.querySelector('.impact-single');
-    if (impactEl) {
-      impactEl.textContent = '💰 ' + STATE.impact_percent + '%';
-    }
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // 스타일
+  // 스타일 주입
   // ═══════════════════════════════════════════════════════════
   function injectStyles() {
     const style = document.createElement('style');
-    style.id = 'elon-styles';
+    style.id = 'beginner-expert-styles';
     style.textContent = `
       /* ─────────────────────────────────────────
-         HIDE EVERYTHING
+         Beginner Mode: 기존 UI 숨김
          ───────────────────────────────────────── */
-      body > *:not(#elon-ui):not(canvas):not(script):not(style) {
+      body.beginner-mode .frame,
+      body.beginner-mode .system-bar,
+      body.beginner-mode .gate-container,
+      body.beginner-mode .kernel-display,
+      body.beginner-mode #panel-metrics,
+      body.beginner-mode #panel-forecast,
+      body.beginner-mode #planet-list,
+      body.beginner-mode #info,
+      body.beginner-mode #layer-action,
+      body.beginner-mode #layer-audit,
+      body.beginner-mode .test-results,
+      body.beginner-mode .keyboard-hint,
+      body.beginner-mode #action-risk-container {
         display: none !important;
       }
       
-      /* Canvas (9 Planets) 만 유지 */
-      canvas {
-        position: fixed !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        z-index: 1 !important;
+      body.beginner-mode canvas {
+        opacity: 0.3;
       }
       
       /* ─────────────────────────────────────────
-         ELON UI
+         Expert Mode: Beginner UI 숨김
          ───────────────────────────────────────── */
-      #elon-ui {
+      body.expert-mode #beginner-ui {
+        display: none !important;
+      }
+      
+      /* ─────────────────────────────────────────
+         Beginner UI 컨테이너
+         ───────────────────────────────────────── */
+      #beginner-ui {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        z-index: 10;
-        pointer-events: none;
-        font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
-      }
-      
-      #elon-ui * {
-        pointer-events: auto;
-      }
-      
-      /* 상단 바 */
-      .elon-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 48px;
+        z-index: 1000;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 24px;
-        background: rgba(0, 0, 0, 0.8);
+        flex-direction: column;
+        font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+        background: rgba(2, 4, 8, 0.95);
+      }
+      
+      /* ─────────────────────────────────────────
+         1. Verdict Bar (상단)
+         ───────────────────────────────────────── */
+      .verdict-bar {
+        padding: 20px 24px;
+        text-align: center;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
       
-      .gate-badge {
-        padding: 6px 16px;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 700;
-        letter-spacing: 1px;
-      }
-      
-      .gate-badge.green {
-        background: #00ff88;
-        color: #000;
-      }
-      
-      .gate-badge.amber {
-        background: #ffaa00;
-        color: #000;
-      }
-      
-      .gate-badge.red {
-        background: #ff4444;
+      .verdict-text {
+        font-size: 20px;
+        font-weight: 600;
         color: #fff;
+        line-height: 1.4;
       }
       
-      .fps-display {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
-        font-family: 'SF Mono', monospace;
-      }
+      .verdict-bar.safe .verdict-text { color: #00ff88; }
+      .verdict-bar.warning .verdict-text { color: #ffaa00; }
+      .verdict-bar.critical .verdict-text { color: #ff4444; }
       
-      /* 하단 액션 */
-      .elon-action {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 32px;
-        background: linear-gradient(transparent, rgba(0, 0, 0, 0.95));
+      /* ─────────────────────────────────────────
+         2. Root Cause Card (중앙)
+         ───────────────────────────────────────── */
+      .root-cause-section {
+        flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 16px;
+        justify-content: center;
+        padding: 40px 24px;
       }
       
-      .impact-single {
+      .root-cause-card {
+        background: rgba(255, 68, 68, 0.1);
+        border: 2px solid rgba(255, 68, 68, 0.4);
+        border-radius: 16px;
+        padding: 32px 48px;
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+      }
+      
+      .root-cause-label {
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        color: rgba(255, 68, 68, 0.8);
+        margin-bottom: 16px;
+        text-transform: uppercase;
+      }
+      
+      .root-cause-value {
         font-size: 32px;
         font-weight: 700;
-        color: #00ff88;
+        color: #ff4444;
+        margin-bottom: 8px;
       }
       
-      .recover-btn {
+      .root-cause-percent {
+        font-size: 48px;
+        font-weight: 200;
+        color: rgba(255, 68, 68, 0.6);
+      }
+      
+      /* ─────────────────────────────────────────
+         3. Primary Action (하단)
+         ───────────────────────────────────────── */
+      .action-section {
+        padding: 24px;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+      }
+      
+      .primary-action-btn {
         width: 100%;
         max-width: 400px;
-        padding: 20px 48px;
+        margin: 0 auto 16px;
+        display: block;
+        padding: 20px 32px;
         font-size: 18px;
         font-weight: 700;
-        letter-spacing: 2px;
+        letter-spacing: 0.1em;
         background: #00ff88;
         color: #000;
         border: none;
+        border-radius: 12px;
         cursor: pointer;
         transition: all 0.2s;
       }
       
-      .recover-btn:hover {
+      .primary-action-btn:hover {
         background: #00cc66;
         transform: scale(1.02);
       }
       
-      .recover-btn:active {
+      .primary-action-btn:active {
         transform: scale(0.98);
       }
       
-      .countdown-display {
-        font-size: 48px;
-        font-weight: 200;
-        color: rgba(255, 255, 255, 0.3);
-        font-family: 'SF Mono', monospace;
+      .primary-action-btn.shock_damp {
+        background: #ffaa00;
+        color: #000;
       }
       
-      .countdown-display.urgent {
+      .primary-action-btn.defriction {
+        background: #00d4ff;
+        color: #000;
+      }
+      
+      .expert-toggle-btn {
+        display: block;
+        margin: 0 auto;
+        padding: 12px 24px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      
+      .expert-toggle-btn:hover {
+        border-color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.8);
+      }
+      
+      /* ─────────────────────────────────────────
+         모드 전환 버튼 (Expert → Beginner)
+         ───────────────────────────────────────── */
+      #beginner-toggle-btn {
+        position: fixed;
+        top: 32px;
+        right: 140px;
+        padding: 8px 16px;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.6);
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        cursor: pointer;
+        z-index: 300;
+        transition: all 0.2s;
+      }
+      
+      #beginner-toggle-btn:hover {
+        border-color: #00ff88;
         color: #00ff88;
-        animation: pulse 0.5s infinite;
       }
       
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+      body.beginner-mode #beginner-toggle-btn {
+        display: none;
       }
       
-      /* 성공 화면 */
-      .success-screen {
+      /* ─────────────────────────────────────────
+         성공 화면
+         ───────────────────────────────────────── */
+      .success-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -4188,7 +4208,7 @@ animate();
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        z-index: 100;
+        z-index: 2000;
         animation: fadeIn 0.3s;
       }
       
@@ -4197,178 +4217,242 @@ animate();
         to { opacity: 1; }
       }
       
-      .success-icon {
+      .success-overlay .icon {
         font-size: 72px;
         color: #00ff88;
         margin-bottom: 24px;
       }
       
-      .success-text {
+      .success-overlay .text {
         font-size: 24px;
         color: #fff;
         font-weight: 300;
-      }
-      
-      .elon-action.hidden {
-        display: none;
       }
     `;
     document.head.appendChild(style);
   }
   
   // ═══════════════════════════════════════════════════════════
-  // 모든 것 숨김
+  // Beginner UI 생성
   // ═══════════════════════════════════════════════════════════
-  function hideEverything() {
-    document.body.style.background = '#000';
-    document.body.style.margin = '0';
-    document.body.style.padding = '0';
-    document.body.style.overflow = 'hidden';
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // Elon UI 생성 (5요소만)
-  // ═══════════════════════════════════════════════════════════
-  function createElonUI() {
+  function createBeginnerUI() {
+    // Beginner UI 컨테이너
     const ui = document.createElement('div');
-    ui.id = 'elon-ui';
-    
-    // STATE에서 값 가져오기
-    const gateText = STATE.gate;
-    const impactValue = STATE.impact_percent + '%';
-    const gateClass = gateText.toLowerCase();
-    
+    ui.id = 'beginner-ui';
     ui.innerHTML = `
-      <!-- 요소 1: GATE 배지 -->
-      <!-- 요소 2: FPS -->
-      <div class="elon-header">
-        <div class="gate-badge ${gateClass}">GATE: ${gateText}</div>
-        <div class="fps-display" id="fps-counter">-- FPS</div>
+      <!-- 1. Verdict Bar -->
+      <div class="verdict-bar" id="verdict-bar">
+        <div class="verdict-text" id="verdict-text">상태를 분석하는 중...</div>
       </div>
       
-      <!-- 요소 3: Impact 숫자 -->
-      <!-- 요소 4: RECOVER 버튼 -->
-      <!-- 요소 5: 카운트다운 -->
-      <div class="elon-action" id="action-area">
-        <div class="impact-single">💰 ${impactValue}</div>
-        <button class="recover-btn" id="recover-btn">RECOVER</button>
-        <div class="countdown-display" id="countdown">${AUTO_SECONDS}</div>
+      <!-- 2. Root Cause Card -->
+      <div class="root-cause-section">
+        <div class="root-cause-card">
+          <div class="root-cause-label">▼ 핵심 원인 ROOT CAUSE</div>
+          <div class="root-cause-value" id="root-cause-value">—</div>
+          <div class="root-cause-percent" id="root-cause-percent">0%</div>
+        </div>
+      </div>
+      
+      <!-- 3. Action Section -->
+      <div class="action-section">
+        <button class="primary-action-btn" id="primary-action-btn">RECOVER</button>
+        <button class="expert-toggle-btn" id="expert-toggle-btn">다른 전략 보기 →</button>
       </div>
     `;
-    
     document.body.appendChild(ui);
     
-    // 버튼 이벤트
-    document.getElementById('recover-btn').addEventListener('click', executeRecover);
+    // Expert 모드에서 Beginner로 돌아가는 버튼
+    const toggleBtn = document.createElement('button');
+    toggleBtn.id = 'beginner-toggle-btn';
+    toggleBtn.textContent = '간편 모드';
+    document.body.appendChild(toggleBtn);
     
-    // FPS 업데이트
-    updateFPS();
+    // 이벤트 바인딩
+    document.getElementById('primary-action-btn').addEventListener('click', executePrimaryAction);
+    document.getElementById('expert-toggle-btn').addEventListener('click', showExpertMode);
+    document.getElementById('beginner-toggle-btn').addEventListener('click', showBeginnerMode);
   }
   
   // ═══════════════════════════════════════════════════════════
-  // FPS 업데이트
+  // Beginner UI 업데이트 (PhysicsFrame에서 데이터 읽기)
   // ═══════════════════════════════════════════════════════════
-  function updateFPS() {
-    let lastTime = performance.now();
-    let frames = 0;
+  function updateBeginnerUI() {
+    if (currentMode !== 'beginner') return;
+    if (typeof PhysicsFrame === 'undefined') return;
     
-    function loop() {
-      frames++;
-      const now = performance.now();
-      if (now - lastTime >= 1000) {
-        const fps = Math.round(frames * 1000 / (now - lastTime));
-        const el = document.getElementById('fps-counter');
-        if (el) el.textContent = fps + ' FPS';
-        frames = 0;
-        lastTime = now;
-      }
-      requestAnimationFrame(loop);
+    const snap = PhysicsFrame.snapshot;
+    const bn = PhysicsFrame.bottleneck;
+    
+    // 1. Verdict Bar 업데이트
+    updateVerdictBar(snap, bn);
+    
+    // 2. Root Cause 업데이트
+    updateRootCause(bn);
+    
+    // 3. Primary Action 업데이트
+    updatePrimaryAction(bn);
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // Verdict Bar 업데이트
+  // ═══════════════════════════════════════════════════════════
+  function updateVerdictBar(snap, bn) {
+    const bar = document.getElementById('verdict-bar');
+    const text = document.getElementById('verdict-text');
+    if (!bar || !text) return;
+    
+    const risk = snap.risk || 0;
+    const axisLabel = AXIS_LABELS[bn.axis] || { ko: bn.axis, en: bn.axis };
+    
+    // 손실 계산 (24시간 기준)
+    const hourlyLoss = Math.round(risk * 50); // 시간당 ₩50만 기준
+    const dailyLoss = hourlyLoss * 24;
+    const monthlyLoss = dailyLoss * 30;
+    
+    // Verdict 문장 생성 (%, 수식 없이)
+    let verdict = '';
+    let barClass = 'safe';
+    
+    if (risk >= 0.5) {
+      verdict = `${axisLabel.ko} 문제로 월 ₩${formatMoney(monthlyLoss)} 손실 예상`;
+      barClass = 'critical';
+    } else if (risk >= 0.3) {
+      verdict = `${axisLabel.ko} 저하로 24시간 내 ₩${formatMoney(dailyLoss)} 손실 가능`;
+      barClass = 'warning';
+    } else if (bn.value > 0.3) {
+      verdict = `${axisLabel.ko} 약간 불안정 — 모니터링 권장`;
+      barClass = 'safe';
+    } else {
+      verdict = `시스템 안정 — 현재 조치 불필요`;
+      barClass = 'safe';
     }
-    requestAnimationFrame(loop);
+    
+    bar.className = `verdict-bar ${barClass}`;
+    text.textContent = verdict;
   }
   
   // ═══════════════════════════════════════════════════════════
-  // 3초 자동 실행
+  // Root Cause 업데이트
   // ═══════════════════════════════════════════════════════════
-  function startAutoExec() {
-    countdown = AUTO_SECONDS;
-    updateCountdown();
+  function updateRootCause(bn) {
+    const valueEl = document.getElementById('root-cause-value');
+    const percentEl = document.getElementById('root-cause-percent');
+    if (!valueEl || !percentEl) return;
     
-    timer = setInterval(() => {
-      countdown--;
-      updateCountdown();
+    const axisLabel = AXIS_LABELS[bn.axis] || { ko: bn.axis, en: bn.axis };
+    
+    valueEl.textContent = `${axisLabel.ko}(${axisLabel.en})`;
+    percentEl.textContent = Math.round(bn.value * 100) + '%';
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // Primary Action 업데이트
+  // ═══════════════════════════════════════════════════════════
+  function updatePrimaryAction(bn) {
+    const btn = document.getElementById('primary-action-btn');
+    if (!btn) return;
+    
+    // Bottleneck 기반 액션 결정
+    const actionKey = BOTTLENECK_ACTION_MAP[bn.axis] || 'recover';
+    
+    const actionLabels = {
+      recover: 'RECOVER',
+      defriction: 'DEFRICTION',
+      shock_damp: 'SHOCK DAMP'
+    };
+    
+    btn.textContent = actionLabels[actionKey] || 'RECOVER';
+    btn.className = `primary-action-btn ${actionKey}`;
+    btn.dataset.action = actionKey;
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // Primary Action 실행
+  // ═══════════════════════════════════════════════════════════
+  async function executePrimaryAction() {
+    const btn = document.getElementById('primary-action-btn');
+    const actionKey = btn?.dataset.action || 'recover';
+    
+    console.log('[BEGINNER] 액션 실행:', actionKey);
+    
+    // 기존 previewAction 호출 (AUDIT 모드 포함)
+    if (typeof previewAction === 'function') {
+      showExpertMode(); // Expert 모드로 전환하여 AUDIT 표시
+      await previewAction(actionKey, null);
+    } else {
+      // Fallback: 직접 API 호출
+      const apiBase = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8000' 
+        : 'https://autus-production.up.railway.app';
       
-      if (countdown <= 0) {
-        clearInterval(timer);
-        executeRecover();
+      try {
+        await fetch(`${apiBase}/api/v1/burn/execute`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ impulse: actionKey.toUpperCase(), magnitude: 1.0 })
+        });
+      } catch (e) {
+        console.warn('[BEGINNER] API offline');
       }
-    }, 1000);
-  }
-  
-  function updateCountdown() {
-    const el = document.getElementById('countdown');
-    if (!el) return;
-    
-    el.textContent = countdown;
-    
-    if (countdown <= 1) {
-      el.classList.add('urgent');
+      
+      showSuccessOverlay(actionKey);
     }
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // RECOVER 실행
-  // ═══════════════════════════════════════════════════════════
-  async function executeRecover() {
-    clearInterval(timer);
-    
-    // 액션 영역 숨김
-    document.getElementById('action-area')?.classList.add('hidden');
-    
-    // API 호출
-    const apiBase = window.location.hostname === 'localhost' 
-      ? 'http://localhost:8000' 
-      : 'https://autus-production.up.railway.app';
-    
-    try {
-      await fetch(`${apiBase}/api/v1/burn/execute`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ impulse: 'RECOVER', magnitude: 1.0 })
-      });
-    } catch (e) {
-      console.log('[ELON] API offline, local mode');
-    }
-    
-    // 성공 화면
-    showSuccess();
   }
   
   // ═══════════════════════════════════════════════════════════
   // 성공 화면
   // ═══════════════════════════════════════════════════════════
-  function showSuccess() {
-    const success = document.createElement('div');
-    success.className = 'success-screen';
-    success.innerHTML = `
-      <div class="success-icon">✓</div>
-      <div class="success-text">RECOVERED</div>
+  function showSuccessOverlay(actionKey) {
+    const overlay = document.createElement('div');
+    overlay.className = 'success-overlay';
+    overlay.innerHTML = `
+      <div class="icon">✓</div>
+      <div class="text">${actionKey.toUpperCase()} 완료</div>
     `;
-    document.body.appendChild(success);
+    document.body.appendChild(overlay);
     
-    // 3초 후 새로고침
     setTimeout(() => {
+      overlay.remove();
       location.reload();
-    }, 3000);
+    }, 2000);
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // 모드 전환
+  // ═══════════════════════════════════════════════════════════
+  function showBeginnerMode() {
+    currentMode = 'beginner';
+    document.body.classList.remove('expert-mode');
+    document.body.classList.add('beginner-mode');
+    updateBeginnerUI();
+    console.log('[MODE] Beginner 모드');
+  }
+  
+  function showExpertMode() {
+    currentMode = 'expert';
+    document.body.classList.remove('beginner-mode');
+    document.body.classList.add('expert-mode');
+    console.log('[MODE] Expert 모드');
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // 유틸리티
+  // ═══════════════════════════════════════════════════════════
+  function formatMoney(num) {
+    if (num >= 10000) {
+      return Math.round(num / 10000) + '만';
+    }
+    return num.toLocaleString();
   }
   
   // ═══════════════════════════════════════════════════════════
   // 실행
   // ═══════════════════════════════════════════════════════════
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(init, 500));
+    document.addEventListener('DOMContentLoaded', () => setTimeout(init, 800));
   } else {
-    setTimeout(init, 500);
+    setTimeout(init, 800);
   }
   
 })();
