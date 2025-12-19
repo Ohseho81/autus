@@ -11,7 +11,8 @@ from contextlib import contextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
+import asyncio
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 
@@ -485,6 +486,59 @@ def execute_burn(body: BurnSimulateIn):
         "executed": True,
         "status": ENGINE.snapshot()
     }
+
+# === Phase 3: SSE 실시간 스트림 ===
+@app.get("/api/v1/stream/state")
+async def stream_state():
+    """실시간 상태 스트림 (SSE)"""
+    async def event_generator():
+        while True:
+            snap = ENGINE.snapshot()
+            sig = snap.get("signals", {})
+            
+            # 9 Planets 상태
+            planets = {
+                "recovery": max(0.1, 1.0 - sig.get("entropy", 0.2)),
+                "stability": max(0.1, 1.0 - sig.get("pressure", 0.3) * 0.5),
+                "cohesion": max(0.1, sig.get("gravity", 0.5)),
+                "shock": min(0.9, sig.get("entropy", 0.2) * 1.5),
+                "friction": min(0.9, sig.get("pressure", 0.3)),
+                "transfer": max(0.1, 1.0 - sig.get("pressure", 0.3) * 0.3),
+                "time": max(0.1, 1.0 - sig.get("entropy", 0.2) * 0.8),
+                "quality": max(0.1, sig.get("gravity", 0.5) * 1.2),
+                "output": max(0.1, sig.get("gravity", 0.5) * 0.9)
+            }
+            
+            # Snapshot 계산
+            risk = min(1.0, sig.get("entropy", 0.2) * 0.6 + sig.get("pressure", 0.3) * 0.4)
+            entropy = sig.get("entropy", 0.2)
+            pressure = sig.get("pressure", 0.3)
+            flow = max(0.1, 1.0 - pressure * 0.5)
+            
+            data = {
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "planets": planets,
+                "snapshot": {
+                    "risk": round(risk, 3),
+                    "entropy": round(entropy, 3),
+                    "pressure": round(pressure, 3),
+                    "flow": round(flow, 3)
+                },
+                "status": snap.get("status", "GREEN")
+            }
+            
+            yield f"data: {json.dumps(data)}\n\n"
+            await asyncio.sleep(1)  # 1초마다 업데이트
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 # Frontend
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")

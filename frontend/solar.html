@@ -872,10 +872,57 @@ async function syncWithAPI() {
   }
 }
 
-// Start API polling (1초 간격)
-setInterval(syncWithAPI, 1000);
-// Initial sync
-setTimeout(syncWithAPI, 500);
+// Phase 3: SSE 실시간 스트림 연결
+let sseConnection = null;
+
+function connectSSE() {
+  if (sseConnection) sseConnection.close();
+  
+  try {
+    sseConnection = new EventSource(`${API_BASE}/api/v1/stream/state`);
+    
+    sseConnection.onopen = () => {
+      if (!apiConnected) {
+        apiConnected = true;
+        logAction('SSE Connected — Real-time stream', 'success');
+      }
+    };
+    
+    sseConnection.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (updateTwinStateFromAPI(data)) {
+          updateFullState();
+          renderPlanetList();
+        }
+      } catch (e) {
+        console.warn('[SSE] Parse error:', e);
+      }
+    };
+    
+    sseConnection.onerror = (e) => {
+      console.warn('[SSE] Connection error, falling back to polling');
+      sseConnection.close();
+      sseConnection = null;
+      // Fallback to polling
+      startPolling();
+    };
+  } catch (e) {
+    console.warn('[SSE] Not supported, using polling');
+    startPolling();
+  }
+}
+
+function startPolling() {
+  setInterval(syncWithAPI, 1000);
+}
+
+// Try SSE first, fallback to polling
+setTimeout(() => {
+  connectSSE();
+  // Initial sync via fetch
+  syncWithAPI();
+}, 500);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PhysicsFrame — THE SINGLE SOURCE FOR ALL UI
