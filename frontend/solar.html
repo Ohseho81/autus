@@ -447,6 +447,70 @@
     .risk-chart-stats .stat-value.up{color:var(--accent-red)}
     .risk-chart-stats .stat-value.down{color:var(--accent-green)}
     .risk-chart-stats .stat-label{font-size:7px;color:#666;margin-top:2px}
+    
+    /* Jack Ma: 첫 사용자 온보딩 가이드 */
+    #onboarding-overlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.92);backdrop-filter:blur(15px);
+      display:flex;justify-content:center;align-items:center;
+      z-index:1000;animation:fadeIn 0.5s ease;
+    }
+    #onboarding-overlay.hidden{display:none}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    
+    .onboarding-card{
+      background:linear-gradient(135deg, rgba(0,20,40,0.98), rgba(0,10,30,0.98));
+      border:2px solid rgba(0,212,255,0.4);
+      border-radius:20px;padding:40px;max-width:480px;
+      text-align:center;box-shadow:0 0 80px rgba(0,212,255,0.2);
+    }
+    .onboarding-card .logo{
+      font-size:48px;margin-bottom:16px;
+    }
+    .onboarding-card h2{
+      font-size:24px;font-weight:300;color:var(--accent-cyan);
+      margin-bottom:8px;letter-spacing:0.3em;
+    }
+    .onboarding-card .tagline{
+      font-size:13px;color:#888;margin-bottom:32px;
+    }
+    
+    .onboarding-steps{
+      text-align:left;margin-bottom:32px;
+    }
+    .onboarding-step{
+      display:flex;align-items:flex-start;gap:16px;
+      padding:16px;margin-bottom:12px;
+      background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);
+      border-radius:12px;transition:all 0.2s;
+    }
+    .onboarding-step:hover{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.3)}
+    .onboarding-step .step-icon{
+      font-size:24px;width:40px;height:40px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(0,212,255,0.1);border-radius:10px;flex-shrink:0;
+    }
+    .onboarding-step .step-content h3{
+      font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;
+    }
+    .onboarding-step .step-content p{
+      font-size:11px;color:#888;line-height:1.5;
+    }
+    
+    .onboarding-actions{
+      display:flex;flex-direction:column;gap:12px;align-items:center;
+    }
+    .onboarding-start{
+      padding:16px 48px;background:linear-gradient(90deg, var(--accent-cyan), #00aaff);
+      border:none;border-radius:30px;color:#000;font-size:14px;font-weight:700;
+      letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;
+    }
+    .onboarding-start:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(0,212,255,0.5)}
+    .onboarding-skip{
+      background:none;border:none;color:#666;font-size:11px;
+      cursor:pointer;text-decoration:underline;
+    }
+    .onboarding-skip:hover{color:#888}
     #dignity-display.low{background:rgba(255,68,68,0.15);border:1px solid var(--accent-red);color:var(--accent-red)}
     #dignity-display.balanced{background:rgba(255,170,0,0.15);border:1px solid var(--accent-orange);color:var(--accent-orange)}
     #dignity-display.elevated{background:rgba(0,255,136,0.15);border:1px solid var(--accent-green);color:var(--accent-green)}
@@ -580,6 +644,44 @@
   </style>
 </head>
 <body>
+  <!-- Jack Ma: 첫 사용자 온보딩 -->
+  <div id="onboarding-overlay">
+    <div class="onboarding-card">
+      <div class="logo">🌍</div>
+      <h2>AUTUS SOLAR HQ</h2>
+      <p class="tagline">미래를 맞히는 게 아니라, 더 나은 선택을 보여줍니다</p>
+      
+      <div class="onboarding-steps">
+        <div class="onboarding-step">
+          <div class="step-icon">📊</div>
+          <div class="step-content">
+            <h3>1. 현재 상태 확인</h3>
+            <p>RISK 수치와 트렌드 차트로 시스템 건강 상태를 한눈에 파악하세요</p>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="step-icon">⚡</div>
+          <div class="step-content">
+            <h3>2. 최적 선택 확인</h3>
+            <p>"⚡ 최적 선택" 배지가 붙은 버튼이 가장 효과적인 조치입니다</p>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="step-icon">💰</div>
+          <div class="step-content">
+            <h3>3. 구체적 비용 절감</h3>
+            <p>각 버튼 아래에 실제 절감 금액과 시간이 표시됩니다</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="onboarding-actions">
+        <button class="onboarding-start" onclick="closeOnboarding()">시작하기</button>
+        <button class="onboarding-skip" onclick="closeOnboarding(true)">다시 보지 않기</button>
+      </div>
+    </div>
+  </div>
+
   <div class="frame">
     <div class="corner tl"></div><div class="corner tr"></div>
     <div class="corner bl"></div><div class="corner br"></div>
@@ -2307,9 +2409,37 @@ function animate() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// JACK MA: 첫 사용자 온보딩
+// ═══════════════════════════════════════════════════════════════════════════
+function checkOnboarding() {
+  const hasVisited = localStorage.getItem('autus_onboarding_complete');
+  if (hasVisited) {
+    document.getElementById('onboarding-overlay').classList.add('hidden');
+  }
+}
+
+function closeOnboarding(skipForever = false) {
+  if (skipForever) {
+    localStorage.setItem('autus_onboarding_complete', 'true');
+  }
+  const overlay = document.getElementById('onboarding-overlay');
+  overlay.style.animation = 'fadeOut 0.3s ease forwards';
+  setTimeout(() => overlay.classList.add('hidden'), 300);
+  logAction('Welcome to AUTUS Solar HQ', 'success');
+}
+
+// 온보딩 fade out 애니메이션
+const styleSheet = document.createElement('style');
+styleSheet.textContent = '@keyframes fadeOut{from{opacity:1}to{opacity:0}}';
+document.head.appendChild(styleSheet);
+
+// ═══════════════════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════════════════
 window.onresize = () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); };
+
+// 온보딩 체크
+checkOnboarding();
 
 // Initialize state
 updateFullState();
