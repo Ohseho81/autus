@@ -294,6 +294,7 @@
     }
     
     .test-badge{
+      display:none; /* B: 숨김 */
       position:fixed;bottom:40px;left:40px;
       padding:8px 16px;background:rgba(0,255,136,0.1);
       border:1px solid rgba(0,255,136,0.3);border-radius:6px;
@@ -362,12 +363,11 @@
     .value-ind .val.up{color:var(--accent-green)}
     .value-ind .val.down{color:var(--accent-red)}
     
-    /* Dignity Badge */
+    /* Dignity Badge — GATE 옆에 나란히 */
     #dignity-display{
-      position:fixed;top:32px;left:50%;transform:translateX(calc(-50% + 120px));
-      padding:8px 16px;border-radius:6px;
-      font-size:11px;font-weight:600;letter-spacing:0.1em;
-      z-index:200;transition:all 0.3s;
+      padding:10px 16px;border-radius:8px;
+      font-size:12px;font-weight:600;letter-spacing:0.1em;
+      transition:all 0.3s;
     }
     #dignity-display.low{background:rgba(255,68,68,0.15);border:1px solid var(--accent-red);color:var(--accent-red)}
     #dignity-display.balanced{background:rgba(255,170,0,0.15);border:1px solid var(--accent-orange);color:var(--accent-orange)}
@@ -485,9 +485,8 @@
   
   <div class="gate-container">
     <div id="gate-badge" class="gate-badge gate-amber">GATE: AMBER</div>
+    <div id="dignity-display" class="balanced">DIGNITY: BALANCED</div>
   </div>
-  
-  <div id="dignity-display" class="balanced">DIGNITY: BALANCED</div>
   
   <!-- EP10: FORECAST BRANCH PANEL -->
   <div id="forecast-panel">
