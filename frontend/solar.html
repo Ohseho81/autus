@@ -922,6 +922,10 @@ setTimeout(() => {
   connectSSE();
   // Initial sync via fetch
   syncWithAPI();
+  // Phase 4: 예측 API 호출
+  fetchPredictBranches();
+  // 30초마다 예측 업데이트
+  setInterval(fetchPredictBranches, 30000);
 }, 500);
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1524,17 +1528,62 @@ function logAction(msg, type = 'info') {
 // ═══════════════════════════════════════════════════════════════════════════
 // EP10: FORECAST PANEL UPDATE
 // ═══════════════════════════════════════════════════════════════════════════
+// Phase 4: 예측 API 데이터 저장
+let predictData = null;
+
+async function fetchPredictBranches() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/predict/branches`);
+    if (res.ok) {
+      predictData = await res.json();
+      updateForecastPanelFromAPI();
+    }
+  } catch (e) {
+    console.warn('[API] Predict fetch failed:', e);
+  }
+}
+
+function updateForecastPanelFromAPI() {
+  if (!predictData) return;
+  
+  const { branches, recommended } = predictData;
+  const best = branches[recommended.toLowerCase()] || branches.shock_damp;
+  
+  document.getElementById('fc-best').innerHTML = `
+    <div class="branch-label">IF ${best.action.replace('_', ' ')}:</div>
+    <div class="branch-values">
+      <span class="value-chip positive">💰 Cost −${best.cost_percent}%</span>
+      <span class="value-chip positive">⏱️ Time −${best.time_percent}%</span>
+      <span class="value-chip positive">🌍 Rep +${best.reputation_sigma}σ</span>
+    </div>
+  `;
+  
+  // NO ACTION 경고
+  const noAct = branches.no_action;
+  const repEl = document.getElementById('rep-status');
+  if (repEl) {
+    repEl.innerHTML = `⚠️ NO ACTION: ${noAct.hours_to_critical}h 내 Risk ${Math.round(noAct.collapse_probability * 100)}%`;
+    repEl.style.color = 'var(--accent-red)';
+  }
+}
+
 function updateForecastPanel() {
+  // API 데이터가 있으면 사용
+  if (predictData) {
+    updateForecastPanelFromAPI();
+    return;
+  }
+  
   const av = PhysicsFrame.actionValues;
   const snap = PhysicsFrame.snapshot;
-  
+
   // Find best action (highest reputation gain)
   const actions = [
     { key: 'shock_damp', val: av.shock_damp },
     { key: 'recover', val: av.recover },
     { key: 'defriction', val: av.defriction }
   ].sort((a, b) => (b.val.reputation + b.val.dignity) - (a.val.reputation + a.val.dignity));
-  
+
   // Best branch
   const best = actions[0];
   document.getElementById('fc-best').innerHTML = `

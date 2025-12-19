@@ -540,6 +540,89 @@ async def stream_state():
         }
     )
 
+# === Phase 4: 예측 API ===
+@app.get("/api/v1/predict/branches")
+def predict_branches():
+    """미래 시나리오 분기 예측 (명세서 Phase 4)"""
+    snap = ENGINE.snapshot()
+    sig = snap.get("signals", {})
+    
+    # 현재 상태
+    current_entropy = sig.get("entropy", 0.2)
+    current_pressure = sig.get("pressure", 0.3)
+    current_risk = min(1.0, current_entropy * 0.6 + current_pressure * 0.4)
+    
+    # SHOCK_DAMP 시나리오
+    shock_damp = {
+        "action": "SHOCK_DAMP",
+        "delta_risk": -0.18,
+        "delta_entropy": -0.10,
+        "predicted_risk": round(max(0, current_risk - 0.18), 3),
+        "cost_percent": 32,
+        "time_percent": 18,
+        "reputation_sigma": 0.6,
+        "confidence": 72,
+        "recommendation": current_entropy > 0.3
+    }
+    
+    # RECOVER 시나리오
+    recover = {
+        "action": "RECOVER",
+        "delta_risk": -0.09,
+        "delta_entropy": -0.05,
+        "predicted_risk": round(max(0, current_risk - 0.09), 3),
+        "cost_percent": 15,
+        "time_percent": 8,
+        "reputation_sigma": 0.2,
+        "confidence": 85,
+        "recommendation": current_risk > 0.4
+    }
+    
+    # DEFRICTION 시나리오
+    defriction = {
+        "action": "DEFRICTION",
+        "delta_risk": -0.08,
+        "delta_entropy": -0.03,
+        "predicted_risk": round(max(0, current_risk - 0.08), 3),
+        "cost_percent": 20,
+        "time_percent": 12,
+        "reputation_sigma": 0.3,
+        "confidence": 80,
+        "recommendation": current_pressure > 0.5
+    }
+    
+    # NO_ACTION 시나리오 (붕괴 예측)
+    entropy_growth = 0.02 * (1 + current_pressure)  # 압력에 비례해 엔트로피 증가
+    no_action = {
+        "action": "NO_ACTION",
+        "delta_risk": round(entropy_growth * 2, 3),
+        "delta_entropy": round(entropy_growth, 3),
+        "predicted_risk": round(min(1.0, current_risk + entropy_growth * 2), 3),
+        "hours_to_critical": max(1, int(24 * (1 - current_risk))),  # 위험도에 따른 임계 시간
+        "collapse_probability": round(min(0.95, current_risk + 0.15), 2),
+        "warning": "Entropy 지속 증가, 시스템 불안정"
+    }
+    
+    # 최적 추천 결정
+    recommendations = [shock_damp, recover, defriction]
+    best = max(recommendations, key=lambda x: x["delta_risk"] * -1 * x["confidence"] / 100)
+    
+    return {
+        "current": {
+            "risk": round(current_risk, 3),
+            "entropy": round(current_entropy, 3),
+            "pressure": round(current_pressure, 3)
+        },
+        "branches": {
+            "shock_damp": shock_damp,
+            "recover": recover,
+            "defriction": defriction,
+            "no_action": no_action
+        },
+        "recommended": best["action"],
+        "horizon_hours": 1
+    }
+
 # Frontend
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.exists(frontend_path):
