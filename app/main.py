@@ -1239,6 +1239,230 @@ def get_pending_tasks():
     }
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# COMMIT 중심 DB API — "책임 저장 장치"
+# ═══════════════════════════════════════════════════════════════════════════
+try:
+    from app.models.commit_schema import (
+        init_commit_schema,
+        PersonIn, CommitIn, MoneyFlowIn, ActionIn,
+        create_person, create_commit, create_money_flow, execute_action,
+        get_person_dashboard, calculate_survival_mass, calculate_risk_score,
+        get_commit_db, record_audit
+    )
+    
+    # 스키마 초기화
+    init_commit_schema()
+    
+    # === Person API ===
+    @app.post("/api/v1/commit/person")
+    def api_create_person(body: PersonIn):
+        """Person 생성 — 최소 정보 컨테이너"""
+        return create_person(body)
+    
+    @app.get("/api/v1/commit/person/{person_id}")
+    def api_get_person(person_id: str):
+        """Person 대시보드 — 전체 상태 조회"""
+        return get_person_dashboard(person_id)
+    
+    # === Commit API ===
+    @app.post("/api/v1/commit/create")
+    def api_create_commit(body: CommitIn):
+        """Commit 생성 — 돈과 책임의 물리단위"""
+        return create_commit(body)
+    
+    @app.get("/api/v1/commit/list/{person_id}")
+    def api_list_commits(person_id: str):
+        """Person의 활성 Commit 목록"""
+        with get_commit_db() as conn:
+            rows = conn.execute('''
+                SELECT * FROM commit WHERE actor_to = ? AND status = 'active'
+                ORDER BY created_at DESC
+            ''', (person_id,)).fetchall()
+            return {"commits": [dict(r) for r in rows]}
+    
+    @app.post("/api/v1/commit/close/{commit_id}")
+    def api_close_commit(commit_id: str):
+        """Commit 종료 — 되돌릴 수 없음"""
+        with get_commit_db() as conn:
+            conn.execute("UPDATE commit SET status = 'closed' WHERE commit_id = ?", (commit_id,))
+            conn.commit()
+            record_audit('commit', commit_id, 'CLOSED', {'status': 'closed'})
+            return {"commit_id": commit_id, "status": "closed", "immutable": True}
+    
+    # === Money Flow API ===
+    @app.post("/api/v1/commit/flow")
+    def api_record_flow(body: MoneyFlowIn):
+        """Money Flow 기록"""
+        return create_money_flow(body)
+    
+    # === Action API ===
+    @app.post("/api/v1/commit/action")
+    def api_execute_action(body: ActionIn):
+        """Action 실행 — 1회만 가능"""
+        return execute_action(body)
+    
+    # === Survival Mass API ===
+    @app.get("/api/v1/commit/survival/{person_id}")
+    def api_get_survival(person_id: str):
+        """Survival Mass 계산"""
+        return calculate_survival_mass(person_id)
+    
+    @app.get("/api/v1/commit/risk/{person_id}")
+    def api_get_risk(person_id: str):
+        """Risk Score 계산"""
+        return calculate_risk_score(person_id)
+    
+    # === System State API ===
+    @app.get("/api/v1/commit/system/state")
+    def api_get_system_state():
+        """전역 시스템 상태"""
+        with get_commit_db() as conn:
+            state = conn.execute("SELECT * FROM system_state WHERE state_id = 'GLOBAL'").fetchone()
+            return dict(state) if state else {"status": "unknown"}
+    
+    @app.post("/api/v1/commit/system/recalculate")
+    def api_recalculate_system():
+        """시스템 상태 재계산"""
+        with get_commit_db() as conn:
+            # 전체 Person의 Survival Mass 합계
+            rows = conn.execute('''
+                SELECT actor_to, SUM(mass * gravity) as person_mass
+                FROM commit WHERE status = 'active'
+                GROUP BY actor_to
+            ''').fetchall()
+            
+            total_mass = sum(r['person_mass'] or 0 for r in rows)
+            person_count = len(rows)
+            
+            # Float Pressure 계산
+            friction_sum = conn.execute('''
+                SELECT SUM(friction * mass) as total_friction FROM commit WHERE status = 'active'
+            ''').fetchone()['total_friction'] or 0
+            
+            float_pressure = friction_sum / max(total_mass, 0.01)
+            
+            # Status 결정
+            if total_mass < 0.5 or float_pressure > 0.8:
+                status = 'red'
+            elif total_mass < 1.0 or float_pressure > 0.5:
+                status = 'yellow'
+            else:
+                status = 'green'
+            
+            # 업데이트
+            now = int(time.time())
+            conn.execute('''
+                UPDATE system_state SET survival_mass = ?, float_pressure = ?, 
+                       status = ?, calculated_at = ? WHERE state_id = 'GLOBAL'
+            ''', (total_mass, float_pressure, status, now))
+            conn.commit()
+            
+            return {
+                'survival_mass': round(total_mass, 4),
+                'float_pressure': round(float_pressure, 4),
+                'status': status,
+                'person_count': person_count,
+                'calculated_at': now
+            }
+    
+    # === 학생 1명 시뮬레이션 데이터 생성 ===
+    @app.post("/api/v1/commit/demo/student")
+    def api_create_demo_student():
+        """학생 1명 + Commit 3개 데모 데이터 생성"""
+        import uuid
+        
+        # 1. Person 생성 (학생)
+        student = PersonIn(
+            person_id="STU_001",
+            role="student",
+            country="KR",
+            name="김유학"
+        )
+        create_person(student)
+        
+        # 2. Person 생성 (대학, 회사, 기관)
+        create_person(PersonIn(person_id="UNIV_001", role="institution", country="KR", name="서울대학교"))
+        create_person(PersonIn(person_id="CORP_001", role="employer", country="KR", name="삼성전자"))
+        create_person(PersonIn(person_id="INST_001", role="institution", country="KR", name="한국장학재단"))
+        
+        # 3. Commit 생성 (등록금, 급여, 관리비)
+        commits = [
+            CommitIn(
+                commit_id="CMT_TUITION_001",
+                commit_type="tuition",
+                actor_from="STU_001",
+                actor_to="UNIV_001",
+                amount=15000000,
+                currency="KRW",
+                start_date="2025-03-01",
+                end_date="2025-08-31"
+            ),
+            CommitIn(
+                commit_id="CMT_WAGE_001",
+                commit_type="wage",
+                actor_from="CORP_001",
+                actor_to="STU_001",
+                amount=2500000,
+                currency="KRW",
+                start_date="2025-01-01",
+                end_date="2025-12-31"
+            ),
+            CommitIn(
+                commit_id="CMT_GRANT_001",
+                commit_type="grant",
+                actor_from="INST_001",
+                actor_to="STU_001",
+                amount=500000,
+                currency="KRW",
+                start_date="2025-01-01",
+                end_date="2025-12-31"
+            )
+        ]
+        
+        results = []
+        for commit in commits:
+            result = create_commit(commit)
+            results.append(result)
+        
+        # 4. Money Flow 기록 (1월분)
+        flows = [
+            MoneyFlowIn(
+                flow_id="FLOW_001",
+                commit_id="CMT_WAGE_001",
+                amount=2500000,
+                flow_date="2025-01-25",
+                direction="in",
+                memo="1월 급여"
+            ),
+            MoneyFlowIn(
+                flow_id="FLOW_002",
+                commit_id="CMT_GRANT_001",
+                amount=500000,
+                flow_date="2025-01-15",
+                direction="in",
+                memo="1월 장학금"
+            )
+        ]
+        
+        for flow in flows:
+            create_money_flow(flow)
+        
+        # 5. 최종 상태
+        dashboard = get_person_dashboard("STU_001")
+        
+        return {
+            "demo_created": True,
+            "student": dashboard,
+            "commits_created": len(results)
+        }
+    
+    logger.info("✅ Commit Schema API loaded")
+    
+except Exception as e:
+    logger.warning(f"⚠️ Commit Schema API not loaded: {e}")
+
+
 # === Observer API ===
 try:
     from app.api.observer_api import router as observer_router

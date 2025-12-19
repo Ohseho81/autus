@@ -596,6 +596,108 @@
     }
     .task-toast.show{opacity:1;transform:translateY(0)}
     
+    /* ═══════════════════════════════════════════════════════════════════════════
+       COMMIT 중심 — 학생 1명 시뮬레이션 Panel
+       ═══════════════════════════════════════════════════════════════════════════ */
+    
+    #commit-panel{
+      position:fixed;top:90px;left:240px;width:320px;
+      background:var(--bg-panel);border:1px solid rgba(138,92,246,0.4);
+      border-radius:10px;padding:16px;z-index:160;
+    }
+    .commit-panel-title{
+      font-size:10px;letter-spacing:0.15em;color:rgba(138,92,246,0.9);
+      margin-bottom:12px;padding-bottom:8px;
+      border-bottom:1px solid rgba(138,92,246,0.3);
+      display:flex;justify-content:space-between;align-items:center;
+    }
+    .commit-panel-title .badge{
+      padding:3px 8px;border-radius:10px;font-size:8px;font-weight:700;
+    }
+    .commit-panel-title .badge.green{background:rgba(0,255,136,0.2);color:var(--accent-green)}
+    .commit-panel-title .badge.yellow{background:rgba(255,170,0,0.2);color:var(--accent-orange)}
+    .commit-panel-title .badge.red{background:rgba(255,68,68,0.2);color:var(--accent-red)}
+    
+    .commit-person-card{
+      padding:12px;margin-bottom:12px;
+      background:rgba(0,0,0,0.3);border:1px solid rgba(138,92,246,0.2);
+      border-radius:8px;
+    }
+    .commit-person-card .person-name{
+      font-size:14px;font-weight:600;color:#fff;margin-bottom:4px;
+    }
+    .commit-person-card .person-role{
+      font-size:9px;color:#888;letter-spacing:0.1em;
+    }
+    
+    .commit-metrics{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;
+    }
+    .commit-metric{
+      padding:10px;background:rgba(0,0,0,0.4);
+      border-radius:6px;text-align:center;
+    }
+    .commit-metric .metric-value{
+      font-size:18px;font-weight:300;
+    }
+    .commit-metric .metric-value.danger{color:var(--accent-red)}
+    .commit-metric .metric-value.warning{color:var(--accent-orange)}
+    .commit-metric .metric-value.safe{color:var(--accent-green)}
+    .commit-metric .metric-label{
+      font-size:8px;color:#666;margin-top:4px;letter-spacing:0.1em;
+    }
+    
+    .commit-list{
+      max-height:150px;overflow-y:auto;
+    }
+    .commit-item{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:8px 10px;margin-bottom:6px;
+      background:rgba(0,0,0,0.3);border-radius:6px;
+      border-left:3px solid #666;
+    }
+    .commit-item.tuition{border-left-color:#ff6666}
+    .commit-item.wage{border-left-color:var(--accent-green)}
+    .commit-item.grant{border-left-color:var(--accent-cyan)}
+    .commit-item.management{border-left-color:var(--accent-orange)}
+    
+    .commit-item .commit-info{
+      flex:1;
+    }
+    .commit-item .commit-type{
+      font-size:9px;color:#888;letter-spacing:0.08em;
+    }
+    .commit-item .commit-amount{
+      font-size:12px;font-weight:600;color:#fff;
+    }
+    .commit-item .commit-physics{
+      text-align:right;font-size:9px;color:#666;
+    }
+    .commit-item .commit-physics .mass{color:var(--accent-cyan)}
+    
+    .commit-worst-case{
+      padding:10px;margin-top:12px;
+      background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);
+      border-radius:6px;font-size:10px;color:#ff8888;
+    }
+    
+    .commit-actions{
+      display:flex;gap:8px;margin-top:12px;
+    }
+    .commit-action-btn{
+      flex:1;padding:8px;border-radius:6px;font-size:9px;font-weight:600;
+      cursor:pointer;transition:all 0.2s;text-align:center;
+    }
+    .commit-action-btn.primary{
+      background:rgba(138,92,246,0.2);border:1px solid rgba(138,92,246,0.5);
+      color:#8a5cf6;
+    }
+    .commit-action-btn.primary:hover{background:rgba(138,92,246,0.3)}
+    .commit-action-btn.secondary{
+      background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);
+      color:#888;
+    }
+    
     /* Musk: 빠른 실행 모드 */
     .quick-exec-hint{
       position:fixed;bottom:40px;left:50%;transform:translateX(-50%);
@@ -718,6 +820,7 @@
     /* #6 모바일 반응형 */
     @media (max-width: 1200px) {
       #forecast-panel { left: 20px; width: 180px; padding: 12px; }
+      #commit-panel { left: 20px; top: auto; bottom: 320px; width: 200px; }
       #risk-chart-container { right: 20px; width: 180px; }
       #planets { left: 20px; width: 180px; }
       #layer-action { right: 20px; }
@@ -730,6 +833,7 @@
       .gate-badge { padding: 8px 14px; font-size: 12px; }
       #dignity-display { padding: 8px 12px; font-size: 10px; }
       #forecast-panel { display: none; }
+      #commit-panel { display: none; }
       #risk-chart-container { top: 70px; right: 10px; width: 150px; padding: 8px; }
       #risk-chart { height: 40px; }
       .risk-chart-stats { font-size: 8px; }
@@ -848,6 +952,45 @@
         <div class="stat-value" id="risk-trend">—</div>
         <div class="stat-label">TREND</div>
       </div>
+    </div>
+  </div>
+  
+  <!-- COMMIT 중심 — 학생 1명 시뮬레이션 -->
+  <div id="commit-panel">
+    <div class="commit-panel-title">
+      <span>👤 COMMIT DASHBOARD</span>
+      <span class="badge green" id="commit-status">STABLE</span>
+    </div>
+    
+    <div class="commit-person-card" id="commit-person">
+      <div class="person-name">— 로딩 중 —</div>
+      <div class="person-role">STUDENT</div>
+    </div>
+    
+    <div class="commit-metrics">
+      <div class="commit-metric">
+        <div class="metric-value safe" id="survival-mass">0.0</div>
+        <div class="metric-label">SURVIVAL MASS</div>
+      </div>
+      <div class="commit-metric">
+        <div class="metric-value" id="risk-score">0</div>
+        <div class="metric-label">RISK SCORE</div>
+      </div>
+    </div>
+    
+    <div class="commit-list" id="commit-list">
+      <div style="text-align:center;color:#666;font-size:10px;padding:20px">
+        데모 데이터 생성 중...
+      </div>
+    </div>
+    
+    <div class="commit-worst-case" id="worst-case">
+      ⚠️ 상태 분석 중...
+    </div>
+    
+    <div class="commit-actions">
+      <button class="commit-action-btn primary" onclick="createDemoStudent()">📊 데모 생성</button>
+      <button class="commit-action-btn secondary" onclick="refreshCommitData()">🔄 새로고침</button>
     </div>
   </div>
   
@@ -2595,6 +2738,95 @@ function animate() {
   
   renderer.render(scene, camera);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMMIT 중심 — 학생 1명 시뮬레이션
+// ═══════════════════════════════════════════════════════════════════════════
+let commitData = null;
+
+async function createDemoStudent() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/commit/demo/student`, { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      logAction('Demo student created: 김유학', 'success');
+      await refreshCommitData();
+    }
+  } catch (e) {
+    console.warn('[Commit] Demo creation failed:', e);
+    logAction('Demo 생성 실패', 'critical');
+  }
+}
+
+async function refreshCommitData() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/commit/person/STU_001`);
+    if (!res.ok) {
+      // Person이 없으면 패널 숨기기 대신 안내 표시
+      document.getElementById('commit-person').innerHTML = `
+        <div class="person-name">데이터 없음</div>
+        <div class="person-role">"📊 데모 생성" 버튼을 클릭하세요</div>
+      `;
+      return;
+    }
+    
+    commitData = await res.json();
+    renderCommitPanel();
+  } catch (e) {
+    console.warn('[Commit] Refresh failed:', e);
+  }
+}
+
+function renderCommitPanel() {
+  if (!commitData || commitData.error) return;
+  
+  const { person, commits, survival, risk } = commitData;
+  
+  // Person 정보
+  document.getElementById('commit-person').innerHTML = `
+    <div class="person-name">${person.name || person.person_id}</div>
+    <div class="person-role">${person.role?.toUpperCase() || 'UNKNOWN'} · ${person.country || 'N/A'}</div>
+  `;
+  
+  // Status Badge
+  const statusBadge = document.getElementById('commit-status');
+  statusBadge.textContent = survival.status?.toUpperCase() || 'UNKNOWN';
+  statusBadge.className = `badge ${survival.status || 'yellow'}`;
+  
+  // Metrics
+  const massEl = document.getElementById('survival-mass');
+  massEl.textContent = survival.survival_mass?.toFixed(2) || '0.0';
+  massEl.className = 'metric-value ' + (survival.status === 'green' ? 'safe' : survival.status === 'yellow' ? 'warning' : 'danger');
+  
+  const riskEl = document.getElementById('risk-score');
+  riskEl.textContent = Math.round(risk.risk_score || 0);
+  riskEl.className = 'metric-value ' + (risk.risk_score > 70 ? 'danger' : risk.risk_score > 40 ? 'warning' : 'safe');
+  
+  // Commit List
+  const listEl = document.getElementById('commit-list');
+  if (commits && commits.length > 0) {
+    listEl.innerHTML = commits.map(c => `
+      <div class="commit-item ${c.commit_type}">
+        <div class="commit-info">
+          <div class="commit-type">${c.commit_type?.toUpperCase()}</div>
+          <div class="commit-amount">${formatCurrency(c.amount)}</div>
+        </div>
+        <div class="commit-physics">
+          <div class="mass">M: ${c.mass?.toFixed(2)}</div>
+          <div>G: ${c.gravity?.toFixed(2)}</div>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    listEl.innerHTML = '<div style="text-align:center;color:#666;font-size:10px;padding:10px">활성 Commit 없음</div>';
+  }
+  
+  // Worst Case
+  document.getElementById('worst-case').innerHTML = `⚠️ ${risk.worst_case_label || '상태 분석 중...'}`;
+}
+
+// 초기 로드
+setTimeout(refreshCommitData, 1500);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // P0 업무 자동화 — "Human decides once → System closes forever"
