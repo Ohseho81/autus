@@ -537,6 +537,31 @@
       pointer-events:none;
     }
     .share-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    
+    /* Musk: 빠른 실행 모드 */
+    .quick-exec-hint{
+      position:fixed;bottom:40px;left:50%;transform:translateX(-50%);
+      padding:8px 16px;background:rgba(0,212,255,0.1);
+      border:1px solid rgba(0,212,255,0.3);border-radius:20px;
+      font-size:10px;color:var(--accent-cyan);z-index:100;
+      display:flex;align-items:center;gap:8px;
+    }
+    .quick-exec-hint kbd{
+      padding:2px 6px;background:rgba(255,255,255,0.1);
+      border:1px solid rgba(255,255,255,0.2);border-radius:4px;
+      font-family:'SF Mono',monospace;font-size:9px;
+    }
+    
+    /* 즉시 실행 토스트 */
+    .exec-toast{
+      position:fixed;top:50%;left:50%;transform:translate(-50%, -50%) scale(0.9);
+      padding:24px 40px;background:rgba(0,255,136,0.2);
+      border:2px solid var(--accent-green);border-radius:16px;
+      color:var(--accent-green);font-size:16px;font-weight:700;
+      letter-spacing:0.1em;opacity:0;z-index:600;
+      pointer-events:none;transition:all 0.3s ease;
+    }
+    .exec-toast.show{opacity:1;transform:translate(-50%, -50%) scale(1)}
     #dignity-display.low{background:rgba(255,68,68,0.15);border:1px solid var(--accent-red);color:var(--accent-red)}
     #dignity-display.balanced{background:rgba(255,170,0,0.15);border:1px solid var(--accent-orange);color:var(--accent-orange)}
     #dignity-display.elevated{background:rgba(0,255,136,0.15);border:1px solid var(--accent-green);color:var(--accent-green)}
@@ -873,7 +898,7 @@
       </div>
     </div>
     <div class="action-btn-wrapper" id="wrapper-recover">
-      <button class="action-btn recover" onclick="previewAction('recover')">RECOVER</button>
+      <button class="action-btn recover" onclick="previewAction('recover', event)">RECOVER</button>
       <div class="value-indicators" id="vi-recover">
         <span class="value-ind"><span class="icon">💰</span><span class="val down">−8%</span></span>
         <span class="value-ind"><span class="icon">⏱️</span><span class="val down">−5%</span></span>
@@ -883,7 +908,7 @@
       <div class="hover-sim-card" id="sim-recover"></div>
     </div>
     <div class="action-btn-wrapper" id="wrapper-defriction">
-      <button class="action-btn defriction" onclick="previewAction('defriction')">DEFRICTION</button>
+      <button class="action-btn defriction" onclick="previewAction('defriction', event)">DEFRICTION</button>
       <div class="value-indicators" id="vi-defriction">
         <span class="value-ind"><span class="icon">💰</span><span class="val down">−12%</span></span>
         <span class="value-ind"><span class="icon">⏱️</span><span class="val down">−10%</span></span>
@@ -893,7 +918,7 @@
       <div class="hover-sim-card" id="sim-defriction"></div>
     </div>
     <div class="action-btn-wrapper" id="wrapper-shock_damp">
-      <button class="action-btn shock-damp" onclick="previewAction('shock_damp')">SHOCK DAMP</button>
+      <button class="action-btn shock-damp" onclick="previewAction('shock_damp', event)">SHOCK DAMP</button>
       <div class="value-indicators" id="vi-shock_damp">
         <span class="value-ind"><span class="icon">💰</span><span class="val down">−32%</span></span>
         <span class="value-ind"><span class="icon">⏱️</span><span class="val down">−18%</span></span>
@@ -943,6 +968,12 @@
   <div class="test-badge" id="test-badge">TESTS: —</div>
   
   <div class="keyboard-hint">[ESC] Close · [R] Reset · [T] Run Tests</div>
+  
+  <!-- Musk: 빠른 실행 힌트 -->
+  <div class="quick-exec-hint">
+    <kbd>⌘</kbd>/<kbd>Ctrl</kbd> + Click = 즉시 실행 (AUDIT 스킵)
+  </div>
+  <div class="exec-toast" id="exec-toast">⚡ 즉시 실행 완료</div>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
@@ -2094,7 +2125,54 @@ function updateDignityDisplay() {
 let currentAuditAction = null, auditTimer = null;
 window.auditActive = false;
 
-async function previewAction(actionKey) {
+// ═══════════════════════════════════════════════════════════════════════════
+// MUSK: 빠른 실행 모드 — Cmd/Ctrl+Click으로 AUDIT 스킵
+// ═══════════════════════════════════════════════════════════════════════════
+async function quickExecuteAction(actionKey) {
+  const profile = IMPULSE_PROFILES[actionKey];
+  if (!profile) return;
+  
+  // 즉시 실행 토스트 표시
+  const toast = document.getElementById('exec-toast');
+  toast.textContent = `⚡ ${profile.name} 즉시 실행`;
+  toast.classList.add('show');
+  
+  // Backend 실행
+  const result = await executeAction(actionKey);
+  
+  if (result && result.ok) {
+    // 성공: 상태 업데이트
+    const futureState = applyImpulse(TwinState, actionKey);
+    Object.assign(TwinState, futureState);
+    updateFullState();
+    renderPlanetList();
+    
+    toast.textContent = `✓ ${profile.name} 완료`;
+    logAction(`Quick Execute: ${profile.name} ✓`, 'success');
+    
+    // API 동기화
+    setTimeout(syncWithAPI, 500);
+  } else {
+    toast.textContent = `✗ 실행 실패`;
+    toast.style.borderColor = 'var(--accent-red)';
+    toast.style.color = 'var(--accent-red)';
+    logAction(`Quick Execute Failed: ${profile.name}`, 'critical');
+  }
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.style.borderColor = '';
+    toast.style.color = '';
+  }, 1500);
+}
+
+async function previewAction(actionKey, event) {
+  // Musk: Cmd/Ctrl+Click 감지 → 즉시 실행
+  if (event && (event.metaKey || event.ctrlKey)) {
+    await quickExecuteAction(actionKey);
+    return;
+  }
+  
   const profile = IMPULSE_PROFILES[actionKey];
   if (!profile) return;
 
