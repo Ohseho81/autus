@@ -3930,531 +3930,687 @@ animate();
   </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     AUTUS BEGINNER/EXPERT MODE
-     Beginner: 1문장 Verdict + Root Cause + Primary Action
-     Expert: 기존 UI 전체
+     AUTUS BEGINNER/EXPERT MODE v2.0
+     - ViewMode 관리 (localStorage 저장)
+     - i18n 지원 (ko-KR, en, vi-VN, id-ID)
+     - Copy Set A/B 테스트
+     - Auto-Apply 기능 (Policy 기반)
+     - Audit 로깅
+     - window.__AUTUS_MODEL 데이터 소스
      ═══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- PhysicsFrame → __AUTUS_MODEL 브릿지 -->
 <script>
-(function() {
+(function(){
   'use strict';
   
-  // ═══════════════════════════════════════════════════════════
-  // 설정 및 상태
-  // ═══════════════════════════════════════════════════════════
-  let currentMode = 'beginner'; // 'beginner' | 'expert'
-  
-  // Bottleneck 한글/영문 매핑
-  const AXIS_LABELS = {
-    RECOVERY: { ko: '회복력', en: 'Recovery' },
-    STABILITY: { ko: '안정성', en: 'Stability' },
-    COHESION: { ko: '연결', en: 'Cohesion' },
-    SHOCK: { ko: '충격', en: 'Shock' },
-    FRICTION: { ko: '마찰', en: 'Friction' },
-    TRANSFER: { ko: '이전', en: 'Transfer' },
-    TIME: { ko: '시간', en: 'Time' },
-    QUALITY: { ko: '품질', en: 'Quality' },
-    OUTPUT: { ko: '산출', en: 'Output' }
-  };
-  
-  // Bottleneck → Action 매핑
-  const BOTTLENECK_ACTION_MAP = {
-    SHOCK: 'shock_damp',
-    FRICTION: 'defriction'
-  };
-  
-  // ═══════════════════════════════════════════════════════════
-  // 초기화
-  // ═══════════════════════════════════════════════════════════
-  function init() {
-    const params = new URLSearchParams(location.search);
-    
-    // URL 파라미터로 모드 지정 가능 (?mode=expert)
-    if (params.get('mode') === 'expert') {
-      currentMode = 'expert';
-    }
-    
-    injectStyles();
-    createBeginnerUI();
-    
-    if (currentMode === 'beginner') {
-      showBeginnerMode();
-    } else {
-      showExpertMode();
-    }
-    
-    // snapshot 갱신 시 UI도 갱신
-    setInterval(updateBeginnerUI, 500);
-    
-    console.log('[MODE] 초기화:', currentMode);
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // 스타일 주입
-  // ═══════════════════════════════════════════════════════════
-  function injectStyles() {
-    const style = document.createElement('style');
-    style.id = 'beginner-expert-styles';
-    style.textContent = `
-      /* ─────────────────────────────────────────
-         Beginner Mode: 기존 UI 숨김
-         ───────────────────────────────────────── */
-      body.beginner-mode .frame,
-      body.beginner-mode .system-bar,
-      body.beginner-mode .gate-container,
-      body.beginner-mode .kernel-display,
-      body.beginner-mode #panel-metrics,
-      body.beginner-mode #panel-forecast,
-      body.beginner-mode #planet-list,
-      body.beginner-mode #info,
-      body.beginner-mode #layer-action,
-      body.beginner-mode #layer-audit,
-      body.beginner-mode .test-results,
-      body.beginner-mode .keyboard-hint,
-      body.beginner-mode #action-risk-container {
-        display: none !important;
-      }
-      
-      body.beginner-mode canvas {
-        opacity: 0.3;
-      }
-      
-      /* ─────────────────────────────────────────
-         Expert Mode: Beginner UI 숨김
-         ───────────────────────────────────────── */
-      body.expert-mode #beginner-ui {
-        display: none !important;
-      }
-      
-      /* ─────────────────────────────────────────
-         Beginner UI 컨테이너
-         ───────────────────────────────────────── */
-      #beginner-ui {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
-        background: rgba(2, 4, 8, 0.95);
-      }
-      
-      /* ─────────────────────────────────────────
-         1. Verdict Bar (상단)
-         ───────────────────────────────────────── */
-      .verdict-bar {
-        padding: 20px 24px;
-        text-align: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      
-      .verdict-text {
-        font-size: 20px;
-        font-weight: 600;
-        color: #fff;
-        line-height: 1.4;
-      }
-      
-      .verdict-bar.safe .verdict-text { color: #00ff88; }
-      .verdict-bar.warning .verdict-text { color: #ffaa00; }
-      .verdict-bar.critical .verdict-text { color: #ff4444; }
-      
-      /* ─────────────────────────────────────────
-         2. Root Cause Card (중앙)
-         ───────────────────────────────────────── */
-      .root-cause-section {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 24px;
-      }
-      
-      .root-cause-card {
-        background: rgba(255, 68, 68, 0.1);
-        border: 2px solid rgba(255, 68, 68, 0.4);
-        border-radius: 16px;
-        padding: 32px 48px;
-        text-align: center;
-        max-width: 400px;
-        width: 100%;
-      }
-      
-      .root-cause-label {
-        font-size: 11px;
-        letter-spacing: 0.2em;
-        color: rgba(255, 68, 68, 0.8);
-        margin-bottom: 16px;
-        text-transform: uppercase;
-      }
-      
-      .root-cause-value {
-        font-size: 32px;
-        font-weight: 700;
-        color: #ff4444;
-        margin-bottom: 8px;
-      }
-      
-      .root-cause-percent {
-        font-size: 48px;
-        font-weight: 200;
-        color: rgba(255, 68, 68, 0.6);
-      }
-      
-      /* ─────────────────────────────────────────
-         3. Primary Action (하단)
-         ───────────────────────────────────────── */
-      .action-section {
-        padding: 24px;
-        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-      }
-      
-      .primary-action-btn {
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto 16px;
-        display: block;
-        padding: 20px 32px;
-        font-size: 18px;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        background: #00ff88;
-        color: #000;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      
-      .primary-action-btn:hover {
-        background: #00cc66;
-        transform: scale(1.02);
-      }
-      
-      .primary-action-btn:active {
-        transform: scale(0.98);
-      }
-      
-      .primary-action-btn.shock_damp {
-        background: #ffaa00;
-        color: #000;
-      }
-      
-      .primary-action-btn.defriction {
-        background: #00d4ff;
-        color: #000;
-      }
-      
-      .expert-toggle-btn {
-        display: block;
-        margin: 0 auto;
-        padding: 12px 24px;
-        font-size: 13px;
-        color: rgba(255, 255, 255, 0.5);
-        background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      
-      .expert-toggle-btn:hover {
-        border-color: rgba(255, 255, 255, 0.4);
-        color: rgba(255, 255, 255, 0.8);
-      }
-      
-      /* ─────────────────────────────────────────
-         모드 전환 버튼 (Expert → Beginner)
-         ───────────────────────────────────────── */
-      #beginner-toggle-btn {
-        position: fixed;
-        top: 32px;
-        right: 140px;
-        padding: 8px 16px;
-        font-size: 11px;
-        letter-spacing: 0.1em;
-        color: rgba(255, 255, 255, 0.6);
-        background: rgba(0, 0, 0, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 6px;
-        cursor: pointer;
-        z-index: 300;
-        transition: all 0.2s;
-      }
-      
-      #beginner-toggle-btn:hover {
-        border-color: #00ff88;
-        color: #00ff88;
-      }
-      
-      body.beginner-mode #beginner-toggle-btn {
-        display: none;
-      }
-      
-      /* ─────────────────────────────────────────
-         성공 화면
-         ───────────────────────────────────────── */
-      .success-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.95);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 2000;
-        animation: fadeIn 0.3s;
-      }
-      
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      
-      .success-overlay .icon {
-        font-size: 72px;
-        color: #00ff88;
-        margin-bottom: 24px;
-      }
-      
-      .success-overlay .text {
-        font-size: 24px;
-        color: #fff;
-        font-weight: 300;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // Beginner UI 생성
-  // ═══════════════════════════════════════════════════════════
-  function createBeginnerUI() {
-    // Beginner UI 컨테이너
-    const ui = document.createElement('div');
-    ui.id = 'beginner-ui';
-    ui.innerHTML = `
-      <!-- 1. Verdict Bar -->
-      <div class="verdict-bar" id="verdict-bar">
-        <div class="verdict-text" id="verdict-text">상태를 분석하는 중...</div>
-      </div>
-      
-      <!-- 2. Root Cause Card -->
-      <div class="root-cause-section">
-        <div class="root-cause-card">
-          <div class="root-cause-label">▼ 핵심 원인 ROOT CAUSE</div>
-          <div class="root-cause-value" id="root-cause-value">—</div>
-          <div class="root-cause-percent" id="root-cause-percent">0%</div>
-        </div>
-      </div>
-      
-      <!-- 3. Action Section -->
-      <div class="action-section">
-        <button class="primary-action-btn" id="primary-action-btn">RECOVER</button>
-        <button class="expert-toggle-btn" id="expert-toggle-btn">다른 전략 보기 →</button>
-      </div>
-    `;
-    document.body.appendChild(ui);
-    
-    // Expert 모드에서 Beginner로 돌아가는 버튼
-    const toggleBtn = document.createElement('button');
-    toggleBtn.id = 'beginner-toggle-btn';
-    toggleBtn.textContent = '간편 모드';
-    document.body.appendChild(toggleBtn);
-    
-    // 이벤트 바인딩
-    document.getElementById('primary-action-btn').addEventListener('click', executePrimaryAction);
-    document.getElementById('expert-toggle-btn').addEventListener('click', showExpertMode);
-    document.getElementById('beginner-toggle-btn').addEventListener('click', showBeginnerMode);
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // Beginner UI 업데이트 (PhysicsFrame에서 데이터 읽기)
-  // ═══════════════════════════════════════════════════════════
-  function updateBeginnerUI() {
-    if (currentMode !== 'beginner') return;
+  // PhysicsFrame 데이터를 __AUTUS_MODEL 형식으로 변환하는 함수
+  function syncAutusModel() {
     if (typeof PhysicsFrame === 'undefined') return;
     
-    const snap = PhysicsFrame.snapshot;
-    const bn = PhysicsFrame.bottleneck;
+    const snap = PhysicsFrame.snapshot || {};
+    const bn = PhysicsFrame.bottleneck || {};
+    const ts = Date.now();
     
-    // 1. Verdict Bar 업데이트
-    updateVerdictBar(snap, bn);
-    
-    // 2. Root Cause 업데이트
-    updateRootCause(bn);
-    
-    // 3. Primary Action 업데이트
-    updatePrimaryAction(bn);
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // Verdict Bar 업데이트
-  // ═══════════════════════════════════════════════════════════
-  function updateVerdictBar(snap, bn) {
-    const bar = document.getElementById('verdict-bar');
-    const text = document.getElementById('verdict-text');
-    if (!bar || !text) return;
-    
+    // Risk 기반 손실 계산 (24h/월)
     const risk = snap.risk || 0;
-    const axisLabel = AXIS_LABELS[bn.axis] || { ko: bn.axis, en: bn.axis };
+    const hourlyLoss = Math.round(risk * 500000); // 시간당 ₩50만 기준
+    const loss24h = hourlyLoss * 24;
+    const lossMonthly = loss24h * 30;
     
-    // 손실 계산 (24시간 기준)
-    const hourlyLoss = Math.round(risk * 50); // 시간당 ₩50만 기준
-    const dailyLoss = hourlyLoss * 24;
-    const monthlyLoss = dailyLoss * 30;
-    
-    // Verdict 문장 생성 (%, 수식 없이)
-    let verdict = '';
-    let barClass = 'safe';
-    
-    if (risk >= 0.5) {
-      verdict = `${axisLabel.ko} 문제로 월 ₩${formatMoney(monthlyLoss)} 손실 예상`;
-      barClass = 'critical';
-    } else if (risk >= 0.3) {
-      verdict = `${axisLabel.ko} 저하로 24시간 내 ₩${formatMoney(dailyLoss)} 손실 가능`;
-      barClass = 'warning';
-    } else if (bn.value > 0.3) {
-      verdict = `${axisLabel.ko} 약간 불안정 — 모니터링 권장`;
-      barClass = 'safe';
-    } else {
-      verdict = `시스템 안정 — 현재 조치 불필요`;
-      barClass = 'safe';
-    }
-    
-    bar.className = `verdict-bar ${barClass}`;
-    text.textContent = verdict;
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // Root Cause 업데이트
-  // ═══════════════════════════════════════════════════════════
-  function updateRootCause(bn) {
-    const valueEl = document.getElementById('root-cause-value');
-    const percentEl = document.getElementById('root-cause-percent');
-    if (!valueEl || !percentEl) return;
-    
-    const axisLabel = AXIS_LABELS[bn.axis] || { ko: bn.axis, en: bn.axis };
-    
-    valueEl.textContent = `${axisLabel.ko}(${axisLabel.en})`;
-    percentEl.textContent = Math.round(bn.value * 100) + '%';
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // Primary Action 업데이트
-  // ═══════════════════════════════════════════════════════════
-  function updatePrimaryAction(bn) {
-    const btn = document.getElementById('primary-action-btn');
-    if (!btn) return;
-    
-    // Bottleneck 기반 액션 결정
-    const actionKey = BOTTLENECK_ACTION_MAP[bn.axis] || 'recover';
-    
-    const actionLabels = {
-      recover: 'RECOVER',
-      defriction: 'DEFRICTION',
-      shock_damp: 'SHOCK DAMP'
-    };
-    
-    btn.textContent = actionLabels[actionKey] || 'RECOVER';
-    btn.className = `primary-action-btn ${actionKey}`;
-    btn.dataset.action = actionKey;
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // Primary Action 실행
-  // ═══════════════════════════════════════════════════════════
-  async function executePrimaryAction() {
-    const btn = document.getElementById('primary-action-btn');
-    const actionKey = btn?.dataset.action || 'recover';
-    
-    console.log('[BEGINNER] 액션 실행:', actionKey);
-    
-    // 기존 previewAction 호출 (AUDIT 모드 포함)
-    if (typeof previewAction === 'function') {
-      showExpertMode(); // Expert 모드로 전환하여 AUDIT 표시
-      await previewAction(actionKey, null);
-    } else {
-      // Fallback: 직접 API 호출
-      const apiBase = window.location.hostname === 'localhost' 
-        ? 'http://localhost:8000' 
-        : 'https://autus-production.up.railway.app';
-      
-      try {
-        await fetch(`${apiBase}/api/v1/burn/execute`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ impulse: actionKey.toUpperCase(), magnitude: 1.0 })
-        });
-      } catch (e) {
-        console.warn('[BEGINNER] API offline');
+    // Actions 생성
+    const actions = [
+      {
+        key: 'RECOVER',
+        recommended: bn.axis !== 'SHOCK' && bn.axis !== 'FRICTION',
+        confidence: 0.87,
+        tradeoff: { recovery_delta: 0.15 },
+        deltas: { RECOVERY: 0.15, STABILITY: 0.06, COHESION: 0.04 }
+      },
+      {
+        key: 'DEFRICTION',
+        recommended: bn.axis === 'FRICTION',
+        confidence: 0.82,
+        tradeoff: { recovery_delta: -0.04 },
+        deltas: { FRICTION: -0.18, SHOCK: -0.07, TRANSFER: 0.06 }
+      },
+      {
+        key: 'SHOCK_DAMP',
+        recommended: bn.axis === 'SHOCK',
+        confidence: 0.91,
+        tradeoff: { recovery_delta: -0.10 },
+        deltas: { SHOCK: -0.25, STABILITY: 0.08, COHESION: 0.05 }
       }
-      
-      showSuccessOverlay(actionKey);
-    }
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // 성공 화면
-  // ═══════════════════════════════════════════════════════════
-  function showSuccessOverlay(actionKey) {
-    const overlay = document.createElement('div');
-    overlay.className = 'success-overlay';
-    overlay.innerHTML = `
-      <div class="icon">✓</div>
-      <div class="text">${actionKey.toUpperCase()} 완료</div>
-    `;
-    document.body.appendChild(overlay);
+    ];
     
-    setTimeout(() => {
-      overlay.remove();
-      location.reload();
-    }, 2000);
+    // Role 결정 (URL 파라미터에서)
+    const params = new URLSearchParams(location.search);
+    const role = (params.get('role') || 'SUBJECT').toUpperCase();
+    
+    // Locale 결정
+    const lang = navigator.language || 'ko-KR';
+    let locale = 'ko-KR';
+    if (lang.startsWith('en')) locale = 'en-US';
+    else if (lang.startsWith('vi')) locale = 'vi-VN';
+    else if (lang.startsWith('id')) locale = 'id-ID';
+    
+    // __AUTUS_MODEL 업데이트
+    window.__AUTUS_MODEL = {
+      snapshot: {
+        id: `snap_${ts}`,
+        hash: btoa(JSON.stringify(snap)).slice(0, 12),
+        risk: snap.risk || 0,
+        risk_now: snap.risk || 0,
+        entropy: snap.entropy || 0,
+        pressure: snap.pressure || 0,
+        flow: snap.flow || 0,
+        dignity: snap.dignity || 0,
+        reputation: snap.reputation || 0,
+        ts: ts,
+        ageSeconds: 0
+      },
+      bottleneck: {
+        type: bn.axis || 'FRICTION',
+        value: bn.value || 0
+      },
+      future: {
+        no_action: {
+          loss_24h: loss24h,
+          loss_monthly: lossMonthly
+        }
+      },
+      actions: actions,
+      role: role,
+      locale: locale,
+      kernel_version: 'v2.4',
+      flags: {
+        demo: false,
+        offline: false,
+        connecting: false
+      }
+    };
   }
   
-  // ═══════════════════════════════════════════════════════════
-  // 모드 전환
-  // ═══════════════════════════════════════════════════════════
-  function showBeginnerMode() {
-    currentMode = 'beginner';
-    document.body.classList.remove('expert-mode');
-    document.body.classList.add('beginner-mode');
-    updateBeginnerUI();
-    console.log('[MODE] Beginner 모드');
+  // 초기화 및 주기적 동기화
+  function init() {
+    syncAutusModel();
+    setInterval(syncAutusModel, 500);
   }
   
-  function showExpertMode() {
-    currentMode = 'expert';
-    document.body.classList.remove('beginner-mode');
-    document.body.classList.add('expert-mode');
-    console.log('[MODE] Expert 모드');
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // 유틸리티
-  // ═══════════════════════════════════════════════════════════
-  function formatMoney(num) {
-    if (num >= 10000) {
-      return Math.round(num / 10000) + '만';
-    }
-    return num.toLocaleString();
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // 실행
-  // ═══════════════════════════════════════════════════════════
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(init, 800));
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    setTimeout(init, 800);
+    init();
+  }
+})();
+</script>
+
+<!-- Beginner/Expert 스타일 -->
+<style>
+  .hide-in-beginner{ display:none !important; }
+
+  .decision-shell{
+    position: fixed; left: 0; top: 0; right: 0;
+    z-index: 99999;
+    pointer-events: none;
+    font-family: ui-sans-serif, system-ui, -apple-system;
+  }
+  .decision-panel{
+    width: min(820px, calc(100vw - 24px));
+    margin: 14px auto 0 auto;
+    padding: 14px 14px 12px 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    background: rgba(0,0,0,0.62);
+    backdrop-filter: blur(10px);
+    pointer-events: auto;
+  }
+  .row{ display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  .title{ font-size: 12px; opacity: 0.75; font-weight: 700; letter-spacing: .4px; }
+  .verdict{ font-size: 18px; line-height: 1.25; font-weight: 900; margin-top: 8px; }
+  .sub{ font-size: 12px; opacity: .78; margin-top: 8px; }
+
+  .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px; }
+  .card{
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.35);
+  }
+  .card h4{ margin:0 0 6px 0; font-size:11px; opacity:.72; font-weight:800; letter-spacing:.3px; }
+  .v{ font-size:16px; font-weight:950; }
+  .d{ font-size:12px; opacity:.75; margin-top:6px; }
+
+  .actions{ display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .btn-primary{
+    appearance:none; border:0; cursor:pointer;
+    padding: 12px 16px; border-radius: 12px;
+    font-weight: 950; letter-spacing: 0.4px;
+    background: #00ff85; color:#001a0e;
+  }
+  .btn-ghost{
+    appearance:none; border:1px solid rgba(255,255,255,0.16);
+    background: transparent; color:white;
+    padding: 10px 12px; border-radius: 12px;
+    cursor:pointer; font-weight:850;
+  }
+  .pill{
+    display:inline-flex; gap:8px; align-items:center;
+    padding: 6px 10px; border-radius: 999px;
+    border:1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.06);
+    font-size: 12px; font-weight: 800;
+  }
+  .warn{ color: #ffd38a; }
+  .ok{ color: #b9ffdd; }
+  
+  /* Expert 모드 전환 버튼 */
+  #btn-beginner-from-expert {
+    position: fixed;
+    top: 32px;
+    right: 140px;
+    padding: 8px 16px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.6);
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 300;
+    transition: all 0.2s;
+  }
+  #btn-beginner-from-expert:hover {
+    border-color: #00ff88;
+    color: #00ff88;
   }
   
+  /* Expert 모드일 때 숨김 */
+  body:not(.expert-mode) #btn-beginner-from-expert { display: none; }
+  
+  /* Expert Root 요소들 */
+  body.beginner-mode .expert-root { display: none !important; }
+  body.beginner-mode .frame,
+  body.beginner-mode .system-bar,
+  body.beginner-mode .gate-container,
+  body.beginner-mode .kernel-display,
+  body.beginner-mode #panel-metrics,
+  body.beginner-mode #panel-forecast,
+  body.beginner-mode #planet-list,
+  body.beginner-mode #info,
+  body.beginner-mode #layer-action,
+  body.beginner-mode #layer-audit,
+  body.beginner-mode .test-results,
+  body.beginner-mode .keyboard-hint,
+  body.beginner-mode #action-risk-container { display: none !important; }
+  
+  body.beginner-mode canvas { opacity: 0.2; }
+</style>
+
+<!-- Beginner/Expert 로직 -->
+<script>
+(function(){
+  // ---------------------------
+  // 0) View Mode (4)
+  // ---------------------------
+  const ViewMode = { BEGINNER:"BEGINNER", EXPERT:"EXPERT" };
+  const LS_VIEW = "autus.viewMode";
+  let viewMode = localStorage.getItem(LS_VIEW) || ViewMode.BEGINNER;
+
+  function setViewMode(mode){
+    viewMode = mode;
+    localStorage.setItem(LS_VIEW, mode);
+    applyViewModeVisibility();
+    renderDecision();
+  }
+
+  function applyViewModeVisibility(){
+    const expertRoots = document.querySelectorAll(".expert-root");
+    expertRoots.forEach(el=>{
+      if(viewMode===ViewMode.BEGINNER) el.classList.add("hide-in-beginner");
+      else el.classList.remove("hide-in-beginner");
+    });
+    const shell = document.getElementById("decision-shell");
+    if(shell) shell.style.display = (viewMode===ViewMode.BEGINNER) ? "block" : "none";
+    
+    // body 클래스 업데이트
+    if(viewMode===ViewMode.BEGINNER) {
+      document.body.classList.add("beginner-mode");
+      document.body.classList.remove("expert-mode");
+    } else {
+      document.body.classList.remove("beginner-mode");
+      document.body.classList.add("expert-mode");
+    }
+  }
+
+  // ---------------------------
+  // 1) Single Source 모델(필수)
+  // Cursor가 기존 변수로 window.__AUTUS_MODEL을 채워야 함.
+  // ---------------------------
+  function getAutusModel(){
+    return window.__AUTUS_MODEL || null;
+  }
+
+  // ---------------------------
+  // 2) i18n + Copy Set (6)
+  // ---------------------------
+  const LS_COPY_SET = "autus.copySet"; // "A" | "B"
+  const copySet = (localStorage.getItem(LS_COPY_SET) || "A").toUpperCase();
+
+  const causeLabel = {
+    RECOVERY:{ko:"회복(Recovery)", en:"Recovery", vi:"Phục hồi(Recovery)", id:"Pemulihan(Recovery)"},
+    STABILITY:{ko:"안정(Stability)", en:"Stability", vi:"Ổn định(Stability)", id:"Stabilitas(Stability)"},
+    COHESION:{ko:"연결(Cohesion)", en:"Cohesion", vi:"Liên kết(Cohesion)", id:"Keterhubungan(Cohesion)"},
+    SHOCK:{ko:"충격(Shock)", en:"Shock", vi:"Cú sốc(Shock)", id:"Guncangan(Shock)"},
+    FRICTION:{ko:"비효율(Friction)", en:"Friction", vi:"Ma sát(Friction)", id:"Gesekan(Friction)"},
+    TRANSFER:{ko:"전달(Transfer)", en:"Transfer", vi:"Truyền tải(Transfer)", id:"Transfer(Transfer)"},
+    TIME:{ko:"시간(Time)", en:"Time", vi:"Thời gian(Time)", id:"Waktu(Time)"},
+    QUALITY:{ko:"품질(Quality)", en:"Quality", vi:"Chất lượng(Quality)", id:"Kualitas(Quality)"},
+    OUTPUT:{ko:"성과(Output)", en:"Output", vi:"Kết quả(Output)", id:"Hasil(Output)"},
+  };
+
+  function fmtMoney(n, locale){
+    if(!Number.isFinite(n)) return "—";
+    if(locale==="ko-KR"){
+      const man = Math.round(Math.abs(n)/10000);
+      return `₩${man}만`;
+    }
+    const abs = Math.abs(n);
+    if(abs>=1_000_000) return `${(abs/1_000_000).toFixed(1)}M`;
+    if(abs>=1_000) return `${(abs/1_000).toFixed(1)}k`;
+    return `${abs.toFixed(0)}`;
+  }
+
+  function getCauseText(type, locale){
+    const entry = causeLabel[type] || null;
+    if(!entry) return locale==="ko-KR" ? "핵심 지표" : "Key factor";
+    if(locale==="ko-KR") return entry.ko;
+    if(locale==="vi-VN") return entry.vi;
+    if(locale==="id-ID") return entry.id;
+    return entry.en;
+  }
+
+  function buildVerdict(model){
+    const locale = model?.locale || "ko-KR";
+    const bType = model?.bottleneck?.type;
+    const cause = getCauseText(bType, locale);
+
+    const loss24h = model?.future?.no_action?.loss_24h;
+    const lossM = model?.future?.no_action?.loss_monthly;
+
+    if(locale==="ko-KR"){
+      if(copySet==="B"){
+        if(Number.isFinite(loss24h) && loss24h>0) return `지금 개입하지 않으면 ${cause} 문제로 24시간 내 ${fmtMoney(loss24h, locale)} 손실 위험이 있습니다.`;
+        if(Number.isFinite(lossM) && lossM>0) return `지금 개입하지 않으면 ${cause} 문제로 매달 ${fmtMoney(lossM, locale)} 손실이 누적됩니다.`;
+        return `현재는 안정적이나 ${cause} 개선이 필요합니다.`;
+      }
+      if(Number.isFinite(loss24h) && loss24h>0) return `지금은 안전해 보여도 ${cause} 문제로 24시간 내 ${fmtMoney(loss24h, locale)} 손실 위험이 있습니다.`;
+      if(Number.isFinite(lossM) && lossM>0) return `지금은 안전해 보여도 ${cause} 문제로 방치 시 매달 ${fmtMoney(lossM, locale)} 손실이 발생합니다.`;
+      return `현재는 안정적이지만 ${cause} 개선이 필요합니다.`;
+    }
+
+    const lossPart = (Number.isFinite(loss24h) && loss24h>0) ? `${fmtMoney(loss24h, locale)} within 24h`
+                   : (Number.isFinite(lossM) && lossM>0) ? `${fmtMoney(lossM, locale)} /month`
+                   : null;
+
+    if(copySet==="B"){
+      return lossPart
+        ? `Action recommended: ${cause} is weak — potential loss ${lossPart}.`
+        : `Stable now. Improving ${cause} can increase outcomes.`;
+    }
+    return lossPart
+      ? `Stable, but ${cause} is weak — loss may reach ${lossPart} if unchanged.`
+      : `Stable now. Improving ${cause} can increase outcomes.`;
+  }
+
+  // ---------------------------
+  // 3) Primary Action 선택 (4/6)
+  // ---------------------------
+  function pickPrimaryAction(model){
+    const actions = Array.isArray(model?.actions) ? model.actions : [];
+    const rec = actions.find(a => a && a.recommended === true);
+    if(rec?.key) return rec.key;
+
+    const t = model?.bottleneck?.type;
+    if(t==="SHOCK") return "SHOCK_DAMP";
+    if(t==="FRICTION") return "DEFRICTION";
+    return "RECOVER";
+  }
+
+  function findActionButtonByKey(key){
+    const label = (key==="SHOCK_DAMP") ? "SHOCK DAMP" : key;
+    const buttons = Array.from(document.querySelectorAll("button"));
+    return buttons.find(b => (b.textContent||"").trim() === label) || null;
+  }
+
+  // ---------------------------
+  // 4) Auto-Apply (5) + Audit
+  // ---------------------------
+  const LS_AUTO = "autus.autoApply.enabled";
+  const LS_LAST_RUN = "autus.autoApply.lastRunMs";
+  const AUTO_COOLDOWN_MS = 60_000;
+
+  function nowMs(){ return Date.now(); }
+
+  function emitAudit(event){
+    try{
+      const arr = JSON.parse(localStorage.getItem("autus.audit") || "[]");
+      arr.push(event);
+      localStorage.setItem("autus.audit", JSON.stringify(arr.slice(-300)));
+    }catch(e){}
+    console.log("[AUTUS_AUDIT]", event);
+  }
+
+  function policyEvaluate(model){
+    const flags = model?.flags || {};
+    const role = model?.role || "SUBJECT";
+    const locale = model?.locale || "ko-KR";
+
+    if(role==="INSTITUTION"){
+      return { status:"BLOCKED", reason:["ROLE_INSTITUTION_NO_AUTO_APPLY"], grace:0, undo:0, boundary:false, locale };
+    }
+
+    const reasons = [];
+    if(flags.demo) reasons.push("DEMO_MODE");
+    if(flags.offline) reasons.push("OFFLINE");
+    if(flags.connecting) reasons.push("CONNECTING");
+
+    const age = model?.snapshot?.ageSeconds;
+    if(Number.isFinite(age) && age > 30) reasons.push("SNAPSHOT_STALE");
+
+    const lossM = model?.future?.no_action?.loss_monthly;
+    const loss24h = model?.future?.no_action?.loss_24h;
+    if(!(Number.isFinite(lossM) || Number.isFinite(loss24h))) reasons.push("FUTURE_NO_ACTION_MISSING");
+
+    const actions = Array.isArray(model?.actions) ? model.actions : [];
+    const primaryKey = pickPrimaryAction(model);
+    const primary = actions.find(a=>a?.key===primaryKey) || null;
+
+    const confidence = primary?.confidence;
+    if(Number.isFinite(confidence) && confidence < 0.70) reasons.push("CONFIDENCE_LOW");
+
+    const lastRun = Number(localStorage.getItem(LS_LAST_RUN) || "0");
+    if(lastRun && (nowMs()-lastRun)<AUTO_COOLDOWN_MS) reasons.push("COOLDOWN_ACTIVE");
+
+    if(reasons.length){
+      return { status:"BLOCKED", reason:reasons, grace:0, undo:0, boundary:false, locale, primaryKey, confidence };
+    }
+
+    const recDelta = primary?.tradeoff?.recovery_delta;
+    const boundary = Number.isFinite(recDelta) && recDelta < 0;
+
+    const riskNow = model?.snapshot?.risk_now ?? model?.snapshot?.risk;
+    const bVal = model?.bottleneck?.value;
+    const high = (Number.isFinite(riskNow) && riskNow>=0.55) || (Number.isFinite(bVal) && bVal>=0.60);
+
+    const grace = boundary ? 5 : 2;
+    const undo = 30;
+
+    return { status: high ? "ALLOW" : "ALLOW", reason:[], grace, undo, boundary, locale, primaryKey, confidence, recDelta };
+  }
+
+  async function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+  let graceAbort = { aborted:false };
+
+  async function runAutoApply(model){
+    const evalr = policyEvaluate(model);
+    if(evalr.status!=="ALLOW") return;
+
+    const enabled = localStorage.getItem(LS_AUTO) === "1";
+    if(!enabled) return;
+
+    const actionKey = evalr.primaryKey || pickPrimaryAction(model);
+    const btn = findActionButtonByKey(actionKey);
+    if(!btn) return;
+
+    const eventBase = {
+      event_id: crypto?.randomUUID ? crypto.randomUUID() : String(nowMs()),
+      timestamp: new Date().toISOString(),
+      actor: { role: model?.role || "SUBJECT", locale: model?.locale || "ko-KR" },
+      system: { app:"AUTUS_SOLAR_HQ", kernel_version: model?.kernel_version || "v2.4", ep:"EP10", policy_version:"auto_apply_v1.0" },
+      decision_basis: {
+        recommended_action: actionKey,
+        confidence: evalr.confidence ?? null,
+        boundary_state: evalr.boundary,
+        tradeoff: evalr.boundary ? { type:"RECOVERY_LOSS", value: evalr.recDelta } : null
+      },
+      snapshot_ref: {
+        snapshot_id: model?.snapshot?.id || null,
+        snapshot_hash: model?.snapshot?.hash || null,
+        age_seconds: model?.snapshot?.ageSeconds ?? null
+      }
+    };
+
+    graceAbort = { aborted:false };
+
+    emitAudit({ ...eventBase, event_type:"AUTO_COMMIT_SCHEDULED", grace_seconds: evalr.grace, undo_seconds: evalr.undo });
+
+    setBanner(`자동 적용 중… (${evalr.grace}s)`, true);
+
+    for(let i=evalr.grace; i>0; i--){
+      if(graceAbort.aborted){ setBanner("자동 적용 취소됨", false); emitAudit({ ...eventBase, event_type:"AUTO_COMMIT_CANCELED", cancel:{by:"USER", at_second: (evalr.grace - i)} }); return; }
+      setBanner(`자동 적용 중… (${i}s)`, true);
+      await sleep(1000);
+    }
+
+    localStorage.setItem(LS_LAST_RUN, String(nowMs()));
+    btn.click();
+    emitAudit({ ...eventBase, event_type:"AUTO_COMMIT_EXECUTED", execution:{ action:actionKey, mode:"BEGINNER_AUTO_APPLY", command:"LOCK", immediate:false } });
+
+    showUndo(evalr.undo, eventBase);
+  }
+
+  // ---------------------------
+  // 5) Beginner Panel DOM (4~6)
+  // ---------------------------
+  function ensureDecisionUI(){
+    let shell = document.getElementById("decision-shell");
+    if(shell) return shell;
+
+    shell = document.createElement("div");
+    shell.id = "decision-shell";
+    shell.className = "decision-shell";
+    shell.innerHTML = `
+      <div class="decision-panel">
+        <div class="row">
+          <div class="title">AUTUS · Decision</div>
+          <div class="row">
+            <span id="pill-mode" class="pill ok">BEGINNER</span>
+            <button id="btn-expert" class="btn-ghost">다른 전략 보기 ▸</button>
+          </div>
+        </div>
+
+        <div id="verdict" class="verdict">—</div>
+
+        <div class="grid">
+          <div class="card">
+            <h4>Root Cause</h4>
+            <div id="cause" class="v">—</div>
+            <div id="causeDesc" class="d">—</div>
+          </div>
+          <div class="card">
+            <h4>Next Action</h4>
+            <div id="action" class="v">—</div>
+            <div id="actionDesc" class="d">추천 조치를 실행하세요.</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="btn-primary" class="btn-primary">EXECUTE</button>
+          <span id="autoPill" class="pill">자동 실행: <b id="autoState">OFF</b></span>
+          <button id="btn-auto-toggle" class="btn-ghost">토글</button>
+          <button id="btn-cancel-grace" class="btn-ghost">취소</button>
+        </div>
+
+        <div id="banner" class="sub">—</div>
+      </div>
+    `;
+    document.body.appendChild(shell);
+
+    // Expert 모드 전환 버튼
+    const expertBtn = document.createElement("button");
+    expertBtn.id = "btn-beginner-from-expert";
+    expertBtn.textContent = "간편 모드";
+    expertBtn.onclick = () => setViewMode(ViewMode.BEGINNER);
+    document.body.appendChild(expertBtn);
+
+    shell.querySelector("#btn-expert").onclick = ()=> setViewMode(ViewMode.EXPERT);
+
+    shell.querySelector("#btn-primary").onclick = ()=>{
+      const model = getAutusModel();
+      const key = pickPrimaryAction(model);
+      
+      // previewAction 호출 시도
+      if (typeof previewAction === 'function') {
+        setViewMode(ViewMode.EXPERT);
+        previewAction(key.toLowerCase(), null);
+      } else {
+        const btn = findActionButtonByKey(key);
+        if(btn) btn.click();
+      }
+    };
+
+    shell.querySelector("#btn-auto-toggle").onclick = ()=>{
+      const model = getAutusModel();
+      const evalr = policyEvaluate(model);
+
+      if(evalr.status==="BLOCKED" && (evalr.reason||[]).includes("ROLE_INSTITUTION_NO_AUTO_APPLY")){
+        setBanner("Institution Role은 자동 실행이 비활성화됩니다. (자동 권고만)", false);
+        return;
+      }
+
+      const cur = localStorage.getItem(LS_AUTO) === "1";
+      const next = !cur;
+
+      if(next && evalr.boundary){
+        setBanner("주의: 적용 시 회복(Recovery)이 감소할 수 있음. (5초 취소/30초 되돌리기)", false);
+      }
+
+      if(next && evalr.status==="BLOCKED"){
+        setBanner(`자동 실행 불가: ${(evalr.reason||[]).join(", ")}`, false);
+        localStorage.setItem(LS_AUTO, "0");
+        renderDecision();
+        return;
+      }
+
+      localStorage.setItem(LS_AUTO, next ? "1" : "0");
+      renderDecision();
+    };
+
+    shell.querySelector("#btn-cancel-grace").onclick = ()=>{
+      graceAbort.aborted = true;
+    };
+
+    return shell;
+  }
+
+  function setBanner(text, warn){
+    const el = document.getElementById("banner");
+    if(!el) return;
+    el.textContent = text;
+    el.className = warn ? "sub warn" : "sub";
+  }
+
+  function showUndo(seconds, eventBase){
+    let remain = seconds;
+    const undoId = "autus-undo-btn";
+
+    const panel = document.querySelector(".decision-panel");
+    if(!panel) return;
+
+    let btn = document.getElementById(undoId);
+    if(!btn){
+      btn = document.createElement("button");
+      btn.id = undoId;
+      btn.className = "btn-ghost";
+      btn.textContent = "되돌리기";
+      btn.onclick = ()=>{
+        emitAudit({ ...eventBase, event_type:"AUTO_COMMIT_UNDONE", undo:{ within_seconds: (seconds - remain), reason:"USER_REQUEST" } });
+        setBanner("되돌리기 기록 완료 (실제 되돌리기 로직은 Command Bus에 연결)", false);
+        btn.remove();
+      };
+      panel.querySelector(".actions").appendChild(btn);
+    }
+
+    const timer = setInterval(()=>{
+      remain -= 1;
+      if(remain<=0){
+        clearInterval(timer);
+        if(btn && btn.parentNode) btn.remove();
+        setBanner("되돌리기 창 종료", false);
+        return;
+      }
+      setBanner(`적용 완료 — 되돌리기 가능 (${remain}s)`, false);
+    }, 1000);
+  }
+
+  function renderDecision(){
+    const shell = ensureDecisionUI();
+    const model = getAutusModel();
+
+    if(!model){
+      shell.querySelector("#verdict").textContent = "데이터를 불러오는 중입니다. 잠시 후 다시 확인하세요.";
+      shell.querySelector("#cause").textContent = "—";
+      shell.querySelector("#causeDesc").textContent = "—";
+      shell.querySelector("#action").textContent = "—";
+      shell.querySelector("#autoState").textContent = "OFF";
+      setBanner("모델 대기 중", false);
+      applyViewModeVisibility();
+      return;
+    }
+
+    const locale = model.locale || "ko-KR";
+    const bType = model?.bottleneck?.type;
+    const bVal = model?.bottleneck?.value;
+    const cause = getCauseText(bType, locale);
+    const pct = Number.isFinite(bVal) ? Math.round(bVal*100) : null;
+
+    const verdict = buildVerdict(model);
+    const actionKey = pickPrimaryAction(model);
+    const actionLabel = (actionKey==="SHOCK_DAMP") ? "SHOCK DAMP" : actionKey;
+
+    shell.querySelector("#verdict").textContent = verdict;
+    shell.querySelector("#cause").textContent = cause;
+    shell.querySelector("#causeDesc").textContent = (pct!=null) ? `현재 병목 강도: ${pct}%` : "현재 병목 강도: —";
+    shell.querySelector("#action").textContent = actionLabel;
+
+    const enabled = localStorage.getItem(LS_AUTO) === "1";
+    shell.querySelector("#autoState").textContent = enabled ? "ON" : "OFF";
+
+    const evalr = policyEvaluate(model);
+    if(evalr.status==="BLOCKED"){
+      setBanner(`자동 실행 제한: ${(evalr.reason||[]).join(", ")}`, false);
+    }else if(evalr.boundary){
+      setBanner("경계 상태: trade-off 존재 (자동 실행은 기본 OFF 권장)", false);
+    }else{
+      setBanner("결론 → 원인 → 실행 순서로 진행", false);
+    }
+
+    applyViewModeVisibility();
+
+    runAutoApply(model).catch(()=>{});
+  }
+
+  // ---------------------------
+  // Boot
+  // ---------------------------
+  document.addEventListener("DOMContentLoaded", ()=>{
+    // URL 파라미터로 모드 지정
+    const params = new URLSearchParams(location.search);
+    if(params.get("mode") === "expert") {
+      viewMode = ViewMode.EXPERT;
+      localStorage.setItem(LS_VIEW, viewMode);
+    }
+    
+    ensureDecisionUI();
+    applyViewModeVisibility();
+    renderDecision();
+  });
+
+  setInterval(()=>{ if(viewMode===ViewMode.BEGINNER) renderDecision(); }, 600);
+
+  window.__AUTUS_SET_VIEWMODE = setViewMode;
 })();
 </script>
 
