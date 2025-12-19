@@ -1,79 +1,27 @@
-# Autus Constitution v1.0
+# AUTUS CONSTITUTION v1.0 (IMMUTABLE)
 
-## Article 1: Zero-Action Principle
-Autus does nothing. The world does everything on Autus.
+## 불변 원칙
 
-## Article 2: The Five Kernel Laws
-1. Event Core - Records all inputs
-2. Sovereign Interface - Validates ownership
-3. Twin Meta-Model - Maintains state
-4. Pack Runtime - Executes modules
-5. Cell Registry - Registers entities
+1. **원본 미저장** - Raw data는 절대 저장하지 않는다
+2. **Read-only 접근** - 외부 데이터는 읽기만 한다
+3. **Shadow만 저장** - 비가역 변환된 벡터만 저장한다
+4. **Contract 불변** - Atlas Envelope 구조는 변경 불가
+5. **Secret 격리** - TLF 커널은 완전 격리 실행
 
-## Article 3: Participants
-- Kernel Architect (1): Maintains laws only
-- Module Contributors (∞): Create Packs
-- Cell Owners: Operate on Autus
-- Pass Holders: Move between Cells
+## 금지 사항
 
-## Article 4: Pass System
-- LimePass: Employment mobility
-- CityPass: Inter-city mobility
-- MarsPass: Interplanetary mobility
+- ❌ 예측
+- ❌ 추천
+- ❌ 자동 실행
+- ❌ Raw 저장
+- ❌ 역변환
 
-## Article 5: Cell Sovereignty
-Each Cell operates independently within Kernel constraints.
+## 허용 사항
 
-## Article 6: Transparency
-All events recorded. All policies public. All decisions traceable.
+- ✅ 관측
+- ✅ 상태 계산
+- ✅ 차단 (반사)
+- ✅ Shadow 저장
+- ✅ Audit 기록
 
-## Article 7: ARL System (State/Event/Rule)
-The foundational protocol for all Autus operations:
-
-### State (상태)
-- Immutable record of cell's data snapshot
-- Versioned by timestamp
-- Cryptographically signed
-- Example: `{ cell_id, user_id, status, timestamp, hash }`
-
-### Event (이벤트)
-- Atomic action triggered by external input
-- Recorded in append-only event log
-- Contains: type, actor, payload, timestamp
-- Example: `{ type: "form_submitted", actor: "user_id", payload: {...}, timestamp }`
-
-### Rule (규칙)
-- Deterministic condition → action mapping
-- Evaluated in topological order
-- Conditions are pure functions of State
-- Actions modify State predictably
-- Example: `if GPA >= 3.5 and LANGUAGE_SCORE > 100 then PROCEED_TO_NEXT_STEP`
-
-#### Rule Types
-1. **Validation Rules**: Verify data integrity
-   - Syntax rules (format checks)
-   - Schema rules (type checks)
-   - Semantic rules (business logic)
-   - Flow rules (process ordering)
-
-2. **Action Rules**: Modify state transitions
-   - Conditional progression
-   - Automatic calculations
-   - Dependency resolution
-   - Error handling
-
-3. **Policy Rules**: Enforce governance
-   - Access control
-   - Consent management
-   - Audit logging
-   - Rate limiting
-
-## Article 8: Rule Engine (규칙 엔진)
-All decisions in Autus flow through 4 validation layers:
-
-- **V1 Syntax**: JSON/YAML 문법 검증
-- **V2 Schema**: 필드 타입 및 필수값 검증
-- **V3 Semantic**: 필드 간 정합성 및 의존성 검증
-- **V4 Flow**: Step 순서 및 프로세스 흐름 검증
-
-Each layer is independent and composable. Validators can be extended without affecting others.
+이 헌법을 위반하는 코드는 AUTUS가 아니다.
