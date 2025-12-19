@@ -3930,522 +3930,385 @@ animate();
   </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     AUTUS 최종 통합 시스템 v2.0
-     Human Verdict Bar + Auto-Commit + 30% UI 축소
-     "3초 안에 이해: 지금 해야 할 행동 + 안 하면 잃는 것"
+     AUTUS ELON EDITION
+     "The best part is no part"
+     
+     요소: 5개
+     설명: 0
+     자동 실행: 3초
      ═══════════════════════════════════════════════════════════════════════════ -->
 <script>
 (function() {
   'use strict';
   
-  // ═══════════════════════════════════════════════════════════
-  // 설정
-  // ═══════════════════════════════════════════════════════════
-  const CONFIG = {
-    AUTO_DELAY: 5,
-    AUDIT_TIMEOUT: 30,
-    ENABLED: true
-  };
-  
-  // 상태 (PhysicsFrame에서 동적으로 가져옴)
-  let STATE = {
-    risk: 0.49,
-    shock: 0.19,
-    recovery: 0.10,
-    friction: 0.10,
-    entropy: 0.14,
-    hoursToCollapse: 21,
-    estimatedLoss: 1300000
-  };
-  
-  let autoTimer = null;
-  let auditTimer = null;
-  let countdown = CONFIG.AUTO_DELAY;
-  let currentAction = 'recover';
+  const AUTO_SECONDS = 3;
+  let countdown = AUTO_SECONDS;
+  let timer = null;
   
   // ═══════════════════════════════════════════════════════════
   // 초기화
   // ═══════════════════════════════════════════════════════════
   function init() {
-    if (!CONFIG.ENABLED) return;
-    
+    // URL 파라미터로 비활성화 가능
     const params = new URLSearchParams(location.search);
-    if (params.get('auto') === 'false') return;
-    
-    // PhysicsFrame에서 상태 가져오기
-    updateStateFromPhysics();
-    
-    // Risk가 낮으면 자동 실행 안 함
-    if (STATE.risk < 0.2) {
-      console.log('[AUTUS] Risk < 20%, 자동 실행 건너뜀');
-      createVerdictBar(); // Verdict Bar만 표시
-      return;
-    }
-    
-    // 최적 액션 선택
-    if (typeof selectPrimaryAction === 'function') {
-      currentAction = selectPrimaryAction().key;
-    }
+    if (params.get('elon') === 'false') return;
     
     injectStyles();
-    hideExcessUI();
-    createVerdictBar();
-    createAutoCommitUI();
-    startAutoTimer();
-    
-    console.log('[AUTUS] 통합 시스템 v2.0 초기화:', currentAction);
-  }
-  
-  function updateStateFromPhysics() {
-    if (typeof PhysicsFrame !== 'undefined' && PhysicsFrame.snapshot) {
-      STATE.risk = PhysicsFrame.snapshot.risk || 0.49;
-      STATE.entropy = PhysicsFrame.snapshot.entropy || 0.14;
-    }
-    if (typeof TwinState !== 'undefined') {
-      STATE.shock = TwinState.SHOCK || 0.19;
-      STATE.recovery = TwinState.RECOVERY || 0.10;
-      STATE.friction = TwinState.FRICTION || 0.10;
-    }
-    // 동적 계산
-    STATE.hoursToCollapse = Math.max(1, Math.round((1 - STATE.risk) * 48));
-    STATE.estimatedLoss = Math.round(STATE.risk * 3000000);
+    hideEverything();
+    createElonUI();
+    startAutoExec();
+    console.log('[ELON] Simplified. 5 elements only.');
   }
   
   // ═══════════════════════════════════════════════════════════
-  // 스타일 주입
+  // 스타일
   // ═══════════════════════════════════════════════════════════
   function injectStyles() {
     const style = document.createElement('style');
-    style.id = 'autus-integrated-styles';
+    style.id = 'elon-styles';
     style.textContent = `
       /* ─────────────────────────────────────────
-         30% 축소: 추가 숨김 대상
+         HIDE EVERYTHING
          ───────────────────────────────────────── */
-      .laws-detail, .law-description,
-      .scenario-description, .branch-detail, .future-explanation,
-      .physics-kernel-details, [class*="ring-physics"],
-      .action-timestamp, .log-time,
-      #panel-forecast, #planets,
-      .snapshot-details, .bottleneck-details,
-      #pending-tasks, #commit-dashboard,
-      [class*="help-text"], [class*="instruction"] {
+      body > *:not(#elon-ui):not(canvas):not(script):not(style) {
         display: none !important;
       }
       
+      /* Canvas (9 Planets) 만 유지 */
+      canvas {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 1 !important;
+      }
+      
       /* ─────────────────────────────────────────
-         Human Verdict Bar
+         ELON UI
          ───────────────────────────────────────── */
-      #verdict-bar {
+      #elon-ui {
         position: fixed;
-        top: 70px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 85%;
-        max-width: 700px;
-        height: 52px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        pointer-events: none;
+        font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      }
+      
+      #elon-ui * {
+        pointer-events: auto;
+      }
+      
+      /* 상단 바 */
+      .elon-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 48px;
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-        font-size: 15px;
-        font-weight: 600;
+        padding: 0 24px;
+        background: rgba(0, 0, 0, 0.8);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .gate-badge {
+        padding: 6px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      
+      .gate-badge.green {
+        background: #00ff88;
         color: #000;
-        border-radius: 8px;
-        z-index: 9999;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-        letter-spacing: 0.02em;
       }
       
-      #verdict-bar.safe {
-        background: linear-gradient(90deg, #00ff88, #00cc66);
+      .gate-badge.amber {
+        background: #ffaa00;
+        color: #000;
       }
-      #verdict-bar.warning {
-        background: linear-gradient(90deg, #ffcc00, #ff9900);
-      }
-      #verdict-bar.critical {
-        background: linear-gradient(90deg, #ff4444, #cc0000);
+      
+      .gate-badge.red {
+        background: #ff4444;
         color: #fff;
-        animation: pulse-critical 1.2s infinite;
       }
       
-      @keyframes pulse-critical {
-        0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
-        50% { opacity: 0.9; transform: translateX(-50%) scale(1.01); }
+      .fps-display {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'SF Mono', monospace;
       }
       
-      /* ─────────────────────────────────────────
-         Auto-Commit UI
-         ───────────────────────────────────────── */
-      #auto-commit-container {
+      /* 하단 액션 */
+      .elon-action {
         position: fixed;
-        bottom: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(5, 6, 8, 0.98);
-        border: 2px solid rgba(0, 255, 136, 0.4);
-        border-radius: 16px;
-        padding: 32px 56px;
-        text-align: center;
-        z-index: 9999;
-        min-width: 360px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-      }
-      
-      #auto-commit-container .countdown-label {
-        font-size: 11px;
-        color: rgba(255,255,255,0.4);
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        margin-bottom: 8px;
-      }
-      
-      #auto-commit-container .countdown-number {
-        font-size: 80px;
-        font-weight: 700;
-        color: #00ff88;
-        font-family: 'SF Mono', 'Consolas', monospace;
-        line-height: 1;
-        text-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
-      }
-      
-      #auto-commit-container .action-name {
-        font-size: 18px;
-        color: #fff;
-        margin: 16px 0;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-      }
-      
-      #auto-commit-container .impact-row {
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 32px;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.95));
         display: flex;
-        justify-content: center;
-        gap: 32px;
-        margin-bottom: 24px;
-        font-size: 15px;
-      }
-      
-      #auto-commit-container .impact-item {
-        display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 8px;
-        color: rgba(255,255,255,0.6);
-      }
-      
-      #auto-commit-container .impact-value {
-        color: #00ff88;
-        font-weight: 700;
-        font-size: 16px;
-      }
-      
-      #auto-commit-container .cancel-btn {
-        padding: 12px 32px;
-        background: transparent;
-        border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 8px;
-        color: rgba(255,255,255,0.4);
-        cursor: pointer;
-        font-size: 11px;
-        letter-spacing: 0.1em;
-        transition: all 0.2s ease;
-      }
-      
-      #auto-commit-container .cancel-btn:hover {
-        border-color: rgba(255, 68, 68, 0.6);
-        color: #ff4444;
-      }
-      
-      #auto-commit-container.hidden { display: none !important; }
-      
-      /* ─────────────────────────────────────────
-         Manual Mode
-         ───────────────────────────────────────── */
-      #manual-mode {
-        position: fixed;
-        bottom: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(5, 6, 8, 0.98);
-        border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 12px;
-        padding: 20px;
-        z-index: 9998;
-        display: none;
         gap: 16px;
       }
       
-      #manual-mode.active { display: flex; }
-      
-      #manual-mode button {
-        padding: 18px 28px;
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 8px;
-        color: #fff;
-        cursor: pointer;
-        font-size: 13px;
-        letter-spacing: 0.05em;
-        transition: all 0.2s ease;
-      }
-      
-      #manual-mode button.primary {
-        border-color: rgba(0, 255, 136, 0.5);
-        background: rgba(0, 255, 136, 0.08);
-      }
-      
-      #manual-mode button:hover {
-        border-color: #00ff88;
-        background: rgba(0, 255, 136, 0.15);
-      }
-      
-      /* ─────────────────────────────────────────
-         Success Flash
-         ───────────────────────────────────────── */
-      .success-flash {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 36px;
+      .impact-single {
+        font-size: 32px;
+        font-weight: 700;
         color: #00ff88;
-        z-index: 99999;
-        animation: flashOut 2s ease-out forwards;
-        text-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
       }
       
-      @keyframes flashOut {
-        0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
+      .recover-btn {
+        width: 100%;
+        max-width: 400px;
+        padding: 20px 48px;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        background: #00ff88;
+        color: #000;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      
+      .recover-btn:hover {
+        background: #00cc66;
+        transform: scale(1.02);
+      }
+      
+      .recover-btn:active {
+        transform: scale(0.98);
+      }
+      
+      .countdown-display {
+        font-size: 48px;
+        font-weight: 200;
+        color: rgba(255, 255, 255, 0.3);
+        font-family: 'SF Mono', monospace;
+      }
+      
+      .countdown-display.urgent {
+        color: #00ff88;
+        animation: pulse 0.5s infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+      
+      /* 성공 화면 */
+      .success-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        animation: fadeIn 0.3s;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      .success-icon {
+        font-size: 72px;
+        color: #00ff88;
+        margin-bottom: 24px;
+      }
+      
+      .success-text {
+        font-size: 24px;
+        color: #fff;
+        font-weight: 300;
+      }
+      
+      .elon-action.hidden {
+        display: none;
       }
     `;
     document.head.appendChild(style);
   }
   
   // ═══════════════════════════════════════════════════════════
-  // 30% UI 숨김
+  // 모든 것 숨김
   // ═══════════════════════════════════════════════════════════
-  function hideExcessUI() {
-    const hideSelectors = [
-      '.future-branch', '.left-panel', '.physics-kernel-details',
-      '.ring-physics-panel', '.snapshot-details', 'footer',
-      '.bottom-controls', '#pending-tasks', '#commit-dashboard'
-    ];
-    
-    hideSelectors.forEach(sel => {
-      document.querySelectorAll(sel).forEach(el => {
-        el.style.display = 'none';
-      });
-    });
+  function hideEverything() {
+    document.body.style.background = '#000';
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.body.style.overflow = 'hidden';
   }
   
   // ═══════════════════════════════════════════════════════════
-  // Human Verdict Bar
+  // Elon UI 생성 (5요소만)
   // ═══════════════════════════════════════════════════════════
-  function createVerdictBar() {
-    document.getElementById('verdict-bar')?.remove();
+  function createElonUI() {
+    const ui = document.createElement('div');
+    ui.id = 'elon-ui';
     
-    const bar = document.createElement('div');
-    bar.id = 'verdict-bar';
+    // 현재 상태 감지
+    let gateText = 'AMBER';
+    let impactValue = '−48%';
     
-    if (STATE.risk >= 0.5) {
-      bar.className = 'critical';
-    } else if (STATE.risk >= 0.3) {
-      bar.className = 'warning';
-    } else {
-      bar.className = 'safe';
+    // PhysicsFrame에서 상태 가져오기
+    if (typeof PhysicsFrame !== 'undefined' && PhysicsFrame.snapshot) {
+      const risk = PhysicsFrame.snapshot.risk || 0.48;
+      if (risk < 0.3) gateText = 'GREEN';
+      else if (risk >= 0.5) gateText = 'RED';
+      impactValue = '−' + Math.round(risk * 100) + '%';
     }
     
-    bar.textContent = generateVerdict(STATE);
-    document.body.appendChild(bar);
-  }
-  
-  function generateVerdict(state) {
-    const { risk, shock, recovery, friction, hoursToCollapse, estimatedLoss } = state;
+    const gateClass = gateText.toLowerCase();
     
-    if (risk >= 0.45) {
-      return `지금 회복하지 않으면 ${hoursToCollapse}시간 내 ₩${formatMoney(estimatedLoss)} 손실`;
-    }
-    
-    if (shock > recovery) {
-      return `충격이 회복을 압도 중 — 지연 시 붕괴 가속`;
-    }
-    
-    if (friction > 0.08) {
-      return `비효율로 시간이 새고 있음 — 지금 차단 필요`;
-    }
-    
-    return `시스템 안정 — 현재 조치 불필요`;
-  }
-  
-  function formatMoney(num) {
-    if (num >= 10000) {
-      return Math.round(num / 10000) + '만';
-    }
-    return num.toLocaleString();
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // Auto-Commit UI
-  // ═══════════════════════════════════════════════════════════
-  function createAutoCommitUI() {
-    document.getElementById('auto-commit-container')?.remove();
-    document.getElementById('manual-mode')?.remove();
-    
-    const actionLabels = {
-      'recover': 'RECOVER',
-      'defriction': 'DEFRICTION',
-      'shock_damp': 'SHOCK DAMP'
-    };
-    
-    const container = document.createElement('div');
-    container.id = 'auto-commit-container';
-    container.innerHTML = `
-      <div class="countdown-label">자동 회복까지</div>
-      <div class="countdown-number" id="countdown-num">${CONFIG.AUTO_DELAY}</div>
-      <div class="action-name">${actionLabels[currentAction] || 'RECOVER'}</div>
-      <div class="impact-row">
-        <div class="impact-item">
-          <span>💰</span>
-          <span class="impact-value">−8%</span>
-        </div>
-        <div class="impact-item">
-          <span>⏱️</span>
-          <span class="impact-value">−5%</span>
-        </div>
+    ui.innerHTML = `
+      <!-- 요소 1: GATE 배지 -->
+      <!-- 요소 2: FPS -->
+      <div class="elon-header">
+        <div class="gate-badge ${gateClass}">GATE: ${gateText}</div>
+        <div class="fps-display" id="fps-counter">-- FPS</div>
       </div>
-      <button class="cancel-btn" id="cancel-btn">취소하고 직접 선택</button>
+      
+      <!-- 요소 3: Impact 숫자 -->
+      <!-- 요소 4: RECOVER 버튼 -->
+      <!-- 요소 5: 카운트다운 -->
+      <div class="elon-action" id="action-area">
+        <div class="impact-single">💰 ${impactValue}</div>
+        <button class="recover-btn" id="recover-btn">RECOVER</button>
+        <div class="countdown-display" id="countdown">${AUTO_SECONDS}</div>
+      </div>
     `;
-    document.body.appendChild(container);
     
-    const manual = document.createElement('div');
-    manual.id = 'manual-mode';
-    manual.innerHTML = `
-      <button class="primary" data-action="recover">💚 RECOVER</button>
-      <button data-action="defriction">🔧 DEFRICTION</button>
-      <button data-action="shock_damp">⚡ SHOCK DAMP</button>
-    `;
-    document.body.appendChild(manual);
+    document.body.appendChild(ui);
     
-    document.getElementById('cancel-btn').addEventListener('click', switchToManual);
-    manual.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => executeAction(btn.dataset.action));
-    });
+    // 버튼 이벤트
+    document.getElementById('recover-btn').addEventListener('click', executeRecover);
+    
+    // FPS 업데이트
+    updateFPS();
   }
   
   // ═══════════════════════════════════════════════════════════
-  // Auto Timer
+  // FPS 업데이트
   // ═══════════════════════════════════════════════════════════
-  function startAutoTimer() {
-    countdown = CONFIG.AUTO_DELAY;
-    updateCountdownDisplay();
+  function updateFPS() {
+    let lastTime = performance.now();
+    let frames = 0;
     
-    autoTimer = setInterval(() => {
+    function loop() {
+      frames++;
+      const now = performance.now();
+      if (now - lastTime >= 1000) {
+        const fps = Math.round(frames * 1000 / (now - lastTime));
+        const el = document.getElementById('fps-counter');
+        if (el) el.textContent = fps + ' FPS';
+        frames = 0;
+        lastTime = now;
+      }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // 3초 자동 실행
+  // ═══════════════════════════════════════════════════════════
+  function startAutoExec() {
+    countdown = AUTO_SECONDS;
+    updateCountdown();
+    
+    timer = setInterval(() => {
       countdown--;
-      updateCountdownDisplay();
+      updateCountdown();
       
       if (countdown <= 0) {
-        clearInterval(autoTimer);
-        executeAction(currentAction);
+        clearInterval(timer);
+        executeRecover();
       }
     }, 1000);
   }
   
-  function updateCountdownDisplay() {
-    const el = document.getElementById('countdown-num');
-    if (el) el.textContent = countdown;
-  }
-  
-  function switchToManual() {
-    clearInterval(autoTimer);
-    document.getElementById('auto-commit-container')?.classList.add('hidden');
-    document.getElementById('manual-mode')?.classList.add('active');
-  }
-  
-  // ═══════════════════════════════════════════════════════════
-  // Action 실행
-  // ═══════════════════════════════════════════════════════════
-  async function executeAction(action) {
-    console.log('[AUTUS] 실행:', action);
+  function updateCountdown() {
+    const el = document.getElementById('countdown');
+    if (!el) return;
     
-    document.getElementById('auto-commit-container')?.classList.add('hidden');
-    document.getElementById('manual-mode')?.classList.remove('active');
+    el.textContent = countdown;
     
-    // 기존 previewAction 호출
-    if (typeof previewAction === 'function') {
-      await previewAction(action, null);
-    } else {
-      document.body.classList.add('audit-mode');
-      
-      try {
-        await fetch(`${API_BASE}/api/v1/burn/simulate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ impulse: action.toUpperCase(), magnitude: 1.0 })
-        });
-      } catch (e) {
-        console.warn('[AUTUS] API 미연결');
-      }
-      
-      startAuditTimer(action);
+    if (countdown <= 1) {
+      el.classList.add('urgent');
     }
   }
   
   // ═══════════════════════════════════════════════════════════
-  // AUDIT Timer
+  // RECOVER 실행
   // ═══════════════════════════════════════════════════════════
-  function startAuditTimer(action) {
-    let remaining = CONFIG.AUDIT_TIMEOUT;
+  async function executeRecover() {
+    clearInterval(timer);
     
-    auditTimer = setInterval(() => {
-      remaining--;
-      if (remaining <= 0) {
-        clearInterval(auditTimer);
-        confirmLock(action);
-      }
-    }, 1000);
-  }
-  
-  async function confirmLock(action) {
-    clearInterval(auditTimer);
+    // 액션 영역 숨김
+    document.getElementById('action-area')?.classList.add('hidden');
+    
+    // API 호출
+    const apiBase = window.location.hostname === 'localhost' 
+      ? 'http://localhost:8000' 
+      : 'https://autus-production.up.railway.app';
     
     try {
-      await fetch(`${API_BASE}/api/v1/burn/execute`, {
+      await fetch(`${apiBase}/api/v1/burn/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ impulse: action.toUpperCase(), magnitude: 1.0 })
+        body: JSON.stringify({ impulse: 'RECOVER', magnitude: 1.0 })
       });
-    } catch (e) {}
-    
-    document.body.classList.remove('audit-mode');
-    showSuccess();
-    updateVerdictAfterAction();
-  }
-  
-  function showSuccess() {
-    const flash = document.createElement('div');
-    flash.className = 'success-flash';
-    flash.textContent = '✓ 실행 완료';
-    document.body.appendChild(flash);
-    setTimeout(() => flash.remove(), 2000);
-  }
-  
-  function updateVerdictAfterAction() {
-    STATE.risk = Math.max(0, STATE.risk - 0.15);
-    STATE.recovery = Math.min(1, STATE.recovery + 0.2);
-    
-    const bar = document.getElementById('verdict-bar');
-    if (bar) {
-      bar.textContent = generateVerdict(STATE);
-      bar.className = STATE.risk < 0.3 ? 'safe' : STATE.risk < 0.5 ? 'warning' : 'critical';
+    } catch (e) {
+      console.log('[ELON] API offline, local mode');
     }
+    
+    // 성공 화면
+    showSuccess();
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // 성공 화면
+  // ═══════════════════════════════════════════════════════════
+  function showSuccess() {
+    const success = document.createElement('div');
+    success.className = 'success-screen';
+    success.innerHTML = `
+      <div class="success-icon">✓</div>
+      <div class="success-text">RECOVERED</div>
+    `;
+    document.body.appendChild(success);
+    
+    // 3초 후 새로고침
+    setTimeout(() => {
+      location.reload();
+    }, 3000);
   }
   
   // ═══════════════════════════════════════════════════════════
   // 실행
   // ═══════════════════════════════════════════════════════════
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(init, 1500));
+    document.addEventListener('DOMContentLoaded', () => setTimeout(init, 500));
   } else {
-    setTimeout(init, 1500);
+    setTimeout(init, 500);
   }
+  
 })();
 </script>
 
