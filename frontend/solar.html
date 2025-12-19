@@ -1011,85 +1011,104 @@
     }
     
     /* ═══════════════════════════════════════════════════════════════════════════
-       PRODUCTION MODE — "완제품 체감"
-       설명 UI 제거, ACTION 1개, 침묵 강화
+       PRODUCTION MODE — "완제품 체감" v2.0
+       "설명하는 화면" → "완결 OS"
        ═══════════════════════════════════════════════════════════════════════════ */
-    
-    /* 1. 역할 선택 탭 숨김 — 같은 화면, 다른 현실 */
+
+    /* === 1. 역할 UI 완전 제거 — URL 파라미터로만 처리 === */
     #role-selector { display: none !important; }
     #role-info { display: none !important; }
-    
-    /* 2. 좌측 패널 숨김 — 정보는 보이지 않아야 '완성' */
+
+    /* === 2. 좌측 패널 숨김 — Operator 모드에서만 표시 === */
     #panel-forecast { display: none !important; }
-    #planet-list { display: none !important; }
-    
-    /* 3. Commit Dashboard 단순화 — 미완성 인상 제거 */
-    #commit-dashboard .dashboard-content { display: none !important; }
-    #commit-dashboard .commit-status { display: none !important; }
-    #commit-dashboard .panel-actions { display: none !important; }
-    #commit-dashboard .dashboard-header::after {
-      content: '✓ STABLE';
-      display: block;
-      text-align: center;
-      padding: 30px 0;
-      font-size: 18px;
-      color: var(--accent-green);
-      letter-spacing: 0.1em;
-    }
-    
-    /* 4. Risk Trend 차트 숨김 — 판단을 생각하게 만듦 */
+    #planets { display: none !important; }
+    body.operator-mode #panel-forecast { display: block !important; }
+    body.operator-mode #planets { display: block !important; }
+
+    /* === 3. Commit Dashboard 정리 — 상태 아이콘만 === */
+    #commit-dashboard { display: none !important; }
+
+    /* === 4. Risk Trend 숨김 — 공유 링크에서만 표시 === */
     #risk-chart-container { display: none !important; }
+    body.shared-view #risk-chart-container { display: block !important; }
+
+    /* === 5. ACTION 단일화 — JS로 동적 제어 === */
+    .action-btn-wrapper { display: none !important; }
+    .action-btn-wrapper.primary-action { display: block !important; }
     
-    /* 5. ACTION 버튼 단일화 — 추천 1개만 표시 */
-    #wrapper-defriction { display: none !important; }
-    #wrapper-shock_damp { display: none !important; }
-    #wrapper-recover .value-indicators { display: none !important; }
-    
-    /* ACTION 버튼 문구 변경 및 강조 */
-    #wrapper-recover .action-btn {
-      font-size: 16px !important;
-      padding: 18px 40px !important;
-      letter-spacing: 0.15em !important;
+    /* 단일 ACTION 버튼 스타일 */
+    .action-btn-wrapper.primary-action .action-btn {
+      font-size: 18px !important;
+      padding: 20px 48px !important;
+      letter-spacing: 0.12em !important;
+      min-width: 220px !important;
     }
     
-    /* 6. ACTION 설명 텍스트 단순화 — 문장 삭제, 숫자만 */
-    .danger-warning .warn-text { 
-      font-size: 14px !important;
-      letter-spacing: 0.05em !important;
+    /* Value Indicators 단순화 — 아이콘+숫자만 */
+    .action-btn-wrapper.primary-action .value-indicators {
+      justify-content: center !important;
+      gap: 16px !important;
     }
-    
-    /* 7. PENDING TASKS 숨김 */
+    .value-ind .val { font-size: 13px !important; }
+
+    /* === 6. 설명 텍스트 단순화 === */
+    .danger-warning .warn-text {
+      font-size: 13px !important;
+    }
+    #action-header { display: none !important; }
+
+    /* === 7. PENDING TASKS 숨김 === */
     #pending-tasks { display: none !important; }
-    
-    /* 8. 하단 단축키 안내 제거 */
+
+    /* === 8. 단축키 안내 제거 === */
     .keyboard-hint { display: none !important; }
-    
-    /* 9. 개발자 디버그 패널 완전 숨김 */
+    .quick-exec-hint { display: none !important; }
+    .test-badge { display: none !important; }
+
+    /* === 9. 개발자 패널 숨김 === */
     .kernel-display { display: none !important; }
     #panel-metrics { display: none !important; }
-    
-    /* 10. 시스템 바 단순화 */
+    #action-log { display: none !important; }
+    body.operator-mode #action-log { display: block !important; }
+
+    /* === 10. 시스템 바 단순화 === */
     .system-bar .left span:nth-child(3) { display: none !important; }
-    
-    /* 11. Gate/Dignity 중심 강조 */
-    .gate-container {
-      gap: 24px !important;
-    }
+
+    /* === 11. Gate/Dignity 강조 === */
+    .gate-container { gap: 20px !important; }
     #gate-badge, #dignity-display {
-      font-size: 16px !important;
-      padding: 14px 28px !important;
+      font-size: 15px !important;
+      padding: 12px 24px !important;
     }
-    
-    /* 12. 현재 Risk % 강조 */
+
+    /* === 12. Risk % 강조 === */
     #action-risk-container {
-      transform: scale(1.1);
-      margin-bottom: 20px !important;
+      transform: scale(1.15);
+      margin-bottom: 24px !important;
     }
-    #action-risk {
-      font-size: 52px !important;
+    #action-risk { font-size: 56px !important; }
+    .action-risk-label { display: none !important; }
+
+    /* === 13. AUDIT 침묵 모드 === */
+    body.audit-mode .gate-container,
+    body.audit-mode #share-button,
+    body.audit-mode .system-bar,
+    body.audit-mode #layer-action .danger-warning {
+      opacity: 0.15 !important;
+      pointer-events: none !important;
+      transition: opacity 0.4s ease !important;
     }
     
-    /* 13. SHARE 버튼 위치 조정 */
+    body.audit-mode #layer-audit {
+      z-index: 500 !important;
+    }
+    
+    body.audit-mode .audit-card {
+      transform: scale(1.02) !important;
+      box-shadow: 0 0 60px rgba(0, 212, 255, 0.3) !important;
+    }
+
+    /* === 14. SHARE 버튼 === */
     #share-button {
       top: 90px !important;
       right: 40px !important;
@@ -1110,8 +1129,8 @@
         <input type="email" class="auth-input" id="auth-email" placeholder="이메일 주소">
         <button class="auth-btn" onclick="requestMagicLink()">🔗 Magic Link 받기</button>
         <p class="auth-link" onclick="showOnboarding()">처음이신가요? 등록하기</p>
-      </div>
-      
+  </div>
+  
       <!-- 온보딩 Step 1 -->
       <div id="onboard-step1" class="onboarding-form">
         <div class="onboarding-steps">
@@ -1344,8 +1363,8 @@
     <div class="commit-person-card" id="commit-person">
       <div class="person-name">— 로딩 중 —</div>
       <div class="person-role">STUDENT</div>
-    </div>
-    
+  </div>
+  
     <div class="commit-metrics">
       <div class="commit-metric">
         <div class="metric-value safe" id="survival-mass">0.0</div>
@@ -1477,18 +1496,18 @@
       <span>DERIVED STATE</span>
       <span class="single-source-badge">FROM SNAPSHOT</span>
     </div>
-    <div class="metric-grid">
-      <div class="metric-card"><div class="metric-value" id="m-entropy">0.00</div><div class="metric-label">ENTROPY</div></div>
-      <div class="metric-card"><div class="metric-value" id="m-pressure">0.00</div><div class="metric-label">PRESSURE</div></div>
-      <div class="metric-card"><div class="metric-value" id="m-risk">0.00</div><div class="metric-label">RISK</div></div>
-      <div class="metric-card"><div class="metric-value" id="m-flow">0.00</div><div class="metric-label">FLOW</div></div>
+      <div class="metric-grid">
+        <div class="metric-card"><div class="metric-value" id="m-entropy">0.00</div><div class="metric-label">ENTROPY</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-pressure">0.00</div><div class="metric-label">PRESSURE</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-risk">0.00</div><div class="metric-label">RISK</div></div>
+        <div class="metric-card"><div class="metric-value" id="m-flow">0.00</div><div class="metric-label">FLOW</div></div>
     </div>
-  </div>
+      </div>
   
   <div id="action-log">
     <div class="log-title">ACTION LOG</div>
     <div id="log-items"></div>
-  </div>
+    </div>
   
   <div id="layer-action">
     <!-- Elon+Bezos: 핵심 지표 + 위험 경고 -->
@@ -2298,6 +2317,77 @@ function updateFullState() {
   
   // 7. PHASE 1: Update hover simulation cards
   updateHoverSimCards();
+  
+  // 8. PRODUCTION MODE: Update primary action button
+  updatePrimaryAction();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PRODUCTION MODE — 단일 ACTION 선택 로직
+// "Autus가 1개만 추천, 나머지는 존재 자체를 숨김"
+// ═══════════════════════════════════════════════════════════════════════════
+function selectPrimaryAction() {
+  const shock = TwinState.SHOCK;
+  const friction = TwinState.FRICTION;
+  const recovery = TwinState.RECOVERY;
+  const entropy = PhysicsFrame.snapshot.entropy;
+  
+  // 우선순위 1: SHOCK이 높으면 → SHOCK_DAMP
+  if (shock > 0.5) {
+    return { action: 'shock_damp', label: '충격 완화', key: 'shock_damp' };
+  }
+  
+  // 우선순위 2: FRICTION이 높으면 → DEFRICTION
+  if (friction > 0.4) {
+    return { action: 'defriction', label: '마찰 감소', key: 'defriction' };
+  }
+  
+  // 우선순위 3: RECOVERY가 낮으면 → RECOVER
+  if (recovery < 0.5) {
+    return { action: 'recover', label: '회복 실행', key: 'recover' };
+  }
+  
+  // 기본값: rankActions()로 최적 선택
+  const ranked = rankActions();
+  const labels = {
+    'recover': '상태 유지',
+    'defriction': '마찰 감소',
+    'shock_damp': '충격 완화'
+  };
+  return { 
+    action: ranked[0].action, 
+    label: labels[ranked[0].action] || '지금 조치',
+    key: ranked[0].action 
+  };
+}
+
+function updatePrimaryAction() {
+  const primary = selectPrimaryAction();
+  
+  // 모든 wrapper에서 primary-action 클래스 제거
+  document.querySelectorAll('.action-btn-wrapper').forEach(w => {
+    w.classList.remove('primary-action');
+  });
+  
+  // 선택된 ACTION에 primary-action 클래스 추가
+  const wrapper = document.getElementById(`wrapper-${primary.key}`);
+  if (wrapper) {
+    wrapper.classList.add('primary-action');
+    
+    // 버튼 텍스트 업데이트 (선택적)
+    const btn = wrapper.querySelector('.action-btn');
+    if (btn && !btn.dataset.originalText) {
+      btn.dataset.originalText = btn.textContent;
+    }
+  }
+  
+  // 위험 경고 텍스트 업데이트
+  const warning = document.getElementById('no-action-warning');
+  if (warning) {
+    const risk = Math.round(PhysicsFrame.snapshot.risk * 100);
+    const cost = Math.round(risk * 3.5); // 간단한 비용 추정
+    warning.textContent = `⚠️ ${risk}% · 💰 −₩${cost}만`;
+  }
 }
 
 function animatePhysicsFrame(dt) {
@@ -2779,9 +2869,12 @@ async function previewAction(actionKey, event) {
     await quickExecuteAction(actionKey);
     return;
   }
-  
+
   const profile = IMPULSE_PROFILES[actionKey];
   if (!profile) return;
+
+  // === AUDIT 침묵 모드 시작 ===
+  document.body.classList.add('audit-mode');
 
   // Phase 2: API Simulate 호출
   const impulseMap = { 'recover': 'RECOVER', 'defriction': 'DEFRICTION', 'shock_damp': 'SHOCK_DAMP' };
@@ -2828,7 +2921,7 @@ function openAudit() {
   if (!currentAuditAction) return;
   clearInterval(auditTimer);
   window.auditActive = true;
-
+  
   const { profile, futureDerived, futureBottleneck, apiResult } = currentAuditAction;
   const snap = PhysicsFrame.snapshot; // SINGLE SOURCE
   const bn = PhysicsFrame.bottleneck; // SINGLE SOURCE
@@ -2872,7 +2965,7 @@ function openAudit() {
       ${profile.costs.slice(0, 1).map(c => `<span class="cost-item">${c}</span>`).join('')}
     `;
   }
-
+  
   let countdown = 30;
   const timerEl = document.getElementById('audit-countdown');
   timerEl.textContent = countdown;
@@ -2911,7 +3004,7 @@ async function executeAction(actionKey) {
 async function auditDecision(verdict) {
   clearInterval(auditTimer);
   PhysicsFrame.preview.active = false;
-
+  
   if (verdict === 'LOCK' && currentAuditAction) {
     // Phase 2: Execute burn on backend
     const actionKey = currentAuditAction.key;
@@ -2927,7 +3020,7 @@ async function auditDecision(verdict) {
       logAction(`LOCKED: ${currentAuditAction.profile.name} → Burn executed ✓`, 'success');
       // Force sync to get latest state
       setTimeout(syncWithAPI, 500);
-    } else {
+      } else {
       logAction(`LOCK FAILED: ${currentAuditAction.profile.name} — API error`, 'error');
     }
   } else if (verdict === 'REJECT') {
@@ -2938,6 +3031,7 @@ async function auditDecision(verdict) {
   }
 
   document.getElementById('layer-audit').classList.remove('active');
+  document.body.classList.remove('audit-mode'); // AUDIT 침묵 모드 해제
   window.auditActive = false;
   currentAuditAction = null;
 }
@@ -3023,19 +3117,14 @@ function toggleOrbits() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     document.getElementById('layer-audit').classList.remove('active');
+    document.body.classList.remove('audit-mode'); // AUDIT 침묵 모드 해제
     PhysicsFrame.preview.active = false;
     clearInterval(auditTimer);
     window.auditActive = false;
   }
-  if (e.key === 'r' || e.key === 'R') {
-    Object.assign(TwinState, { RECOVERY: 0.42, STABILITY: 0.55, COHESION: 0.62, SHOCK: 0.72, FRICTION: 0.79, TRANSFER: 0.60, TIME: 0.50, QUALITY: 0.68, OUTPUT: 0.55 });
-    updateFullState();
-    renderPlanetList();
-    logAction('State reset', 'warning');
-  }
-  if (e.key === 't' || e.key === 'T') {
-    runAcceptanceTests();
-  }
+  // PRODUCTION MODE: 개발자 단축키 제거 (R, T)
+  // if (e.key === 'r' || e.key === 'R') { ... }
+  // if (e.key === 't' || e.key === 'T') { ... }
 });
 
 // Camera
@@ -3097,7 +3186,7 @@ function animate() {
       } else {
         phantom.visible = false;
       }
-
+      
       const label = planetLabelsEl[p.key];
       const screenPos = group.position.clone().project(camera);
       if (screenPos.z < 1) {
@@ -3738,7 +3827,7 @@ function loadSharedState() {
   // 공유된 상태 적용
   Object.assign(TwinState, state);
   updateFullState();
-  renderPlanetList();
+renderPlanetList();
   logAction('Loaded shared state', 'success');
   
   // URL에서 파라미터 제거 (히스토리 정리)
@@ -3785,34 +3874,57 @@ loadSharedState();
 // P0: 대기 업무 로드
 setTimeout(fetchPendingTasks, 1000);
 
+// ═══════════════════════════════════════════════════════════════════════════
+// PRODUCTION MODE — URL 파라미터로 역할 처리
+// ═══════════════════════════════════════════════════════════════════════════
+(function initProductionMode() {
+  const params = new URLSearchParams(location.search);
+  const role = params.get('role') || 'subject';
+  const shared = params.has('state');
+  
+  // 역할 설정 (CSS 제어용)
+  document.body.dataset.role = role;
+  
+  // 공유 링크 표시
+  if (shared) {
+    document.body.classList.add('shared-view');
+  }
+  
+  // Operator 모드 토글 (더블클릭으로 숨겨진 기능)
+  const solarCore = document.querySelector('canvas') || document.body;
+  let clickCount = 0;
+  let clickTimer = null;
+  
+  solarCore.addEventListener('click', () => {
+    clickCount++;
+    if (clickTimer) clearTimeout(clickTimer);
+    
+    if (clickCount >= 3) {
+      // 트리플 클릭으로 Operator 모드 토글
+      document.body.classList.toggle('operator-mode');
+      const isOp = document.body.classList.contains('operator-mode');
+      console.log(`[AUTUS] Operator mode: ${isOp ? 'ON' : 'OFF'}`);
+      clickCount = 0;
+    } else {
+      clickTimer = setTimeout(() => { clickCount = 0; }, 500);
+    }
+  });
+  
+  console.log(`[AUTUS] Role: ${role}, Shared: ${shared}`);
+})();
+
 // Initialize state
 updateFullState();
 renderPlanetList();
 
-// Kernel init log
+// Kernel init log (minimal)
 console.log('═══════════════════════════════════════════════════════════════════════════');
-console.log('  AUTUS PHYSICS KERNEL v2.4 — EP10 FULL LOOP');
+console.log('  AUTUS SOLAR HQ — PRODUCTION MODE');
 console.log('');
-console.log('  "미래를 맞히는 게 아니라, 미래의 차이를 보여준다"');
+console.log('  "완벽해야 쓰는 제품 → 써보니 완벽한 제품"');
 console.log('');
-console.log('  EP10 USER VALUE:');
-console.log('  • 💰 Cost   = Entropy↓ + Friction↓');
-console.log('  • ⏱️ Time   = Time↓ + Pressure↓');
-console.log('  • 🏛️ Dignity = Quality × Stability − Entropy × Friction');
-console.log('  • 🌍 Reputation = −Future Shock Residual');
-console.log('');
-console.log('  FORECAST BRANCH: 선택별 미래 분기 표시');
-console.log('  ACTION VALUE: 버튼 하단에 4가지 가치 지표 표시');
-console.log('');
-console.log('  Press [T] to run acceptance tests');
+console.log('  Triple-click on canvas to toggle Operator mode');
 console.log('═══════════════════════════════════════════════════════════════════════════');
-
-logAction('Kernel v2.4 EP10 initialized', 'success');
-logAction(`Dignity: ${PhysicsFrame.snapshot.dignity > 0.5 ? 'ELEVATED' : PhysicsFrame.snapshot.dignity > 0.2 ? 'BALANCED' : 'LOW'}`, 'warning');
-logAction(`Bottleneck: ${PhysicsFrame.bottleneck.axis} (${Math.round(PhysicsFrame.bottleneck.value * 100)}%)`, 'warning');
-
-// Auto-run tests disabled for debugging
-// setTimeout(() => runAcceptanceTests(), 500);
 
 animate();
   </script>
