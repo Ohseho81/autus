@@ -1,4 +1,38 @@
+# Python
 __pycache__/
 *.pyc
-.env
+*.pyo
 .venv/
+venv/
+
+# Environment
+.env
+.env.local
+
+# Database
+*.db
+*.sqlite
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.log
+*.tmp
+*.bak
+*.zip
+
+# Credentials (never commit)
+credentials.json
+*.pem
+*.key
