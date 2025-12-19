@@ -698,6 +698,62 @@
       color:#888;
     }
     
+    /* ═══════════════════════════════════════════════════════════════════════════
+       6개 역할 시스템 — 역할 선택 UI
+       ═══════════════════════════════════════════════════════════════════════════ */
+    
+    #role-selector{
+      position:fixed;top:32px;left:40px;
+      display:flex;gap:6px;z-index:200;
+    }
+    .role-btn{
+      padding:8px 12px;background:rgba(0,0,0,0.5);
+      border:1px solid rgba(255,255,255,0.2);border-radius:6px;
+      font-size:10px;color:#888;cursor:pointer;transition:all 0.2s;
+      display:flex;align-items:center;gap:6px;
+    }
+    .role-btn:hover{background:rgba(255,255,255,0.1);color:#fff}
+    .role-btn.active{
+      background:rgba(138,92,246,0.2);border-color:rgba(138,92,246,0.5);
+      color:#8a5cf6;
+    }
+    .role-btn .role-icon{font-size:12px}
+    .role-btn .role-priority{
+      font-size:8px;opacity:0.6;
+    }
+    
+    /* 역할별 테마 색상 */
+    .role-btn.subject.active{border-color:var(--accent-cyan);color:var(--accent-cyan)}
+    .role-btn.operator.active{border-color:var(--accent-green);color:var(--accent-green)}
+    .role-btn.sponsor.active{border-color:#ffd700;color:#ffd700}
+    .role-btn.employer.active{border-color:var(--accent-orange);color:var(--accent-orange)}
+    .role-btn.institution.active{border-color:#8a5cf6;color:#8a5cf6}
+    .role-btn.system.active{border-color:var(--accent-red);color:var(--accent-red)}
+    
+    /* 역할 정보 패널 */
+    #role-info{
+      position:fixed;top:70px;left:40px;width:220px;
+      background:var(--bg-panel);border:1px solid rgba(138,92,246,0.3);
+      border-radius:8px;padding:12px;z-index:190;
+      display:none;
+    }
+    #role-info.visible{display:block}
+    .role-info-title{
+      font-size:11px;font-weight:600;color:#fff;margin-bottom:8px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .role-info-title .icon{font-size:16px}
+    .role-info-perms{
+      font-size:9px;color:#888;
+    }
+    .role-info-perms .perm-item{
+      display:flex;justify-content:space-between;padding:4px 0;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+    }
+    .role-info-perms .perm-value.yes{color:var(--accent-green)}
+    .role-info-perms .perm-value.no{color:var(--accent-red)}
+    .role-info-perms .perm-value.read{color:var(--accent-cyan)}
+    
     /* Musk: 빠른 실행 모드 */
     .quick-exec-hint{
       position:fixed;bottom:40px;left:50%;transform:translateX(-50%);
@@ -914,6 +970,43 @@
     <div class="right">
       <span>FPS: <span id="sys-fps">60</span></span>
       <span id="sys-time"></span>
+    </div>
+  </div>
+  
+  <!-- 6개 역할 선택 -->
+  <div id="role-selector">
+    <button class="role-btn subject active" onclick="switchRole('subject')" title="당사자 (학생/근로자)">
+      <span class="role-icon">👤</span>
+      <span>Subject</span>
+    </button>
+    <button class="role-btn operator" onclick="switchRole('operator')" title="운영자 (ATB)">
+      <span class="role-icon">🔧</span>
+      <span>Operator</span>
+    </button>
+    <button class="role-btn sponsor" onclick="switchRole('sponsor')" title="자금 제공자">
+      <span class="role-icon">💰</span>
+      <span>Sponsor</span>
+    </button>
+    <button class="role-btn employer" onclick="switchRole('employer')" title="고용주">
+      <span class="role-icon">🏢</span>
+      <span>Employer</span>
+    </button>
+    <button class="role-btn institution" onclick="switchRole('institution')" title="제도 제공자">
+      <span class="role-icon">🏛️</span>
+      <span>Institution</span>
+    </button>
+  </div>
+  
+  <!-- 역할 정보 패널 -->
+  <div id="role-info">
+    <div class="role-info-title">
+      <span class="icon" id="role-info-icon">👤</span>
+      <span id="role-info-name">Subject</span>
+    </div>
+    <div class="role-info-perms" id="role-info-perms">
+      <div class="perm-item"><span>Action</span><span class="perm-value yes">✓</span></div>
+      <div class="perm-item"><span>Commit</span><span class="perm-value no">✗</span></div>
+      <div class="perm-item"><span>Audit</span><span class="perm-value read">열람</span></div>
     </div>
   </div>
   
@@ -2738,6 +2831,113 @@ function animate() {
   
   renderer.render(scene, camera);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 6개 역할 시스템 — 역할 전환 및 권한 관리
+// ═══════════════════════════════════════════════════════════════════════════
+let currentRole = 'subject';
+let roleConfig = null;
+
+async function switchRole(role) {
+  currentRole = role;
+  
+  // 버튼 상태 업데이트
+  document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.classList.contains(role));
+  });
+  
+  // 역할 UI 설정 가져오기
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/role/ui/${role}`);
+    if (res.ok) {
+      roleConfig = await res.json();
+      applyRoleConfig(roleConfig);
+    }
+  } catch (e) {
+    console.warn('[Role] Config fetch failed:', e);
+    // 기본 설정 적용
+    applyRoleConfig(getDefaultRoleConfig(role));
+  }
+  
+  // 역할 정보 패널 업데이트
+  updateRoleInfo(role);
+  
+  logAction(`Role switched to ${role.toUpperCase()}`, 'success');
+}
+
+function getDefaultRoleConfig(role) {
+  const configs = {
+    subject: { buttons: { LOCK: true, HOLD: true, REJECT: true, CREATE_COMMIT: false } },
+    operator: { buttons: { LOCK: true, HOLD: true, REJECT: true, CREATE_COMMIT: true, CLOSE_COMMIT: true } },
+    sponsor: { buttons: { LOCK: false, HOLD: false, REJECT: false, CREATE_COMMIT: true } },
+    employer: { buttons: { LOCK: true, HOLD: true, REJECT: true, CREATE_COMMIT: true } },
+    institution: { buttons: { LOCK: false, HOLD: false, REJECT: false, CREATE_COMMIT: false } },
+    system: { buttons: { LOCK: true, HOLD: true, REJECT: true, CREATE_COMMIT: true, OVERRIDE: true } }
+  };
+  return configs[role] || configs.subject;
+}
+
+function applyRoleConfig(config) {
+  if (!config || !config.buttons) return;
+  
+  // Action 버튼 표시/숨김
+  const actionPanel = document.getElementById('layer-action');
+  if (actionPanel) {
+    const canAction = config.buttons.LOCK || config.buttons.HOLD || config.buttons.REJECT;
+    // 버튼을 숨기지 않고 비활성화
+    document.querySelectorAll('.action-btn').forEach(btn => {
+      btn.disabled = !canAction;
+      btn.style.opacity = canAction ? '1' : '0.3';
+    });
+  }
+  
+  // Commit 패널 버튼 조정
+  const commitPanel = document.getElementById('commit-panel');
+  if (commitPanel) {
+    const createBtn = commitPanel.querySelector('.commit-action-btn.primary');
+    if (createBtn) {
+      createBtn.style.display = config.buttons.CREATE_COMMIT ? 'block' : 'none';
+    }
+  }
+  
+  // Task 패널은 Operator만
+  const taskPanel = document.getElementById('task-panel');
+  if (taskPanel) {
+    taskPanel.style.display = (currentRole === 'operator' || currentRole === 'system') ? 'block' : 'none';
+  }
+}
+
+function updateRoleInfo(role) {
+  const roleData = {
+    subject: { icon: '👤', name: 'Subject (당사자)', perms: { Action: 'yes', Commit: 'no', Audit: 'read' } },
+    operator: { icon: '🔧', name: 'Operator (운영자)', perms: { Action: 'yes', Commit: 'yes', Audit: 'read' } },
+    sponsor: { icon: '💰', name: 'Sponsor (자금 제공)', perms: { Action: 'no', Commit: 'yes', Audit: 'read' } },
+    employer: { icon: '🏢', name: 'Employer (고용주)', perms: { Action: 'yes', Commit: 'yes', Audit: 'read' } },
+    institution: { icon: '🏛️', name: 'Institution (제도)', perms: { Action: 'no', Commit: 'no', Audit: 'read' } },
+    system: { icon: '🔒', name: 'System (시스템)', perms: { Action: 'auto', Commit: 'auto', Audit: 'write' } }
+  };
+  
+  const data = roleData[role] || roleData.subject;
+  
+  document.getElementById('role-info-icon').textContent = data.icon;
+  document.getElementById('role-info-name').textContent = data.name;
+  
+  const permsHtml = Object.entries(data.perms).map(([key, val]) => {
+    const cls = val === 'yes' || val === 'auto' ? 'yes' : val === 'no' ? 'no' : 'read';
+    const text = val === 'yes' ? '✓' : val === 'no' ? '✗' : val === 'auto' ? '⚡' : '열람';
+    return `<div class="perm-item"><span>${key}</span><span class="perm-value ${cls}">${text}</span></div>`;
+  }).join('');
+  
+  document.getElementById('role-info-perms').innerHTML = permsHtml;
+  
+  // 패널 표시
+  const infoPanel = document.getElementById('role-info');
+  infoPanel.classList.add('visible');
+  setTimeout(() => infoPanel.classList.remove('visible'), 3000);
+}
+
+// 초기 역할 설정
+setTimeout(() => switchRole('subject'), 500);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COMMIT 중심 — 학생 1명 시뮬레이션

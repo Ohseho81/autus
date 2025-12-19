@@ -1248,7 +1248,10 @@ try:
         PersonIn, CommitIn, MoneyFlowIn, ActionIn,
         create_person, create_commit, create_money_flow, execute_action,
         get_person_dashboard, calculate_survival_mass, calculate_risk_score,
-        get_commit_db, record_audit
+        get_commit_db, record_audit,
+        # 6개 역할 시스템
+        ROLE_PRIORITY, ROLE_PERMISSIONS, ROLE_COMMIT_TYPES,
+        check_permission, resolve_conflict, get_allowed_commit_types
     )
     
     # 스키마 초기화
@@ -1365,6 +1368,100 @@ try:
                 'person_count': person_count,
                 'calculated_at': now
             }
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # 6개 역할 시스템 API — "역할은 늘어날수록 책임은 사라진다"
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    @app.get("/api/v1/role/permissions/{role}")
+    def api_get_role_permissions(role: str):
+        """역할별 권한 조회"""
+        if role not in ROLE_PERMISSIONS:
+            return {"error": f"Unknown role: {role}"}
+        
+        return {
+            "role": role,
+            "priority": ROLE_PRIORITY.get(role, 0),
+            "permissions": ROLE_PERMISSIONS.get(role, {}),
+            "allowed_commit_types": ROLE_COMMIT_TYPES.get(role, [])
+        }
+    
+    @app.get("/api/v1/role/all")
+    def api_get_all_roles():
+        """전체 역할 구조 조회"""
+        roles = []
+        for role in ['subject', 'operator', 'sponsor', 'employer', 'institution', 'system']:
+            roles.append({
+                "role": role,
+                "priority": ROLE_PRIORITY.get(role, 0),
+                "permissions": ROLE_PERMISSIONS.get(role, {}),
+                "allowed_commit_types": ROLE_COMMIT_TYPES.get(role, []),
+                "icon": {
+                    'subject': '👤',
+                    'operator': '🔧',
+                    'sponsor': '💰',
+                    'employer': '🏢',
+                    'institution': '🏛️',
+                    'system': '🔒'
+                }.get(role, '?')
+            })
+        return {"roles": roles, "priority_rule": "System > Institution > Sponsor > Employer > Operator > Subject"}
+    
+    @app.post("/api/v1/role/conflict")
+    def api_resolve_conflict(role1: str, role2: str):
+        """역할 충돌 해결"""
+        winner = resolve_conflict(role1, role2)
+        return {
+            "role1": role1,
+            "role2": role2,
+            "winner": winner,
+            "reason": f"{winner} has higher priority ({ROLE_PRIORITY.get(winner, 0)} vs {ROLE_PRIORITY.get(role1 if winner == role2 else role2, 0)})"
+        }
+    
+    @app.get("/api/v1/role/check/{role}/{action}")
+    def api_check_permission(role: str, action: str):
+        """역할 권한 확인"""
+        allowed = check_permission(role, action)
+        return {
+            "role": role,
+            "action": action,
+            "allowed": allowed,
+            "reason": "Permission granted" if allowed else "Permission denied"
+        }
+    
+    @app.get("/api/v1/role/ui/{role}")
+    def api_get_role_ui(role: str):
+        """역할별 UI 구성 반환 — 버튼 표시/숨김"""
+        perms = ROLE_PERMISSIONS.get(role, {})
+        
+        # 역할별 보이는 UI 요소
+        ui_config = {
+            "role": role,
+            "icon": {'subject': '👤', 'operator': '🔧', 'sponsor': '💰', 
+                    'employer': '🏢', 'institution': '🏛️', 'system': '🔒'}.get(role, '?'),
+            "panels": {
+                "action_buttons": perms.get('can_action', False) in [True, 'auto'],
+                "commit_create": perms.get('can_commit', False) in [True, 'auto'],
+                "audit_log": perms.get('can_audit') in ['read', 'write'],
+                "risk_chart": True,  # 모든 역할 열람 가능
+                "survival_mass": True,
+                "system_state": role in ['operator', 'system'],
+                "cluster_view": role in ['operator', 'sponsor', 'system'],
+                "settings": role == 'system'
+            },
+            "buttons": {
+                "LOCK": perms.get('can_action', False) in [True, 'auto'],
+                "HOLD": perms.get('can_action', False) in [True, 'auto'],
+                "REJECT": perms.get('can_action', False) in [True, 'auto'],
+                "CREATE_COMMIT": perms.get('can_commit', False) in [True, 'auto'],
+                "CLOSE_COMMIT": role in ['operator', 'system'],
+                "OVERRIDE": perms.get('can_override', False)
+            },
+            "allowed_commit_types": ROLE_COMMIT_TYPES.get(role, []),
+            "view_scope": perms.get('view_scope', 'self')
+        }
+        
+        return ui_config
     
     # === 학생 1명 시뮬레이션 데이터 생성 ===
     @app.post("/api/v1/commit/demo/student")

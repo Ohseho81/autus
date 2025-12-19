@@ -44,13 +44,15 @@ def init_commit_schema():
     with get_commit_db() as conn:
         # ═══════════════════════════════════════════════════════════════════
         # A. person — 사람은 최소 정보만 (신분 아님)
+        # 6개 역할: subject, operator, sponsor, employer, institution, system
         # ═══════════════════════════════════════════════════════════════════
         conn.execute('''
             CREATE TABLE IF NOT EXISTS person (
                 person_id TEXT PRIMARY KEY,
-                role TEXT CHECK(role IN ('student', 'operator', 'employer', 'institution')),
+                role TEXT CHECK(role IN ('subject', 'operator', 'sponsor', 'employer', 'institution', 'system')),
                 country TEXT,
                 name TEXT,
+                priority INTEGER DEFAULT 0,
                 created_at INTEGER DEFAULT (strftime('%s', 'now'))
             )
         ''')
@@ -176,9 +178,106 @@ def init_commit_schema():
 # Pydantic Models — API 요청/응답
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 6개 역할 권한 시스템 — "역할은 늘어날수록 책임은 사라진다"
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 역할 우선순위 (충돌 시 높은 숫자가 승리)
+ROLE_PRIORITY = {
+    'subject': 1,      # 👤 당사자 — 가장 낮음
+    'operator': 2,     # 🔧 운영자
+    'employer': 3,     # 🏢 고용주
+    'sponsor': 4,      # 💰 자금 제공자
+    'institution': 5,  # 🏛️ 제도 제공자
+    'system': 6        # 🔒 시스템 — 항상 승리
+}
+
+# 역할별 권한 매트릭스
+ROLE_PERMISSIONS = {
+    'subject': {
+        'can_action': True,      # Action 1클릭 가능
+        'can_commit': False,     # Commit 생성 불가
+        'can_audit': 'read',     # Audit 열람만
+        'can_override': False,   # 다른 역할 Override 불가
+        'view_scope': 'self'     # 자기 데이터만
+    },
+    'operator': {
+        'can_action': True,
+        'can_commit': True,      # Commit 생성/종료 가능
+        'can_audit': 'read',
+        'can_override': False,
+        'view_scope': 'cluster'  # 담당 군집
+    },
+    'sponsor': {
+        'can_action': False,     # Action 불가
+        'can_commit': True,      # Grant Commit만
+        'can_audit': 'read',
+        'can_override': False,
+        'view_scope': 'funded'   # 지원 대상만
+    },
+    'employer': {
+        'can_action': True,      # 채용 결정
+        'can_commit': True,      # Wage/Outcome Commit
+        'can_audit': 'read',
+        'can_override': False,
+        'view_scope': 'employed' # 고용 대상만
+    },
+    'institution': {
+        'can_action': False,     # Action 불가
+        'can_commit': False,     # Commit 불가 (규정만 제공)
+        'can_audit': 'read',
+        'can_override': False,
+        'view_scope': 'enrolled' # 등록 대상만
+    },
+    'system': {
+        'can_action': 'auto',    # 자동 실행
+        'can_commit': 'auto',    # 자동 생성
+        'can_audit': 'write',    # Audit 생성 가능
+        'can_override': True,    # 모든 것 Override
+        'view_scope': 'all'      # 전체
+    }
+}
+
+# 역할별 허용 Commit 타입
+ROLE_COMMIT_TYPES = {
+    'subject': [],
+    'operator': ['management'],
+    'sponsor': ['grant'],
+    'employer': ['wage', 'outcome'],
+    'institution': ['tuition'],
+    'system': ['tuition', 'wage', 'management', 'grant', 'outcome']
+}
+
+
+def check_permission(role: str, action: str) -> bool:
+    """역할 권한 확인"""
+    perms = ROLE_PERMISSIONS.get(role, {})
+    if action == 'action':
+        return perms.get('can_action', False) in [True, 'auto']
+    elif action == 'commit':
+        return perms.get('can_commit', False) in [True, 'auto']
+    elif action == 'audit_write':
+        return perms.get('can_audit') == 'write'
+    elif action == 'override':
+        return perms.get('can_override', False)
+    return False
+
+
+def resolve_conflict(role1: str, role2: str) -> str:
+    """역할 충돌 시 승자 결정 — 높은 우선순위가 승리"""
+    p1 = ROLE_PRIORITY.get(role1, 0)
+    p2 = ROLE_PRIORITY.get(role2, 0)
+    return role1 if p1 >= p2 else role2
+
+
+def get_allowed_commit_types(role: str) -> list:
+    """역할별 허용 Commit 타입 반환"""
+    return ROLE_COMMIT_TYPES.get(role, [])
+
+
 class PersonIn(BaseModel):
     person_id: str
-    role: Literal['student', 'operator', 'employer', 'institution']
+    role: Literal['subject', 'operator', 'sponsor', 'employer', 'institution', 'system']
     country: str
     name: Optional[str] = None
 
