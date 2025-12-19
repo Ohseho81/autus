@@ -1009,6 +1009,92 @@
       .action-btn { min-width: 140px; padding: 10px 12px; font-size: 10px; }
       .value-indicators { display: none; }
     }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════
+       PRODUCTION MODE — "완제품 체감"
+       설명 UI 제거, ACTION 1개, 침묵 강화
+       ═══════════════════════════════════════════════════════════════════════════ */
+    
+    /* 1. 역할 선택 탭 숨김 — 같은 화면, 다른 현실 */
+    #role-selector { display: none !important; }
+    #role-info { display: none !important; }
+    
+    /* 2. 좌측 패널 숨김 — 정보는 보이지 않아야 '완성' */
+    #panel-forecast { display: none !important; }
+    #planet-list { display: none !important; }
+    
+    /* 3. Commit Dashboard 단순화 — 미완성 인상 제거 */
+    #commit-dashboard .dashboard-content { display: none !important; }
+    #commit-dashboard .commit-status { display: none !important; }
+    #commit-dashboard .panel-actions { display: none !important; }
+    #commit-dashboard .dashboard-header::after {
+      content: '✓ STABLE';
+      display: block;
+      text-align: center;
+      padding: 30px 0;
+      font-size: 18px;
+      color: var(--accent-green);
+      letter-spacing: 0.1em;
+    }
+    
+    /* 4. Risk Trend 차트 숨김 — 판단을 생각하게 만듦 */
+    #risk-chart-container { display: none !important; }
+    
+    /* 5. ACTION 버튼 단일화 — 추천 1개만 표시 */
+    #wrapper-defriction { display: none !important; }
+    #wrapper-shock_damp { display: none !important; }
+    #wrapper-recover .value-indicators { display: none !important; }
+    
+    /* ACTION 버튼 문구 변경 및 강조 */
+    #wrapper-recover .action-btn {
+      font-size: 16px !important;
+      padding: 18px 40px !important;
+      letter-spacing: 0.15em !important;
+    }
+    
+    /* 6. ACTION 설명 텍스트 단순화 — 문장 삭제, 숫자만 */
+    .danger-warning .warn-text { 
+      font-size: 14px !important;
+      letter-spacing: 0.05em !important;
+    }
+    
+    /* 7. PENDING TASKS 숨김 */
+    #pending-tasks { display: none !important; }
+    
+    /* 8. 하단 단축키 안내 제거 */
+    .keyboard-hint { display: none !important; }
+    
+    /* 9. 개발자 디버그 패널 완전 숨김 */
+    .kernel-display { display: none !important; }
+    #panel-metrics { display: none !important; }
+    
+    /* 10. 시스템 바 단순화 */
+    .system-bar .left span:nth-child(3) { display: none !important; }
+    
+    /* 11. Gate/Dignity 중심 강조 */
+    .gate-container {
+      gap: 24px !important;
+    }
+    #gate-badge, #dignity-display {
+      font-size: 16px !important;
+      padding: 14px 28px !important;
+    }
+    
+    /* 12. 현재 Risk % 강조 */
+    #action-risk-container {
+      transform: scale(1.1);
+      margin-bottom: 20px !important;
+    }
+    #action-risk {
+      font-size: 52px !important;
+    }
+    
+    /* 13. SHARE 버튼 위치 조정 */
+    #share-button {
+      top: 90px !important;
+      right: 40px !important;
+    }
+    
   </style>
 </head>
 <body>
