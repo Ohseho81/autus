@@ -3946,18 +3946,89 @@ animate();
   let timer = null;
   
   // ═══════════════════════════════════════════════════════════
+  // 상태 저장
+  // ═══════════════════════════════════════════════════════════
+  let STATE = {
+    risk: 0.48,
+    gate: 'AMBER',
+    impact_percent: -48,
+    source: 'local'
+  };
+  
+  const API_BASE = window.location.hostname === 'localhost' 
+    ? 'http://localhost:8000' 
+    : 'https://autus-production.up.railway.app';
+  
+  // ═══════════════════════════════════════════════════════════
   // 초기화
   // ═══════════════════════════════════════════════════════════
-  function init() {
+  async function init() {
     // URL 파라미터로 비활성화 가능
     const params = new URLSearchParams(location.search);
     if (params.get('elon') === 'false') return;
-    
+
     injectStyles();
     hideEverything();
+    
+    // API에서 상태 가져오기
+    await fetchState();
+    
     createElonUI();
     startAutoExec();
-    console.log('[ELON] Simplified. 5 elements only.');
+    
+    // 30초마다 상태 갱신
+    setInterval(fetchState, 30000);
+    
+    console.log('[ELON] Simplified. 5 elements only. Source:', STATE.source);
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // API에서 상태 가져오기
+  // ═══════════════════════════════════════════════════════════
+  async function fetchState() {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/snapshot/current`);
+      if (res.ok) {
+        const data = await res.json();
+        STATE.risk = (data.risk || 0) / 100;  // % → 소수
+        STATE.impact_percent = data.impact_percent || -Math.round(STATE.risk * 100);
+        STATE.source = data.source || 'api';
+        
+        // GATE 결정
+        if (STATE.risk < 0.3) STATE.gate = 'GREEN';
+        else if (STATE.risk >= 0.5) STATE.gate = 'RED';
+        else STATE.gate = 'AMBER';
+        
+        updateUI();
+        console.log('[ELON] State updated from', STATE.source, '- Risk:', Math.round(STATE.risk * 100) + '%');
+      }
+    } catch (e) {
+      console.warn('[ELON] API offline, using local state');
+      
+      // PhysicsFrame에서 가져오기 (fallback)
+      if (typeof PhysicsFrame !== 'undefined' && PhysicsFrame.snapshot) {
+        STATE.risk = PhysicsFrame.snapshot.risk || 0.48;
+        STATE.source = 'physics';
+      }
+    }
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // UI 업데이트
+  // ═══════════════════════════════════════════════════════════
+  function updateUI() {
+    // GATE 배지 업데이트
+    const gateBadge = document.querySelector('.gate-badge');
+    if (gateBadge) {
+      gateBadge.className = 'gate-badge ' + STATE.gate.toLowerCase();
+      gateBadge.textContent = 'GATE: ' + STATE.gate;
+    }
+    
+    // Impact 업데이트
+    const impactEl = document.querySelector('.impact-single');
+    if (impactEl) {
+      impactEl.textContent = '💰 ' + STATE.impact_percent + '%';
+    }
   }
   
   // ═══════════════════════════════════════════════════════════
@@ -4162,18 +4233,9 @@ animate();
     const ui = document.createElement('div');
     ui.id = 'elon-ui';
     
-    // 현재 상태 감지
-    let gateText = 'AMBER';
-    let impactValue = '−48%';
-    
-    // PhysicsFrame에서 상태 가져오기
-    if (typeof PhysicsFrame !== 'undefined' && PhysicsFrame.snapshot) {
-      const risk = PhysicsFrame.snapshot.risk || 0.48;
-      if (risk < 0.3) gateText = 'GREEN';
-      else if (risk >= 0.5) gateText = 'RED';
-      impactValue = '−' + Math.round(risk * 100) + '%';
-    }
-    
+    // STATE에서 값 가져오기
+    const gateText = STATE.gate;
+    const impactValue = STATE.impact_percent + '%';
     const gateClass = gateText.toLowerCase();
     
     ui.innerHTML = `

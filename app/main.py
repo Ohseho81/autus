@@ -2068,3 +2068,55 @@ try:
     print("✅ Realtime API loaded")
 except Exception as e:
     print(f"⚠️ Realtime API not loaded: {e}")
+
+# === Google Sheets API ===
+try:
+    from app.routes.sheets_api import router as sheets_router
+    app.include_router(sheets_router)
+    print("✅ Sheets API loaded")
+except Exception as e:
+    print(f"⚠️ Sheets API not loaded: {e}")
+
+
+# === Sheets 연동 스냅샷 엔드포인트 ===
+@app.get("/api/v1/snapshot/current")
+async def get_snapshot_current():
+    """현재 스냅샷 (Sheets 연동)"""
+    try:
+        from connectors.sheets import get_sheets_connector, get_demo_planets
+        
+        connector = get_sheets_connector()
+        if connector and connector.connected:
+            planets = connector.calculate_planets()
+            return {
+                "risk": planets["risk"],
+                "entropy": planets["entropy"],
+                "pressure": planets["pressure"],
+                "flow": planets["flow"],
+                "gate": planets["gate"],
+                "impact_percent": planets["impact_percent"],
+                "source": "sheets"
+            }
+        
+        # Fallback: 데모 데이터
+        demo = get_demo_planets()
+        return {
+            "risk": demo["risk"],
+            "entropy": demo["entropy"],
+            "pressure": demo["pressure"],
+            "flow": demo["flow"],
+            "gate": demo["gate"],
+            "impact_percent": demo["impact_percent"],
+            "source": "demo"
+        }
+    except Exception as e:
+        logger.warning(f"Snapshot error: {e}")
+        return {
+            "risk": 0,
+            "entropy": 0,
+            "pressure": 0,
+            "flow": 0,
+            "gate": "AMBER",
+            "impact_percent": 0,
+            "source": "fallback"
+        }
