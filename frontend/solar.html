@@ -1739,7 +1739,10 @@ function renderRiskChart() {
 // ═══════════════════════════════════════════════════════════════════════════
 // API CONNECTION — Phase 1: 물리 엔진 연결
 // ═══════════════════════════════════════════════════════════════════════════
-const API_BASE = window.location.origin;
+// FIX: API_BASE를 Railway 서버로 설정
+const API_BASE = window.location.hostname === 'localhost' 
+  ? 'http://localhost:8000' 
+  : 'https://autus-production.up.railway.app';
 let apiConnected = false;
 
 // #5 에러 핸들링 — API 상태 표시
