@@ -419,6 +419,34 @@
       font-size:12px;font-weight:600;letter-spacing:0.1em;
       transition:all 0.3s;
     }
+    
+    /* Dimon: Risk 24h 히스토리 차트 */
+    #risk-chart-container{
+      position:fixed;top:90px;right:40px;width:200px;
+      background:var(--bg-panel);border:1px solid rgba(255,68,68,0.4);
+      border-radius:8px;padding:12px;z-index:150;
+    }
+    .risk-chart-title{
+      font-size:9px;letter-spacing:0.15em;color:rgba(255,68,68,0.9);
+      margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;
+    }
+    .risk-chart-title .tag{
+      background:rgba(255,68,68,0.2);color:#ff6666;
+      padding:2px 6px;border-radius:4px;font-size:7px;
+    }
+    #risk-chart{
+      width:100%;height:60px;border-radius:4px;
+      background:rgba(0,0,0,0.3);
+    }
+    .risk-chart-stats{
+      display:flex;justify-content:space-between;margin-top:8px;
+      font-size:9px;color:#888;
+    }
+    .risk-chart-stats .stat{text-align:center}
+    .risk-chart-stats .stat-value{font-size:11px;font-weight:600;color:var(--accent-red)}
+    .risk-chart-stats .stat-value.up{color:var(--accent-red)}
+    .risk-chart-stats .stat-value.down{color:var(--accent-green)}
+    .risk-chart-stats .stat-label{font-size:7px;color:#666;margin-top:2px}
     #dignity-display.low{background:rgba(255,68,68,0.15);border:1px solid var(--accent-red);color:var(--accent-red)}
     #dignity-display.balanced{background:rgba(255,170,0,0.15);border:1px solid var(--accent-orange);color:var(--accent-orange)}
     #dignity-display.elevated{background:rgba(0,255,136,0.15);border:1px solid var(--accent-green);color:var(--accent-green)}
@@ -517,6 +545,7 @@
     /* #6 모바일 반응형 */
     @media (max-width: 1200px) {
       #forecast-panel { left: 20px; width: 180px; padding: 12px; }
+      #risk-chart-container { right: 20px; width: 180px; }
       #planets { left: 20px; width: 180px; }
       #layer-action { right: 20px; }
       .action-btn { min-width: 200px; padding: 14px 24px; font-size: 12px; }
@@ -528,6 +557,9 @@
       .gate-badge { padding: 8px 14px; font-size: 12px; }
       #dignity-display { padding: 8px 12px; font-size: 10px; }
       #forecast-panel { display: none; }
+      #risk-chart-container { top: 70px; right: 10px; width: 150px; padding: 8px; }
+      #risk-chart { height: 40px; }
+      .risk-chart-stats { font-size: 8px; }
       #planets { top: 80px; width: 160px; }
       .planet-row { padding: 4px 8px; font-size: 10px; }
       #layer-action { bottom: 60px; right: 10px; }
@@ -538,6 +570,7 @@
     @media (max-width: 600px) {
       .system-bar .left { display: none; }
       .gate-container { top: 50px; }
+      #risk-chart-container { display: none; }
       #planets { top: 100px; left: 10px; width: 140px; }
       .panel-title { font-size: 7px; }
       #layer-action { bottom: 40px; right: 5px; gap: 8px; }
@@ -567,6 +600,33 @@
   <div class="gate-container">
     <div id="gate-badge" class="gate-badge gate-amber">GATE: AMBER</div>
     <div id="dignity-display" class="balanced">DIGNITY: BALANCED</div>
+  </div>
+  
+  <!-- Dimon: Risk 24h History Chart -->
+  <div id="risk-chart-container">
+    <div class="risk-chart-title">
+      <span>📈 RISK TREND</span>
+      <span class="tag">24h</span>
+    </div>
+    <canvas id="risk-chart"></canvas>
+    <div class="risk-chart-stats">
+      <div class="stat">
+        <div class="stat-value" id="risk-min">0%</div>
+        <div class="stat-label">MIN</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="risk-current">0%</div>
+        <div class="stat-label">NOW</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="risk-max">0%</div>
+        <div class="stat-label">MAX</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="risk-trend">—</div>
+        <div class="stat-label">TREND</div>
+      </div>
+    </div>
   </div>
   
   <!-- EP10: FORECAST BRANCH PANEL -->
@@ -882,6 +942,116 @@ const TwinState = {
   SHOCK: 0.72, FRICTION: 0.79, TRANSFER: 0.60,
   TIME: 0.50, QUALITY: 0.68, OUTPUT: 0.55
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DIMON: Risk 24h History — 리스크 트렌드 추적
+// ═══════════════════════════════════════════════════════════════════════════
+const RISK_HISTORY_CONFIG = {
+  maxPoints: 60,           // 60개 포인트 (1시간에 60개 → 24h는 1440개지만 화면 제약)
+  sampleInterval: 2000,    // 2초마다 샘플링 (데모용, 실제는 더 길게)
+  chartColor: '#ff4444',
+  chartColorGood: '#00ff88'
+};
+
+const riskHistory = [];
+let lastRiskSample = 0;
+
+function sampleRiskHistory() {
+  const now = Date.now();
+  if (now - lastRiskSample < RISK_HISTORY_CONFIG.sampleInterval) return;
+  lastRiskSample = now;
+  
+  const risk = PhysicsFrame.snapshot.risk;
+  riskHistory.push({ time: now, value: risk });
+  
+  // 최대 개수 유지
+  while (riskHistory.length > RISK_HISTORY_CONFIG.maxPoints) {
+    riskHistory.shift();
+  }
+  
+  renderRiskChart();
+}
+
+function renderRiskChart() {
+  const canvas = document.getElementById('risk-chart');
+  if (!canvas || riskHistory.length < 2) return;
+  
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.offsetWidth * 2;
+  const H = canvas.height = canvas.offsetHeight * 2;
+  ctx.clearRect(0, 0, W, H);
+  
+  // 데이터 분석
+  const values = riskHistory.map(d => d.value);
+  const minVal = Math.min(...values);
+  const maxVal = Math.max(...values);
+  const range = Math.max(maxVal - minVal, 0.1);
+  const currentVal = values[values.length - 1];
+  const prevVal = values[Math.max(0, values.length - 10)]; // 10개 전 값
+  const trend = currentVal - prevVal;
+  
+  // 그라데이션 배경
+  const gradient = ctx.createLinearGradient(0, 0, 0, H);
+  gradient.addColorStop(0, 'rgba(255, 68, 68, 0.3)');
+  gradient.addColorStop(1, 'rgba(255, 68, 68, 0.05)');
+  
+  // 차트 그리기 — 영역
+  ctx.beginPath();
+  ctx.moveTo(0, H);
+  
+  values.forEach((val, i) => {
+    const x = (i / (values.length - 1)) * W;
+    const y = H - ((val - minVal) / range) * H * 0.85 - H * 0.05;
+    if (i === 0) ctx.lineTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  
+  ctx.lineTo(W, H);
+  ctx.closePath();
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  
+  // 라인 그리기
+  ctx.beginPath();
+  values.forEach((val, i) => {
+    const x = (i / (values.length - 1)) * W;
+    const y = H - ((val - minVal) / range) * H * 0.85 - H * 0.05;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = currentVal > 0.5 ? RISK_HISTORY_CONFIG.chartColor : RISK_HISTORY_CONFIG.chartColorGood;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  
+  // 현재 점 표시
+  const lastX = W;
+  const lastY = H - ((currentVal - minVal) / range) * H * 0.85 - H * 0.05;
+  ctx.beginPath();
+  ctx.arc(lastX - 4, lastY, 6, 0, Math.PI * 2);
+  ctx.fillStyle = currentVal > 0.5 ? '#ff4444' : '#00ff88';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // 통계 업데이트
+  document.getElementById('risk-min').textContent = `${Math.round(minVal * 100)}%`;
+  document.getElementById('risk-current').textContent = `${Math.round(currentVal * 100)}%`;
+  document.getElementById('risk-current').className = 'stat-value ' + (currentVal > 0.5 ? 'up' : 'down');
+  document.getElementById('risk-max').textContent = `${Math.round(maxVal * 100)}%`;
+  
+  const trendEl = document.getElementById('risk-trend');
+  if (Math.abs(trend) < 0.02) {
+    trendEl.textContent = '→';
+    trendEl.className = 'stat-value';
+  } else if (trend > 0) {
+    trendEl.textContent = '↑' + Math.round(trend * 100);
+    trendEl.className = 'stat-value up';
+  } else {
+    trendEl.textContent = '↓' + Math.round(Math.abs(trend) * 100);
+    trendEl.className = 'stat-value down';
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // API CONNECTION — Phase 1: 물리 엔진 연결
@@ -2125,6 +2295,9 @@ function animate() {
   failureRing.rotation.z += 0.001;
   
   updateKernelDisplay();
+  
+  // Dimon: Risk 히스토리 샘플링
+  sampleRiskHistory();
   
   frames++;
   if (now - lastFPS >= 1000) { document.getElementById('sys-fps').textContent = frames; frames = 0; lastFPS = now; }
