@@ -3929,6 +3929,254 @@ console.log('══════════════════════�
 animate();
   </script>
 
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     AUTUS 자동 실행 시스템 v1.0
+     "추천을 설명하지 말고, 기본값으로 실행되게 하라"
+     5초 후 RECOVER 자동 실행 → AUDIT → 30초 후 자동 LOCK
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+  
+  const CONFIG = {
+    AUTO_DELAY: 5,        // 자동 실행까지 초
+    AUDIT_TIMEOUT: 30,    // AUDIT 자동 LOCK까지 초
+    ENABLED: true         // 자동 실행 활성화 여부
+  };
+  
+  let autoTimer = null;
+  let auditTimer = null;
+  let countdown = CONFIG.AUTO_DELAY;
+  let currentAction = 'recover';
+  
+  // ─────────────────────────────────────────
+  // 초기화
+  // ─────────────────────────────────────────
+  function init() {
+    if (!CONFIG.ENABLED) return;
+    
+    // URL 파라미터로 비활성화 가능 (?auto=false)
+    const params = new URLSearchParams(location.search);
+    if (params.get('auto') === 'false') return;
+    
+    // Risk가 낮으면 자동 실행 안 함
+    const risk = PhysicsFrame?.snapshot?.risk || 0;
+    if (risk < 0.2) {
+      console.log('[AUTUS] Risk < 20%, 자동 실행 건너뜀');
+      return;
+    }
+    
+    // 최적 액션 선택
+    currentAction = selectPrimaryAction().key;
+    
+    createAutoActionUI();
+    startAutoTimer();
+    console.log('[AUTUS] 자동 실행 모드 ON:', currentAction);
+  }
+  
+  // ─────────────────────────────────────────
+  // 자동 실행 UI
+  // ─────────────────────────────────────────
+  function createAutoActionUI() {
+    // 기존 오버레이 제거
+    document.getElementById('auto-action-overlay')?.remove();
+    document.getElementById('manual-buttons')?.remove();
+    
+    const container = document.createElement('div');
+    container.id = 'auto-action-overlay';
+    container.innerHTML = `
+      <style>
+        #auto-action-overlay {
+          position: fixed;
+          bottom: 100px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(5, 6, 8, 0.98);
+          border: 2px solid rgba(0, 255, 136, 0.4);
+          border-radius: 16px;
+          padding: 32px 48px;
+          text-align: center;
+          z-index: 9999;
+          min-width: 320px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+        #auto-action-overlay .label {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.4);
+          text-transform: uppercase;
+          letter-spacing: 3px;
+          margin-bottom: 12px;
+        }
+        #auto-action-overlay .countdown {
+          font-size: 72px;
+          font-weight: 700;
+          color: #00ff88;
+          font-family: 'SF Mono', 'Consolas', monospace;
+          line-height: 1;
+          margin-bottom: 8px;
+          text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+        }
+        #auto-action-overlay .action-name {
+          font-size: 16px;
+          color: rgba(255, 255, 255, 0.8);
+          margin-bottom: 24px;
+          letter-spacing: 0.1em;
+        }
+        #auto-action-overlay .cancel-btn {
+          padding: 12px 28px;
+          background: transparent;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 8px;
+          color: rgba(255, 255, 255, 0.4);
+          cursor: pointer;
+          font-size: 11px;
+          letter-spacing: 0.1em;
+          transition: all 0.2s ease;
+        }
+        #auto-action-overlay .cancel-btn:hover {
+          border-color: rgba(255, 68, 68, 0.6);
+          color: #ff4444;
+        }
+        #auto-action-overlay.hidden { display: none !important; }
+        
+        /* 수동 모드 버튼 */
+        #manual-buttons {
+          display: none;
+          position: fixed;
+          bottom: 100px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(5, 6, 8, 0.98);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          padding: 20px;
+          z-index: 9998;
+          gap: 12px;
+        }
+        #manual-buttons.active { display: flex; }
+        #manual-buttons button {
+          padding: 16px 28px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          color: #fff;
+          cursor: pointer;
+          font-size: 13px;
+          letter-spacing: 0.05em;
+          transition: all 0.2s ease;
+        }
+        #manual-buttons button:hover {
+          border-color: #00ff88;
+          background: rgba(0, 255, 136, 0.1);
+        }
+        #manual-buttons button.recover { border-color: rgba(0, 255, 136, 0.3); }
+        #manual-buttons button.defriction { border-color: rgba(68, 170, 255, 0.3); }
+        #manual-buttons button.shock_damp { border-color: rgba(255, 170, 0, 0.3); }
+      </style>
+      
+      <div class="label">자동 실행까지</div>
+      <div class="countdown" id="auto-countdown">${CONFIG.AUTO_DELAY}</div>
+      <div class="action-name" id="auto-action-name">${getActionLabel(currentAction)}</div>
+      <button class="cancel-btn" id="cancel-auto-btn">취소하고 직접 선택</button>
+    `;
+    
+    document.body.appendChild(container);
+    
+    // 수동 버튼 컨테이너
+    const manual = document.createElement('div');
+    manual.id = 'manual-buttons';
+    manual.innerHTML = `
+      <button class="recover" data-action="recover">💚 RECOVER</button>
+      <button class="defriction" data-action="defriction">🔧 DEFRICTION</button>
+      <button class="shock_damp" data-action="shock_damp">⚡ SHOCK DAMP</button>
+    `;
+    document.body.appendChild(manual);
+    
+    // 이벤트 바인딩
+    document.getElementById('cancel-auto-btn').onclick = switchToManual;
+    manual.querySelectorAll('button').forEach(btn => {
+      btn.onclick = () => executeAutoAction(btn.dataset.action);
+    });
+  }
+  
+  function getActionLabel(action) {
+    const labels = {
+      'recover': 'RECOVER — 회복 실행',
+      'defriction': 'DEFRICTION — 마찰 감소',
+      'shock_damp': 'SHOCK DAMP — 충격 완화'
+    };
+    return labels[action] || action.toUpperCase();
+  }
+  
+  // ─────────────────────────────────────────
+  // 타이머
+  // ─────────────────────────────────────────
+  function startAutoTimer() {
+    countdown = CONFIG.AUTO_DELAY;
+    updateCountdown();
+    
+    autoTimer = setInterval(() => {
+      countdown--;
+      updateCountdown();
+      
+      if (countdown <= 0) {
+        clearInterval(autoTimer);
+        executeAutoAction(currentAction);
+      }
+    }, 1000);
+  }
+  
+  function updateCountdown() {
+    const el = document.getElementById('auto-countdown');
+    if (el) el.textContent = countdown;
+  }
+  
+  function switchToManual() {
+    clearInterval(autoTimer);
+    document.getElementById('auto-action-overlay')?.classList.add('hidden');
+    document.getElementById('manual-buttons')?.classList.add('active');
+    console.log('[AUTUS] 수동 모드 전환');
+  }
+  
+  // ─────────────────────────────────────────
+  // ACTION 실행
+  // ─────────────────────────────────────────
+  async function executeAutoAction(action) {
+    console.log('[AUTUS] 자동 실행:', action);
+    
+    // UI 정리
+    document.getElementById('auto-action-overlay')?.classList.add('hidden');
+    document.getElementById('manual-buttons')?.classList.remove('active');
+    
+    // 기존 previewAction 호출 (AUDIT 모드 포함)
+    if (typeof previewAction === 'function') {
+      await previewAction(action, null);
+    } else {
+      // Fallback: 직접 실행
+      document.body.classList.add('audit-mode');
+      
+      try {
+        await fetch(`${API_BASE}/api/v1/burn/simulate`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({impulse: action.toUpperCase(), magnitude: 1.0})
+        });
+      } catch(e) {
+        console.warn('[AUTUS] API 호출 실패:', e);
+      }
+    }
+  }
+  
+  // ─────────────────────────────────────────
+  // 페이지 로드 후 실행
+  // ─────────────────────────────────────────
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(init, 1500));
+  } else {
+    setTimeout(init, 1500);
+  }
+})();
+</script>
 
 </body>
 </html>
