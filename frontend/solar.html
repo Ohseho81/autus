@@ -766,6 +766,57 @@ const TwinState = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// API CONNECTION — Phase 1: 물리 엔진 연결
+// ═══════════════════════════════════════════════════════════════════════════
+const API_BASE = window.location.origin;
+let apiConnected = false;
+
+async function fetchState() {
+  try {
+    const res = await fetch(`${API_BASE}/api/state`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.warn('[API] Fetch failed:', err.message);
+    return null;
+  }
+}
+
+function updateTwinStateFromAPI(data) {
+  if (!data || !data.planets) return false;
+  
+  const p = data.planets;
+  TwinState.RECOVERY = p.recovery || TwinState.RECOVERY;
+  TwinState.STABILITY = p.stability || TwinState.STABILITY;
+  TwinState.COHESION = p.cohesion || TwinState.COHESION;
+  TwinState.SHOCK = p.shock || TwinState.SHOCK;
+  TwinState.FRICTION = p.friction || TwinState.FRICTION;
+  TwinState.TRANSFER = p.transfer || TwinState.TRANSFER;
+  TwinState.TIME = p.time || TwinState.TIME;
+  TwinState.QUALITY = p.quality || TwinState.QUALITY;
+  TwinState.OUTPUT = p.output || TwinState.OUTPUT;
+  
+  return true;
+}
+
+async function syncWithAPI() {
+  const data = await fetchState();
+  if (data && updateTwinStateFromAPI(data)) {
+    if (!apiConnected) {
+      apiConnected = true;
+      logAction('API Connected — Live data', 'success');
+    }
+    updateFullState();
+    renderPlanetList();
+  }
+}
+
+// Start API polling (1초 간격)
+setInterval(syncWithAPI, 1000);
+// Initial sync
+setTimeout(syncWithAPI, 500);
+
+// ═══════════════════════════════════════════════════════════════════════════
 // PhysicsFrame — THE SINGLE SOURCE FOR ALL UI
 // ═══════════════════════════════════════════════════════════════════════════
 const PhysicsFrame = {
