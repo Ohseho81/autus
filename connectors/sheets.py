@@ -3,11 +3,20 @@ AUTUS Google Sheets Connector
 필리핀 석사+취업 프로젝트용
 """
 
-import gspread
-from google.oauth2.service_account import Credentials
 from typing import Dict, List, Any, Optional
 import os
 import json
+
+# 선택적 import (gspread가 없어도 동작)
+try:
+    import gspread
+    from google.oauth2.service_account import Credentials
+    GSPREAD_AVAILABLE = True
+except ImportError:
+    gspread = None
+    Credentials = None
+    GSPREAD_AVAILABLE = False
+    print("[Sheets] gspread 미설치 - 데모 모드로 동작")
 
 SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets.readonly'
@@ -21,6 +30,11 @@ class SheetsConnector:
         self.connected = False
         self.client = None
         self.sheet = None
+        
+        # gspread 미설치 시 데모 모드
+        if not GSPREAD_AVAILABLE:
+            print("[Sheets] gspread 미설치 - 데모 모드")
+            return
         
         # 환경변수에서 설정 읽기
         creds_path = os.getenv("GOOGLE_CREDENTIALS_PATH", "credentials.json")
