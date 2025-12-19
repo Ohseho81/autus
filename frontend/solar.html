@@ -1569,22 +1569,60 @@ function openAudit() {
   }, 1000);
 }
 
-function auditDecision(verdict) {
+// Action mapping: frontend → backend
+const ACTION_MAP = {
+  'recover': 'AUTO_STABILIZE',
+  'defriction': 'REMOVE_LOW_IMPACT',
+  'shock_damp': 'FORCE_DECISION'
+};
+
+async function executeAction(actionKey) {
+  const backendAction = ACTION_MAP[actionKey] || 'AUTO_STABILIZE';
+  try {
+    const res = await fetch(`${API_BASE}/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: backendAction })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const result = await res.json();
+    console.log('[BURN] Execute result:', result);
+    return result;
+  } catch (err) {
+    console.error('[BURN] Execute failed:', err.message);
+    return null;
+  }
+}
+
+async function auditDecision(verdict) {
   clearInterval(auditTimer);
   PhysicsFrame.preview.active = false;
-  
+
   if (verdict === 'LOCK' && currentAuditAction) {
-    Object.assign(TwinState, currentAuditAction.futureState);
-    updateFullState();
-    renderPlanetList();
-    logAction(`LOCKED: ${currentAuditAction.profile.name} → Risk ${(PhysicsFrame.snapshot.risk*100).toFixed(0)}%`, 'success');
+    // Phase 2: Execute burn on backend
+    const actionKey = currentAuditAction.key;
+    logAction(`Executing ${actionKey}...`, 'warning');
+    
+    const result = await executeAction(actionKey);
+    
+    if (result && result.ok) {
+      // Success: Update local state and sync
+      Object.assign(TwinState, currentAuditAction.futureState);
+      updateFullState();
+      renderPlanetList();
+      logAction(`LOCKED: ${currentAuditAction.profile.name} → Burn executed ✓`, 'success');
+      // Force sync to get latest state
+      setTimeout(syncWithAPI, 500);
+    } else {
+      logAction(`LOCK FAILED: ${currentAuditAction.profile.name} — API error`, 'error');
+    }
   } else if (verdict === 'REJECT') {
     logAction(`REJECTED: ${currentAuditAction?.profile?.name || 'unknown'}`);
   } else {
     logAction(`HOLD: ${currentAuditAction?.profile?.name || 'unknown'}`);
     return;
   }
-  
+
   document.getElementById('layer-audit').classList.remove('active');
   window.auditActive = false;
   currentAuditAction = null;
