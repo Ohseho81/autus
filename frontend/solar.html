@@ -1299,6 +1299,7 @@ function deformGhostRing() {
 const planetGroup = new THREE.Group();
 scene.add(planetGroup);
 const planetMeshes = {}, planetLabelsEl = {}, orbitRings = [];
+const phantomMeshes = {}; // Phase 4: Phantom Orbit
 let planetsVisible = true, orbitsVisible = true;
 
 PLANETS.forEach((p, i) => {
@@ -1312,6 +1313,14 @@ PLANETS.forEach((p, i) => {
   }
   planetGroup.add(group);
   planetMeshes[p.key] = group;
+  
+  // Phase 4: Phantom Orbit — ghost planet for preview
+  const phantomGroup = new THREE.Group();
+  const phantomMat = new THREE.MeshBasicMaterial({ color: p.color, transparent: true, opacity: 0.3, wireframe: true });
+  phantomGroup.add(new THREE.Mesh(new THREE.SphereGeometry(p.size * 1.2, 12, 12), phantomMat));
+  phantomGroup.visible = false;
+  planetGroup.add(phantomGroup);
+  phantomMeshes[p.key] = phantomGroup;
   
   const oRing = new THREE.Mesh(new THREE.RingGeometry(p.orbit - 0.015, p.orbit + 0.015, 64), new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }));
   oRing.rotation.x = -Math.PI / 2; scene.add(oRing); orbitRings.push(oRing);
@@ -1759,6 +1768,9 @@ function animate() {
   
   if (planetsVisible) {
     const bn = PhysicsFrame.bottleneck; // SINGLE SOURCE
+    const previewActive = PhysicsFrame.preview.active;
+    const futureState = currentAuditAction?.futureState;
+    
     PLANETS.forEach((p, i) => {
       const value = TwinState[p.key] || 0.5;
       const group = planetMeshes[p.key];
@@ -1767,7 +1779,20 @@ function animate() {
       group.position.set(Math.cos(angle) * r, Math.sin(time * 0.2 + i) * 0.1, Math.sin(angle) * r);
       group.rotation.y += 0.02;
       group.scale.setScalar(p.key === bn.axis ? 1.5 : 1); // Uses SINGLE SOURCE
-      
+
+      // Phase 4: Phantom Orbit — show future position during preview
+      const phantom = phantomMeshes[p.key];
+      if (previewActive && futureState) {
+        const futureValue = futureState[p.key] || 0.5;
+        const futureR = p.orbit + (futureValue - 0.5) * 0.2;
+        const futureAngle = angle + 0.5; // Slight offset to show movement
+        phantom.position.set(Math.cos(futureAngle) * futureR, Math.sin(time * 0.2 + i) * 0.1 + 0.3, Math.sin(futureAngle) * futureR);
+        phantom.visible = Math.abs(futureValue - value) > 0.01; // Only show if change
+        phantom.rotation.y += 0.03;
+      } else {
+        phantom.visible = false;
+      }
+
       const label = planetLabelsEl[p.key];
       const screenPos = group.position.clone().project(camera);
       if (screenPos.z < 1) {
