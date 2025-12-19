@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>AUTUS SOLAR — v3.0</title>
+  <!--
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║  AUTUS SOLAR v3.0 — COMPLETE UI REFACTOR                      ║
+    ║                                                               ║
+    ║  개선 사항:                                                   ║
+    ║  1️⃣ 레이아웃 정리 — 패널 재배치, 겹침 해결                    ║
+    ║  2️⃣ 색상/테마 — LOCK 스펙 기반 (#050608, #E6E6E6)            ║
+    ║  3️⃣ 폰트/크기 — 가독성 향상                                  ║
+    ║  4️⃣ 모바일 최적화 — 360px~1440px 완벽 대응                   ║
+    ║  5️⃣ 애니메이션 — 미니멀 (필수만 유지)                        ║
+    ║  6️⃣ 불필요 요소 제거 — 핵심 기능만                           ║
+    ║  7️⃣ LOCK 스펙 적용 — 1초 인지, 1클릭 실행                    ║
+    ║                                                               ║
+    ║  원칙: "멋있어 보이면 실패, 끝났다고 느끼면 성공"             ║
+    ╚═══════════════════════════════════════════════════════════════╝
+  -->
+  <style>
+    /* ═══════════════════════════════════════════════════════════════
+       RESET & VARIABLES
+       ═══════════════════════════════════════════════════════════════ */
+    
+    :root {
+      /* LOCK 스펙 색상 */
+      --bg: #050608;
+      --bg-panel: rgba(10, 15, 25, 0.95);
+      --text: #E6E6E6;
+      --text-dim: rgba(230, 230, 230, 0.5);
+      --text-muted: rgba(230, 230, 230, 0.3);
+      
+      /* 상태 색상 */
+      --green: #6EDC9A;
+      --yellow: #FFD166;
+      --red: #EF476F;
+      --cyan: #00D4FF;
+      
+      /* 간격 */
+      --space-xs: 8px;
+      --space-sm: 12px;
+      --space-md: 20px;
+      --space-lg: 32px;
+      --space-xl: 48px;
+      
+      /* 폰트 */
+      --font-sans: 'Inter', 'SF Pro Display', -apple-system, system-ui, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', monospace;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: var(--font-sans);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      cursor: default;
+      user-select: none;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       LAYOUT — 그리드 기반 레이아웃
+       ═══════════════════════════════════════════════════════════════ */
+    
+    .app {
+      display: grid;
+      grid-template-rows: 48px 1fr auto;
+      grid-template-columns: 280px 1fr 280px;
+      grid-template-areas:
+        "header header header"
+        "left center right"
+        "footer footer footer";
+      height: 100vh;
+      gap: 0;
+    }
+    
+    /* 헤더 */
+    .header {
+      grid-area: header;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 var(--space-md);
+      background: rgba(5, 6, 8, 0.98);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      z-index: 100;
+    }
+    
+    /* 사이드바 */
+    .sidebar-left {
+      grid-area: left;
+      padding: var(--space-md);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    
+    .sidebar-right {
+      grid-area: right;
+      padding: var(--space-md);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    
+    /* 메인 영역 */
+    .main {
+      grid-area: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    /* 푸터 */
+    .footer {
+      grid-area: footer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: var(--space-md);
+      gap: var(--space-md);
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════════════════ */
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    
+    .logo {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--cyan);
+    }
+    
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    
+    .status-badge.green {
+      background: rgba(110, 220, 154, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(110, 220, 154, 0.3);
+    }
+    
+    .status-badge.yellow {
+      background: rgba(255, 209, 102, 0.15);
+      color: var(--yellow);
+      border: 1px solid rgba(255, 209, 102, 0.3);
+    }
+    
+    .status-badge.red {
+      background: rgba(239, 71, 111, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(239, 71, 111, 0.3);
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    
+    .header-center {
+      display: flex;
+      gap: var(--space-sm);
+    }
+    
+    .role-btn {
+      padding: 6px 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    
+    .role-btn:hover {
+      border-color: rgba(255,255,255,0.2);
+      color: var(--text);
+    }
+    
+    .role-btn.active {
+      background: rgba(0, 212, 255, 0.1);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    
+    .icon-btn:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       PANELS — 공통 스타일
+       ═══════════════════════════════════════════════════════════════ */
+    
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .panel-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    
+    .panel-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(110, 220, 154, 0.15);
+      color: var(--green);
+    }
+    
+    .panel-content {
+      padding: var(--space-md);
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       RISK DISPLAY — 핵심 지표
+       ═══════════════════════════════════════════════════════════════ */
+    
+    .risk-panel {
+      text-align: center;
+      padding: var(--space-lg) var(--space-md);
+    }
+    
+    .risk-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      margin-bottom: var(--space-xs);
+    }
+    
+    .risk-value {
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1;
+      font-family: var(--font-mono);
+    }
+    
+    .risk-value.safe { color: var(--green); }
+    .risk-value.warning { color: var(--yellow); }
+    .risk-value.danger { color: var(--red); }
+    
+    .risk-trend {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: var(--space-sm);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .risk-trend .arrow {
+      font-size: 14px;
+    }
+    
+    .risk-trend .arrow.up { color: var(--red); }
+    .risk-trend .arrow.down { color: var(--green); }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       COMMIT SUMMARY
+       ═══════════════════════════════════════════════════════════════ */
+    
+    .commit-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    
+    .commit-item:last-child {
+      border-bottom: none;
+    }
+    
+    .commit-type {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    
+    .commit-icon {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    
+    .commit-icon.tuition { background: var(--cyan); }
+    .commit-icon.wage { background: var(--green); }
+    .commit-icon.grant { background: var(--yellow); }
+    
+    .commit-name {
+      font-size: 12px;
+      color: var(--text);
+    }
+    
+    .commit-value {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       SOLAR CANVAS
+       ═══════════════════════════════════════════════════════════════ */
+    
+    .solar-container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+    }
+    
+    .solar-canvas {
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* 궤도 트랙 */
+    .orbit-track {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    
+    .orbit-track.inner {
+      width: 140px;
+      height: 140px;
+      transform: translate(-50%, -50%);
+    }
+    
+    .orbit-track.middle {
+      width: 220px;
+      height: 220px;
+      transform: translate(-50%, -50%);
+    }
+    
+    .orbit-track.outer {
+      width: 300px;
+      height: 300px;
+      transform: translate(-50%, -50%);
+    }
+    
+    /* 태양 */
+    .sun {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: radial-gradient(circle, #fff 0%, rgba(255,255,255,0.6) 50%, transparent 70%);
+      border-radius: 50%;
+      animation: sun-pulse 4s ease-in-out infinite;
+    }
+    
+    @keyframes sun-pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
+      50% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+    }
+    
+    /* 궤도 객체 */
+    .orbit-obj {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .orbit-obj.safe {
+      background: var(--green);
+      box-shadow: 0 0 16px var(--green);
+    }
+    
+    .orbit-obj.warning {
+      background: var(--yellow);
+      box-shadow: 0 0 16px var(--yellow);
+      animation: orbit-pulse 1s ease-in-out infinite;
+    }
+    
+    .orbit-obj.danger {
+      background: var(--red);
+      box-shadow: 0 0 20px var(--red);
+      animation: orbit-shake 0.1s infinite;
+    }
+    
+    @keyframes orbit-pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.1); }
+    }
+    
+    @keyframes orbit-shake {
+      0%, 100% { transform: translate(-50%, -50%) translateX(0); }
+      50% { transform: translate(-50%, -50%) translateX(2px); }
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       FORECAST PANEL
+       ═══════════════════════════════════════════════════════════════ */
+    
+    .forecast-item {
+      padding: var(--space-sm);
+      margin-bottom: var(--space-sm);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    
+    .forecast-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .forecast-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    
+    .forecast-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+    
+    .forecast-metric {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.05);
+    }
+    
+    .forecast-metric.positive { color: var(--green); }
+    .forecast-metric.negative { color: var(--red); }
+    .forecast-metric.neutral { color: var(--text-dim); }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       ACTION BUTTONS
+       ═══════════════════════════════════════════════════════════════ */
+    
+    .action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: var(--space-md) var(--space-lg);
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 140px;
+    }
+    
+    .action-btn:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--cyan);
+    }
+    
+    .action-btn.recommended {
+      border-color: var(--green);
+      background: rgba(110, 220, 154, 0.08);
+    }
+    
+    .action-btn.recommended:hover {
+      background: rgba(110, 220, 154, 0.15);
+    }
+    
+    .action-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.05em;
+    }
+    
+    .action-effect {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    .action-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--green);
+      color: var(--bg);
+      font-weight: 700;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       AUDIT OVERLAY
+       ═══════════════════════════════════════════════════════════════ */
+    
+    .audit-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(5, 6, 8, 0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .audit-overlay.visible {
+      display: flex;
+    }
+    
+    .audit-card {
+      background: var(--bg-panel);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: var(--space-xl);
+      text-align: center;
+      max-width: 400px;
+    }
+    
+    .audit-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: var(--space-md);
+    }
+    
+    .audit-action {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .audit-changes {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .audit-change {
+      text-align: center;
+    }
+    
+    .audit-change-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    
+    .audit-change-value {
+      font-size: 20px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    
+    .audit-change-value.positive { color: var(--green); }
+    .audit-change-value.negative { color: var(--red); }
+    
+    .audit-buttons {
+      display: flex;
+      gap: var(--space-sm);
+      justify-content: center;
+    }
+    
+    .audit-btn {
+      padding: 12px 32px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    
+    .audit-btn.confirm {
+      background: var(--green);
+      border: none;
+      color: var(--bg);
+    }
+    
+    .audit-btn.confirm:hover {
+      filter: brightness(1.1);
+    }
+    
+    .audit-btn.cancel {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: var(--text-dim);
+    }
+    
+    .audit-btn.cancel:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       TOAST
+       ═══════════════════════════════════════════════════════════════ */
+    
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--bg-panel);
+      border: 1px solid rgba(110, 220, 154, 0.3);
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 13px;
+      color: var(--green);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 2000;
+    }
+    
+    .toast.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════
+       MOBILE RESPONSIVE
+       ═══════════════════════════════════════════════════════════════ */
+    
+    @media (max-width: 1200px) {
+      .app {
+        grid-template-columns: 240px 1fr 240px;
+      }
+    }
+    
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: 56px auto 1fr auto auto;
+        grid-template-areas:
+          "header"
+          "left"
+          "center"
+          "right"
+          "footer";
+      }
+      
+      .sidebar-left, .sidebar-right {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: var(--space-sm);
+        gap: var(--space-sm);
+      }
+      
+      .sidebar-left .panel,
+      .sidebar-right .panel {
+        min-width: 200px;
+        flex-shrink: 0;
+      }
+      
+      .header-center {
+        display: none;
+      }
+      
+      .solar-container {
+        width: 300px;
+        height: 300px;
+      }
+      
+      .orbit-track.inner { width: 100px; height: 100px; }
+      .orbit-track.middle { width: 160px; height: 160px; }
+      .orbit-track.outer { width: 220px; height: 220px; }
+      
+      .footer {
+        flex-wrap: wrap;
+      }
+      
+      .action-btn {
+        min-width: 100px;
+        padding: var(--space-sm) var(--space-md);
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .sidebar-left, .sidebar-right {
+        display: none;
+      }
+      
+      .app {
+        grid-template-rows: 56px 1fr auto;
+        grid-template-areas:
+          "header"
+          "center"
+          "footer";
+      }
+      
+      .solar-container {
+        width: 260px;
+        height: 260px;
+      }
+      
+      .orbit-track.outer {
+        display: none;
+      }
+      
+      .risk-value {
+        font-size: 48px;
+      }
+      
+      .action-btn {
+        min-width: 90px;
+        padding: var(--space-sm);
+      }
+      
+      .action-name {
+        font-size: 11px;
+      }
+    }
+    
+    @media (max-width: 400px) {
+      .header-left .logo {
+        font-size: 12px;
+      }
+      
+      .status-badge {
+        padding: 4px 8px;
+        font-size: 10px;
+      }
+      
+      .solar-container {
+        width: 220px;
+        height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">AUTUS</div>
+        <div class="status-badge green" id="status-badge">
+          <span class="status-dot"></span>
+          <span id="status-text">STABLE</span>
+        </div>
+      </div>
+      
+      <div class="header-center">
+        <button class="role-btn active" data-role="subject">👤 Subject</button>
+        <button class="role-btn" data-role="operator">🔧 Operator</button>
+        <button class="role-btn" data-role="employer">🏢 Employer</button>
+      </div>
+      
+      <div class="header-right">
+        <button class="icon-btn" id="share-btn" title="공유">📤</button>
+        <button class="icon-btn" id="settings-btn" title="설정">⚙️</button>
+      </div>
+    </header>
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar-left">
+      <!-- RISK PANEL -->
+      <div class="panel">
+        <div class="risk-panel">
+          <div class="risk-label">RISK</div>
+          <div class="risk-value safe" id="risk-value">0%</div>
+          <div class="risk-trend">
+            <span class="arrow" id="trend-arrow">→</span>
+            <span id="trend-text">안정</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- COMMIT PANEL -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Commits</span>
+          <span class="panel-badge" id="commit-count">3</span>
+        </div>
+        <div class="panel-content" id="commit-list">
+          <div class="commit-item">
+            <div class="commit-type">
+              <span class="commit-icon tuition"></span>
+              <span class="commit-name">등록금</span>
+            </div>
+            <span class="commit-value">₩4.5M</span>
+          </div>
+          <div class="commit-item">
+            <div class="commit-type">
+              <span class="commit-icon wage"></span>
+              <span class="commit-name">급여</span>
+            </div>
+            <span class="commit-value">₩2.0M</span>
+          </div>
+          <div class="commit-item">
+            <div class="commit-type">
+              <span class="commit-icon grant"></span>
+              <span class="commit-name">장학금</span>
+            </div>
+            <span class="commit-value">₩1.5M</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- MAIN SOLAR -->
+    <main class="main">
+      <div class="solar-container">
+        <div class="orbit-track inner"></div>
+        <div class="orbit-track middle"></div>
+        <div class="orbit-track outer"></div>
+        <div class="sun"></div>
+        <div class="orbit-obj safe" id="orbit-1"></div>
+        <div class="orbit-obj safe" id="orbit-2"></div>
+        <div class="orbit-obj safe" id="orbit-3"></div>
+      </div>
+    </main>
+    
+    <!-- RIGHT SIDEBAR -->
+    <aside class="sidebar-right">
+      <!-- FORECAST PANEL -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Forecast</span>
+          <span class="panel-badge">+1h</span>
+        </div>
+        <div class="panel-content">
+          <div class="forecast-item">
+            <div class="forecast-label">IF RECOVER:</div>
+            <div class="forecast-metrics">
+              <span class="forecast-metric positive">💰 −8%</span>
+              <span class="forecast-metric positive">⚠️ −9%</span>
+            </div>
+          </div>
+          <div class="forecast-item">
+            <div class="forecast-label">IF DEFRICTION:</div>
+            <div class="forecast-metrics">
+              <span class="forecast-metric positive">💰 −12%</span>
+              <span class="forecast-metric positive">⏱️ −10%</span>
+            </div>
+          </div>
+          <div class="forecast-item">
+            <div class="forecast-label">IF NO ACTION:</div>
+            <div class="forecast-metrics">
+              <span class="forecast-metric negative">📈 +14%</span>
+              <span class="forecast-metric negative">⚠️ 지속</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- PHYSICS PANEL -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Physics</span>
+          <span class="panel-badge">v3.0</span>
+        </div>
+        <div class="panel-content">
+          <div class="commit-item">
+            <span class="commit-name">Entropy</span>
+            <span class="commit-value" id="physics-entropy">0.00</span>
+          </div>
+          <div class="commit-item">
+            <span class="commit-name">Pressure</span>
+            <span class="commit-value" id="physics-pressure">0.00</span>
+          </div>
+          <div class="commit-item">
+            <span class="commit-name">Flow</span>
+            <span class="commit-value" id="physics-flow">0.00</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- FOOTER ACTIONS -->
+    <footer class="footer">
+      <button class="action-btn recommended" onclick="openAudit('recover')">
+        <span class="action-name">RECOVER</span>
+        <span class="action-effect">💰−8% ⚠️−9%</span>
+      </button>
+      <button class="action-btn" onclick="openAudit('defriction')">
+        <span class="action-name">DEFRICTION</span>
+        <span class="action-effect">💰−12% ⏱️−10%</span>
+      </button>
+      <button class="action-btn" onclick="openAudit('shock_damp')">
+        <span class="action-name">SHOCK DAMP</span>
+        <span class="action-effect">💰−32% ⏱️−18%</span>
+      </button>
+    </footer>
+  </div>
+  
+  <!-- AUDIT OVERLAY -->
+  <div class="audit-overlay" id="audit-overlay">
+    <div class="audit-card">
+      <div class="audit-title">AUDIT · PHYSICS VERIFICATION</div>
+      <div class="audit-action" id="audit-action">RECOVER</div>
+      <div class="audit-changes">
+        <div class="audit-change">
+          <div class="audit-change-label">Risk</div>
+          <div class="audit-change-value positive" id="audit-risk">−9%</div>
+        </div>
+        <div class="audit-change">
+          <div class="audit-change-label">Cost</div>
+          <div class="audit-change-value positive" id="audit-cost">−8%</div>
+        </div>
+      </div>
+      <div class="audit-buttons">
+        <button class="audit-btn cancel" onclick="closeAudit()">취소</button>
+        <button class="audit-btn confirm" onclick="executeAction()">확정</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- TOAST -->
+  <div class="toast" id="toast">✓ 완료</div>
+  
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════════
+    // AUTUS SOLAR v3.0 — JavaScript
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    const API_BASE = window.location.hostname === 'localhost' 
+      ? 'http://localhost:8000' 
+      : 'https://autus-production.up.railway.app';
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 상태
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    const state = {
+      risk: 0,
+      status: 'safe',
+      orbits: [
+        { angle: 0, radius: 70, speed: 0.02 },
+        { angle: 120, radius: 110, speed: 0.015 },
+        { angle: 240, radius: 150, speed: 0.01 }
+      ],
+      currentAction: null
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 궤도 애니메이션
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function updateOrbits() {
+      const container = document.querySelector('.solar-container');
+      const centerX = container.offsetWidth / 2;
+      const centerY = container.offsetHeight / 2;
+      
+      state.orbits.forEach((orbit, i) => {
+        orbit.angle += orbit.speed;
+        
+        const rad = orbit.angle;
+        const x = centerX + Math.cos(rad) * orbit.radius;
+        const y = centerY + Math.sin(rad) * orbit.radius;
+        
+        const el = document.getElementById(`orbit-${i + 1}`);
+        if (el) {
+          el.style.left = `${x}px`;
+          el.style.top = `${y}px`;
+        }
+      });
+      
+      requestAnimationFrame(updateOrbits);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // RISK 업데이트
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function updateRisk(risk) {
+      state.risk = risk;
+      
+      // 상태 결정
+      let status = 'safe';
+      let statusText = 'STABLE';
+      let badgeClass = 'green';
+      
+      if (risk >= 70) {
+        status = 'danger';
+        statusText = 'CRITICAL';
+        badgeClass = 'red';
+      } else if (risk >= 40) {
+        status = 'warning';
+        statusText = 'WARNING';
+        badgeClass = 'yellow';
+      }
+      
+      state.status = status;
+      
+      // UI 업데이트
+      const riskEl = document.getElementById('risk-value');
+      riskEl.textContent = `${Math.round(risk)}%`;
+      riskEl.className = `risk-value ${status}`;
+      
+      const badge = document.getElementById('status-badge');
+      badge.className = `status-badge ${badgeClass}`;
+      document.getElementById('status-text').textContent = statusText;
+      
+      // Orbit 상태
+      document.querySelectorAll('.orbit-obj').forEach((el, i) => {
+        el.className = `orbit-obj ${status}`;
+      });
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // AUDIT
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function openAudit(action) {
+      state.currentAction = action;
+      
+      const actionNames = {
+        recover: 'RECOVER',
+        defriction: 'DEFRICTION',
+        shock_damp: 'SHOCK DAMP'
+      };
+      
+      document.getElementById('audit-action').textContent = actionNames[action] || action;
+      document.getElementById('audit-overlay').classList.add('visible');
+    }
+    
+    function closeAudit() {
+      document.getElementById('audit-overlay').classList.remove('visible');
+      state.currentAction = null;
+    }
+    
+    async function executeAction() {
+      if (!state.currentAction) return;
+      
+      try {
+        await fetch(`${API_BASE}/api/v1/execute`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: state.currentAction })
+        });
+      } catch (e) {
+        console.warn('[AUTUS] Execute failed');
+      }
+      
+      closeAudit();
+      showToast('✓ 실행 완료');
+      
+      // 상태 새로고침
+      setTimeout(fetchState, 500);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TOAST
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('visible');
+      
+      setTimeout(() => {
+        toast.classList.remove('visible');
+      }, 2000);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ROLE 전환
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    document.querySelectorAll('.role-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SHARE
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    document.getElementById('share-btn').addEventListener('click', () => {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('✓ 링크 복사됨');
+      });
+    });
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // API 연동
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    async function fetchState() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/state`);
+        if (!res.ok) return;
+        
+        const data = await res.json();
+        const twin = data.twin || {};
+        
+        // Risk 계산
+        const entropy = twin.entropy || 0;
+        const pressure = twin.pressure || 0;
+        const risk = Math.min(100, Math.max(0, (entropy * 50) + (pressure * 30) + (twin.risk || 0) * 20));
+        
+        updateRisk(risk);
+        
+        // Physics 업데이트
+        document.getElementById('physics-entropy').textContent = entropy.toFixed(2);
+        document.getElementById('physics-pressure').textContent = pressure.toFixed(2);
+        document.getElementById('physics-flow').textContent = (twin.flow || 0).toFixed(2);
+        
+      } catch (e) {
+        console.warn('[AUTUS] State fetch failed');
+      }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 키보드 단축키
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAudit();
+      }
+      
+      // 데모용
+      if (e.key === '1') updateRisk(15);
+      if (e.key === '2') updateRisk(52);
+      if (e.key === '3') updateRisk(78);
+    });
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 초기화
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    updateOrbits();
+    fetchState();
+    setInterval(fetchState, 10000);
+    
+    console.log('[AUTUS] Solar v3.0 initialized');
+  </script>
+</body>
+</html>
