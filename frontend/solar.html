@@ -173,8 +173,18 @@
     
     #layer-action{
       position:fixed;bottom:80px;right:50px;
-      display:flex;flex-direction:column;gap:16px;z-index:150;
+      display:flex;flex-direction:column;gap:12px;z-index:150;
     }
+    #action-header{
+      text-align:center;margin-bottom:8px;
+    }
+    .problem-indicator{
+      background:rgba(255,68,68,0.15);border:2px solid var(--accent-red);
+      border-radius:10px;padding:12px 20px;margin-bottom:8px;
+    }
+    .problem-label{font-size:10px;letter-spacing:0.1em;color:rgba(255,100,100,0.8)}
+    .problem-value{display:block;font-size:18px;font-weight:700;color:var(--accent-red);margin-top:4px}
+    .flow-arrow{font-size:12px;color:#666;letter-spacing:0.15em}
     .action-btn{
       padding:18px 36px;border-radius:12px;font-size:14px;font-weight:700;
       letter-spacing:.15em;cursor:pointer;transition:all .25s;text-align:center;min-width:240px;
@@ -588,6 +598,14 @@
   </div>
   
   <div id="layer-action">
+    <!-- C: 연결 표시 - BOTTLENECK → ACTION -->
+    <div id="action-header">
+      <div class="problem-indicator">
+        <span class="problem-label">⚠️ BOTTLENECK</span>
+        <span class="problem-value" id="action-bottleneck">SHOCK 72%</span>
+      </div>
+      <div class="flow-arrow">↓ 해결책</div>
+    </div>
     <div class="action-btn-wrapper" id="wrapper-recover">
       <button class="action-btn recover" onclick="previewAction('recover')">RECOVER</button>
       <div class="value-indicators" id="vi-recover">
@@ -1366,6 +1384,10 @@ function updateKernelDisplay() {
   document.getElementById('bn-axis').textContent = `${bn.axis} (${Math.round(bn.value * 100)}%)`;
   document.getElementById('bn-angle').textContent = Math.round(bn.angle * 180 / Math.PI) + '°';
   document.getElementById('bn-warning').textContent = `⚠️ ${bn.axis} bottleneck detected ${bn.value.toFixed(2)}`;
+  
+  // C: Action header bottleneck display
+  const actionBn = document.getElementById('action-bottleneck');
+  if (actionBn) actionBn.textContent = `${bn.axis} ${Math.round(bn.value * 100)}%`;
   
   // Metric cards (READ FROM SNAPSHOT — SINGLE SOURCE)
   document.getElementById('m-entropy').textContent = snap.entropy.toFixed(2);
