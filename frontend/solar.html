@@ -754,6 +754,100 @@
     .role-info-perms .perm-value.no{color:var(--accent-red)}
     .role-info-perms .perm-value.read{color:var(--accent-cyan)}
     
+    /* ═══════════════════════════════════════════════════════════════════════════
+       온보딩 + Magic Link 인증 UI
+       ═══════════════════════════════════════════════════════════════════════════ */
+    
+    #auth-overlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.95);backdrop-filter:blur(20px);
+      display:flex;justify-content:center;align-items:center;
+      z-index:2000;
+    }
+    #auth-overlay.hidden{display:none}
+    
+    .auth-card{
+      background:linear-gradient(135deg, rgba(0,20,40,0.98), rgba(0,10,30,0.98));
+      border:2px solid rgba(0,212,255,0.4);border-radius:20px;
+      padding:40px;max-width:420px;width:90%;
+      text-align:center;box-shadow:0 0 60px rgba(0,212,255,0.2);
+    }
+    .auth-card .logo{font-size:48px;margin-bottom:16px}
+    .auth-card h2{font-size:20px;color:var(--accent-cyan);margin-bottom:8px;letter-spacing:0.2em}
+    .auth-card .subtitle{font-size:11px;color:#888;margin-bottom:32px}
+    
+    .auth-input{
+      width:100%;padding:14px 18px;margin-bottom:16px;
+      background:rgba(0,0,0,0.4);border:1px solid rgba(0,212,255,0.3);
+      border-radius:10px;color:#fff;font-size:14px;
+      outline:none;transition:all 0.2s;
+    }
+    .auth-input:focus{border-color:var(--accent-cyan);box-shadow:0 0 15px rgba(0,212,255,0.2)}
+    .auth-input::placeholder{color:#666}
+    
+    .auth-btn{
+      width:100%;padding:14px;
+      background:linear-gradient(90deg, var(--accent-cyan), #00aaff);
+      border:none;border-radius:10px;color:#000;
+      font-size:14px;font-weight:700;cursor:pointer;
+      transition:all 0.2s;margin-bottom:12px;
+    }
+    .auth-btn:hover{transform:scale(1.02);box-shadow:0 0 20px rgba(0,212,255,0.4)}
+    .auth-btn:disabled{opacity:0.5;cursor:not-allowed}
+    
+    .auth-link{
+      color:var(--accent-cyan);font-size:11px;
+      text-decoration:underline;cursor:pointer;
+    }
+    
+    /* 온보딩 스텝 */
+    .onboarding-steps{
+      display:flex;justify-content:center;gap:8px;margin-bottom:24px;
+    }
+    .onboarding-step-dot{
+      width:10px;height:10px;border-radius:50%;
+      background:rgba(255,255,255,0.2);transition:all 0.3s;
+    }
+    .onboarding-step-dot.active{background:var(--accent-cyan);box-shadow:0 0 10px var(--accent-cyan)}
+    .onboarding-step-dot.completed{background:var(--accent-green)}
+    
+    .onboarding-form{display:none}
+    .onboarding-form.active{display:block}
+    
+    .auth-success{
+      padding:20px;background:rgba(0,255,136,0.1);
+      border:1px solid var(--accent-green);border-radius:10px;
+      color:var(--accent-green);margin-bottom:16px;
+    }
+    
+    /* 계약서 미리보기 */
+    #contract-modal{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.9);display:none;
+      justify-content:center;align-items:center;z-index:1500;
+    }
+    #contract-modal.visible{display:flex}
+    
+    .contract-preview{
+      background:#fff;color:#000;width:90%;max-width:600px;
+      max-height:80vh;overflow-y:auto;padding:40px;border-radius:10px;
+    }
+    .contract-preview h1{font-size:18px;margin-bottom:20px;color:#000}
+    .contract-preview h2{font-size:14px;margin-top:20px;color:#333}
+    .contract-preview p{font-size:12px;line-height:1.6;color:#444}
+    .contract-preview .signature{
+      margin-top:30px;padding-top:20px;border-top:1px solid #ddd;
+      font-size:10px;color:#888;
+    }
+    .contract-actions{
+      display:flex;gap:10px;margin-top:20px;
+    }
+    .contract-actions button{
+      flex:1;padding:12px;border-radius:6px;font-size:12px;cursor:pointer;
+    }
+    .contract-actions .print{background:#000;color:#fff;border:none}
+    .contract-actions .close{background:#eee;color:#333;border:1px solid #ddd}
+    
     /* Musk: 빠른 실행 모드 */
     .quick-exec-hint{
       position:fixed;bottom:40px;left:50%;transform:translateX(-50%);
@@ -918,6 +1012,112 @@
   </style>
 </head>
 <body>
+  <!-- Magic Link 인증 + 온보딩 플로우 -->
+  <div id="auth-overlay" class="hidden">
+    <div class="auth-card">
+      <div class="logo">🌍</div>
+      <h2>AUTUS</h2>
+      <p class="subtitle">비밀번호 없이, 이메일만으로 로그인</p>
+      
+      <!-- 로그인 폼 -->
+      <div id="auth-login" class="onboarding-form active">
+        <input type="email" class="auth-input" id="auth-email" placeholder="이메일 주소">
+        <button class="auth-btn" onclick="requestMagicLink()">🔗 Magic Link 받기</button>
+        <p class="auth-link" onclick="showOnboarding()">처음이신가요? 등록하기</p>
+      </div>
+      
+      <!-- 온보딩 Step 1 -->
+      <div id="onboard-step1" class="onboarding-form">
+        <div class="onboarding-steps">
+          <div class="onboarding-step-dot active"></div>
+          <div class="onboarding-step-dot"></div>
+          <div class="onboarding-step-dot"></div>
+          <div class="onboarding-step-dot"></div>
+        </div>
+        <h3 style="color:#fff;margin-bottom:16px">Step 1: 기본 정보</h3>
+        <input type="text" class="auth-input" id="ob-name" placeholder="이름">
+        <input type="email" class="auth-input" id="ob-email" placeholder="이메일">
+        <select class="auth-input" id="ob-country">
+          <option value="PH">Philippines</option>
+          <option value="VN">Vietnam</option>
+          <option value="ID">Indonesia</option>
+          <option value="KR">Korea</option>
+        </select>
+        <button class="auth-btn" onclick="submitOnboardingStep(1)">다음 →</button>
+      </div>
+      
+      <!-- 온보딩 Step 2 -->
+      <div id="onboard-step2" class="onboarding-form">
+        <div class="onboarding-steps">
+          <div class="onboarding-step-dot completed"></div>
+          <div class="onboarding-step-dot active"></div>
+          <div class="onboarding-step-dot"></div>
+          <div class="onboarding-step-dot"></div>
+        </div>
+        <h3 style="color:#fff;margin-bottom:16px">Step 2: 교육 정보</h3>
+        <input type="text" class="auth-input" id="ob-university" placeholder="대학교명">
+        <input type="text" class="auth-input" id="ob-major" placeholder="전공">
+        <input type="number" class="auth-input" id="ob-tuition" placeholder="등록금 (원)">
+        <button class="auth-btn" onclick="submitOnboardingStep(2)">다음 →</button>
+      </div>
+      
+      <!-- 온보딩 Step 3 -->
+      <div id="onboard-step3" class="onboarding-form">
+        <div class="onboarding-steps">
+          <div class="onboarding-step-dot completed"></div>
+          <div class="onboarding-step-dot completed"></div>
+          <div class="onboarding-step-dot active"></div>
+          <div class="onboarding-step-dot"></div>
+        </div>
+        <h3 style="color:#fff;margin-bottom:16px">Step 3: 취업 정보</h3>
+        <input type="text" class="auth-input" id="ob-employer" placeholder="회사명">
+        <input type="text" class="auth-input" id="ob-job" placeholder="직무">
+        <input type="number" class="auth-input" id="ob-wage" placeholder="월급 (원)">
+        <button class="auth-btn" onclick="submitOnboardingStep(3)">다음 →</button>
+      </div>
+      
+      <!-- 온보딩 Step 4 -->
+      <div id="onboard-step4" class="onboarding-form">
+        <div class="onboarding-steps">
+          <div class="onboarding-step-dot completed"></div>
+          <div class="onboarding-step-dot completed"></div>
+          <div class="onboarding-step-dot completed"></div>
+          <div class="onboarding-step-dot active"></div>
+        </div>
+        <h3 style="color:#fff;margin-bottom:16px">Step 4: 지원 정보 (선택)</h3>
+        <input type="text" class="auth-input" id="ob-sponsor" placeholder="장학재단 (선택)">
+        <input type="number" class="auth-input" id="ob-grant" placeholder="장학금 (원, 선택)">
+        <button class="auth-btn" onclick="submitOnboardingStep(4)">완료 ✓</button>
+        <p class="auth-link" onclick="submitOnboardingStep(4)">건너뛰기</p>
+      </div>
+      
+      <!-- 완료 -->
+      <div id="onboard-complete" class="onboarding-form">
+        <div class="auth-success">
+          ✓ 온보딩 완료!<br>
+          이제 AUTUS에서 상태를 확인할 수 있습니다.
+        </div>
+        <button class="auth-btn" onclick="closeAuthOverlay()">시작하기 →</button>
+      </div>
+      
+      <!-- Magic Link 전송됨 -->
+      <div id="auth-sent" class="onboarding-form">
+        <div class="auth-success">
+          ✓ Magic Link 전송됨!<br>
+          이메일을 확인해주세요.
+        </div>
+        <p class="auth-link" onclick="showLogin()">다시 시도</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 계약서 미리보기 모달 -->
+  <div id="contract-modal">
+    <div class="contract-preview" id="contract-content">
+      <h1>계약서 로딩 중...</h1>
+    </div>
+  </div>
+  
   <!-- Jack Ma: 첫 사용자 온보딩 -->
   <div id="onboarding-overlay">
     <div class="onboarding-card">
@@ -1084,6 +1284,10 @@
     <div class="commit-actions">
       <button class="commit-action-btn primary" onclick="createDemoStudent()">📊 데모 생성</button>
       <button class="commit-action-btn secondary" onclick="refreshCommitData()">🔄 새로고침</button>
+    </div>
+    <div class="commit-actions" style="margin-top:8px">
+      <button class="commit-action-btn secondary" onclick="generateContract('STU_001')" style="flex:1">📄 계약서</button>
+      <button class="commit-action-btn secondary" onclick="showAuthOverlay()" style="flex:1">🔑 로그인</button>
     </div>
   </div>
   
@@ -2938,6 +3142,246 @@ function updateRoleInfo(role) {
 
 // 초기 역할 설정
 setTimeout(() => switchRole('subject'), 500);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Magic Link 인증 + 온보딩 플로우
+// ═══════════════════════════════════════════════════════════════════════════
+let currentSession = null;
+let onboardingPersonId = null;
+
+function checkAuth() {
+  // URL에서 세션 토큰 확인
+  const params = new URLSearchParams(window.location.search);
+  const sessionToken = params.get('session');
+  
+  if (sessionToken) {
+    validateSession(sessionToken);
+    return;
+  }
+  
+  // 저장된 세션 확인
+  const savedSession = localStorage.getItem('autus_session');
+  if (savedSession) {
+    validateSession(savedSession);
+    return;
+  }
+  
+  // 인증 필요 — 하지만 데모 모드로 진행 가능하도록 숨김
+  // showAuthOverlay();
+}
+
+async function validateSession(token) {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/auth/session/${token}`);
+    if (res.ok) {
+      currentSession = await res.json();
+      localStorage.setItem('autus_session', token);
+      logAction(`Logged in as ${currentSession.email}`, 'success');
+      // URL 정리
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  } catch (e) {
+    console.warn('[Auth] Session validation failed');
+  }
+}
+
+function showAuthOverlay() {
+  document.getElementById('auth-overlay').classList.remove('hidden');
+}
+
+function closeAuthOverlay() {
+  document.getElementById('auth-overlay').classList.add('hidden');
+}
+
+function showLogin() {
+  document.querySelectorAll('.onboarding-form').forEach(f => f.classList.remove('active'));
+  document.getElementById('auth-login').classList.add('active');
+}
+
+function showOnboarding() {
+  document.querySelectorAll('.onboarding-form').forEach(f => f.classList.remove('active'));
+  document.getElementById('onboard-step1').classList.add('active');
+}
+
+async function requestMagicLink() {
+  const email = document.getElementById('auth-email').value;
+  if (!email) return alert('이메일을 입력해주세요');
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/auth/magic-link/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      document.querySelectorAll('.onboarding-form').forEach(f => f.classList.remove('active'));
+      document.getElementById('auth-sent').classList.add('active');
+      
+      // 개발용: 자동 로그인 링크 표시
+      if (data._dev_url) {
+        console.log('[DEV] Magic Link:', data._dev_url);
+        // 자동 검증 (개발용)
+        setTimeout(() => {
+          window.location.href = `${API_BASE}${data._dev_url}`;
+        }, 2000);
+      }
+    }
+  } catch (e) {
+    console.error('[Auth] Magic link request failed:', e);
+  }
+}
+
+async function submitOnboardingStep(step) {
+  const endpoints = {
+    1: '/api/v1/onboarding/step1',
+    2: '/api/v1/onboarding/step2',
+    3: '/api/v1/onboarding/step3',
+    4: '/api/v1/onboarding/step4'
+  };
+  
+  let body = {};
+  
+  if (step === 1) {
+    body = {
+      email: document.getElementById('ob-email').value,
+      name: document.getElementById('ob-name').value,
+      country: document.getElementById('ob-country').value
+    };
+  } else if (step === 2) {
+    body = {
+      person_id: onboardingPersonId,
+      university: document.getElementById('ob-university').value,
+      major: document.getElementById('ob-major').value,
+      enrollment_date: new Date().toISOString().split('T')[0],
+      tuition_amount: parseInt(document.getElementById('ob-tuition').value) || 0
+    };
+  } else if (step === 3) {
+    body = {
+      person_id: onboardingPersonId,
+      employer: document.getElementById('ob-employer').value,
+      job_title: document.getElementById('ob-job').value,
+      wage_amount: parseInt(document.getElementById('ob-wage').value) || 0,
+      start_date: new Date().toISOString().split('T')[0]
+    };
+  } else if (step === 4) {
+    body = {
+      person_id: onboardingPersonId,
+      sponsor: document.getElementById('ob-sponsor').value || null,
+      grant_amount: parseInt(document.getElementById('ob-grant').value) || null
+    };
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}${endpoints[step]}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      
+      if (step === 1) {
+        onboardingPersonId = data.person_id;
+      }
+      
+      // 다음 스텝으로
+      document.querySelectorAll('.onboarding-form').forEach(f => f.classList.remove('active'));
+      
+      if (step < 4) {
+        document.getElementById(`onboard-step${step + 1}`).classList.add('active');
+      } else {
+        document.getElementById('onboard-complete').classList.add('active');
+        // 데이터 새로고침
+        setTimeout(() => {
+          refreshCommitData();
+        }, 1000);
+      }
+      
+      logAction(`Onboarding Step ${step} completed`, 'success');
+    }
+  } catch (e) {
+    console.error('[Onboarding] Step failed:', e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 계약서 PDF 생성
+// ═══════════════════════════════════════════════════════════════════════════
+async function generateContract(personId) {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/contract/generate/${personId}`);
+    if (!res.ok) return;
+    
+    const data = await res.json();
+    showContractModal(data);
+  } catch (e) {
+    console.error('[Contract] Generation failed:', e);
+  }
+}
+
+function showContractModal(data) {
+  const modal = document.getElementById('contract-modal');
+  const content = document.getElementById('contract-content');
+  
+  let html = `
+    <h1>📄 계약서 패키지</h1>
+    <p style="color:#888;font-size:11px">AUTUS 시스템에 의해 자동 생성됨 | ${new Date().toLocaleDateString()}</p>
+    <hr style="margin:20px 0;border-color:#eee">
+    
+    <h2>👤 수혜자 정보</h2>
+    <p><strong>ID:</strong> ${data.person_id}</p>
+    <p><strong>이름:</strong> ${data.person_name || '—'}</p>
+    
+    <h2>📊 Commit 요약</h2>
+    <p><strong>총 Commit:</strong> ${data.summary?.total_commits || 0}개</p>
+    <p><strong>총 금액:</strong> ${formatCurrency(data.summary?.total_amount || 0)}</p>
+    <p><strong>Survival Mass:</strong> ${data.summary?.survival_mass?.toFixed(2) || '0.00'}</p>
+    <p><strong>Risk Score:</strong> ${Math.round(data.summary?.risk_score || 0)}점</p>
+  `;
+  
+  if (data.contracts && data.contracts.length > 0) {
+    data.contracts.forEach((contract, i) => {
+      html += `
+        <hr style="margin:20px 0;border-color:#eee">
+        <h2>${i + 1}. ${contract.type?.toUpperCase()} 계약</h2>
+        <p><strong>Contract ID:</strong> ${contract.contract_id}</p>
+        <p><strong>금액:</strong> ${formatCurrency(contract.terms?.amount || 0)}</p>
+        <p><strong>기간:</strong> ${contract.terms?.start_date || '—'} ~ ${contract.terms?.end_date || '진행중'}</p>
+        
+        <h3>계약 조항</h3>
+        <ul style="font-size:11px;line-height:1.8">
+          ${(contract.clauses || []).map(c => `<li><strong>${c.title}:</strong> ${c.content}</li>`).join('')}
+        </ul>
+        
+        <div class="signature">
+          <p>✓ AUTUS 검증 완료</p>
+          <p>Commit ID: ${contract.signatures?.commit_id}</p>
+          <p>Audit Hash: ${contract.signatures?.audit_hash}</p>
+        </div>
+      `;
+    });
+  }
+  
+  html += `
+    <div class="contract-actions">
+      <button class="print" onclick="window.print()">🖨️ 인쇄 / PDF 저장</button>
+      <button class="close" onclick="closeContractModal()">닫기</button>
+    </div>
+  `;
+  
+  content.innerHTML = html;
+  modal.classList.add('visible');
+}
+
+function closeContractModal() {
+  document.getElementById('contract-modal').classList.remove('visible');
+}
+
+// 인증 체크 (초기화 시)
+setTimeout(checkAuth, 1000);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COMMIT 중심 — 학생 1명 시뮬레이션

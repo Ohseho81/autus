@@ -1554,7 +1554,500 @@ try:
             "commits_created": len(results)
         }
     
+    # ═══════════════════════════════════════════════════════════════════════════
+    # 온보딩 플로우 API — 학생 1명 단계별 등록
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    class OnboardingStep1(BaseModel):
+        """Step 1: 기본 정보"""
+        email: str
+        name: str
+        country: str = "PH"  # 필리핀 기본
+        phone: Optional[str] = None
+    
+    class OnboardingStep2(BaseModel):
+        """Step 2: 교육 정보"""
+        person_id: str
+        university: str
+        major: str
+        enrollment_date: str
+        tuition_amount: int
+    
+    class OnboardingStep3(BaseModel):
+        """Step 3: 취업 정보"""
+        person_id: str
+        employer: str
+        job_title: str
+        wage_amount: int
+        start_date: str
+    
+    class OnboardingStep4(BaseModel):
+        """Step 4: 지원 정보 (선택)"""
+        person_id: str
+        sponsor: Optional[str] = None
+        grant_amount: Optional[int] = None
+    
+    # 온보딩 상태 저장 (메모리 — 실제는 DB)
+    onboarding_sessions = {}
+    
+    @app.post("/api/v1/onboarding/step1")
+    def onboarding_step1(body: OnboardingStep1):
+        """Step 1: 기본 정보 등록 → Person 생성"""
+        import hashlib
+        
+        # Person ID 생성
+        person_id = f"STU_{hashlib.md5(body.email.encode()).hexdigest()[:8].upper()}"
+        
+        # Person 생성
+        try:
+            create_person(PersonIn(
+                person_id=person_id,
+                role='subject',
+                country=body.country,
+                name=body.name
+            ))
+        except Exception as e:
+            # 이미 존재할 수 있음
+            pass
+        
+        # 세션 저장
+        onboarding_sessions[person_id] = {
+            'step': 1,
+            'email': body.email,
+            'name': body.name,
+            'country': body.country,
+            'phone': body.phone,
+            'created_at': int(time.time())
+        }
+        
+        record_audit('person', person_id, 'ONBOARDING_STEP1', {'email': body.email})
+        
+        return {
+            'person_id': person_id,
+            'step': 1,
+            'next_step': '/api/v1/onboarding/step2',
+            'message': '기본 정보 등록 완료'
+        }
+    
+    @app.post("/api/v1/onboarding/step2")
+    def onboarding_step2(body: OnboardingStep2):
+        """Step 2: 교육 정보 → Tuition Commit 생성"""
+        # 대학 Person 확인/생성
+        univ_id = f"UNIV_{body.university[:4].upper()}"
+        try:
+            create_person(PersonIn(
+                person_id=univ_id,
+                role='institution',
+                country='KR',
+                name=body.university
+            ))
+        except:
+            pass
+        
+        # Tuition Commit 생성
+        commit_id = f"CMT_TUI_{body.person_id}_{int(time.time())}"
+        create_commit(CommitIn(
+            commit_id=commit_id,
+            commit_type='tuition',
+            actor_from=body.person_id,
+            actor_to=univ_id,
+            amount=body.tuition_amount,
+            currency='KRW',
+            start_date=body.enrollment_date,
+            end_date=None
+        ))
+        
+        # 세션 업데이트
+        if body.person_id in onboarding_sessions:
+            onboarding_sessions[body.person_id]['step'] = 2
+            onboarding_sessions[body.person_id]['university'] = body.university
+            onboarding_sessions[body.person_id]['tuition_commit'] = commit_id
+        
+        record_audit('commit', commit_id, 'ONBOARDING_STEP2', {'university': body.university})
+        
+        return {
+            'person_id': body.person_id,
+            'step': 2,
+            'commit_id': commit_id,
+            'next_step': '/api/v1/onboarding/step3',
+            'message': f'{body.university} 등록 완료'
+        }
+    
+    @app.post("/api/v1/onboarding/step3")
+    def onboarding_step3(body: OnboardingStep3):
+        """Step 3: 취업 정보 → Wage Commit 생성"""
+        # 고용주 Person 확인/생성
+        emp_id = f"EMP_{body.employer[:4].upper()}"
+        try:
+            create_person(PersonIn(
+                person_id=emp_id,
+                role='employer',
+                country='KR',
+                name=body.employer
+            ))
+        except:
+            pass
+        
+        # Wage Commit 생성
+        commit_id = f"CMT_WAG_{body.person_id}_{int(time.time())}"
+        create_commit(CommitIn(
+            commit_id=commit_id,
+            commit_type='wage',
+            actor_from=emp_id,
+            actor_to=body.person_id,
+            amount=body.wage_amount,
+            currency='KRW',
+            start_date=body.start_date,
+            end_date=None
+        ))
+        
+        # 세션 업데이트
+        if body.person_id in onboarding_sessions:
+            onboarding_sessions[body.person_id]['step'] = 3
+            onboarding_sessions[body.person_id]['employer'] = body.employer
+            onboarding_sessions[body.person_id]['wage_commit'] = commit_id
+        
+        record_audit('commit', commit_id, 'ONBOARDING_STEP3', {'employer': body.employer})
+        
+        return {
+            'person_id': body.person_id,
+            'step': 3,
+            'commit_id': commit_id,
+            'next_step': '/api/v1/onboarding/step4',
+            'message': f'{body.employer} 취업 등록 완료'
+        }
+    
+    @app.post("/api/v1/onboarding/step4")
+    def onboarding_step4(body: OnboardingStep4):
+        """Step 4: 지원 정보 (선택) → Grant Commit 생성"""
+        commit_id = None
+        
+        if body.sponsor and body.grant_amount:
+            # 장학재단 Person 확인/생성
+            sponsor_id = f"SPO_{body.sponsor[:4].upper()}"
+            try:
+                create_person(PersonIn(
+                    person_id=sponsor_id,
+                    role='sponsor',
+                    country='KR',
+                    name=body.sponsor
+                ))
+            except:
+                pass
+            
+            # Grant Commit 생성
+            commit_id = f"CMT_GRA_{body.person_id}_{int(time.time())}"
+            create_commit(CommitIn(
+                commit_id=commit_id,
+                commit_type='grant',
+                actor_from=sponsor_id,
+                actor_to=body.person_id,
+                amount=body.grant_amount,
+                currency='KRW',
+                start_date=datetime.now().strftime('%Y-%m-%d'),
+                end_date=None
+            ))
+        
+        # 세션 완료
+        if body.person_id in onboarding_sessions:
+            onboarding_sessions[body.person_id]['step'] = 4
+            onboarding_sessions[body.person_id]['completed'] = True
+        
+        # 최종 대시보드
+        dashboard = get_person_dashboard(body.person_id)
+        
+        record_audit('person', body.person_id, 'ONBOARDING_COMPLETE', {'grant_commit': commit_id})
+        
+        return {
+            'person_id': body.person_id,
+            'step': 4,
+            'completed': True,
+            'grant_commit': commit_id,
+            'dashboard': dashboard,
+            'message': '온보딩 완료! 이제 AUTUS에서 상태를 확인하세요.'
+        }
+    
+    @app.get("/api/v1/onboarding/status/{person_id}")
+    def onboarding_status(person_id: str):
+        """온보딩 진행 상태 조회"""
+        session = onboarding_sessions.get(person_id, {})
+        if not session:
+            return {'error': 'Session not found', 'person_id': person_id}
+        
+        return {
+            'person_id': person_id,
+            'current_step': session.get('step', 0),
+            'completed': session.get('completed', False),
+            'data': session
+        }
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Magic Link 인증 — 비밀번호 없는 로그인
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    import secrets
+    import hashlib
+    
+    # Magic Link 저장소 (실제는 Redis/DB)
+    magic_links = {}
+    authenticated_sessions = {}
+    
+    class MagicLinkRequest(BaseModel):
+        email: str
+    
+    class MagicLinkVerify(BaseModel):
+        token: str
+    
+    @app.post("/api/v1/auth/magic-link/request")
+    def request_magic_link(body: MagicLinkRequest):
+        """Magic Link 요청 — 이메일로 로그인 링크 전송"""
+        # 토큰 생성
+        token = secrets.token_urlsafe(32)
+        expires_at = int(time.time()) + 600  # 10분 유효
+        
+        # 저장
+        magic_links[token] = {
+            'email': body.email,
+            'expires_at': expires_at,
+            'used': False
+        }
+        
+        # 실제로는 이메일 전송 — 여기서는 로그만
+        login_url = f"/api/v1/auth/magic-link/verify?token={token}"
+        logger.info(f"[AUTH] Magic Link generated for {body.email}: {login_url}")
+        
+        record_audit('system', body.email, 'MAGIC_LINK_REQUESTED', {'expires_at': expires_at})
+        
+        return {
+            'success': True,
+            'message': f'로그인 링크가 {body.email}로 전송되었습니다.',
+            'expires_in_seconds': 600,
+            # 개발용으로 토큰 반환 (실제 배포시 제거)
+            '_dev_token': token,
+            '_dev_url': login_url
+        }
+    
+    @app.get("/api/v1/auth/magic-link/verify")
+    def verify_magic_link(token: str):
+        """Magic Link 검증 — 토큰으로 로그인"""
+        link_data = magic_links.get(token)
+        
+        if not link_data:
+            return JSONResponse({'error': 'Invalid token'}, status_code=401)
+        
+        if link_data['used']:
+            return JSONResponse({'error': 'Token already used'}, status_code=401)
+        
+        if int(time.time()) > link_data['expires_at']:
+            return JSONResponse({'error': 'Token expired'}, status_code=401)
+        
+        # 토큰 사용 처리
+        magic_links[token]['used'] = True
+        
+        # 세션 생성
+        session_token = secrets.token_urlsafe(32)
+        email = link_data['email']
+        
+        # Person 찾기 또는 생성
+        person_id = f"STU_{hashlib.md5(email.encode()).hexdigest()[:8].upper()}"
+        
+        authenticated_sessions[session_token] = {
+            'email': email,
+            'person_id': person_id,
+            'authenticated_at': int(time.time()),
+            'expires_at': int(time.time()) + 86400 * 7  # 7일
+        }
+        
+        record_audit('person', person_id, 'MAGIC_LINK_LOGIN', {'email': email})
+        logger.info(f"[AUTH] Login successful: {email} → {person_id}")
+        
+        return {
+            'success': True,
+            'session_token': session_token,
+            'person_id': person_id,
+            'email': email,
+            'expires_in_seconds': 86400 * 7,
+            'redirect': f'/frontend/solar.html?session={session_token}'
+        }
+    
+    @app.get("/api/v1/auth/session/{session_token}")
+    def get_session(session_token: str):
+        """세션 정보 조회"""
+        session = authenticated_sessions.get(session_token)
+        
+        if not session:
+            return JSONResponse({'error': 'Invalid session'}, status_code=401)
+        
+        if int(time.time()) > session['expires_at']:
+            return JSONResponse({'error': 'Session expired'}, status_code=401)
+        
+        return {
+            'valid': True,
+            'person_id': session['person_id'],
+            'email': session['email'],
+            'authenticated_at': session['authenticated_at']
+        }
+    
+    @app.post("/api/v1/auth/logout")
+    def logout(session_token: str):
+        """로그아웃"""
+        if session_token in authenticated_sessions:
+            del authenticated_sessions[session_token]
+        return {'success': True, 'message': '로그아웃 완료'}
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # 계약서 PDF 자동 생성
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    @app.get("/api/v1/contract/generate/{person_id}")
+    def generate_contract(person_id: str, contract_type: str = "all"):
+        """계약서 데이터 생성 (PDF 렌더링은 프론트엔드)"""
+        dashboard = get_person_dashboard(person_id)
+        
+        if 'error' in dashboard:
+            return dashboard
+        
+        person = dashboard.get('person', {})
+        commits = dashboard.get('commits', [])
+        survival = dashboard.get('survival', {})
+        
+        # 계약서 데이터 구성
+        contracts = []
+        
+        for commit in commits:
+            commit_type = commit.get('commit_type')
+            
+            if contract_type != 'all' and contract_type != commit_type:
+                continue
+            
+            contract_data = {
+                'contract_id': f"CONTRACT_{commit.get('commit_id')}",
+                'type': commit_type,
+                'generated_at': datetime.now(timezone.utc).isoformat(),
+                'parties': {
+                    'from': commit.get('actor_from'),
+                    'to': commit.get('actor_to')
+                },
+                'terms': {
+                    'amount': commit.get('amount'),
+                    'currency': commit.get('currency', 'KRW'),
+                    'start_date': commit.get('start_date'),
+                    'end_date': commit.get('end_date'),
+                    'status': commit.get('status')
+                },
+                'physics': {
+                    'mass': commit.get('mass'),
+                    'gravity': commit.get('gravity'),
+                    'friction': commit.get('friction')
+                },
+                'clauses': get_contract_clauses(commit_type),
+                'signatures': {
+                    'autus_verified': True,
+                    'commit_id': commit.get('commit_id'),
+                    'audit_hash': hashlib.sha256(json.dumps(commit, sort_keys=True).encode()).hexdigest()[:16]
+                }
+            }
+            
+            contracts.append(contract_data)
+        
+        return {
+            'person_id': person_id,
+            'person_name': person.get('name'),
+            'contracts': contracts,
+            'summary': {
+                'total_commits': len(commits),
+                'total_amount': sum(c.get('amount', 0) for c in commits),
+                'survival_mass': survival.get('survival_mass'),
+                'risk_score': dashboard.get('risk', {}).get('risk_score')
+            }
+        }
+    
+    def get_contract_clauses(commit_type: str) -> List[Dict]:
+        """Commit 타입별 계약 조항"""
+        clauses = {
+            'tuition': [
+                {'id': 1, 'title': '등록금 납부', 'content': '본 등록금은 AUTUS 시스템의 tuition Commit으로 관리됩니다.'},
+                {'id': 2, 'title': '환불 조건', 'content': 'Commit 종료 전 환불 요청 시 시스템 규정에 따릅니다.'},
+                {'id': 3, 'title': '학사 규정', 'content': '학생은 Institution의 학사 규정을 준수해야 합니다.'}
+            ],
+            'wage': [
+                {'id': 1, 'title': '임금 지급', 'content': '임금은 매월 AUTUS 시스템의 money_flow로 기록됩니다.'},
+                {'id': 2, 'title': '근로 조건', 'content': '주 20시간 이내 근로 (유학생 비자 조건)'},
+                {'id': 3, 'title': '4대 보험', 'content': '고용주는 관련 법령에 따라 4대 보험을 적용합니다.'}
+            ],
+            'grant': [
+                {'id': 1, 'title': '장학금 지급', 'content': '장학금은 AUTUS 시스템의 grant Commit으로 관리됩니다.'},
+                {'id': 2, 'title': '지급 조건', 'content': '학업 유지 및 성적 기준 충족 시 지급됩니다.'},
+                {'id': 3, 'title': '반환 조건', 'content': '조건 미충족 시 Sponsor 규정에 따라 반환합니다.'}
+            ],
+            'management': [
+                {'id': 1, 'title': '운영 위탁', 'content': 'Operator는 Subject의 Commit 상태를 관리합니다.'},
+                {'id': 2, 'title': 'SLA', 'content': '시스템 가용성 99.9% 보장'},
+                {'id': 3, 'title': '책임 한계', 'content': 'Operator는 Subject의 결정을 대신하지 않습니다.'}
+            ],
+            'outcome': [
+                {'id': 1, 'title': '성과 기준', 'content': '성과는 Employer가 정한 기준에 따라 측정됩니다.'},
+                {'id': 2, 'title': '인센티브', 'content': '성과 달성 시 추가 보상이 지급됩니다.'},
+                {'id': 3, 'title': '평가 주기', 'content': '분기별 성과 평가 후 Commit 갱신'}
+            ]
+        }
+        return clauses.get(commit_type, [])
+    
+    @app.get("/api/v1/contract/pdf-template/{contract_type}")
+    def get_pdf_template(contract_type: str):
+        """PDF 템플릿 HTML 반환 (프론트엔드에서 렌더링)"""
+        templates = {
+            'tuition': '''
+                <h1>입학 허가 및 등록금 납부 확인서</h1>
+                <p>본 문서는 AUTUS 시스템에 의해 자동 생성되었습니다.</p>
+                <h2>당사자 정보</h2>
+                <p><strong>학생:</strong> {{person_name}} ({{person_id}})</p>
+                <p><strong>대학:</strong> {{university}}</p>
+                <h2>등록금 정보</h2>
+                <p><strong>금액:</strong> {{amount}} {{currency}}</p>
+                <p><strong>기간:</strong> {{start_date}} ~ {{end_date}}</p>
+                <h2>AUTUS 검증</h2>
+                <p>Commit ID: {{commit_id}}</p>
+                <p>Audit Hash: {{audit_hash}}</p>
+            ''',
+            'wage': '''
+                <h1>근로계약서</h1>
+                <p>본 문서는 AUTUS 시스템에 의해 자동 생성되었습니다.</p>
+                <h2>계약 당사자</h2>
+                <p><strong>근로자:</strong> {{person_name}} ({{person_id}})</p>
+                <p><strong>사용자:</strong> {{employer}}</p>
+                <h2>근로 조건</h2>
+                <p><strong>월 급여:</strong> {{amount}} {{currency}}</p>
+                <p><strong>근무 시작일:</strong> {{start_date}}</p>
+                <h2>AUTUS 검증</h2>
+                <p>Commit ID: {{commit_id}}</p>
+                <p>Audit Hash: {{audit_hash}}</p>
+            ''',
+            'grant': '''
+                <h1>장학금 지급 확인서</h1>
+                <p>본 문서는 AUTUS 시스템에 의해 자동 생성되었습니다.</p>
+                <h2>당사자 정보</h2>
+                <p><strong>수혜자:</strong> {{person_name}} ({{person_id}})</p>
+                <p><strong>지원 기관:</strong> {{sponsor}}</p>
+                <h2>장학금 정보</h2>
+                <p><strong>금액:</strong> {{amount}} {{currency}}</p>
+                <p><strong>지급 기간:</strong> {{start_date}} ~ {{end_date}}</p>
+                <h2>AUTUS 검증</h2>
+                <p>Commit ID: {{commit_id}}</p>
+                <p>Audit Hash: {{audit_hash}}</p>
+            '''
+        }
+        
+        return {
+            'contract_type': contract_type,
+            'template_html': templates.get(contract_type, '<h1>계약서</h1><p>템플릿 없음</p>'),
+            'required_fields': ['person_name', 'person_id', 'amount', 'currency', 'start_date', 'end_date', 'commit_id', 'audit_hash']
+        }
+    
     logger.info("✅ Commit Schema API loaded")
+    logger.info("✅ Onboarding Flow API loaded")
+    logger.info("✅ Magic Link Auth API loaded")
+    logger.info("✅ Contract PDF API loaded")
     
 except Exception as e:
     logger.warning(f"⚠️ Commit Schema API not loaded: {e}")
