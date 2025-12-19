@@ -511,6 +511,32 @@
       cursor:pointer;text-decoration:underline;
     }
     .onboarding-skip:hover{color:#888}
+    
+    /* Nadella: 공유 기능 */
+    #share-button{
+      position:fixed;top:32px;right:40px;
+      padding:10px 18px;background:rgba(0,212,255,0.15);
+      border:1px solid rgba(0,212,255,0.4);border-radius:8px;
+      color:var(--accent-cyan);font-size:11px;font-weight:600;
+      letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;z-index:200;
+      display:flex;align-items:center;gap:8px;
+    }
+    #share-button:hover{background:rgba(0,212,255,0.25);transform:scale(1.05)}
+    #share-button.copied{
+      background:rgba(0,255,136,0.2);border-color:var(--accent-green);
+      color:var(--accent-green);
+    }
+    
+    /* 공유 토스트 알림 */
+    .share-toast{
+      position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);
+      padding:14px 28px;background:rgba(0,255,136,0.15);
+      border:1px solid var(--accent-green);border-radius:10px;
+      color:var(--accent-green);font-size:12px;font-weight:600;
+      opacity:0;transition:all 0.3s ease;z-index:500;
+      pointer-events:none;
+    }
+    .share-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     #dignity-display.low{background:rgba(255,68,68,0.15);border:1px solid var(--accent-red);color:var(--accent-red)}
     #dignity-display.balanced{background:rgba(255,170,0,0.15);border:1px solid var(--accent-orange);color:var(--accent-orange)}
     #dignity-display.elevated{background:rgba(0,255,136,0.15);border:1px solid var(--accent-green);color:var(--accent-green)}
@@ -703,6 +729,12 @@
     <div id="gate-badge" class="gate-badge gate-amber">GATE: AMBER</div>
     <div id="dignity-display" class="balanced">DIGNITY: BALANCED</div>
   </div>
+  
+  <!-- Nadella: 공유 버튼 -->
+  <button id="share-button" onclick="shareCurrentState()">
+    <span>📤</span> SHARE
+  </button>
+  <div class="share-toast" id="share-toast">✓ 링크가 클립보드에 복사되었습니다</div>
   
   <!-- Dimon: Risk 24h History Chart -->
   <div id="risk-chart-container">
@@ -2409,6 +2441,94 @@ function animate() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// NADELLA: 공유 기능 — 팀 협업 지원
+// ═══════════════════════════════════════════════════════════════════════════
+function generateShareableState() {
+  // 현재 상태를 간결한 JSON으로 인코딩
+  const state = {
+    r: Math.round(TwinState.RECOVERY * 100),    // Recovery
+    s: Math.round(TwinState.STABILITY * 100),   // Stability
+    c: Math.round(TwinState.COHESION * 100),    // Cohesion
+    h: Math.round(TwinState.SHOCK * 100),       // Shock (h for hazard)
+    f: Math.round(TwinState.FRICTION * 100),    // Friction
+    t: Math.round(TwinState.TRANSFER * 100),    // Transfer
+    i: Math.round(TwinState.TIME * 100),        // Time (i for interval)
+    q: Math.round(TwinState.QUALITY * 100),     // Quality
+    o: Math.round(TwinState.OUTPUT * 100),      // Output
+    ts: Date.now()                              // Timestamp
+  };
+  return btoa(JSON.stringify(state)); // Base64 인코딩
+}
+
+function parseSharedState(encoded) {
+  try {
+    const state = JSON.parse(atob(encoded));
+    return {
+      RECOVERY: (state.r || 50) / 100,
+      STABILITY: (state.s || 50) / 100,
+      COHESION: (state.c || 50) / 100,
+      SHOCK: (state.h || 50) / 100,
+      FRICTION: (state.f || 50) / 100,
+      TRANSFER: (state.t || 50) / 100,
+      TIME: (state.i || 50) / 100,
+      QUALITY: (state.q || 50) / 100,
+      OUTPUT: (state.o || 50) / 100
+    };
+  } catch (e) {
+    console.warn('[Share] Invalid state encoding');
+    return null;
+  }
+}
+
+function shareCurrentState() {
+  const encoded = generateShareableState();
+  const url = `${window.location.origin}${window.location.pathname}?state=${encoded}`;
+  
+  // 클립보드에 복사
+  navigator.clipboard.writeText(url).then(() => {
+    // 버튼 상태 변경
+    const btn = document.getElementById('share-button');
+    btn.classList.add('copied');
+    btn.innerHTML = '<span>✓</span> COPIED';
+    
+    // 토스트 표시
+    const toast = document.getElementById('share-toast');
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<span>📤</span> SHARE';
+      toast.classList.remove('show');
+    }, 2500);
+    
+    logAction('Share link copied to clipboard', 'success');
+  }).catch(err => {
+    console.error('[Share] Copy failed:', err);
+    // Fallback: prompt로 표시
+    prompt('링크를 복사하세요:', url);
+  });
+}
+
+function loadSharedState() {
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get('state');
+  if (!encoded) return false;
+  
+  const state = parseSharedState(encoded);
+  if (!state) return false;
+  
+  // 공유된 상태 적용
+  Object.assign(TwinState, state);
+  updateFullState();
+  renderPlanetList();
+  logAction('Loaded shared state', 'success');
+  
+  // URL에서 파라미터 제거 (히스토리 정리)
+  window.history.replaceState({}, document.title, window.location.pathname);
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // JACK MA: 첫 사용자 온보딩
 // ═══════════════════════════════════════════════════════════════════════════
 function checkOnboarding() {
@@ -2440,6 +2560,9 @@ window.onresize = () => { camera.aspect = innerWidth / innerHeight; camera.updat
 
 // 온보딩 체크
 checkOnboarding();
+
+// Nadella: 공유된 상태 로드
+loadSharedState();
 
 // Initialize state
 updateFullState();
