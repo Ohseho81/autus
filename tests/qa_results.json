@@ -1,144 +1,144 @@
 {
-  "passed": 10,
-  "failed": 13,
+  "passed": 11,
+  "failed": 12,
   "tests": [
     {
       "name": "서버 상태 확인",
       "passed": true,
       "details": "Status: 200",
-      "timestamp": "2025-12-19T17:12:25.800974"
+      "timestamp": "2025-12-19T17:15:30.288617"
     },
     {
-      "name": "GET /state 응답",
+      "name": "GET /api/v1/state 응답",
       "passed": false,
-      "details": "Status: 404, Time: 704ms, Has engine: False",
-      "timestamp": "2025-12-19T17:12:26.505429"
+      "details": "Status: 200, Time: 677ms, Has engine: False",
+      "timestamp": "2025-12-19T17:15:30.965922"
     },
     {
-      "name": "GET /state 응답 시간 (<500ms)",
-      "passed": false,
-      "details": "704ms",
-      "timestamp": "2025-12-19T17:12:26.505761"
+      "name": "GET /api/v1/state 응답 시간 (<1000ms)",
+      "passed": true,
+      "details": "677ms",
+      "timestamp": "2025-12-19T17:15:30.966364"
     },
     {
       "name": "POST /execute 응답",
       "passed": false,
-      "details": "Status: 422, Time: 1017ms",
-      "timestamp": "2025-12-19T17:12:27.523330"
+      "details": "Status: 422, Time: 570ms",
+      "timestamp": "2025-12-19T17:15:31.536969"
     },
     {
       "name": "POST /api/v1/commit/demo/student",
       "passed": false,
       "details": "Status: 404",
-      "timestamp": "2025-12-19T17:12:28.455143"
+      "timestamp": "2025-12-19T17:15:32.373454"
     },
     {
       "name": "GET /api/v1/commit/person/{id}",
       "passed": false,
       "details": "Status: 404, Has person: False",
-      "timestamp": "2025-12-19T17:12:29.426491"
+      "timestamp": "2025-12-19T17:15:33.159623"
     },
     {
       "name": "GET /api/v1/role/ui/subject",
       "passed": false,
       "details": "Status: 404",
-      "timestamp": "2025-12-19T17:12:30.536785"
+      "timestamp": "2025-12-19T17:15:33.741264"
     },
     {
       "name": "GET /api/v1/role/ui/operator",
       "passed": false,
       "details": "Status: 404",
-      "timestamp": "2025-12-19T17:12:31.535256"
+      "timestamp": "2025-12-19T17:15:34.550739"
     },
     {
       "name": "GET /api/v1/role/ui/sponsor",
       "passed": false,
       "details": "Status: 404",
-      "timestamp": "2025-12-19T17:12:32.288347"
+      "timestamp": "2025-12-19T17:15:35.316559"
     },
     {
       "name": "GET /api/v1/role/ui/employer",
       "passed": false,
-      "details": "Status: 404",
-      "timestamp": "2025-12-19T17:12:32.899601"
+      "details": "Status: 502",
+      "timestamp": "2025-12-19T17:15:41.135966"
     },
     {
       "name": "GET /api/v1/role/ui/institution",
       "passed": false,
       "details": "Status: 404",
-      "timestamp": "2025-12-19T17:12:33.638416"
+      "timestamp": "2025-12-19T17:15:42.065379"
     },
     {
       "name": "온보딩 Step 1",
       "passed": false,
       "details": "person_id: ",
-      "timestamp": "2025-12-19T17:12:34.446577"
+      "timestamp": "2025-12-19T17:15:42.991331"
     },
     {
       "name": "POST /api/v1/auth/magic-link/request",
       "passed": false,
       "details": "success: None",
-      "timestamp": "2025-12-19T17:12:35.087727"
+      "timestamp": "2025-12-19T17:15:44.011291"
     },
     {
       "name": "GET /api/v1/contract/generate/{id}",
       "passed": false,
       "details": "contracts: 0",
-      "timestamp": "2025-12-19T17:12:35.945761"
+      "timestamp": "2025-12-19T17:15:45.023270"
     },
     {
-      "name": "응답 시간 GET /state",
+      "name": "응답 시간 GET /api/v1/state",
       "passed": true,
-      "details": "610ms",
-      "timestamp": "2025-12-19T17:12:36.556083"
+      "details": "910ms",
+      "timestamp": "2025-12-19T17:15:45.933997"
     },
     {
       "name": "응답 시간 GET /api/v1/commit/person/STU_001",
       "passed": true,
-      "details": "804ms",
-      "timestamp": "2025-12-19T17:12:37.360259"
+      "details": "608ms",
+      "timestamp": "2025-12-19T17:15:46.542523"
     },
     {
       "name": "응답 시간 GET /api/v1/role/ui/subject",
       "passed": true,
-      "details": "851ms",
-      "timestamp": "2025-12-19T17:12:38.211503"
+      "details": "824ms",
+      "timestamp": "2025-12-19T17:15:47.366770"
     },
     {
       "name": "존재하지 않는 ID 조회",
       "passed": true,
       "details": "Status: 404",
-      "timestamp": "2025-12-19T17:12:38.979027"
+      "timestamp": "2025-12-19T17:15:48.154169"
     },
     {
       "name": "잘못된 역할 조회",
       "passed": true,
       "details": "Status: 404",
-      "timestamp": "2025-12-19T17:12:39.607568"
+      "timestamp": "2025-12-19T17:15:48.945371"
     },
     {
       "name": "잘못된 JSON 요청",
       "passed": true,
       "details": "Status: 422",
-      "timestamp": "2025-12-19T17:12:40.444404"
+      "timestamp": "2025-12-19T17:15:49.719866"
     },
     {
       "name": "프론트엔드 /frontend/solar.html",
       "passed": true,
       "details": "Status: 200",
-      "timestamp": "2025-12-19T17:12:41.938553"
+      "timestamp": "2025-12-19T17:15:51.194083"
     },
     {
       "name": "프론트엔드 /frontend/solar-pure.html",
       "passed": true,
       "details": "Status: 200",
-      "timestamp": "2025-12-19T17:12:43.138988"
+      "timestamp": "2025-12-19T17:15:52.415713"
     },
     {
       "name": "프론트엔드 /frontend/solar-three.html",
       "passed": true,
       "details": "Status: 200",
-      "timestamp": "2025-12-19T17:12:44.257391"
+      "timestamp": "2025-12-19T17:15:53.378251"
     }
   ]
 }

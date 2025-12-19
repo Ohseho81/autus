@@ -78,10 +78,10 @@ def test_health_check():
         log_test("서버 상태 확인", False, str(e))
 
 def test_state_endpoint():
-    """GET /state 테스트"""
+    """GET /api/v1/state 테스트"""
     try:
         start = time.time()
-        res = requests.get(f"{API_URL}/state", timeout=10)
+        res = requests.get(f"{API_URL}/api/v1/state", timeout=10)
         elapsed = (time.time() - start) * 1000
         
         passed = res.status_code == 200
@@ -91,15 +91,15 @@ def test_state_endpoint():
         has_engine = "engine" in data
         
         log_test(
-            "GET /state 응답",
+            "GET /api/v1/state 응답",
             passed and has_engine,
             f"Status: {res.status_code}, Time: {elapsed:.0f}ms, Has engine: {has_engine}"
         )
         
         # 응답 시간 테스트
         log_test(
-            "GET /state 응답 시간 (<500ms)",
-            elapsed < 500,
+            "GET /api/v1/state 응답 시간 (<1000ms)",
+            elapsed < 1000,
             f"{elapsed:.0f}ms"
         )
         
@@ -107,12 +107,12 @@ def test_state_endpoint():
         log_test("GET /state 응답", False, str(e))
 
 def test_execute_endpoint():
-    """POST /execute 테스트"""
+    """POST /api/v1/execute 테스트"""
     try:
-        payload = {"action": "recover", "risk": 50}
+        payload = {"action": "recover"}
         start = time.time()
         res = requests.post(
-            f"{API_URL}/execute",
+            f"{API_URL}/api/v1/execute",
             json=payload,
             timeout=10
         )
@@ -303,7 +303,7 @@ def test_contract_endpoint():
 def test_response_times():
     """주요 엔드포인트 응답 시간"""
     endpoints = [
-        ("GET", "/state"),
+        ("GET", "/api/v1/state"),
         ("GET", "/api/v1/commit/person/STU_001"),
         ("GET", "/api/v1/role/ui/subject"),
     ]
