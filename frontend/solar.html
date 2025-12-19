@@ -512,6 +512,37 @@
       0%,100%{box-shadow:0 0 0 0 rgba(0,255,136,0.4)}
       50%{box-shadow:0 0 0 8px rgba(0,255,136,0)}
     }
+    
+    /* #6 모바일 반응형 */
+    @media (max-width: 1200px) {
+      #forecast-panel { left: 20px; width: 180px; padding: 12px; }
+      #planets { left: 20px; width: 180px; }
+      #layer-action { right: 20px; }
+      .action-btn { min-width: 200px; padding: 14px 24px; font-size: 12px; }
+    }
+    
+    @media (max-width: 900px) {
+      .system-bar { padding: 0 20px; font-size: 8px; }
+      .gate-container { gap: 8px; }
+      .gate-badge { padding: 8px 14px; font-size: 12px; }
+      #dignity-display { padding: 8px 12px; font-size: 10px; }
+      #forecast-panel { display: none; }
+      #planets { top: 80px; width: 160px; }
+      .planet-row { padding: 4px 8px; font-size: 10px; }
+      #layer-action { bottom: 60px; right: 10px; }
+      .action-btn { min-width: 160px; padding: 12px 16px; font-size: 11px; }
+      #action-header { display: none; }
+    }
+    
+    @media (max-width: 600px) {
+      .system-bar .left { display: none; }
+      .gate-container { top: 50px; }
+      #planets { top: 100px; left: 10px; width: 140px; }
+      .panel-title { font-size: 7px; }
+      #layer-action { bottom: 40px; right: 5px; gap: 8px; }
+      .action-btn { min-width: 140px; padding: 10px 12px; font-size: 10px; }
+      .value-indicators { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -523,7 +554,7 @@
   <div class="system-bar">
     <div class="left">
       <span><span class="status-dot ok"></span>KERNEL v2.4 EP10</span>
-      <span><span class="status-dot ok"></span>SINGLE SOURCE</span>
+      <span><span class="status-dot" id="api-status-dot"></span><span id="api-status">CONNECTING...</span></span>
       <span><span class="status-dot ok"></span>FUTURE VALUE</span>
     </div>
     <div class="right">
@@ -832,13 +863,26 @@ const TwinState = {
 const API_BASE = window.location.origin;
 let apiConnected = false;
 
+// #5 에러 핸들링 — API 상태 표시
+function updateApiStatus(connected, message = '') {
+  const dot = document.getElementById('api-status-dot');
+  const text = document.getElementById('api-status');
+  if (dot && text) {
+    dot.className = 'status-dot ' + (connected ? 'ok' : 'warn');
+    text.textContent = connected ? 'API LIVE' : (message || 'OFFLINE');
+    text.style.color = connected ? 'var(--accent-green)' : 'var(--accent-orange)';
+  }
+}
+
 async function fetchState() {
   try {
     const res = await fetch(`${API_BASE}/api/state`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    updateApiStatus(true);
     return await res.json();
   } catch (err) {
     console.warn('[API] Fetch failed:', err.message);
+    updateApiStatus(false, 'FETCH ERROR');
     return null;
   }
 }
@@ -886,9 +930,11 @@ function connectSSE() {
         apiConnected = true;
         logAction('SSE Connected — Real-time stream', 'success');
       }
+      updateApiStatus(true, 'SSE LIVE');
     };
-    
+
     sseConnection.onmessage = (event) => {
+      updateApiStatus(true, 'SSE LIVE');
       try {
         const data = JSON.parse(event.data);
         if (updateTwinStateFromAPI(data)) {
@@ -902,6 +948,7 @@ function connectSSE() {
     
     sseConnection.onerror = (e) => {
       console.warn('[SSE] Connection error, falling back to polling');
+      updateApiStatus(false, 'SSE ERROR');
       sseConnection.close();
       sseConnection = null;
       // Fallback to polling

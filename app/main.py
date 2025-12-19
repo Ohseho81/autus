@@ -3,6 +3,7 @@ import time
 import threading
 import sqlite3
 import json
+import logging
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Literal, Any, List
 from collections import defaultdict
@@ -16,11 +17,25 @@ import asyncio
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 
+# #8 로깅/모니터링
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger("autus")
+
 # Config
 AUTUS_API_KEY = os.getenv("AUTUS_API_KEY", "")
 RATE_LIMIT_PER_MIN = int(os.getenv("RATE_LIMIT_PER_MIN", "60"))
 DB_PATH = os.getenv("DB_PATH", "/tmp/autus.db")
-PROTECTED_PREFIXES = ("/execute", "/event/")
+# #7 인증/권한 — 보호 대상 엔드포인트
+PROTECTED_PREFIXES = (
+    "/execute", 
+    "/event/",
+    "/api/v1/execute",
+    "/api/v1/burn/execute"  # Burn 실행은 인증 필요
+)
 rate_limit_store: Dict[str, List[float]] = defaultdict(list)
 USE_POSTGRES = False
 
@@ -289,22 +304,36 @@ ENGINE = Engine()
 @app.middleware("http")
 async def security(request: Request, call_next):
     path = request.url.path
+    method = request.method
+    ip = request.client.host if request.client else "unknown"
+    start_time = time.time()
+    
     if any(path.startswith(p) for p in PROTECTED_PREFIXES):
         if AUTUS_API_KEY:
             if request.headers.get("X-AUTUS-KEY", "") != AUTUS_API_KEY:
+                logger.warning(f"[AUTH] Unauthorized access attempt: {method} {path} from {ip}")
                 return JSONResponse({"detail": "Unauthorized"}, status_code=401)
         now = time.time()
-        ip = request.client.host if request.client else "unknown"
         rate_limit_store[ip] = [t for t in rate_limit_store[ip] if now - t < 60]
         if len(rate_limit_store[ip]) >= RATE_LIMIT_PER_MIN:
+            logger.warning(f"[RATE] Rate limit exceeded: {ip}")
             return JSONResponse({"detail": "Rate limit exceeded"}, status_code=429)
         rate_limit_store[ip].append(now)
-    return await call_next(request)
+    
+    response = await call_next(request)
+    
+    # #8 로깅: API 호출 기록 (v1 엔드포인트만)
+    if path.startswith("/api/v1"):
+        duration = (time.time() - start_time) * 1000
+        logger.info(f"[API] {method} {path} | {response.status_code} | {duration:.1f}ms | {ip}")
+    
+    return response
 
 @app.on_event("startup")
 def startup():
     ENGINE.start()
-    print(f"✅ AUTUS v1.1 Started | DB: {DB_PATH} | API Key: {'ON' if AUTUS_API_KEY else 'OFF'}")
+    logger.info(f"✅ AUTUS v1.1 Started | DB: {DB_PATH} | API Key: {'ON' if AUTUS_API_KEY else 'OFF'}")
+    logger.info(f"Protected endpoints: {PROTECTED_PREFIXES}")
 
 @app.get("/")
 def root():
@@ -321,9 +350,10 @@ def status():
     snap["top_risk_actor"] = top_risk
     return snap
 
-@app.get("/api/state", response_model=SolarHQState)
+@app.get("/api/v1/state", response_model=SolarHQState)
+@app.get("/api/state", response_model=SolarHQState, include_in_schema=False)  # Legacy alias
 def get_solar_hq_state():
-    """Solar System HQ 프론트엔드용 통합 상태 API"""
+    """Solar System HQ 프론트엔드용 통합 상태 API (v1 정규화)"""
     snap = ENGINE.snapshot()
     sig = snap.get("signals", {})
     out = snap.get("output", {})
@@ -414,8 +444,10 @@ def commit_decision(body: CommitDecisionIn):
     ENGINE.commit_decision(body.decision, body.actor_id)
     return {"ok": True, "status": ENGINE.snapshot()}
 
-@app.post("/execute")
+@app.post("/api/v1/execute")
+@app.post("/execute", include_in_schema=False)  # Legacy alias
 def execute(body: ExecuteIn):
+    """시스템 액션 실행 (v1 정규화)"""
     ENGINE.execute(body.action, body.actor_id)
     return {"ok": True, "status": ENGINE.snapshot()}
 
