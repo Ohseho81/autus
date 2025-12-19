@@ -1606,15 +1606,27 @@ function updateDignityDisplay() {
 let currentAuditAction = null, auditTimer = null;
 window.auditActive = false;
 
-function previewAction(actionKey) {
+async function previewAction(actionKey) {
   const profile = IMPULSE_PROFILES[actionKey];
   if (!profile) return;
-  
+
+  // Phase 2: API Simulate 호출
+  const impulseMap = { 'recover': 'RECOVER', 'defriction': 'DEFRICTION', 'shock_damp': 'SHOCK_DAMP' };
+  let apiResult = null;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/burn/simulate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ impulse: impulseMap[actionKey] || 'RECOVER', magnitude: 1.0 })
+    });
+    if (res.ok) apiResult = await res.json();
+  } catch (e) { console.warn('[API] Simulate failed:', e); }
+
   const futureState = applyImpulse(TwinState, actionKey);
   const futureDerived = computeDerived(futureState);
   const futureBottleneck = computeBottleneckFrom(futureState);
   const futureRing = computeRingTargets(futureDerived, futureState, futureBottleneck);
-  
+
   // Set preview (SEPARATE from main snapshot)
   PhysicsFrame.preview.active = true;
   PhysicsFrame.preview.snapshot = { ...futureDerived };
@@ -1626,12 +1638,16 @@ function previewAction(actionKey) {
     asymStrength: futureRing.targetAsymStrength,
     asymAngle: futureRing.targetAsymAngle
   };
-  
+
   ghostRingMat.color.setHex(futureDerived.risk < PhysicsFrame.snapshot.risk ? 0x00ff88 : 0xff4444);
+
+  // API 결과가 있으면 사용, 없으면 클라이언트 계산값 사용
+  const confidence = apiResult?.confidence || profile.confidence;
+  const costPercent = apiResult?.cost_percent || Math.round(profile.delta.FRICTION * -100);
   
-  logAction(`Preview: ${profile.name} (Risk ${(PhysicsFrame.snapshot.risk*100).toFixed(0)}% → ${(futureDerived.risk*100).toFixed(0)}%)`, 'warning');
-  
-  currentAuditAction = { key: actionKey, profile, futureState, futureDerived, futureBottleneck };
+  logAction(`Preview: ${profile.name} (Risk ${(PhysicsFrame.snapshot.risk*100).toFixed(0)}% → ${(futureDerived.risk*100).toFixed(0)}%) [${confidence}% confidence]`, 'warning');
+
+  currentAuditAction = { key: actionKey, profile, futureState, futureDerived, futureBottleneck, apiResult };
   openAudit();
 }
 
@@ -1639,26 +1655,40 @@ function openAudit() {
   if (!currentAuditAction) return;
   clearInterval(auditTimer);
   window.auditActive = true;
-  
-  const { profile, futureDerived, futureBottleneck } = currentAuditAction;
+
+  const { profile, futureDerived, futureBottleneck, apiResult } = currentAuditAction;
   const snap = PhysicsFrame.snapshot; // SINGLE SOURCE
   const bn = PhysicsFrame.bottleneck; // SINGLE SOURCE
-  
+
   document.getElementById('layer-audit').classList.add('active');
   document.getElementById('audit-action').textContent = `${profile.name} — ${profile.description}`;
+
+  // API 결과 우선, 없으면 클라이언트 계산값
+  const currentRisk = apiResult?.current?.risk ?? snap.risk;
+  const predictedRisk = apiResult?.predicted?.risk ?? futureDerived.risk;
+  const confidence = apiResult?.confidence ?? profile.confidence;
   
-  const riskImproved = futureDerived.risk < snap.risk;
-  document.getElementById('audit-risk').textContent = `${(snap.risk*100).toFixed(0)}% → ${(futureDerived.risk*100).toFixed(0)}%`;
+  const riskImproved = predictedRisk < currentRisk;
+  document.getElementById('audit-risk').textContent = `${(currentRisk*100).toFixed(0)}% → ${(predictedRisk*100).toFixed(0)}%`;
   document.getElementById('audit-risk').className = 'value ' + (riskImproved ? 'positive' : 'negative');
-  
+
   document.getElementById('audit-bn').textContent = `${bn.axis} → ${futureBottleneck.axis}`;
   document.getElementById('audit-bn').className = 'value ' + (futureBottleneck.axis !== bn.axis ? 'positive' : '');
-  
-  document.getElementById('audit-conf').textContent = profile.confidence + '%';
-  
+
+  document.getElementById('audit-conf').textContent = confidence + '%';
+
+  // API 결과로 costs 업데이트
   const costsEl = document.getElementById('audit-costs-list');
-  costsEl.innerHTML = profile.costs.map(c => `<span class="cost-item">${c}</span>`).join('');
-  
+  if (apiResult) {
+    costsEl.innerHTML = `
+      <span class="cost-item">💰 Cost: ${apiResult.cost_percent}%</span>
+      <span class="cost-item">⏱️ Time: ${apiResult.time_percent}%</span>
+      <span class="cost-item">📊 Entropy: ${(apiResult.delta.entropy * 100).toFixed(0)}%</span>
+    `;
+  } else {
+    costsEl.innerHTML = profile.costs.map(c => `<span class="cost-item">${c}</span>`).join('');
+  }
+
   let countdown = 30;
   const timerEl = document.getElementById('audit-countdown');
   timerEl.textContent = countdown;

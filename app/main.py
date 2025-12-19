@@ -418,6 +418,74 @@ def execute(body: ExecuteIn):
     ENGINE.execute(body.action, body.actor_id)
     return {"ok": True, "status": ENGINE.snapshot()}
 
+# === Burn Simulate API (명세서 Phase 2) ===
+class BurnSimulateIn(BaseModel):
+    impulse: Literal["RECOVER", "DEFRICTION", "SHOCK_DAMP"] = "RECOVER"
+    magnitude: float = Field(default=1.0, ge=0.1, le=2.0)
+
+IMPULSE_MAP = {
+    "RECOVER": "AUTO_STABILIZE",
+    "DEFRICTION": "REMOVE_LOW_IMPACT",
+    "SHOCK_DAMP": "FORCE_DECISION"
+}
+
+@app.post("/api/v1/burn/simulate")
+def simulate_burn(body: BurnSimulateIn):
+    """Burn 시뮬레이션 (실행 안 함) — 결과만 예측"""
+    snap = ENGINE.snapshot()
+    sig = snap.get("signals", {})
+    
+    # 현재 상태
+    current_entropy = sig.get("entropy", 0.2)
+    current_pressure = sig.get("pressure", 0.3)
+    current_risk = min(1.0, current_entropy * 0.6 + current_pressure * 0.4)
+    
+    # Impulse별 예측 효과
+    effects = {
+        "RECOVER": {"delta_risk": -0.12, "delta_entropy": -0.08, "cost": 15, "time": 8, "confidence": 78},
+        "DEFRICTION": {"delta_risk": -0.08, "delta_entropy": -0.05, "cost": 20, "time": 12, "confidence": 85},
+        "SHOCK_DAMP": {"delta_risk": -0.18, "delta_entropy": -0.10, "cost": 35, "time": 20, "confidence": 72}
+    }
+    
+    effect = effects.get(body.impulse, effects["RECOVER"])
+    magnitude = body.magnitude
+    
+    # 결과 계산
+    new_risk = max(0, current_risk + effect["delta_risk"] * magnitude)
+    new_entropy = max(0, current_entropy + effect["delta_entropy"] * magnitude)
+    
+    return {
+        "impulse": body.impulse,
+        "magnitude": magnitude,
+        "current": {
+            "risk": round(current_risk, 3),
+            "entropy": round(current_entropy, 3)
+        },
+        "predicted": {
+            "risk": round(new_risk, 3),
+            "entropy": round(new_entropy, 3)
+        },
+        "delta": {
+            "risk": round(effect["delta_risk"] * magnitude, 3),
+            "entropy": round(effect["delta_entropy"] * magnitude, 3)
+        },
+        "cost_percent": effect["cost"],
+        "time_percent": effect["time"],
+        "confidence": effect["confidence"],
+        "executed": False
+    }
+
+@app.post("/api/v1/burn/execute")
+def execute_burn(body: BurnSimulateIn):
+    """Burn 확정 실행 (되돌릴 수 없음)"""
+    action = IMPULSE_MAP.get(body.impulse, "AUTO_STABILIZE")
+    ENGINE.execute(action, None)
+    return {
+        "impulse": body.impulse,
+        "executed": True,
+        "status": ENGINE.snapshot()
+    }
+
 # Frontend
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.exists(frontend_path):
