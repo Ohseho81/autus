@@ -401,14 +401,15 @@
     }
     .value-indicators{
       display:flex;justify-content:space-around;
-      padding:10px 12px;margin-top:-1px;
+      padding:10px 8px;margin-top:-1px;
       background:rgba(0,0,0,0.5);border:2px solid rgba(255,255,255,0.15);
       border-top:none;border-radius:0 0 12px 12px;
-      font-size:11px;
+      font-size:10px;
+      flex-wrap:wrap;gap:4px;
     }
-    .value-ind{display:flex;align-items:center;gap:3px}
-    .value-ind .icon{font-size:10px}
-    .value-ind .val{font-weight:600;font-family:'SF Mono',monospace}
+    .value-ind{display:flex;align-items:center;gap:2px;white-space:nowrap}
+    .value-ind .icon{font-size:9px}
+    .value-ind .val{font-weight:600;font-family:'SF Mono',monospace;font-size:9px}
     .value-ind .val.up{color:var(--accent-green)}
     .value-ind .val.down{color:var(--accent-red)}
     
@@ -792,6 +793,31 @@ const PHYSICS = Object.freeze({
   BASE_PULSE: 0.5,
   SHOCK_ASYM: 0.95,
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BEZOS: 구체적 비용 표시 — 실제 금액으로 가치 체감
+// ═══════════════════════════════════════════════════════════════════════════
+const COST_CONFIG = Object.freeze({
+  BASE_MONTHLY_COST: 10000000,   // 월 운영비 기준: ₩10,000,000
+  BASE_HOURLY_RATE: 50000,       // 시간당 비용: ₩50,000
+  CURRENCY: '₩',
+  LOCALE: 'ko-KR'
+});
+
+// 금액 포맷 함수 (Bezos: 구체적 숫자로 신뢰 구축)
+function formatCurrency(amount) {
+  if (Math.abs(amount) >= 1000000) {
+    return `${COST_CONFIG.CURRENCY}${(amount / 10000).toLocaleString(COST_CONFIG.LOCALE)}만`;
+  }
+  return `${COST_CONFIG.CURRENCY}${amount.toLocaleString(COST_CONFIG.LOCALE)}`;
+}
+
+// 시간 포맷 함수
+function formatTime(hours) {
+  if (hours >= 24) return `${Math.round(hours / 24)}일`;
+  if (hours >= 1) return `${Math.round(hours)}시간`;
+  return `${Math.round(hours * 60)}분`;
+}
 
 const TAU = Object.freeze({
   radiusScale: 0.8, thickness: 0.6, pulseHz: 0.4, asymStrength: 0.7, asymAngle: 0.9,
@@ -1596,20 +1622,25 @@ function updateForecastPanelFromAPI() {
   const { branches, recommended } = predictData;
   const best = branches[recommended.toLowerCase()] || branches.shock_damp;
   
+  // Bezos: API 데이터도 구체적 금액으로 변환
+  const savingAmount = formatCurrency(Math.round(COST_CONFIG.BASE_MONTHLY_COST * (best.cost_percent / 100)));
+  const savedTime = formatTime(best.time_percent * 0.8);
+  
   document.getElementById('fc-best').innerHTML = `
     <div class="branch-label">IF ${best.action.replace('_', ' ')}:</div>
     <div class="branch-values">
-      <span class="value-chip positive">💰 Cost −${best.cost_percent}%</span>
-      <span class="value-chip positive">⏱️ Time −${best.time_percent}%</span>
+      <span class="value-chip positive">💰 −${savingAmount}/월</span>
+      <span class="value-chip positive">⏱️ −${savedTime}</span>
       <span class="value-chip positive">🌍 Rep +${best.reputation_sigma}σ</span>
     </div>
   `;
   
-  // NO ACTION 경고
+  // NO ACTION 경고 — 구체적 손실 금액
   const noAct = branches.no_action;
+  const lossAmount = formatCurrency(Math.round(COST_CONFIG.BASE_MONTHLY_COST * noAct.collapse_probability * 0.5));
   const repEl = document.getElementById('rep-status');
   if (repEl) {
-    repEl.innerHTML = `⚠️ NO ACTION: ${noAct.hours_to_critical}h 내 Risk ${Math.round(noAct.collapse_probability * 100)}%`;
+    repEl.innerHTML = `⚠️ NO ACTION: ${noAct.hours_to_critical}h 내 ${lossAmount} 손실 위험`;
     repEl.style.color = 'var(--accent-red)';
   }
 }
@@ -1631,13 +1662,17 @@ function updateForecastPanel() {
     { key: 'defriction', val: av.defriction }
   ].sort((a, b) => (b.val.reputation + b.val.dignity) - (a.val.reputation + a.val.dignity));
 
-  // Best branch
+  // Bezos: 구체적 금액 계산
+  const calcSaving = (pct) => formatCurrency(Math.round(COST_CONFIG.BASE_MONTHLY_COST * (Math.abs(pct) / 100)));
+  const calcTime = (pct) => formatTime(Math.abs(pct) * 0.8);
+
+  // Best branch — 구체적 금액
   const best = actions[0];
   document.getElementById('fc-best').innerHTML = `
     <div class="branch-label">IF ${best.key.toUpperCase().replace('_', ' ')}:</div>
     <div class="branch-values">
-      <span class="value-chip ${best.val.cost > 0 ? 'positive' : 'negative'}">💰 Cost ${best.val.cost > 0 ? '−' : '+'}${Math.abs(best.val.cost)}%</span>
-      <span class="value-chip ${best.val.time > 0 ? 'positive' : 'negative'}">⏱️ Time ${best.val.time > 0 ? '−' : '+'}${Math.abs(best.val.time)}%</span>
+      <span class="value-chip ${best.val.cost > 0 ? 'positive' : 'negative'}">💰 ${best.val.cost > 0 ? '−' : '+'}${calcSaving(best.val.cost)}</span>
+      <span class="value-chip ${best.val.time > 0 ? 'positive' : 'negative'}">⏱️ ${best.val.time > 0 ? '−' : '+'}${calcTime(best.val.time)}</span>
       <span class="value-chip ${best.val.reputation > 0 ? 'positive' : 'negative'}">🌍 Rep ${best.val.reputation > 0 ? '+' : ''}${best.val.reputation}σ</span>
     </div>
   `;
@@ -1648,17 +1683,18 @@ function updateForecastPanel() {
     <div class="branch-label">IF ${mid.key.toUpperCase().replace('_', ' ')}:</div>
     <div class="branch-values">
       <span class="value-chip ${mid.val.dignity > 0 ? 'positive' : 'neutral'}">🏛️ Dignity ${mid.val.dignity > 0 ? '+' : ''}${mid.val.dignity}</span>
-      <span class="value-chip ${mid.val.cost > 0 ? 'positive' : 'negative'}">💰 Cost ${mid.val.cost > 0 ? '−' : '+'}${Math.abs(mid.val.cost)}%</span>
-      <span class="value-chip neutral">⏱️ Time ${mid.val.time > 0 ? '−' : '+'}${Math.abs(mid.val.time)}%</span>
+      <span class="value-chip ${mid.val.cost > 0 ? 'positive' : 'negative'}">💰 ${mid.val.cost > 0 ? '−' : '+'}${calcSaving(mid.val.cost)}</span>
+      <span class="value-chip neutral">⏱️ ${mid.val.time > 0 ? '−' : '+'}${calcTime(mid.val.time)}</span>
     </div>
   `;
   
-  // Worst branch (no action)
+  // Worst branch (no action) — 손실 금액 강조
   const noAct = av.no_action;
+  const lossAmount = calcSaving(noAct.cost);
   document.getElementById('fc-worst').innerHTML = `
     <div class="branch-label">IF NO ACTION:</div>
     <div class="branch-values">
-      <span class="value-chip negative">📈 Entropy +${Math.abs(noAct.cost)}%</span>
+      <span class="value-chip negative">💸 손실 +${lossAmount}/월</span>
       <span class="value-chip negative">⚠️ Shock 지속</span>
       <span class="value-chip negative">🌍 Rep ${noAct.reputation}σ</span>
     </div>
@@ -1679,7 +1715,7 @@ function updateForecastPanel() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// EP10: VALUE INDICATORS UPDATE
+// EP10: VALUE INDICATORS UPDATE — Bezos: 구체적 금액 표시
 // ═══════════════════════════════════════════════════════════════════════════
 function updateValueIndicators() {
   const av = PhysicsFrame.actionValues;
@@ -1689,11 +1725,12 @@ function updateValueIndicators() {
   const riskEl = document.getElementById('action-risk');
   if (riskEl) riskEl.textContent = `${Math.round(snap.risk * 100)}%`;
   
-  // Bezos: NO ACTION 경고
+  // Bezos: NO ACTION 경고 — 구체적 손실 금액 표시
   const warnEl = document.getElementById('no-action-warning');
   if (warnEl) {
     const noActCost = av.no_action?.cost || 10;
-    warnEl.textContent = `⏰ 행동 안 하면: Entropy +${noActCost}%, 붕괴 위험 ↑`;
+    const lossAmount = Math.round(COST_CONFIG.BASE_MONTHLY_COST * (noActCost / 100));
+    warnEl.textContent = `⏰ 행동 안 하면: ${formatCurrency(lossAmount)} 손실/월`;
   }
 
   // 최적 action 찾기 (reputation + dignity 기준)
@@ -1706,12 +1743,16 @@ function updateValueIndicators() {
     const score = (v.reputation || 0) + (v.dignity || 0) + (v.cost || 0) * 0.1;
     if (score > bestScore) { bestScore = score; bestAction = key; }
     
-    // Value indicators 업데이트
+    // Bezos: 퍼센트 → 실제 금액으로 변환
+    const savingAmount = Math.round(COST_CONFIG.BASE_MONTHLY_COST * (Math.abs(v.cost) / 100));
+    const savedTime = Math.abs(v.time) * 0.8; // 시간 절감 (시간 단위)
+    
+    // Value indicators 업데이트 — 구체적 숫자
     const el = document.getElementById(`vi-${key}`);
     if (!el) return;
     el.innerHTML = `
-      <span class="value-ind"><span class="icon">💰</span><span class="val ${v.cost > 0 ? 'down' : 'up'}">${v.cost > 0 ? '−' : '+'}${Math.abs(v.cost)}%</span></span>
-      <span class="value-ind"><span class="icon">⏱️</span><span class="val ${v.time > 0 ? 'down' : 'up'}">${v.time > 0 ? '−' : '+'}${Math.abs(v.time)}%</span></span>
+      <span class="value-ind"><span class="icon">💰</span><span class="val ${v.cost > 0 ? 'down' : 'up'}">${v.cost > 0 ? '−' : '+'}${formatCurrency(savingAmount)}</span></span>
+      <span class="value-ind"><span class="icon">⏱️</span><span class="val ${v.time > 0 ? 'down' : 'up'}">${v.time > 0 ? '−' : '+'}${formatTime(savedTime)}</span></span>
       <span class="value-ind"><span class="icon">🏛️</span><span class="val ${v.dignity > 0 ? 'up' : 'down'}">${v.dignity > 0 ? '+' : ''}${v.dignity}</span></span>
       <span class="value-ind"><span class="icon">🌍</span><span class="val ${v.reputation > 0 ? 'up' : 'down'}">${v.reputation > 0 ? '+' : ''}${v.reputation}σ</span></span>
     `;
@@ -1820,16 +1861,27 @@ function openAudit() {
 
   document.getElementById('audit-conf').textContent = confidence + '%';
 
-  // API 결과로 costs 업데이트
+  // API 결과로 costs 업데이트 — Bezos: 구체적 금액
   const costsEl = document.getElementById('audit-costs-list');
   if (apiResult) {
+    const savingAmount = formatCurrency(Math.round(COST_CONFIG.BASE_MONTHLY_COST * (apiResult.cost_percent / 100)));
+    const savedTime = formatTime(apiResult.time_percent * 0.8);
     costsEl.innerHTML = `
-      <span class="cost-item">💰 Cost: ${apiResult.cost_percent}%</span>
-      <span class="cost-item">⏱️ Time: ${apiResult.time_percent}%</span>
+      <span class="cost-item">💰 절감: ${savingAmount}/월</span>
+      <span class="cost-item">⏱️ 단축: ${savedTime}</span>
       <span class="cost-item">📊 Entropy: ${(apiResult.delta.entropy * 100).toFixed(0)}%</span>
     `;
   } else {
-    costsEl.innerHTML = profile.costs.map(c => `<span class="cost-item">${c}</span>`).join('');
+    // 프로필 기반 구체적 금액 계산
+    const costPct = Math.abs(profile.delta.FRICTION || 0.1) * 100;
+    const timePct = Math.abs(profile.delta.TIME || 0.05) * 100;
+    const savingAmount = formatCurrency(Math.round(COST_CONFIG.BASE_MONTHLY_COST * (costPct / 100)));
+    const savedTime = formatTime(timePct * 0.8);
+    costsEl.innerHTML = `
+      <span class="cost-item">💰 절감: ${savingAmount}/월</span>
+      <span class="cost-item">⏱️ 단축: ${savedTime}</span>
+      ${profile.costs.slice(0, 1).map(c => `<span class="cost-item">${c}</span>`).join('')}
+    `;
   }
 
   let countdown = 30;
