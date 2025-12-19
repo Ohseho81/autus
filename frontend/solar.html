@@ -3930,18 +3930,32 @@ animate();
   </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     AUTUS 자동 실행 시스템 v1.0
-     "추천을 설명하지 말고, 기본값으로 실행되게 하라"
-     5초 후 RECOVER 자동 실행 → AUDIT → 30초 후 자동 LOCK
+     AUTUS 최종 통합 시스템 v2.0
+     Human Verdict Bar + Auto-Commit + 30% UI 축소
+     "3초 안에 이해: 지금 해야 할 행동 + 안 하면 잃는 것"
      ═══════════════════════════════════════════════════════════════════════════ -->
 <script>
 (function() {
   'use strict';
   
+  // ═══════════════════════════════════════════════════════════
+  // 설정
+  // ═══════════════════════════════════════════════════════════
   const CONFIG = {
-    AUTO_DELAY: 5,        // 자동 실행까지 초
-    AUDIT_TIMEOUT: 30,    // AUDIT 자동 LOCK까지 초
-    ENABLED: true         // 자동 실행 활성화 여부
+    AUTO_DELAY: 5,
+    AUDIT_TIMEOUT: 30,
+    ENABLED: true
+  };
+  
+  // 상태 (PhysicsFrame에서 동적으로 가져옴)
+  let STATE = {
+    risk: 0.49,
+    shock: 0.19,
+    recovery: 0.10,
+    friction: 0.10,
+    entropy: 0.14,
+    hoursToCollapse: 21,
+    estimatedLoss: 1300000
   };
   
   let autoTimer = null;
@@ -3949,227 +3963,484 @@ animate();
   let countdown = CONFIG.AUTO_DELAY;
   let currentAction = 'recover';
   
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════
   // 초기화
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════
   function init() {
     if (!CONFIG.ENABLED) return;
     
-    // URL 파라미터로 비활성화 가능 (?auto=false)
     const params = new URLSearchParams(location.search);
     if (params.get('auto') === 'false') return;
     
+    // PhysicsFrame에서 상태 가져오기
+    updateStateFromPhysics();
+    
     // Risk가 낮으면 자동 실행 안 함
-    const risk = PhysicsFrame?.snapshot?.risk || 0;
-    if (risk < 0.2) {
+    if (STATE.risk < 0.2) {
       console.log('[AUTUS] Risk < 20%, 자동 실행 건너뜀');
+      createVerdictBar(); // Verdict Bar만 표시
       return;
     }
     
     // 최적 액션 선택
-    currentAction = selectPrimaryAction().key;
+    if (typeof selectPrimaryAction === 'function') {
+      currentAction = selectPrimaryAction().key;
+    }
     
-    createAutoActionUI();
+    injectStyles();
+    hideExcessUI();
+    createVerdictBar();
+    createAutoCommitUI();
     startAutoTimer();
-    console.log('[AUTUS] 자동 실행 모드 ON:', currentAction);
+    
+    console.log('[AUTUS] 통합 시스템 v2.0 초기화:', currentAction);
   }
   
-  // ─────────────────────────────────────────
-  // 자동 실행 UI
-  // ─────────────────────────────────────────
-  function createAutoActionUI() {
-    // 기존 오버레이 제거
-    document.getElementById('auto-action-overlay')?.remove();
-    document.getElementById('manual-buttons')?.remove();
-    
-    const container = document.createElement('div');
-    container.id = 'auto-action-overlay';
-    container.innerHTML = `
-      <style>
-        #auto-action-overlay {
-          position: fixed;
-          bottom: 100px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: rgba(5, 6, 8, 0.98);
-          border: 2px solid rgba(0, 255, 136, 0.4);
-          border-radius: 16px;
-          padding: 32px 48px;
-          text-align: center;
-          z-index: 9999;
-          min-width: 320px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-        }
-        #auto-action-overlay .label {
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.4);
-          text-transform: uppercase;
-          letter-spacing: 3px;
-          margin-bottom: 12px;
-        }
-        #auto-action-overlay .countdown {
-          font-size: 72px;
-          font-weight: 700;
-          color: #00ff88;
-          font-family: 'SF Mono', 'Consolas', monospace;
-          line-height: 1;
-          margin-bottom: 8px;
-          text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
-        }
-        #auto-action-overlay .action-name {
-          font-size: 16px;
-          color: rgba(255, 255, 255, 0.8);
-          margin-bottom: 24px;
-          letter-spacing: 0.1em;
-        }
-        #auto-action-overlay .cancel-btn {
-          padding: 12px 28px;
-          background: transparent;
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 8px;
-          color: rgba(255, 255, 255, 0.4);
-          cursor: pointer;
-          font-size: 11px;
-          letter-spacing: 0.1em;
-          transition: all 0.2s ease;
-        }
-        #auto-action-overlay .cancel-btn:hover {
-          border-color: rgba(255, 68, 68, 0.6);
-          color: #ff4444;
-        }
-        #auto-action-overlay.hidden { display: none !important; }
-        
-        /* 수동 모드 버튼 */
-        #manual-buttons {
-          display: none;
-          position: fixed;
-          bottom: 100px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: rgba(5, 6, 8, 0.98);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          padding: 20px;
-          z-index: 9998;
-          gap: 12px;
-        }
-        #manual-buttons.active { display: flex; }
-        #manual-buttons button {
-          padding: 16px 28px;
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 8px;
-          color: #fff;
-          cursor: pointer;
-          font-size: 13px;
-          letter-spacing: 0.05em;
-          transition: all 0.2s ease;
-        }
-        #manual-buttons button:hover {
-          border-color: #00ff88;
-          background: rgba(0, 255, 136, 0.1);
-        }
-        #manual-buttons button.recover { border-color: rgba(0, 255, 136, 0.3); }
-        #manual-buttons button.defriction { border-color: rgba(68, 170, 255, 0.3); }
-        #manual-buttons button.shock_damp { border-color: rgba(255, 170, 0, 0.3); }
-      </style>
+  function updateStateFromPhysics() {
+    if (typeof PhysicsFrame !== 'undefined' && PhysicsFrame.snapshot) {
+      STATE.risk = PhysicsFrame.snapshot.risk || 0.49;
+      STATE.entropy = PhysicsFrame.snapshot.entropy || 0.14;
+    }
+    if (typeof TwinState !== 'undefined') {
+      STATE.shock = TwinState.SHOCK || 0.19;
+      STATE.recovery = TwinState.RECOVERY || 0.10;
+      STATE.friction = TwinState.FRICTION || 0.10;
+    }
+    // 동적 계산
+    STATE.hoursToCollapse = Math.max(1, Math.round((1 - STATE.risk) * 48));
+    STATE.estimatedLoss = Math.round(STATE.risk * 3000000);
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // 스타일 주입
+  // ═══════════════════════════════════════════════════════════
+  function injectStyles() {
+    const style = document.createElement('style');
+    style.id = 'autus-integrated-styles';
+    style.textContent = `
+      /* ─────────────────────────────────────────
+         30% 축소: 추가 숨김 대상
+         ───────────────────────────────────────── */
+      .laws-detail, .law-description,
+      .scenario-description, .branch-detail, .future-explanation,
+      .physics-kernel-details, [class*="ring-physics"],
+      .action-timestamp, .log-time,
+      #panel-forecast, #planets,
+      .snapshot-details, .bottleneck-details,
+      #pending-tasks, #commit-dashboard,
+      [class*="help-text"], [class*="instruction"] {
+        display: none !important;
+      }
       
-      <div class="label">자동 실행까지</div>
-      <div class="countdown" id="auto-countdown">${CONFIG.AUTO_DELAY}</div>
-      <div class="action-name" id="auto-action-name">${getActionLabel(currentAction)}</div>
-      <button class="cancel-btn" id="cancel-auto-btn">취소하고 직접 선택</button>
+      /* ─────────────────────────────────────────
+         Human Verdict Bar
+         ───────────────────────────────────────── */
+      #verdict-bar {
+        position: fixed;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 85%;
+        max-width: 700px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 600;
+        color: #000;
+        border-radius: 8px;
+        z-index: 9999;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        letter-spacing: 0.02em;
+      }
+      
+      #verdict-bar.safe {
+        background: linear-gradient(90deg, #00ff88, #00cc66);
+      }
+      #verdict-bar.warning {
+        background: linear-gradient(90deg, #ffcc00, #ff9900);
+      }
+      #verdict-bar.critical {
+        background: linear-gradient(90deg, #ff4444, #cc0000);
+        color: #fff;
+        animation: pulse-critical 1.2s infinite;
+      }
+      
+      @keyframes pulse-critical {
+        0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+        50% { opacity: 0.9; transform: translateX(-50%) scale(1.01); }
+      }
+      
+      /* ─────────────────────────────────────────
+         Auto-Commit UI
+         ───────────────────────────────────────── */
+      #auto-commit-container {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(5, 6, 8, 0.98);
+        border: 2px solid rgba(0, 255, 136, 0.4);
+        border-radius: 16px;
+        padding: 32px 56px;
+        text-align: center;
+        z-index: 9999;
+        min-width: 360px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      }
+      
+      #auto-commit-container .countdown-label {
+        font-size: 11px;
+        color: rgba(255,255,255,0.4);
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        margin-bottom: 8px;
+      }
+      
+      #auto-commit-container .countdown-number {
+        font-size: 80px;
+        font-weight: 700;
+        color: #00ff88;
+        font-family: 'SF Mono', 'Consolas', monospace;
+        line-height: 1;
+        text-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
+      }
+      
+      #auto-commit-container .action-name {
+        font-size: 18px;
+        color: #fff;
+        margin: 16px 0;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+      }
+      
+      #auto-commit-container .impact-row {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+        margin-bottom: 24px;
+        font-size: 15px;
+      }
+      
+      #auto-commit-container .impact-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255,255,255,0.6);
+      }
+      
+      #auto-commit-container .impact-value {
+        color: #00ff88;
+        font-weight: 700;
+        font-size: 16px;
+      }
+      
+      #auto-commit-container .cancel-btn {
+        padding: 12px 32px;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        color: rgba(255,255,255,0.4);
+        cursor: pointer;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        transition: all 0.2s ease;
+      }
+      
+      #auto-commit-container .cancel-btn:hover {
+        border-color: rgba(255, 68, 68, 0.6);
+        color: #ff4444;
+      }
+      
+      #auto-commit-container.hidden { display: none !important; }
+      
+      /* ─────────────────────────────────────────
+         Manual Mode
+         ───────────────────────────────────────── */
+      #manual-mode {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(5, 6, 8, 0.98);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 12px;
+        padding: 20px;
+        z-index: 9998;
+        display: none;
+        gap: 16px;
+      }
+      
+      #manual-mode.active { display: flex; }
+      
+      #manual-mode button {
+        padding: 18px 28px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 13px;
+        letter-spacing: 0.05em;
+        transition: all 0.2s ease;
+      }
+      
+      #manual-mode button.primary {
+        border-color: rgba(0, 255, 136, 0.5);
+        background: rgba(0, 255, 136, 0.08);
+      }
+      
+      #manual-mode button:hover {
+        border-color: #00ff88;
+        background: rgba(0, 255, 136, 0.15);
+      }
+      
+      /* ─────────────────────────────────────────
+         Success Flash
+         ───────────────────────────────────────── */
+      .success-flash {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 36px;
+        color: #00ff88;
+        z-index: 99999;
+        animation: flashOut 2s ease-out forwards;
+        text-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
+      }
+      
+      @keyframes flashOut {
+        0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
+      }
     `;
+    document.head.appendChild(style);
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // 30% UI 숨김
+  // ═══════════════════════════════════════════════════════════
+  function hideExcessUI() {
+    const hideSelectors = [
+      '.future-branch', '.left-panel', '.physics-kernel-details',
+      '.ring-physics-panel', '.snapshot-details', 'footer',
+      '.bottom-controls', '#pending-tasks', '#commit-dashboard'
+    ];
     
-    document.body.appendChild(container);
-    
-    // 수동 버튼 컨테이너
-    const manual = document.createElement('div');
-    manual.id = 'manual-buttons';
-    manual.innerHTML = `
-      <button class="recover" data-action="recover">💚 RECOVER</button>
-      <button class="defriction" data-action="defriction">🔧 DEFRICTION</button>
-      <button class="shock_damp" data-action="shock_damp">⚡ SHOCK DAMP</button>
-    `;
-    document.body.appendChild(manual);
-    
-    // 이벤트 바인딩
-    document.getElementById('cancel-auto-btn').onclick = switchToManual;
-    manual.querySelectorAll('button').forEach(btn => {
-      btn.onclick = () => executeAutoAction(btn.dataset.action);
+    hideSelectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        el.style.display = 'none';
+      });
     });
   }
   
-  function getActionLabel(action) {
-    const labels = {
-      'recover': 'RECOVER — 회복 실행',
-      'defriction': 'DEFRICTION — 마찰 감소',
-      'shock_damp': 'SHOCK DAMP — 충격 완화'
-    };
-    return labels[action] || action.toUpperCase();
+  // ═══════════════════════════════════════════════════════════
+  // Human Verdict Bar
+  // ═══════════════════════════════════════════════════════════
+  function createVerdictBar() {
+    document.getElementById('verdict-bar')?.remove();
+    
+    const bar = document.createElement('div');
+    bar.id = 'verdict-bar';
+    
+    if (STATE.risk >= 0.5) {
+      bar.className = 'critical';
+    } else if (STATE.risk >= 0.3) {
+      bar.className = 'warning';
+    } else {
+      bar.className = 'safe';
+    }
+    
+    bar.textContent = generateVerdict(STATE);
+    document.body.appendChild(bar);
   }
   
-  // ─────────────────────────────────────────
-  // 타이머
-  // ─────────────────────────────────────────
+  function generateVerdict(state) {
+    const { risk, shock, recovery, friction, hoursToCollapse, estimatedLoss } = state;
+    
+    if (risk >= 0.45) {
+      return `지금 회복하지 않으면 ${hoursToCollapse}시간 내 ₩${formatMoney(estimatedLoss)} 손실`;
+    }
+    
+    if (shock > recovery) {
+      return `충격이 회복을 압도 중 — 지연 시 붕괴 가속`;
+    }
+    
+    if (friction > 0.08) {
+      return `비효율로 시간이 새고 있음 — 지금 차단 필요`;
+    }
+    
+    return `시스템 안정 — 현재 조치 불필요`;
+  }
+  
+  function formatMoney(num) {
+    if (num >= 10000) {
+      return Math.round(num / 10000) + '만';
+    }
+    return num.toLocaleString();
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // Auto-Commit UI
+  // ═══════════════════════════════════════════════════════════
+  function createAutoCommitUI() {
+    document.getElementById('auto-commit-container')?.remove();
+    document.getElementById('manual-mode')?.remove();
+    
+    const actionLabels = {
+      'recover': 'RECOVER',
+      'defriction': 'DEFRICTION',
+      'shock_damp': 'SHOCK DAMP'
+    };
+    
+    const container = document.createElement('div');
+    container.id = 'auto-commit-container';
+    container.innerHTML = `
+      <div class="countdown-label">자동 회복까지</div>
+      <div class="countdown-number" id="countdown-num">${CONFIG.AUTO_DELAY}</div>
+      <div class="action-name">${actionLabels[currentAction] || 'RECOVER'}</div>
+      <div class="impact-row">
+        <div class="impact-item">
+          <span>💰</span>
+          <span class="impact-value">−8%</span>
+        </div>
+        <div class="impact-item">
+          <span>⏱️</span>
+          <span class="impact-value">−5%</span>
+        </div>
+      </div>
+      <button class="cancel-btn" id="cancel-btn">취소하고 직접 선택</button>
+    `;
+    document.body.appendChild(container);
+    
+    const manual = document.createElement('div');
+    manual.id = 'manual-mode';
+    manual.innerHTML = `
+      <button class="primary" data-action="recover">💚 RECOVER</button>
+      <button data-action="defriction">🔧 DEFRICTION</button>
+      <button data-action="shock_damp">⚡ SHOCK DAMP</button>
+    `;
+    document.body.appendChild(manual);
+    
+    document.getElementById('cancel-btn').addEventListener('click', switchToManual);
+    manual.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => executeAction(btn.dataset.action));
+    });
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // Auto Timer
+  // ═══════════════════════════════════════════════════════════
   function startAutoTimer() {
     countdown = CONFIG.AUTO_DELAY;
-    updateCountdown();
+    updateCountdownDisplay();
     
     autoTimer = setInterval(() => {
       countdown--;
-      updateCountdown();
+      updateCountdownDisplay();
       
       if (countdown <= 0) {
         clearInterval(autoTimer);
-        executeAutoAction(currentAction);
+        executeAction(currentAction);
       }
     }, 1000);
   }
   
-  function updateCountdown() {
-    const el = document.getElementById('auto-countdown');
+  function updateCountdownDisplay() {
+    const el = document.getElementById('countdown-num');
     if (el) el.textContent = countdown;
   }
   
   function switchToManual() {
     clearInterval(autoTimer);
-    document.getElementById('auto-action-overlay')?.classList.add('hidden');
-    document.getElementById('manual-buttons')?.classList.add('active');
-    console.log('[AUTUS] 수동 모드 전환');
+    document.getElementById('auto-commit-container')?.classList.add('hidden');
+    document.getElementById('manual-mode')?.classList.add('active');
   }
   
-  // ─────────────────────────────────────────
-  // ACTION 실행
-  // ─────────────────────────────────────────
-  async function executeAutoAction(action) {
-    console.log('[AUTUS] 자동 실행:', action);
+  // ═══════════════════════════════════════════════════════════
+  // Action 실행
+  // ═══════════════════════════════════════════════════════════
+  async function executeAction(action) {
+    console.log('[AUTUS] 실행:', action);
     
-    // UI 정리
-    document.getElementById('auto-action-overlay')?.classList.add('hidden');
-    document.getElementById('manual-buttons')?.classList.remove('active');
+    document.getElementById('auto-commit-container')?.classList.add('hidden');
+    document.getElementById('manual-mode')?.classList.remove('active');
     
-    // 기존 previewAction 호출 (AUDIT 모드 포함)
+    // 기존 previewAction 호출
     if (typeof previewAction === 'function') {
       await previewAction(action, null);
     } else {
-      // Fallback: 직접 실행
       document.body.classList.add('audit-mode');
       
       try {
         await fetch(`${API_BASE}/api/v1/burn/simulate`, {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({impulse: action.toUpperCase(), magnitude: 1.0})
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ impulse: action.toUpperCase(), magnitude: 1.0 })
         });
-      } catch(e) {
-        console.warn('[AUTUS] API 호출 실패:', e);
+      } catch (e) {
+        console.warn('[AUTUS] API 미연결');
       }
+      
+      startAuditTimer(action);
     }
   }
   
-  // ─────────────────────────────────────────
-  // 페이지 로드 후 실행
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════
+  // AUDIT Timer
+  // ═══════════════════════════════════════════════════════════
+  function startAuditTimer(action) {
+    let remaining = CONFIG.AUDIT_TIMEOUT;
+    
+    auditTimer = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(auditTimer);
+        confirmLock(action);
+      }
+    }, 1000);
+  }
+  
+  async function confirmLock(action) {
+    clearInterval(auditTimer);
+    
+    try {
+      await fetch(`${API_BASE}/api/v1/burn/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ impulse: action.toUpperCase(), magnitude: 1.0 })
+      });
+    } catch (e) {}
+    
+    document.body.classList.remove('audit-mode');
+    showSuccess();
+    updateVerdictAfterAction();
+  }
+  
+  function showSuccess() {
+    const flash = document.createElement('div');
+    flash.className = 'success-flash';
+    flash.textContent = '✓ 실행 완료';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 2000);
+  }
+  
+  function updateVerdictAfterAction() {
+    STATE.risk = Math.max(0, STATE.risk - 0.15);
+    STATE.recovery = Math.min(1, STATE.recovery + 0.2);
+    
+    const bar = document.getElementById('verdict-bar');
+    if (bar) {
+      bar.textContent = generateVerdict(STATE);
+      bar.className = STATE.risk < 0.3 ? 'safe' : STATE.risk < 0.5 ? 'warning' : 'critical';
+    }
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // 실행
+  // ═══════════════════════════════════════════════════════════
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => setTimeout(init, 1500));
   } else {
