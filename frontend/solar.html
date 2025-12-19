@@ -4526,6 +4526,75 @@ animate();
   
   /* Expert Root 요소들 */
   body.beginner-mode .expert-root { display: none !important; }
+  
+  /* ─────────────────────────────────────────
+     Mini Compare (Action 비교)
+     ───────────────────────────────────────── */
+  #mini-compare {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  #mini-compare .mc {
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px;
+    background: rgba(0,0,0,0.25);
+    transition: all 0.2s;
+  }
+  
+  #mini-compare .mc:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.4);
+  }
+  
+  #mini-compare .mc.best {
+    border-color: rgba(0,255,133,0.4);
+    background: rgba(0,255,133,0.08);
+  }
+  
+  #mini-compare .mc.warn {
+    border-color: rgba(255,170,0,0.3);
+  }
+  
+  #mini-compare .mc h5 {
+    margin: 0 0 8px 0;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.9);
+  }
+  
+  #mini-compare .mc.best h5 {
+    color: #00ff85;
+  }
+  
+  #mini-compare .mc .v {
+    font-size: 14px;
+    font-weight: 800;
+    color: #00ff85;
+    margin-bottom: 4px;
+  }
+  
+  #mini-compare .mc .s {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.4;
+  }
+  
+  #mini-compare .mc.warn .s:last-child {
+    color: #ffa94d;
+  }
+  
+  /* 모바일 대응 */
+  @media (max-width: 600px) {
+    #mini-compare {
+      grid-template-columns: 1fr;
+    }
+  }
+  
   body.beginner-mode .frame,
   body.beginner-mode .system-bar,
   body.beginner-mode .gate-container,
@@ -4832,6 +4901,9 @@ animate();
           </div>
         </div>
 
+        <!-- Mini Compare: 3개 액션 비교 -->
+        <div id="mini-compare"></div>
+
         <div class="actions">
           <button id="btn-primary" class="btn-primary">EXECUTE</button>
           <span id="autoPill" class="pill">자동 실행: <b id="autoState">OFF</b></span>
@@ -4906,6 +4978,47 @@ animate();
     if(!el) return;
     el.textContent = text;
     el.className = warn ? "sub warn" : "sub";
+  }
+
+  // ─────────────────────────────────────────
+  // Mini Compare (10)
+  // ─────────────────────────────────────────
+  function fmtKRW(n){
+    if(!Number.isFinite(n)) return "—";
+    const man=Math.round(Math.abs(n)/10000);
+    return `₩${man}만`;
+  }
+
+  function buildCompare(actions){
+    const order=["RECOVER","DEFRICTION","SHOCK_DAMP"];
+    return order.map(k=>{
+      const a=actions.find(x=>x.key===k)||{};
+      const d=a.deltas||{};
+      const t=a.tradeoff||{};
+      return {
+        key:k,
+        money: Number.isFinite(d.money_delta_monthly)? fmtKRW(d.money_delta_monthly):"—",
+        time: Number.isFinite(d.time_delta_hours)? `${Math.round(Math.abs(d.time_delta_hours)*60)}분`:"—",
+        risk: Number.isFinite(d.risk_delta)? `${Math.round(-d.risk_delta*100)}%↓`:"—",
+        trade: Number.isFinite(t.recovery_delta)&&t.recovery_delta<0? `⚠️ Recovery ${Math.round(t.recovery_delta*100)}%`:"—",
+        best: a.recommended===true,
+        warn: Number.isFinite(t.recovery_delta)&&t.recovery_delta<0
+      };
+    });
+  }
+
+  function renderMiniCompare(model){
+    const el=document.getElementById("mini-compare");
+    if(!el||!model?.actions) return;
+    const rows=buildCompare(model.actions);
+    el.innerHTML = rows.map(r=>`
+      <div class="mc ${r.best?'best':''} ${r.warn?'warn':''}">
+        <h5>${r.key}${r.best?' ✓':''}</h5>
+        <div class="v">💰 ${r.money}</div>
+        <div class="s">⏱️ ${r.time} · Risk ${r.risk}</div>
+        <div class="s">${r.trade}</div>
+      </div>
+    `).join("");
   }
 
   function showUndo(seconds, eventBase){
@@ -4990,6 +5103,9 @@ animate();
 
     const enabled = localStorage.getItem(LS_AUTO) === "1";
     shell.querySelector("#autoState").textContent = enabled ? "ON" : "OFF";
+
+    // (10) Mini Compare 렌더링
+    renderMiniCompare(model);
 
     const evalr = policyEvaluate(model);
     if(evalr.status==="BLOCKED"){
