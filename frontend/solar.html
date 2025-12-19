@@ -3939,12 +3939,373 @@ animate();
      - window.__AUTUS_MODEL 데이터 소스
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-<!-- PhysicsFrame → __AUTUS_MODEL 브릿지 -->
+<!-- PhysicsFrame → __AUTUS_MODEL 브릿지 + (7)(8)(9) Verdict/i18n/Scoring -->
 <script>
 (function(){
   'use strict';
-  
-  // PhysicsFrame 데이터를 __AUTUS_MODEL 형식으로 변환하는 함수
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // (8) LocalePack — i18n + CopySet
+  // ════════════════════════════════════════════════════════════════════════════
+  const LocalePacks = {
+    "ko-KR": {
+      toneDefault: "DIRECT",
+      formatMoney: (n) => {
+        if (!Number.isFinite(n)) return "—";
+        const man = Math.round(Math.abs(n) / 10000);
+        return `₩${man}만`;
+      },
+      templates: {
+        A: {
+          DANGER: (c, loss24, lossM) =>
+            loss24 ? `지금은 위험 상태입니다. ${c} 문제로 24시간 내 ${loss24} 손실 위험이 있습니다.`
+                  : `지금은 위험 상태입니다. ${c} 문제로 매달 ${lossM} 손실이 확대됩니다.`,
+          STAGNANT: (c, loss24, lossM) =>
+            loss24 ? `지금은 안전해 보여도 ${c} 문제로 24시간 내 ${loss24} 손실 위험이 있습니다.`
+                  : `지금은 안전해 보여도 ${c} 문제로 방치 시 매달 ${lossM} 손실이 발생합니다.`,
+          HEALTHY: (c) => `현재는 안정적입니다. ${c} 개선 시 성과를 더 올릴 수 있습니다.`,
+          NO_DATA: () => `데이터를 불러오는 중입니다. 잠시 후 다시 확인하세요.`
+        },
+        B: {
+          DANGER: (c, loss24, lossM) =>
+            loss24 ? `지금 개입하지 않으면 ${c} 문제로 24시간 내 ${loss24} 손실이 커집니다.`
+                  : `지금 개입하지 않으면 ${c} 문제로 매달 ${lossM} 손실이 누적됩니다.`,
+          STAGNANT: (c, loss24, lossM) =>
+            loss24 ? `지금 개입하면 ${c} 문제로 인한 24시간 손실(${loss24})을 막을 수 있습니다.`
+                  : `지금 개입하면 ${c} 문제로 인한 월 손실(${lossM})을 막을 수 있습니다.`,
+          HEALTHY: (c) => `현재는 안정적입니다. ${c} 개선으로 성과를 높이세요.`,
+          NO_DATA: () => `데이터를 불러오는 중입니다. 잠시 후 다시 확인하세요.`
+        }
+      },
+      causeLabel: {
+        RECOVERY: "회복(Recovery)",
+        STABILITY: "안정(Stability)",
+        COHESION: "연결(Cohesion)",
+        SHOCK: "충격(Shock)",
+        FRICTION: "비효율(Friction)",
+        TRANSFER: "전달(Transfer)",
+        TIME: "시간(Time)",
+        QUALITY: "품질(Quality)",
+        OUTPUT: "성과(Output)",
+      }
+    },
+
+    "en-PH": {
+      toneDefault: "SOFT",
+      formatMoney: (n) => {
+        if (!Number.isFinite(n)) return "—";
+        const abs = Math.abs(n);
+        if (abs >= 1_000_000) return `₱${(abs/1_000_000).toFixed(1)}M`;
+        if (abs >= 1_000) return `₱${(abs/1_000).toFixed(1)}k`;
+        return `₱${abs.toFixed(0)}`;
+      },
+      templates: {
+        A: {
+          DANGER: (c, loss24, lossM) =>
+            loss24 ? `High risk now. ${c} is critical—act within 24h to prevent ${loss24} loss.`
+                  : `High risk now. ${c} is critical—loss may reach ${lossM}/month.`,
+          STAGNANT: (c, loss24, lossM) =>
+            loss24 ? `Stable, but ${c} is weak—loss may reach ${loss24} within 24h.`
+                  : `Stable, but ${c} is weak—loss may reach ${lossM}/month.`,
+          HEALTHY: (c) => `Stable now. Improving ${c} can increase outcomes.`,
+          NO_DATA: () => `Loading data. Please check again shortly.`
+        },
+        B: {
+          DANGER: (c, loss24, lossM) =>
+            loss24 ? `Action needed. ${c} is driving a potential ${loss24} loss within 24h.`
+                  : `Action needed. ${c} is driving a potential ${lossM}/month loss.`,
+          STAGNANT: (c, loss24, lossM) =>
+            loss24 ? `Recommended: fix ${c} to avoid ${loss24} loss within 24h.`
+                  : `Recommended: fix ${c} to avoid ${lossM}/month loss.`,
+          HEALTHY: (c) => `Stable now. Improve ${c} to grow outcomes.`,
+          NO_DATA: () => `Loading data. Please check again shortly.`
+        }
+      },
+      causeLabel: {
+        RECOVERY: "Recovery",
+        STABILITY: "Stability",
+        COHESION: "Cohesion",
+        SHOCK: "Shock",
+        FRICTION: "Friction",
+        TRANSFER: "Transfer",
+        TIME: "Time",
+        QUALITY: "Quality",
+        OUTPUT: "Output",
+      }
+    },
+
+    "vi-VN": {
+      toneDefault: "SOFT",
+      formatMoney: (n) => {
+        if (!Number.isFinite(n)) return "—";
+        const abs = Math.abs(n);
+        if (abs >= 1_000_000) return `${(abs/1_000_000).toFixed(1)}M₫`;
+        if (abs >= 1_000) return `${(abs/1_000).toFixed(1)}k₫`;
+        return `${abs.toFixed(0)}₫`;
+      },
+      templates: {
+        A: {
+          DANGER: (c, loss24, lossM) =>
+            loss24 ? `Rủi ro cao. ${c} đang gây tổn thất ${loss24} trong 24h.`
+                  : `Rủi ro cao. ${c} đang gây tổn thất ${lossM}/tháng.`,
+          STAGNANT: (c, loss24, lossM) =>
+            loss24 ? `Ổn định, nhưng ${c} yếu—có thể mất ${loss24} trong 24h.`
+                  : `Ổn định, nhưng ${c} yếu—có thể mất ${lossM}/tháng.`,
+          HEALTHY: (c) => `Ổn định. Cải thiện ${c} để tăng kết quả.`,
+          NO_DATA: () => `Đang tải dữ liệu. Vui lòng kiểm tra lại sau.`
+        },
+        B: {
+          DANGER: (c, loss24, lossM) =>
+            loss24 ? `Cần hành động. ${c} có thể gây mất ${loss24} trong 24h.`
+                  : `Cần hành động. ${c} có thể gây mất ${lossM}/tháng.`,
+          STAGNANT: (c, loss24, lossM) =>
+            loss24 ? `Khuyến nghị: sửa ${c} để tránh mất ${loss24} trong 24h.`
+                  : `Khuyến nghị: sửa ${c} để tránh mất ${lossM}/tháng.`,
+          HEALTHY: (c) => `Ổn định. Cải thiện ${c} để phát triển.`,
+          NO_DATA: () => `Đang tải dữ liệu. Vui lòng kiểm tra lại sau.`
+        }
+      },
+      causeLabel: {
+        RECOVERY: "Phục hồi(Recovery)",
+        STABILITY: "Ổn định(Stability)",
+        COHESION: "Liên kết(Cohesion)",
+        SHOCK: "Cú sốc(Shock)",
+        FRICTION: "Ma sát(Friction)",
+        TRANSFER: "Truyền tải(Transfer)",
+        TIME: "Thời gian(Time)",
+        QUALITY: "Chất lượng(Quality)",
+        OUTPUT: "Kết quả(Output)",
+      }
+    },
+
+    "id-ID": {
+      toneDefault: "SOFT",
+      formatMoney: (n) => {
+        if (!Number.isFinite(n)) return "—";
+        const abs = Math.abs(n);
+        if (abs >= 1_000_000) return `Rp${(abs/1_000_000).toFixed(1)}jt`;
+        if (abs >= 1_000) return `Rp${(abs/1_000).toFixed(1)}rb`;
+        return `Rp${abs.toFixed(0)}`;
+      },
+      templates: {
+        A: {
+          DANGER: (c, loss24, lossM) =>
+            loss24 ? `Risiko tinggi. ${c} kritis—bertindak dalam 24j untuk mencegah kerugian ${loss24}.`
+                  : `Risiko tinggi. ${c} kritis—kerugian bisa mencapai ${lossM}/bulan.`,
+          STAGNANT: (c, loss24, lossM) =>
+            loss24 ? `Stabil, tapi ${c} lemah—kerugian bisa ${loss24} dalam 24j.`
+                  : `Stabil, tapi ${c} lemah—kerugian bisa ${lossM}/bulan.`,
+          HEALTHY: (c) => `Stabil sekarang. Tingkatkan ${c} untuk hasil lebih baik.`,
+          NO_DATA: () => `Memuat data. Silakan periksa lagi nanti.`
+        },
+        B: {
+          DANGER: (c, loss24, lossM) =>
+            loss24 ? `Tindakan diperlukan. ${c} bisa menyebabkan kerugian ${loss24} dalam 24j.`
+                  : `Tindakan diperlukan. ${c} bisa menyebabkan kerugian ${lossM}/bulan.`,
+          STAGNANT: (c, loss24, lossM) =>
+            loss24 ? `Rekomendasi: perbaiki ${c} untuk menghindari kerugian ${loss24} dalam 24j.`
+                  : `Rekomendasi: perbaiki ${c} untuk menghindari kerugian ${lossM}/bulan.`,
+          HEALTHY: (c) => `Stabil. Tingkatkan ${c} untuk berkembang.`,
+          NO_DATA: () => `Memuat data. Silakan periksa lagi nanti.`
+        }
+      },
+      causeLabel: {
+        RECOVERY: "Pemulihan(Recovery)",
+        STABILITY: "Stabilitas(Stability)",
+        COHESION: "Keterhubungan(Cohesion)",
+        SHOCK: "Guncangan(Shock)",
+        FRICTION: "Gesekan(Friction)",
+        TRANSFER: "Transfer(Transfer)",
+        TIME: "Waktu(Time)",
+        QUALITY: "Kualitas(Quality)",
+        OUTPUT: "Hasil(Output)",
+      }
+    }
+  };
+
+  function getPack(locale, copySet){
+    const loc = LocalePacks[locale] ? locale : "ko-KR";
+    const set = (copySet === "B") ? "B" : "A";
+    return { pack: LocalePacks[loc], set };
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // (7) Verdict Generator
+  // ════════════════════════════════════════════════════════════════════════════
+  function classifyState(model){
+    const b = model?.bottleneck?.value;
+    const risk = model?.snapshot?.risk_now ?? model?.snapshot?.risk;
+    const isDanger = (Number.isFinite(b) && b >= 0.60) || (Number.isFinite(risk) && risk >= 0.55);
+    const isHealthy = (Number.isFinite(b) && b < 0.40) && (Number.isFinite(risk) && risk < 0.35);
+    return isDanger ? "DANGER" : (isHealthy ? "HEALTHY" : "STAGNANT");
+  }
+
+  function rootCauseType(model){
+    return model?.bottleneck?.type || "COHESION";
+  }
+
+  function computeVerdict(model, locale, copySet){
+    const { pack, set } = getPack(locale, copySet);
+    const state = classifyState(model);
+    const cause = pack.causeLabel[rootCauseType(model)] || "Key factor";
+    const loss24 = model?.future?.no_action?.loss_24h;
+    const lossM = model?.future?.no_action?.loss_monthly;
+    const f24 = (Number.isFinite(loss24) && loss24 > 0) ? pack.formatMoney(loss24) : null;
+    const fM  = (Number.isFinite(lossM)  && lossM  > 0) ? pack.formatMoney(lossM)  : null;
+
+    const age = model?.snapshot?.ageSeconds;
+    if (Number.isFinite(age) && age > 30) return pack.templates[set].NO_DATA();
+
+    if (state === "DANGER") return pack.templates[set].DANGER(cause, f24, fM);
+    if (state === "HEALTHY") return pack.templates[set].HEALTHY(cause);
+    return pack.templates[set].STAGNANT(cause, f24, fM);
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // (9) Action Scoring + RECOMMENDED
+  // ════════════════════════════════════════════════════════════════════════════
+  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+
+  function normalizeMoneySaved(action, noActionLossM){
+    const moneyDelta = action?.deltas?.money_delta_monthly;
+    const saved = Math.max(0, -(moneyDelta || 0));
+    return clamp01(saved / Math.max(noActionLossM || 1, 1));
+  }
+  function normalizeTimeSaved(action){
+    const timeDeltaH = action?.deltas?.time_delta_hours;
+    const saved = Math.max(0, -(timeDeltaH || 0));
+    return clamp01(saved / 24);
+  }
+  function normalizeRiskBenefit(action){
+    const d = action?.deltas?.risk_delta;
+    return clamp01(Math.max(0, -(d || 0)) / 0.10);
+  }
+  function normalizeEntropyBenefit(action){
+    const d = action?.deltas?.entropy_delta;
+    return clamp01(Math.max(0, -(d || 0)) / 0.10);
+  }
+  function normalizeRep(action){
+    const s = action?.deltas?.rep_delta_sigma || 0;
+    return clamp01((s + 0.5) / 1.0);
+  }
+  function normalizeDignity(action){
+    const d = action?.deltas?.dignity_delta || 0;
+    return clamp01((d + 1.0) / 2.0);
+  }
+  function recoveryPenalty(action){
+    const r = action?.tradeoff?.recovery_delta;
+    const loss = Math.max(0, -(r || 0));
+    return clamp01(loss / 0.20);
+  }
+
+  const RoleWeights = {
+    SUBJECT:      { wM:0.30,wT:0.15,wR:0.20,wE:0.15,wP:0.10,wD:0.10,wK:0.25 },
+    OPERATOR:     { wM:0.35,wT:0.25,wR:0.15,wE:0.10,wP:0.05,wD:0.10,wK:0.20 },
+    SPONSOR:      { wM:0.35,wT:0.20,wR:0.15,wE:0.10,wP:0.10,wD:0.10,wK:0.20 },
+    EMPLOYER:     { wM:0.30,wT:0.20,wR:0.20,wE:0.10,wP:0.10,wD:0.10,wK:0.20 },
+    INSTITUTION:  { wM:0.15,wT:0.10,wR:0.25,wE:0.15,wP:0.15,wD:0.20,wK:0.15 }
+  };
+
+  function scoreAction(action, model){
+    const role = model?.role || "SUBJECT";
+    const w = RoleWeights[role] || RoleWeights.SUBJECT;
+    const noActionLossM = model?.future?.no_action?.loss_monthly || 1;
+
+    const M = normalizeMoneySaved(action, noActionLossM);
+    const T = normalizeTimeSaved(action);
+    const R = normalizeRiskBenefit(action);
+    const E = normalizeEntropyBenefit(action);
+    const P = normalizeRep(action);
+    const D = normalizeDignity(action);
+    const K = recoveryPenalty(action);
+
+    const S = w.wM*M + w.wT*T + w.wR*R + w.wE*E + w.wP*P + w.wD*D - w.wK*K;
+    return { S, breakdown:{M,T,R,E,P,D,K}, weights:w };
+  }
+
+  function confidenceGate(model, action){
+    const flags = model?.flags || {};
+    if (flags.demo || flags.offline || flags.connecting) return { ok:false, reason:["ENV_BLOCKED"] };
+    const age = model?.snapshot?.ageSeconds;
+    if (Number.isFinite(age) && age > 30) return { ok:false, reason:["SNAPSHOT_STALE"] };
+    const conf = action?.confidence;
+    if (Number.isFinite(conf) && conf < 0.70) return { ok:false, reason:["CONFIDENCE_LOW"] };
+    const lossM = model?.future?.no_action?.loss_monthly;
+    const loss24 = model?.future?.no_action?.loss_24h;
+    if (!(Number.isFinite(lossM) || Number.isFinite(loss24))) return { ok:false, reason:["FUTURE_NO_ACTION_MISSING"] };
+    return { ok:true, reason:[] };
+  }
+
+  function pickRecommended(model){
+    const actions = Array.isArray(model?.actions) ? model.actions : [];
+    if (!actions.length) return null;
+
+    const scored = actions.map(a => {
+      const r = scoreAction(a, model);
+      return { key:a.key, action:a, score:r.S, breakdown:r.breakdown };
+    }).sort((a,b)=>b.score-a.score);
+
+    const winner = scored[0];
+    const gate = confidenceGate(model, winner.action);
+    if (!gate.ok){
+      return {
+        recommendedKey: null,
+        scored,
+        reason_codes: gate.reason.map(x => `RC_${x}`)
+      };
+    }
+
+    // tie-breaker
+    if (scored[1] && Math.abs(scored[0].score - scored[1].score) < 0.05){
+      const a = scored[0], b = scored[1];
+      const aRE = (a.breakdown.R + a.breakdown.E);
+      const bRE = (b.breakdown.R + b.breakdown.E);
+      if (bRE > aRE) scored.unshift(scored.splice(1,1)[0]);
+    }
+
+    return {
+      recommendedKey: scored[0].key,
+      scored,
+      reason_codes: ["RC_SCORE_WINNER"]
+    };
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // enrichModelWith789 — (7)(8)(9) 통합
+  // ════════════════════════════════════════════════════════════════════════════
+  function enrichModelWith789(model){
+    const locale = model?.locale || "ko-KR";
+    const copySet = (localStorage.getItem("autus.copySet") || "A").toUpperCase();
+
+    // (7) Verdict 생성
+    model.verdict = computeVerdict(model, locale, copySet);
+    model.stateClass = classifyState(model);
+
+    // (9) Action Scoring + RECOMMENDED
+    const rec = pickRecommended(model);
+    model.recommendation = rec;
+
+    if (rec?.recommendedKey && Array.isArray(model.actions)){
+      model.actions.forEach(a => { a.recommended = (a.key === rec.recommendedKey); });
+    }
+
+    // Reason codes for audit
+    model.reason_codes = [
+      ...(rec?.reason_codes || []),
+      `RC_STATE_${classifyState(model)}`,
+      `RC_BOTTLENECK_${rootCauseType(model)}`
+    ];
+
+    // (8) LocalePack 정보 추가
+    const { pack } = getPack(locale, copySet);
+    model.causeLabel = pack.causeLabel[rootCauseType(model)] || "Key factor";
+
+    return model;
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // PhysicsFrame → __AUTUS_MODEL 동기화
+  // ════════════════════════════════════════════════════════════════════════════
   function syncAutusModel() {
     if (typeof PhysicsFrame === 'undefined') return;
     
@@ -3954,32 +4315,56 @@ animate();
     
     // Risk 기반 손실 계산 (24h/월)
     const risk = snap.risk || 0;
-    const hourlyLoss = Math.round(risk * 500000); // 시간당 ₩50만 기준
+    const hourlyLoss = Math.round(risk * 500000);
     const loss24h = hourlyLoss * 24;
     const lossMonthly = loss24h * 30;
     
-    // Actions 생성
+    // TwinState에서 추가 델타 계산
+    const twinState = typeof TwinState !== 'undefined' ? TwinState : {};
+    
+    // Actions 생성 (확장된 deltas 포함)
     const actions = [
       {
         key: 'RECOVER',
-        recommended: bn.axis !== 'SHOCK' && bn.axis !== 'FRICTION',
         confidence: 0.87,
         tradeoff: { recovery_delta: 0.15 },
-        deltas: { RECOVERY: 0.15, STABILITY: 0.06, COHESION: 0.04 }
+        deltas: {
+          RECOVERY: 0.15, STABILITY: 0.06, COHESION: 0.04,
+          risk_delta: -0.08,
+          entropy_delta: -0.05,
+          money_delta_monthly: -Math.round(lossMonthly * 0.4),
+          time_delta_hours: -2,
+          dignity_delta: 0.1,
+          rep_delta_sigma: 0.1
+        }
       },
       {
         key: 'DEFRICTION',
-        recommended: bn.axis === 'FRICTION',
         confidence: 0.82,
         tradeoff: { recovery_delta: -0.04 },
-        deltas: { FRICTION: -0.18, SHOCK: -0.07, TRANSFER: 0.06 }
+        deltas: {
+          FRICTION: -0.18, SHOCK: -0.07, TRANSFER: 0.06,
+          risk_delta: -0.05,
+          entropy_delta: -0.08,
+          money_delta_monthly: -Math.round(lossMonthly * 0.35),
+          time_delta_hours: -3,
+          dignity_delta: 0.05,
+          rep_delta_sigma: 0.05
+        }
       },
       {
         key: 'SHOCK_DAMP',
-        recommended: bn.axis === 'SHOCK',
         confidence: 0.91,
         tradeoff: { recovery_delta: -0.10 },
-        deltas: { SHOCK: -0.25, STABILITY: 0.08, COHESION: 0.05 }
+        deltas: {
+          SHOCK: -0.25, STABILITY: 0.08, COHESION: 0.05,
+          risk_delta: -0.12,
+          entropy_delta: -0.03,
+          money_delta_monthly: -Math.round(lossMonthly * 0.5),
+          time_delta_hours: -1,
+          dignity_delta: 0.15,
+          rep_delta_sigma: 0.2
+        }
       }
     ];
     
@@ -3988,13 +4373,17 @@ animate();
     const role = (params.get('role') || 'SUBJECT').toUpperCase();
     
     // Locale 결정
-    const lang = navigator.language || 'ko-KR';
-    let locale = 'ko-KR';
-    if (lang.startsWith('en')) locale = 'en-US';
-    else if (lang.startsWith('vi')) locale = 'vi-VN';
-    else if (lang.startsWith('id')) locale = 'id-ID';
+    const langParam = params.get('locale');
+    let locale = langParam || 'ko-KR';
+    if (!langParam) {
+      const lang = navigator.language || 'ko-KR';
+      if (lang.startsWith('en')) locale = 'en-PH';
+      else if (lang.startsWith('vi')) locale = 'vi-VN';
+      else if (lang.startsWith('id')) locale = 'id-ID';
+      else locale = 'ko-KR';
+    }
     
-    // __AUTUS_MODEL 업데이트
+    // __AUTUS_MODEL 생성
     window.__AUTUS_MODEL = {
       snapshot: {
         id: `snap_${ts}`,
@@ -4029,6 +4418,9 @@ animate();
         connecting: false
       }
     };
+    
+    // (7)(8)(9) 통합 적용
+    enrichModelWith789(window.__AUTUS_MODEL);
   }
   
   // 초기화 및 주기적 동기화
@@ -4042,6 +4434,10 @@ animate();
   } else {
     init();
   }
+
+  // 외부 접근용
+  window.__AUTUS_ENRICH = enrichModelWith789;
+  window.__AUTUS_LOCALE_PACKS = LocalePacks;
 })();
 </script>
 
@@ -4560,20 +4956,37 @@ animate();
       return;
     }
 
-    const locale = model.locale || "ko-KR";
-    const bType = model?.bottleneck?.type;
     const bVal = model?.bottleneck?.value;
-    const cause = getCauseText(bType, locale);
     const pct = Number.isFinite(bVal) ? Math.round(bVal*100) : null;
 
-    const verdict = buildVerdict(model);
-    const actionKey = pickPrimaryAction(model);
+    // (7)(8)(9) 통합된 값 사용
+    const verdict = model.verdict || "상태 분석 중...";
+    const cause = model.causeLabel || getCauseText(model?.bottleneck?.type, model.locale);
+    
+    // (9) Action Scoring에서 추천된 액션 사용
+    const actionKey = model.recommendation?.recommendedKey || pickPrimaryAction(model);
     const actionLabel = (actionKey==="SHOCK_DAMP") ? "SHOCK DAMP" : actionKey;
 
-    shell.querySelector("#verdict").textContent = verdict;
+    // State class에 따른 verdict 스타일
+    const verdictEl = shell.querySelector("#verdict");
+    verdictEl.textContent = verdict;
+    verdictEl.className = "verdict";
+    if (model.stateClass === "DANGER") verdictEl.style.color = "#ff6b6b";
+    else if (model.stateClass === "HEALTHY") verdictEl.style.color = "#69db7c";
+    else verdictEl.style.color = "#ffd43b";
+
     shell.querySelector("#cause").textContent = cause;
     shell.querySelector("#causeDesc").textContent = (pct!=null) ? `현재 병목 강도: ${pct}%` : "현재 병목 강도: —";
     shell.querySelector("#action").textContent = actionLabel;
+
+    // Scoring breakdown 표시 (디버그용)
+    const actionDescEl = shell.querySelector("#actionDesc");
+    if (actionDescEl && model.recommendation?.scored) {
+      const top = model.recommendation.scored[0];
+      if (top) {
+        actionDescEl.textContent = `Score: ${top.score.toFixed(2)} | ${model.reason_codes?.join(", ") || ""}`;
+      }
+    }
 
     const enabled = localStorage.getItem(LS_AUTO) === "1";
     shell.querySelector("#autoState").textContent = enabled ? "ON" : "OFF";
@@ -4584,7 +4997,8 @@ animate();
     }else if(evalr.boundary){
       setBanner("경계 상태: trade-off 존재 (자동 실행은 기본 OFF 권장)", false);
     }else{
-      setBanner("결론 → 원인 → 실행 순서로 진행", false);
+      const stateMsg = model.stateClass === "DANGER" ? "⚠️ 위험" : model.stateClass === "HEALTHY" ? "✓ 안정" : "◐ 주의";
+      setBanner(`${stateMsg} | 결론 → 원인 → 실행 순서로 진행`, false);
     }
 
     applyViewModeVisibility();
