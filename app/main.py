@@ -663,6 +663,193 @@ if os.path.exists(frontend_path):
 # === Solar State API (Physics Kernel) ===
 from core.physics import entropy, pressure, gravity, failure_horizon, DeltaState
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 7 Laws + TIME-MONEY PHYSICS Engine API
+# ═══════════════════════════════════════════════════════════════════════════════
+try:
+    from app.physics import PhysicsEngine, create_demo_engine
+    from app.physics.laws import T_MIN, ALPHA_SAFETY, MAX_ROLES, SystemState
+    from app.physics.time_money import CommitData, FloatState
+    
+    # 전역 Physics Engine 인스턴스
+    PHYSICS_ENGINE = create_demo_engine()
+    
+    @app.get("/api/v1/physics/state")
+    def get_physics_state():
+        """
+        7 Laws + TIME-MONEY PHYSICS 통합 상태
+        Frontend __AUTUS_MODEL과 1:1 매핑
+        """
+        snapshot = PHYSICS_ENGINE.compute_snapshot()
+        return PHYSICS_ENGINE.to_dict()
+    
+    @app.get("/api/v1/physics/ui-model")
+    def get_physics_ui_model():
+        """
+        Frontend UI용 모델 (window.__AUTUS_MODEL 형식)
+        """
+        PHYSICS_ENGINE.compute_snapshot()
+        return PHYSICS_ENGINE.to_ui_model()
+    
+    @app.get("/api/v1/physics/laws")
+    def get_physics_laws():
+        """7 Laws 상수 조회"""
+        return {
+            "T_MIN": T_MIN,
+            "ALPHA_SAFETY": ALPHA_SAFETY,
+            "MAX_ROLES": MAX_ROLES,
+            "description": {
+                "law1": "Continuity (연속성) — Human_Continuity = min(Survival_Time_i) ≥ 180일",
+                "law2": "Conservation (보존) — Σ Money_Flow = Σ Commit_Mass",
+                "law3": "State Dominance (상태 지배) — RED → Allowed_Action = ∅",
+                "law4": "Cognitive Minimum (인지 최소) — UI≤3, Button≤1, Text=0",
+                "law5": "Containment (격리) — ∂System/∂Failure ≈ 0",
+                "law6": "Responsibility (책임 밀도) — Density = 1/Roles (6)",
+                "law7": "Survival Mass (생존 질량) — Mass ≥ 1.3 × Required"
+            }
+        }
+    
+    class PhysicsCommitIn(BaseModel):
+        """Physics Commit 입력"""
+        id: str
+        amount: float
+        start_date: str  # ISO format
+        end_date: str
+        direction: Literal["in", "out"] = "in"
+        regulatory_risk: float = Field(default=0.0, ge=0.0, le=1.0)
+        operational_risk: float = Field(default=0.0, ge=0.0, le=1.0)
+        payments_per_period: int = Field(default=1, ge=1)
+    
+    class PhysicsPersonIn(BaseModel):
+        """Physics Person 입력"""
+        id: str
+        survival_time: float  # days
+    
+    @app.post("/api/v1/physics/commit")
+    def add_physics_commit(body: PhysicsCommitIn):
+        """Commit 추가 (Physics Engine)"""
+        from datetime import datetime as dt
+        
+        start_ts = dt.fromisoformat(body.start_date.replace('Z', '+00:00')).timestamp()
+        end_ts = dt.fromisoformat(body.end_date.replace('Z', '+00:00')).timestamp()
+        
+        PHYSICS_ENGINE.add_commit(
+            id=body.id,
+            amount=body.amount,
+            start_date=start_ts,
+            end_date=end_ts,
+            direction=body.direction,
+            regulatory_risk=body.regulatory_risk,
+            operational_risk=body.operational_risk,
+            payments_per_period=body.payments_per_period
+        )
+        
+        return {
+            "success": True,
+            "commit_id": body.id,
+            "snapshot": PHYSICS_ENGINE.to_dict()
+        }
+    
+    @app.post("/api/v1/physics/person")
+    def add_physics_person(body: PhysicsPersonIn):
+        """Person 추가 (Physics Engine)"""
+        PHYSICS_ENGINE.add_person(body.id, body.survival_time)
+        return {
+            "success": True,
+            "person_id": body.id,
+            "snapshot": PHYSICS_ENGINE.to_dict()
+        }
+    
+    @app.post("/api/v1/physics/action/{action}")
+    def execute_physics_action(action: Literal["RECOVER", "DEFRICTION", "SHOCK_DAMP"]):
+        """Action 실행 (Physics Engine)"""
+        result = PHYSICS_ENGINE.execute_action(action)
+        return result
+    
+    @app.get("/api/v1/physics/solar-binding")
+    def get_solar_binding():
+        """
+        SOLAR UI 바인딩 데이터
+        궤도/행성에 직접 매핑되는 값 반환
+        """
+        snapshot = PHYSICS_ENGINE.compute_snapshot()
+        
+        # 물리값 → 시각화 매핑
+        risk_normalized = min(1.0, snapshot.risk)
+        
+        # 궤도 속도: 압력이 높을수록 느림
+        orbit_speed = max(0.1, 1.0 - snapshot.pressure * 0.5)
+        
+        # 궤도 왜곡: 엔트로피가 높을수록 심함
+        orbit_distortion = snapshot.entropy * 0.3
+        
+        # 코어 스케일: 중력(생존력)에 비례
+        core_scale = 0.5 + (1.0 - snapshot.risk) * 0.5
+        
+        # 코어 글로우: 위험도에 비례
+        core_glow = snapshot.risk * 0.8
+        
+        # 펄스 주파수: 압력에 비례
+        pulse_hz = 0.3 + snapshot.pressure * 0.7
+        
+        # 비대칭 강도: 병목 심각도
+        bottleneck_value = max(snapshot.risk, snapshot.entropy, snapshot.pressure)
+        asym_strength = bottleneck_value * 0.4
+        
+        # 행성 값 (9 planets)
+        planets = {
+            "recovery": max(0.1, 1.0 - snapshot.risk * 0.8),
+            "stability": max(0.1, 1.0 - snapshot.entropy),
+            "cohesion": max(0.1, snapshot.flow * 0.8),
+            "shock": min(0.9, snapshot.entropy * 1.2),
+            "friction": min(0.9, snapshot.pressure * 0.9),
+            "transfer": max(0.1, snapshot.flow * 0.7),
+            "time": max(0.1, min(180, snapshot.survival_days) / 180),
+            "quality": max(0.1, 1.0 - snapshot.entropy * 0.6),
+            "output": max(0.1, 1.0 - snapshot.risk * 0.5)
+        }
+        
+        return {
+            "binding": {
+                "core": {
+                    "scale": round(core_scale, 3),
+                    "glow": round(core_glow, 3)
+                },
+                "orbits": {
+                    "speed": round(orbit_speed, 3),
+                    "distortion": round(orbit_distortion, 3)
+                },
+                "ring": {
+                    "radiusScale": round(1.0 - snapshot.risk * 0.2, 3),
+                    "thickness": round(0.15 + snapshot.pressure * 0.1, 3),
+                    "pulseHz": round(pulse_hz, 3),
+                    "asymStrength": round(asym_strength, 3),
+                    "asymAngle": 0  # 병목 각도 (나중에 계산)
+                },
+                "planets": planets
+            },
+            "physics": {
+                "risk": round(snapshot.risk, 4),
+                "entropy": round(snapshot.entropy, 4),
+                "pressure": round(snapshot.pressure, 4),
+                "flow": round(snapshot.flow, 4),
+                "survival_days": round(snapshot.survival_days, 1),
+                "collapse_days": round(snapshot.collapse_days, 1)
+            },
+            "state": {
+                "system_state": snapshot.system_state,
+                "can_create_commit": snapshot.can_create_commit,
+                "can_expand": snapshot.can_expand,
+                "recommended_action": snapshot.recommended_action,
+                "violations": snapshot.violations
+            }
+        }
+    
+    logger.info("✅ Physics Engine API loaded (7 Laws + TIME-MONEY)")
+    
+except Exception as e:
+    logger.warning(f"⚠️ Physics Engine API not loaded: {e}")
+
 _prev_metrics = {}
 
 @app.get("/solar/state/{entity_id}")

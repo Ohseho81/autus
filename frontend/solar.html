@@ -4305,13 +4305,55 @@ animate();
 
   // ════════════════════════════════════════════════════════════════════════════
   // PhysicsFrame → __AUTUS_MODEL 동기화
+  // + Physics Engine API 연동 (7 Laws + TIME-MONEY)
   // ════════════════════════════════════════════════════════════════════════════
+  
+  // Physics Engine에서 데이터 가져오기
+  let physicsEngineData = null;
+  async function fetchPhysicsEngine() {
+    try {
+      const res = await fetch('/api/v1/physics/solar-binding');
+      if (res.ok) {
+        physicsEngineData = await res.json();
+        
+        // PhysicsFrame에 바인딩 적용
+        if (typeof PhysicsFrame !== 'undefined' && physicsEngineData?.binding) {
+          const binding = physicsEngineData.binding;
+          
+          // Ring 업데이트
+          if (binding.ring) {
+            PhysicsFrame.ring.targetRadiusScale = binding.ring.radiusScale;
+            PhysicsFrame.ring.targetThickness = binding.ring.thickness;
+            PhysicsFrame.ring.targetPulseHz = binding.ring.pulseHz;
+            PhysicsFrame.ring.targetAsymStrength = binding.ring.asymStrength;
+          }
+          
+          // Snapshot 보강 (Physics Engine 값으로)
+          if (physicsEngineData.physics) {
+            PhysicsFrame.snapshot.survival_days = physicsEngineData.physics.survival_days;
+            PhysicsFrame.snapshot.collapse_days = physicsEngineData.physics.collapse_days;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[Physics Engine] API not available:', e.message);
+    }
+  }
+  
+  // 주기적 Physics Engine 동기화
+  setInterval(fetchPhysicsEngine, 2000);
+  fetchPhysicsEngine();
+  
   function syncAutusModel() {
     if (typeof PhysicsFrame === 'undefined') return;
     
     const snap = PhysicsFrame.snapshot || {};
     const bn = PhysicsFrame.bottleneck || {};
     const ts = Date.now();
+    
+    // Physics Engine 데이터가 있으면 병합
+    const physicsData = physicsEngineData?.physics || {};
+    const physicsState = physicsEngineData?.state || {};
     
     // Risk 기반 손실 계산 (24h/월)
     const risk = snap.risk || 0;
@@ -4396,7 +4438,11 @@ animate();
         dignity: snap.dignity || 0,
         reputation: snap.reputation || 0,
         ts: ts,
-        ageSeconds: 0
+        ageSeconds: 0,
+        // 7 Laws + TIME-MONEY Physics 추가
+        survival_days: physicsData.survival_days || snap.survival_days || 180,
+        collapse_days: physicsData.collapse_days || 365,
+        gate: physicsState.system_state || 'GREEN'
       },
       bottleneck: {
         type: bn.axis || 'FRICTION',
@@ -4416,6 +4462,27 @@ animate();
         demo: false,
         offline: false,
         connecting: false
+      },
+      // 7 Laws + TIME-MONEY Physics
+      physics: {
+        laws: {
+          continuity: physicsData.survival_days >= 180,  // Law 1
+          conservation: true,  // Law 2 (assumed)
+          state_dominance: physicsState.system_state,    // Law 3
+          cognitive_minimum: true,                       // Law 4 (UI 준수)
+          containment: true,                             // Law 5 (assumed)
+          responsibility: true,                          // Law 6 (6 roles)
+          survival_mass: physicsState.can_expand        // Law 7
+        },
+        time_money: {
+          survival_days: physicsData.survival_days || 180,
+          collapse_days: physicsData.collapse_days || 365,
+          float_pressure: physicsData.pressure || 0,
+          can_create_commit: physicsState.can_create_commit,
+          can_expand: physicsState.can_expand
+        },
+        violations: physicsState.violations || [],
+        recommended_action: physicsState.recommended_action
       }
     };
     
@@ -4653,6 +4720,77 @@ animate();
   #execute-preview .warn {
     color: #ffa94d;
     font-weight: 700;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     (12) Physics Engine Panel — 7 Laws + TIME-MONEY
+     ═══════════════════════════════════════════════════════════════ */
+  
+  .physics-panel {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(0,128,255,0.06);
+    border: 1px solid rgba(0,128,255,0.15);
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  
+  .physics-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  
+  .physics-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  
+  .physics-value {
+    font-size: 14px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.9);
+  }
+  
+  .physics-value.ok {
+    color: #69db7c;
+  }
+  
+  .physics-value.warn {
+    color: #ffd43b;
+  }
+  
+  .physics-value.danger {
+    color: #ff6b6b;
+  }
+  
+  .physics-offline {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+  }
+  
+  .violations {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 11px;
+    color: #ff6b6b;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,107,107,0.2);
+    margin-top: 4px;
+  }
+  
+  @media (max-width: 480px) {
+    .physics-panel {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
   
   /* ═══════════════════════════════════════════════════════════════
@@ -5106,6 +5244,9 @@ animate();
         <!-- Execute Preview: 실행 시 효과 요약 -->
         <div id="execute-preview" class="sub"></div>
 
+        <!-- Physics Engine: 7 Laws + TIME-MONEY -->
+        <div id="physics-status" class="physics-panel"></div>
+
         <div class="actions">
           <button id="btn-primary" class="btn-primary">지금 조치</button>
           <span id="autoPill" class="pill">자동: <b id="autoState">OFF</b></span>
@@ -5364,6 +5505,63 @@ animate();
     }, 1000);
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // (12) Physics Engine 상태 렌더링 (7 Laws + TIME-MONEY)
+  // ═══════════════════════════════════════════════════════════════════════════
+  function renderPhysicsStatus(model) {
+    const el = document.getElementById("physics-status");
+    if (!el) return;
+    
+    const physics = model?.physics;
+    if (!physics) {
+      el.innerHTML = '<span class="physics-offline">Physics Engine 연결 대기...</span>';
+      return;
+    }
+    
+    const tm = physics.time_money || {};
+    const laws = physics.laws || {};
+    
+    // 생존 시간 상태
+    const survivalDays = Math.round(tm.survival_days || 0);
+    const collapseDays = Math.round(tm.collapse_days || 0);
+    const survivalClass = survivalDays >= 180 ? 'ok' : survivalDays >= 90 ? 'warn' : 'danger';
+    
+    // 7 Laws 상태 표시
+    const lawsOk = Object.values(laws).filter(v => v === true || v === 'GREEN').length;
+    const lawsTotal = Object.keys(laws).length;
+    const lawsClass = lawsOk === lawsTotal ? 'ok' : lawsOk >= 5 ? 'warn' : 'danger';
+    
+    // Float Pressure 상태
+    const pressure = Math.round((tm.float_pressure || 0) * 100);
+    const pressureClass = pressure < 70 ? 'ok' : pressure < 100 ? 'warn' : 'danger';
+    
+    // 위반 사항
+    const violations = physics.violations || [];
+    const violationHtml = violations.length > 0 
+      ? `<span class="violations">⚠ ${violations.join(', ')}</span>`
+      : '';
+    
+    el.innerHTML = `
+      <div class="physics-row">
+        <span class="physics-label">생존</span>
+        <span class="physics-value ${survivalClass}">${survivalDays}일</span>
+      </div>
+      <div class="physics-row">
+        <span class="physics-label">붕괴</span>
+        <span class="physics-value">${collapseDays}일</span>
+      </div>
+      <div class="physics-row">
+        <span class="physics-label">압력</span>
+        <span class="physics-value ${pressureClass}">${pressure}%</span>
+      </div>
+      <div class="physics-row">
+        <span class="physics-label">7 Laws</span>
+        <span class="physics-value ${lawsClass}">${lawsOk}/${lawsTotal}</span>
+      </div>
+      ${violationHtml}
+    `;
+  }
+  
   function renderDecision(){
     const shell = ensureDecisionUI();
     const model = getAutusModel();
@@ -5420,6 +5618,9 @@ animate();
     // (11) Execute Preview 렌더링
     renderExecutePreview(model);
 
+    // (12) Physics Engine 데이터 렌더링 (7 Laws + TIME-MONEY)
+    renderPhysicsStatus(model);
+
     const evalr = policyEvaluate(model);
     if(evalr.status==="BLOCKED"){
       setBanner(`자동 실행 제한: ${(evalr.reason||[]).join(", ")}`, false);
@@ -5427,7 +5628,11 @@ animate();
       setBanner("경계 상태: trade-off 존재 (자동 실행은 기본 OFF 권장)", false);
     }else{
       const stateMsg = model.stateClass === "DANGER" ? "⚠️ 위험" : model.stateClass === "HEALTHY" ? "✓ 안정" : "◐ 주의";
-      setBanner(`${stateMsg} | 결론 → 원인 → 실행 순서로 진행`, false);
+      // Physics Engine에서 생존/붕괴 시간 추가
+      const survivalInfo = model.physics?.time_money?.survival_days 
+        ? ` | 생존: ${Math.round(model.physics.time_money.survival_days)}일`
+        : "";
+      setBanner(`${stateMsg}${survivalInfo} | 결론 → 원인 → 실행 순서로 진행`, false);
     }
 
     applyViewModeVisibility();
