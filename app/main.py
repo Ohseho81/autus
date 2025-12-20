@@ -655,10 +655,27 @@ def predict_branches():
         "horizon_hours": 1
     }
 
-# Frontend
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
-if os.path.exists(frontend_path):
-    app.mount("/frontend", StaticFiles(directory=frontend_path, html=True), name="frontend")
+# Frontend - 여러 경로 시도
+frontend_paths = [
+    os.path.join(os.path.dirname(__file__), "..", "frontend"),  # app/main.py 기준
+    os.path.join(os.getcwd(), "frontend"),  # 현재 작업 디렉토리 기준
+    "/app/frontend",  # Railway 컨테이너 기준
+    "frontend",  # 상대 경로
+]
+
+frontend_mounted = False
+for frontend_path in frontend_paths:
+    if os.path.exists(frontend_path) and os.path.isdir(frontend_path):
+        try:
+            app.mount("/frontend", StaticFiles(directory=frontend_path, html=True), name="frontend")
+            logger.info(f"✅ Frontend mounted from: {frontend_path}")
+            frontend_mounted = True
+            break
+        except Exception as e:
+            logger.warning(f"Failed to mount frontend from {frontend_path}: {e}")
+
+if not frontend_mounted:
+    logger.warning(f"⚠️ Frontend not mounted. Tried paths: {frontend_paths}")
 
 # === Solar State API (Physics Kernel) ===
 from core.physics import entropy, pressure, gravity, failure_horizon, DeltaState
