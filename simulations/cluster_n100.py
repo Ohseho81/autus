@@ -495,27 +495,27 @@ def generate_html_report(results: List[SimulationResult]) -> str:
 # 메인 실행
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def main():
-    print("\n🚀 AUTUS N=100 군집 시뮬레이션 시작\n")
+def main(n: int = 100):
+    print(f"\n🚀 AUTUS N={n} 군집 시뮬레이션 시작\n")
     
     results = []
     
     for scenario in SCENARIOS.keys():
         print(f"▶ 시나리오: {scenario} 실행 중...")
-        result = run_simulation(n=100, scenario=scenario)
+        result = run_simulation(n=n, scenario=scenario)
         results.append(result)
         print_result(result)
     
     # HTML 리포트 생성
     html_report = generate_html_report(results)
     
-    report_path = "simulations/cluster_n100_report.html"
+    report_path = f"simulations/cluster_n{n}_report.html"
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(html_report)
     print(f"\n📄 HTML 리포트 생성: {report_path}")
     
-    # JSON 결과 저장
-    json_path = "simulations/cluster_n100_data.json"
+    # JSON 결과 저장 (학생 상세 데이터 제외)
+    json_path = f"simulations/cluster_n{n}_data.json"
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump([{
             "scenario": r.scenario,
@@ -537,7 +537,10 @@ def main():
     print(f"📊 JSON 데이터 저장: {json_path}")
     
     print("\n✅ 시뮬레이션 완료!")
+    return results
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    n = int(sys.argv[1]) if len(sys.argv) > 1 else 100
+    main(n)
