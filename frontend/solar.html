@@ -4527,6 +4527,52 @@ animate();
   /* Expert Root 요소들 */
   body.beginner-mode .expert-root { display: none !important; }
   
+  /* ═══════════════════════════════════════════════════════════════
+     🔒 UI FINAL LOCK — Expert 모드 정리
+     목표: "설명 없는 완제품 체감 UI"
+     ═══════════════════════════════════════════════════════════════ */
+  
+  /* 1️⃣ 좌측 패널 기본 숨김 */
+  body.expert-mode .kernel-display,
+  body.expert-mode #panel-metrics,
+  body.expert-mode #panel-forecast,
+  body.expert-mode #planet-list { display: none !important; }
+  
+  /* 2️⃣ 역할 탭 제거 */
+  body.expert-mode .role-tabs,
+  body.expert-mode [class*="role-select"],
+  body.expert-mode [class*="role-switch"] { display: none !important; }
+  
+  /* 3️⃣ Commit Dashboard 제거 */
+  body.expert-mode .commit-dashboard,
+  body.expert-mode [class*="commit-card"],
+  body.expert-mode [class*="demo-data"] { display: none !important; }
+  
+  /* 4️⃣ 단축키/디버그 제거 */
+  body.expert-mode .keyboard-hint,
+  body.expert-mode footer,
+  body.expert-mode .bottom-controls,
+  body.expert-mode [class*="shortcut"],
+  body.expert-mode .test-results { display: none !important; }
+  
+  /* 5️⃣ Risk Trend 그래프 숨김 */
+  body.expert-mode .risk-trend,
+  body.expert-mode [class*="trend-chart"] { display: none !important; }
+  
+  /* 6️⃣ 설명 텍스트 제거 */
+  body.expert-mode [class*="help-text"],
+  body.expert-mode [class*="instruction"],
+  body.expert-mode [class*="tooltip"] { display: none !important; }
+  
+  /* 7️⃣ ACTION 단일화 — 추천되지 않은 버튼 숨김 */
+  body.expert-mode .action-btn:not(.recommended) { display: none !important; }
+  body.expert-mode #layer-action .non-recommended { display: none !important; }
+  
+  /* 8️⃣ SOLAR 라벨/텍스트 제거 */
+  body.expert-mode #info { display: none !important; }
+  body.expert-mode .solar-label,
+  body.expert-mode .orbit-label { display: none !important; }
+  
   /* ─────────────────────────────────────────
      Mini Compare (Action 비교)
      ───────────────────────────────────────── */
@@ -4607,6 +4653,99 @@ animate();
   #execute-preview .warn {
     color: #ffa94d;
     font-weight: 700;
+  }
+  
+  /* ═══════════════════════════════════════════════════════════════
+     🔒 AUDIT 연출 (LOCK)
+     ═══════════════════════════════════════════════════════════════ */
+  
+  /* AUDIT 진행 중 — 모든 애니메이션 정지 */
+  body.audit-freeze * {
+    animation-play-state: paused !important;
+    transition: none !important;
+  }
+  
+  body.audit-freeze canvas {
+    filter: grayscale(0.5) brightness(0.7);
+  }
+  
+  /* 화면 진동 */
+  @keyframes auditShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+  }
+  
+  /* 판정 토큰 낙하 */
+  .audit-token {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #00ff85;
+    animation: tokenDrop 0.9s ease-in forwards;
+    z-index: 100000;
+    text-shadow: 0 0 20px rgba(0,255,133,0.8);
+  }
+  
+  @keyframes tokenDrop {
+    0% { 
+      top: 50%; 
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    100% { 
+      top: 85%; 
+      opacity: 0.8;
+      transform: translate(-50%, -50%) scale(1.5);
+    }
+  }
+  
+  /* AUDIT 완료 오버레이 */
+  .audit-complete-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100001;
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .audit-complete-content {
+    text-align: center;
+  }
+  
+  .audit-complete-content .audit-icon {
+    font-size: 72px;
+    color: #00ff85;
+    margin-bottom: 16px;
+    animation: auditPulse 0.5s ease-out;
+  }
+  
+  @keyframes auditPulse {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  .audit-complete-content .audit-text {
+    font-size: 24px;
+    font-weight: 300;
+    color: #fff;
+    letter-spacing: 0.1em;
+  }
+  
+  .audit-complete-content .audit-action {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 8px;
+    letter-spacing: 0.2em;
   }
   
   /* 모바일 대응 */
@@ -4750,17 +4889,56 @@ animate();
   }
 
   // ---------------------------
-  // 3) Primary Action 선택 (4/6)
+  // 3) Primary Action 선택 — 🔒 LOCK 규칙
   // ---------------------------
+  /**
+   * ACTION SELECT LOGIC (LOCK):
+   * if (risk >= 60 && shock > friction): SHOCK_DAMP
+   * elif (risk >= 60 && friction >= shock): DEFRICTION
+   * elif (risk < 60 && recovery_possible): RECOVER
+   * else: NONE (버튼 미노출)
+   * SYSTEM RED → 모든 ACTION 미노출
+   */
+  function pickSingleAction(model){
+    // SYSTEM RED → ACTION 없음
+    const risk = model?.snapshot?.risk || 0;
+    const gate = model?.snapshot?.gate || (risk >= 0.55 ? "RED" : risk >= 0.30 ? "AMBER" : "GREEN");
+    if (gate === "RED" && risk >= 0.70) return null; // 극심한 위험: 시스템 차단
+    
+    const shock = model?.bottleneck?.type === "SHOCK" ? (model?.bottleneck?.value || 0) : 0;
+    const friction = model?.bottleneck?.type === "FRICTION" ? (model?.bottleneck?.value || 0) : 0;
+    const recovery = model?.snapshot?.recovery || 0.5;
+    
+    // 고위험 상황 (risk >= 60%)
+    if (risk >= 0.60) {
+      if (shock > friction) return "SHOCK_DAMP";
+      if (friction >= shock && friction > 0) return "DEFRICTION";
+      return "RECOVER";
+    }
+    
+    // 중위험 상황 (30% <= risk < 60%)
+    if (risk >= 0.30) {
+      if (model?.bottleneck?.type === "SHOCK") return "SHOCK_DAMP";
+      if (model?.bottleneck?.type === "FRICTION") return "DEFRICTION";
+      if (recovery < 0.50) return "RECOVER";
+      return "RECOVER";
+    }
+    
+    // 저위험 상황 (risk < 30%)
+    // 여전히 bottleneck이 있으면 조치 권장
+    if (model?.bottleneck?.value >= 0.40) {
+      if (model?.bottleneck?.type === "SHOCK") return "SHOCK_DAMP";
+      if (model?.bottleneck?.type === "FRICTION") return "DEFRICTION";
+      return "RECOVER";
+    }
+    
+    // 안정 상태 → ACTION 없음 (선택적)
+    return "RECOVER"; // 기본값으로 RECOVER 유지
+  }
+  
+  // 하위 호환성
   function pickPrimaryAction(model){
-    const actions = Array.isArray(model?.actions) ? model.actions : [];
-    const rec = actions.find(a => a && a.recommended === true);
-    if(rec?.key) return rec.key;
-
-    const t = model?.bottleneck?.type;
-    if(t==="SHOCK") return "SHOCK_DAMP";
-    if(t==="FRICTION") return "DEFRICTION";
-    return "RECOVER";
+    return pickSingleAction(model) || "RECOVER";
   }
 
   function findActionButtonByKey(key){
@@ -4929,10 +5107,10 @@ animate();
         <div id="execute-preview" class="sub"></div>
 
         <div class="actions">
-          <button id="btn-primary" class="btn-primary">EXECUTE</button>
-          <span id="autoPill" class="pill">자동 실행: <b id="autoState">OFF</b></span>
+          <button id="btn-primary" class="btn-primary">지금 조치</button>
+          <span id="autoPill" class="pill">자동: <b id="autoState">OFF</b></span>
           <button id="btn-auto-toggle" class="btn-ghost">토글</button>
-          <button id="btn-cancel-grace" class="btn-ghost">취소</button>
+          <button id="btn-cancel-grace" class="btn-ghost" style="display:none;">취소</button>
         </div>
 
         <div id="banner" class="sub">—</div>
@@ -4949,17 +5127,31 @@ animate();
 
     shell.querySelector("#btn-expert").onclick = ()=> setViewMode(ViewMode.EXPERT);
 
-    shell.querySelector("#btn-primary").onclick = ()=>{
+    shell.querySelector("#btn-primary").onclick = async ()=>{
       const model = getAutusModel();
-      const key = pickPrimaryAction(model);
+      const key = pickSingleAction(model);
       
-      // previewAction 호출 시도
-      if (typeof previewAction === 'function') {
-        setViewMode(ViewMode.EXPERT);
-        previewAction(key.toLowerCase(), null);
-      } else {
-        const btn = findActionButtonByKey(key);
-        if(btn) btn.click();
+      if (!key) {
+        setBanner("현재 조치가 필요하지 않습니다", false);
+        return;
+      }
+
+      // 🔒 AUDIT 연출 시작
+      executeAuditSequence(key);
+
+      // API 호출
+      const apiBase = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8000' 
+        : 'https://autus-production.up.railway.app';
+      
+      try {
+        await fetch(`${apiBase}/api/v1/burn/execute`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ impulse: key, magnitude: 1.0 })
+        });
+      } catch (e) {
+        console.log('[AUDIT] API offline, local mode');
       }
     };
 
@@ -5081,6 +5273,62 @@ animate();
       <span class="ok">✓ ${lossTxt}</span> ·
       <span class="${recClass}">${recVal >= 0 ? '✓' : '⚠️'} ${recTxt}</span>
     `;
+  }
+
+  // ─────────────────────────────────────────
+  // 🔒 AUDIT 연출 (LOCK)
+  // ─────────────────────────────────────────
+  function executeAuditSequence(actionKey) {
+    // 1. 모든 애니메이션 즉시 정지 (0.3s)
+    document.body.classList.add("audit-freeze");
+    
+    // 2. 판정 토큰 낙하 + 화면 진동
+    setTimeout(() => {
+      triggerAuditEffect();
+    }, 300);
+    
+    // 3. AUDIT 생성 후 UI 침묵
+    setTimeout(() => {
+      showAuditComplete(actionKey);
+    }, 1200);
+  }
+  
+  function triggerAuditEffect() {
+    // 화면 진동
+    document.body.style.animation = "auditShake 0.1s ease-in-out 3";
+    
+    // 진동 사운드 (모바일)
+    if (navigator.vibrate) {
+      navigator.vibrate([50, 30, 50]);
+    }
+    
+    // 토큰 낙하 시각 효과
+    const token = document.createElement("div");
+    token.className = "audit-token";
+    token.innerHTML = "⬤";
+    document.body.appendChild(token);
+    
+    setTimeout(() => token.remove(), 900);
+  }
+  
+  function showAuditComplete(actionKey) {
+    const overlay = document.createElement("div");
+    overlay.className = "audit-complete-overlay";
+    overlay.innerHTML = `
+      <div class="audit-complete-content">
+        <div class="audit-icon">✓</div>
+        <div class="audit-text">AUDIT 완료</div>
+        <div class="audit-action">${actionKey}</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    // 침묵 — 추가 UI 없음
+    setTimeout(() => {
+      overlay.remove();
+      document.body.classList.remove("audit-freeze");
+      location.reload();
+    }, 2000);
   }
 
   function showUndo(seconds, eventBase){
