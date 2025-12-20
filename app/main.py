@@ -311,6 +311,7 @@ try:
     from app.api.v1.action_api import router as action_api_router
     from app.api.v1.audit_api import router as audit_api_router
     from app.api.v1.slack_api import router as slack_api_router
+    from app.api.v1.github_api import router as github_api_router
     
     app.include_router(physics_api_router)
     app.include_router(role_api_router)
@@ -318,8 +319,9 @@ try:
     app.include_router(action_api_router)
     app.include_router(audit_api_router)
     app.include_router(slack_api_router)
+    app.include_router(github_api_router)
     
-    logger.info("✅ API v1 routers loaded (physics, role, commit, action, audit, slack)")
+    logger.info("✅ API v1 routers loaded (physics, role, commit, action, audit, slack, github)")
 except Exception as e:
     logger.warning(f"⚠️ API v1 routers not loaded: {e}")
 
