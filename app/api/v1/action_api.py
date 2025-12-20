@@ -119,6 +119,25 @@ async def execute_action(payload: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AUDIT_WRITE_FAILED: {str(e)}")
     
+    # ═══════════════════════════════════════════════════════════════════════════════
+    # Slack 알림 (비동기, 실패해도 ACTION은 성공)
+    # ═══════════════════════════════════════════════════════════════════════════════
+    try:
+        from app.integrations.slack import notify_action_executed, SLACK_ENABLED
+        if SLACK_ENABLED:
+            import asyncio
+            asyncio.create_task(notify_action_executed(
+                action=action,
+                audit_id=audit_id,
+                risk=payload.get("risk", 0),
+                system_state=system_state,
+                person_id=payload.get("person_id"),
+            ))
+    except Exception as slack_err:
+        # Slack 실패해도 ACTION은 성공
+        import logging
+        logging.getLogger("autus").warning(f"[Slack] Notification failed: {slack_err}")
+    
     return {
         "audit_id": audit_id,
         "locked": True,
