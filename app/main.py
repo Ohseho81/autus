@@ -302,30 +302,78 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, 
 ENGINE = Engine()
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# API v1 라우터 등록
+# API v1 라우터 등록 (각 라우터 개별 로드)
 # ═══════════════════════════════════════════════════════════════════════════════
+loaded_routers = []
+
+# Physics API (필수)
 try:
     from app.api.v1.physics_api import router as physics_api_router
-    from app.api.v1.role_api import router as role_api_router
-    from app.api.v1.commit_api import router as commit_api_router
-    from app.api.v1.action_api import router as action_api_router
-    from app.api.v1.audit_api import router as audit_api_router
-    from app.api.v1.slack_api import router as slack_api_router
-    from app.api.v1.github_api import router as github_api_router
-    from app.api.v1.linear_api import router as linear_api_router
-    
     app.include_router(physics_api_router)
-    app.include_router(role_api_router)
-    app.include_router(commit_api_router)
-    app.include_router(action_api_router)
-    app.include_router(audit_api_router)
-    app.include_router(slack_api_router)
-    app.include_router(github_api_router)
-    app.include_router(linear_api_router)
-    
-    logger.info("✅ API v1 routers loaded (physics, role, commit, action, audit, slack, github, linear)")
+    loaded_routers.append("physics")
 except Exception as e:
-    logger.warning(f"⚠️ API v1 routers not loaded: {e}")
+    logger.warning(f"⚠️ Physics API not loaded: {e}")
+
+# Role API (필수)
+try:
+    from app.api.v1.role_api import router as role_api_router
+    app.include_router(role_api_router)
+    loaded_routers.append("role")
+except Exception as e:
+    logger.warning(f"⚠️ Role API not loaded: {e}")
+
+# Commit API (필수)
+try:
+    from app.api.v1.commit_api import router as commit_api_router
+    app.include_router(commit_api_router)
+    loaded_routers.append("commit")
+except Exception as e:
+    logger.warning(f"⚠️ Commit API not loaded: {e}")
+
+# Action API (선택)
+try:
+    from app.api.v1.action_api import router as action_api_router
+    app.include_router(action_api_router)
+    loaded_routers.append("action")
+except Exception as e:
+    logger.warning(f"⚠️ Action API not loaded: {e}")
+
+# Audit API (선택)
+try:
+    from app.api.v1.audit_api import router as audit_api_router
+    app.include_router(audit_api_router)
+    loaded_routers.append("audit")
+except Exception as e:
+    logger.warning(f"⚠️ Audit API not loaded: {e}")
+
+# Slack API (선택)
+try:
+    from app.api.v1.slack_api import router as slack_api_router
+    app.include_router(slack_api_router)
+    loaded_routers.append("slack")
+except Exception as e:
+    logger.warning(f"⚠️ Slack API not loaded: {e}")
+
+# GitHub API (선택)
+try:
+    from app.api.v1.github_api import router as github_api_router
+    app.include_router(github_api_router)
+    loaded_routers.append("github")
+except Exception as e:
+    logger.warning(f"⚠️ GitHub API not loaded: {e}")
+
+# Linear API (선택)
+try:
+    from app.api.v1.linear_api import router as linear_api_router
+    app.include_router(linear_api_router)
+    loaded_routers.append("linear")
+except Exception as e:
+    logger.warning(f"⚠️ Linear API not loaded: {e}")
+
+if loaded_routers:
+    logger.info(f"✅ API v1 routers loaded: {', '.join(loaded_routers)}")
+else:
+    logger.warning("⚠️ No API v1 routers loaded")
 
 @app.middleware("http")
 async def security(request: Request, call_next):
