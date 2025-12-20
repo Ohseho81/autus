@@ -301,6 +301,22 @@ app = FastAPI(title="AUTUS", version="1.1")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 ENGINE = Engine()
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# API v1 라우터 등록
+# ═══════════════════════════════════════════════════════════════════════════════
+try:
+    from app.api.v1.physics_api import router as physics_api_router
+    from app.api.v1.role_api import router as role_api_router
+    from app.api.v1.commit_api import router as commit_api_router
+    
+    app.include_router(physics_api_router)
+    app.include_router(role_api_router)
+    app.include_router(commit_api_router)
+    
+    logger.info("✅ API v1 routers loaded (physics, role, commit)")
+except Exception as e:
+    logger.warning(f"⚠️ API v1 routers not loaded: {e}")
+
 @app.middleware("http")
 async def security(request: Request, call_next):
     path = request.url.path
