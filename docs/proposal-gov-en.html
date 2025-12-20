@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AUTUS Government Proposal — Foreign Student & Worker Protection System</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 15mm;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 11pt;
+      line-height: 1.5;
+      color: #1a1a2e;
+      background: #fff;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 20mm;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #0066cc;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .header h1 {
+      font-size: 22pt;
+      font-weight: 900;
+      color: #0066cc;
+      letter-spacing: -0.5px;
+    }
+    
+    .header .subtitle {
+      font-size: 11pt;
+      color: #666;
+      margin-top: 4px;
+    }
+    
+    .header .logo {
+      text-align: right;
+      font-size: 9pt;
+      color: #999;
+    }
+    
+    .section {
+      margin-bottom: 14px;
+    }
+    
+    .section-title {
+      font-size: 12pt;
+      font-weight: 800;
+      color: #0066cc;
+      border-left: 4px solid #0066cc;
+      padding-left: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .problem-box {
+      background: #fff5f5;
+      border: 1px solid #ffcccc;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .problem-box .stat {
+      font-size: 18pt;
+      font-weight: 900;
+      color: #cc0000;
+    }
+    
+    .solution-box {
+      background: #f0f7ff;
+      border: 1px solid #cce0ff;
+      border-radius: 6px;
+      padding: 12px;
+    }
+    
+    .laws-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .law-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 8px;
+      text-align: center;
+    }
+    
+    .law-card .num {
+      font-size: 14pt;
+      font-weight: 900;
+      color: #0066cc;
+    }
+    
+    .law-card .name {
+      font-size: 8pt;
+      color: #666;
+      margin-top: 2px;
+    }
+    
+    .numbers-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 10pt;
+    }
+    
+    .numbers-table th {
+      background: #0066cc;
+      color: white;
+      padding: 6px 8px;
+      text-align: left;
+      font-weight: 700;
+    }
+    
+    .numbers-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e9ecef;
+    }
+    
+    .numbers-table tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+    
+    .green {
+      color: #28a745;
+      font-weight: 800;
+    }
+    
+    .red {
+      color: #dc3545;
+      font-weight: 800;
+    }
+    
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+    
+    .role-card {
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 10px;
+    }
+    
+    .role-card h4 {
+      font-size: 10pt;
+      color: #0066cc;
+      margin-bottom: 4px;
+    }
+    
+    .role-card ul {
+      font-size: 9pt;
+      padding-left: 14px;
+      color: #495057;
+    }
+    
+    .request-box {
+      background: linear-gradient(135deg, #0066cc, #004499);
+      color: white;
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    
+    .request-box h3 {
+      font-size: 13pt;
+      margin-bottom: 8px;
+    }
+    
+    .request-box ul {
+      padding-left: 18px;
+    }
+    
+    .footer {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #e9ecef;
+      font-size: 9pt;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .quote {
+      font-style: italic;
+      color: #495057;
+      border-left: 3px solid #0066cc;
+      padding-left: 10px;
+      margin: 10px 0;
+    }
+    
+    .formula {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      background: #f1f3f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 9pt;
+    }
+    
+    @media print {
+      body {
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>AUTUS</h1>
+    <div class="subtitle">Physics-Based Governance System for Foreign Student & Worker Protection</div>
+  </div>
+  <div class="logo">
+    Target: Ministry of Labor / Education<br>
+    December 2025
+  </div>
+</div>
+
+<!-- Problem -->
+<div class="section">
+  <div class="section-title">1. Current Problem</div>
+  <div class="problem-box">
+    <div class="stat">3,200+ cases/year</div>
+    <p>Wage theft, visa violation, academic dropout among foreign students & workers (2024 est.)</p>
+    <ul style="margin-top: 8px; padding-left: 18px; font-size: 10pt;">
+      <li>Wage theft → Illegal stay → Increased social cost</li>
+      <li>School closure after tuition paid → No student protection</li>
+      <li>Visa, academic, employment data scattered → <span class="red">No real-time tracking</span></li>
+      <li>Unclear responsibility boundaries → <span class="red">Cascading failures</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- Solution -->
+<div class="section">
+  <div class="section-title">2. AUTUS Solution</div>
+  <div class="solution-box">
+    <p><strong>Core Principle:</strong> Calculate money and time flows using physics laws to guarantee humans never fall outside the system</p>
+    
+    <div class="quote">
+      "In AUTUS, money is measured not by 'how much' but by 'how long, how often, and how safely' it flows."
+    </div>
+    
+    <div class="laws-grid">
+      <div class="law-card">
+        <div class="num">①</div>
+        <div class="name">Continuity Law</div>
+        <div style="font-size:8pt;">Survival ≥ 6 months</div>
+      </div>
+      <div class="law-card">
+        <div class="num">②</div>
+        <div class="name">Conservation</div>
+        <div style="font-size:8pt;">Money = Commit</div>
+      </div>
+      <div class="law-card">
+        <div class="num">③</div>
+        <div class="name">State Dominance</div>
+        <div style="font-size:8pt;">No CEO Override</div>
+      </div>
+      <div class="law-card">
+        <div class="num">④</div>
+        <div class="name">Containment</div>
+        <div style="font-size:8pt;">Failure Isolation</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Numbers -->
+<div class="section">
+  <div class="section-title">3. Simulation Results (1 Filipino Student)</div>
+  <table class="numbers-table">
+    <tr>
+      <th>Metric</th>
+      <th>Current System</th>
+      <th>With AUTUS</th>
+    </tr>
+    <tr>
+      <td>Survival Time</td>
+      <td class="red">Untracked</td>
+      <td class="green">216 days (real-time)</td>
+    </tr>
+    <tr>
+      <td>Float Pressure (Collapse Risk)</td>
+      <td class="red">Unmeasurable</td>
+      <td class="green">0.38 (Safe)</td>
+    </tr>
+    <tr>
+      <td>If Gov't Support Stops</td>
+      <td class="red">Immediate collapse</td>
+      <td class="green">153 days buffer (YELLOW)</td>
+    </tr>
+    <tr>
+      <td>If Employer Exits</td>
+      <td class="red">Immediate collapse</td>
+      <td class="green">System alert + replacement</td>
+    </tr>
+    <tr>
+      <td>Responsibility Tracking</td>
+      <td class="red">Impossible</td>
+      <td class="green">Complete Audit Trail</td>
+    </tr>
+  </table>
+  
+  <p style="margin-top: 8px; font-size: 9pt; color: #666;">
+    <strong>Key Formula:</strong> 
+    <span class="formula">Survival_Time = (Σ Energy_in − Σ Energy_out) / Daily_Burn</span> where 
+    <span class="formula">Energy = Mass × Velocity × Gravity × (1 − Friction)</span>
+  </p>
+</div>
+
+<!-- Roles -->
+<div class="section">
+  <div class="section-title">4. Government Role (of 6 Roles)</div>
+  <div class="role-grid">
+    <div class="role-card">
+      <h4>🏛️ Institution (Gov't)</h4>
+      <ul>
+        <li>Visa status API</li>
+        <li>Academic data sync</li>
+        <li>Grant Commit creation</li>
+        <li>Auto-notification on violation</li>
+      </ul>
+    </div>
+    <div class="role-card">
+      <h4>🏢 Employer</h4>
+      <ul>
+        <li>Wage Commit registration</li>
+        <li>Work conditions specified</li>
+        <li>System block on wage theft</li>
+        <li>Insurance auto-sync</li>
+      </ul>
+    </div>
+    <div class="role-card">
+      <h4>👤 Subject (Student)</h4>
+      <ul>
+        <li>Commit recipient only</li>
+        <li>Real-time survival check</li>
+        <li>Auto-alert on risk</li>
+        <li>No override authority</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Request -->
+<div class="request-box">
+  <h3>📋 Government Request</h3>
+  <ul>
+    <li><strong>Data Integration:</strong> API access to visa status, academic records, insurance</li>
+    <li><strong>Pilot Authorization:</strong> 100 Filipino students, 6-month trial</li>
+    <li><strong>Regulatory Sandbox:</strong> Automated grant disbursement experiment</li>
+    <li><strong>Joint Monitoring:</strong> Wage theft rate, dropout rate, retention rate</li>
+  </ul>
+</div>
+
+<div class="footer">
+  <div>
+    <strong>AUTUS</strong> | Physics-Based Governance System<br>
+    "AUTUS is not philosophy. It operates on physics laws only. No persuasion needed."
+  </div>
+  <div style="text-align:right;">
+    Contact: contact@autus-ai.com<br>
+    Docs: solar.autus-ai.com/docs
+  </div>
+</div>
+
+</body>
+</html>
