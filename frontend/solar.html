@@ -4588,6 +4588,27 @@ animate();
     color: #ffa94d;
   }
   
+  /* Execute Preview */
+  #execute-preview {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(0,255,133,0.06);
+    border: 1px solid rgba(0,255,133,0.15);
+    border-radius: 8px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
+  }
+  
+  #execute-preview .ok {
+    color: #69db7c;
+    font-weight: 700;
+  }
+  
+  #execute-preview .warn {
+    color: #ffa94d;
+    font-weight: 700;
+  }
+  
   /* 모바일 대응 */
   @media (max-width: 600px) {
     #mini-compare {
@@ -4904,6 +4925,9 @@ animate();
         <!-- Mini Compare: 3개 액션 비교 -->
         <div id="mini-compare"></div>
 
+        <!-- Execute Preview: 실행 시 효과 요약 -->
+        <div id="execute-preview" class="sub"></div>
+
         <div class="actions">
           <button id="btn-primary" class="btn-primary">EXECUTE</button>
           <span id="autoPill" class="pill">자동 실행: <b id="autoState">OFF</b></span>
@@ -5021,6 +5045,44 @@ animate();
     `).join("");
   }
 
+  // ─────────────────────────────────────────
+  // Execute Preview (11)
+  // ─────────────────────────────────────────
+  function renderExecutePreview(model){
+    const el=document.getElementById("execute-preview");
+    if(!el||!model?.actions) return;
+
+    const a=model.actions.find(x=>x.recommended);
+    if(!a) {
+      el.innerHTML = "";
+      return;
+    }
+
+    const d=a.deltas||{};
+    const loss24=model.future?.no_action?.loss_24h;
+
+    const riskTxt = Number.isFinite(d.risk_delta)
+      ? `Risk ${Math.round(-d.risk_delta*100)}%↓`
+      : "Risk 감소";
+
+    const lossTxt = Number.isFinite(loss24)
+      ? `24h 손실 ₩${Math.round(loss24/10000)}만 방어`
+      : "손실 방어";
+
+    const recVal = a.tradeoff?.recovery_delta;
+    const recTxt = Number.isFinite(recVal)
+      ? (recVal >= 0 ? `Recovery +${Math.round(recVal*100)}%` : `Recovery ${Math.round(recVal*100)}%`)
+      : "Recovery 회복";
+    const recClass = Number.isFinite(recVal) && recVal < 0 ? "warn" : "ok";
+
+    el.innerHTML = `
+      실행 시:
+      <span class="ok">✓ ${riskTxt}</span> ·
+      <span class="ok">✓ ${lossTxt}</span> ·
+      <span class="${recClass}">${recVal >= 0 ? '✓' : '⚠️'} ${recTxt}</span>
+    `;
+  }
+
   function showUndo(seconds, eventBase){
     let remain = seconds;
     const undoId = "autus-undo-btn";
@@ -5106,6 +5168,9 @@ animate();
 
     // (10) Mini Compare 렌더링
     renderMiniCompare(model);
+
+    // (11) Execute Preview 렌더링
+    renderExecutePreview(model);
 
     const evalr = policyEvaluate(model);
     if(evalr.status==="BLOCKED"){
