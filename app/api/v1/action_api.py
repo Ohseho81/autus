@@ -155,6 +155,20 @@ async def execute_action(payload: dict):
     except Exception as gh_err:
         _logger.warning(f"[GitHub] Issue creation failed: {gh_err}")
     
+    # Linear Task 생성
+    try:
+        from app.integrations.linear import create_audit_task, LINEAR_ENABLED
+        if LINEAR_ENABLED:
+            asyncio.create_task(create_audit_task(
+                audit_id=audit_id,
+                action=action,
+                risk=payload.get("risk", 0),
+                system_state=system_state,
+                person_id=payload.get("person_id"),
+            ))
+    except Exception as linear_err:
+        _logger.warning(f"[Linear] Task creation failed: {linear_err}")
+    
     return {
         "audit_id": audit_id,
         "locked": True,
