@@ -5280,19 +5280,40 @@ animate();
       // 🔒 AUDIT 연출 시작
       executeAuditSequence(key);
 
-      // API 호출
+      // ═══════════════════════════════════════════════════════════════
+      // ACTION → AUDIT DB 연결 (LOCK)
+      // "눌렀다 → 기록이 남았다 → 되돌릴 수 없다"
+      // ═══════════════════════════════════════════════════════════════
       const apiBase = window.location.hostname === 'localhost' 
         ? 'http://localhost:8000' 
         : 'https://autus-production.up.railway.app';
       
       try {
-        await fetch(`${apiBase}/api/v1/burn/execute`, {
+        const response = await fetch(`${apiBase}/api/v1/action/execute`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ impulse: key, magnitude: 1.0 })
+          body: JSON.stringify({ 
+            action: key,
+            system_state: model?.snapshot?.gate || 'GREEN',
+            risk: model?.snapshot?.risk || 0,
+            entropy: model?.snapshot?.entropy || 0,
+            person_id: model?.person_id || null,
+            commit_id: model?.commit_id || null
+          })
         });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('[AUDIT] ✅ DB 기록 완료:', result.audit_id);
+          
+          // AUDIT ID를 localStorage에 저장 (AUDIT 페이지에서 사용)
+          localStorage.setItem('autus.lastAuditId', result.audit_id);
+          localStorage.setItem('autus.auditLocked', 'true');
+        } else {
+          console.warn('[AUDIT] ⚠️ API 응답 오류:', response.status);
+        }
       } catch (e) {
-        console.log('[AUDIT] API offline, local mode');
+        console.log('[AUDIT] API offline, local mode:', e.message);
       }
     };
 
