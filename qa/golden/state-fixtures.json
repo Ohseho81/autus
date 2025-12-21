@@ -1,0 +1,235 @@
+{
+  "$schema": "AUTUS_GOLDEN_STATE_v1",
+  "version": "1.0.0",
+  "description": "Golden Set 3장에 맞춘 상태 고정 데이터",
+  "capture_env": {
+    "viewport": { "width": 1920, "height": 1080 },
+    "dpr": 1,
+    "zoom": 100,
+    "color_space": "sRGB",
+    "browser": "chromium",
+    "browser_version_min": "120.0.0"
+  },
+  
+  "states": {
+    "G1_NAV": {
+      "id": "G1_NAV",
+      "name": "기본 내비 상태",
+      "description": "경로 안내/카드 표시 — 안정 주행 모드",
+      "file": "G1_NAV.png",
+      "layers": {
+        "NAV": true,
+        "ALERT": false,
+        "CONTROL": false,
+        "HUD": true,
+        "MAP": true,
+        "STATUS": true,
+        "OVERLAY": false
+      },
+      "data": {
+        "time": "오후 2:30",
+        "date": "12월 22일 일요일",
+        "temperature": "8°C",
+        "battery": "78%",
+        "range": "312 km",
+        "speed": "80",
+        "speed_unit": "km/h",
+        "destination": "강남역",
+        "eta": "15분",
+        "distance_remaining": "12.3 km",
+        "next_turn": "800m 후 우회전",
+        "current_road": "테헤란로",
+        "traffic_status": "원활",
+        "autopilot": true,
+        "lane_assist": true
+      },
+      "map": {
+        "type": "static",
+        "tile": "local://tiles/gangnam_static.png",
+        "center": { "lat": 37.4979, "lng": 127.0276 },
+        "zoom": 15,
+        "rotation": 0
+      },
+      "cards": [
+        {
+          "type": "destination",
+          "title": "강남역",
+          "subtitle": "15분 · 12.3 km",
+          "icon": "destination"
+        },
+        {
+          "type": "charging",
+          "title": "테슬라 슈퍼차저",
+          "subtitle": "2.1 km · 4개 사용 가능",
+          "icon": "supercharger"
+        }
+      ]
+    },
+    
+    "G2_ALERT": {
+      "id": "G2_ALERT",
+      "name": "위험 상태",
+      "description": "경로 변형 + 경고 오버레이 — 위험 감지 모드",
+      "file": "G2_ALERT.png",
+      "layers": {
+        "NAV": true,
+        "ALERT": true,
+        "CONTROL": false,
+        "HUD": true,
+        "MAP": true,
+        "STATUS": true,
+        "OVERLAY": true
+      },
+      "data": {
+        "time": "오후 2:32",
+        "date": "12월 22일 일요일",
+        "temperature": "8°C",
+        "battery": "77%",
+        "range": "308 km",
+        "speed": "60",
+        "speed_unit": "km/h",
+        "destination": "강남역",
+        "eta": "18분",
+        "distance_remaining": "11.8 km",
+        "next_turn": "경로 재탐색 중",
+        "current_road": "테헤란로",
+        "traffic_status": "정체",
+        "autopilot": false,
+        "lane_assist": true
+      },
+      "alert": {
+        "type": "COLLISION_WARNING",
+        "severity": "HIGH",
+        "title": "⚠️ 전방 사고",
+        "message": "500m 전방 사고 발생. 우회 경로 탐색 중.",
+        "color": "#FF4444",
+        "pulse": true,
+        "actions": ["우회", "무시"]
+      },
+      "map": {
+        "type": "static",
+        "tile": "local://tiles/gangnam_alert.png",
+        "center": { "lat": 37.4979, "lng": 127.0276 },
+        "zoom": 15,
+        "rotation": 0,
+        "highlight": {
+          "type": "danger_zone",
+          "radius": 500,
+          "color": "#FF444466"
+        }
+      },
+      "reroute": {
+        "active": true,
+        "original_eta": "15분",
+        "new_eta": "18분",
+        "delta": "+3분",
+        "reason": "전방 사고"
+      }
+    },
+    
+    "G3_CONTROL": {
+      "id": "G3_CONTROL",
+      "name": "조작 집중 상태",
+      "description": "좌측 패널 확장/내비 축소 — 차량 제어 모드",
+      "file": "G3_CONTROL.png",
+      "layers": {
+        "NAV": false,
+        "ALERT": false,
+        "CONTROL": true,
+        "HUD": true,
+        "MAP": false,
+        "STATUS": true,
+        "OVERLAY": false
+      },
+      "data": {
+        "time": "오후 2:35",
+        "date": "12월 22일 일요일",
+        "temperature": "8°C",
+        "battery": "76%",
+        "range": "304 km",
+        "speed": "0",
+        "speed_unit": "km/h",
+        "destination": null,
+        "eta": null,
+        "distance_remaining": null,
+        "next_turn": null,
+        "current_road": "주차 중",
+        "traffic_status": null,
+        "autopilot": false,
+        "lane_assist": false,
+        "parked": true
+      },
+      "control_panel": {
+        "expanded": true,
+        "sections": [
+          {
+            "id": "climate",
+            "title": "공조",
+            "icon": "climate",
+            "controls": [
+              { "type": "slider", "label": "온도", "value": 22, "unit": "°C", "min": 16, "max": 28 },
+              { "type": "toggle", "label": "시트 히터", "value": true },
+              { "type": "toggle", "label": "핸들 히터", "value": false }
+            ]
+          },
+          {
+            "id": "lights",
+            "title": "조명",
+            "icon": "lights",
+            "controls": [
+              { "type": "select", "label": "전조등", "value": "auto", "options": ["off", "auto", "on"] },
+              { "type": "toggle", "label": "실내등", "value": false }
+            ]
+          },
+          {
+            "id": "charging",
+            "title": "충전",
+            "icon": "charging",
+            "controls": [
+              { "type": "slider", "label": "충전 한도", "value": 80, "unit": "%", "min": 50, "max": 100 },
+              { "type": "button", "label": "충전 시작", "action": "start_charging" }
+            ]
+          }
+        ]
+      },
+      "vehicle_view": {
+        "type": "3d_model",
+        "angle": "front_quarter",
+        "doors_open": false,
+        "trunk_open": false,
+        "frunk_open": false
+      }
+    }
+  },
+  
+  "mask_rules": {
+    "max_mask_area_percent": 3,
+    "allowed_masks": [
+      {
+        "id": "clock",
+        "region": { "x": 20, "y": 20, "width": 100, "height": 30 },
+        "reason": "시스템 시간 변동"
+      },
+      {
+        "id": "network",
+        "region": { "x": 1800, "y": 20, "width": 100, "height": 30 },
+        "reason": "네트워크 상태 변동"
+      }
+    ]
+  },
+  
+  "diff_thresholds": {
+    "track_a": {
+      "name": "Reference Exact",
+      "pixelmatch_diff": 0,
+      "ssim_min": null,
+      "use_case": "레퍼런스/데모/비전 고정 이미지"
+    },
+    "track_b": {
+      "name": "Product Exact",
+      "pixelmatch_diff_percent": 0.5,
+      "ssim_min": 0.995,
+      "use_case": "실제 제품 UI (확장/유지보수/글로벌)"
+    }
+  }
+}

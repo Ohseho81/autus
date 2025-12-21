@@ -1,0 +1,75 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS Visual QA — CI Pipeline
+# 
+# 표준 ③ Diff 기준: Track B (≤0.5%) 초과 시 빌드 실패
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: Visual QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'qa/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'qa/**'
+
+jobs:
+  visual-qa:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install QA dependencies
+        working-directory: qa
+        run: npm install
+      
+      - name: Install Playwright browsers
+        working-directory: qa
+        run: npx playwright install chromium
+      
+      - name: Start server
+        run: |
+          python -m http.server 8000 --directory . &
+          sleep 3
+        env:
+          PYTHONUNBUFFERED: 1
+      
+      - name: Capture screenshots
+        working-directory: qa
+        run: npm run capture
+        env:
+          TARGET_URL: http://localhost:8000/frontend/tesla-nav.html
+      
+      - name: Run diff report
+        working-directory: qa
+        run: npm run diff
+      
+      - name: Upload diff report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-qa-report
+          path: qa/reports/
+      
+      - name: Check diff threshold
+        working-directory: qa
+        run: |
+          # Read report and check if any state exceeds Track B threshold
+          RESULT=$(cat reports/diff-report.json | jq -r '.summary.overall')
+          if [ "$RESULT" = "FAIL" ]; then
+            echo "❌ Visual QA FAILED: Diff exceeds 0.5% threshold"
+            exit 1
+          fi
+          echo "✅ Visual QA PASSED"
