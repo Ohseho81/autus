@@ -1332,6 +1332,190 @@
        ═══════════════════════════════════════════════════════════════════════════════ */
     html[data-alert="off"] [data-layer="L6"] { visibility: hidden !important; opacity: 0 !important; }
     html[data-alert="on"]  [data-layer="L6"] { visibility: visible !important; opacity: 1 !important; }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       LAYER DEBUG PANEL
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    .layer-panel {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 220px;
+      background: rgba(20, 20, 20, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      z-index: 9999;
+      font-size: 12px;
+      display: none;
+    }
+    
+    .layer-panel.visible {
+      display: block;
+    }
+    
+    .layer-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .layer-panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+    }
+    
+    .layer-panel-close {
+      width: 20px;
+      height: 20px;
+      background: var(--bg-card);
+      border: none;
+      border-radius: 4px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .layer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .layer-row:last-child {
+      border-bottom: none;
+    }
+    
+    .layer-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .layer-badge {
+      width: 24px;
+      height: 24px;
+      background: var(--bg-card);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+    
+    .layer-badge.active {
+      background: var(--accent-blue);
+      color: white;
+    }
+    
+    .layer-name {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    
+    .layer-toggle {
+      width: 36px;
+      height: 20px;
+      background: var(--bg-card);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+    }
+    
+    .layer-toggle.on {
+      background: var(--accent-green);
+    }
+    
+    .layer-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      transition: left 0.2s;
+    }
+    
+    .layer-toggle.on::after {
+      left: 18px;
+    }
+    
+    .mode-section {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .mode-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .mode-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+    
+    .mode-btn {
+      padding: 8px 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .mode-btn:hover {
+      background: var(--bg-hover);
+    }
+    
+    .mode-btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: white;
+    }
+    
+    .layer-toggle-btn {
+      position: fixed;
+      bottom: 100px;
+      right: 20px;
+      width: 48px;
+      height: 48px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      color: var(--text-primary);
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    
+    .layer-toggle-btn:hover {
+      background: var(--accent-blue);
+      transform: scale(1.1);
+    }
   </style>
 </head>
 <body>
@@ -1657,6 +1841,83 @@
     </div>
     
     <!-- ═══════════════════════════════════════════════════════════════════════════════
+         LAYER DEBUG PANEL
+         ═══════════════════════════════════════════════════════════════════════════════ -->
+    <button class="layer-toggle-btn" onclick="toggleLayerPanel()" title="Layer Panel (L)">🔲</button>
+    
+    <div class="layer-panel" id="layerPanel">
+      <div class="layer-panel-header">
+        <span class="layer-panel-title">7-Layer Control</span>
+        <button class="layer-panel-close" onclick="toggleLayerPanel()">×</button>
+      </div>
+      
+      <div class="layer-row">
+        <div class="layer-info">
+          <div class="layer-badge" id="badge-L7">L7</div>
+          <span class="layer-name">Modal/Overlay</span>
+        </div>
+        <button class="layer-toggle" id="toggle-L7" onclick="toggleLayer('L7')"></button>
+      </div>
+      
+      <div class="layer-row">
+        <div class="layer-info">
+          <div class="layer-badge" id="badge-L6">L6</div>
+          <span class="layer-name">Alert</span>
+        </div>
+        <button class="layer-toggle" id="toggle-L6" onclick="toggleLayer('L6')"></button>
+      </div>
+      
+      <div class="layer-row">
+        <div class="layer-info">
+          <div class="layer-badge" id="badge-L5">L5</div>
+          <span class="layer-name">Maneuver Card</span>
+        </div>
+        <button class="layer-toggle" id="toggle-L5" onclick="toggleLayer('L5')"></button>
+      </div>
+      
+      <div class="layer-row">
+        <div class="layer-info">
+          <div class="layer-badge" id="badge-L4">L4</div>
+          <span class="layer-name">Left Panel</span>
+        </div>
+        <button class="layer-toggle" id="toggle-L4" onclick="toggleLayer('L4')"></button>
+      </div>
+      
+      <div class="layer-row">
+        <div class="layer-info">
+          <div class="layer-badge" id="badge-L3">L3</div>
+          <span class="layer-name">HUD Chrome</span>
+        </div>
+        <button class="layer-toggle" id="toggle-L3" onclick="toggleLayer('L3')"></button>
+      </div>
+      
+      <div class="layer-row">
+        <div class="layer-info">
+          <div class="layer-badge" id="badge-L2">L2</div>
+          <span class="layer-name">Route Geometry</span>
+        </div>
+        <button class="layer-toggle" id="toggle-L2" onclick="toggleLayer('L2')"></button>
+      </div>
+      
+      <div class="layer-row">
+        <div class="layer-info">
+          <div class="layer-badge" id="badge-L1">L1</div>
+          <span class="layer-name">Base Canvas</span>
+        </div>
+        <button class="layer-toggle" id="toggle-L1" onclick="toggleLayer('L1')"></button>
+      </div>
+      
+      <div class="mode-section">
+        <div class="mode-label">Mode Presets</div>
+        <div class="mode-buttons">
+          <button class="mode-btn" id="mode-NAV" onclick="setModePreset('NAV')">NAV</button>
+          <button class="mode-btn" id="mode-ALERT" onclick="setModePreset('ALERT')">ALERT</button>
+          <button class="mode-btn" id="mode-CONTROL" onclick="setModePreset('CONTROL')">CTRL</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════════════
          BOTTOM BAR
          ═══════════════════════════════════════════════════════════════════════════════ -->
     <div class="bottom-bar">
@@ -1831,6 +2092,80 @@
     } else {
       init();
     }
+  </script>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════════
+       LAYER PANEL CONTROLS
+       ═══════════════════════════════════════════════════════════════════════════════ -->
+  <script>
+  // Layer state tracking
+  const layerState = {
+    L1: true, L2: true, L3: true, L4: true, L5: true, L6: false, L7: false
+  };
+  
+  function toggleLayerPanel() {
+    const panel = document.getElementById('layerPanel');
+    panel.classList.toggle('visible');
+    updateLayerUI();
+  }
+  
+  function toggleLayer(layerId) {
+    const el = document.querySelector(`[data-layer="${layerId}"]`);
+    if (!el) return;
+    
+    layerState[layerId] = !layerState[layerId];
+    el.style.visibility = layerState[layerId] ? 'visible' : 'hidden';
+    
+    updateLayerUI();
+    console.log(`[Layer] ${layerId} = ${layerState[layerId] ? 'ON' : 'OFF'}`);
+  }
+  
+  function setModePreset(mode) {
+    if (typeof window.autusSetMode === 'function') {
+      window.autusSetMode(mode);
+    }
+    
+    // Update layer state based on mode
+    const presets = {
+      NAV: { L1:true, L2:true, L3:true, L4:true, L5:true, L6:false, L7:false },
+      ALERT: { L1:true, L2:true, L3:true, L4:true, L5:true, L6:true, L7:false },
+      CONTROL: { L1:true, L2:true, L3:true, L4:true, L5:true, L6:false, L7:true }
+    };
+    
+    if (presets[mode]) {
+      Object.assign(layerState, presets[mode]);
+    }
+    
+    updateLayerUI();
+  }
+  
+  function updateLayerUI() {
+    // Update toggle buttons
+    for (const [id, on] of Object.entries(layerState)) {
+      const toggle = document.getElementById(`toggle-${id}`);
+      const badge = document.getElementById(`badge-${id}`);
+      if (toggle) toggle.classList.toggle('on', on);
+      if (badge) badge.classList.toggle('active', on);
+    }
+    
+    // Update mode buttons
+    const app = document.getElementById('app');
+    const currentMode = app?.getAttribute('data-mode') || 'NAV';
+    ['NAV', 'ALERT', 'CONTROL'].forEach(m => {
+      const btn = document.getElementById(`mode-${m}`);
+      if (btn) btn.classList.toggle('active', m === currentMode);
+    });
+  }
+  
+  // Keyboard shortcut
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'l' || e.key === 'L') {
+      toggleLayerPanel();
+    }
+  });
+  
+  // Initial UI update
+  setTimeout(updateLayerUI, 100);
   </script>
 
   <!-- ═══════════════════════════════════════════════════════════════════════════════
