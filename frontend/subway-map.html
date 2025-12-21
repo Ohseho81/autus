@@ -11,113 +11,113 @@
       --L6:#CD7C2F;--L7:#747F00;--L8:#E6186C;--L9:#BDB092;--LS:#D31F5B;
       --LK:#77C4A3;--LB:#F5A200;--LA:#0090D2;
     }
-    html,body{width:100%;height:100%;background:#f8f8f8;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;overflow:hidden}
+    html,body{width:100%;height:100%;background:#f0f0f0;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;overflow:hidden}
     .app{width:100%;height:100%;display:flex;flex-direction:column}
     
     /* 헤더 */
-    .hd{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#fff;border-bottom:1px solid #e0e0e0;flex-shrink:0;z-index:100}
-    .hd-l{display:flex;align-items:center;gap:12px}
-    .hd-l button{width:36px;height:36px;background:none;border:none;font-size:22px;cursor:pointer}
-    .hd-l span{font-size:16px;font-weight:700}
-    .badge{padding:5px 12px;border-radius:14px;font-size:12px;font-weight:600;color:#fff}
+    .hd{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fff;border-bottom:1px solid #e0e0e0;flex-shrink:0;z-index:100}
+    .hd-l{display:flex;align-items:center;gap:10px}
+    .hd-l button{width:32px;height:32px;background:none;border:none;font-size:20px;cursor:pointer}
+    .hd-l span{font-size:15px;font-weight:700}
+    .badge{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;color:#fff}
     
     /* 맵 영역 */
-    .map-wrap{flex:1;overflow:auto;position:relative;background:#f5f5f5}
-    .map-inner{position:relative;width:1800px;height:1400px;margin:20px}
-    .map-bg{width:100%;height:100%;object-fit:contain;pointer-events:none}
+    .map-wrap{flex:1;overflow:auto;position:relative;background:#f0f0f0;display:flex;align-items:center;justify-content:center}
+    .map-container{position:relative;transform-origin:center center}
+    .map-bg{display:block;max-width:100%;height:auto}
     
     /* 환승역 오버레이 */
     .station{
       position:absolute;
-      width:40px;height:40px;
+      width:24px;height:24px;
       border-radius:50%;
-      background:rgba(255,255,255,0.9);
-      border:3px solid #333;
+      background:rgba(255,255,255,0.95);
+      border:2px solid #333;
       cursor:pointer;
       transform:translate(-50%,-50%);
-      transition:all 0.2s;
+      transition:all 0.15s;
       display:flex;align-items:center;justify-content:center;
-      font-size:10px;font-weight:700;
-      box-shadow:0 2px 8px rgba(0,0,0,0.15);
+      font-size:7px;font-weight:700;
+      box-shadow:0 1px 4px rgba(0,0,0,0.2);
+      z-index:10;
     }
     .station:hover{
-      transform:translate(-50%,-50%) scale(1.2);
-      box-shadow:0 4px 16px rgba(0,0,0,0.25);
+      transform:translate(-50%,-50%) scale(1.3);
+      box-shadow:0 3px 12px rgba(0,0,0,0.3);
       z-index:100;
     }
     .station.current{
       background:var(--L2);
       border-color:var(--L2);
       color:#fff;
+      width:28px;height:28px;
       animation:pulse 2s infinite;
     }
     .station.danger{
       border-color:#E74C3C;
-      background:rgba(231,76,60,0.1);
+      background:rgba(231,76,60,0.15);
     }
-    .station.danger:hover{background:rgba(231,76,60,0.2)}
     @keyframes pulse{
-      0%,100%{box-shadow:0 0 0 0 rgba(0,168,77,0.4)}
-      50%{box-shadow:0 0 0 15px rgba(0,168,77,0)}
+      0%,100%{box-shadow:0 0 0 0 rgba(0,168,77,0.5)}
+      50%{box-shadow:0 0 0 10px rgba(0,168,77,0)}
     }
-    
-    /* 역 라벨 */
-    .st-label{
-      position:absolute;
-      transform:translate(-50%,0);
-      background:rgba(255,255,255,0.95);
-      padding:3px 8px;
-      border-radius:4px;
-      font-size:11px;
-      font-weight:600;
-      white-space:nowrap;
-      pointer-events:none;
-      box-shadow:0 1px 4px rgba(0,0,0,0.1);
-    }
-    .st-label.current{background:var(--L2);color:#fff}
-    .st-label.danger{color:#E74C3C}
-    .st-sub{font-size:9px;color:#888;font-weight:500}
     
     /* 범례 */
-    .legend{position:fixed;bottom:90px;left:16px;background:#fff;border:1px solid #ddd;border-radius:12px;padding:14px;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-    .legend h4{font-size:12px;margin-bottom:10px;color:#333;font-weight:700}
-    .legend-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-    .leg{display:flex;align-items:center;gap:6px}
-    .lc{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
-    .lt{font-size:10px;color:#444}
+    .legend{position:fixed;bottom:70px;left:12px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:10px;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.1);font-size:10px}
+    .legend h4{font-size:11px;margin-bottom:8px;color:#333;font-weight:700}
+    .legend-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+    .leg{display:flex;align-items:center;gap:4px}
+    .lc{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff}
+    .lt{font-size:9px;color:#444}
     
     /* 컨트롤 */
-    .ctrl{position:fixed;bottom:95px;right:16px;z-index:50;display:flex;flex-direction:column;gap:8px}
-    .ctrl button{width:48px;height:48px;border:1px solid #ccc;background:#fff;border-radius:12px;font-size:24px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+    .ctrl{position:fixed;bottom:75px;right:12px;z-index:50;display:flex;flex-direction:column;gap:6px}
+    .ctrl button{width:40px;height:40px;border:1px solid #ccc;background:#fff;border-radius:10px;font-size:20px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
     .ctrl button:hover{background:#f0f0f0}
     
     /* 하단바 */
-    .bot{padding:14px 16px 28px;background:#fff;border-top:1px solid #e0e0e0;flex-shrink:0}
-    .bot-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-    .bot-cur{display:flex;align-items:center;gap:12px}
-    .bot-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff}
-    .bot-st{font-weight:600;font-size:16px}
-    .bot-next{font-size:13px;color:#666}
-    .bot-btn{width:100%;padding:16px;background:var(--L2);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+    .bot{padding:10px 16px 20px;background:#fff;border-top:1px solid #e0e0e0;flex-shrink:0}
+    .bot-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .bot-cur{display:flex;align-items:center;gap:8px}
+    .bot-badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+    .bot-st{font-weight:600;font-size:14px}
+    .bot-next{font-size:11px;color:#666}
+    .bot-btn{width:100%;padding:12px;background:var(--L2);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;cursor:pointer}
     
     /* 모달 */
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end}
     .modal.on{display:flex}
-    .modal-c{background:#fff;width:100%;max-width:500px;margin:0 auto;border-radius:24px 24px 0 0;padding:24px;max-height:70vh;overflow-y:auto}
-    .modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-    .modal-t{font-size:22px;font-weight:700}
-    .modal-x{width:40px;height:40px;border:none;background:#f0f0f0;border-radius:50%;font-size:22px;cursor:pointer}
-    .modal-s{font-size:14px;color:#666;margin-bottom:18px}
-    .ch-list{display:flex;flex-direction:column;gap:12px}
-    .ch-item{display:flex;align-items:center;gap:14px;padding:18px;border:2px solid #eee;border-radius:16px;cursor:pointer;transition:all 0.15s}
+    .modal-c{background:#fff;width:100%;max-width:440px;margin:0 auto;border-radius:20px 20px 0 0;padding:20px;max-height:65vh;overflow-y:auto}
+    .modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .modal-t{font-size:18px;font-weight:700}
+    .modal-x{width:32px;height:32px;border:none;background:#f0f0f0;border-radius:50%;font-size:18px;cursor:pointer}
+    .modal-s{font-size:12px;color:#666;margin-bottom:14px}
+    .ch-list{display:flex;flex-direction:column;gap:10px}
+    .ch-item{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #eee;border-radius:12px;cursor:pointer;transition:all 0.15s}
     .ch-item:hover{border-color:#333;background:#fafafa}
-    .ch-badge{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0}
+    .ch-badge{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
     .ch-info{flex:1}
-    .ch-name{font-weight:600;font-size:15px;margin-bottom:4px}
-    .ch-desc{font-size:13px;color:#888}
+    .ch-name{font-weight:600;font-size:13px;margin-bottom:2px}
+    .ch-desc{font-size:11px;color:#888}
     .ch-cost{text-align:right}
-    .ch-time{font-weight:600;font-size:14px}
-    .ch-money{font-size:12px;color:#888}
+    .ch-time{font-weight:600;font-size:12px}
+    .ch-money{font-size:10px;color:#888}
+    
+    /* 툴팁 */
+    .station[data-name]:hover::after{
+      content:attr(data-name);
+      position:absolute;
+      top:-28px;
+      left:50%;
+      transform:translateX(-50%);
+      background:#333;
+      color:#fff;
+      padding:4px 8px;
+      border-radius:4px;
+      font-size:10px;
+      white-space:nowrap;
+      z-index:1000;
+    }
   </style>
 </head>
 <body>
@@ -127,147 +127,138 @@
       <button onclick="goBack()">←</button>
       <span>수도권 전철 노선도</span>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:6px">
       <span class="badge" style="background:var(--L2)">Kim</span>
       <span class="badge" style="background:#555">PNR 14일</span>
     </div>
   </div>
 
   <div class="map-wrap" id="mapWrap">
-    <div class="map-inner" id="mapInner">
+    <div class="map-container" id="mapContainer">
       <!-- 실제 노선도 배경 이미지 -->
-      <img src="subway-bg.png" alt="서울 지하철 노선도" class="map-bg">
+      <img src="subway-bg.png" alt="서울 지하철 노선도" class="map-bg" id="mapBg">
       
       <!-- ═══════════════════════════════════════════════════════════════
            AUTUS 환승역 (Decision Points) 오버레이
-           좌표는 이미지 크기 1800x1400 기준
+           이미지 크기 680x449 기준 % 좌표
            ═══════════════════════════════════════════════════════════════ -->
       
-      <!-- ★ 서울역 (1,4,공항,경의) - 시작 허브 -->
-      <div class="station" style="left:42%;top:38%" onclick="modal('seoul')">
-        <span>1·4</span>
-      </div>
-      <div class="st-label" style="left:42%;top:44%">서울역<br><span class="st-sub">1·4·A·경의</span></div>
+      <!-- ★ 서울역 (1,4,공항,경의) -->
+      <div class="station" style="left:36.5%;top:44%" data-name="서울역" onclick="modal('seoul')">1·4</div>
       
       <!-- ★ 동대문역사문화공원 (2,4,5) - 현재 위치 -->
-      <div class="station current" style="left:52%;top:32%" onclick="modal('ddp')">
-        <span>●</span>
-      </div>
-      <div class="st-label current" style="left:52%;top:38%">동대문역사<br><span class="st-sub" style="color:#fff">현재 위치</span></div>
+      <div class="station current" style="left:51%;top:32%" data-name="동대문역사 ●" onclick="modal('ddp')">●</div>
       
       <!-- 시청 (1,2) -->
-      <div class="station" style="left:38%;top:35%" onclick="modal('city')">
-        <span>1·2</span>
-      </div>
-      <div class="st-label" style="left:38%;top:41%">시청</div>
+      <div class="station" style="left:34%;top:38%" data-name="시청" onclick="modal('city')">1·2</div>
       
       <!-- 종로3가 (1,3,5) -->
-      <div class="station" style="left:45%;top:30%" onclick="modal('jongno3')">
-        <span>1·3</span>
-      </div>
-      <div class="st-label" style="left:45%;top:36%">종로3가</div>
+      <div class="station" style="left:41%;top:32%" data-name="종로3가" onclick="modal('jongno3')">1·3</div>
+      
+      <!-- 을지로3가 (2,3) -->
+      <div class="station" style="left:42%;top:36%" data-name="을지로3가" onclick="modal('euljiro3')">2·3</div>
+      
+      <!-- 충무로 (3,4) -->
+      <div class="station" style="left:44%;top:40%" data-name="충무로" onclick="modal('chungmuro')">3·4</div>
       
       <!-- 왕십리 (2,5,경의,분당) -->
-      <div class="station" style="left:62%;top:32%" onclick="modal('wangsimni')">
-        <span>2·5</span>
-      </div>
-      <div class="st-label" style="left:62%;top:38%">왕십리<br><span class="st-sub">2·5·경의·분당</span></div>
+      <div class="station" style="left:61%;top:34%" data-name="왕십리" onclick="modal('wangsimni')">2·5</div>
       
-      <!-- ★ 강남 (2,신분당) - 핵심 허브 -->
-      <div class="station" style="left:52%;top:58%" onclick="modal('gangnam')">
-        <span>2·신</span>
-      </div>
-      <div class="st-label" style="left:52%;top:64%">강남<br><span class="st-sub">2·신분당</span></div>
-      
-      <!-- ★ 고속터미널 (3,7,9) - 핵심 허브 -->
-      <div class="station" style="left:48%;top:62%" onclick="modal('gosok')">
-        <span>3·7·9</span>
-      </div>
-      <div class="st-label" style="left:48%;top:68%">고속터미널</div>
-      
-      <!-- 홍대입구 (2,공항,경의) -->
-      <div class="station" style="left:30%;top:35%" onclick="modal('hongdae')">
-        <span>2·A</span>
-      </div>
-      <div class="st-label" style="left:30%;top:41%">홍대입구<br><span class="st-sub">2·A·경의</span></div>
-      
-      <!-- 공덕 (5,6,공항,경의) -->
-      <div class="station" style="left:32%;top:40%" onclick="modal('gongdeok')">
-        <span>5·6</span>
-      </div>
-      <div class="st-label" style="left:32%;top:46%">공덕</div>
-      
-      <!-- 신도림 (1,2) -->
-      <div class="station" style="left:28%;top:50%" onclick="modal('sindorim')">
-        <span>1·2</span>
-      </div>
-      <div class="st-label" style="left:28%;top:56%">신도림</div>
-      
-      <!-- 여의도 (5,9) -->
-      <div class="station" style="left:32%;top:52%" onclick="modal('yeouido')">
-        <span>5·9</span>
-      </div>
-      <div class="st-label" style="left:32%;top:58%">여의도</div>
-      
-      <!-- 사당 (2,4) -->
-      <div class="station" style="left:42%;top:58%" onclick="modal('sadang')">
-        <span>2·4</span>
-      </div>
-      <div class="st-label" style="left:42%;top:64%">사당</div>
-      
-      <!-- 교대 (2,3) -->
-      <div class="station" style="left:46%;top:56%" onclick="modal('gyodae')">
-        <span>2·3</span>
-      </div>
-      <div class="st-label" style="left:46%;top:62%">교대</div>
-      
-      <!-- 잠실 (2,8) -->
-      <div class="station" style="left:72%;top:52%" onclick="modal('jamsil')">
-        <span>2·8</span>
-      </div>
-      <div class="st-label" style="left:72%;top:58%">잠실</div>
+      <!-- 성수 (2,분당) -->
+      <div class="station" style="left:66%;top:36%" data-name="성수" onclick="modal('seongsu')">2</div>
       
       <!-- 건대입구 (2,7) -->
-      <div class="station" style="left:70%;top:42%" onclick="modal('konkuk')">
-        <span>2·7</span>
-      </div>
-      <div class="st-label" style="left:70%;top:48%">건대입구</div>
+      <div class="station" style="left:71%;top:42%" data-name="건대입구" onclick="modal('konkuk')">2·7</div>
+      
+      <!-- 잠실 (2,8) -->
+      <div class="station" style="left:78%;top:56%" data-name="잠실" onclick="modal('jamsil')">2·8</div>
+      
+      <!-- 종합운동장 (2,9) -->
+      <div class="station" style="left:72%;top:58%" data-name="종합운동장" onclick="modal('sports')">2·9</div>
+      
+      <!-- 삼성 (2) -->
+      <div class="station" style="left:66%;top:60%" data-name="삼성" onclick="modal('samsung')">2</div>
+      
+      <!-- 선릉 (2,분당) -->
+      <div class="station" style="left:60%;top:60%" data-name="선릉" onclick="modal('seolleung')">2</div>
+      
+      <!-- ★ 강남 (2,신분당) -->
+      <div class="station" style="left:54%;top:60%" data-name="강남" onclick="modal('gangnam')">2·신</div>
+      
+      <!-- 역삼 (2) -->
+      <div class="station" style="left:52%;top:58%" data-name="역삼" onclick="modal('yeoksam')">2</div>
+      
+      <!-- 교대 (2,3) -->
+      <div class="station" style="left:48%;top:58%" data-name="교대" onclick="modal('gyodae')">2·3</div>
+      
+      <!-- 서초 (2) -->
+      <div class="station" style="left:46%;top:56%" data-name="서초" onclick="modal('seocho')">2</div>
+      
+      <!-- 사당 (2,4) -->
+      <div class="station" style="left:42%;top:62%" data-name="사당" onclick="modal('sadang')">2·4</div>
+      
+      <!-- ★ 고속터미널 (3,7,9) -->
+      <div class="station" style="left:50%;top:66%" data-name="고속터미널" onclick="modal('gosok')">3·7·9</div>
+      
+      <!-- 신도림 (1,2) -->
+      <div class="station" style="left:24%;top:54%" data-name="신도림" onclick="modal('sindorim')">1·2</div>
+      
+      <!-- 영등포구청 (2,5) -->
+      <div class="station" style="left:28%;top:50%" data-name="영등포구청" onclick="modal('ydp')">2·5</div>
+      
+      <!-- 당산 (2,9) -->
+      <div class="station" style="left:26%;top:48%" data-name="당산" onclick="modal('dangsan')">2·9</div>
+      
+      <!-- 합정 (2,6) -->
+      <div class="station" style="left:26%;top:42%" data-name="합정" onclick="modal('hapjeong')">2·6</div>
+      
+      <!-- 홍대입구 (2,공항,경의) -->
+      <div class="station" style="left:24%;top:38%" data-name="홍대입구" onclick="modal('hongdae')">2·A</div>
+      
+      <!-- 신촌 (2) -->
+      <div class="station" style="left:28%;top:36%" data-name="신촌" onclick="modal('sinchon')">2</div>
+      
+      <!-- 공덕 (5,6,공항,경의) -->
+      <div class="station" style="left:28%;top:44%" data-name="공덕" onclick="modal('gongdeok')">5·6</div>
+      
+      <!-- 여의도 (5,9) -->
+      <div class="station" style="left:30%;top:54%" data-name="여의도" onclick="modal('yeouido')">5·9</div>
       
       <!-- 노원 (4,7) -->
-      <div class="station" style="left:68%;top:18%" onclick="modal('nowon')">
-        <span>4·7</span>
-      </div>
-      <div class="st-label" style="left:68%;top:24%">노원</div>
+      <div class="station" style="left:68%;top:18%" data-name="노원" onclick="modal('nowon')">4·7</div>
       
       <!-- 청량리 (1,경의,분당) -->
-      <div class="station" style="left:58%;top:25%" onclick="modal('cheongnyangni')">
-        <span>1</span>
-      </div>
-      <div class="st-label" style="left:58%;top:31%">청량리</div>
+      <div class="station" style="left:55%;top:26%" data-name="청량리" onclick="modal('cheongnyangni')">1</div>
       
       <!-- 수서 (3,분당) -->
-      <div class="station" style="left:65%;top:65%" onclick="modal('suseo')">
-        <span>3·분</span>
-      </div>
-      <div class="st-label" style="left:65%;top:71%">수서</div>
-      
-      <!-- ★ 김포공항 (5,9,공항) - 하차(귀국) 포인트 -->
-      <div class="station danger" style="left:15%;top:42%" onclick="modal('gimpo')">
-        <span style="color:#E74C3C">⚠️</span>
-      </div>
-      <div class="st-label danger" style="left:15%;top:48%">김포공항<br><span class="st-sub" style="color:#E74C3C">하차(귀국)</span></div>
-      
-      <!-- 인천공항 (공항) - 시작점 -->
-      <div class="station" style="left:5%;top:42%" onclick="modal('incheon')">
-        <span>✈️</span>
-      </div>
-      <div class="st-label" style="left:5%;top:48%">인천공항<br><span class="st-sub">시작점</span></div>
+      <div class="station" style="left:68%;top:72%" data-name="수서" onclick="modal('suseo')">3</div>
       
       <!-- 가산디지털단지 (1,7) -->
-      <div class="station" style="left:25%;top:60%" onclick="modal('gasan')">
-        <span>1·7</span>
-      </div>
-      <div class="st-label" style="left:25%;top:66%">가산디지털단지</div>
+      <div class="station" style="left:22%;top:66%" data-name="가산디지털단지" onclick="modal('gasan')">1·7</div>
+      
+      <!-- 대림 (2,7) -->
+      <div class="station" style="left:26%;top:60%" data-name="대림" onclick="modal('daerim')">2·7</div>
+      
+      <!-- 천호 (5,8) -->
+      <div class="station" style="left:82%;top:50%" data-name="천호" onclick="modal('cheonho')">5·8</div>
+      
+      <!-- 군자 (5,7) -->
+      <div class="station" style="left:72%;top:38%" data-name="군자" onclick="modal('gunja')">5·7</div>
+      
+      <!-- 태릉입구 (6,7) -->
+      <div class="station" style="left:74%;top:26%" data-name="태릉입구" onclick="modal('taereung')">6·7</div>
+      
+      <!-- DMC (6,공항,경의) -->
+      <div class="station" style="left:20%;top:30%" data-name="DMC" onclick="modal('dmc')">6·A</div>
+      
+      <!-- 연신내 (3,6) -->
+      <div class="station" style="left:26%;top:22%" data-name="연신내" onclick="modal('yeonsinnae')">3·6</div>
+      
+      <!-- ★ 김포공항 (5,9,공항) - 하차(귀국) -->
+      <div class="station danger" style="left:12%;top:44%" data-name="⚠️ 김포공항" onclick="modal('gimpo')">⚠️</div>
+      
+      <!-- 인천공항 (공항) - 시작점 -->
+      <div class="station" style="left:4%;top:76%" data-name="인천공항 (시작)" onclick="modal('incheon')">✈️</div>
 
     </div>
   </div>
@@ -277,21 +268,21 @@
     <div class="legend-grid">
       <div class="leg"><div class="lc" style="background:var(--L1)">1</div><span class="lt">정석입국</span></div>
       <div class="leg"><div class="lc" style="background:var(--L2)">2</div><span class="lt">교육순환</span></div>
-      <div class="leg"><div class="lc" style="background:var(--L3)">3</div><span class="lt">취업루트</span></div>
-      <div class="leg"><div class="lc" style="background:var(--L4)">4</div><span class="lt">정착경로</span></div>
-      <div class="leg"><div class="lc" style="background:var(--L5)">5</div><span class="lt">전문직</span></div>
-      <div class="leg"><div class="lc" style="background:var(--L7)">7</div><span class="lt">기술이민</span></div>
-      <div class="leg"><div class="lc" style="background:var(--L9)">9</div><span class="lt">급행투자</span></div>
-      <div class="leg"><div class="lc" style="background:var(--LS)">신</div><span class="lt">특별경로</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L3)">3</div><span class="lt">취업</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L4)">4</div><span class="lt">정착</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L5)">5</div><span class="lt">전문</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L7)">7</div><span class="lt">기술</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L9)">9</div><span class="lt">급행</span></div>
+      <div class="leg"><div class="lc" style="background:var(--LS)">신</div><span class="lt">특별</span></div>
       <div class="leg"><div class="lc" style="background:var(--LA)">A</div><span class="lt">출입국</span></div>
-      <div class="leg"><div style="width:18px;height:18px;border:3px solid var(--L2);border-radius:50%;background:#fff"></div><span class="lt">현재위치</span></div>
-      <div class="leg"><div style="width:18px;height:18px;border:3px solid #E74C3C;border-radius:50%;background:#fff"></div><span class="lt">⚠️하차</span></div>
+      <div class="leg"><div style="width:12px;height:12px;border:2px solid var(--L2);border-radius:50%;background:var(--L2)"></div><span class="lt">현재</span></div>
+      <div class="leg"><div style="width:12px;height:12px;border:2px solid #E74C3C;border-radius:50%;background:#fff"></div><span class="lt">하차</span></div>
     </div>
   </div>
 
   <div class="ctrl">
     <button onclick="zoom(1.3)">+</button>
-    <button onclick="zoom(0.7)">−</button>
+    <button onclick="zoom(0.75)">−</button>
     <button onclick="resetZoom()">⟲</button>
   </div>
 
@@ -301,7 +292,7 @@
         <div class="bot-badge" style="background:var(--L2)">2</div>
         <span class="bot-st">동대문역사문화공원</span>
       </div>
-      <span class="bot-next">다음 선택점: <b>왕십리</b></span>
+      <span class="bot-next">다음: <b>왕십리</b></span>
     </div>
     <button class="bot-btn" onclick="goMain()">현재역으로 이동</button>
   </div>
@@ -321,57 +312,57 @@
 
 <script>
 const choices = {
-  seoul: { t:'서울역', s:'🚀 시작 허브 - 전략을 선택하세요', o:[
-    {l:'1',c:'var(--L1)',n:'1호선 정석입국',d:'비자→교육→취업 정석 루트',t:'3년',m:'₩80M'},
+  seoul: { t:'서울역', s:'🚀 시작 허브', o:[
+    {l:'1',c:'var(--L1)',n:'1호선 정석입국',d:'비자→교육→취업',t:'3년',m:'₩80M'},
     {l:'4',c:'var(--L4)',n:'4호선 직접정착',d:'투자→체류→영주권',t:'2년',m:'₩300M'},
-    {l:'A',c:'var(--LA)',n:'공항철도',d:'출입국 경유 (인천공항↔서울)',t:'43분',m:'₩9K'},
-    {l:'경의',c:'var(--LK)',n:'경의중앙선',d:'용산/청량리 방면',t:'+2월',m:'₩5M'}
+    {l:'A',c:'var(--LA)',n:'공항철도',d:'출입국 경유',t:'43분',m:'₩9K'},
+    {l:'경의',c:'var(--LK)',n:'경의중앙선',d:'용산/청량리',t:'+2월',m:'₩5M'}
   ]},
-  ddp: { t:'동대문역사문화공원 (현재)', s:'📍 계속 진행하거나 환승하세요', o:[
-    {l:'2',c:'var(--L2)',n:'2호선 유지 (순환)',d:'왕십리→성수→건대 방면',t:'+3월',m:'₩10M'},
-    {l:'4',c:'var(--L4)',n:'4호선 환승',d:'충무로→서울역 방면',t:'+2월',m:'₩5M'},
-    {l:'5',c:'var(--L5)',n:'5호선 환승',d:'광화문→여의도 방면',t:'+4월',m:'₩15M'}
+  ddp: { t:'동대문역사문화공원 (현재)', s:'📍 현재 위치', o:[
+    {l:'2',c:'var(--L2)',n:'2호선 유지',d:'왕십리→성수→건대',t:'+3월',m:'₩10M'},
+    {l:'4',c:'var(--L4)',n:'4호선 환승',d:'충무로→서울역',t:'+2월',m:'₩5M'},
+    {l:'5',c:'var(--L5)',n:'5호선 환승',d:'광화문→여의도',t:'+4월',m:'₩15M'}
   ]},
   gangnam: { t:'강남역', s:'💼 취업/창업 허브', o:[
     {l:'2',c:'var(--L2)',n:'2호선 유지',d:'교육 순환 계속',t:'+6월',m:'₩20M'},
-    {l:'신',c:'var(--LS)',n:'신분당선 환승',d:'스타트업/투자 루트',t:'+1년',m:'₩100M'}
+    {l:'신',c:'var(--LS)',n:'신분당선',d:'스타트업/투자',t:'+1년',m:'₩100M'}
   ]},
-  gosok: { t:'고속터미널역', s:'🚌 취업 허브 - 3개 노선', o:[
-    {l:'3',c:'var(--L3)',n:'3호선 취업',d:'정규직 취업 루트',t:'+6월',m:'₩0'},
-    {l:'7',c:'var(--L7)',n:'7호선 기술',d:'기술이민 루트',t:'+1년',m:'₩30M'},
-    {l:'9',c:'var(--L9)',n:'9호선 급행',d:'투자이민 급행',t:'+3월',m:'₩500M'}
+  gosok: { t:'고속터미널역', s:'🚌 취업 허브', o:[
+    {l:'3',c:'var(--L3)',n:'3호선 취업',d:'정규직 취업',t:'+6월',m:'₩0'},
+    {l:'7',c:'var(--L7)',n:'7호선 기술',d:'기술이민',t:'+1년',m:'₩30M'},
+    {l:'9',c:'var(--L9)',n:'9호선 급행',d:'투자이민',t:'+3월',m:'₩500M'}
   ]},
-  gimpo: { t:'김포공항역', s:'⚠️ 하차(귀국) 지점입니다', o:[
+  gimpo: { t:'김포공항역', s:'⚠️ 하차(귀국) 지점', o:[
     {l:'✕',c:'#E74C3C',n:'하차 (귀국)',d:'❌ 중도 포기',t:'즉시',m:'₩0'},
-    {l:'9',c:'var(--L9)',n:'9호선 유지',d:'강남 방면 진행',t:'+1월',m:'₩5M'},
-    {l:'A',c:'var(--LA)',n:'공항철도',d:'인천공항 방면',t:'20분',m:'₩4K'}
+    {l:'9',c:'var(--L9)',n:'9호선 유지',d:'강남 방면',t:'+1월',m:'₩5M'},
+    {l:'A',c:'var(--LA)',n:'공항철도',d:'인천공항',t:'20분',m:'₩4K'}
   ]},
-  wangsimni: { t:'왕십리역', s:'🔄 4개 노선 대형 환승역', o:[
+  wangsimni: { t:'왕십리역', s:'🔄 4개 노선 환승', o:[
     {l:'2',c:'var(--L2)',n:'2호선',d:'순환선 유지',t:'+2월',m:'₩5M'},
-    {l:'5',c:'var(--L5)',n:'5호선',d:'광화문/여의도 방면',t:'+3월',m:'₩8M'},
-    {l:'경의',c:'var(--LK)',n:'경의중앙선',d:'용산/문산 방면',t:'+4월',m:'₩10M'},
-    {l:'분당',c:'var(--LB)',n:'분당선',d:'강남/수원 방면',t:'+5월',m:'₩12M'}
+    {l:'5',c:'var(--L5)',n:'5호선',d:'광화문/여의도',t:'+3월',m:'₩8M'},
+    {l:'경의',c:'var(--LK)',n:'경의중앙선',d:'용산/문산',t:'+4월',m:'₩10M'},
+    {l:'분당',c:'var(--LB)',n:'분당선',d:'강남/수원',t:'+5월',m:'₩12M'}
   ]},
-  hongdae: { t:'홍대입구역', s:'✈️ 공항 연결 허브', o:[
-    {l:'2',c:'var(--L2)',n:'2호선',d:'신촌/시청 방면',t:'+1월',m:'₩3M'},
+  hongdae: { t:'홍대입구역', s:'✈️ 공항 연결', o:[
+    {l:'2',c:'var(--L2)',n:'2호선',d:'신촌/시청',t:'+1월',m:'₩3M'},
     {l:'A',c:'var(--LA)',n:'공항철도',d:'김포/인천공항',t:'40분',m:'₩5K'},
-    {l:'경의',c:'var(--LK)',n:'경의중앙선',d:'파주/문산 방면',t:'+3월',m:'₩7M'}
+    {l:'경의',c:'var(--LK)',n:'경의중앙선',d:'파주/문산',t:'+3월',m:'₩7M'}
   ]},
   jamsil: { t:'잠실역', s:'🏟️ 강동 허브', o:[
     {l:'2',c:'var(--L2)',n:'2호선',d:'순환선 유지',t:'+2월',m:'₩5M'},
-    {l:'8',c:'var(--L8)',n:'8호선',d:'모란/성남 방면',t:'+3월',m:'₩8M'}
+    {l:'8',c:'var(--L8)',n:'8호선',d:'모란/성남',t:'+3월',m:'₩8M'}
   ]},
   sindorim: { t:'신도림역', s:'🔀 경인선 환승', o:[
-    {l:'1',c:'var(--L1)',n:'1호선',d:'인천/부천 방면',t:'+4월',m:'₩10M'},
+    {l:'1',c:'var(--L1)',n:'1호선',d:'인천/부천',t:'+4월',m:'₩10M'},
     {l:'2',c:'var(--L2)',n:'2호선',d:'순환선 유지',t:'+2월',m:'₩5M'}
   ]},
-  incheon: { t:'인천공항역', s:'🛫 출발점 - 입국', o:[
+  incheon: { t:'인천공항역', s:'🛫 출발점', o:[
     {l:'A',c:'var(--LA)',n:'공항철도 (직통)',d:'서울역 직행',t:'43분',m:'₩9K'},
     {l:'A',c:'var(--LA)',n:'공항철도 (일반)',d:'김포공항 경유',t:'58분',m:'₩5K'}
   ]},
-  yeouido: { t:'여의도역', s:'💰 금융/방송 허브', o:[
-    {l:'5',c:'var(--L5)',n:'5호선',d:'광화문/왕십리 방면',t:'+2월',m:'₩8M'},
-    {l:'9',c:'var(--L9)',n:'9호선',d:'강남/김포공항 방면',t:'+1월',m:'₩5M'}
+  yeouido: { t:'여의도역', s:'💰 금융 허브', o:[
+    {l:'5',c:'var(--L5)',n:'5호선',d:'광화문/왕십리',t:'+2월',m:'₩8M'},
+    {l:'9',c:'var(--L9)',n:'9호선',d:'강남/김포공항',t:'+1월',m:'₩5M'}
   ]},
   gongdeok: { t:'공덕역', s:'🚇 4개 노선 환승', o:[
     {l:'5',c:'var(--L5)',n:'5호선',d:'광화문/여의도',t:'+2월',m:'₩6M'},
@@ -379,27 +370,29 @@ const choices = {
     {l:'A',c:'var(--LA)',n:'공항철도',d:'서울역/인천공항',t:'35분',m:'₩5K'},
     {l:'경의',c:'var(--LK)',n:'경의중앙선',d:'용산/DMC',t:'+4월',m:'₩10M'}
   ]},
-  suseo: { t:'수서역', s:'🚄 SRT/GTX 환승', o:[
-    {l:'3',c:'var(--L3)',n:'3호선',d:'교대/고속터미널 방면',t:'+3월',m:'₩8M'},
+  suseo: { t:'수서역', s:'🚄 SRT 환승', o:[
+    {l:'3',c:'var(--L3)',n:'3호선',d:'교대/고속터미널',t:'+3월',m:'₩8M'},
     {l:'분당',c:'var(--LB)',n:'분당선',d:'선릉/왕십리',t:'+4월',m:'₩10M'}
   ]},
-  nowon: { t:'노원역', s:'📚 북부 교육 허브', o:[
-    {l:'4',c:'var(--L4)',n:'4호선',d:'수유/당고개 방면',t:'+3월',m:'₩7M'},
-    {l:'7',c:'var(--L7)',n:'7호선',d:'건대/고속터미널 방면',t:'+4월',m:'₩10M'}
+  nowon: { t:'노원역', s:'📚 북부 교육', o:[
+    {l:'4',c:'var(--L4)',n:'4호선',d:'수유/당고개',t:'+3월',m:'₩7M'},
+    {l:'7',c:'var(--L7)',n:'7호선',d:'건대/고속터미널',t:'+4월',m:'₩10M'}
   ]},
-  gasan: { t:'가산디지털단지역', s:'💻 IT/스타트업', o:[
-    {l:'1',c:'var(--L1)',n:'1호선',d:'구로/신도림 방면',t:'+2월',m:'₩5M'},
-    {l:'7',c:'var(--L7)',n:'7호선',d:'대림/강남 방면',t:'+3월',m:'₩8M'}
+  gasan: { t:'가산디지털단지역', s:'💻 IT 클러스터', o:[
+    {l:'1',c:'var(--L1)',n:'1호선',d:'구로/신도림',t:'+2월',m:'₩5M'},
+    {l:'7',c:'var(--L7)',n:'7호선',d:'대림/강남',t:'+3월',m:'₩8M'}
   ]}
 };
 
 // 기본 환승역
-['city','jongno3','gyodae','sadang','konkuk','cheongnyangni'].forEach(id=>{
-  if(!choices[id]) choices[id]={t:id+'역',s:'환승역입니다',o:[{l:'→',c:'#555',n:'계속 진행',d:'현재 호선 유지',t:'-',m:'-'}]};
+['city','jongno3','euljiro3','chungmuro','seongsu','konkuk','sports','samsung','seolleung','yeoksam',
+'gyodae','seocho','sadang','ydp','dangsan','hapjeong','sinchon','cheongnyangni','daerim','cheonho',
+'gunja','taereung','dmc','yeonsinnae'].forEach(id=>{
+  if(!choices[id]) choices[id]={t:id,s:'환승역',o:[{l:'→',c:'#555',n:'계속 진행',d:'현재 호선 유지',t:'-',m:'-'}]};
 });
 
 let scale = 1;
-const inner = document.getElementById('mapInner');
+const container = document.getElementById('mapContainer');
 
 function modal(id) {
   const c = choices[id]; if(!c) return;
@@ -418,11 +411,11 @@ function modal(id) {
 function closeModal() { document.getElementById('modal').classList.remove('on'); }
 function select(l,station) { 
   if(l==='✕') {
-    if(confirm('⚠️ 정말 하차(귀국)하시겠습니까?\n\n이 결정은 되돌릴 수 없습니다.')) {
+    if(confirm('⚠️ 정말 하차(귀국)하시겠습니까?')) {
       alert('🛫 귀국 처리되었습니다.');
     }
   } else {
-    alert(`${l} 선택됨 (${station})\n\n경로가 변경됩니다.`); 
+    alert(`${l} 선택됨 (${station})`); 
   }
   closeModal(); 
 }
@@ -431,37 +424,12 @@ function goMain() { location.href='main.html'; }
 
 function zoom(f) {
   scale *= f;
-  scale = Math.max(0.5, Math.min(2.5, scale));
-  inner.style.transform = `scale(${scale})`;
-  inner.style.transformOrigin = 'top left';
+  scale = Math.max(0.5, Math.min(3, scale));
+  container.style.transform = `scale(${scale})`;
 }
-function resetZoom() { scale=1; inner.style.transform='scale(1)'; }
+function resetZoom() { scale=1; container.style.transform='scale(1)'; }
 
 document.getElementById('modal').onclick = e => { if(e.target.id==='modal') closeModal(); };
-
-// 드래그 스크롤
-const wrap = document.getElementById('mapWrap');
-let isDragging = false, startX, startY, scrollLeft, scrollTop;
-wrap.addEventListener('mousedown', e => {
-  if(e.target.classList.contains('station')) return;
-  isDragging = true;
-  startX = e.pageX - wrap.offsetLeft;
-  startY = e.pageY - wrap.offsetTop;
-  scrollLeft = wrap.scrollLeft;
-  scrollTop = wrap.scrollTop;
-  wrap.style.cursor = 'grabbing';
-});
-wrap.addEventListener('mouseleave', () => { isDragging = false; wrap.style.cursor = 'grab'; });
-wrap.addEventListener('mouseup', () => { isDragging = false; wrap.style.cursor = 'grab'; });
-wrap.addEventListener('mousemove', e => {
-  if(!isDragging) return;
-  e.preventDefault();
-  const x = e.pageX - wrap.offsetLeft;
-  const y = e.pageY - wrap.offsetTop;
-  wrap.scrollLeft = scrollLeft - (x - startX);
-  wrap.scrollTop = scrollTop - (y - startY);
-});
-wrap.style.cursor = 'grab';
 </script>
 </body>
 </html>
