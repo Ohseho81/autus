@@ -1,0 +1,228 @@
+{
+  "$schema": "AUTUS_FLOWCHART_MODEL_v1",
+  "version": "1.0.0",
+  "description": "순서도 → 노선도 매핑 (대체 노선 = 조건부 분기)",
+  
+  "stations": [
+    {
+      "id": "S_ORIGIN",
+      "label": "Origin",
+      "type": "origin",
+      "description": "팀 구성원이 프로젝트 제안",
+      "x": 400,
+      "y": 100
+    },
+    {
+      "id": "S_PROGRESS",
+      "label": "Progress",
+      "type": "progress",
+      "description": "팀 회의에서 아이디어 토론",
+      "x": 400,
+      "y": 200
+    },
+    {
+      "id": "S_DECISION",
+      "label": "Decision",
+      "type": "decision",
+      "description": "참가자가 좋은 아이디어인지 결정",
+      "is_transfer": true,
+      "x": 400,
+      "y": 320
+    },
+    {
+      "id": "S_DROP",
+      "label": "Drop",
+      "type": "exit",
+      "description": "팀에서 아이디어 취소",
+      "x": 200,
+      "y": 420
+    },
+    {
+      "id": "S_RESEARCH",
+      "label": "Research",
+      "type": "research",
+      "description": "팀 구성원이 더 많은 조사 수행",
+      "x": 600,
+      "y": 420
+    },
+    {
+      "id": "S_DRAFT",
+      "label": "Draft",
+      "type": "progress",
+      "description": "제안서 작성",
+      "x": 400,
+      "y": 450
+    },
+    {
+      "id": "S_REVIEW",
+      "label": "Review",
+      "type": "decision",
+      "description": "검토",
+      "is_transfer": true,
+      "x": 400,
+      "y": 550
+    },
+    {
+      "id": "S_EDIT",
+      "label": "Edit",
+      "type": "progress",
+      "description": "수정",
+      "x": 250,
+      "y": 620
+    },
+    {
+      "id": "S_APPROVAL",
+      "label": "Final Approval",
+      "type": "destination",
+      "description": "최종 승인",
+      "x": 400,
+      "y": 700
+    }
+  ],
+  
+  "lines": [
+    {
+      "id": "L_MAIN",
+      "name": "Main Line",
+      "color": "#3e8ae1",
+      "type": "solid",
+      "description": "정상 진행 경로"
+    },
+    {
+      "id": "L_EXIT",
+      "name": "Exit Line",
+      "color": "#888888",
+      "type": "solid",
+      "description": "실패 노선 (하차)"
+    },
+    {
+      "id": "L_RESEARCH",
+      "name": "Research Loop",
+      "color": "#ff8c00",
+      "type": "dashed",
+      "description": "대체 노선 - 조사 루프"
+    },
+    {
+      "id": "L_EDIT",
+      "name": "Edit Loop",
+      "color": "#9c27b0",
+      "type": "dashed",
+      "description": "대체 노선 - 수정 루프"
+    }
+  ],
+  
+  "edges": [
+    {
+      "id": "E1",
+      "from": "S_ORIGIN",
+      "to": "S_PROGRESS",
+      "line": "L_MAIN",
+      "condition": null,
+      "physics": { "dt": 1, "dE": -0.02, "dS": 0.01, "dR": 0 }
+    },
+    {
+      "id": "E2",
+      "from": "S_PROGRESS",
+      "to": "S_DECISION",
+      "line": "L_MAIN",
+      "condition": null,
+      "physics": { "dt": 2, "dE": -0.05, "dS": 0.02, "dR": 0.01 }
+    },
+    {
+      "id": "E3_NO",
+      "from": "S_DECISION",
+      "to": "S_DROP",
+      "line": "L_EXIT",
+      "condition": { "type": "NO", "label": "아니오" },
+      "physics": { "dt": 1, "dE": -0.10, "dS": 0.05, "dR": 0.30 },
+      "description": "A안: 실패 노선"
+    },
+    {
+      "id": "E3_INFO",
+      "from": "S_DECISION",
+      "to": "S_RESEARCH",
+      "line": "L_RESEARCH",
+      "condition": { "type": "INFO_LACK", "label": "정보 부족" },
+      "physics": { "dt": 5, "dE": -0.15, "dS": 0.08, "dR": -0.10 },
+      "description": "B안: 대체 노선 - 조사"
+    },
+    {
+      "id": "E3_BACK",
+      "from": "S_RESEARCH",
+      "to": "S_DECISION",
+      "line": "L_RESEARCH",
+      "condition": { "type": "LOOP_BACK", "label": "재판단" },
+      "physics": { "dt": 2, "dE": -0.05, "dS": -0.02, "dR": -0.05 },
+      "is_loop": true,
+      "description": "조사 후 복귀 (성공률 상승)"
+    },
+    {
+      "id": "E3_YES",
+      "from": "S_DECISION",
+      "to": "S_DRAFT",
+      "line": "L_MAIN",
+      "condition": { "type": "YES", "label": "예" },
+      "physics": { "dt": 1, "dE": -0.02, "dS": 0.01, "dR": 0 },
+      "description": "C안: 정상 루트"
+    },
+    {
+      "id": "E4",
+      "from": "S_DRAFT",
+      "to": "S_REVIEW",
+      "line": "L_MAIN",
+      "condition": null,
+      "physics": { "dt": 3, "dE": -0.08, "dS": 0.03, "dR": 0.02 }
+    },
+    {
+      "id": "E5_NO",
+      "from": "S_REVIEW",
+      "to": "S_EDIT",
+      "line": "L_EDIT",
+      "condition": { "type": "NO", "label": "수정 필요" },
+      "physics": { "dt": 2, "dE": -0.05, "dS": 0.02, "dR": 0.01 },
+      "description": "수정 루프 진입"
+    },
+    {
+      "id": "E5_BACK",
+      "from": "S_EDIT",
+      "to": "S_REVIEW",
+      "line": "L_EDIT",
+      "condition": { "type": "LOOP_BACK", "label": "재검토" },
+      "physics": { "dt": 1, "dE": -0.03, "dS": -0.01, "dR": -0.02 },
+      "is_loop": true,
+      "description": "수정 후 재검토"
+    },
+    {
+      "id": "E5_YES",
+      "from": "S_REVIEW",
+      "to": "S_APPROVAL",
+      "line": "L_MAIN",
+      "condition": { "type": "YES", "label": "승인" },
+      "physics": { "dt": 1, "dE": 0.10, "dS": -0.05, "dR": -0.10 }
+    }
+  ],
+  
+  "alternateLineRules": {
+    "description": "대체 노선이 열리는 조건",
+    "conditions": [
+      { "metric": "Confidence", "operator": "<", "threshold": 0.6 },
+      { "metric": "Info", "operator": "<", "threshold": 0.5 },
+      { "metric": "Risk", "operator": ">", "threshold": 0.7 }
+    ],
+    "physics": {
+      "description": "대체 노선의 물리 특성",
+      "time": "↑ 증가",
+      "energy": "↓ 감소",
+      "friction": "↑ 증가",
+      "successProbability": "↑ 증가"
+    }
+  },
+  
+  "visualRules": {
+    "decision": { "icon": "⦿", "shape": "diamond", "color": "#3e8ae1" },
+    "alternateLine": { "stroke": "dashed", "strokeWidth": 3, "opacity": 0.7 },
+    "loop": { "animation": "pulse", "arrowDirection": "both" },
+    "exit": { "icon": "⊘", "color": "#888888" },
+    "mainLine": { "stroke": "solid", "strokeWidth": 6 }
+  }
+}
