@@ -1,0 +1,15 @@
+{
+  "name": "autus",
+  "version": "1.0.0",
+  "description": "AUTUS — Decision Physics System",
+  "type": "module",
+  "scripts": {
+    "test:visual": "playwright test --config=ui/playwright.config.ts",
+    "test:visual:update": "playwright test --config=ui/playwright.config.ts --update-snapshots",
+    "test:visual:report": "playwright show-report playwright-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "typescript": "^5.0.0"
+  }
+}
