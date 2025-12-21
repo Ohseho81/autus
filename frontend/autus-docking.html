@@ -739,10 +739,13 @@
         els.energyFill.style.width = STATE.valueEnergy + '%';
         els.energyFill.style.background = STATE.valueEnergy < 30 ? 'var(--critical)' : STATE.valueEnergy < 50 ? 'var(--warning)' : 'var(--safe)';
 
-        // Precision Mode
+        // Precision Mode (PNR < 7일 시에만 활성화)
         if (STATE.pnrDays < 7) {
           STATE.precisionMode = true;
           els.precisionMode.classList.add('active');
+        } else {
+          STATE.precisionMode = false;
+          els.precisionMode.classList.remove('active');
         }
 
         // State Machine (LOCK)
@@ -756,15 +759,26 @@
           STATE.state = 'IRREVERSIBLE';
           els.chooseBtn.classList.remove('enabled');
           els.chooseBtn.textContent = 'LOCKED';
+          els.chooseBtn.style.background = 'var(--irreversible)';
+          els.chooseBtn.style.borderColor = 'var(--irreversible)';
         } else if (totalDev >= 0.7 || STATE.pnrDays < 7) {
           STATE.state = 'CRITICAL';
           els.chooseBtn.classList.add('enabled');
+          els.chooseBtn.textContent = 'Choose';
+          els.chooseBtn.style.background = '';
+          els.chooseBtn.style.borderColor = '';
         } else if (totalDev >= 0.4 || STATE.pnrDays <= 21) {
           STATE.state = 'WARNING';
           els.chooseBtn.classList.remove('enabled');
+          els.chooseBtn.textContent = 'Choose';
+          els.chooseBtn.style.background = '#222';
+          els.chooseBtn.style.borderColor = '#333';
         } else {
           STATE.state = 'SAFE';
           els.chooseBtn.classList.remove('enabled');
+          els.chooseBtn.textContent = 'Choose';
+          els.chooseBtn.style.background = '#222';
+          els.chooseBtn.style.borderColor = '#333';
         }
       }
 
