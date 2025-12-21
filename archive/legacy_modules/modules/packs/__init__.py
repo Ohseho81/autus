@@ -1,1 +1,0 @@
-# Auto-register all packs

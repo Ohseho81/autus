@@ -1,8 +1,0 @@
-{
-  "pack": "architect_pack",
-  "results": {
-    "analysis": "{\"summary\": \"Implement \\nFeature: Auto-Scaling Pack Runner\\nDescription: Dynamic scaling based on load and priority\\nLayer: 4_packs\\nPillar: intent\\nSource: Google\\n\\nRequirements:\\n- Load-based scaling\\n- Priority queue management\\n- Resource allocation\\n- Concurrent execution\\n\\nAPI Endpoints:\\n- /packs/scale\\n- /packs/queue\\n- /packs/resources\\n\\nFiles to generate:\\n- core/pack/scaler.py\\n- core/pack/queue.py\\n- core/pack/resources.py\\n\", \"files\": [\"src/feature.py\", \"tests/test_feature.py\"], \"dependencies\": [\"fastapi\"], \"complexity\": \"medium\", \"steps\": [\"1. Design\", \"2. Implement\", \"3. Test\"]}"
-  },
-  "status": "success",
-  "mode": "mock"
-}

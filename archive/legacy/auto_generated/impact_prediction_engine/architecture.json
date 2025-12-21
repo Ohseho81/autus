@@ -1,8 +1,0 @@
-{
-  "pack": "architect_pack",
-  "results": {
-    "analysis": "{\"summary\": \"Implement \\nFeature: Impact Prediction Engine\\nDescription: ByteDance-style ranking and prediction for pack execution outcomes\\nLayer: universe\\nPillar: impact\\nSource: ByteDance\\n\\nRequirements:\\n- Ranking model for pack results\\n- Embedding layer (128 dimensions)\\n- Online learning (1min interval)\\n- Ranking latency < 30ms\\n\\nAPI Endpoints:\\n- /impact/predict\\n- /impact/update\\n- /impact/ranking\\n\\nFiles to generate:\\n- core/impact/predictor.py\\n- core/impact/ranking.py\\n- core/impact/embeddings.py\\n\", \"files\": [\"src/feature.py\", \"tests/test_feature.py\"], \"dependencies\": [\"fastapi\"], \"complexity\": \"medium\", \"steps\": [\"1. Design\", \"2. Implement\", \"3. Test\"]}"
-  },
-  "status": "success",
-  "mode": "mock"
-}

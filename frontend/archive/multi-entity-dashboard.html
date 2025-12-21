@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AUTUS — Multi-Entity Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --safe: #00ff88;
+      --warning: #ffaa00;
+      --critical: #ff4444;
+      --subject: #00ff88;
+      --operator: #00aaff;
+      --education: #ff66ff;
+      --sponsor: #ffaa00;
+      --bg: #0a0a0a;
+      --card: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.08);
+      --text: #fff;
+      --text-dim: rgba(255,255,255,0.4);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'SF Pro Display', sans-serif;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════════════ */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 300;
+      letter-spacing: 4px;
+    }
+
+    .header-stats {
+      display: flex;
+      gap: 24px;
+    }
+
+    .stat {
+      text-align: right;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      font-family: 'SF Mono', monospace;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       VIEW TABS
+       ═══════════════════════════════════════════════════════════ */
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .tab:hover {
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .tab.active {
+      background: rgba(0,255,136,0.1);
+      border-color: var(--safe);
+      color: var(--safe);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       VIEW CONTAINERS
+       ═══════════════════════════════════════════════════════════ */
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       VIEW 1: ROUTE VIEW (노선도)
+       ═══════════════════════════════════════════════════════════ */
+    .entity-selector {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .entity-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .entity-group-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .entity-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .entity-chip {
+      padding: 8px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .entity-chip:hover {
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    .entity-chip.selected {
+      border-color: var(--safe);
+      background: rgba(0,255,136,0.1);
+    }
+
+    .entity-chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .entity-chip.subject .dot { background: var(--subject); }
+    .entity-chip.operator .dot { background: var(--operator); }
+    .entity-chip.education .dot { background: var(--education); }
+    .entity-chip.sponsor .dot { background: var(--sponsor); }
+
+    .entity-chip .status {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-left: 4px;
+    }
+
+    .entity-chip .status.safe { background: var(--safe); }
+    .entity-chip .status.warning { background: var(--warning); }
+    .entity-chip .status.critical { background: var(--critical); }
+
+    /* Route Display */
+    .route-display {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .route-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .route-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .route-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #000;
+    }
+
+    .route-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .route-status {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .route-status.safe { background: rgba(0,255,136,0.2); color: var(--safe); }
+    .route-status.warning { background: rgba(255,170,0,0.2); color: var(--warning); }
+    .route-status.critical { background: rgba(255,68,68,0.2); color: var(--critical); }
+
+    /* Route Track */
+    .route-track {
+      position: relative;
+      padding: 20px 0;
+    }
+
+    .track-line {
+      position: absolute;
+      top: 50%;
+      left: 40px;
+      right: 40px;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-50%);
+      border-radius: 2px;
+    }
+
+    .track-progress {
+      position: absolute;
+      top: 50%;
+      left: 40px;
+      height: 4px;
+      border-radius: 2px;
+      transform: translateY(-50%);
+      transition: width 0.5s;
+    }
+
+    .track-stations {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      z-index: 2;
+    }
+
+    .station {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .station-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 3px solid;
+      background: var(--bg);
+      transition: all 0.3s;
+    }
+
+    .station.complete .station-dot {
+      background: currentColor;
+    }
+
+    .station.current .station-dot {
+      width: 20px;
+      height: 20px;
+      background: currentColor;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    .station.pnr .station-dot {
+      border-color: var(--critical) !important;
+      background: var(--critical) !important;
+    }
+
+    .station-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    .station.current .station-label {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Connected Entities */
+    .connected-entities {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .connected-title {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    .connected-list {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .connected-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .connected-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .connected-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .connected-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .connected-name {
+      font-size: 13px;
+    }
+
+    .connected-role {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .connected-exchange {
+      font-size: 10px;
+      color: var(--safe);
+      margin-left: auto;
+    }
+
+    /* Exchange Details */
+    .exchange-details {
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+    }
+
+    .exchange-title {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    .exchange-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .exchange-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .exchange-arrow {
+      color: var(--text-dim);
+    }
+
+    .exchange-value {
+      margin-left: auto;
+      font-family: 'SF Mono', monospace;
+      color: var(--safe);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       VIEW 2: MATRIX VIEW (매트릭스)
+       ═══════════════════════════════════════════════════════════ */
+    .matrix-container {
+      overflow-x: auto;
+    }
+
+    .matrix {
+      min-width: 600px;
+      border-collapse: collapse;
+    }
+
+    .matrix th, .matrix td {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .matrix th {
+      background: var(--card);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+
+    .matrix th.subject { color: var(--subject); }
+    .matrix th.operator { color: var(--operator); }
+    .matrix th.education { color: var(--education); }
+    .matrix th.sponsor { color: var(--sponsor); }
+
+    .matrix td {
+      background: var(--bg);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .matrix td:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .matrix-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .matrix-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .matrix-dot.active { background: var(--safe); }
+    .matrix-dot.pending { background: var(--warning); }
+    .matrix-dot.inactive { background: rgba(255,255,255,0.1); }
+
+    .matrix-value {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: 'SF Mono', monospace;
+    }
+
+    .matrix-row-header {
+      text-align: left !important;
+      padding-left: 16px !important;
+    }
+
+    .matrix-row-header .entity-name {
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .matrix-legend {
+      display: flex;
+      gap: 24px;
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--card);
+      border-radius: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       VIEW 3: AGGREGATE VIEW (집계)
+       ═══════════════════════════════════════════════════════════ */
+    .aggregate-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .aggregate-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .aggregate-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .aggregate-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .aggregate-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #000;
+    }
+
+    .aggregate-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .aggregate-subtitle {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .aggregate-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .aggregate-stat {
+      text-align: center;
+      padding: 12px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+    }
+
+    .aggregate-stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      font-family: 'SF Mono', monospace;
+    }
+
+    .aggregate-stat-value.safe { color: var(--safe); }
+    .aggregate-stat-value.warning { color: var(--warning); }
+    .aggregate-stat-value.critical { color: var(--critical); }
+
+    .aggregate-stat-label {
+      font-size: 9px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Flow Arrows */
+    .aggregate-flows {
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .flow-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      font-size: 12px;
+    }
+
+    .flow-item:not(:last-child) {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .flow-direction {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flow-arrow {
+      color: var(--text-dim);
+    }
+
+    .flow-value {
+      font-family: 'SF Mono', monospace;
+      color: var(--safe);
+    }
+
+    /* Center Flow Diagram */
+    .flow-diagram {
+      grid-column: 1 / -1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .flow-diagram-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .flow-nodes {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      position: relative;
+    }
+
+    .flow-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flow-node-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: #000;
+    }
+
+    .flow-node-label {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .flow-node-count {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .flow-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .flow-connector-line {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--subject), var(--sponsor));
+    }
+
+    .flow-connector-label {
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       DECISION PANEL
+       ═══════════════════════════════════════════════════════════ */
+    .decision-panel {
+      margin-top: 24px;
+      padding: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .decision-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .decision-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .decision-entity {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .decision-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .decision-metrics {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .decision-metric {
+      text-align: center;
+      padding: 16px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+    }
+
+    .decision-metric-value {
+      font-size: 20px;
+      font-weight: 600;
+      font-family: 'SF Mono', monospace;
+    }
+
+    .decision-metric-label {
+      font-size: 9px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .choose-btn {
+      width: 100%;
+      padding: 18px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .choose-btn:hover {
+      box-shadow: 0 4px 20px rgba(255,255,255,0.2);
+    }
+
+    .choose-btn.warning {
+      background: var(--warning);
+    }
+
+    .choose-btn.critical {
+      background: var(--critical);
+      color: #fff;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       FOOTER
+       ═══════════════════════════════════════════════════════════ */
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .footer-text {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="logo">AUTUS</div>
+      <div class="header-stats">
+        <div class="stat">
+          <div class="stat-value" style="color: var(--safe)">10</div>
+          <div class="stat-label">Subjects</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" style="color: var(--warning)">14d</div>
+          <div class="stat-label">Avg PNR</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">16/76</div>
+          <div class="stat-label">Decisions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW TABS -->
+    <div class="view-tabs">
+      <div class="tab active" data-view="route">노선도</div>
+      <div class="tab" data-view="matrix">매트릭스</div>
+      <div class="tab" data-view="aggregate">집계</div>
+    </div>
+
+    <!-- VIEW 1: ROUTE VIEW -->
+    <div class="view active" id="route-view">
+      <!-- Entity Selector -->
+      <div class="entity-selector">
+        <div class="entity-group">
+          <div class="entity-group-label">Subject (학생)</div>
+          <div class="entity-chips">
+            <div class="entity-chip subject selected" data-id="kim">
+              <span class="dot"></span>Kim<span class="status warning"></span>
+            </div>
+            <div class="entity-chip subject" data-id="lee">
+              <span class="dot"></span>Lee<span class="status safe"></span>
+            </div>
+            <div class="entity-chip subject" data-id="park">
+              <span class="dot"></span>Park<span class="status critical"></span>
+            </div>
+            <div class="entity-chip subject" data-id="cho">
+              <span class="dot"></span>Cho<span class="status safe"></span>
+            </div>
+            <div class="entity-chip subject" data-id="jung">
+              <span class="dot"></span>Jung<span class="status warning"></span>
+            </div>
+          </div>
+        </div>
+        <div class="entity-group">
+          <div class="entity-group-label">Operator</div>
+          <div class="entity-chips">
+            <div class="entity-chip operator" data-id="atb">
+              <span class="dot"></span>ATB
+            </div>
+            <div class="entity-chip operator" data-id="phied">
+              <span class="dot"></span>PHI-Ed
+            </div>
+          </div>
+        </div>
+        <div class="entity-group">
+          <div class="entity-group-label">Sponsor</div>
+          <div class="entity-chips">
+            <div class="entity-chip sponsor" data-id="samsung">
+              <span class="dot"></span>삼성
+            </div>
+            <div class="entity-chip sponsor" data-id="lg">
+              <span class="dot"></span>LG
+            </div>
+            <div class="entity-chip sponsor" data-id="sk">
+              <span class="dot"></span>SK
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Route Display -->
+      <div class="route-display">
+        <div class="route-header">
+          <div class="route-title">
+            <div class="route-badge" style="background: var(--subject)">S</div>
+            <div class="route-name">Kim — 학생 결정 경로</div>
+          </div>
+          <div class="route-status warning">WARNING</div>
+        </div>
+
+        <div class="route-track">
+          <div class="track-line"></div>
+          <div class="track-progress" style="width: 45%; background: var(--subject);"></div>
+          <div class="track-stations">
+            <div class="station complete" style="color: var(--subject)">
+              <div class="station-dot"></div>
+              <div class="station-label">진입<br>#1-5</div>
+            </div>
+            <div class="station complete" style="color: var(--subject)">
+              <div class="station-dot"></div>
+              <div class="station-label">준비<br>#6-10</div>
+            </div>
+            <div class="station complete" style="color: var(--subject)">
+              <div class="station-dot"></div>
+              <div class="station-label">이동<br>#11-15</div>
+            </div>
+            <div class="station current" style="color: var(--subject)">
+              <div class="station-dot"></div>
+              <div class="station-label">석사 지속<br>#16</div>
+            </div>
+            <div class="station" style="color: var(--subject)">
+              <div class="station-dot"></div>
+              <div class="station-label">취업<br>#17-19</div>
+            </div>
+            <div class="station pnr">
+              <div class="station-dot"></div>
+              <div class="station-label">정착<br>#20 PNR</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connected Entities -->
+        <div class="connected-entities">
+          <div class="connected-title">연결된 개체</div>
+          <div class="connected-list">
+            <div class="connected-item">
+              <div class="connected-dot" style="background: var(--operator)"></div>
+              <div class="connected-info">
+                <div class="connected-name">ATB</div>
+                <div class="connected-role">송출기관</div>
+              </div>
+              <div class="connected-exchange">T1, T2</div>
+            </div>
+            <div class="connected-item">
+              <div class="connected-dot" style="background: var(--education)"></div>
+              <div class="connected-info">
+                <div class="connected-name">한양대</div>
+                <div class="connected-role">교육기관</div>
+              </div>
+              <div class="connected-exchange">T5</div>
+            </div>
+            <div class="connected-item">
+              <div class="connected-dot" style="background: var(--sponsor)"></div>
+              <div class="connected-info">
+                <div class="connected-name">LG</div>
+                <div class="connected-role">기업 (예정)</div>
+              </div>
+              <div class="connected-exchange">T7, T11</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Exchange Details -->
+        <div class="exchange-details">
+          <div class="exchange-title">교환 현황</div>
+          <div class="exchange-list">
+            <div class="exchange-item">
+              <span>Kim</span>
+              <span class="exchange-arrow">→</span>
+              <span>ATB</span>
+              <span class="exchange-value">₩8M (학비)</span>
+            </div>
+            <div class="exchange-item">
+              <span>ATB</span>
+              <span class="exchange-arrow">→</span>
+              <span>Kim</span>
+              <span class="exchange-value">420h (교육)</span>
+            </div>
+            <div class="exchange-item">
+              <span>한양대</span>
+              <span class="exchange-arrow">→</span>
+              <span>Kim</span>
+              <span class="exchange-value">학위 진행 중</span>
+            </div>
+            <div class="exchange-item">
+              <span>LG</span>
+              <span class="exchange-arrow">→</span>
+              <span>Kim</span>
+              <span class="exchange-value">채용 예정 (T+6)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: MATRIX VIEW -->
+    <div class="view" id="matrix-view">
+      <div class="matrix-container">
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th></th>
+              <th class="operator">ATB</th>
+              <th class="operator">PHI-Ed</th>
+              <th class="education">한양대</th>
+              <th class="education">서울대</th>
+              <th class="sponsor">삼성</th>
+              <th class="sponsor">LG</th>
+              <th class="sponsor">SK</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="matrix-row-header">
+                <div class="entity-name">
+                  <span class="dot" style="background: var(--subject); width:8px; height:8px; border-radius:50%;"></span>
+                  Kim
+                </div>
+              </td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">₩8M</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">재학</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot pending"></div>
+                  <div class="matrix-value">예정</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+            </tr>
+            <tr>
+              <td class="matrix-row-header">
+                <div class="entity-name">
+                  <span class="dot" style="background: var(--subject); width:8px; height:8px; border-radius:50%;"></span>
+                  Lee
+                </div>
+              </td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">₩8M</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">재학</div>
+                </div>
+              </td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot pending"></div>
+                  <div class="matrix-value">예정</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+            </tr>
+            <tr>
+              <td class="matrix-row-header">
+                <div class="entity-name">
+                  <span class="dot" style="background: var(--subject); width:8px; height:8px; border-radius:50%;"></span>
+                  Park
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">₩7M</div>
+                </div>
+              </td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">재학</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot pending"></div>
+                  <div class="matrix-value">예정</div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="matrix-row-header">
+                <div class="entity-name">
+                  <span class="dot" style="background: var(--subject); width:8px; height:8px; border-radius:50%;"></span>
+                  Cho
+                </div>
+              </td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">₩8M</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">재학</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot pending"></div>
+                  <div class="matrix-value">예정</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+            </tr>
+            <tr>
+              <td class="matrix-row-header">
+                <div class="entity-name">
+                  <span class="dot" style="background: var(--subject); width:8px; height:8px; border-radius:50%;"></span>
+                  Jung
+                </div>
+              </td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">₩8M</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">재학</div>
+                </div>
+              </td>
+              <td>
+                <div class="matrix-cell">
+                  <div class="matrix-dot active"></div>
+                  <div class="matrix-value">인턴</div>
+                </div>
+              </td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+              <td><div class="matrix-cell"><div class="matrix-dot inactive"></div></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="matrix-legend">
+        <div class="legend-item">
+          <div class="matrix-dot active"></div>
+          <span>활성 연결</span>
+        </div>
+        <div class="legend-item">
+          <div class="matrix-dot pending"></div>
+          <span>예정/대기</span>
+        </div>
+        <div class="legend-item">
+          <div class="matrix-dot inactive"></div>
+          <span>없음</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: AGGREGATE VIEW -->
+    <div class="view" id="aggregate-view">
+      <div class="aggregate-grid">
+        <!-- Subject Card -->
+        <div class="aggregate-card">
+          <div class="aggregate-header">
+            <div class="aggregate-badge" style="background: var(--subject)">S</div>
+            <div>
+              <div class="aggregate-title">Subject (학생)</div>
+              <div class="aggregate-subtitle">10명 등록</div>
+            </div>
+          </div>
+          <div class="aggregate-stats">
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value safe">4</div>
+              <div class="aggregate-stat-label">Safe</div>
+            </div>
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value warning">4</div>
+              <div class="aggregate-stat-label">Warning</div>
+            </div>
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value critical">2</div>
+              <div class="aggregate-stat-label">Critical</div>
+            </div>
+          </div>
+          <div class="aggregate-flows">
+            <div class="flow-item">
+              <div class="flow-direction">
+                <span>→ Operator</span>
+              </div>
+              <div class="flow-value">₩80M (학비)</div>
+            </div>
+            <div class="flow-item">
+              <div class="flow-direction">
+                <span>→ Sponsor</span>
+              </div>
+              <div class="flow-value">노동력 (예정 6명)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Operator Card -->
+        <div class="aggregate-card">
+          <div class="aggregate-header">
+            <div class="aggregate-badge" style="background: var(--operator)">O</div>
+            <div>
+              <div class="aggregate-title">Operator (송출기관)</div>
+              <div class="aggregate-subtitle">2개 기관</div>
+            </div>
+          </div>
+          <div class="aggregate-stats">
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value">7</div>
+              <div class="aggregate-stat-label">ATB</div>
+            </div>
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value">3</div>
+              <div class="aggregate-stat-label">PHI-Ed</div>
+            </div>
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value safe">420h</div>
+              <div class="aggregate-stat-label">Avg 교육</div>
+            </div>
+          </div>
+          <div class="aggregate-flows">
+            <div class="flow-item">
+              <div class="flow-direction">
+                <span>→ Subject</span>
+              </div>
+              <div class="flow-value">4,200h (교육)</div>
+            </div>
+            <div class="flow-item">
+              <div class="flow-direction">
+                <span>→ Sponsor</span>
+              </div>
+              <div class="flow-value">인력 공급 10명</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Education Card -->
+        <div class="aggregate-card">
+          <div class="aggregate-header">
+            <div class="aggregate-badge" style="background: var(--education)">E</div>
+            <div>
+              <div class="aggregate-title">Education (교육기관)</div>
+              <div class="aggregate-subtitle">2개 대학</div>
+            </div>
+          </div>
+          <div class="aggregate-stats">
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value">8</div>
+              <div class="aggregate-stat-label">재학</div>
+            </div>
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value safe">2</div>
+              <div class="aggregate-stat-label">졸업예정</div>
+            </div>
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value">0</div>
+              <div class="aggregate-stat-label">탈락</div>
+            </div>
+          </div>
+          <div class="aggregate-flows">
+            <div class="flow-item">
+              <div class="flow-direction">
+                <span>→ Subject</span>
+              </div>
+              <div class="flow-value">학위 (진행 8명)</div>
+            </div>
+            <div class="flow-item">
+              <div class="flow-direction">
+                <span>→ Sponsor</span>
+              </div>
+              <div class="flow-value">인력 추천 (2명)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sponsor Card -->
+        <div class="aggregate-card">
+          <div class="aggregate-header">
+            <div class="aggregate-badge" style="background: var(--sponsor)">P</div>
+            <div>
+              <div class="aggregate-title">Sponsor (기업)</div>
+              <div class="aggregate-subtitle">3개 기업</div>
+            </div>
+          </div>
+          <div class="aggregate-stats">
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value">1</div>
+              <div class="aggregate-stat-label">채용완료</div>
+            </div>
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value warning">5</div>
+              <div class="aggregate-stat-label">채용예정</div>
+            </div>
+            <div class="aggregate-stat">
+              <div class="aggregate-stat-value">4</div>
+              <div class="aggregate-stat-label">대기</div>
+            </div>
+          </div>
+          <div class="aggregate-flows">
+            <div class="flow-item">
+              <div class="flow-direction">
+                <span>→ Subject</span>
+              </div>
+              <div class="flow-value">₩24M (급여 예정)</div>
+            </div>
+            <div class="flow-item">
+              <div class="flow-direction">
+                <span>→ Subject</span>
+              </div>
+              <div class="flow-value">비자 지원 (6명)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flow Diagram -->
+        <div class="flow-diagram">
+          <div class="flow-diagram-title">전체 교환 흐름</div>
+          <div class="flow-nodes">
+            <div class="flow-node">
+              <div class="flow-node-circle" style="background: var(--subject)">S</div>
+              <div class="flow-node-label">학생</div>
+              <div class="flow-node-count">10명</div>
+            </div>
+            <div class="flow-connector">
+              <div class="flow-connector-label">학비 ₩80M</div>
+              <div class="flow-connector-line"></div>
+              <div class="flow-connector-label">교육 4,200h</div>
+            </div>
+            <div class="flow-node">
+              <div class="flow-node-circle" style="background: var(--operator)">O</div>
+              <div class="flow-node-label">송출기관</div>
+              <div class="flow-node-count">2개</div>
+            </div>
+            <div class="flow-connector">
+              <div class="flow-connector-label">인력 공급</div>
+              <div class="flow-connector-line"></div>
+              <div class="flow-connector-label">제휴</div>
+            </div>
+            <div class="flow-node">
+              <div class="flow-node-circle" style="background: var(--education)">E</div>
+              <div class="flow-node-label">교육기관</div>
+              <div class="flow-node-count">2개</div>
+            </div>
+            <div class="flow-connector">
+              <div class="flow-connector-label">인력 추천</div>
+              <div class="flow-connector-line"></div>
+              <div class="flow-connector-label">채용</div>
+            </div>
+            <div class="flow-node">
+              <div class="flow-node-circle" style="background: var(--sponsor)">P</div>
+              <div class="flow-node-label">기업</div>
+              <div class="flow-node-count">3개</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DECISION PANEL -->
+    <div class="decision-panel">
+      <div class="decision-header">
+        <div class="decision-title">현재 결정: #16 석사 과정 지속 여부</div>
+        <div class="decision-entity">Kim (Subject)</div>
+      </div>
+      <div class="decision-metrics">
+        <div class="decision-metric">
+          <div class="decision-metric-value" style="color: var(--warning)">₩12.4M</div>
+          <div class="decision-metric-label">현재 비용</div>
+        </div>
+        <div class="decision-metric">
+          <div class="decision-metric-value" style="color: var(--critical)">14일</div>
+          <div class="decision-metric-label">PNR까지</div>
+        </div>
+        <div class="decision-metric">
+          <div class="decision-metric-value">₩48M</div>
+          <div class="decision-metric-label">예상 비용</div>
+        </div>
+        <div class="decision-metric">
+          <div class="decision-metric-value">+₩41K</div>
+          <div class="decision-metric-label">일일 증가</div>
+        </div>
+      </div>
+      <button class="choose-btn warning">CHOOSE</button>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="footer-text">Standards Decide. Look & Choose.</div>
+    </div>
+  </div>
+
+  <script>
+    // View switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.view + '-view').classList.add('active');
+      });
+    });
+
+    // Entity selection
+    document.querySelectorAll('.entity-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const group = chip.closest('.entity-chips');
+        group.querySelectorAll('.entity-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        // Update route display based on selected entity
+        updateRouteDisplay(chip.dataset.id);
+      });
+    });
+
+    function updateRouteDisplay(entityId) {
+      // Placeholder - would update the route display
+      console.log('Selected entity:', entityId);
+    }
+
+    // Matrix cell click
+    document.querySelectorAll('.matrix td:not(.matrix-row-header)').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const row = cell.parentElement;
+        const subject = row.querySelector('.entity-name').textContent.trim();
+        const colIndex = Array.from(cell.parentElement.children).indexOf(cell);
+        const header = document.querySelector('.matrix thead tr').children[colIndex].textContent;
+        console.log('Connection:', subject, '↔', header);
+      });
+    });
+  </script>
+</body>
+</html>

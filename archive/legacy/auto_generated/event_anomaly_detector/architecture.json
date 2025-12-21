@@ -1,8 +1,0 @@
-{
-  "pack": "architect_pack",
-  "results": {
-    "analysis": "{\"summary\": \"Implement \\nFeature: Event Anomaly Detector\\nDescription: Tesla-style event compression with anomaly detection\\nLayer: 3_worlds\\nPillar: information\\nSource: Tesla\\n\\nRequirements:\\n- Event windowing (1s/5s/30s)\\n- 90% compression ratio\\n- Anomaly score calculation\\n- Real-time alerting\\n\\nAPI Endpoints:\\n- /events/ingest\\n- /events/compress\\n- /events/anomaly/detect\\n\\nFiles to generate:\\n- core/events/compressor.py\\n- core/events/anomaly.py\\n- core/events/alerting.py\\n\", \"files\": [\"src/feature.py\", \"tests/test_feature.py\"], \"dependencies\": [\"fastapi\"], \"complexity\": \"medium\", \"steps\": [\"1. Design\", \"2. Implement\", \"3. Test\"]}"
-  },
-  "status": "success",
-  "mode": "mock"
-}
