@@ -1,14 +1,14 @@
 """
-AUTUS Physics API
-solar.html Frontend 연결용
+AUTUS Physics API (Brief-Compliant)
+기회비용 표준기 - 7종 비용 계산
 
-Engine → UI 직접 바인딩
+"AUTUS는 설득하지 않는다. 측정만 한다."
 """
 
 from fastapi import APIRouter, Query
 from typing import Optional
-import math
 import time
+from datetime import datetime
 
 # Physics Engine Import
 try:
@@ -30,163 +30,180 @@ def get_engine() -> 'PhysicsEngine':
     return _engine_instance
 
 
+# ═══════════════════════════════════════════════════════════
+# 7종 기회비용 계산 (LOCK)
+# ═══════════════════════════════════════════════════════════
+
+def calculate_costs(base_loss: int = 10000000) -> dict:
+    """7종 기회비용 계산"""
+    t = time.time() % 1000 / 1000  # 변동 시뮬레이션
+    
+    return {
+        "time": int(base_loss * 0.17 * (1 + t * 0.1)),         # 시간 가치 손실
+        "risk": int(base_loss * 0.28 * (1 + t * 0.15)),        # 위험 증가
+        "resource": int(base_loss * 0.10 * (1 + t * 0.05)),    # 추가 자원
+        "position": int(base_loss * 0.16 * (1 + t * 0.08)),    # 기회/자리 손실
+        "learning": int(base_loss * 0.12 * (1 + t * 0.12)),    # 학습 지연
+        "trust": int(base_loss * 0.13 * (1 + t * 0.1)),        # 신뢰 감소
+        "irreversibility": int(base_loss * 0.04 * (1 + t * 0.2))  # 복구불가 손실
+    }
+
+
+def calculate_cost_rates(base_rate: int = 41000) -> dict:
+    """7종 기회비용 증가율"""
+    return {
+        "time": int(base_rate * 0.17),
+        "risk": int(base_rate * 0.28),
+        "resource": int(base_rate * 0.10),
+        "position": int(base_rate * 0.16),
+        "learning": int(base_rate * 0.12),
+        "trust": int(base_rate * 0.13),
+        "irreversibility": int(base_rate * 0.04)
+    }
+
+
+def determine_state(pnr_days: int) -> str:
+    """상태 결정 (Brief 기준)"""
+    if pnr_days <= 0:
+        return "IRREVERSIBLE"
+    elif pnr_days <= 7:
+        return "CRITICAL"
+    elif pnr_days <= 21:
+        return "WARNING"
+    else:
+        return "SAFE"
+
+
+# ═══════════════════════════════════════════════════════════
+# MAIN ENDPOINTS (Brief-Compliant)
+# ═══════════════════════════════════════════════════════════
+
 @router.get("/solar-binding")
 async def solar_binding():
     """
-    SOLAR UI 바인딩 데이터
-    
-    Brief 호환:
-    - 절대값 (₩) 반환
-    - 7종 기회비용 포함
-    - SAFE/WARNING/CRITICAL/IRREVERSIBLE 상태
+    LOSS GAUGE + EROSION LINE 바인딩
+    브리프 준수: 절대값(₩), 7종 비용
     """
-    # 현재 시간 기반 동적 값 (데모)
-    t = time.time() % 100 / 100  # 0-1 사이클
-    risk = 32 + int(t * 10)  # 32-42% 변동
-    
-    # Brief 기준 상태 결정
-    if risk >= 90:
-        state = "IRREVERSIBLE"
-    elif risk >= 60:
-        state = "CRITICAL"
-    elif risk >= 30:
-        state = "WARNING"
-    else:
-        state = "SAFE"
-    
-    # 손실 계산 (절대값)
-    daily_burn = 100000  # ₩10만/일
-    total_loss = int(risk * daily_burn * 30 / 10)
-    loss_rate = int(risk * daily_burn / 100)
-    pnr_days = max(1, int((90 - risk) / 3))
-    
-    # 7종 기회비용 (Brief 호환)
-    costs = {
-        "time": int(total_loss * 0.18),
-        "risk": int(total_loss * 0.22),
-        "resource": int(total_loss * 0.12),
-        "position": int(total_loss * 0.15),
-        "learning": int(total_loss * 0.10),
-        "trust": int(total_loss * 0.13),
-        "irreversibility": int(total_loss * 0.10)
-    }
-    
-    cost_rates = {
-        "time": int(loss_rate * 0.18),
-        "risk": int(loss_rate * 0.22),
-        "resource": int(loss_rate * 0.12),
-        "position": int(loss_rate * 0.15),
-        "learning": int(loss_rate * 0.10),
-        "trust": int(loss_rate * 0.13),
-        "irreversibility": int(loss_rate * 0.10)
-    }
+    costs = calculate_costs()
+    cost_rates = calculate_cost_rates()
+    total_loss = sum(costs.values())
+    loss_rate = sum(cost_rates.values())
+    pnr_days = 14  # 실제 데이터 연동 시 계산
+    state = determine_state(pnr_days)
     
     return {
-        # Brief 호환 필드 (절대값)
-        "state": state,
+        # Brief-Compliant (절대값)
         "total_loss": total_loss,
         "loss_rate": loss_rate,
         "pnr_days": pnr_days,
+        "state": state,
         "costs": costs,
         "cost_rates": cost_rates,
+        "timestamp": datetime.utcnow().isoformat(),
         
-        # 기존 호환 필드
+        # Legacy 호환
+        "risk": min(100, int(total_loss / 200000)),
+        "gate": "GREEN" if state == "SAFE" else "AMBER" if state == "WARNING" else "RED",
+        "survival_time": 216,
+        "float_pressure": 0.38
+    }
+
+
+@router.get("/costs")
+async def get_costs():
+    """7종 기회비용 상세"""
+    costs = calculate_costs()
+    cost_rates = calculate_cost_rates()
+    
+    return {
+        "costs": [
+            {"type": "time", "label": "시간", "value": costs["time"], "rate": cost_rates["time"], "color": "#4ECDC4"},
+            {"type": "risk", "label": "위험", "value": costs["risk"], "rate": cost_rates["risk"], "color": "#FF6B6B"},
+            {"type": "resource", "label": "자원", "value": costs["resource"], "rate": cost_rates["resource"], "color": "#45B7D1"},
+            {"type": "position", "label": "기회", "value": costs["position"], "rate": cost_rates["position"], "color": "#96CEB4"},
+            {"type": "learning", "label": "학습", "value": costs["learning"], "rate": cost_rates["learning"], "color": "#FFEAA7"},
+            {"type": "trust", "label": "신뢰", "value": costs["trust"], "rate": cost_rates["trust"], "color": "#DDA0DD"},
+            {"type": "irreversibility", "label": "복구불가", "value": costs["irreversibility"], "rate": cost_rates["irreversibility"], "color": "#FF4444"}
+        ],
+        "total": sum(costs.values()),
+        "total_rate": sum(cost_rates.values())
+    }
+
+
+@router.get("/pnr")
+async def get_pnr():
+    """Point of No Return 정보"""
+    pnr_days = 14
+    
+    return {
+        "pnr_days": pnr_days,
+        "pnr_date": (datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)).isoformat(),
+        "state": determine_state(pnr_days),
+        "acceleration": 1.0,  # 가속률 (1.0 = 정상)
+        "message": f"{pnr_days}일 후 복구 불가"
+    }
+
+
+@router.get("/state")
+async def get_state():
+    """현재 시스템 상태"""
+    costs = calculate_costs()
+    total_loss = sum(costs.values())
+    pnr_days = 14
+    state = determine_state(pnr_days)
+    
+    return {
+        "state": state,
+        "total_loss": total_loss,
+        "pnr_days": pnr_days,
+        "can_recover": state != "IRREVERSIBLE",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+# ═══════════════════════════════════════════════════════════
+# LEGACY ENDPOINTS (기존 프론트엔드 호환)
+# ═══════════════════════════════════════════════════════════
+
+@router.get("/legacy/solar-binding")
+async def legacy_solar_binding():
+    """기존 solar.html 호환용"""
+    costs = calculate_costs()
+    total = sum(costs.values())
+    
+    return {
         "survival_time": 216,
         "float_pressure": 0.38,
-        "risk": risk,
-        "entropy": 0.14 + t * 0.05,
-        "pressure": 0.22,
-        "flow": 0.65,
-        "status": "GREEN" if risk < 30 else "AMBER" if risk < 60 else "RED",
-        "gate": "GREEN" if risk < 30 else "AMBER" if risk < 60 else "RED",
-        
-        "binding": {
-            "core": {"scale": 0.8, "glow": 0.3},
-            "orbits": {"speed": 0.7, "distortion": 0.1},
-            "ring": {"radiusScale": 0.9, "thickness": 0.18, "pulseHz": 0.5, "asymStrength": 0.2}
-        },
-        "physics": {
-            "risk": risk / 100,
-            "entropy": 0.14 + t * 0.05,
-            "pressure": 0.22,
-            "flow": 0.65,
-            "survival_days": 216,
-            "collapse_days": 365
-        },
-        "planets": {
-            "recovery": 0.72,
-            "stability": 0.65,
-            "cohesion": 0.58,
-            "shock": 0.19,
-            "friction": 0.10,
-            "transfer": 0.45,
-            "time": 0.80,
-            "quality": 0.65,
-            "output": 0.72
-        },
-        "orbits": [
-            {"radius": 0.3, "speed": 0.02},
-            {"radius": 0.5, "speed": 0.015},
-            {"radius": 0.7, "speed": 0.01},
-            {"radius": 0.9, "speed": 0.008}
+        "risk": 58,
+        "gate": "RED",
+        "impact_percent": -58,
+        "planets": [
+            {"name": "Time", "value": costs["time"] / total},
+            {"name": "Risk", "value": costs["risk"] / total},
+            {"name": "Resource", "value": costs["resource"] / total},
+            {"name": "Position", "value": costs["position"] / total},
+            {"name": "Learning", "value": costs["learning"] / total},
+            {"name": "Trust", "value": costs["trust"] / total},
+            {"name": "Irreversibility", "value": costs["irreversibility"] / total}
         ]
     }
 
 
 @router.get("/snapshot")
 async def physics_snapshot():
-    """현재 물리 스냅샷"""
+    """현재 물리 스냅샷 (레거시)"""
+    costs = calculate_costs()
+    total = sum(costs.values())
+    
     return {
-        "risk": 32,
+        "risk": min(100, int(total / 200000)),
         "entropy": 0.14,
         "pressure": 0.22,
         "flow": 0.65,
-        "shock": 0.19,
-        "friction": 0.10,
-        "cohesion": 0.11,
+        "shock": costs["risk"] / total,
+        "friction": costs["resource"] / total,
+        "cohesion": costs["trust"] / total,
         "recovery": 0.10
-    }
-
-
-@router.get("/state")
-async def physics_state():
-    """7 Laws + TIME-MONEY 통합 상태"""
-    return {
-        "timestamp": time.time(),
-        "system_state": "GREEN",
-        "gate": "GREEN",
-        "risk": 32,
-        "entropy": 14,
-        "pressure": 22,
-        "flow": 65,
-        "survival_days": 216,
-        "collapse_days": 365,
-        "can_create_commit": True,
-        "can_expand": True,
-        "recommended_action": "RECOVER",
-        "violations": [],
-        "laws_passed": True
-    }
-
-
-@router.get("/ui-model")
-async def physics_ui_model():
-    """Frontend __AUTUS_MODEL 형식"""
-    return {
-        "snapshot": {
-            "risk": 0.32,
-            "entropy": 0.14,
-            "pressure": 0.22,
-            "flow": 0.65,
-            "survival_days": 216,
-            "collapse_days": 365,
-            "gate": "GREEN"
-        },
-        "bottleneck": {
-            "type": "FRICTION",
-            "value": 0.10
-        },
-        "recommended_action": "RECOVER"
     }
 
 
@@ -218,9 +235,9 @@ async def physics_laws():
     }
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════
 # Role-Based UI Binding API
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════
 
 @router.get("/ui-binding")
 async def physics_ui_binding(
@@ -228,9 +245,7 @@ async def physics_ui_binding(
 ):
     """
     Role별 UI 바인딩 데이터
-    
     Engine → UI Element 직접 매핑
-    Frontend solar-roles.html에서 사용
     """
     role = role.lower()
     valid_roles = ["subject", "operator", "sponsor", "employer", "institution"]
@@ -244,31 +259,35 @@ async def physics_ui_binding(
             engine.compute_snapshot()
             return engine.to_role_ui_binding(role)
     
-    # Fallback: 시뮬레이션 데이터
-    t = time.time() % 100 / 100
-    risk = 32 + int(t * 10)
-    gate = "GREEN" if t < 0.7 else "AMBER"
+    # Fallback: Brief 기준 데이터
+    costs = calculate_costs()
+    cost_rates = calculate_cost_rates()
+    total_loss = sum(costs.values())
+    loss_rate = sum(cost_rates.values())
+    pnr_days = 14
+    state = determine_state(pnr_days)
+    risk = min(100, int(total_loss / 200000))
     
     # Role별 설정
     configs = {
         "subject": {
-            "icon": "👤", "name": "SUBJECT", "action": "RECOVER",
-            "success_text": "RECOVERED", "primary_label": "SURVIVAL",
-            "primary_unit": "일", "impact_prefix": "💰", "color": "#00ff88"
+            "icon": "👤", "name": "SUBJECT", "action": "선택",
+            "success_text": "기록됨", "primary_label": "SURVIVAL",
+            "primary_unit": "일", "impact_prefix": "₩", "color": "#00ff88"
         },
         "operator": {
-            "icon": "🎯", "name": "OPERATOR", "action": "INTERVENE",
-            "success_text": "INTERVENED", "primary_label": "TOTAL",
+            "icon": "🎯", "name": "OPERATOR", "action": "개입",
+            "success_text": "개입됨", "primary_label": "TOTAL",
             "primary_unit": "명", "impact_prefix": "⚠️", "color": "#45B7D1"
         },
         "sponsor": {
-            "icon": "💰", "name": "SPONSOR", "action": "OPTIMIZE",
-            "success_text": "OPTIMIZED", "primary_label": "INVESTED",
+            "icon": "💰", "name": "SPONSOR", "action": "최적화",
+            "success_text": "최적화됨", "primary_label": "INVESTED",
             "primary_unit": "", "impact_prefix": "📉", "color": "#FFD700"
         },
         "employer": {
-            "icon": "🏢", "name": "EMPLOYER", "action": "RETAIN",
-            "success_text": "RETAINED", "primary_label": "HIRED",
+            "icon": "🏢", "name": "EMPLOYER", "action": "유지",
+            "success_text": "유지됨", "primary_label": "HIRED",
             "primary_unit": "명", "impact_prefix": "👥", "color": "#96CEB4"
         },
         "institution": {
@@ -280,94 +299,25 @@ async def physics_ui_binding(
     
     config = configs[role]
     
-    # Role별 메트릭
-    metrics_by_role = {
-        "subject": {
-            "primary": {"label": "SURVIVAL", "value": 216, "display": "216일", "unit": "일", "max": 365, "fill_pct": 59.2},
-            "secondary": [
-                {"label": "BURN", "value": "−₩47만/월", "class": ""},
-                {"label": "RISK", "value": f"{risk}%", "class": "danger" if risk >= 50 else ""}
-            ]
-        },
-        "operator": {
-            "primary": {"label": "TOTAL", "value": 47, "display": "47명", "unit": "명", "max": 100, "fill_pct": 47},
-            "secondary": [
-                {"label": "AT_RISK", "value": "3명", "class": "warning"},
-                {"label": "CRITICAL", "value": "1명", "class": "danger" if risk >= 60 else ""}
-            ]
-        },
-        "sponsor": {
-            "primary": {"label": "INVESTED", "value": 2.4, "display": "₩2.4억", "unit": "", "max": 10, "fill_pct": 24},
-            "secondary": [
-                {"label": "EFFICIENCY", "value": f"{100-risk}%", "class": "warning" if risk >= 20 else "success"},
-                {"label": "LOSS_RISK", "value": f"₩{risk*100}만", "class": "danger" if risk >= 30 else ""}
-            ]
-        },
-        "employer": {
-            "primary": {"label": "HIRED", "value": 12, "display": "12명", "unit": "명", "max": 50, "fill_pct": 24},
-            "secondary": [
-                {"label": "RETENTION", "value": f"{100-risk//3}%", "class": "warning" if risk >= 45 else "success"},
-                {"label": "CHURN_RISK", "value": "2명", "class": "warning" if risk >= 40 else ""}
-            ]
-        },
-        "institution": {
-            "primary": {"label": "SYSTEM MASS", "value": 47.2, "display": "47.2 OCU", "unit": "OCU", "max": 100, "fill_pct": 47.2},
-            "secondary": [
-                {"label": "GOVERNANCE", "value": "STABLE" if gate != "RED" else "UNSTABLE", "class": "success" if gate != "RED" else "danger"},
-                {"label": "EXPANSION", "value": "LOCKED" if risk >= 40 else "UNLOCKED", "class": "" if risk >= 40 else "success"}
-            ]
-        }
-    }
-    
-    # Action 조건
-    action_conditions = {
-        "subject": risk >= 40,
-        "operator": True,  # at_risk >= 1
-        "sponsor": risk >= 20,  # efficiency < 80
-        "employer": risk >= 40,  # churn_risk >= 1
-        "institution": False
-    }
-    action_visible = action_conditions[role] and gate != "RED"
-    
-    # Subtitle
-    subtitles = {
-        "subject": "즉시 행동하지 않으면 손실 확정",
-        "operator": "3명이 위험 상태입니다",
-        "sponsor": f"효율 {100-risk}% — 최적화 필요",
-        "employer": "2명 이탈 위험 감지",
-        "institution": ""
-    }
-    
     return {
         "role": role,
         "config": config,
-        "gate": gate,
-        "status": "OK" if gate == "GREEN" else "CRITICAL" if gate == "RED" else "WARN",
-        "metrics": metrics_by_role[role],
+        "state": state,
+        "gate": "GREEN" if state == "SAFE" else "AMBER" if state == "WARNING" else "RED",
+        "total_loss": total_loss,
+        "loss_rate": loss_rate,
+        "pnr_days": pnr_days,
+        "costs": costs,
+        "cost_rates": cost_rates,
         "action": {
-            "visible": action_visible,
+            "visible": state != "IRREVERSIBLE" and role != "institution",
             "name": config["action"],
-            "success_text": config["success_text"],
-            "impact": f"{config['impact_prefix']} −{risk}%",
-            "subtitle": subtitles[role]
-        },
-        "countdown": {
-            "enabled": action_visible,
-            "seconds": 5
+            "success_text": config["success_text"]
         },
         "style": {
             "primary_color": config["color"],
             "danger_color": "#ff4444",
             "warning_color": "#ffaa00"
-        },
-        "engine": {
-            "risk": risk,
-            "entropy": round(14 + t * 5, 1),
-            "pressure": 22,
-            "survival_days": 216,
-            "collapse_days": 365,
-            "recommended_action": "RECOVER" if risk >= 40 else None,
-            "violations": []
         }
     }
 
@@ -379,14 +329,6 @@ async def physics_ui_binding_all():
     result = {}
     
     for role in roles:
-        if ENGINE_AVAILABLE:
-            engine = get_engine()
-            if engine:
-                engine.compute_snapshot()
-                result[role] = engine.to_role_ui_binding(role)
-                continue
-        
-        # Fallback
         result[role] = await physics_ui_binding(role)
     
     return {
