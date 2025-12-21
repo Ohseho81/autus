@@ -2,10 +2,10 @@
  * AUTUS Tesla UI Clone — V11 Premium Edition
  * 
  * 테슬라 V11 UI의 정밀 재현:
- * - 차량 상태 시각화 (SVG 차량 + 레인 라인)
- * - 그라데이션 배경 + Glassmorphism
+ * - 차량 상태 시각화 (이미지 + 문/타이어 인터랙션)
+ * - 주변 차량 감지 (Autopilot 스타일)
  * - HVAC 슬라이드 업 팝업
- * - 부드러운 애니메이션
+ * - Glassmorphism 효과
  */
 
 import QtQuick
@@ -41,18 +41,41 @@ Window {
     readonly property color accentRed: "#e82127"
     readonly property color accentGreen: "#4ade80"
     readonly property color accentOrange: "#ff9500"
+    readonly property color alertRed: "#ff3b30"
+    readonly property color warningYellow: "#ffcc00"
     
     readonly property int radiusSm: 4
     readonly property int radiusMd: 8
     readonly property int radiusLg: 12
     readonly property int radiusXl: 20
     
-    // State
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // STATE MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════════════════
+    
     property bool hvacOpen: false
     property int fanSpeed: 3
     property bool acOn: true
     property bool heatSeatLeft: false
     property bool heatSeatRight: false
+    
+    // Door states (true = open)
+    property bool doorFrontLeft: false
+    property bool doorFrontRight: false
+    property bool doorRearLeft: false
+    property bool doorRearRight: false
+    property bool trunkOpen: false
+    property bool frunkOpen: false
+    
+    // Steering angle (-30 to +30 degrees)
+    property real steeringAngle: 0
+    
+    // Nearby vehicles (Autopilot visualization)
+    property var nearbyVehicles: [
+        { x: 0.5, y: 0.15, type: "car" },      // Front center
+        { x: 0.2, y: 0.3, type: "car" },       // Front left
+        { x: 0.8, y: 0.4, type: "truck" }      // Front right
+    ]
     
     // ═══════════════════════════════════════════════════════════════════════════════
     // GRADIENT BACKGROUND
@@ -100,7 +123,6 @@ Window {
                     anchors.leftMargin: 40
                     spacing: 16
                     
-                    // Gear Selector (P R N D)
                     Repeater {
                         model: ["P", "R", "N", "D"]
                         
@@ -111,9 +133,7 @@ Window {
                             font.letterSpacing: 2
                             color: vehicleState.gear === modelData ? textPrimary : textTertiary
                             
-                            Behavior on color {
-                                ColorAnimation { duration: 200 }
-                            }
+                            Behavior on color { ColorAnimation { duration: 200 } }
                             
                             MouseArea {
                                 anchors.fill: parent
@@ -124,17 +144,14 @@ Window {
                     }
                 }
                 
-                // Battery indicator (오른쪽)
                 Row {
                     anchors.right: parent.right
                     anchors.rightMargin: 40
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 10
                     
-                    // Battery bar
                     Rectangle {
-                        width: 60
-                        height: 22
+                        width: 60; height: 22
                         radius: radiusSm
                         color: bgTertiary
                         border.color: Qt.rgba(1, 1, 1, 0.1)
@@ -149,15 +166,11 @@ Window {
                             radius: 2
                             color: vehicleState.battery > 20 ? accentGreen : accentRed
                             
-                            Behavior on width {
-                                NumberAnimation { duration: 300 }
-                            }
+                            Behavior on width { NumberAnimation { duration: 300 } }
                         }
                         
-                        // Battery tip
                         Rectangle {
-                            width: 4
-                            height: 10
+                            width: 4; height: 10
                             anchors.right: parent.right
                             anchors.rightMargin: -5
                             anchors.verticalCenter: parent.verticalCenter
@@ -177,34 +190,29 @@ Window {
             }
             
             // ─────────────────────────────────────────────────────────────────────────────
-            // 중앙: 속도계 (Large Number)
+            // 중앙: 속도계
             // ─────────────────────────────────────────────────────────────────────────────
             
             Column {
                 id: speedDisplay
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: statusHeader.bottom
-                anchors.topMargin: 20
+                anchors.topMargin: 10
                 spacing: 0
                 
                 Text {
                     id: speedText
                     text: vehicleState.speed
-                    font.pixelSize: 110
+                    font.pixelSize: 100
                     font.weight: Font.Light
-                    font.letterSpacing: -6
+                    font.letterSpacing: -5
                     color: textPrimary
                     anchors.horizontalCenter: parent.horizontalCenter
-                    
-                    Behavior on text {
-                        PropertyAnimation { duration: 100 }
-                    }
                 }
                 
                 Text {
                     text: "km/h"
-                    font.pixelSize: 18
-                    font.weight: Font.Normal
+                    font.pixelSize: 16
                     font.letterSpacing: 2
                     color: textTertiary
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -219,40 +227,21 @@ Window {
                 id: autopilotIcons
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: speedDisplay.bottom
-                anchors.topMargin: 24
-                spacing: 28
+                anchors.topMargin: 16
+                spacing: 24
                 
-                // Autopilot 활성
                 Rectangle {
-                    width: 44; height: 44
-                    radius: 22
+                    width: 40; height: 40
+                    radius: 20
                     color: accentBlue
-                    
-                    // Steering wheel icon (SVG path)
-                    Shape {
-                        anchors.centerIn: parent
-                        width: 24; height: 24
-                        
-                        ShapePath {
-                            strokeColor: "white"
-                            strokeWidth: 2
-                            fillColor: "transparent"
-                            
-                            PathArc {
-                                x: 24; y: 12
-                                radiusX: 10; radiusY: 10
-                            }
-                        }
-                    }
                     
                     Text {
                         text: "⊙"
-                        font.pixelSize: 22
+                        font.pixelSize: 20
                         color: "white"
                         anchors.centerIn: parent
                     }
                     
-                    // Glow effect
                     Rectangle {
                         anchors.fill: parent
                         radius: parent.radius
@@ -269,35 +258,32 @@ Window {
                     }
                 }
                 
-                // Speed Limit
                 Rectangle {
-                    width: 44; height: 44
-                    radius: 22
+                    width: 40; height: 40
+                    radius: 20
                     color: bgElevated
                     border.color: "#cc0000"
                     border.width: 3
                     
                     Text {
                         text: "30"
-                        font.pixelSize: 16
+                        font.pixelSize: 14
                         font.weight: Font.Bold
                         color: textPrimary
                         anchors.centerIn: parent
                     }
                 }
                 
-                // TACC set speed
                 Rectangle {
-                    width: 44; height: 44
-                    radius: 22
+                    width: 40; height: 40
+                    radius: 20
                     color: bgTertiary
                     border.color: textTertiary
                     border.width: 2
                     
                     Text {
                         text: "88"
-                        font.pixelSize: 14
-                        font.weight: Font.Medium
+                        font.pixelSize: 13
                         color: textSecondary
                         anchors.centerIn: parent
                     }
@@ -305,19 +291,22 @@ Window {
             }
             
             // ─────────────────────────────────────────────────────────────────────────────
-            // 차량 시각화 (SVG Car + Lane Lines)
+            // 🚗 차량 시각화 컨테이너 (완벽 재현)
             // ─────────────────────────────────────────────────────────────────────────────
             
             Item {
-                id: vehicleViz
-                width: parent.width - 60
-                height: 340
+                id: carContainer
+                width: parent.width - 40
+                height: 380
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: autopilotIcons.bottom
-                anchors.topMargin: 20
+                anchors.topMargin: 10
                 clip: true
                 
-                // Lane Lines (perspective effect)
+                // ═══════════════════════════════════════════════════════════════════════
+                // 1. 차선 라인 (Autopilot 가이드)
+                // ═══════════════════════════════════════════════════════════════════════
+                
                 Canvas {
                     id: laneCanvas
                     anchors.fill: parent
@@ -326,29 +315,29 @@ Window {
                         var ctx = getContext("2d");
                         ctx.clearRect(0, 0, width, height);
                         
-                        // Left lane line
-                        var grad1 = ctx.createLinearGradient(0, 0, 0, height);
-                        grad1.addColorStop(0, "rgba(0, 212, 170, 0.8)");
-                        grad1.addColorStop(1, "rgba(0, 212, 170, 0.1)");
+                        // 왼쪽 차선
+                        var grad = ctx.createLinearGradient(0, 0, 0, height);
+                        grad.addColorStop(0, "rgba(0, 212, 170, 0.9)");
+                        grad.addColorStop(1, "rgba(0, 212, 170, 0.1)");
                         
-                        ctx.strokeStyle = grad1;
+                        ctx.strokeStyle = grad;
                         ctx.lineWidth = 4;
                         ctx.lineCap = "round";
                         
                         ctx.beginPath();
-                        ctx.moveTo(width * 0.15, 0);
-                        ctx.lineTo(width * 0.35, height);
+                        ctx.moveTo(width * 0.12, 0);
+                        ctx.lineTo(width * 0.32, height);
                         ctx.stroke();
                         
-                        // Right lane line
+                        // 오른쪽 차선
                         ctx.beginPath();
-                        ctx.moveTo(width * 0.85, 0);
-                        ctx.lineTo(width * 0.65, height);
+                        ctx.moveTo(width * 0.88, 0);
+                        ctx.lineTo(width * 0.68, height);
                         ctx.stroke();
                         
-                        // Center dashed line
-                        ctx.setLineDash([20, 15]);
-                        ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+                        // 중앙 점선
+                        ctx.setLineDash([15, 12]);
+                        ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
                         ctx.lineWidth = 2;
                         
                         ctx.beginPath();
@@ -358,76 +347,110 @@ Window {
                     }
                 }
                 
-                // Road surface fade
+                // ═══════════════════════════════════════════════════════════════════════
+                // 2. 주변 차량 감지 (Autopilot 스타일)
+                // ═══════════════════════════════════════════════════════════════════════
+                
+                Repeater {
+                    model: nearbyVehicles
+                    
+                    Rectangle {
+                        x: carContainer.width * modelData.x - width/2
+                        y: carContainer.height * modelData.y - height/2
+                        width: modelData.type === "truck" ? 50 : 40
+                        height: modelData.type === "truck" ? 30 : 24
+                        radius: 4
+                        color: Qt.rgba(1, 1, 1, 0.12)
+                        border.color: accentTeal
+                        border.width: 1
+                        opacity: 0.8
+                        
+                        // 거리에 따른 투명도 (멀수록 투명)
+                        Behavior on opacity { NumberAnimation { duration: 300 } }
+                        
+                        // 펄스 애니메이션
+                        SequentialAnimation on opacity {
+                            loops: Animation.Infinite
+                            NumberAnimation { to: 0.9; duration: 1500 }
+                            NumberAnimation { to: 0.5; duration: 1500 }
+                        }
+                        
+                        Text {
+                            text: modelData.type === "truck" ? "🚚" : "🚗"
+                            font.pixelSize: modelData.type === "truck" ? 16 : 12
+                            anchors.centerIn: parent
+                            opacity: 0.7
+                        }
+                    }
+                }
+                
+                // ═══════════════════════════════════════════════════════════════════════
+                // 3. 차량 그림자 (입체감)
+                // ═══════════════════════════════════════════════════════════════════════
+                
                 Rectangle {
-                    width: parent.width * 0.5
-                    height: parent.height
-                    anchors.centerIn: parent
+                    id: carShadow
+                    width: carBody.width * 0.85
+                    height: carBody.height * 0.4
+                    anchors.horizontalCenter: carBody.horizontalCenter
+                    anchors.top: carBody.verticalCenter
+                    anchors.topMargin: carBody.height * 0.35
+                    radius: 60
+                    color: "#000000"
+                    opacity: 0.5
+                    
+                    // 블러 효과 시뮬레이션 (그라데이션)
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: "transparent" }
-                        GradientStop { position: 0.3; color: Qt.rgba(0.08, 0.08, 0.08, 0.5) }
+                        GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.4) }
+                        GradientStop { position: 0.5; color: Qt.rgba(0, 0, 0, 0.2) }
                         GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
                 
-                // Tesla Model 3 SVG representation
+                // ═══════════════════════════════════════════════════════════════════════
+                // 4. 차량 본체 (SVG Shape 또는 이미지)
+                // ═══════════════════════════════════════════════════════════════════════
+                
                 Item {
-                    id: carModel
-                    width: 140
-                    height: 240
+                    id: carBody
+                    width: 150
+                    height: 260
                     anchors.centerIn: parent
-                    anchors.verticalCenterOffset: 30
+                    anchors.verticalCenterOffset: 20
                     
-                    // Car body shadow
-                    Rectangle {
-                        width: parent.width + 20
-                        height: parent.height + 10
-                        anchors.centerIn: parent
-                        anchors.verticalCenterOffset: 10
-                        radius: 30
-                        color: "black"
-                        opacity: 0.4
-                        
-                        transform: Scale {
-                            origin.y: 0
-                            yScale: 0.3
-                        }
-                    }
-                    
-                    // Car body
+                    // 차량 외형 (Shape Path)
                     Shape {
                         anchors.fill: parent
                         
                         ShapePath {
-                            strokeColor: "#3a3a3a"
+                            strokeColor: "#404040"
                             strokeWidth: 2
-                            fillColor: "#1e1e1e"
+                            fillColor: "#1a1a1a"
                             
-                            // Car outline
-                            startX: 70; startY: 0
+                            startX: 75; startY: 0
                             
-                            // Front
-                            PathQuad { x: 130; y: 30; controlX: 130; controlY: 0 }
-                            PathLine { x: 135; y: 60 }
+                            // 전면
+                            PathQuad { x: 140; y: 35; controlX: 140; controlY: 0 }
+                            PathLine { x: 145; y: 70 }
                             
-                            // Right side
-                            PathLine { x: 138; y: 180 }
+                            // 우측면
+                            PathLine { x: 148; y: 190 }
                             
-                            // Rear
-                            PathQuad { x: 130; y: 240; controlX: 138; controlY: 240 }
-                            PathLine { x: 10; y: 240 }
-                            PathQuad { x: 2; y: 180; controlX: 2; controlY: 240 }
+                            // 후면
+                            PathQuad { x: 140; y: 260; controlX: 148; controlY: 260 }
+                            PathLine { x: 10; y: 260 }
+                            PathQuad { x: 2; y: 190; controlX: 2; controlY: 260 }
                             
-                            // Left side
-                            PathLine { x: 5; y: 60 }
+                            // 좌측면
+                            PathLine { x: 5; y: 70 }
                             
-                            // Back to front
-                            PathLine { x: 10; y: 30 }
-                            PathQuad { x: 70; y: 0; controlX: 10; controlY: 0 }
+                            // 전면으로 복귀
+                            PathLine { x: 10; y: 35 }
+                            PathQuad { x: 75; y: 0; controlX: 10; controlY: 0 }
                         }
                     }
                     
-                    // Windshield
+                    // 전면 유리
                     Shape {
                         anchors.fill: parent
                         
@@ -435,33 +458,32 @@ Window {
                             strokeColor: "transparent"
                             fillColor: "#0a0a0a"
                             
-                            startX: 30; startY: 50
-                            PathLine { x: 110; y: 50 }
-                            PathQuad { x: 115; y: 100; controlX: 118; controlY: 70 }
-                            PathLine { x: 25; y: 100 }
-                            PathQuad { x: 30; y: 50; controlX: 22; controlY: 70 }
+                            startX: 30; startY: 55
+                            PathLine { x: 120; y: 55 }
+                            PathQuad { x: 125; y: 110; controlX: 130; controlY: 75 }
+                            PathLine { x: 25; y: 110 }
+                            PathQuad { x: 30; y: 55; controlX: 20; controlY: 75 }
                         }
                     }
                     
-                    // Roof
+                    // 루프
                     Rectangle {
-                        x: 25; y: 100
-                        width: 90; height: 80
-                        radius: 10
-                        color: "#252525"
+                        x: 26; y: 110
+                        width: 98; height: 90
+                        radius: 12
+                        color: "#222222"
                         
-                        // Glass roof shine
                         Rectangle {
-                            width: parent.width - 10
+                            width: parent.width - 14
                             height: 2
                             anchors.horizontalCenter: parent.horizontalCenter
-                            y: 10
-                            color: Qt.rgba(1, 1, 1, 0.1)
+                            y: 12
+                            color: Qt.rgba(1, 1, 1, 0.08)
                             radius: 1
                         }
                     }
                     
-                    // Rear window
+                    // 후면 유리
                     Shape {
                         anchors.fill: parent
                         
@@ -469,118 +491,408 @@ Window {
                             strokeColor: "transparent"
                             fillColor: "#0a0a0a"
                             
-                            startX: 28; startY: 180
-                            PathLine { x: 112; y: 180 }
-                            PathQuad { x: 108; y: 220; controlX: 115; controlY: 210 }
-                            PathLine { x: 32; y: 220 }
-                            PathQuad { x: 28; y: 180; controlX: 25; controlY: 210 }
+                            startX: 28; startY: 200
+                            PathLine { x: 122; y: 200 }
+                            PathQuad { x: 118; y: 240; controlX: 128; controlY: 225 }
+                            PathLine { x: 32; y: 240 }
+                            PathQuad { x: 28; y: 200; controlX: 22; controlY: 225 }
                         }
                     }
                     
-                    // Headlights
+                    // ═══════════════════════════════════════════════════════════════════
+                    // 5. 헤드라이트 (애니메이션)
+                    // ═══════════════════════════════════════════════════════════════════
+                    
                     Rectangle {
-                        x: 15; y: 25
-                        width: 35; height: 8
-                        radius: 4
+                        x: 15; y: 28
+                        width: 40; height: 10
+                        radius: 5
                         color: accentTeal
-                        opacity: 0.9
                         
                         SequentialAnimation on opacity {
                             loops: Animation.Infinite
                             NumberAnimation { to: 1; duration: 2000 }
-                            NumberAnimation { to: 0.7; duration: 2000 }
+                            NumberAnimation { to: 0.6; duration: 2000 }
+                        }
+                        
+                        // 글로우 효과
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: -4
+                            radius: 9
+                            color: "transparent"
+                            border.color: accentTeal
+                            border.width: 3
+                            opacity: 0.3
                         }
                     }
+                    
                     Rectangle {
-                        x: 90; y: 25
-                        width: 35; height: 8
-                        radius: 4
+                        x: 95; y: 28
+                        width: 40; height: 10
+                        radius: 5
                         color: accentTeal
-                        opacity: 0.9
                         
                         SequentialAnimation on opacity {
                             loops: Animation.Infinite
                             NumberAnimation { to: 1; duration: 2000 }
-                            NumberAnimation { to: 0.7; duration: 2000 }
+                            NumberAnimation { to: 0.6; duration: 2000 }
                         }
-                    }
-                    
-                    // Tail lights
-                    Rectangle {
-                        x: 10; y: 225
-                        width: 30; height: 6
-                        radius: 3
-                        color: accentRed
-                        opacity: 0.8
-                    }
-                    Rectangle {
-                        x: 100; y: 225
-                        width: 30; height: 6
-                        radius: 3
-                        color: accentRed
-                        opacity: 0.8
-                    }
-                    
-                    // Wheels
-                    Repeater {
-                        model: [
-                            { x: 8, y: 55 },
-                            { x: 112, y: 55 },
-                            { x: 8, y: 175 },
-                            { x: 112, y: 175 }
-                        ]
                         
                         Rectangle {
-                            x: modelData.x
-                            y: modelData.y
-                            width: 20; height: 36
-                            radius: 6
-                            color: "#2a2a2a"
-                            border.color: "#3a3a3a"
-                            border.width: 1
-                            
-                            // Wheel spokes
-                            Rectangle {
-                                width: 2; height: parent.height - 8
-                                anchors.centerIn: parent
-                                color: "#444"
-                                radius: 1
-                            }
+                            anchors.fill: parent
+                            anchors.margins: -4
+                            radius: 9
+                            color: "transparent"
+                            border.color: accentTeal
+                            border.width: 3
+                            opacity: 0.3
                         }
                     }
                     
-                    // Door handles highlight
+                    // ═══════════════════════════════════════════════════════════════════
+                    // 6. 테일라이트
+                    // ═══════════════════════════════════════════════════════════════════
+                    
                     Rectangle {
-                        x: 5; y: 110
-                        width: 3; height: 20
-                        radius: 1
-                        color: Qt.rgba(1, 1, 1, 0.1)
+                        x: 8; y: 245
+                        width: 35; height: 8
+                        radius: 4
+                        color: accentRed
+                        opacity: 0.9
                     }
                     Rectangle {
-                        x: 132; y: 110
-                        width: 3; height: 20
+                        x: 107; y: 245
+                        width: 35; height: 8
+                        radius: 4
+                        color: accentRed
+                        opacity: 0.9
+                    }
+                    
+                    // 중앙 테일라이트 (Model 3 스타일)
+                    Rectangle {
+                        x: 45; y: 248
+                        width: 60; height: 3
                         radius: 1
-                        color: Qt.rgba(1, 1, 1, 0.1)
+                        color: accentRed
+                        opacity: 0.6
+                    }
+                    
+                    // ═══════════════════════════════════════════════════════════════════
+                    // 7. 바퀴 (조향 각도 적용)
+                    // ═══════════════════════════════════════════════════════════════════
+                    
+                    // 전륜 좌
+                    Rectangle {
+                        id: wheelFL
+                        x: 5; y: 60
+                        width: 22; height: 40
+                        radius: 6
+                        color: "#2a2a2a"
+                        border.color: "#3a3a3a"
+                        border.width: 1
+                        
+                        transform: Rotation {
+                            origin.x: 11
+                            origin.y: 20
+                            angle: steeringAngle * 0.3
+                        }
+                        
+                        Rectangle {
+                            width: 2; height: parent.height - 10
+                            anchors.centerIn: parent
+                            color: "#444"
+                            radius: 1
+                        }
+                    }
+                    
+                    // 전륜 우
+                    Rectangle {
+                        id: wheelFR
+                        x: 123; y: 60
+                        width: 22; height: 40
+                        radius: 6
+                        color: "#2a2a2a"
+                        border.color: "#3a3a3a"
+                        border.width: 1
+                        
+                        transform: Rotation {
+                            origin.x: 11
+                            origin.y: 20
+                            angle: steeringAngle * 0.3
+                        }
+                        
+                        Rectangle {
+                            width: 2; height: parent.height - 10
+                            anchors.centerIn: parent
+                            color: "#444"
+                            radius: 1
+                        }
+                    }
+                    
+                    // 후륜 좌
+                    Rectangle {
+                        x: 5; y: 195
+                        width: 22; height: 40
+                        radius: 6
+                        color: "#2a2a2a"
+                        border.color: "#3a3a3a"
+                        border.width: 1
+                        
+                        Rectangle {
+                            width: 2; height: parent.height - 10
+                            anchors.centerIn: parent
+                            color: "#444"
+                            radius: 1
+                        }
+                    }
+                    
+                    // 후륜 우
+                    Rectangle {
+                        x: 123; y: 195
+                        width: 22; height: 40
+                        radius: 6
+                        color: "#2a2a2a"
+                        border.color: "#3a3a3a"
+                        border.width: 1
+                        
+                        Rectangle {
+                            width: 2; height: parent.height - 10
+                            anchors.centerIn: parent
+                            color: "#444"
+                            radius: 1
+                        }
+                    }
+                    
+                    // ═══════════════════════════════════════════════════════════════════
+                    // 8. 문 오버레이 (클릭 시 열림/닫힘 표시)
+                    // ═══════════════════════════════════════════════════════════════════
+                    
+                    // 전방 좌측 문
+                    Rectangle {
+                        id: doorFL
+                        x: 2; y: 70
+                        width: 8; height: 70
+                        radius: 2
+                        color: doorFrontLeft ? alertRed : "transparent"
+                        border.color: doorFrontLeft ? alertRed : Qt.rgba(1,1,1,0.1)
+                        border.width: 1
+                        opacity: doorFrontLeft ? 1 : 0.3
+                        
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        
+                        // 깜빡임 애니메이션
+                        SequentialAnimation on opacity {
+                            running: doorFrontLeft
+                            loops: Animation.Infinite
+                            NumberAnimation { to: 1; duration: 500 }
+                            NumberAnimation { to: 0.4; duration: 500 }
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: doorFrontLeft = !doorFrontLeft
+                        }
+                    }
+                    
+                    // 전방 우측 문
+                    Rectangle {
+                        id: doorFR
+                        x: 140; y: 70
+                        width: 8; height: 70
+                        radius: 2
+                        color: doorFrontRight ? alertRed : "transparent"
+                        border.color: doorFrontRight ? alertRed : Qt.rgba(1,1,1,0.1)
+                        border.width: 1
+                        opacity: doorFrontRight ? 1 : 0.3
+                        
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        
+                        SequentialAnimation on opacity {
+                            running: doorFrontRight
+                            loops: Animation.Infinite
+                            NumberAnimation { to: 1; duration: 500 }
+                            NumberAnimation { to: 0.4; duration: 500 }
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: doorFrontRight = !doorFrontRight
+                        }
+                    }
+                    
+                    // 후방 좌측 문
+                    Rectangle {
+                        id: doorRL
+                        x: 2; y: 145
+                        width: 8; height: 65
+                        radius: 2
+                        color: doorRearLeft ? alertRed : "transparent"
+                        border.color: doorRearLeft ? alertRed : Qt.rgba(1,1,1,0.1)
+                        border.width: 1
+                        opacity: doorRearLeft ? 1 : 0.3
+                        
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        
+                        SequentialAnimation on opacity {
+                            running: doorRearLeft
+                            loops: Animation.Infinite
+                            NumberAnimation { to: 1; duration: 500 }
+                            NumberAnimation { to: 0.4; duration: 500 }
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: doorRearLeft = !doorRearLeft
+                        }
+                    }
+                    
+                    // 후방 우측 문
+                    Rectangle {
+                        id: doorRR
+                        x: 140; y: 145
+                        width: 8; height: 65
+                        radius: 2
+                        color: doorRearRight ? alertRed : "transparent"
+                        border.color: doorRearRight ? alertRed : Qt.rgba(1,1,1,0.1)
+                        border.width: 1
+                        opacity: doorRearRight ? 1 : 0.3
+                        
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        
+                        SequentialAnimation on opacity {
+                            running: doorRearRight
+                            loops: Animation.Infinite
+                            NumberAnimation { to: 1; duration: 500 }
+                            NumberAnimation { to: 0.4; duration: 500 }
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: doorRearRight = !doorRearRight
+                        }
+                    }
+                    
+                    // 트렁크
+                    Rectangle {
+                        id: trunkOverlay
+                        x: 30; y: 240
+                        width: 90; height: 18
+                        radius: 3
+                        color: trunkOpen ? alertRed : "transparent"
+                        border.color: trunkOpen ? alertRed : Qt.rgba(1,1,1,0.1)
+                        border.width: 1
+                        opacity: trunkOpen ? 1 : 0.3
+                        
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        
+                        SequentialAnimation on opacity {
+                            running: trunkOpen
+                            loops: Animation.Infinite
+                            NumberAnimation { to: 1; duration: 500 }
+                            NumberAnimation { to: 0.4; duration: 500 }
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: trunkOpen = !trunkOpen
+                        }
+                    }
+                    
+                    // 프렁크
+                    Rectangle {
+                        id: frunkOverlay
+                        x: 30; y: 8
+                        width: 90; height: 18
+                        radius: 3
+                        color: frunkOpen ? alertRed : "transparent"
+                        border.color: frunkOpen ? alertRed : Qt.rgba(1,1,1,0.1)
+                        border.width: 1
+                        opacity: frunkOpen ? 1 : 0.3
+                        
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        
+                        SequentialAnimation on opacity {
+                            running: frunkOpen
+                            loops: Animation.Infinite
+                            NumberAnimation { to: 1; duration: 500 }
+                            NumberAnimation { to: 0.4; duration: 500 }
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: frunkOpen = !frunkOpen
+                        }
+                    }
+                    
+                    // 도어 핸들 하이라이트
+                    Rectangle {
+                        x: 4; y: 115
+                        width: 3; height: 18
+                        radius: 1
+                        color: Qt.rgba(1, 1, 1, 0.15)
+                    }
+                    Rectangle {
+                        x: 143; y: 115
+                        width: 3; height: 18
+                        radius: 1
+                        color: Qt.rgba(1, 1, 1, 0.15)
                     }
                 }
                 
-                // Detected vehicle ahead (optional)
+                // ═══════════════════════════════════════════════════════════════════════
+                // 9. 조향 슬라이더 (테스트용)
+                // ═══════════════════════════════════════════════════════════════════════
+                
                 Rectangle {
-                    id: vehicleAhead
-                    width: 50
-                    height: 30
+                    anchors.bottom: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
-                    y: 40
-                    radius: 6
-                    color: Qt.rgba(1, 1, 1, 0.15)
-                    border.color: accentTeal
-                    border.width: 1
-                    opacity: 0.7
+                    anchors.bottomMargin: 10
+                    width: 200
+                    height: 30
+                    radius: 15
+                    color: bgTertiary
                     
-                    Text {
-                        text: "🚗"
-                        font.pixelSize: 16
-                        anchors.centerIn: parent
+                    Slider {
+                        id: steeringSlider
+                        anchors.fill: parent
+                        anchors.margins: 5
+                        from: -30
+                        to: 30
+                        value: steeringAngle
+                        onValueChanged: steeringAngle = value
+                        
+                        background: Rectangle {
+                            x: steeringSlider.leftPadding
+                            y: steeringSlider.topPadding + steeringSlider.availableHeight / 2 - height / 2
+                            width: steeringSlider.availableWidth
+                            height: 4
+                            radius: 2
+                            color: bgElevated
+                            
+                            Rectangle {
+                                width: Math.abs(steeringSlider.visualPosition - 0.5) * parent.width
+                                x: steeringSlider.visualPosition > 0.5 ? parent.width / 2 : parent.width / 2 - width
+                                height: parent.height
+                                color: accentTeal
+                                radius: 2
+                            }
+                        }
+                        
+                        handle: Rectangle {
+                            x: steeringSlider.leftPadding + steeringSlider.visualPosition * (steeringSlider.availableWidth - width)
+                            y: steeringSlider.topPadding + steeringSlider.availableHeight / 2 - height / 2
+                            width: 20
+                            height: 20
+                            radius: 10
+                            color: textPrimary
+                        }
                     }
                 }
             }
@@ -601,7 +913,6 @@ Window {
             radius: radiusLg
             clip: true
             
-            // Map Grid
             Canvas {
                 anchors.fill: parent
                 onPaint: {
@@ -622,11 +933,9 @@ Window {
                         ctx.stroke();
                     }
                     
-                    // Route
                     ctx.strokeStyle = "#00d4aa";
                     ctx.lineWidth = 5;
                     ctx.lineCap = "round";
-                    ctx.lineJoin = "round";
                     ctx.setLineDash([]);
                     
                     ctx.beginPath();
@@ -653,7 +962,6 @@ Window {
                     color: "white"
                 }
                 
-                // Pulse ring
                 Rectangle {
                     anchors.centerIn: parent
                     width: 40; height: 40
@@ -673,7 +981,7 @@ Window {
                 }
             }
             
-            // Destination marker
+            // Destination
             Item {
                 x: parent.width * 0.85 - 12
                 y: parent.height * 0.15 - 30
@@ -690,7 +998,6 @@ Window {
                     }
                 }
                 
-                // Pin stem
                 Rectangle {
                     width: 3; height: 12
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -717,7 +1024,6 @@ Window {
                     anchors.fill: parent
                     anchors.margins: 12
                     
-                    // Navigate button
                     Rectangle {
                         width: 110; height: 32
                         radius: 16
@@ -726,7 +1032,6 @@ Window {
                         Row {
                             anchors.centerIn: parent
                             spacing: 8
-                            
                             Text { text: "◁"; font.pixelSize: 14; color: textPrimary }
                             Text { text: "Navigate"; font.pixelSize: 14; color: textPrimary }
                         }
@@ -853,17 +1158,6 @@ Window {
                             onEntered: parent.color = bgHover
                             onExited: parent.color = bgElevated
                         }
-                        
-                        // Press scale animation
-                        scale: mouseArea.pressed ? 0.95 : 1.0
-                        Behavior on scale {
-                            NumberAnimation { duration: 100 }
-                        }
-                        
-                        MouseArea {
-                            id: mouseArea
-                            anchors.fill: parent
-                        }
                     }
                 }
             }
@@ -880,14 +1174,12 @@ Window {
             anchors.bottom: parent.bottom
             color: Qt.rgba(0, 0, 0, 0.85)
             
-            // Top glow line
             Rectangle {
                 width: parent.width
                 height: 1
                 color: Qt.rgba(1, 1, 1, 0.15)
             }
             
-            // Secondary glow
             Rectangle {
                 width: parent.width
                 height: 1
@@ -899,7 +1191,6 @@ Window {
                 anchors.centerIn: parent
                 spacing: 20
                 
-                // Left icons
                 Repeater {
                     model: [
                         { icon: "🚗", label: "Controls" },
@@ -941,10 +1232,8 @@ Window {
                     }
                 }
                 
-                // Spacer
                 Item { width: 20; height: 1 }
                 
-                // Temperature control (터치 시 HVAC 열림)
                 Rectangle {
                     width: 160
                     height: 60
@@ -959,7 +1248,6 @@ Window {
                         anchors.centerIn: parent
                         spacing: 12
                         
-                        // Decrease
                         Rectangle {
                             width: 36; height: 36
                             radius: 18
@@ -982,7 +1270,6 @@ Window {
                             }
                         }
                         
-                        // Temperature display
                         Column {
                             spacing: 0
                             
@@ -1001,7 +1288,6 @@ Window {
                             }
                         }
                         
-                        // Increase
                         Rectangle {
                             width: 36; height: 36
                             radius: 18
@@ -1031,7 +1317,6 @@ Window {
                     }
                 }
                 
-                // HVAC toggle
                 Rectangle {
                     width: 70; height: 56
                     radius: radiusMd
@@ -1062,10 +1347,8 @@ Window {
                     }
                 }
                 
-                // Spacer
                 Item { width: 20; height: 1 }
                 
-                // Right icons
                 Repeater {
                     model: [
                         { icon: "💨", label: "Fan" },
@@ -1111,7 +1394,7 @@ Window {
         }
         
         // ═══════════════════════════════════════════════════════════════════════════════
-        // HVAC POPUP — 슬라이드 업 패널
+        // HVAC POPUP
         // ═══════════════════════════════════════════════════════════════════════════════
         
         Rectangle {
@@ -1130,7 +1413,6 @@ Window {
                 }
             }
             
-            // Top handle bar
             Rectangle {
                 width: 50; height: 5
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -1146,7 +1428,6 @@ Window {
                 }
             }
             
-            // Top border glow
             Rectangle {
                 width: parent.width
                 height: 1
@@ -1160,7 +1441,6 @@ Window {
                 anchors.topMargin: 30
                 spacing: 24
                 
-                // Title
                 Text {
                     text: "Climate Control"
                     font.pixelSize: 20
@@ -1169,12 +1449,10 @@ Window {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 
-                // Temperature slider row
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 40
                     
-                    // Driver temp
                     Column {
                         spacing: 8
                         
@@ -1201,7 +1479,6 @@ Window {
                             }
                         }
                         
-                        // Seat heater
                         Rectangle {
                             width: 50; height: 30
                             radius: 15
@@ -1221,7 +1498,6 @@ Window {
                         }
                     }
                     
-                    // Fan speed
                     Column {
                         spacing: 8
                         
@@ -1265,7 +1541,6 @@ Window {
                         }
                     }
                     
-                    // Passenger temp
                     Column {
                         spacing: 8
                         
@@ -1292,7 +1567,6 @@ Window {
                             }
                         }
                         
-                        // Seat heater
                         Rectangle {
                             width: 50; height: 30
                             radius: 15
@@ -1313,7 +1587,6 @@ Window {
                     }
                 }
                 
-                // Quick controls
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 16
@@ -1349,6 +1622,51 @@ Window {
                             }
                         }
                     }
+                }
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // DOOR/TRUNK ALERT BANNER
+        // ═══════════════════════════════════════════════════════════════════════════════
+        
+        Rectangle {
+            id: alertBanner
+            width: 300
+            height: 50
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: (doorFrontLeft || doorFrontRight || doorRearLeft || doorRearRight || trunkOpen || frunkOpen) ? 20 : -60
+            radius: 25
+            color: alertRed
+            
+            Behavior on anchors.topMargin {
+                NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+            }
+            
+            Row {
+                anchors.centerIn: parent
+                spacing: 12
+                
+                Text {
+                    text: "⚠️"
+                    font.pixelSize: 20
+                }
+                
+                Text {
+                    text: {
+                        var openParts = [];
+                        if (frunkOpen) openParts.push("Frunk");
+                        if (doorFrontLeft) openParts.push("FL Door");
+                        if (doorFrontRight) openParts.push("FR Door");
+                        if (doorRearLeft) openParts.push("RL Door");
+                        if (doorRearRight) openParts.push("RR Door");
+                        if (trunkOpen) openParts.push("Trunk");
+                        return openParts.length > 0 ? openParts.join(", ") + " Open" : "";
+                    }
+                    font.pixelSize: 14
+                    font.weight: Font.Medium
+                    color: textPrimary
                 }
             }
         }
