@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>AUTUS — Select Role</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, 'SF Pro Display', sans-serif;
+    }
+
+    .container {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .logo {
+      font-size: 14px;
+      letter-spacing: 4px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-bottom: 48px;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 300;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 48px;
+    }
+
+    .roles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .role-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .role-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .role-card:active {
+      transform: scale(0.98);
+    }
+
+    .role-card[data-role="subject"] { --accent: #00ff88; }
+    .role-card[data-role="operator"] { --accent: #45B7D1; }
+    .role-card[data-role="sponsor"] { --accent: #FFD700; }
+    .role-card[data-role="employer"] { --accent: #96CEB4; }
+    .role-card[data-role="institution"] { --accent: #DDA0DD; }
+
+    .role-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+    }
+
+    .role-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+    }
+
+    .role-name {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .role-desc {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .footer {
+      margin-top: 48px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .footer a {
+      color: rgba(255, 255, 255, 0.5);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      color: #fff;
+    }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      .roles {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .role-card {
+        padding: 20px 12px;
+      }
+
+      .role-icon {
+        font-size: 32px;
+      }
+
+      .title {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">AUTUS</div>
+    <h1 class="title">Select Your Role</h1>
+    <p class="subtitle">역할을 선택하세요</p>
+
+    <div class="roles">
+      <a href="solar-roles.html?role=subject" class="role-card" data-role="subject">
+        <div class="role-icon">👤</div>
+        <div class="role-name">SUBJECT</div>
+        <div class="role-desc">학생 / 구직자</div>
+      </a>
+
+      <a href="solar-roles.html?role=operator" class="role-card" data-role="operator">
+        <div class="role-icon">🎯</div>
+        <div class="role-name">OPERATOR</div>
+        <div class="role-desc">운영자 / PM</div>
+      </a>
+
+      <a href="solar-roles.html?role=sponsor" class="role-card" data-role="sponsor">
+        <div class="role-icon">💰</div>
+        <div class="role-name">SPONSOR</div>
+        <div class="role-desc">후원자 / 투자자</div>
+      </a>
+
+      <a href="solar-roles.html?role=employer" class="role-card" data-role="employer">
+        <div class="role-icon">🏢</div>
+        <div class="role-name">EMPLOYER</div>
+        <div class="role-desc">고용주 / 기업</div>
+      </a>
+
+      <a href="solar-roles.html?role=institution" class="role-card" data-role="institution">
+        <div class="role-icon">🏛️</div>
+        <div class="role-name">INSTITUTION</div>
+        <div class="role-desc">기관 / 대학</div>
+      </a>
+    </div>
+
+    <div class="footer">
+      <a href="solar-responsive.html">기본 UI로 이동</a> · 
+      <a href="solar.html">ELON EDITION</a>
+    </div>
+  </div>
+</body>
+</html>
