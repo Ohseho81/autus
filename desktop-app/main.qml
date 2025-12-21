@@ -1,17 +1,19 @@
 /*
  * AUTUS Tesla UI Clone — V11 Premium Edition
  * 
- * 테슬라 V11 UI의 정밀 재현:
- * - 차량 상태 시각화 (이미지 + 문/타이어 인터랙션)
- * - 주변 차량 감지 (Autopilot 스타일)
- * - HVAC 슬라이드 업 팝업
- * - Glassmorphism 효과
+ * 완전한 테슬라 UI 재현:
+ * - 실시간 데이터 바인딩 (속도, 배터리, 파워)
+ * - QtLocation 지도 연동 (OpenStreetMap)
+ * - 미디어 플레이어
+ * - 차량 시각화 + 인터랙션
  */
 
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Shapes
+import QtLocation
+import QtPositioning
 
 Window {
     id: root
@@ -42,7 +44,6 @@ Window {
     readonly property color accentGreen: "#4ade80"
     readonly property color accentOrange: "#ff9500"
     readonly property color alertRed: "#ff3b30"
-    readonly property color warningYellow: "#ffcc00"
     
     readonly property int radiusSm: 4
     readonly property int radiusMd: 8
@@ -50,32 +51,23 @@ Window {
     readonly property int radiusXl: 20
     
     // ═══════════════════════════════════════════════════════════════════════════════
-    // STATE MANAGEMENT
+    // STATE
     // ═══════════════════════════════════════════════════════════════════════════════
     
     property bool hvacOpen: false
+    property bool mediaOpen: false
     property int fanSpeed: 3
     property bool acOn: true
     property bool heatSeatLeft: false
     property bool heatSeatRight: false
     
-    // Door states (true = open)
     property bool doorFrontLeft: false
     property bool doorFrontRight: false
     property bool doorRearLeft: false
     property bool doorRearRight: false
     property bool trunkOpen: false
     property bool frunkOpen: false
-    
-    // Steering angle (-30 to +30 degrees)
     property real steeringAngle: 0
-    
-    // Nearby vehicles (Autopilot visualization)
-    property var nearbyVehicles: [
-        { x: 0.5, y: 0.15, type: "car" },      // Front center
-        { x: 0.2, y: 0.3, type: "car" },       // Front left
-        { x: 0.8, y: 0.4, type: "truck" }      // Front right
-    ]
     
     // ═══════════════════════════════════════════════════════════════════════════════
     // GRADIENT BACKGROUND
@@ -98,7 +90,7 @@ Window {
         anchors.fill: parent
         
         // ═══════════════════════════════════════════════════════════════════════════════
-        // LEFT PANEL — Tesla V11 차량 상태 (35%)
+        // LEFT PANEL — 차량 상태 (35%)
         // ═══════════════════════════════════════════════════════════════════════════════
         
         Rectangle {
@@ -107,21 +99,19 @@ Window {
             height: parent.height - dock.height
             color: "transparent"
             
-            // ─────────────────────────────────────────────────────────────────────────────
-            // 상단: 기어 + 배터리 상태
-            // ─────────────────────────────────────────────────────────────────────────────
-            
+            // 상단 상태바
             Item {
                 id: statusHeader
                 width: parent.width
-                height: 60
+                height: 50
                 anchors.top: parent.top
-                anchors.topMargin: 30
+                anchors.topMargin: 25
                 
+                // Gear Selector
                 Row {
                     anchors.left: parent.left
-                    anchors.leftMargin: 40
-                    spacing: 16
+                    anchors.leftMargin: 35
+                    spacing: 14
                     
                     Repeater {
                         model: ["P", "R", "N", "D"]
@@ -144,24 +134,23 @@ Window {
                     }
                 }
                 
+                // Battery
                 Row {
                     anchors.right: parent.right
-                    anchors.rightMargin: 40
+                    anchors.rightMargin: 35
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: 10
+                    spacing: 8
                     
                     Rectangle {
-                        width: 60; height: 22
+                        width: 55; height: 20
                         radius: radiusSm
                         color: bgTertiary
-                        border.color: Qt.rgba(1, 1, 1, 0.1)
-                        border.width: 1
                         
                         Rectangle {
-                            width: (parent.width - 6) * (vehicleState.battery / 100)
-                            height: parent.height - 6
+                            width: (parent.width - 4) * (vehicleState.battery / 100)
+                            height: parent.height - 4
                             anchors.left: parent.left
-                            anchors.leftMargin: 3
+                            anchors.leftMargin: 2
                             anchors.verticalCenter: parent.verticalCenter
                             radius: 2
                             color: vehicleState.battery > 20 ? accentGreen : accentRed
@@ -170,9 +159,9 @@ Window {
                         }
                         
                         Rectangle {
-                            width: 4; height: 10
+                            width: 3; height: 8
                             anchors.right: parent.right
-                            anchors.rightMargin: -5
+                            anchors.rightMargin: -4
                             anchors.verticalCenter: parent.verticalCenter
                             radius: 1
                             color: bgTertiary
@@ -181,8 +170,7 @@ Window {
                     
                     Text {
                         text: vehicleState.battery + " mi"
-                        font.pixelSize: 16
-                        font.weight: Font.Medium
+                        font.pixelSize: 14
                         color: textSecondary
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -190,84 +178,124 @@ Window {
             }
             
             // ─────────────────────────────────────────────────────────────────────────────
-            // 중앙: 속도계
+            // 속도계 + 파워 게이지
             // ─────────────────────────────────────────────────────────────────────────────
             
-            Column {
-                id: speedDisplay
-                anchors.horizontalCenter: parent.horizontalCenter
+            Item {
+                id: speedArea
+                width: parent.width
+                height: 140
                 anchors.top: statusHeader.bottom
-                anchors.topMargin: 10
-                spacing: 0
+                anchors.topMargin: 5
                 
-                Text {
-                    id: speedText
-                    text: vehicleState.speed
-                    font.pixelSize: 100
-                    font.weight: Font.Light
-                    font.letterSpacing: -5
-                    color: textPrimary
-                    anchors.horizontalCenter: parent.horizontalCenter
+                // 파워 게이지 (왼쪽 아크)
+                Shape {
+                    id: powerGauge
+                    anchors.centerIn: parent
+                    width: 200; height: 100
+                    
+                    ShapePath {
+                        strokeColor: bgTertiary
+                        strokeWidth: 6
+                        fillColor: "transparent"
+                        capStyle: ShapePath.RoundCap
+                        
+                        PathAngleArc {
+                            centerX: 100; centerY: 100
+                            radiusX: 90; radiusY: 90
+                            startAngle: -180
+                            sweepAngle: 180
+                        }
+                    }
+                    
+                    // 파워 인디케이터 (회생: 초록, 소비: 흰색)
+                    ShapePath {
+                        strokeColor: vehicleState.power < 0 ? accentGreen : textPrimary
+                        strokeWidth: 6
+                        fillColor: "transparent"
+                        capStyle: ShapePath.RoundCap
+                        
+                        PathAngleArc {
+                            centerX: 100; centerY: 100
+                            radiusX: 90; radiusY: 90
+                            startAngle: -90
+                            sweepAngle: Math.max(-90, Math.min(90, vehicleState.power * 0.6))
+                        }
+                    }
                 }
                 
+                // 속도 숫자
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 0
+                    
+                    Text {
+                        text: vehicleState.speed
+                        font.pixelSize: 90
+                        font.weight: Font.Light
+                        font.letterSpacing: -4
+                        color: textPrimary
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        
+                        Behavior on text {
+                            enabled: false  // 속도 변화는 즉시 반영
+                        }
+                    }
+                    
+                    Text {
+                        text: "km/h"
+                        font.pixelSize: 14
+                        font.letterSpacing: 2
+                        color: textTertiary
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+                
+                // 파워 표시 (kW)
                 Text {
-                    text: "km/h"
-                    font.pixelSize: 16
-                    font.letterSpacing: 2
-                    color: textTertiary
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.right: parent.right
+                    anchors.rightMargin: 40
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: (vehicleState.power > 0 ? "+" : "") + vehicleState.power + " kW"
+                    font.pixelSize: 12
+                    color: vehicleState.power < 0 ? accentGreen : textSecondary
                 }
             }
             
             // ─────────────────────────────────────────────────────────────────────────────
-            // Autopilot 상태 아이콘
+            // Autopilot 아이콘
             // ─────────────────────────────────────────────────────────────────────────────
             
             Row {
                 id: autopilotIcons
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: speedDisplay.bottom
-                anchors.topMargin: 16
-                spacing: 24
+                anchors.top: speedArea.bottom
+                anchors.topMargin: 5
+                spacing: 20
                 
                 Rectangle {
-                    width: 40; height: 40
-                    radius: 20
-                    color: accentBlue
+                    width: 38; height: 38
+                    radius: 19
+                    color: vehicleState.gear === "D" ? accentBlue : bgElevated
                     
                     Text {
                         text: "⊙"
-                        font.pixelSize: 20
+                        font.pixelSize: 18
                         color: "white"
                         anchors.centerIn: parent
-                    }
-                    
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: parent.radius
-                        color: "transparent"
-                        border.color: accentBlue
-                        border.width: 2
-                        opacity: 0.5
-                        
-                        SequentialAnimation on opacity {
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 0.8; duration: 1000 }
-                            NumberAnimation { to: 0.3; duration: 1000 }
-                        }
                     }
                 }
                 
                 Rectangle {
-                    width: 40; height: 40
-                    radius: 20
+                    width: 38; height: 38
+                    radius: 19
                     color: bgElevated
                     border.color: "#cc0000"
-                    border.width: 3
+                    border.width: 2
                     
                     Text {
                         text: "30"
-                        font.pixelSize: 14
+                        font.pixelSize: 12
                         font.weight: Font.Bold
                         color: textPrimary
                         anchors.centerIn: parent
@@ -275,15 +303,13 @@ Window {
                 }
                 
                 Rectangle {
-                    width: 40; height: 40
-                    radius: 20
+                    width: 38; height: 38
+                    radius: 19
                     color: bgTertiary
-                    border.color: textTertiary
-                    border.width: 2
                     
                     Text {
-                        text: "88"
-                        font.pixelSize: 13
+                        text: vehicleState.speed > 0 ? vehicleState.speed : "--"
+                        font.pixelSize: 11
                         color: textSecondary
                         anchors.centerIn: parent
                     }
@@ -291,134 +317,69 @@ Window {
             }
             
             // ─────────────────────────────────────────────────────────────────────────────
-            // 🚗 차량 시각화 컨테이너 (완벽 재현)
+            // 차량 시각화
             // ─────────────────────────────────────────────────────────────────────────────
             
             Item {
                 id: carContainer
-                width: parent.width - 40
-                height: 380
+                width: parent.width - 30
+                height: 340
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: autopilotIcons.bottom
-                anchors.topMargin: 10
+                anchors.topMargin: 5
                 clip: true
                 
-                // ═══════════════════════════════════════════════════════════════════════
-                // 1. 차선 라인 (Autopilot 가이드)
-                // ═══════════════════════════════════════════════════════════════════════
-                
+                // 차선 라인
                 Canvas {
-                    id: laneCanvas
                     anchors.fill: parent
-                    
                     onPaint: {
                         var ctx = getContext("2d");
                         ctx.clearRect(0, 0, width, height);
                         
-                        // 왼쪽 차선
                         var grad = ctx.createLinearGradient(0, 0, 0, height);
-                        grad.addColorStop(0, "rgba(0, 212, 170, 0.9)");
+                        grad.addColorStop(0, "rgba(0, 212, 170, 0.8)");
                         grad.addColorStop(1, "rgba(0, 212, 170, 0.1)");
                         
                         ctx.strokeStyle = grad;
-                        ctx.lineWidth = 4;
+                        ctx.lineWidth = 3;
                         ctx.lineCap = "round";
                         
                         ctx.beginPath();
-                        ctx.moveTo(width * 0.12, 0);
-                        ctx.lineTo(width * 0.32, height);
+                        ctx.moveTo(width * 0.15, 0);
+                        ctx.lineTo(width * 0.35, height);
                         ctx.stroke();
                         
-                        // 오른쪽 차선
                         ctx.beginPath();
-                        ctx.moveTo(width * 0.88, 0);
-                        ctx.lineTo(width * 0.68, height);
-                        ctx.stroke();
-                        
-                        // 중앙 점선
-                        ctx.setLineDash([15, 12]);
-                        ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-                        ctx.lineWidth = 2;
-                        
-                        ctx.beginPath();
-                        ctx.moveTo(width * 0.5, 0);
-                        ctx.lineTo(width * 0.5, height);
+                        ctx.moveTo(width * 0.85, 0);
+                        ctx.lineTo(width * 0.65, height);
                         ctx.stroke();
                     }
                 }
                 
-                // ═══════════════════════════════════════════════════════════════════════
-                // 2. 주변 차량 감지 (Autopilot 스타일)
-                // ═══════════════════════════════════════════════════════════════════════
-                
-                Repeater {
-                    model: nearbyVehicles
-                    
-                    Rectangle {
-                        x: carContainer.width * modelData.x - width/2
-                        y: carContainer.height * modelData.y - height/2
-                        width: modelData.type === "truck" ? 50 : 40
-                        height: modelData.type === "truck" ? 30 : 24
-                        radius: 4
-                        color: Qt.rgba(1, 1, 1, 0.12)
-                        border.color: accentTeal
-                        border.width: 1
-                        opacity: 0.8
-                        
-                        // 거리에 따른 투명도 (멀수록 투명)
-                        Behavior on opacity { NumberAnimation { duration: 300 } }
-                        
-                        // 펄스 애니메이션
-                        SequentialAnimation on opacity {
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 0.9; duration: 1500 }
-                            NumberAnimation { to: 0.5; duration: 1500 }
-                        }
-                        
-                        Text {
-                            text: modelData.type === "truck" ? "🚚" : "🚗"
-                            font.pixelSize: modelData.type === "truck" ? 16 : 12
-                            anchors.centerIn: parent
-                            opacity: 0.7
-                        }
-                    }
-                }
-                
-                // ═══════════════════════════════════════════════════════════════════════
-                // 3. 차량 그림자 (입체감)
-                // ═══════════════════════════════════════════════════════════════════════
-                
+                // 그림자
                 Rectangle {
-                    id: carShadow
-                    width: carBody.width * 0.85
-                    height: carBody.height * 0.4
+                    width: carBody.width * 0.8
+                    height: 50
                     anchors.horizontalCenter: carBody.horizontalCenter
-                    anchors.top: carBody.verticalCenter
-                    anchors.topMargin: carBody.height * 0.35
-                    radius: 60
-                    color: "#000000"
-                    opacity: 0.5
+                    anchors.top: carBody.bottom
+                    anchors.topMargin: -20
+                    radius: 50
                     
-                    // 블러 효과 시뮬레이션 (그라데이션)
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.4) }
-                        GradientStop { position: 0.5; color: Qt.rgba(0, 0, 0, 0.2) }
                         GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
                 
-                // ═══════════════════════════════════════════════════════════════════════
-                // 4. 차량 본체 (SVG Shape 또는 이미지)
-                // ═══════════════════════════════════════════════════════════════════════
-                
+                // 차량 본체
                 Item {
                     id: carBody
-                    width: 150
-                    height: 260
+                    width: 130
+                    height: 220
                     anchors.centerIn: parent
-                    anchors.verticalCenterOffset: 20
+                    anchors.verticalCenterOffset: 15
                     
-                    // 차량 외형 (Shape Path)
+                    // 차체
                     Shape {
                         anchors.fill: parent
                         
@@ -427,470 +388,179 @@ Window {
                             strokeWidth: 2
                             fillColor: "#1a1a1a"
                             
-                            startX: 75; startY: 0
-                            
-                            // 전면
-                            PathQuad { x: 140; y: 35; controlX: 140; controlY: 0 }
-                            PathLine { x: 145; y: 70 }
-                            
-                            // 우측면
-                            PathLine { x: 148; y: 190 }
-                            
-                            // 후면
-                            PathQuad { x: 140; y: 260; controlX: 148; controlY: 260 }
-                            PathLine { x: 10; y: 260 }
-                            PathQuad { x: 2; y: 190; controlX: 2; controlY: 260 }
-                            
-                            // 좌측면
-                            PathLine { x: 5; y: 70 }
-                            
-                            // 전면으로 복귀
-                            PathLine { x: 10; y: 35 }
-                            PathQuad { x: 75; y: 0; controlX: 10; controlY: 0 }
+                            startX: 65; startY: 0
+                            PathQuad { x: 120; y: 30; controlX: 120; controlY: 0 }
+                            PathLine { x: 125; y: 60 }
+                            PathLine { x: 128; y: 165 }
+                            PathQuad { x: 120; y: 220; controlX: 128; controlY: 220 }
+                            PathLine { x: 10; y: 220 }
+                            PathQuad { x: 2; y: 165; controlX: 2; controlY: 220 }
+                            PathLine { x: 5; y: 60 }
+                            PathLine { x: 10; y: 30 }
+                            PathQuad { x: 65; y: 0; controlX: 10; controlY: 0 }
                         }
                     }
                     
                     // 전면 유리
-                    Shape {
-                        anchors.fill: parent
-                        
-                        ShapePath {
-                            strokeColor: "transparent"
-                            fillColor: "#0a0a0a"
-                            
-                            startX: 30; startY: 55
-                            PathLine { x: 120; y: 55 }
-                            PathQuad { x: 125; y: 110; controlX: 130; controlY: 75 }
-                            PathLine { x: 25; y: 110 }
-                            PathQuad { x: 30; y: 55; controlX: 20; controlY: 75 }
-                        }
+                    Rectangle {
+                        x: 25; y: 45
+                        width: 80; height: 55
+                        radius: 8
+                        color: "#0a0a0a"
                     }
                     
                     // 루프
                     Rectangle {
-                        x: 26; y: 110
-                        width: 98; height: 90
-                        radius: 12
+                        x: 22; y: 100
+                        width: 86; height: 70
+                        radius: 10
                         color: "#222222"
-                        
-                        Rectangle {
-                            width: parent.width - 14
-                            height: 2
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            y: 12
-                            color: Qt.rgba(1, 1, 1, 0.08)
-                            radius: 1
-                        }
                     }
                     
                     // 후면 유리
-                    Shape {
-                        anchors.fill: parent
-                        
-                        ShapePath {
-                            strokeColor: "transparent"
-                            fillColor: "#0a0a0a"
+                    Rectangle {
+                        x: 28; y: 170
+                        width: 74; height: 40
+                        radius: 6
+                        color: "#0a0a0a"
+                    }
+                    
+                    // 헤드라이트
+                    Repeater {
+                        model: [{x: 12, y: 25}, {x: 82, y: 25}]
+                        Rectangle {
+                            x: modelData.x; y: modelData.y
+                            width: 35; height: 8
+                            radius: 4
+                            color: vehicleState.gear !== "P" ? accentTeal : bgTertiary
                             
-                            startX: 28; startY: 200
-                            PathLine { x: 122; y: 200 }
-                            PathQuad { x: 118; y: 240; controlX: 128; controlY: 225 }
-                            PathLine { x: 32; y: 240 }
-                            PathQuad { x: 28; y: 200; controlX: 22; controlY: 225 }
+                            Behavior on color { ColorAnimation { duration: 300 } }
                         }
                     }
                     
-                    // ═══════════════════════════════════════════════════════════════════
-                    // 5. 헤드라이트 (애니메이션)
-                    // ═══════════════════════════════════════════════════════════════════
-                    
-                    Rectangle {
-                        x: 15; y: 28
-                        width: 40; height: 10
-                        radius: 5
-                        color: accentTeal
-                        
-                        SequentialAnimation on opacity {
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 1; duration: 2000 }
-                            NumberAnimation { to: 0.6; duration: 2000 }
-                        }
-                        
-                        // 글로우 효과
+                    // 테일라이트
+                    Repeater {
+                        model: [{x: 8, y: 205}, {x: 87, y: 205}]
                         Rectangle {
-                            anchors.fill: parent
-                            anchors.margins: -4
-                            radius: 9
-                            color: "transparent"
-                            border.color: accentTeal
-                            border.width: 3
-                            opacity: 0.3
+                            x: modelData.x; y: modelData.y
+                            width: 35; height: 6
+                            radius: 3
+                            color: accentRed
+                            opacity: 0.9
                         }
                     }
                     
+                    // 중앙 테일라이트
                     Rectangle {
-                        x: 95; y: 28
-                        width: 40; height: 10
-                        radius: 5
-                        color: accentTeal
-                        
-                        SequentialAnimation on opacity {
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 1; duration: 2000 }
-                            NumberAnimation { to: 0.6; duration: 2000 }
-                        }
-                        
-                        Rectangle {
-                            anchors.fill: parent
-                            anchors.margins: -4
-                            radius: 9
-                            color: "transparent"
-                            border.color: accentTeal
-                            border.width: 3
-                            opacity: 0.3
-                        }
-                    }
-                    
-                    // ═══════════════════════════════════════════════════════════════════
-                    // 6. 테일라이트
-                    // ═══════════════════════════════════════════════════════════════════
-                    
-                    Rectangle {
-                        x: 8; y: 245
-                        width: 35; height: 8
-                        radius: 4
-                        color: accentRed
-                        opacity: 0.9
-                    }
-                    Rectangle {
-                        x: 107; y: 245
-                        width: 35; height: 8
-                        radius: 4
-                        color: accentRed
-                        opacity: 0.9
-                    }
-                    
-                    // 중앙 테일라이트 (Model 3 스타일)
-                    Rectangle {
-                        x: 45; y: 248
-                        width: 60; height: 3
-                        radius: 1
+                        x: 40; y: 208
+                        width: 50; height: 2
                         color: accentRed
                         opacity: 0.6
                     }
                     
-                    // ═══════════════════════════════════════════════════════════════════
-                    // 7. 바퀴 (조향 각도 적용)
-                    // ═══════════════════════════════════════════════════════════════════
-                    
-                    // 전륜 좌
-                    Rectangle {
-                        id: wheelFL
-                        x: 5; y: 60
-                        width: 22; height: 40
-                        radius: 6
-                        color: "#2a2a2a"
-                        border.color: "#3a3a3a"
-                        border.width: 1
-                        
-                        transform: Rotation {
-                            origin.x: 11
-                            origin.y: 20
-                            angle: steeringAngle * 0.3
-                        }
-                        
+                    // 바퀴 (조향 적용)
+                    Repeater {
+                        model: [
+                            {x: 3, y: 50, front: true},
+                            {x: 107, y: 50, front: true},
+                            {x: 3, y: 160, front: false},
+                            {x: 107, y: 160, front: false}
+                        ]
                         Rectangle {
-                            width: 2; height: parent.height - 10
-                            anchors.centerIn: parent
-                            color: "#444"
-                            radius: 1
+                            x: modelData.x; y: modelData.y
+                            width: 20; height: 35
+                            radius: 5
+                            color: "#2a2a2a"
+                            border.color: "#3a3a3a"
+                            
+                            transform: Rotation {
+                                origin.x: 10; origin.y: 17
+                                angle: modelData.front ? steeringAngle * 0.3 : 0
+                            }
                         }
                     }
                     
-                    // 전륜 우
-                    Rectangle {
-                        id: wheelFR
-                        x: 123; y: 60
-                        width: 22; height: 40
-                        radius: 6
-                        color: "#2a2a2a"
-                        border.color: "#3a3a3a"
-                        border.width: 1
-                        
-                        transform: Rotation {
-                            origin.x: 11
-                            origin.y: 20
-                            angle: steeringAngle * 0.3
-                        }
-                        
+                    // 문 오버레이
+                    Repeater {
+                        model: [
+                            {x: 1, y: 60, h: 60, prop: "doorFrontLeft"},
+                            {x: 121, y: 60, h: 60, prop: "doorFrontRight"},
+                            {x: 1, y: 125, h: 55, prop: "doorRearLeft"},
+                            {x: 121, y: 125, h: 55, prop: "doorRearRight"}
+                        ]
                         Rectangle {
-                            width: 2; height: parent.height - 10
-                            anchors.centerIn: parent
-                            color: "#444"
-                            radius: 1
+                            x: modelData.x; y: modelData.y
+                            width: 8; height: modelData.h
+                            radius: 2
+                            color: root[modelData.prop] ? alertRed : "transparent"
+                            border.color: root[modelData.prop] ? alertRed : Qt.rgba(1,1,1,0.1)
+                            opacity: root[modelData.prop] ? 1 : 0.3
+                            
+                            SequentialAnimation on opacity {
+                                running: root[modelData.prop]
+                                loops: Animation.Infinite
+                                NumberAnimation { to: 1; duration: 500 }
+                                NumberAnimation { to: 0.4; duration: 500 }
+                            }
+                            
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: root[modelData.prop] = !root[modelData.prop]
+                            }
                         }
                     }
                     
-                    // 후륜 좌
+                    // 프렁크/트렁크
                     Rectangle {
-                        x: 5; y: 195
-                        width: 22; height: 40
-                        radius: 6
-                        color: "#2a2a2a"
-                        border.color: "#3a3a3a"
-                        border.width: 1
-                        
-                        Rectangle {
-                            width: 2; height: parent.height - 10
-                            anchors.centerIn: parent
-                            color: "#444"
-                            radius: 1
-                        }
-                    }
-                    
-                    // 후륜 우
-                    Rectangle {
-                        x: 123; y: 195
-                        width: 22; height: 40
-                        radius: 6
-                        color: "#2a2a2a"
-                        border.color: "#3a3a3a"
-                        border.width: 1
-                        
-                        Rectangle {
-                            width: 2; height: parent.height - 10
-                            anchors.centerIn: parent
-                            color: "#444"
-                            radius: 1
-                        }
-                    }
-                    
-                    // ═══════════════════════════════════════════════════════════════════
-                    // 8. 문 오버레이 (클릭 시 열림/닫힘 표시)
-                    // ═══════════════════════════════════════════════════════════════════
-                    
-                    // 전방 좌측 문
-                    Rectangle {
-                        id: doorFL
-                        x: 2; y: 70
-                        width: 8; height: 70
-                        radius: 2
-                        color: doorFrontLeft ? alertRed : "transparent"
-                        border.color: doorFrontLeft ? alertRed : Qt.rgba(1,1,1,0.1)
-                        border.width: 1
-                        opacity: doorFrontLeft ? 1 : 0.3
-                        
-                        Behavior on color { ColorAnimation { duration: 200 } }
-                        
-                        // 깜빡임 애니메이션
-                        SequentialAnimation on opacity {
-                            running: doorFrontLeft
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 1; duration: 500 }
-                            NumberAnimation { to: 0.4; duration: 500 }
-                        }
-                        
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: doorFrontLeft = !doorFrontLeft
-                        }
-                    }
-                    
-                    // 전방 우측 문
-                    Rectangle {
-                        id: doorFR
-                        x: 140; y: 70
-                        width: 8; height: 70
-                        radius: 2
-                        color: doorFrontRight ? alertRed : "transparent"
-                        border.color: doorFrontRight ? alertRed : Qt.rgba(1,1,1,0.1)
-                        border.width: 1
-                        opacity: doorFrontRight ? 1 : 0.3
-                        
-                        Behavior on color { ColorAnimation { duration: 200 } }
-                        
-                        SequentialAnimation on opacity {
-                            running: doorFrontRight
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 1; duration: 500 }
-                            NumberAnimation { to: 0.4; duration: 500 }
-                        }
-                        
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: doorFrontRight = !doorFrontRight
-                        }
-                    }
-                    
-                    // 후방 좌측 문
-                    Rectangle {
-                        id: doorRL
-                        x: 2; y: 145
-                        width: 8; height: 65
-                        radius: 2
-                        color: doorRearLeft ? alertRed : "transparent"
-                        border.color: doorRearLeft ? alertRed : Qt.rgba(1,1,1,0.1)
-                        border.width: 1
-                        opacity: doorRearLeft ? 1 : 0.3
-                        
-                        Behavior on color { ColorAnimation { duration: 200 } }
-                        
-                        SequentialAnimation on opacity {
-                            running: doorRearLeft
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 1; duration: 500 }
-                            NumberAnimation { to: 0.4; duration: 500 }
-                        }
-                        
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: doorRearLeft = !doorRearLeft
-                        }
-                    }
-                    
-                    // 후방 우측 문
-                    Rectangle {
-                        id: doorRR
-                        x: 140; y: 145
-                        width: 8; height: 65
-                        radius: 2
-                        color: doorRearRight ? alertRed : "transparent"
-                        border.color: doorRearRight ? alertRed : Qt.rgba(1,1,1,0.1)
-                        border.width: 1
-                        opacity: doorRearRight ? 1 : 0.3
-                        
-                        Behavior on color { ColorAnimation { duration: 200 } }
-                        
-                        SequentialAnimation on opacity {
-                            running: doorRearRight
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 1; duration: 500 }
-                            NumberAnimation { to: 0.4; duration: 500 }
-                        }
-                        
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: doorRearRight = !doorRearRight
-                        }
-                    }
-                    
-                    // 트렁크
-                    Rectangle {
-                        id: trunkOverlay
-                        x: 30; y: 240
-                        width: 90; height: 18
-                        radius: 3
-                        color: trunkOpen ? alertRed : "transparent"
-                        border.color: trunkOpen ? alertRed : Qt.rgba(1,1,1,0.1)
-                        border.width: 1
-                        opacity: trunkOpen ? 1 : 0.3
-                        
-                        Behavior on color { ColorAnimation { duration: 200 } }
-                        
-                        SequentialAnimation on opacity {
-                            running: trunkOpen
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 1; duration: 500 }
-                            NumberAnimation { to: 0.4; duration: 500 }
-                        }
-                        
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: trunkOpen = !trunkOpen
-                        }
-                    }
-                    
-                    // 프렁크
-                    Rectangle {
-                        id: frunkOverlay
-                        x: 30; y: 8
-                        width: 90; height: 18
+                        x: 28; y: 8
+                        width: 74; height: 15
                         radius: 3
                         color: frunkOpen ? alertRed : "transparent"
                         border.color: frunkOpen ? alertRed : Qt.rgba(1,1,1,0.1)
-                        border.width: 1
                         opacity: frunkOpen ? 1 : 0.3
-                        
-                        Behavior on color { ColorAnimation { duration: 200 } }
-                        
-                        SequentialAnimation on opacity {
-                            running: frunkOpen
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 1; duration: 500 }
-                            NumberAnimation { to: 0.4; duration: 500 }
-                        }
-                        
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: frunkOpen = !frunkOpen
-                        }
-                    }
-                    
-                    // 도어 핸들 하이라이트
-                    Rectangle {
-                        x: 4; y: 115
-                        width: 3; height: 18
-                        radius: 1
-                        color: Qt.rgba(1, 1, 1, 0.15)
+                        MouseArea { anchors.fill: parent; onClicked: frunkOpen = !frunkOpen }
                     }
                     Rectangle {
-                        x: 143; y: 115
-                        width: 3; height: 18
-                        radius: 1
-                        color: Qt.rgba(1, 1, 1, 0.15)
+                        x: 28; y: 200
+                        width: 74; height: 15
+                        radius: 3
+                        color: trunkOpen ? alertRed : "transparent"
+                        border.color: trunkOpen ? alertRed : Qt.rgba(1,1,1,0.1)
+                        opacity: trunkOpen ? 1 : 0.3
+                        MouseArea { anchors.fill: parent; onClicked: trunkOpen = !trunkOpen }
                     }
                 }
                 
-                // ═══════════════════════════════════════════════════════════════════════
-                // 9. 조향 슬라이더 (테스트용)
-                // ═══════════════════════════════════════════════════════════════════════
-                
+                // 조향 슬라이더
                 Rectangle {
                     anchors.bottom: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottomMargin: 10
-                    width: 200
-                    height: 30
-                    radius: 15
+                    width: 180; height: 26
+                    radius: 13
                     color: bgTertiary
                     
                     Slider {
                         id: steeringSlider
                         anchors.fill: parent
-                        anchors.margins: 5
-                        from: -30
-                        to: 30
+                        anchors.margins: 4
+                        from: -30; to: 30
                         value: steeringAngle
                         onValueChanged: steeringAngle = value
                         
                         background: Rectangle {
                             x: steeringSlider.leftPadding
-                            y: steeringSlider.topPadding + steeringSlider.availableHeight / 2 - height / 2
+                            y: steeringSlider.height / 2 - 2
                             width: steeringSlider.availableWidth
                             height: 4
                             radius: 2
                             color: bgElevated
-                            
-                            Rectangle {
-                                width: Math.abs(steeringSlider.visualPosition - 0.5) * parent.width
-                                x: steeringSlider.visualPosition > 0.5 ? parent.width / 2 : parent.width / 2 - width
-                                height: parent.height
-                                color: accentTeal
-                                radius: 2
-                            }
                         }
                         
                         handle: Rectangle {
                             x: steeringSlider.leftPadding + steeringSlider.visualPosition * (steeringSlider.availableWidth - width)
-                            y: steeringSlider.topPadding + steeringSlider.availableHeight / 2 - height / 2
-                            width: 20
-                            height: 20
-                            radius: 10
+                            y: steeringSlider.height / 2 - height / 2
+                            width: 18; height: 18
+                            radius: 9
                             color: textPrimary
                         }
                     }
@@ -899,7 +569,7 @@ Window {
         }
         
         // ═══════════════════════════════════════════════════════════════════════════════
-        // RIGHT PANEL — 지도/네비게이션 (65%)
+        // RIGHT PANEL — 지도 + 네비게이션 (65%)
         // ═══════════════════════════════════════════════════════════════════════════════
         
         Rectangle {
@@ -913,109 +583,99 @@ Window {
             radius: radiusLg
             clip: true
             
+            // 실제 지도 (QtLocation)
+            Plugin {
+                id: mapPlugin
+                name: "osm"  // OpenStreetMap
+                PluginParameter {
+                    name: "osm.mapping.custom.host"
+                    value: "https://tile.openstreetmap.org/"
+                }
+            }
+            
+            Map {
+                id: map
+                anchors.fill: parent
+                plugin: mapPlugin
+                center: QtPositioning.coordinate(navState.latitude, navState.longitude)
+                zoomLevel: 15
+                
+                // 다크 테마 오버레이
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#0c1620"
+                    opacity: 0.7
+                }
+                
+                // 현재 위치 마커
+                MapQuickItem {
+                    coordinate: QtPositioning.coordinate(navState.latitude, navState.longitude)
+                    anchorPoint.x: posMarker.width / 2
+                    anchorPoint.y: posMarker.height / 2
+                    
+                    sourceItem: Rectangle {
+                        id: posMarker
+                        width: 24; height: 24
+                        radius: 12
+                        color: accentTeal
+                        
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 8; height: 8
+                            radius: 4
+                            color: "white"
+                        }
+                        
+                        // 펄스 링
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 40; height: 40
+                            radius: 20
+                            color: "transparent"
+                            border.color: accentTeal
+                            border.width: 2
+                            
+                            SequentialAnimation on scale {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.5; to: 1.5; duration: 1500 }
+                            }
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 1; to: 0; duration: 1500 }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 폴백: 지도 로드 실패 시 그리드
             Canvas {
                 anchors.fill: parent
+                visible: !map.visible
                 onPaint: {
                     var ctx = getContext("2d");
                     ctx.strokeStyle = "rgba(255,255,255,0.02)";
                     ctx.lineWidth = 1;
                     
                     for (var x = 0; x < width; x += 50) {
-                        ctx.beginPath();
-                        ctx.moveTo(x, 0);
-                        ctx.lineTo(x, height);
-                        ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
                     }
                     for (var y = 0; y < height; y += 50) {
-                        ctx.beginPath();
-                        ctx.moveTo(0, y);
-                        ctx.lineTo(width, y);
-                        ctx.stroke();
-                    }
-                    
-                    ctx.strokeStyle = "#00d4aa";
-                    ctx.lineWidth = 5;
-                    ctx.lineCap = "round";
-                    ctx.setLineDash([]);
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(width * 0.15, height * 0.85);
-                    ctx.quadraticCurveTo(width * 0.25, height * 0.6, width * 0.4, height * 0.5);
-                    ctx.quadraticCurveTo(width * 0.55, height * 0.4, width * 0.7, height * 0.35);
-                    ctx.lineTo(width * 0.85, height * 0.15);
-                    ctx.stroke();
-                }
-            }
-            
-            // Current position
-            Rectangle {
-                x: parent.width * 0.15 - 12
-                y: parent.height * 0.85 - 12
-                width: 24; height: 24
-                radius: 12
-                color: accentTeal
-                
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: 8; height: 8
-                    radius: 4
-                    color: "white"
-                }
-                
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: 40; height: 40
-                    radius: 20
-                    color: "transparent"
-                    border.color: accentTeal
-                    border.width: 2
-                    
-                    SequentialAnimation on scale {
-                        loops: Animation.Infinite
-                        NumberAnimation { from: 0.5; to: 1.5; duration: 1500 }
-                    }
-                    SequentialAnimation on opacity {
-                        loops: Animation.Infinite
-                        NumberAnimation { from: 1; to: 0; duration: 1500 }
+                        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
                     }
                 }
             }
             
-            // Destination
-            Item {
-                x: parent.width * 0.85 - 12
-                y: parent.height * 0.15 - 30
-                
-                Rectangle {
-                    width: 24; height: 24
-                    radius: 12
-                    color: accentRed
-                    
-                    Text {
-                        text: "📍"
-                        font.pixelSize: 14
-                        anchors.centerIn: parent
-                    }
-                }
-                
-                Rectangle {
-                    width: 3; height: 12
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    y: 22
-                    color: accentRed
-                }
-            }
-            
-            // Top Bar
+            // 상단 바
             Rectangle {
                 id: mapTopBar
                 width: parent.width
-                height: 52
-                color: Qt.rgba(0, 0, 0, 0.6)
+                height: 48
+                color: Qt.rgba(0, 0, 0, 0.7)
                 radius: radiusLg
                 
                 Rectangle {
-                    width: parent.width; height: 26
+                    width: parent.width; height: 24
                     anchors.bottom: parent.bottom
                     color: parent.color
                 }
@@ -1025,23 +685,15 @@ Window {
                     anchors.margins: 12
                     
                     Rectangle {
-                        width: 110; height: 32
-                        radius: 16
-                        color: Qt.rgba(1, 1, 1, 0.08)
+                        width: 100; height: 30
+                        radius: 15
+                        color: Qt.rgba(1, 1, 1, 0.1)
                         
                         Row {
                             anchors.centerIn: parent
-                            spacing: 8
-                            Text { text: "◁"; font.pixelSize: 14; color: textPrimary }
-                            Text { text: "Navigate"; font.pixelSize: 14; color: textPrimary }
-                        }
-                        
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            hoverEnabled: true
-                            onEntered: parent.color = Qt.rgba(1, 1, 1, 0.15)
-                            onExited: parent.color = Qt.rgba(1, 1, 1, 0.08)
+                            spacing: 6
+                            Text { text: "◁"; font.pixelSize: 12; color: textPrimary }
+                            Text { text: "Navigate"; font.pixelSize: 12; color: textPrimary }
                         }
                     }
                     
@@ -1049,7 +701,7 @@ Window {
                     
                     Text {
                         text: "AUTUS"
-                        font.pixelSize: 15
+                        font.pixelSize: 14
                         font.weight: Font.DemiBold
                         font.letterSpacing: 3
                         color: textPrimary
@@ -1058,95 +710,66 @@ Window {
                     Item { Layout.fillWidth: true }
                     
                     Row {
-                        spacing: 20
-                        
-                        Text {
-                            text: vehicleState.temperature + "°"
-                            font.pixelSize: 14
-                            color: textSecondary
-                        }
-                        
+                        spacing: 16
+                        Text { text: vehicleState.temperature + "°"; font.pixelSize: 13; color: textSecondary }
                         Text {
                             id: clockText
                             text: Qt.formatTime(new Date(), "h:mm AP")
-                            font.pixelSize: 14
-                            font.weight: Font.Medium
+                            font.pixelSize: 13
                             color: textPrimary
                         }
                     }
                 }
             }
             
-            // Navigation Card
+            // 네비게이션 카드
             Rectangle {
-                id: navCard
                 anchors.top: mapTopBar.bottom
-                anchors.topMargin: 12
+                anchors.topMargin: 10
                 anchors.right: parent.right
-                anchors.rightMargin: 16
-                width: 220
-                height: 110
+                anchors.rightMargin: 14
+                width: 200; height: 100
                 radius: radiusLg
                 color: bgGlass
-                border.color: Qt.rgba(1, 1, 1, 0.08)
-                border.width: 1
                 
                 Column {
                     anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 6
+                    anchors.margins: 14
+                    spacing: 4
                     
                     Row {
-                        spacing: 4
-                        Text {
-                            text: "1.2"
-                            font.pixelSize: 32
-                            font.weight: Font.DemiBold
-                            color: accentTeal
-                        }
-                        Text {
-                            text: "mi"
-                            font.pixelSize: 16
-                            color: accentTeal
-                            anchors.baseline: parent.children[0].baseline
-                        }
+                        spacing: 3
+                        Text { text: "1.2"; font.pixelSize: 28; font.weight: Font.DemiBold; color: accentTeal }
+                        Text { text: "km"; font.pixelSize: 14; color: accentTeal; anchors.baseline: parent.children[0].baseline }
                     }
-                    
-                    Text {
-                        text: navState.destination
-                        font.pixelSize: 20
-                        font.weight: Font.DemiBold
-                        color: accentTeal
-                    }
-                    
-                    Text {
-                        text: navState.eta + " • " + navState.distance
-                        font.pixelSize: 13
-                        color: textSecondary
-                    }
+                    Text { text: navState.destination; font.pixelSize: 16; font.weight: Font.DemiBold; color: accentTeal }
+                    Text { text: navState.eta + " • " + navState.distance; font.pixelSize: 11; color: textSecondary }
                 }
             }
             
-            // Map Controls
+            // 지도 컨트롤
             Column {
                 anchors.right: parent.right
-                anchors.rightMargin: 16
+                anchors.rightMargin: 14
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 10
+                spacing: 8
                 
                 Repeater {
-                    model: ["📍", "+", "−", "⚙"]
+                    model: [
+                        { icon: "📍", action: function() { map.center = QtPositioning.coordinate(navState.latitude, navState.longitude) } },
+                        { icon: "+", action: function() { map.zoomLevel = Math.min(20, map.zoomLevel + 1) } },
+                        { icon: "−", action: function() { map.zoomLevel = Math.max(1, map.zoomLevel - 1) } },
+                        { icon: "⚙", action: function() {} }
+                    ]
                     
                     Rectangle {
-                        width: 48; height: 48
-                        radius: 24
+                        width: 44; height: 44
+                        radius: 22
                         color: bgElevated
-                        border.color: Qt.rgba(1, 1, 1, 0.1)
-                        border.width: 1
                         
                         Text {
-                            text: modelData
-                            font.pixelSize: 18
+                            text: modelData.icon
+                            font.pixelSize: 16
                             color: textPrimary
                             anchors.centerIn: parent
                         }
@@ -1157,6 +780,118 @@ Window {
                             hoverEnabled: true
                             onEntered: parent.color = bgHover
                             onExited: parent.color = bgElevated
+                            onClicked: modelData.action()
+                        }
+                    }
+                }
+            }
+            
+            // ─────────────────────────────────────────────────────────────────────────────
+            // 미디어 플레이어 카드 (하단)
+            // ─────────────────────────────────────────────────────────────────────────────
+            
+            Rectangle {
+                id: mediaCard
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 14
+                anchors.left: parent.left
+                anchors.leftMargin: 14
+                width: 280; height: 80
+                radius: radiusLg
+                color: bgGlass
+                
+                Row {
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 12
+                    
+                    // 앨범 아트 (플레이스홀더)
+                    Rectangle {
+                        width: 60; height: 60
+                        radius: radiusMd
+                        color: bgElevated
+                        
+                        Text {
+                            text: "🎵"
+                            font.pixelSize: 28
+                            anchors.centerIn: parent
+                        }
+                    }
+                    
+                    // 트랙 정보
+                    Column {
+                        width: parent.width - 85
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 4
+                        
+                        Text {
+                            text: mediaState.title
+                            font.pixelSize: 13
+                            font.weight: Font.DemiBold
+                            color: textPrimary
+                            elide: Text.ElideRight
+                            width: parent.width
+                        }
+                        
+                        Text {
+                            text: mediaState.artist
+                            font.pixelSize: 11
+                            color: textSecondary
+                            elide: Text.ElideRight
+                            width: parent.width
+                        }
+                        
+                        // 프로그레스 바
+                        Rectangle {
+                            width: parent.width
+                            height: 3
+                            radius: 1
+                            color: bgElevated
+                            
+                            Rectangle {
+                                width: parent.width * mediaState.progress
+                                height: parent.height
+                                radius: 1
+                                color: textPrimary
+                                
+                                Behavior on width { NumberAnimation { duration: 200 } }
+                            }
+                        }
+                        
+                        // 컨트롤
+                        Row {
+                            spacing: 16
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            
+                            Text {
+                                text: "⏮"
+                                font.pixelSize: 14
+                                color: textSecondary
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: mediaState.prevTrack()
+                                }
+                            }
+                            
+                            Text {
+                                text: mediaState.isPlaying ? "⏸" : "▶"
+                                font.pixelSize: 16
+                                color: textPrimary
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: mediaState.togglePlay()
+                                }
+                            }
+                            
+                            Text {
+                                text: "⏭"
+                                font.pixelSize: 14
+                                color: textSecondary
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: mediaState.nextTrack()
+                                }
+                            }
                         }
                     }
                 }
@@ -1164,33 +899,23 @@ Window {
         }
         
         // ═══════════════════════════════════════════════════════════════════════════════
-        // BOTTOM DOCK — Glassmorphism
+        // BOTTOM DOCK
         // ═══════════════════════════════════════════════════════════════════════════════
         
         Rectangle {
             id: dock
             width: parent.width
-            height: 95
+            height: 90
             anchors.bottom: parent.bottom
-            color: Qt.rgba(0, 0, 0, 0.85)
+            color: Qt.rgba(0, 0, 0, 0.9)
             
-            Rectangle {
-                width: parent.width
-                height: 1
-                color: Qt.rgba(1, 1, 1, 0.15)
-            }
-            
-            Rectangle {
-                width: parent.width
-                height: 1
-                y: 1
-                color: Qt.rgba(1, 1, 1, 0.05)
-            }
+            Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.12) }
             
             Row {
                 anchors.centerIn: parent
-                spacing: 20
+                spacing: 18
                 
+                // 왼쪽 아이콘
                 Repeater {
                     model: [
                         { icon: "🚗", label: "Controls" },
@@ -1199,156 +924,86 @@ Window {
                     ]
                     
                     Rectangle {
-                        width: 56; height: 56
+                        width: 52; height: 52
                         radius: radiusMd
                         color: bgElevated
                         
-                        scale: iconMa.pressed ? 0.95 : (iconMa.containsMouse ? 1.05 : 1.0)
+                        scale: dockMa.pressed ? 0.95 : (dockMa.containsMouse ? 1.05 : 1.0)
                         Behavior on scale { NumberAnimation { duration: 100 } }
                         
                         Column {
                             anchors.centerIn: parent
-                            spacing: 3
-                            
-                            Text {
-                                text: modelData.icon
-                                font.pixelSize: 22
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
-                            Text {
-                                text: modelData.label
-                                font.pixelSize: 9
-                                color: textSecondary
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
+                            Text { text: modelData.icon; font.pixelSize: 20; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: modelData.label; font.pixelSize: 8; color: textSecondary; anchors.horizontalCenter: parent.horizontalCenter }
                         }
                         
-                        MouseArea {
-                            id: iconMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                        }
+                        MouseArea { id: dockMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor }
                     }
                 }
                 
-                Item { width: 20; height: 1 }
+                Item { width: 15; height: 1 }
                 
+                // 온도 조절
                 Rectangle {
-                    width: 160
-                    height: 60
+                    width: 150; height: 56
                     radius: radiusLg
                     color: hvacOpen ? accentBlue : bgTertiary
-                    border.color: hvacOpen ? accentBlue : Qt.rgba(1, 1, 1, 0.1)
-                    border.width: 1
                     
                     Behavior on color { ColorAnimation { duration: 200 } }
                     
                     Row {
                         anchors.centerIn: parent
-                        spacing: 12
+                        spacing: 10
                         
                         Rectangle {
-                            width: 36; height: 36
-                            radius: 18
+                            width: 32; height: 32
+                            radius: 16
                             color: "transparent"
                             border.color: accentTeal
                             border.width: 2
                             
-                            Text {
-                                text: "−"
-                                font.pixelSize: 22
-                                font.weight: Font.Medium
-                                color: accentTeal
-                                anchors.centerIn: parent
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: vehicleState.adjustTemperature(-1)
-                            }
+                            Text { text: "−"; font.pixelSize: 20; color: accentTeal; anchors.centerIn: parent }
+                            MouseArea { anchors.fill: parent; onClicked: vehicleState.adjustTemperature(-1) }
                         }
                         
                         Column {
-                            spacing: 0
-                            
-                            Text {
-                                text: vehicleState.temperature
-                                font.pixelSize: 28
-                                font.weight: Font.Medium
-                                color: textPrimary
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
-                            Text {
-                                text: "°C"
-                                font.pixelSize: 11
-                                color: textSecondary
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
+                            Text { text: vehicleState.temperature; font.pixelSize: 26; font.weight: Font.Medium; color: textPrimary; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: "°C"; font.pixelSize: 10; color: textSecondary; anchors.horizontalCenter: parent.horizontalCenter }
                         }
                         
                         Rectangle {
-                            width: 36; height: 36
-                            radius: 18
+                            width: 32; height: 32
+                            radius: 16
                             color: "transparent"
                             border.color: accentTeal
                             border.width: 2
                             
-                            Text {
-                                text: "+"
-                                font.pixelSize: 22
-                                font.weight: Font.Medium
-                                color: accentTeal
-                                anchors.centerIn: parent
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: vehicleState.adjustTemperature(1)
-                            }
+                            Text { text: "+"; font.pixelSize: 20; color: accentTeal; anchors.centerIn: parent }
+                            MouseArea { anchors.fill: parent; onClicked: vehicleState.adjustTemperature(1) }
                         }
                     }
                     
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: hvacOpen = !hvacOpen
-                    }
+                    MouseArea { anchors.fill: parent; onClicked: hvacOpen = !hvacOpen }
                 }
                 
+                // A/C
                 Rectangle {
-                    width: 70; height: 56
+                    width: 60; height: 52
                     radius: radiusMd
                     color: acOn ? accentBlue : bgElevated
                     
                     Column {
                         anchors.centerIn: parent
-                        spacing: 3
-                        
-                        Text {
-                            text: "❄️"
-                            font.pixelSize: 20
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                        Text {
-                            text: acOn ? "ON" : "OFF"
-                            font.pixelSize: 10
-                            font.weight: Font.Bold
-                            color: textPrimary
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
+                        Text { text: "❄️"; font.pixelSize: 18; anchors.horizontalCenter: parent.horizontalCenter }
+                        Text { text: acOn ? "ON" : "OFF"; font.pixelSize: 9; font.weight: Font.Bold; color: textPrimary; anchors.horizontalCenter: parent.horizontalCenter }
                     }
                     
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: acOn = !acOn
-                    }
+                    MouseArea { anchors.fill: parent; onClicked: acOn = !acOn }
                 }
                 
-                Item { width: 20; height: 1 }
+                Item { width: 15; height: 1 }
                 
+                // 오른쪽 아이콘
                 Repeater {
                     model: [
                         { icon: "💨", label: "Fan" },
@@ -1358,36 +1013,20 @@ Window {
                     ]
                     
                     Rectangle {
-                        width: 56; height: 56
+                        width: 52; height: 52
                         radius: radiusMd
                         color: bgElevated
                         
-                        scale: rIconMa.pressed ? 0.95 : (rIconMa.containsMouse ? 1.05 : 1.0)
+                        scale: rDockMa.pressed ? 0.95 : (rDockMa.containsMouse ? 1.05 : 1.0)
                         Behavior on scale { NumberAnimation { duration: 100 } }
                         
                         Column {
                             anchors.centerIn: parent
-                            spacing: 3
-                            
-                            Text {
-                                text: modelData.icon
-                                font.pixelSize: 22
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
-                            Text {
-                                text: modelData.label
-                                font.pixelSize: 9
-                                color: textSecondary
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
+                            Text { text: modelData.icon; font.pixelSize: 20; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: modelData.label; font.pixelSize: 8; color: textSecondary; anchors.horizontalCenter: parent.horizontalCenter }
                         }
                         
-                        MouseArea {
-                            id: rIconMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                        }
+                        MouseArea { id: rDockMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor }
                     }
                 }
             }
@@ -1400,226 +1039,83 @@ Window {
         Rectangle {
             id: hvacPanel
             width: parent.width
-            height: 280
-            anchors.horizontalCenter: parent.horizontalCenter
+            height: 260
             y: hvacOpen ? parent.height - height - dock.height : parent.height
             color: bgGlass
             radius: radiusXl
             
-            Behavior on y {
-                NumberAnimation { 
-                    duration: 350
-                    easing.type: Easing.OutCubic
-                }
-            }
+            Behavior on y { NumberAnimation { duration: 350; easing.type: Easing.OutCubic } }
             
-            Rectangle {
-                width: 50; height: 5
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.top
-                anchors.topMargin: 12
-                radius: 2
-                color: Qt.rgba(1, 1, 1, 0.3)
-                
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: hvacOpen = false
-                }
-            }
-            
-            Rectangle {
-                width: parent.width
-                height: 1
-                color: Qt.rgba(1, 1, 1, 0.15)
-                radius: radiusXl
-            }
+            Rectangle { width: 50; height: 5; radius: 2; color: Qt.rgba(1,1,1,0.3); anchors.horizontalCenter: parent.horizontalCenter; anchors.top: parent.top; anchors.topMargin: 10; MouseArea { anchors.fill: parent; onClicked: hvacOpen = false } }
             
             Column {
                 anchors.fill: parent
-                anchors.margins: 30
-                anchors.topMargin: 30
-                spacing: 24
+                anchors.margins: 25
+                anchors.topMargin: 25
+                spacing: 20
                 
-                Text {
-                    text: "Climate Control"
-                    font.pixelSize: 20
-                    font.weight: Font.DemiBold
-                    color: textPrimary
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
+                Text { text: "Climate Control"; font.pixelSize: 18; font.weight: Font.DemiBold; color: textPrimary; anchors.horizontalCenter: parent.horizontalCenter }
                 
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 40
+                    spacing: 35
                     
+                    // Driver
                     Column {
-                        spacing: 8
-                        
-                        Text {
-                            text: "Driver"
-                            font.pixelSize: 12
-                            color: textSecondary
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                        
+                        spacing: 6
+                        Text { text: "Driver"; font.pixelSize: 11; color: textSecondary; anchors.horizontalCenter: parent.horizontalCenter }
                         Rectangle {
-                            width: 80; height: 80
-                            radius: 40
-                            color: bgElevated
-                            border.color: accentTeal
-                            border.width: 2
-                            
-                            Text {
-                                text: vehicleState.temperature + "°"
-                                font.pixelSize: 28
-                                font.weight: Font.Medium
-                                color: textPrimary
-                                anchors.centerIn: parent
-                            }
+                            width: 70; height: 70; radius: 35; color: bgElevated; border.color: accentTeal; border.width: 2
+                            Text { text: vehicleState.temperature + "°"; font.pixelSize: 24; color: textPrimary; anchors.centerIn: parent }
                         }
-                        
                         Rectangle {
-                            width: 50; height: 30
-                            radius: 15
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            color: heatSeatLeft ? accentOrange : bgTertiary
-                            
-                            Text {
-                                text: "🔥"
-                                font.pixelSize: 14
-                                anchors.centerIn: parent
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: heatSeatLeft = !heatSeatLeft
-                            }
+                            width: 45; height: 28; radius: 14; color: heatSeatLeft ? accentOrange : bgTertiary; anchors.horizontalCenter: parent.horizontalCenter
+                            Text { text: "🔥"; font.pixelSize: 12; anchors.centerIn: parent }
+                            MouseArea { anchors.fill: parent; onClicked: heatSeatLeft = !heatSeatLeft }
                         }
                     }
                     
+                    // Fan
                     Column {
-                        spacing: 8
-                        
-                        Text {
-                            text: "Fan Speed"
-                            font.pixelSize: 12
-                            color: textSecondary
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                        
+                        spacing: 6
+                        Text { text: "Fan"; font.pixelSize: 11; color: textSecondary; anchors.horizontalCenter: parent.horizontalCenter }
                         Row {
-                            spacing: 8
-                            
+                            spacing: 6
                             Repeater {
                                 model: 5
-                                
                                 Rectangle {
-                                    width: 30; height: 50 + index * 8
-                                    radius: radiusSm
-                                    color: index < fanSpeed ? accentTeal : bgTertiary
-                                    anchors.bottom: parent.bottom
-                                    
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: fanSpeed = index + 1
-                                    }
-                                    
-                                    Behavior on color {
-                                        ColorAnimation { duration: 150 }
-                                    }
+                                    width: 26; height: 40 + index * 7; radius: 3; color: index < fanSpeed ? accentTeal : bgTertiary; anchors.bottom: parent.bottom
+                                    MouseArea { anchors.fill: parent; onClicked: fanSpeed = index + 1 }
                                 }
                             }
                         }
-                        
-                        Text {
-                            text: fanSpeed
-                            font.pixelSize: 18
-                            font.weight: Font.Medium
-                            color: textPrimary
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
+                        Text { text: fanSpeed; font.pixelSize: 16; color: textPrimary; anchors.horizontalCenter: parent.horizontalCenter }
                     }
                     
+                    // Passenger
                     Column {
-                        spacing: 8
-                        
-                        Text {
-                            text: "Passenger"
-                            font.pixelSize: 12
-                            color: textSecondary
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                        
+                        spacing: 6
+                        Text { text: "Passenger"; font.pixelSize: 11; color: textSecondary; anchors.horizontalCenter: parent.horizontalCenter }
                         Rectangle {
-                            width: 80; height: 80
-                            radius: 40
-                            color: bgElevated
-                            border.color: accentTeal
-                            border.width: 2
-                            
-                            Text {
-                                text: vehicleState.temperature + "°"
-                                font.pixelSize: 28
-                                font.weight: Font.Medium
-                                color: textPrimary
-                                anchors.centerIn: parent
-                            }
+                            width: 70; height: 70; radius: 35; color: bgElevated; border.color: accentTeal; border.width: 2
+                            Text { text: vehicleState.temperature + "°"; font.pixelSize: 24; color: textPrimary; anchors.centerIn: parent }
                         }
-                        
                         Rectangle {
-                            width: 50; height: 30
-                            radius: 15
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            color: heatSeatRight ? accentOrange : bgTertiary
-                            
-                            Text {
-                                text: "🔥"
-                                font.pixelSize: 14
-                                anchors.centerIn: parent
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: heatSeatRight = !heatSeatRight
-                            }
+                            width: 45; height: 28; radius: 14; color: heatSeatRight ? accentOrange : bgTertiary; anchors.horizontalCenter: parent.horizontalCenter
+                            Text { text: "🔥"; font.pixelSize: 12; anchors.centerIn: parent }
+                            MouseArea { anchors.fill: parent; onClicked: heatSeatRight = !heatSeatRight }
                         }
                     }
                 }
                 
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 16
-                    
+                    spacing: 12
                     Repeater {
-                        model: [
-                            { icon: "❄️", label: "A/C", active: acOn },
-                            { icon: "♻️", label: "Recirc", active: false },
-                            { icon: "🔄", label: "Sync", active: true },
-                            { icon: "🌬️", label: "Auto", active: false }
-                        ]
-                        
+                        model: [{icon: "❄️", label: "A/C", active: acOn}, {icon: "♻️", label: "Recirc", active: false}, {icon: "🔄", label: "Sync", active: true}, {icon: "🌬️", label: "Auto", active: false}]
                         Rectangle {
-                            width: 70; height: 60
-                            radius: radiusMd
-                            color: modelData.active ? accentBlue : bgElevated
-                            
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: 4
-                                
-                                Text {
-                                    text: modelData.icon
-                                    font.pixelSize: 20
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                }
-                                Text {
-                                    text: modelData.label
-                                    font.pixelSize: 10
-                                    color: textPrimary
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                }
-                            }
+                            width: 60; height: 50; radius: radiusMd; color: modelData.active ? accentBlue : bgElevated
+                            Column { anchors.centerIn: parent; Text { text: modelData.icon; font.pixelSize: 16; anchors.horizontalCenter: parent.horizontalCenter }; Text { text: modelData.label; font.pixelSize: 9; color: textPrimary; anchors.horizontalCenter: parent.horizontalCenter } }
                         }
                     }
                 }
@@ -1627,61 +1123,46 @@ Window {
         }
         
         // ═══════════════════════════════════════════════════════════════════════════════
-        // DOOR/TRUNK ALERT BANNER
+        // DOOR ALERT BANNER
         // ═══════════════════════════════════════════════════════════════════════════════
         
         Rectangle {
-            id: alertBanner
-            width: 300
-            height: 50
+            width: 280; height: 45
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: (doorFrontLeft || doorFrontRight || doorRearLeft || doorRearRight || trunkOpen || frunkOpen) ? 20 : -60
-            radius: 25
+            anchors.topMargin: (doorFrontLeft || doorFrontRight || doorRearLeft || doorRearRight || trunkOpen || frunkOpen) ? 15 : -55
+            radius: 22
             color: alertRed
             
-            Behavior on anchors.topMargin {
-                NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
-            }
+            Behavior on anchors.topMargin { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             
             Row {
                 anchors.centerIn: parent
-                spacing: 12
-                
-                Text {
-                    text: "⚠️"
-                    font.pixelSize: 20
-                }
-                
+                spacing: 10
+                Text { text: "⚠️"; font.pixelSize: 18 }
                 Text {
                     text: {
-                        var openParts = [];
-                        if (frunkOpen) openParts.push("Frunk");
-                        if (doorFrontLeft) openParts.push("FL Door");
-                        if (doorFrontRight) openParts.push("FR Door");
-                        if (doorRearLeft) openParts.push("RL Door");
-                        if (doorRearRight) openParts.push("RR Door");
-                        if (trunkOpen) openParts.push("Trunk");
-                        return openParts.length > 0 ? openParts.join(", ") + " Open" : "";
+                        var parts = [];
+                        if (frunkOpen) parts.push("Frunk");
+                        if (doorFrontLeft) parts.push("FL");
+                        if (doorFrontRight) parts.push("FR");
+                        if (doorRearLeft) parts.push("RL");
+                        if (doorRearRight) parts.push("RR");
+                        if (trunkOpen) parts.push("Trunk");
+                        return parts.length > 0 ? parts.join(", ") + " Open" : "";
                     }
-                    font.pixelSize: 14
-                    font.weight: Font.Medium
-                    color: textPrimary
+                    font.pixelSize: 13; color: textPrimary
                 }
             }
         }
     }
     
     // ═══════════════════════════════════════════════════════════════════════════════
-    // CLOCK TIMER
+    // TIMER
     // ═══════════════════════════════════════════════════════════════════════════════
     
     Timer {
-        interval: 1000
-        running: true
-        repeat: true
-        onTriggered: {
-            clockText.text = Qt.formatTime(new Date(), "h:mm AP")
-        }
+        interval: 1000; running: true; repeat: true
+        onTriggered: clockText.text = Qt.formatTime(new Date(), "h:mm AP")
     }
 }
