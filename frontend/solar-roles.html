@@ -871,31 +871,52 @@
       // ═══════════════════════════════════════════════════════════
       async function fetchState() {
         try {
-          const res = await fetch(`${API_BASE}/api/v1/physics/solar-binding`);
+          // 새 UI Binding API 사용
+          const res = await fetch(`${API_BASE}/api/v1/physics/ui-binding?role=${currentRole}`);
           if (!res.ok) throw new Error('API error');
           
           const data = await res.json();
           
-          STATE.risk = data.risk || 32;
-          STATE.gate = (data.gate || data.status || 'GREEN').toUpperCase();
-          STATE.survival = data.survival_time || 216;
-          STATE.burn = Math.round((data.float_pressure || 0.38) * 100);
+          // Engine에서 직접 매핑된 데이터 사용
+          STATE.risk = data.engine?.risk || 32;
+          STATE.gate = (data.gate || 'GREEN').toUpperCase();
           
-          // Simulated role-specific data
-          STATE.total = 47;
-          STATE.at_risk = STATE.risk >= 50 ? 3 : 1;
-          STATE.critical = STATE.risk >= 60 ? 1 : 0;
-          STATE.efficiency = Math.max(50, 100 - STATE.risk);
-          STATE.loss_risk = Math.round(STATE.risk * 100);
-          STATE.churn_risk = STATE.risk >= 40 ? 2 : 0;
-          STATE.retention = Math.max(70, 100 - STATE.risk / 3);
-          STATE.system_mass = 47.2;
-          STATE.governance = STATE.gate === 'RED' ? 'UNSTABLE' : 'STABLE';
-          STATE.expansion = STATE.risk < 40 ? 'UNLOCKED' : 'LOCKED';
+          // Role-specific metrics from Engine
+          const primary = data.metrics?.primary || {};
+          const secondary = data.metrics?.secondary || [];
+          
+          STATE.survival = primary.value || 216;
+          STATE.burn = parseInt((secondary[0]?.value || '−₩47만/월').replace(/[^0-9]/g, '')) || 47;
+          STATE.total = primary.value || 47;
+          STATE.at_risk = parseInt((secondary[0]?.value || '0명').replace(/[^0-9]/g, '')) || 0;
+          STATE.critical = parseInt((secondary[1]?.value || '0명').replace(/[^0-9]/g, '')) || 0;
+          STATE.efficiency = parseInt((secondary[0]?.value || '100%').replace(/[^0-9]/g, '')) || 100;
+          STATE.loss_risk = parseInt((secondary[1]?.value || '₩0만').replace(/[^0-9]/g, '')) || 0;
+          STATE.retention = parseInt((secondary[0]?.value || '100%').replace(/[^0-9]/g, '')) || 100;
+          STATE.churn_risk = parseInt((secondary[1]?.value || '0명').replace(/[^0-9]/g, '')) || 0;
+          STATE.system_mass = primary.value || 47.2;
+          STATE.governance = secondary[0]?.value || 'STABLE';
+          STATE.expansion = secondary[1]?.value || 'LOCKED';
+          
+          // UI Binding 데이터 저장
+          STATE.uiBinding = data;
           
           updateRoleUI();
+          console.log('[AUTUS] Engine-UI Binding loaded:', currentRole);
         } catch (e) {
-          console.warn('[AUTUS] API offline, using defaults');
+          console.warn('[AUTUS] API offline, using fallback');
+          // Fallback: 기존 solar-binding API 사용
+          try {
+            const res = await fetch(`${API_BASE}/api/v1/physics/solar-binding`);
+            if (res.ok) {
+              const data = await res.json();
+              STATE.risk = data.risk || 32;
+              STATE.gate = (data.gate || 'GREEN').toUpperCase();
+              STATE.survival = data.survival_time || 216;
+            }
+          } catch (e2) {
+            console.warn('[AUTUS] All APIs offline');
+          }
           updateRoleUI();
         }
       }

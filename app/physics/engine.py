@@ -409,6 +409,277 @@ class PhysicsEngine:
     def _estimate_loss_monthly(self, snapshot: PhysicsSnapshot) -> float:
         """월간 손실 추정"""
         return self.daily_burn * 30 * snapshot.risk
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Role-Based UI Binding
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    def to_role_ui_binding(self, role: str = "subject") -> Dict[str, Any]:
+        """
+        Role별 UI 바인딩 데이터 생성
+        
+        Engine → UI Element 직접 매핑
+        """
+        snapshot = self._last_snapshot or self.compute_snapshot()
+        role = role.lower()
+        
+        # Role별 설정
+        ROLE_CONFIG = {
+            "subject": {
+                "icon": "👤",
+                "name": "SUBJECT",
+                "action": "RECOVER",
+                "success_text": "RECOVERED",
+                "primary_label": "SURVIVAL",
+                "primary_unit": "일",
+                "impact_prefix": "💰",
+                "color": "#00ff88",
+            },
+            "operator": {
+                "icon": "🎯",
+                "name": "OPERATOR",
+                "action": "INTERVENE",
+                "success_text": "INTERVENED",
+                "primary_label": "TOTAL",
+                "primary_unit": "명",
+                "impact_prefix": "⚠️",
+                "color": "#45B7D1",
+            },
+            "sponsor": {
+                "icon": "💰",
+                "name": "SPONSOR",
+                "action": "OPTIMIZE",
+                "success_text": "OPTIMIZED",
+                "primary_label": "INVESTED",
+                "primary_unit": "",
+                "impact_prefix": "📉",
+                "color": "#FFD700",
+            },
+            "employer": {
+                "icon": "🏢",
+                "name": "EMPLOYER",
+                "action": "RETAIN",
+                "success_text": "RETAINED",
+                "primary_label": "HIRED",
+                "primary_unit": "명",
+                "impact_prefix": "👥",
+                "color": "#96CEB4",
+            },
+            "institution": {
+                "icon": "🏛️",
+                "name": "INSTITUTION",
+                "action": None,
+                "success_text": "",
+                "primary_label": "SYSTEM MASS",
+                "primary_unit": "OCU",
+                "impact_prefix": "🔒",
+                "color": "#DDA0DD",
+            },
+        }
+        
+        config = ROLE_CONFIG.get(role, ROLE_CONFIG["subject"])
+        
+        # Role별 메트릭 계산
+        metrics = self._calc_role_metrics(role, snapshot)
+        
+        # Action 조건 계산
+        action_visible = self._check_action_condition(role, snapshot, metrics)
+        
+        return {
+            "role": role,
+            "config": config,
+            "gate": snapshot.system_state,
+            "status": "OK" if snapshot.system_state == "GREEN" else 
+                     "CRITICAL" if snapshot.system_state == "RED" else "WARN",
+            
+            "metrics": {
+                "primary": metrics["primary"],
+                "secondary": metrics["secondary"],
+            },
+            
+            "action": {
+                "visible": action_visible,
+                "name": config["action"],
+                "success_text": config["success_text"],
+                "impact": f"{config['impact_prefix']} −{int(snapshot.risk * 100)}%",
+                "subtitle": self._get_action_subtitle(role, metrics),
+            },
+            
+            "countdown": {
+                "enabled": action_visible,
+                "seconds": 5,
+            },
+            
+            "style": {
+                "primary_color": config["color"],
+                "danger_color": "#ff4444",
+                "warning_color": "#ffaa00",
+            },
+            
+            # Raw Engine Data (디버깅용)
+            "engine": {
+                "risk": round(snapshot.risk * 100, 1),
+                "entropy": round(snapshot.entropy * 100, 1),
+                "pressure": round(snapshot.pressure * 100, 1),
+                "survival_days": round(snapshot.survival_days, 1),
+                "collapse_days": round(snapshot.collapse_days, 1),
+                "recommended_action": snapshot.recommended_action,
+                "violations": snapshot.violations,
+            }
+        }
+    
+    def _calc_role_metrics(self, role: str, snapshot: PhysicsSnapshot) -> Dict[str, Any]:
+        """Role별 메트릭 계산"""
+        
+        # 공통 파생값
+        risk_pct = int(snapshot.risk * 100)
+        burn_monthly = int(self.daily_burn * 30 / 10000)  # 만원 단위
+        efficiency = max(50, 100 - risk_pct)
+        retention = max(70, 100 - risk_pct // 3)
+        
+        # 인원 관련 (시뮬레이션)
+        total_persons = len(self.persons) if self.persons else 47
+        at_risk_count = sum(1 for p in self.persons if p.survival_time < T_MIN) if self.persons else (3 if risk_pct >= 50 else 1)
+        critical_count = 1 if risk_pct >= 60 else 0
+        churn_risk = 2 if risk_pct >= 40 else 0
+        hired_count = 12  # 기본값
+        
+        # 금액 관련
+        total_invested = sum(c.amount for c in self.commits if c.status == "active") / 100000000  # 억 단위
+        loss_risk = int(risk_pct * 100)  # 만원 단위
+        survival_mass = snapshot.survival_days * self.daily_burn / 1000000  # OCU (백만원 단위)
+        expansion_gap = max(0, self.required_expansion_mass - survival_mass * 1000000) / 1000000
+        
+        if role == "subject":
+            return {
+                "primary": {
+                    "label": "SURVIVAL",
+                    "value": int(snapshot.survival_days),
+                    "display": f"{int(snapshot.survival_days)}일",
+                    "unit": "일",
+                    "max": 365,
+                    "fill_pct": min(100, snapshot.survival_days / 365 * 100),
+                },
+                "secondary": [
+                    {"label": "BURN", "value": f"−₩{burn_monthly}만/월", "class": ""},
+                    {"label": "RISK", "value": f"{risk_pct}%", "class": "danger" if risk_pct >= 50 else ""},
+                ],
+                # Extra
+                "burn": burn_monthly,
+                "risk": risk_pct,
+            }
+        
+        elif role == "operator":
+            return {
+                "primary": {
+                    "label": "TOTAL",
+                    "value": total_persons,
+                    "display": f"{total_persons}명",
+                    "unit": "명",
+                    "max": 100,
+                    "fill_pct": min(100, total_persons),
+                },
+                "secondary": [
+                    {"label": "AT_RISK", "value": f"{at_risk_count}명", "class": "warning" if at_risk_count > 0 else ""},
+                    {"label": "CRITICAL", "value": f"{critical_count}명", "class": "danger" if critical_count > 0 else ""},
+                ],
+                "at_risk": at_risk_count,
+                "critical": critical_count,
+            }
+        
+        elif role == "sponsor":
+            return {
+                "primary": {
+                    "label": "INVESTED",
+                    "value": total_invested,
+                    "display": f"₩{total_invested:.1f}억",
+                    "unit": "",
+                    "max": 10,
+                    "fill_pct": min(100, total_invested * 10),
+                },
+                "secondary": [
+                    {"label": "EFFICIENCY", "value": f"{efficiency}%", "class": "warning" if efficiency < 80 else "success"},
+                    {"label": "LOSS_RISK", "value": f"₩{loss_risk}만", "class": "danger" if loss_risk > 3000 else ""},
+                ],
+                "efficiency": efficiency,
+                "loss_risk": loss_risk,
+            }
+        
+        elif role == "employer":
+            return {
+                "primary": {
+                    "label": "HIRED",
+                    "value": hired_count,
+                    "display": f"{hired_count}명",
+                    "unit": "명",
+                    "max": 50,
+                    "fill_pct": min(100, hired_count * 2),
+                },
+                "secondary": [
+                    {"label": "RETENTION", "value": f"{retention}%", "class": "warning" if retention < 85 else "success"},
+                    {"label": "CHURN_RISK", "value": f"{churn_risk}명", "class": "warning" if churn_risk > 0 else ""},
+                ],
+                "retention": retention,
+                "churn_risk": churn_risk,
+            }
+        
+        elif role == "institution":
+            governance = "UNSTABLE" if snapshot.system_state == "RED" else "STABLE"
+            expansion = "UNLOCKED" if risk_pct < 40 else "LOCKED"
+            return {
+                "primary": {
+                    "label": "SYSTEM MASS",
+                    "value": survival_mass,
+                    "display": f"{survival_mass:.1f} OCU",
+                    "unit": "OCU",
+                    "max": 100,
+                    "fill_pct": min(100, survival_mass),
+                },
+                "secondary": [
+                    {"label": "GOVERNANCE", "value": governance, "class": "success" if governance == "STABLE" else "danger"},
+                    {"label": "EXPANSION", "value": expansion, "class": "success" if expansion == "UNLOCKED" else ""},
+                ],
+                "governance": governance,
+                "expansion": expansion,
+                "expansion_gap": expansion_gap,
+            }
+        
+        # Default
+        return {
+            "primary": {"label": "RISK", "value": risk_pct, "display": f"{risk_pct}%", "unit": "%", "max": 100, "fill_pct": risk_pct},
+            "secondary": [],
+        }
+    
+    def _check_action_condition(self, role: str, snapshot: PhysicsSnapshot, metrics: Dict) -> bool:
+        """Role별 Action 노출 조건 확인"""
+        if snapshot.system_state == "RED":
+            return False
+        
+        risk_pct = snapshot.risk * 100
+        
+        if role == "subject":
+            return risk_pct >= 40
+        elif role == "operator":
+            return metrics.get("at_risk", 0) >= 1
+        elif role == "sponsor":
+            return metrics.get("efficiency", 100) < 80
+        elif role == "employer":
+            return metrics.get("churn_risk", 0) >= 1
+        elif role == "institution":
+            return False  # INSTITUTION은 항상 모니터링만
+        
+        return False
+    
+    def _get_action_subtitle(self, role: str, metrics: Dict) -> str:
+        """Role별 Action 부제목"""
+        subtitles = {
+            "subject": "즉시 행동하지 않으면 손실 확정",
+            "operator": f"{metrics.get('at_risk', 0)}명이 위험 상태입니다",
+            "sponsor": f"효율 {metrics.get('efficiency', 0)}% — 최적화 필요",
+            "employer": f"{metrics.get('churn_risk', 0)}명 이탈 위험 감지",
+            "institution": "",
+        }
+        return subtitles.get(role, "")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
