@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>AUTUS</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, 'SF Pro Display', sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header - PNR MARKER */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      background: rgba(0, 0, 0, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 100;
+    }
+
+    .pnr-marker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pnr-days {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ff4444;
+    }
+
+    .pnr-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .state-badge {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .state-badge.safe { background: #00ff88; color: #000; }
+    .state-badge.warning { background: #ffaa00; color: #000; }
+    .state-badge.critical { background: #ff4444; color: #fff; }
+    .state-badge.irreversible { background: #660000; color: #fff; }
+
+    /* Canvas - EROSION LINE */
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 56px;
+      padding-bottom: 240px;
+    }
+
+    #erosion-canvas {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* Action Area - LOSS GAUGE + ACTION */
+    .action-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 16px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.98) 30%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      z-index: 100;
+    }
+
+    /* LOSS GAUGE */
+    .loss-gauge {
+      text-align: center;
+    }
+
+    .loss-total {
+      display: block;
+      font-size: 32px;
+      font-weight: 700;
+      color: #ff4444;
+      margin-bottom: 4px;
+    }
+
+    .loss-rate {
+      display: block;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* ACTION Button */
+    .action-btn {
+      width: 100%;
+      max-width: 400px;
+      padding: 20px 32px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: #333;
+      color: #fff;
+      border: 2px solid #555;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+      -webkit-appearance: none;
+    }
+
+    .action-btn.highlight {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+      animation: pulse 1s infinite;
+    }
+
+    .action-btn:active {
+      transform: scale(0.98);
+    }
+
+    .action-btn:disabled {
+      background: #1a1a1a;
+      color: #444;
+      border-color: #333;
+      cursor: not-allowed;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    /* Status Text */
+    .status-text {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Audit Screen */
+    .audit-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      animation: fadeIn 0.5s;
+    }
+
+    .audit-screen.hidden { display: none; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .audit-icon {
+      width: 80px;
+      height: 80px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin-bottom: 24px;
+    }
+
+    .audit-text {
+      font-size: 20px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .audit-id {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: monospace;
+    }
+
+    .audit-note {
+      margin-top: 32px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.3);
+      text-align: center;
+      max-width: 280px;
+    }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      .header { height: 48px; padding: 0 12px; }
+      .pnr-days { font-size: 16px; }
+      .canvas-container { padding-top: 48px; padding-bottom: 260px; }
+      .action-area { padding: 20px 12px; }
+      .loss-total { font-size: 36px; }
+      .action-btn { padding: 22px 24px; font-size: 20px; }
+    }
+
+    /* Landscape */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .canvas-container { padding-bottom: 160px; }
+      .action-area { flex-direction: row; gap: 24px; padding: 16px; }
+      .loss-gauge { text-align: left; }
+      .loss-total { font-size: 24px; }
+      .action-btn { width: auto; padding: 16px 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header - PNR MARKER -->
+    <header class="header">
+      <div class="pnr-marker">
+        <span class="pnr-days" id="pnr-days">14일</span>
+        <span class="pnr-label">후 복구 불가</span>
+      </div>
+      <div class="state-badge critical" id="state-badge">CRITICAL</div>
+    </header>
+
+    <!-- EROSION LINE (Canvas) -->
+    <div class="canvas-container">
+      <canvas id="erosion-canvas"></canvas>
+    </div>
+
+    <!-- LOSS GAUGE + ACTION -->
+    <div class="action-area" id="action-area">
+      <div class="loss-gauge">
+        <span class="loss-total" id="loss-total">₩12,400,000</span>
+        <span class="loss-rate" id="loss-rate">+₩41,000/일 증가 중</span>
+      </div>
+      <button class="action-btn" id="action-btn">선택</button>
+      <div class="status-text" id="status-text">선택하지 않으면 비용은 계속 증가합니다</div>
+    </div>
+
+    <!-- Audit Screen -->
+    <div class="audit-screen hidden" id="audit-screen">
+      <div class="audit-icon">◉</div>
+      <div class="audit-text">기록됨</div>
+      <div class="audit-id" id="audit-id">---</div>
+      <div class="audit-note">
+        이 선택은 변경하거나<br>되돌릴 수 없습니다
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // ═══════════════════════════════════════════════════════════
+      // CONFIG
+      // ═══════════════════════════════════════════════════════════
+      const API_BASE = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8000' 
+        : 'https://autus-production.up.railway.app';
+
+      // ═══════════════════════════════════════════════════════════
+      // STATE (7종 기회비용)
+      // ═══════════════════════════════════════════════════════════
+      const STATE = {
+        totalLoss: 12400000,
+        lossRate: 41000,
+        pnrDays: 14,
+        state: 'CRITICAL',  // SAFE, WARNING, CRITICAL, IRREVERSIBLE
+        costs: {
+          time: 2100000,
+          risk: 3500000,
+          resource: 1200000,
+          position: 2000000,
+          learning: 1500000,
+          trust: 1600000,
+          irreversibility: 500000
+        }
+      };
+
+      let erosionInterval = null;
+
+      // Elements
+      const els = {
+        pnrDays: document.getElementById('pnr-days'),
+        stateBadge: document.getElementById('state-badge'),
+        lossTotal: document.getElementById('loss-total'),
+        lossRate: document.getElementById('loss-rate'),
+        actionBtn: document.getElementById('action-btn'),
+        statusText: document.getElementById('status-text'),
+        actionArea: document.getElementById('action-area'),
+        auditScreen: document.getElementById('audit-screen'),
+        auditId: document.getElementById('audit-id'),
+        canvas: document.getElementById('erosion-canvas')
+      };
+
+      // ═══════════════════════════════════════════════════════════
+      // INIT
+      // ═══════════════════════════════════════════════════════════
+      function init() {
+        setupCanvas();
+        fetchState();
+        setupEvents();
+        startErosion();
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // EROSION LINE (Canvas - 7 Planets)
+      // ═══════════════════════════════════════════════════════════
+      function setupCanvas() {
+        const canvas = els.canvas;
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+          const container = canvas.parentElement;
+          const size = Math.min(container.clientWidth, container.clientHeight) * 0.85;
+          canvas.width = size;
+          canvas.height = size;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // 7 Cost Types as Planets
+        const costTypes = [
+          { key: 'time', color: '#4ECDC4', label: 'Time' },
+          { key: 'risk', color: '#FF6B6B', label: 'Risk' },
+          { key: 'resource', color: '#45B7D1', label: 'Resource' },
+          { key: 'position', color: '#96CEB4', label: 'Position' },
+          { key: 'learning', color: '#FFEAA7', label: 'Learning' },
+          { key: 'trust', color: '#DDA0DD', label: 'Trust' },
+          { key: 'irreversibility', color: '#FF4444', label: 'Irreversibility' }
+        ];
+
+        const startAngles = costTypes.map(() => Math.random() * Math.PI * 2);
+
+        function render() {
+          const w = canvas.width, h = canvas.height;
+          const cx = w / 2, cy = h / 2;
+          const maxR = Math.min(w, h) / 2 - 30;
+
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, w, h);
+
+          // Center (Loss Core)
+          const coreSize = maxR * 0.15;
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreSize);
+          grad.addColorStop(0, '#ff4444');
+          grad.addColorStop(0.6, '#cc0000');
+          grad.addColorStop(1, 'rgba(100,0,0,0)');
+          ctx.beginPath();
+          ctx.arc(cx, cy, coreSize, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          // Cost Planets
+          const time = Date.now() / 1000;
+          const totalCost = Object.values(STATE.costs).reduce((a, b) => a + b, 0);
+
+          costTypes.forEach((type, i) => {
+            const cost = STATE.costs[type.key];
+            const ratio = cost / totalCost;
+            
+            // Orbit based on cost ratio
+            const orbitBase = 0.25 + (i * 0.1);
+            const orbit = maxR * orbitBase;
+            
+            // Speed inversely proportional to size
+            const speed = 0.015 - (ratio * 0.01);
+            const angle = startAngles[i] + time * speed;
+            
+            const x = cx + Math.cos(angle) * orbit;
+            const y = cy + Math.sin(angle) * orbit;
+
+            // Orbit line
+            ctx.beginPath();
+            ctx.arc(cx, cy, orbit, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Planet size based on cost
+            const size = 6 + (ratio * 20);
+            
+            // Planet
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fillStyle = type.color;
+            ctx.fill();
+
+            // Glow
+            ctx.beginPath();
+            ctx.arc(x, y, size + 4, 0, Math.PI * 2);
+            ctx.fillStyle = type.color + '22';
+            ctx.fill();
+          });
+
+          requestAnimationFrame(render);
+        }
+        render();
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // STATE FETCH
+      // ═══════════════════════════════════════════════════════════
+      async function fetchState() {
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/physics/solar-binding`);
+          const data = await res.json();
+          
+          if (data.total_loss) STATE.totalLoss = data.total_loss;
+          if (data.loss_rate) STATE.lossRate = data.loss_rate;
+          if (data.pnr_days) STATE.pnrDays = data.pnr_days;
+          if (data.state) STATE.state = data.state;
+          if (data.costs) STATE.costs = data.costs;
+          
+          updateUI();
+        } catch (e) {
+          console.log('[AUTUS] Using local state');
+          updateUI();
+        }
+      }
+
+      function updateUI() {
+        // PNR Marker
+        els.pnrDays.textContent = `${STATE.pnrDays}일`;
+        
+        // State Badge
+        els.stateBadge.textContent = STATE.state;
+        els.stateBadge.className = `state-badge ${STATE.state.toLowerCase()}`;
+        
+        // Loss Gauge
+        els.lossTotal.textContent = `₩${formatNumber(STATE.totalLoss)}`;
+        els.lossRate.textContent = `+₩${formatNumber(STATE.lossRate)}/일 증가 중`;
+        
+        // Status
+        if (STATE.state === 'IRREVERSIBLE') {
+          els.actionBtn.disabled = true;
+          els.actionBtn.textContent = '복구 불가';
+          els.statusText.textContent = '임계점을 초과했습니다';
+        }
+      }
+
+      function formatNumber(num) {
+        return num.toLocaleString('ko-KR');
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // EROSION (비용 증가)
+      // ═══════════════════════════════════════════════════════════
+      function startErosion() {
+        // 10초마다 비용 증가 시뮬레이션
+        erosionInterval = setInterval(() => {
+          if (STATE.state === 'IRREVERSIBLE') return;
+          
+          // 일일 증가율을 10초 단위로 환산
+          const increment = Math.round(STATE.lossRate / 8640);
+          STATE.totalLoss += increment;
+          
+          // 7종 비용도 비례 증가
+          Object.keys(STATE.costs).forEach(key => {
+            STATE.costs[key] += Math.round(increment * (STATE.costs[key] / STATE.totalLoss));
+          });
+          
+          // PNR 감소
+          if (Math.random() < 0.1) {
+            STATE.pnrDays = Math.max(0, STATE.pnrDays - 1);
+            
+            if (STATE.pnrDays <= 0) {
+              STATE.state = 'IRREVERSIBLE';
+            } else if (STATE.pnrDays <= 3) {
+              STATE.state = 'CRITICAL';
+            }
+          }
+          
+          updateUI();
+          
+          // 버튼 강조 (CRITICAL 상태)
+          if (STATE.state === 'CRITICAL') {
+            els.actionBtn.classList.add('highlight');
+          }
+        }, 10000);
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // EVENTS
+      // ═══════════════════════════════════════════════════════════
+      function setupEvents() {
+        els.actionBtn.addEventListener('click', executeAction);
+        
+        // Touch feedback
+        els.actionBtn.addEventListener('touchstart', () => {
+          els.actionBtn.style.transform = 'scale(0.98)';
+        }, { passive: true });
+        
+        els.actionBtn.addEventListener('touchend', () => {
+          els.actionBtn.style.transform = '';
+        }, { passive: true });
+      }
+
+      async function executeAction() {
+        if (els.actionBtn.disabled) return;
+        
+        // 즉시 정지 - 모든 애니메이션/증가 멈춤
+        if (erosionInterval) {
+          clearInterval(erosionInterval);
+          erosionInterval = null;
+        }
+        
+        els.actionBtn.disabled = true;
+        els.actionBtn.textContent = '기록 중...';
+        els.actionBtn.classList.remove('highlight');
+        
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/action/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'SELECT',
+              total_loss: STATE.totalLoss,
+              costs: STATE.costs,
+              state: STATE.state,
+              pnr_days: STATE.pnrDays
+            })
+          });
+          const data = await res.json();
+          showAudit(data.audit_id || `AUD-${Date.now().toString(36).toUpperCase()}`);
+        } catch (e) {
+          showAudit(`AUD-${Date.now().toString(36).toUpperCase()}`);
+        }
+      }
+
+      function showAudit(auditId) {
+        els.actionArea.style.display = 'none';
+        els.auditScreen.classList.remove('hidden');
+        els.auditId.textContent = auditId;
+        
+        // LocalStorage 저장
+        localStorage.setItem('autus.lastAuditId', auditId);
+        localStorage.setItem('autus.auditLocked', 'true');
+        
+        // History lock
+        window.history.pushState(null, '', window.location.pathname);
+        window.addEventListener('popstate', () => {
+          window.history.pushState(null, '', window.location.pathname);
+        });
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // START
+      // ═══════════════════════════════════════════════════════════
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', init)
+        : init();
+
+    })();
+  </script>
+</body>
+</html>
