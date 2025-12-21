@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AUTUS OPERATOR</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --subject: #00ff88;
+      --operator: #00aaff;
+      --education: #ff66ff;
+      --sponsor: #ffaa00;
+      --safe: #00ff88;
+      --warning: #ffaa00;
+      --critical: #ff4444;
+      --bg: #000;
+      --bg-card: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.1);
+      --text: #fff;
+      --text-dim: rgba(255,255,255,0.5);
+    }
+    html, body { 
+      width: 100%; 
+      min-height: 100%; 
+      background: var(--bg); 
+      color: var(--text); 
+      font-family: -apple-system, 'SF Pro Display', sans-serif; 
+    }
+    .app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════════════ */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .logo {
+      font-size: 16px;
+      font-weight: 300;
+      letter-spacing: 3px;
+    }
+    .logo span {
+      color: var(--operator);
+      font-weight: 600;
+    }
+    .header-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      font-family: 'SF Mono', monospace;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .stat-dot.critical { background: var(--critical); box-shadow: 0 0 8px var(--critical); }
+    .stat-dot.warning { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+    .stat-dot.safe { background: var(--safe); box-shadow: 0 0 8px var(--safe); }
+
+    /* ═══════════════════════════════════════════════════════════
+       SUMMARY BAR
+       ═══════════════════════════════════════════════════════════ */
+    .summary-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .summary-card {
+      flex: 1;
+      padding: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .summary-card:hover {
+      transform: translateY(-2px);
+    }
+    .summary-card.active {
+      border-width: 2px;
+    }
+    .summary-card.critical { border-color: var(--critical); }
+    .summary-card.warning { border-color: var(--warning); }
+    .summary-card.safe { border-color: var(--safe); }
+    .summary-card.all { border-color: var(--operator); }
+    .summary-count {
+      font-size: 24px;
+      font-weight: 700;
+      font-family: 'SF Mono', monospace;
+    }
+    .summary-card.critical .summary-count { color: var(--critical); }
+    .summary-card.warning .summary-count { color: var(--warning); }
+    .summary-card.safe .summary-count { color: var(--safe); }
+    .summary-card.all .summary-count { color: var(--operator); }
+    .summary-label {
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       GRID
+       ═══════════════════════════════════════════════════════════ */
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .subject-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .subject-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .subject-card.critical {
+      border-color: var(--critical);
+      background: rgba(255,68,68,0.05);
+    }
+    .subject-card.warning {
+      border-color: var(--warning);
+      background: rgba(255,170,0,0.05);
+    }
+    .subject-card.safe {
+      border-color: var(--safe);
+      background: rgba(0,255,136,0.03);
+    }
+    .subject-card.critical::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--critical);
+      animation: criticalPulse 1s infinite;
+    }
+
+    /* Subject Card Content */
+    .subject-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .subject-name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .subject-id {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .subject-status {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .subject-card.critical .subject-status { 
+      background: var(--critical); 
+      box-shadow: 0 0 12px var(--critical);
+      animation: statusPulse 1s infinite;
+    }
+    .subject-card.warning .subject-status { 
+      background: var(--warning); 
+      box-shadow: 0 0 12px var(--warning);
+    }
+    .subject-card.safe .subject-status { 
+      background: var(--safe); 
+      box-shadow: 0 0 8px var(--safe);
+    }
+
+    /* PNR Display */
+    .subject-pnr {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .pnr-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: 'SF Mono', monospace;
+    }
+    .subject-card.critical .pnr-value { color: var(--critical); }
+    .subject-card.warning .pnr-value { color: var(--warning); }
+    .subject-card.safe .pnr-value { color: var(--safe); }
+    .pnr-unit {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .pnr-label {
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    /* Progress Info */
+    .subject-progress {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+    .progress-stage {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stage-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+    }
+    .stage-icon.subject { border-color: var(--subject); color: var(--subject); }
+    .stage-icon.education { border-color: var(--education); color: var(--education); }
+    .stage-icon.sponsor { border-color: var(--sponsor); color: var(--sponsor); }
+    .stage-name {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    .progress-decision {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: 'SF Mono', monospace;
+    }
+
+    /* Energy Bar */
+    .subject-energy {
+      margin-top: 8px;
+    }
+    .energy-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .energy-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s;
+    }
+    .energy-fill.high { background: var(--safe); }
+    .energy-fill.medium { background: var(--warning); }
+    .energy-fill.low { background: var(--critical); }
+
+    /* ═══════════════════════════════════════════════════════════
+       CONTROLS
+       ═══════════════════════════════════════════════════════════ */
+    .controls {
+      display: flex;
+      gap: 8px;
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+    }
+    .control-btn {
+      flex: 1;
+      padding: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .control-btn:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .control-btn.active {
+      border-color: var(--operator);
+      color: var(--operator);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       AGGREGATE STATS
+       ═══════════════════════════════════════════════════════════ */
+    .aggregate {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: auto;
+    }
+    .aggregate-title {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .aggregate-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .aggregate-item {
+      text-align: center;
+    }
+    .aggregate-value {
+      font-size: 18px;
+      font-weight: 600;
+      font-family: 'SF Mono', monospace;
+    }
+    .aggregate-label {
+      font-size: 8px;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       ANIMATIONS
+       ═══════════════════════════════════════════════════════════ */
+    @keyframes criticalPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    @keyframes statusPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 380px) {
+      .subjects-grid {
+        grid-template-columns: 1fr;
+      }
+      .summary-bar {
+        flex-wrap: wrap;
+      }
+      .summary-card {
+        min-width: calc(50% - 4px);
+      }
+    }
+    @media (min-width: 768px) {
+      .app {
+        max-width: 800px;
+      }
+      .subjects-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="logo">AUTUS <span>OPERATOR</span></div>
+      <div class="header-stats">
+        <div class="stat-item"><div class="stat-dot critical"></div><span id="criticalCount">2</span></div>
+        <div class="stat-item"><div class="stat-dot warning"></div><span id="warningCount">3</span></div>
+        <div class="stat-item"><div class="stat-dot safe"></div><span id="safeCount">5</span></div>
+      </div>
+    </div>
+
+    <!-- SUMMARY BAR -->
+    <div class="summary-bar">
+      <div class="summary-card all active" data-filter="all">
+        <div class="summary-count" id="totalCount">10</div>
+        <div class="summary-label">Total</div>
+      </div>
+      <div class="summary-card critical" data-filter="critical">
+        <div class="summary-count">2</div>
+        <div class="summary-label">Critical</div>
+      </div>
+      <div class="summary-card warning" data-filter="warning">
+        <div class="summary-count">3</div>
+        <div class="summary-label">Warning</div>
+      </div>
+      <div class="summary-card safe" data-filter="safe">
+        <div class="summary-count">5</div>
+        <div class="summary-label">Safe</div>
+      </div>
+    </div>
+
+    <!-- SUBJECTS GRID -->
+    <div class="subjects-grid" id="subjectsGrid">
+      <!-- Cards will be rendered by JavaScript -->
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <button class="control-btn active" data-sort="pnr">Sort: PNR</button>
+      <button class="control-btn" data-sort="name">Sort: Name</button>
+      <button class="control-btn" data-sort="energy">Sort: Energy</button>
+    </div>
+
+    <!-- AGGREGATE -->
+    <div class="aggregate">
+      <div class="aggregate-title">Pipeline Summary</div>
+      <div class="aggregate-grid">
+        <div class="aggregate-item">
+          <div class="aggregate-value" style="color: var(--safe)">78%</div>
+          <div class="aggregate-label">Avg Energy</div>
+        </div>
+        <div class="aggregate-item">
+          <div class="aggregate-value" style="color: var(--warning)">24d</div>
+          <div class="aggregate-label">Avg PNR</div>
+        </div>
+        <div class="aggregate-item">
+          <div class="aggregate-value">₩124M</div>
+          <div class="aggregate-label">Total Cost</div>
+        </div>
+        <div class="aggregate-item">
+          <div class="aggregate-value" style="color: var(--safe)">80%</div>
+          <div class="aggregate-label">On Track</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Subject Data
+    const subjects = [
+      { id: 'S001', name: 'Kim', pnr: 7, energy: 45, stage: 'E', stageName: '석사', decision: '#16', status: 'critical' },
+      { id: 'S002', name: 'Lee', pnr: 14, energy: 68, stage: 'E', stageName: '석사', decision: '#14', status: 'warning' },
+      { id: 'S003', name: 'Park', pnr: 45, energy: 85, stage: 'S', stageName: '준비', decision: '#08', status: 'safe' },
+      { id: 'S004', name: 'Choi', pnr: 60, energy: 92, stage: 'S', stageName: '진입', decision: '#03', status: 'safe' },
+      { id: 'S005', name: 'Jung', pnr: 21, energy: 55, stage: 'E', stageName: '석사', decision: '#15', status: 'warning' },
+      { id: 'S006', name: 'Kang', pnr: 90, energy: 88, stage: 'S', stageName: '진입', decision: '#02', status: 'safe' },
+      { id: 'S007', name: 'Yoo', pnr: 55, energy: 78, stage: 'S', stageName: '준비', decision: '#07', status: 'safe' },
+      { id: 'S008', name: 'Han', pnr: 3, energy: 32, stage: 'P', stageName: '취업', decision: '#19', status: 'critical' },
+      { id: 'S009', name: 'Lim', pnr: 18, energy: 62, stage: 'E', stageName: '석사', decision: '#16', status: 'warning' },
+      { id: 'S010', name: 'Oh', pnr: 42, energy: 81, stage: 'S', stageName: '준비', decision: '#09', status: 'safe' },
+    ];
+
+    let currentFilter = 'all';
+    let currentSort = 'pnr';
+
+    // Render Cards
+    function renderCards() {
+      const grid = document.getElementById('subjectsGrid');
+      let filtered = subjects.filter(s => currentFilter === 'all' || s.status === currentFilter);
+      
+      // Sort
+      if (currentSort === 'pnr') {
+        filtered.sort((a, b) => a.pnr - b.pnr);
+      } else if (currentSort === 'name') {
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (currentSort === 'energy') {
+        filtered.sort((a, b) => a.energy - b.energy);
+      }
+
+      grid.innerHTML = filtered.map(s => `
+        <div class="subject-card ${s.status}" data-id="${s.id}">
+          <div class="subject-header">
+            <div>
+              <div class="subject-name">${s.name}</div>
+              <div class="subject-id">${s.id}</div>
+            </div>
+            <div class="subject-status"></div>
+          </div>
+          <div class="subject-pnr">
+            <span class="pnr-value">${s.pnr}</span>
+            <span class="pnr-unit">d</span>
+          </div>
+          <div class="pnr-label">PNR REMAINING</div>
+          <div class="subject-progress">
+            <div class="progress-stage">
+              <div class="stage-icon ${s.stage === 'S' ? 'subject' : s.stage === 'E' ? 'education' : 'sponsor'}">${s.stage}</div>
+              <span class="stage-name">${s.stageName}</span>
+            </div>
+            <div class="progress-decision">${s.decision}</div>
+          </div>
+          <div class="subject-energy">
+            <div class="energy-bar">
+              <div class="energy-fill ${s.energy >= 70 ? 'high' : s.energy >= 40 ? 'medium' : 'low'}" style="width: ${s.energy}%"></div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Add click handlers - Navigate to main.html
+      document.querySelectorAll('.subject-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const id = card.dataset.id;
+          window.location.href = `main.html?id=${id}`;
+        });
+      });
+    }
+
+    // Filter handlers
+    document.querySelectorAll('.summary-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.summary-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        currentFilter = card.dataset.filter;
+        renderCards();
+      });
+    });
+
+    // Sort handlers
+    document.querySelectorAll('.control-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.control-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentSort = btn.dataset.sort;
+        renderCards();
+      });
+    });
+
+    // Update aggregate stats
+    function updateStats() {
+      const critical = subjects.filter(s => s.status === 'critical').length;
+      const warning = subjects.filter(s => s.status === 'warning').length;
+      const safe = subjects.filter(s => s.status === 'safe').length;
+      
+      document.getElementById('criticalCount').textContent = critical;
+      document.getElementById('warningCount').textContent = warning;
+      document.getElementById('safeCount').textContent = safe;
+      document.getElementById('totalCount').textContent = subjects.length;
+    }
+
+    // Initial render
+    renderCards();
+    updateStats();
+  </script>
+</body>
+</html>

@@ -24,8 +24,31 @@
     html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: -apple-system, 'SF Pro Display', sans-serif; }
     .app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
 
+    /* BACK BUTTON */
+    .back-btn {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 36px;
+      height: 36px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: all 0.3s;
+    }
+    .back-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
     /* LAYER 1: EXTERNAL FIELD */
-    .external-field { flex: 0 0 auto; padding: 12px 20px; background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%); border-bottom: 1px solid var(--border); }
+    .external-field { flex: 0 0 auto; padding: 12px 20px; padding-left: 56px; background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%); border-bottom: 1px solid var(--border); }
     .external-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .logo { font-size: 18px; font-weight: 300; letter-spacing: 4px; }
     .external-label { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
@@ -70,9 +93,12 @@
     .transfer-badge { position: absolute; padding: 2px 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 8px; color: var(--text-dim); }
     .current-position { position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); text-align: center; }
     .current-circle { width: 48px; height: 48px; border-radius: 50%; background: var(--subject); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; box-shadow: 0 0 30px var(--subject); animation: youPulse 2s infinite; }
+    .current-circle.warning { background: var(--warning); box-shadow: 0 0 30px var(--warning); }
+    .current-circle.critical { background: var(--critical); box-shadow: 0 0 30px var(--critical); animation: criticalYouPulse 1s infinite; }
     .current-icon { font-size: 20px; }
     .current-label { font-size: 10px; color: var(--text-dim); }
     .current-name { font-size: 13px; font-weight: 600; }
+    .current-id { font-size: 10px; color: var(--text-dim); font-family: 'SF Mono', monospace; }
 
     /* LAYER 3: INTERNAL STATE */
     .internal-state { flex: 0 0 auto; padding: 16px 20px; background: linear-gradient(0deg, rgba(255,255,255,0.03) 0%, transparent 100%); border-top: 1px solid var(--border); }
@@ -85,9 +111,10 @@
     .state-card.warning .state-value { color: var(--warning); }
     .state-card.critical .state-value { color: var(--critical); }
     .state-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 8px; overflow: hidden; }
-    .state-bar-fill { height: 100%; border-radius: 2px; }
+    .state-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
     .state-bar-fill.safe { background: var(--safe); }
     .state-bar-fill.warning { background: var(--warning); }
+    .state-bar-fill.critical { background: var(--critical); }
     .resistance-row { display: flex; justify-content: center; gap: 24px; padding: 8px 0; border-top: 1px solid var(--border); margin-top: 8px; }
     .resistance-item { display: flex; align-items: center; gap: 8px; font-size: 11px; }
     .resistance-label { color: var(--text-dim); }
@@ -105,6 +132,7 @@
     @keyframes goalPulse { 0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.3); transform: scale(1); } 50% { box-shadow: 0 0 40px rgba(0,255,136,0.5); transform: scale(1.05); } }
     @keyframes nodePulse { 0%, 100% { box-shadow: 0 0 15px currentColor; } 50% { box-shadow: 0 0 30px currentColor; } }
     @keyframes youPulse { 0%, 100% { box-shadow: 0 0 20px var(--subject); transform: scale(1); } 50% { box-shadow: 0 0 40px var(--subject); transform: scale(1.05); } }
+    @keyframes criticalYouPulse { 0%, 100% { box-shadow: 0 0 20px var(--critical); transform: scale(1); } 50% { box-shadow: 0 0 40px var(--critical); transform: scale(1.1); } }
     @keyframes criticalPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
     @keyframes pathFlow { 0% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -20; } }
     .path-flow { stroke-dasharray: 10 10; animation: pathFlow 1s linear infinite; }
@@ -114,6 +142,9 @@
 </head>
 <body>
   <div class="app">
+    <!-- BACK BUTTON -->
+    <button class="back-btn" onclick="goBack()">←</button>
+
     <!-- LAYER 1: EXTERNAL FIELD -->
     <div class="external-field">
       <div class="external-header">
@@ -145,16 +176,17 @@
           </svg>
           <div class="decision-node" style="left: 50%; top: 93%;"><div class="node-circle subject complete">S</div><div class="node-label">진입 완료</div></div>
           <div class="decision-node" style="left: 50%; top: 73%;"><div class="node-circle subject complete">S</div><div class="node-label">준비 완료</div></div>
-          <div class="decision-node" style="left: 50%; top: 53%;"><div class="node-circle education current">E</div><div class="node-label current">석사 지속<br>#16</div></div>
+          <div class="decision-node" id="currentDecision" style="left: 50%; top: 53%;"><div class="node-circle education current">E</div><div class="node-label current" id="currentDecisionLabel">석사 지속<br>#16</div></div>
           <div class="transfer-badge" style="left: 58%; top: 53%;">T5</div>
           <div class="decision-node" style="left: 50%; top: 33%;"><div class="node-circle sponsor">P</div><div class="node-label">취업</div></div>
           <div class="decision-node" style="left: 50%; top: 13%;"><div class="node-circle pnr">!</div><div class="node-label">정착 PNR<br>#20</div></div>
           <div class="decision-node" style="left: 80%; top: 40%; opacity: 0.4;"><div class="node-circle operator">O</div><div class="node-label">이탈 경로</div></div>
         </div>
         <div class="current-position">
-          <div class="current-circle"><div class="current-icon">●</div></div>
+          <div class="current-circle" id="currentCircle"><div class="current-icon">●</div></div>
           <div class="current-label">CURRENT</div>
-          <div class="current-name">Kim</div>
+          <div class="current-name" id="subjectName">Kim</div>
+          <div class="current-id" id="subjectId">S001</div>
         </div>
       </div>
     </div>
@@ -162,38 +194,116 @@
     <!-- LAYER 3: INTERNAL STATE -->
     <div class="internal-state">
       <div class="state-grid">
-        <div class="state-card"><div class="state-label">Energy</div><div class="state-value">78%</div><div class="state-bar"><div class="state-bar-fill safe" style="width: 78%"></div></div></div>
-        <div class="state-card warning"><div class="state-label">PNR</div><div class="state-value">14d</div><div class="state-bar"><div class="state-bar-fill warning" style="width: 45%"></div></div></div>
-        <div class="state-card"><div class="state-label">Entropy</div><div class="state-value">23%</div><div class="state-bar"><div class="state-bar-fill safe" style="width: 23%"></div></div></div>
+        <div class="state-card" id="energyCard"><div class="state-label">Energy</div><div class="state-value" id="energyValue">78%</div><div class="state-bar"><div class="state-bar-fill safe" id="energyBar" style="width: 78%"></div></div></div>
+        <div class="state-card warning" id="pnrCard"><div class="state-label">PNR</div><div class="state-value" id="pnrValue">14d</div><div class="state-bar"><div class="state-bar-fill warning" id="pnrBar" style="width: 45%"></div></div></div>
+        <div class="state-card" id="entropyCard"><div class="state-label">Entropy</div><div class="state-value" id="entropyValue">23%</div><div class="state-bar"><div class="state-bar-fill safe" id="entropyBar" style="width: 23%"></div></div></div>
       </div>
       <div class="resistance-row">
-        <div class="resistance-item"><span class="resistance-label">RESISTANCE</span><span class="resistance-value" style="color: var(--warning)">₩12.4M</span></div>
-        <div class="resistance-item"><span class="resistance-label">VELOCITY</span><span class="resistance-value" style="color: var(--critical)">+₩41K/d</span></div>
+        <div class="resistance-item"><span class="resistance-label">RESISTANCE</span><span class="resistance-value" id="resistanceValue" style="color: var(--warning)">₩12.4M</span></div>
+        <div class="resistance-item"><span class="resistance-label">VELOCITY</span><span class="resistance-value" id="velocityValue" style="color: var(--critical)">+₩41K/d</span></div>
       </div>
     </div>
 
     <!-- CHOOSE BUTTON -->
     <div class="choose-section">
-      <button class="choose-btn warning">CHOOSE</button>
+      <button class="choose-btn warning" id="chooseBtn">CHOOSE</button>
     </div>
   </div>
 
   <script>
-    const chooseBtn = document.querySelector('.choose-btn');
-    const pnrValue = 14;
-    function updateButtonState(pnr) {
-      if (pnr <= 7) chooseBtn.className = 'choose-btn critical';
-      else if (pnr <= 21) chooseBtn.className = 'choose-btn warning';
-      else chooseBtn.className = 'choose-btn';
+    // Subject Database (shared with operator.html)
+    const subjects = {
+      'S001': { id: 'S001', name: 'Kim', pnr: 7, energy: 45, entropy: 42, stage: 'E', stageName: '석사', decision: '#16', status: 'critical', resistance: 15.2, velocity: 52 },
+      'S002': { id: 'S002', name: 'Lee', pnr: 14, energy: 68, entropy: 28, stage: 'E', stageName: '석사', decision: '#14', status: 'warning', resistance: 12.4, velocity: 41 },
+      'S003': { id: 'S003', name: 'Park', pnr: 45, energy: 85, entropy: 15, stage: 'S', stageName: '준비', decision: '#08', status: 'safe', resistance: 8.5, velocity: 22 },
+      'S004': { id: 'S004', name: 'Choi', pnr: 60, energy: 92, entropy: 10, stage: 'S', stageName: '진입', decision: '#03', status: 'safe', resistance: 5.2, velocity: 15 },
+      'S005': { id: 'S005', name: 'Jung', pnr: 21, energy: 55, entropy: 35, stage: 'E', stageName: '석사', decision: '#15', status: 'warning', resistance: 14.1, velocity: 38 },
+      'S006': { id: 'S006', name: 'Kang', pnr: 90, energy: 88, entropy: 8, stage: 'S', stageName: '진입', decision: '#02', status: 'safe', resistance: 4.8, velocity: 12 },
+      'S007': { id: 'S007', name: 'Yoo', pnr: 55, energy: 78, entropy: 18, stage: 'S', stageName: '준비', decision: '#07', status: 'safe', resistance: 9.2, velocity: 25 },
+      'S008': { id: 'S008', name: 'Han', pnr: 3, energy: 32, entropy: 58, stage: 'P', stageName: '취업', decision: '#19', status: 'critical', resistance: 18.7, velocity: 68 },
+      'S009': { id: 'S009', name: 'Lim', pnr: 18, energy: 62, entropy: 31, stage: 'E', stageName: '석사', decision: '#16', status: 'warning', resistance: 13.5, velocity: 35 },
+      'S010': { id: 'S010', name: 'Oh', pnr: 42, energy: 81, entropy: 16, stage: 'S', stageName: '준비', decision: '#09', status: 'safe', resistance: 7.8, velocity: 20 },
+    };
+
+    // Get subject ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const subjectId = urlParams.get('id') || 'S001';
+    const subject = subjects[subjectId] || subjects['S001'];
+
+    // Update UI with subject data
+    function loadSubjectData(s) {
+      // Name & ID
+      document.getElementById('subjectName').textContent = s.name;
+      document.getElementById('subjectId').textContent = s.id;
+
+      // Current circle color
+      const circle = document.getElementById('currentCircle');
+      circle.className = 'current-circle';
+      if (s.status === 'critical') circle.classList.add('critical');
+      else if (s.status === 'warning') circle.classList.add('warning');
+
+      // Energy
+      document.getElementById('energyValue').textContent = s.energy + '%';
+      document.getElementById('energyBar').style.width = s.energy + '%';
+      document.getElementById('energyBar').className = 'state-bar-fill ' + (s.energy >= 70 ? 'safe' : s.energy >= 40 ? 'warning' : 'critical');
+      
+      // PNR
+      document.getElementById('pnrValue').textContent = s.pnr + 'd';
+      const pnrPercent = Math.min(100, (s.pnr / 90) * 100);
+      document.getElementById('pnrBar').style.width = pnrPercent + '%';
+      document.getElementById('pnrBar').className = 'state-bar-fill ' + (s.pnr <= 7 ? 'critical' : s.pnr <= 21 ? 'warning' : 'safe');
+      const pnrCard = document.getElementById('pnrCard');
+      pnrCard.className = 'state-card ' + (s.pnr <= 7 ? 'critical' : s.pnr <= 21 ? 'warning' : '');
+
+      // Entropy
+      document.getElementById('entropyValue').textContent = s.entropy + '%';
+      document.getElementById('entropyBar').style.width = s.entropy + '%';
+      document.getElementById('entropyBar').className = 'state-bar-fill ' + (s.entropy <= 20 ? 'safe' : s.entropy <= 40 ? 'warning' : 'critical');
+
+      // Resistance & Velocity
+      document.getElementById('resistanceValue').textContent = '₩' + s.resistance + 'M';
+      document.getElementById('resistanceValue').style.color = s.resistance > 15 ? 'var(--critical)' : s.resistance > 10 ? 'var(--warning)' : 'var(--safe)';
+      document.getElementById('velocityValue').textContent = '+₩' + s.velocity + 'K/d';
+      document.getElementById('velocityValue').style.color = s.velocity > 50 ? 'var(--critical)' : s.velocity > 30 ? 'var(--warning)' : 'var(--safe)';
+
+      // Current Decision
+      document.getElementById('currentDecisionLabel').innerHTML = s.stageName + '<br>' + s.decision;
+      const decisionNode = document.querySelector('#currentDecision .node-circle');
+      decisionNode.className = 'node-circle current';
+      if (s.stage === 'S') decisionNode.classList.add('subject');
+      else if (s.stage === 'E') decisionNode.classList.add('education');
+      else if (s.stage === 'P') decisionNode.classList.add('sponsor');
+
+      // Choose Button
+      const btn = document.getElementById('chooseBtn');
+      btn.className = 'choose-btn';
+      if (s.status === 'critical') btn.classList.add('critical');
+      else if (s.status === 'warning') btn.classList.add('warning');
     }
-    updateButtonState(pnrValue);
-    chooseBtn.addEventListener('click', () => {
+
+    // Back to Operator
+    function goBack() {
+      window.location.href = 'operator.html';
+    }
+
+    // Choose Action
+    document.getElementById('chooseBtn').addEventListener('click', () => {
       if (navigator.vibrate) navigator.vibrate(50);
-      chooseBtn.style.transform = 'scale(0.98)';
-      setTimeout(() => { chooseBtn.style.transform = ''; }, 100);
-      console.log('CHOICE MADE:', { timestamp: new Date().toISOString(), entity: 'Kim', decision: '#16', state: 'WARNING', pnr_days: pnrValue });
-      alert('선택이 기록되었습니다.\n\nAudit Log에 저장됨.');
+      
+      console.log('CHOICE MADE:', {
+        timestamp: new Date().toISOString(),
+        entity: subject.name,
+        id: subject.id,
+        decision: subject.decision,
+        status: subject.status,
+        pnr_days: subject.pnr
+      });
+      
+      alert(`✅ 선택 기록됨\n\n${subject.name} (${subject.id})\nDecision: ${subject.decision}\nPNR: ${subject.pnr}d\n\nAudit Log에 저장됨.`);
     });
+
+    // Initialize
+    loadSubjectData(subject);
   </script>
 </body>
 </html>
