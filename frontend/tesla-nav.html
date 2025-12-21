@@ -1326,6 +1326,12 @@
       transition-duration: 0s !important;
       transition-delay: 0s !important;
     }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       ALERT STATE CONTROL (data-alert attribute)
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    html[data-alert="off"] [data-layer="L6"] { visibility: hidden !important; opacity: 0 !important; }
+    html[data-alert="on"]  [data-layer="L6"] { visibility: visible !important; opacity: 1 !important; }
   </style>
 </head>
 <body>
@@ -1825,6 +1831,85 @@
     } else {
       init();
     }
+  </script>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════════
+       AUTUS: Golden Render Mode + Mode Switch API
+       URL 파라미터 기반 상태 전환: ?mode=NAV|ALERT|CONTROL
+       ═══════════════════════════════════════════════════════════════════════════════ -->
+  <script>
+  /**
+   * AUTUS: Golden Render Mode + Mode Switch
+   * - 목표: NAV/ALERT/CONTROL 상태를 URL로 100% 재현
+   * - 사용:
+   *   1) window.autusSetMode("NAV"|"ALERT"|"CONTROL")
+   *   2) /tesla-nav.html?mode=NAV
+   *   3) window.__AUTUS_GOLDEN__ = {...}  (Playwright addInitScript로 주입)
+   */
+  (function () {
+    const root = document.documentElement;
+    const app = document.getElementById('app');
+
+    function setAttr(name, value) { 
+      root.setAttribute(name, value); 
+      if (app) app.setAttribute(name, value);
+    }
+
+    // Golden fixture를 전역에서 읽을 수 있게 통일
+    function applyGoldenFixture() {
+      const g = window.__AUTUS_GOLDEN__;
+      if (!g) return;
+      window.__AUTUS_FIXED__ = g;  // 기존 렌더러에서 이 값을 참조하도록 연결
+    }
+
+    // 모드 전환은 "레이어/상태"로만 처리 (display:none 금지 권장)
+    function setMode(mode) {
+      applyGoldenFixture();
+      setAttr("data-mode", mode);
+
+      if (mode === "NAV") {
+        setAttr("data-leftpanel", "rail");
+        setAttr("data-maneuver", "active");
+        setAttr("data-alert", "off");
+        // Apply LayerSet
+        if (typeof applyLayerSet === 'function') applyLayerSet('NAV');
+      } else if (mode === "ALERT") {
+        setAttr("data-leftpanel", "rail");
+        setAttr("data-maneuver", "promoted");
+        setAttr("data-alert", "on");
+        // Apply LayerSet
+        if (typeof applyLayerSet === 'function') applyLayerSet('ALERT');
+      } else if (mode === "CONTROL") {
+        setAttr("data-leftpanel", "expanded");
+        setAttr("data-maneuver", "collapsed");
+        setAttr("data-alert", "off");
+        // Apply LayerSet
+        if (typeof applyLayerSet === 'function') applyLayerSet('CONTROL');
+      } else if (mode === "SETTINGS") {
+        setAttr("data-leftpanel", "collapsed");
+        setAttr("data-maneuver", "hidden");
+        setAttr("data-alert", "off");
+        if (typeof applyLayerSet === 'function') applyLayerSet('SETTINGS');
+      }
+
+      console.log(`[AUTUS] Mode switched to: ${mode}`);
+    }
+
+    // 전역 API 노출
+    window.autusSetMode = setMode;
+
+    // URL 파라미터 처리
+    const params = new URLSearchParams(location.search);
+    const mode = params.get("mode");
+    if (mode) {
+      // DOM이 준비된 후 모드 적용
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setMode(mode));
+      } else {
+        setMode(mode);
+      }
+    }
+  })();
   </script>
 </body>
 </html>

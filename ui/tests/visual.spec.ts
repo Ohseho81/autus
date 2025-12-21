@@ -78,11 +78,8 @@ async function forceZoom100(page: any): Promise<void> {
 test.describe("Golden Set Visual Tests", () => {
   
   test("G1_NAV — 기본 내비 상태", async ({ page }) => {
-    // Fixture 주입
-    await injectFixture(page, "golden.nav.json");
-    
-    // 페이지 로드
-    await page.goto(BASE_URL, { waitUntil: "networkidle" });
+    // URL 파라미터로 모드 전환
+    await page.goto(`${BASE_URL}?mode=NAV`, { waitUntil: "networkidle" });
     
     // 환경 고정
     await forceZoom100(page);
@@ -99,23 +96,8 @@ test.describe("Golden Set Visual Tests", () => {
   });
 
   test("G2_ALERT — 위험 경고 상태", async ({ page }) => {
-    // NAV 베이스 + ALERT 오버라이드
-    await injectFixture(page, "golden.nav.json");
-    
-    // ALERT 데이터 추가 주입
-    const alertJson = fs.readFileSync(
-      path.join(FIXTURES_DIR, "golden.alert.json"),
-      "utf-8"
-    );
-    
-    await page.addInitScript((alertData: string) => {
-      const base = (window as any).__AUTUS_GOLDEN__ || {};
-      const alert = JSON.parse(alertData);
-      (window as any).__AUTUS_GOLDEN__ = { ...base, ...alert };
-    }, alertJson);
-    
-    // 페이지 로드
-    await page.goto(BASE_URL, { waitUntil: "networkidle" });
+    // URL 파라미터로 모드 전환
+    await page.goto(`${BASE_URL}?mode=ALERT`, { waitUntil: "networkidle" });
     
     // 환경 고정
     await forceZoom100(page);
@@ -132,11 +114,8 @@ test.describe("Golden Set Visual Tests", () => {
   });
 
   test("G3_CONTROL — 조작 집중 상태", async ({ page }) => {
-    // Fixture 주입
-    await injectFixture(page, "golden.control.json");
-    
-    // 페이지 로드
-    await page.goto(BASE_URL, { waitUntil: "networkidle" });
+    // URL 파라미터로 모드 전환
+    await page.goto(`${BASE_URL}?mode=CONTROL`, { waitUntil: "networkidle" });
     
     // 환경 고정
     await forceZoom100(page);
@@ -161,8 +140,7 @@ test.describe("Golden Set Visual Tests", () => {
 test.describe("Track B — Product Standard", () => {
   
   test("G1_NAV (Track B: ≤0.5%)", async ({ page }) => {
-    await injectFixture(page, "golden.nav.json");
-    await page.goto(BASE_URL, { waitUntil: "networkidle" });
+    await page.goto(`${BASE_URL}?mode=NAV`, { waitUntil: "networkidle" });
     await forceZoom100(page);
     await disableAnimations(page);
     await page.waitForTimeout(500);
@@ -175,18 +153,7 @@ test.describe("Track B — Product Standard", () => {
   });
 
   test("G2_ALERT (Track B: ≤0.5%)", async ({ page }) => {
-    await injectFixture(page, "golden.nav.json");
-    const alertJson = fs.readFileSync(
-      path.join(FIXTURES_DIR, "golden.alert.json"),
-      "utf-8"
-    );
-    await page.addInitScript((alertData: string) => {
-      const base = (window as any).__AUTUS_GOLDEN__ || {};
-      const alert = JSON.parse(alertData);
-      (window as any).__AUTUS_GOLDEN__ = { ...base, ...alert };
-    }, alertJson);
-    
-    await page.goto(BASE_URL, { waitUntil: "networkidle" });
+    await page.goto(`${BASE_URL}?mode=ALERT`, { waitUntil: "networkidle" });
     await forceZoom100(page);
     await disableAnimations(page);
     await page.waitForTimeout(500);
@@ -198,8 +165,7 @@ test.describe("Track B — Product Standard", () => {
   });
 
   test("G3_CONTROL (Track B: ≤0.5%)", async ({ page }) => {
-    await injectFixture(page, "golden.control.json");
-    await page.goto(BASE_URL, { waitUntil: "networkidle" });
+    await page.goto(`${BASE_URL}?mode=CONTROL`, { waitUntil: "networkidle" });
     await forceZoom100(page);
     await disableAnimations(page);
     await page.waitForTimeout(500);
