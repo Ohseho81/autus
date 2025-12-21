@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS 수도권 전철 노선도</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      /* 서울시 공식 노선 색상 */
+      --L1:#0052A4;--L2:#00A84D;--L3:#EF7C1C;--L4:#00A5DE;--L5:#996CAC;
+      --L6:#CD7C2F;--L7:#747F00;--L8:#E6186C;--L9:#BDB092;--LS:#D31F5B;
+      --LK:#77C4A3;--LB:#F5A200;--LA:#0090D2;--LU:#B0CE18;
+      --river:#D4E9F7;--bg:#FFFFFF;
+    }
+    html,body{width:100%;height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;overflow:hidden}
+    .app{width:100%;height:100%;display:flex;flex-direction:column}
+    
+    .hd{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fff;border-bottom:1px solid #e0e0e0;flex-shrink:0}
+    .hd-l{display:flex;align-items:center;gap:10px}
+    .hd-l button{width:32px;height:32px;background:none;border:none;font-size:20px;cursor:pointer}
+    .hd-l span{font-size:15px;font-weight:700}
+    .badge{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;color:#fff}
+    
+    .map-wrap{flex:1;overflow:auto;background:#fff;display:flex;align-items:center;justify-content:center}
+    .map-inner{width:1400px;height:1100px;position:relative}
+    svg{width:100%;height:100%}
+    
+    /* 노선 스타일 */
+    .line{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:8}
+    .L1{stroke:var(--L1)}.L2{stroke:var(--L2)}.L3{stroke:var(--L3)}.L4{stroke:var(--L4)}
+    .L5{stroke:var(--L5)}.L6{stroke:var(--L6)}.L7{stroke:var(--L7)}.L8{stroke:var(--L8)}
+    .L9{stroke:var(--L9)}.LS{stroke:var(--LS);stroke-width:6}.LK{stroke:var(--LK)}
+    .LB{stroke:var(--LB)}.LA{stroke:var(--LA)}.LU{stroke:var(--LU);stroke-width:5}
+    .Ldim{opacity:0.4}.Lact{opacity:1}
+    
+    /* 한강 */
+    .river{fill:none;stroke:var(--river);stroke-width:35;stroke-linecap:round}
+    
+    /* 역 */
+    .st{fill:#fff;stroke:#333;stroke-width:1.5}
+    .tf{fill:#fff;stroke:#222;stroke-width:2.5;cursor:pointer}
+    .tf:hover{stroke-width:3.5;filter:drop-shadow(0 0 4px rgba(0,0,0,0.2))}
+    .cur{fill:var(--L2)}
+    .glow{fill:var(--L2);opacity:0.25;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{r:16;opacity:0.25}50%{r:24;opacity:0.1}}
+    
+    /* 역명 */
+    .n{font-size:9px;fill:#333;font-weight:500}
+    .nm{font-size:10px;fill:#222;font-weight:600}
+    .nt{font-size:11px;fill:#111;font-weight:700}
+    .nc{fill:var(--L2);font-weight:700}
+    .ns{font-size:8px;fill:#666}
+    .lbl{font-size:10px;fill:#fff;font-weight:700;text-anchor:middle;dominant-baseline:central}
+    
+    /* 범례 */
+    .legend{position:fixed;bottom:75px;left:16px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+    .legend h4{font-size:11px;margin-bottom:8px;color:#333;font-weight:600}
+    .legend-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+    .leg{display:flex;align-items:center;gap:4px}
+    .lc{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff}
+    .lt{font-size:9px;color:#444}
+    
+    /* 컨트롤 */
+    .ctrl{position:fixed;bottom:80px;right:16px;z-index:50;display:flex;flex-direction:column;gap:6px}
+    .ctrl button{width:40px;height:40px;border:1px solid #ccc;background:#fff;border-radius:10px;font-size:20px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+    .ctrl button:hover{background:#f5f5f5}
+    
+    /* 하단바 */
+    .bot{padding:10px 16px 20px;background:#fff;border-top:1px solid #e0e0e0;flex-shrink:0}
+    .bot-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .bot-cur{display:flex;align-items:center;gap:8px}
+    .bot-badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+    .bot-st{font-weight:600;font-size:14px}
+    .bot-next{font-size:11px;color:#666}
+    .bot-btn{width:100%;padding:12px;background:var(--L2);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+    
+    /* 모달 */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end}
+    .modal.on{display:flex}
+    .modal-c{background:#fff;width:100%;max-width:440px;margin:0 auto;border-radius:20px 20px 0 0;padding:20px;max-height:65vh;overflow-y:auto}
+    .modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .modal-t{font-size:18px;font-weight:700}
+    .modal-x{width:32px;height:32px;border:none;background:#f0f0f0;border-radius:50%;font-size:18px;cursor:pointer}
+    .modal-s{font-size:12px;color:#666;margin-bottom:14px}
+    .ch-list{display:flex;flex-direction:column;gap:10px}
+    .ch-item{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #eee;border-radius:12px;cursor:pointer;transition:all 0.15s}
+    .ch-item:hover{border-color:#333;background:#fafafa}
+    .ch-badge{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
+    .ch-info{flex:1}
+    .ch-name{font-weight:600;font-size:13px;margin-bottom:2px}
+    .ch-desc{font-size:11px;color:#888}
+    .ch-cost{text-align:right}
+    .ch-time{font-weight:600;font-size:12px}
+    .ch-money{font-size:10px;color:#888}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="hd">
+    <div class="hd-l">
+      <button onclick="goBack()">←</button>
+      <span>수도권 전철 노선도</span>
+    </div>
+    <div style="display:flex;gap:6px">
+      <span class="badge" style="background:var(--L2)">Kim</span>
+      <span class="badge" style="background:#555">PNR 14일</span>
+    </div>
+  </div>
+
+  <div class="map-wrap" id="mapWrap">
+    <div class="map-inner" id="mapInner">
+      <svg viewBox="0 0 1400 1100">
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             한강 (서울 중앙 가로지름)
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="river" d="M0,580 Q200,560 400,570 Q600,590 800,575 Q1000,555 1200,565 L1400,560"/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             2호선 (초록) - 중앙 원형 순환선
+             ═══════════════════════════════════════════════════════════════ -->
+        <ellipse cx="700" cy="500" rx="280" ry="220" class="line L2 Lact" fill="none"/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             1호선 (남색) - 북에서 남으로 (45도 사선)
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line L1 Lact" d="
+          M580,50 L580,120 L560,180 L540,240 L520,300 L500,360 L480,420
+          L460,480 L460,540 L480,600 L500,660 L520,720 L540,780 L560,840 L580,900
+        "/>
+        <!-- 경인선 분기 -->
+        <path class="line L1 Ldim" d="M480,600 L420,640 L360,680 L300,720 L240,760 L180,800 L120,840 L60,880"/>
+        <!-- 경부선 분기 -->
+        <path class="line L1 Ldim" d="M540,780 L600,820 L660,860 L720,900 L780,940 L840,980 L900,1020"/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             3호선 (주황) - 북서에서 남동으로 대각선
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line L3 Ldim" d="
+          M120,200 L180,240 L240,280 L300,320 L360,360 L420,400 L480,440
+          L540,480 L600,520 L660,560 L720,600 L780,640 L840,680 L900,720
+          L960,760 L1020,800 L1080,840 L1140,880
+        "/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             4호선 (하늘) - 북동에서 남서로 (2호선 관통)
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line L4 Ldim" d="
+          M820,50 L800,110 L780,170 L760,230 L740,290 L720,350 L700,410
+          L680,470 L660,530 L640,590 L620,650 L600,710 L580,770 L560,830
+          L540,890 L520,950 L500,1010
+        "/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             5호선 (보라) - 서에서 동으로 (2호선 하단 통과)
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line L5 Ldim" d="
+          M60,420 L120,430 L180,440 L240,450 L300,460 L360,470 L420,480
+          L480,485 L540,490 L600,495 L660,500 L720,505 L780,510 L840,515
+          L900,520 L960,530 L1020,550 L1080,580 L1140,620 L1200,670
+        "/>
+        <!-- 마천지선 -->
+        <path class="line L5 Ldim" d="M1080,580 L1120,620 L1160,660 L1200,700"/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             6호선 (황토) - 2호선 상단 곡선
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line L6 Ldim" d="
+          M340,280 L400,290 L460,305 L520,325 L580,350 L640,370 L700,380
+          L760,375 L820,365 L880,350 L940,330 L1000,310 L1060,295
+        "/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             7호선 (올리브) - 북동에서 남서로 긴 사선
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line L7 Ldim" d="
+          M1000,80 L980,140 L960,200 L940,260 L920,320 L900,380 L880,440
+          L860,500 L840,560 L820,620 L800,680 L780,740 L760,800 L740,860
+          L720,920 L680,960 L620,980 L560,990 L500,995 L440,990 L380,980
+          L320,965 L260,940 L200,900 L140,850
+        "/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             8호선 (분홍) - 동쪽 수직선
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line L8 Ldim" d="
+          M1020,540 L1020,600 L1000,660 L980,720 L960,780 L940,840 L920,900 L900,960
+        "/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             9호선 (금색) - 서에서 동으로 (한강 따라)
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line L9 Ldim" d="
+          M60,620 L120,625 L180,630 L240,635 L300,640 L360,645 L420,650
+          L480,655 L540,660 L600,665 L660,670 L720,672 L780,675 L840,680
+          L900,690 L960,705 L1020,730 L1080,760 L1140,800
+        "/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             신분당선 (빨강) - 강남에서 남쪽으로
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line LS Ldim" d="
+          M780,680 L820,740 L860,800 L900,860 L940,920 L980,980 L1020,1040
+        "/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             공항철도 (파랑) - 서쪽에서 중앙으로
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line LA Ldim" d="
+          M60,520 L120,515 L180,510 L240,505 L300,500 L360,495 L420,490
+          L480,485 L540,480 L600,475
+        "/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             경의중앙선 (청록) - 서북에서 동남으로
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line LK Ldim" d="
+          M60,320 L120,340 L180,360 L240,380 L300,400 L360,420 L420,440
+          L480,455 L540,470 L600,485 L660,510 L720,540 L780,580 L840,630
+          L900,690 L960,760 L1020,840
+        "/>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             수인분당선 (노랑) - 동쪽 수직+곡선
+             ═══════════════════════════════════════════════════════════════ -->
+        <path class="line LB Ldim" d="
+          M580,350 L620,390 L660,430 L700,470 L740,510 L780,550 L820,590
+          L860,640 L900,700 L940,770 L980,850 L1020,940
+        "/>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             2호선 역 (순환선 - 시계방향)
+             ═══════════════════════════════════════════════════════════════ -->
+        <g id="line2-stations">
+          <!-- 상단 (시청 ~ 왕십리) -->
+          <circle class="st" cx="420" cy="480" r="4"/><text class="n" x="405" y="465">시청</text>
+          <circle class="st" cx="480" cy="420" r="4"/><text class="n" x="465" y="405">을지로입구</text>
+          <circle class="st" cx="540" cy="370" r="4"/><text class="n" x="525" y="355">을지로3가</text>
+          <circle class="st" cx="600" cy="330" r="4"/><text class="n" x="585" y="315">을지로4가</text>
+          <circle class="st" cx="700" cy="280" r="4"/><text class="n" x="705" y="268">신당</text>
+          <circle class="st" cx="800" cy="310" r="4"/><text class="n" x="810" y="298">상왕십리</text>
+          <circle class="st" cx="880" cy="360" r="4"/><text class="n" x="895" y="355">한양대</text>
+          <!-- 우측 (성수 ~ 잠실) -->
+          <circle class="st" cx="940" cy="440" r="4"/><text class="n" x="955" y="438">뚝섬</text>
+          <circle class="st" cx="980" cy="540" r="4"/><text class="n" x="995" y="538">건대입구</text>
+          <circle class="st" cx="980" cy="620" r="4"/><text class="n" x="995" y="618">구의</text>
+          <circle class="st" cx="950" cy="700" r="4"/><text class="n" x="965" y="698">강변</text>
+          <!-- 하단 (잠실 ~ 강남) -->
+          <circle class="st" cx="880" cy="720" r="4"/><text class="n" x="885" y="738">잠실나루</text>
+          <circle class="st" cx="780" cy="720" r="4"/><text class="n" x="765" y="738">종합운동장</text>
+          <circle class="st" cx="700" cy="720" r="4"/><text class="n" x="705" y="738">삼성</text>
+          <circle class="st" cx="620" cy="710" r="4"/><text class="n" x="590" y="728">선릉</text>
+          <circle class="st" cx="540" cy="690" r="4"/><text class="n" x="505" y="705">역삼</text>
+          <!-- 좌측 (서초 ~ 신도림) -->
+          <circle class="st" cx="480" cy="660" r="4"/><text class="n" x="445" y="672">서초</text>
+          <circle class="st" cx="440" cy="610" r="4"/><text class="n" x="400" y="618">방배</text>
+          <circle class="st" cx="420" cy="540" r="4"/><text class="n" x="380" y="545">낙성대</text>
+        </g>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             주요 환승역 (선택점) - 큰 원
+             ═══════════════════════════════════════════════════════════════ -->
+        <g id="transfers">
+          
+          <!-- 서울역 (1,4,공항,경의) - 핵심 허브 -->
+          <circle class="tf" cx="480" cy="540" r="14" onclick="modal('seoul')"/>
+          <text class="nt" x="440" y="535">서울역</text>
+          <text class="ns" x="440" y="550">1·4·공항·경의</text>
+          
+          <!-- 동대문역사문화공원 (2,4,5) - 현재 위치 ★ -->
+          <circle class="glow" cx="660" cy="320" r="14"/>
+          <circle class="tf" cx="660" cy="320" r="12" onclick="modal('ddp')"/>
+          <circle class="cur" cx="660" cy="320" r="5"/>
+          <text class="nt nc" x="680" y="310">동대문역사</text>
+          <text class="ns" x="680" y="325" style="fill:var(--L2)">현재 위치</text>
+          
+          <!-- 왕십리 (2,5,경의,분당) -->
+          <circle class="tf" cx="860" cy="400" r="12" onclick="modal('wangsimni')"/>
+          <text class="nm" x="880" y="395">왕십리</text>
+          <text class="ns" x="880" y="410">2·5·경의·분당</text>
+          
+          <!-- 성수 (2,분당) -->
+          <circle class="tf" cx="920" cy="390" r="10" onclick="modal('seongsu')"/>
+          <text class="nm" x="935" y="405">성수</text>
+          
+          <!-- 신도림 (1,2) -->
+          <circle class="tf" cx="420" cy="600" r="12" onclick="modal('sindorim')"/>
+          <text class="nm" x="370" y="598">신도림</text>
+          <text class="ns" x="370" y="613">1·2</text>
+          
+          <!-- 사당 (2,4) -->
+          <circle class="tf" cx="500" cy="680" r="11" onclick="modal('sadang')"/>
+          <text class="nm" x="455" y="695">사당</text>
+          
+          <!-- 교대 (2,3) -->
+          <circle class="tf" cx="500" cy="700" r="10" onclick="modal('gyodae')"/>
+          <text class="nm" x="455" y="715">교대</text>
+          
+          <!-- 강남 (2,신분당) - 핵심 허브 -->
+          <circle class="tf" cx="580" cy="700" r="14" onclick="modal('gangnam')"/>
+          <text class="nt" x="540" y="718">강남</text>
+          <text class="ns" x="540" y="733">2·신분당</text>
+          
+          <!-- 잠실 (2,8) -->
+          <circle class="tf" cx="920" cy="720" r="12" onclick="modal('jamsil')"/>
+          <text class="nm" x="935" y="715">잠실</text>
+          <text class="ns" x="935" y="730">2·8</text>
+          
+          <!-- 고속터미널 (3,7,9) -->
+          <circle class="tf" cx="680" cy="760" r="12" onclick="modal('gosok')"/>
+          <text class="nm" x="640" y="780">고속터미널</text>
+          <text class="ns" x="640" y="795">3·7·9</text>
+          
+          <!-- 홍대입구 (2,공항,경의) -->
+          <circle class="tf" cx="360" cy="460" r="11" onclick="modal('hongdae')"/>
+          <text class="nm" x="310" y="458">홍대입구</text>
+          <text class="ns" x="310" y="473">2·공항·경의</text>
+          
+          <!-- 여의도 (5,9) -->
+          <circle class="tf" cx="480" cy="650" r="10" onclick="modal('yeouido')"/>
+          <text class="nm" x="430" y="665">여의도</text>
+          
+          <!-- 공덕 (5,6,공항,경의) -->
+          <circle class="tf" cx="420" cy="500" r="11" onclick="modal('gongdeok')"/>
+          <text class="nm" x="365" y="498">공덕</text>
+          <text class="ns" x="365" y="513">5·6·공항·경의</text>
+          
+          <!-- 종로3가 (1,3,5) -->
+          <circle class="tf" cx="520" cy="400" r="10" onclick="modal('jongno3')"/>
+          <text class="nm" x="480" y="388">종로3가</text>
+          
+          <!-- 충무로 (3,4) -->
+          <circle class="tf" cx="580" cy="420" r="10" onclick="modal('chungmuro')"/>
+          <text class="nm" x="595" y="418">충무로</text>
+          
+          <!-- 노원 (4,7) -->
+          <circle class="tf" cx="900" cy="200" r="10" onclick="modal('nowon')"/>
+          <text class="nm" x="915" y="198">노원</text>
+          <text class="ns" x="915" y="213">4·7</text>
+          
+          <!-- 김포공항 (5,9,공항) - 하차(귀국) -->
+          <circle class="tf" cx="180" cy="520" r="12" style="stroke:#E74C3C" onclick="modal('gimpo')"/>
+          <text class="nm" x="130" y="518" style="fill:#E74C3C">김포공항</text>
+          <text class="ns" x="130" y="533" style="fill:#E74C3C">하차(귀국)</text>
+          
+          <!-- 인천공항 (공항) - 시작점 -->
+          <circle class="tf" cx="60" cy="520" r="10" onclick="modal('incheon')"/>
+          <text class="nm" x="30" y="505">인천공항</text>
+          
+          <!-- 청량리 (1,경의,분당) -->
+          <circle class="tf" cx="560" cy="320" r="10" onclick="modal('cheongnyangni')"/>
+          <text class="nm" x="510" y="308">청량리</text>
+
+        </g>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             호선 라벨 (원 + 숫자)
+             ═══════════════════════════════════════════════════════════════ -->
+        <g id="line-labels">
+          <circle cx="580" cy="80" r="14" fill="var(--L1)"/><text class="lbl" x="580" y="80">1</text>
+          <circle cx="320" cy="500" r="14" fill="var(--L2)"/><text class="lbl" x="320" y="500">2</text>
+          <circle cx="180" cy="240" r="14" fill="var(--L3)"/><text class="lbl" x="180" y="240">3</text>
+          <circle cx="780" cy="100" r="14" fill="var(--L4)"/><text class="lbl" x="780" y="100">4</text>
+          <circle cx="100" cy="430" r="14" fill="var(--L5)"/><text class="lbl" x="100" y="430">5</text>
+          <circle cx="380" cy="280" r="14" fill="var(--L6)"/><text class="lbl" x="380" y="280">6</text>
+          <circle cx="960" cy="140" r="14" fill="var(--L7)"/><text class="lbl" x="960" y="140">7</text>
+          <circle cx="1020" cy="580" r="14" fill="var(--L8)"/><text class="lbl" x="1020" y="580">8</text>
+          <circle cx="100" cy="620" r="14" fill="var(--L9)"/><text class="lbl" x="100" y="620">9</text>
+          <circle cx="860" cy="780" r="12" fill="var(--LS)"/><text class="lbl" x="860" y="780" style="font-size:8px">신</text>
+          <circle cx="100" cy="340" r="12" fill="var(--LK)"/><text class="lbl" x="100" y="340" style="font-size:7px">경의</text>
+          <circle cx="100" cy="520" r="12" fill="var(--LA)"/><text class="lbl" x="100" y="520" style="font-size:7px">A</text>
+          <circle cx="620" cy="380" r="12" fill="var(--LB)"/><text class="lbl" x="620" y="380" style="font-size:7px">분당</text>
+        </g>
+
+        <!-- 목표 마커 -->
+        <g id="goal">
+          <text x="1200" y="100" style="font-size:32px">🎯</text>
+          <text class="nt" x="1240" y="95">정착완료</text>
+          <text class="ns" x="1240" y="112">PNR #24</text>
+        </g>
+        
+        <!-- 한강 라벨 -->
+        <text x="1100" y="560" style="font-size:14px;fill:#7EB6D9;font-weight:600">한강</text>
+
+      </svg>
+    </div>
+  </div>
+
+  <div class="legend">
+    <h4>노선 안내</h4>
+    <div class="legend-grid">
+      <div class="leg"><div class="lc" style="background:var(--L1)">1</div><span class="lt">정석입국</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L2)">2</div><span class="lt">교육</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L3)">3</div><span class="lt">취업</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L4)">4</div><span class="lt">정착</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L5)">5</div><span class="lt">전문</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L7)">7</div><span class="lt">기술</span></div>
+      <div class="leg"><div class="lc" style="background:var(--L9)">9</div><span class="lt">급행</span></div>
+      <div class="leg"><div class="lc" style="background:var(--LS);font-size:7px">신</div><span class="lt">특별</span></div>
+      <div class="leg"><div class="lc" style="background:var(--LA);font-size:7px">A</div><span class="lt">출입국</span></div>
+      <div class="leg"><div style="width:14px;height:14px;border:2.5px solid #333;border-radius:50%;background:#fff"></div><span class="lt">선택점</span></div>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <button onclick="zoom(1.25)">+</button>
+    <button onclick="zoom(0.8)">−</button>
+    <button onclick="resetZoom()">⟲</button>
+  </div>
+
+  <div class="bot">
+    <div class="bot-row">
+      <div class="bot-cur">
+        <div class="bot-badge" style="background:var(--L2)">2</div>
+        <span class="bot-st">동대문역사</span>
+      </div>
+      <span class="bot-next">다음 선택점: <b>왕십리</b> (2역)</span>
+    </div>
+    <button class="bot-btn" onclick="goMain()">현재역으로 이동</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="modal-c">
+    <div class="modal-h">
+      <span class="modal-t" id="mTitle">환승역</span>
+      <button class="modal-x" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-s" id="mSub">어느 호선으로 환승하시겠습니까?</div>
+    <div class="ch-list" id="mList"></div>
+  </div>
+</div>
+
+<script>
+const choices = {
+  seoul: { t:'서울역', s:'시작 허브 - 전략을 선택하세요', o:[
+    {l:'1',c:'var(--L1)',n:'1호선 정석입국',d:'비자→교육→취업',t:'3년',m:'₩80M'},
+    {l:'4',c:'var(--L4)',n:'4호선 직접정착',d:'투자→체류→영주권',t:'2년',m:'₩300M'},
+    {l:'A',c:'var(--LA)',n:'공항철도',d:'출입국 경유',t:'-',m:'-'},
+    {l:'경의',c:'var(--LK)',n:'경의중앙선',d:'용산/청량리 방면',t:'+2월',m:'₩5M'}
+  ]},
+  ddp: { t:'동대문역사문화공원 (현재)', s:'계속 진행하거나 환승하세요', o:[
+    {l:'2',c:'var(--L2)',n:'2호선 유지',d:'왕십리 방면 진행',t:'+3월',m:'₩10M'},
+    {l:'4',c:'var(--L4)',n:'4호선 환승',d:'충무로→서울역 방면',t:'+2월',m:'₩5M'},
+    {l:'5',c:'var(--L5)',n:'5호선 환승',d:'광화문→여의도 방면',t:'+4월',m:'₩15M'}
+  ]},
+  gangnam: { t:'강남역', s:'취업/창업 허브', o:[
+    {l:'2',c:'var(--L2)',n:'2호선 유지',d:'교육 계속 (순환)',t:'+6월',m:'₩20M'},
+    {l:'신',c:'var(--LS)',n:'신분당선 환승',d:'스타트업/투자 루트',t:'+1년',m:'₩100M'}
+  ]},
+  gosok: { t:'고속터미널역', s:'취업 허브 - 3개 노선 환승', o:[
+    {l:'3',c:'var(--L3)',n:'3호선 취업',d:'정규직 취업 루트',t:'+6월',m:'₩0'},
+    {l:'7',c:'var(--L7)',n:'7호선 기술',d:'기술이민 루트',t:'+1년',m:'₩30M'},
+    {l:'9',c:'var(--L9)',n:'9호선 급행',d:'투자이민 급행',t:'+3월',m:'₩500M'}
+  ]},
+  gimpo: { t:'김포공항역', s:'⚠️ 하차(귀국) 지점입니다', o:[
+    {l:'✕',c:'#E74C3C',n:'하차 (귀국)',d:'중도 포기',t:'-',m:'₩0'},
+    {l:'9',c:'var(--L9)',n:'9호선 유지',d:'강남 방면 진행',t:'+1월',m:'₩5M'},
+    {l:'A',c:'var(--LA)',n:'공항철도',d:'인천공항 방면',t:'+30분',m:'₩1M'}
+  ]},
+  wangsimni: { t:'왕십리역', s:'4개 노선 대형 환승역', o:[
+    {l:'2',c:'var(--L2)',n:'2호선',d:'순환선 유지',t:'+2월',m:'₩5M'},
+    {l:'5',c:'var(--L5)',n:'5호선',d:'광화문/여의도 방면',t:'+3월',m:'₩8M'},
+    {l:'경의',c:'var(--LK)',n:'경의중앙',d:'용산/문산 방면',t:'+4월',m:'₩10M'},
+    {l:'분당',c:'var(--LB)',n:'분당선',d:'강남/수원 방면',t:'+5월',m:'₩12M'}
+  ]},
+  hongdae: { t:'홍대입구역', s:'공항 연결 허브', o:[
+    {l:'2',c:'var(--L2)',n:'2호선',d:'신촌/시청 방면',t:'+1월',m:'₩3M'},
+    {l:'A',c:'var(--LA)',n:'공항철도',d:'김포/인천공항',t:'+40분',m:'₩5M'},
+    {l:'경의',c:'var(--LK)',n:'경의중앙',d:'파주/문산 방면',t:'+3월',m:'₩7M'}
+  ]},
+  jamsil: { t:'잠실역', s:'강동 허브', o:[
+    {l:'2',c:'var(--L2)',n:'2호선',d:'순환선 유지',t:'+2월',m:'₩5M'},
+    {l:'8',c:'var(--L8)',n:'8호선',d:'모란/성남 방면',t:'+3월',m:'₩8M'}
+  ]},
+  sindorim: { t:'신도림역', s:'경인선 환승', o:[
+    {l:'1',c:'var(--L1)',n:'1호선',d:'인천/부천 방면',t:'+4월',m:'₩10M'},
+    {l:'2',c:'var(--L2)',n:'2호선',d:'순환선 유지',t:'+2월',m:'₩5M'}
+  ]},
+  incheon: { t:'인천공항역', s:'출발점 - 입국', o:[
+    {l:'A',c:'var(--LA)',n:'공항철도',d:'서울역 직행',t:'43분',m:'₩9M'},
+    {l:'A',c:'var(--LA)',n:'공항철도 (일반)',d:'김포공항 경유',t:'58분',m:'₩5M'}
+  ]}
+};
+
+// 기본 환승역 추가
+['seongsu','sadang','gyodae','gongdeok','yeouido','jongno3','chungmuro','nowon','cheongnyangni'].forEach(id=>{
+  if(!choices[id]) choices[id]={t:id+'역',s:'환승역입니다',o:[{l:'→',c:'#333',n:'계속 진행',d:'현재 호선 유지',t:'-',m:'-'}]};
+});
+
+let scale = 1;
+const inner = document.getElementById('mapInner');
+
+function modal(id) {
+  const c = choices[id]; if(!c) return;
+  document.getElementById('mTitle').textContent = c.t;
+  document.getElementById('mSub').textContent = c.s;
+  document.getElementById('mList').innerHTML = c.o.map(o=>`
+    <div class="ch-item" onclick="select('${o.l}')">
+      <div class="ch-badge" style="background:${o.c}">${o.l}</div>
+      <div class="ch-info"><div class="ch-name">${o.n}</div><div class="ch-desc">${o.d}</div></div>
+      <div class="ch-cost"><div class="ch-time">${o.t}</div><div class="ch-money">${o.m}</div></div>
+    </div>
+  `).join('');
+  document.getElementById('modal').classList.add('on');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('on'); }
+function select(l) { alert(l+' 선택됨\n\n실제 시스템에서는 경로가 변경됩니다.'); closeModal(); }
+function goBack() { history.back(); }
+function goMain() { location.href='main.html'; }
+
+function zoom(f) {
+  scale *= f;
+  scale = Math.max(0.4, Math.min(2.5, scale));
+  inner.style.transform = `scale(${scale})`;
+  inner.style.transformOrigin = 'center center';
+}
+function resetZoom() { scale=1; inner.style.transform='scale(1)'; }
+
+document.getElementById('modal').onclick = e => { if(e.target.id==='modal') closeModal(); };
+</script>
+</body>
+</html>
