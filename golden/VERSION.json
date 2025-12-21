@@ -1,0 +1,19 @@
+{
+  "version": "v1.0.0",
+  "created": "2025-12-21T16:54:40.983Z",
+  "environment": {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "deviceScaleFactor": 1,
+    "colorScheme": "dark",
+    "locale": "en-US",
+    "timezoneId": "Europe/London"
+  },
+  "states": [
+    "G1_NAV",
+    "G2_ALERT",
+    "G3_CONTROL"
+  ]
+}

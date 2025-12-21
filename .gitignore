@@ -36,3 +36,6 @@ Thumbs.db
 credentials.json
 *.pem
 *.key
+node_modules/
+test-results/
+playwright-report/

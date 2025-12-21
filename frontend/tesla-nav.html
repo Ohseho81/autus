@@ -1,903 +1,1830 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AUTUS Navigation</title>
+  <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+  <title>AUTUS — Tesla Nav UI</title>
+  <link rel="stylesheet" href="../ui/layers.css">
   <style>
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       AUTUS TESLA NAV UI — Golden Set Ready
+       1920×1080, DPR=1, sRGB
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     :root {
-      --tesla-bg: #1a1a1a;
-      --tesla-card: #2a2a2a;
-      --tesla-border: #3a3a3a;
-      --tesla-blue: #3e6ae1;
-      --tesla-red: #e82127;
-      --tesla-green: #32cd32;
-      --tesla-orange: #ff8c00;
-      --tesla-text: #ffffff;
-      --tesla-dim: #888888;
-      --road: #3a3a3a;
-      --road-line: #4a4a4a;
+      /* Tesla Colors */
+      --bg-dark: #0a0a0a;
+      --bg-panel: #1a1a1a;
+      --bg-card: #252525;
+      --bg-hover: #333333;
+      --border: #3a3a3a;
+      --text-primary: #ffffff;
+      --text-secondary: #888888;
+      --text-dim: #666666;
+      --accent-blue: #3e8ae1;
+      --accent-red: #e82127;
+      --accent-green: #32cd32;
+      --accent-orange: #ff8c00;
+      --accent-cyan: #00d4ff;
+      
+      /* Layout */
+      --left-panel-collapsed: 80px;
+      --left-panel-rail: 80px;
+      --left-panel-expanded: 320px;
+      --top-bar-height: 48px;
+      --bottom-bar-height: 72px;
+      
+      /* 7-Layer z-index (LOCKED) */
+      --z-L1: 10;
+      --z-L2: 20;
+      --z-L3: 30;
+      --z-L4: 40;
+      --z-L5: 50;
+      --z-L6: 60;
+      --z-L7: 70;
     }
+    
     html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .app {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       LAYER 1: BASE CANVAS (Map Background)
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    [data-layer="L1"] {
+      background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+    }
+    
+    .map-container {
+      position: absolute;
+      top: 0;
+      left: 380px;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+    }
+    
+    .map-canvas {
       width: 100%;
       height: 100%;
-      overflow: hidden;
-      background: var(--tesla-bg);
-      color: var(--tesla-text);
-      font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      position: relative;
     }
-
-    .app {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      height: 100dvh;
+    
+    .map-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(62, 138, 225, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(62, 138, 225, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
     }
-
-    /* ═══════════════════════════════════════════════════════════
-       TOP BAR - 목적지 & ETA
-       ═══════════════════════════════════════════════════════════ */
+    
+    .map-route {
+      position: absolute;
+      top: 50%;
+      left: 30%;
+      width: 60%;
+      height: 50%;
+      transform: translateY(-50%);
+    }
+    
+    .route-line {
+      fill: none;
+      stroke: var(--accent-cyan);
+      stroke-width: 6;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 8px var(--accent-cyan));
+    }
+    
+    .route-pulse {
+      fill: none;
+      stroke: var(--accent-cyan);
+      stroke-width: 12;
+      stroke-linecap: round;
+      opacity: 0.3;
+      animation: routePulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes routePulse {
+      0%, 100% { opacity: 0.3; stroke-width: 12; }
+      50% { opacity: 0.1; stroke-width: 20; }
+    }
+    
+    .map-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+    }
+    
+    .map-marker.current {
+      top: 60%;
+      left: 45%;
+    }
+    
+    .map-marker.destination {
+      top: 25%;
+      left: 75%;
+    }
+    
+    .marker-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 20px var(--accent-cyan);
+      animation: markerPulse 2s ease-in-out infinite;
+    }
+    
+    .marker-dot.destination {
+      background: var(--accent-green);
+      box-shadow: 0 0 20px var(--accent-green);
+    }
+    
+    @keyframes markerPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+    
+    .marker-label {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 8px;
+      padding: 4px 12px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    
+    .road-labels {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    
+    .road-label {
+      position: absolute;
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    
+    .road-label.primary {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       LAYER 2: ROUTE GEOMETRY
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    [data-layer="L2"] {
+      /* Route overlays rendered in L1 for simplicity */
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       LAYER 3: HUD CHROME (Top Bar)
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    [data-layer="L3"] {
+      pointer-events: none;
+    }
+    
     .top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--top-bar-height);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 16px;
+      padding: 0 24px;
       background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
+      pointer-events: auto;
     }
-    .destination-info {
+    
+    .hud-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .status-icons {
       display: flex;
       align-items: center;
       gap: 12px;
     }
-    .dest-icon {
-      width: 40px;
-      height: 40px;
-      background: var(--tesla-blue);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-    .dest-details {
-      display: flex;
-      flex-direction: column;
-    }
-    .dest-name {
-      font-size: 16px;
-      font-weight: 600;
-    }
-    .dest-address {
-      font-size: 12px;
-      color: var(--tesla-dim);
-    }
-    .eta-info {
-      text-align: right;
-    }
-    .eta-time {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--tesla-green);
-    }
-    .eta-label {
-      font-size: 11px;
-      color: var(--tesla-dim);
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       LEFT SIDEBAR - 주변 검색
-       ═══════════════════════════════════════════════════════════ */
-    .left-sidebar {
-      position: absolute;
-      left: 0;
-      top: 70px;
-      bottom: 120px;
-      width: 72px;
-      display: flex;
-      flex-direction: column;
-      padding: 8px;
-      gap: 4px;
-      z-index: 100;
-    }
-    .poi-btn {
-      width: 56px;
-      height: 56px;
-      background: var(--tesla-card);
-      border: 1px solid var(--tesla-border);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .poi-btn:hover {
-      background: #3a3a3a;
-      transform: scale(1.05);
-    }
-    .poi-btn.active {
-      border-color: var(--tesla-blue);
-      background: rgba(62, 106, 225, 0.2);
-    }
-    .poi-btn.alert {
-      border-color: var(--tesla-orange);
-      animation: alertPulse 2s infinite;
-    }
-    .poi-icon {
-      font-size: 20px;
-      margin-bottom: 2px;
-    }
-    .poi-label {
-      font-size: 8px;
-      color: var(--tesla-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .poi-badge {
-      position: absolute;
-      top: -4px;
-      right: -4px;
-      background: var(--tesla-red);
-      color: white;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 10px;
-      min-width: 18px;
-      text-align: center;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       MAP AREA - 경로 시각화
-       ═══════════════════════════════════════════════════════════ */
-    .map-area {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-      background: var(--tesla-bg);
-    }
-    .road-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
-    .road-svg {
-      width: 100%;
-      height: 100%;
-    }
-    .road-path {
-      fill: none;
-      stroke: var(--road);
-      stroke-width: 60;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    .road-center-line {
-      fill: none;
-      stroke: var(--road-line);
-      stroke-width: 2;
-      stroke-dasharray: 20 15;
-    }
-    .route-highlight {
-      fill: none;
-      stroke: var(--tesla-blue);
-      stroke-width: 8;
-      stroke-linecap: round;
-      filter: drop-shadow(0 0 10px var(--tesla-blue));
-      animation: routeFlow 2s linear infinite;
-    }
-    @keyframes routeFlow {
-      0% { stroke-dashoffset: 0; }
-      100% { stroke-dashoffset: -50; }
-    }
-    .route-highlight {
-      stroke-dasharray: 25 25;
-    }
-
-    /* Waypoints */
-    .waypoint {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .waypoint:hover {
-      transform: translate(-50%, -50%) scale(1.1);
-    }
-    .waypoint-marker {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
+    
+    .status-icon {
+      width: 24px;
+      height: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 16px;
-      font-weight: 700;
-      border: 3px solid;
+      opacity: 0.7;
     }
-    .waypoint-marker.origin {
-      background: var(--tesla-green);
-      border-color: var(--tesla-green);
-      color: #000;
+    
+    .status-icon.active {
+      opacity: 1;
+      color: var(--accent-blue);
     }
-    .waypoint-marker.destination {
-      background: var(--tesla-blue);
-      border-color: var(--tesla-blue);
+    
+    .status-icon.warning {
+      color: var(--accent-orange);
+      animation: iconPulse 1.5s ease-in-out infinite;
     }
-    .waypoint-marker.checkpoint {
-      background: var(--tesla-card);
-      border-color: var(--tesla-dim);
+    
+    .status-icon.alert {
+      color: var(--accent-red);
+      animation: iconPulse 0.8s ease-in-out infinite;
     }
-    .waypoint-marker.current {
-      background: var(--tesla-blue);
-      border-color: white;
-      box-shadow: 0 0 20px var(--tesla-blue);
-      animation: currentPulse 2s infinite;
+    
+    @keyframes iconPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
-    .waypoint-marker.warning {
-      background: var(--tesla-orange);
-      border-color: var(--tesla-orange);
-      animation: warningPulse 1.5s infinite;
-    }
-    .waypoint-marker.danger {
-      background: var(--tesla-red);
-      border-color: var(--tesla-red);
-      animation: dangerPulse 1s infinite;
-    }
-    .waypoint-label {
-      margin-top: 4px;
-      font-size: 11px;
-      color: var(--tesla-text);
-      background: rgba(0,0,0,0.7);
-      padding: 2px 8px;
-      border-radius: 4px;
-      white-space: nowrap;
-    }
-    .waypoint-distance {
-      font-size: 9px;
-      color: var(--tesla-dim);
-    }
-
-    /* Current Position Car */
-    .current-car {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      z-index: 50;
-    }
-    .car-icon {
-      width: 48px;
-      height: 48px;
-      background: var(--tesla-blue);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 0 30px var(--tesla-blue);
-      animation: carPulse 2s infinite;
-    }
-    .car-direction {
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 10px solid transparent;
-      border-right: 10px solid transparent;
-      border-bottom: 16px solid var(--tesla-blue);
-    }
-
-    /* POI Markers on Map */
-    .poi-marker {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .poi-marker:hover {
-      transform: translate(-50%, -50%) scale(1.2);
-    }
-    .poi-marker-icon {
-      width: 32px;
-      height: 32px;
-      background: var(--tesla-card);
-      border: 2px solid var(--tesla-border);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-    }
-    .poi-marker.charging .poi-marker-icon {
-      border-color: var(--tesla-green);
-      background: rgba(50, 205, 50, 0.2);
-    }
-    .poi-marker.rest .poi-marker-icon {
-      border-color: var(--tesla-blue);
-      background: rgba(62, 106, 225, 0.2);
-    }
-    .poi-marker.warning .poi-marker-icon {
-      border-color: var(--tesla-orange);
-      background: rgba(255, 140, 0, 0.2);
-    }
-
-    @keyframes currentPulse {
-      0%, 100% { box-shadow: 0 0 15px var(--tesla-blue); }
-      50% { box-shadow: 0 0 30px var(--tesla-blue); }
-    }
-    @keyframes warningPulse {
-      0%, 100% { box-shadow: 0 0 10px var(--tesla-orange); }
-      50% { box-shadow: 0 0 25px var(--tesla-orange); }
-    }
-    @keyframes dangerPulse {
-      0%, 100% { box-shadow: 0 0 15px var(--tesla-red); transform: translate(-50%, -50%) scale(1); }
-      50% { box-shadow: 0 0 30px var(--tesla-red); transform: translate(-50%, -50%) scale(1.1); }
-    }
-    @keyframes carPulse {
-      0%, 100% { box-shadow: 0 0 20px var(--tesla-blue); }
-      50% { box-shadow: 0 0 40px var(--tesla-blue); }
-    }
-    @keyframes alertPulse {
-      0%, 100% { border-color: var(--tesla-orange); }
-      50% { border-color: var(--tesla-red); }
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       TURN BY TURN - 다음 안내
-       ═══════════════════════════════════════════════════════════ */
-    .turn-guide {
-      position: absolute;
-      top: 80px;
-      right: 16px;
-      background: var(--tesla-card);
-      border: 1px solid var(--tesla-border);
-      border-radius: 12px;
-      padding: 12px 16px;
-      min-width: 180px;
-      z-index: 100;
-    }
-    .turn-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-    .turn-icon {
-      width: 40px;
-      height: 40px;
-      background: var(--tesla-blue);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-    .turn-distance {
-      font-size: 24px;
-      font-weight: 700;
-    }
-    .turn-unit {
-      font-size: 12px;
-      color: var(--tesla-dim);
-    }
-    .turn-instruction {
-      font-size: 13px;
-      color: var(--tesla-dim);
-    }
-    .turn-next {
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid var(--tesla-border);
-      font-size: 11px;
-      color: var(--tesla-dim);
+    
+    .hud-center {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .turn-next-icon {
-      font-size: 14px;
+    
+    .tesla-logo {
+      font-size: 18px;
+      color: var(--text-secondary);
     }
-
-    /* ═══════════════════════════════════════════════════════════
-       BOTTOM BAR - 상태 정보
-       ═══════════════════════════════════════════════════════════ */
-    .bottom-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%);
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-    }
-    .status-left {
+    
+    .hud-right {
       display: flex;
       align-items: center;
       gap: 20px;
     }
-    .speed-display {
-      text-align: center;
+    
+    .weather-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .speed-value {
-      font-size: 48px;
-      font-weight: 300;
-      line-height: 1;
+    
+    .weather-icon {
+      font-size: 18px;
     }
-    .speed-unit {
-      font-size: 12px;
-      color: var(--tesla-dim);
+    
+    .weather-temp {
+      font-size: 16px;
+      font-weight: 500;
     }
-    .energy-display {
+    
+    .time-display {
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       LAYER 4: PRIMARY PANEL (Left Panel)
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    [data-layer="L4"] {
+      width: var(--left-panel-rail);
+      transition: width 0.3s ease;
+    }
+    
+    [data-leftpanel="expanded"] [data-layer="L4"] {
+      width: var(--left-panel-expanded);
+    }
+    
+    [data-leftpanel="collapsed"] [data-layer="L4"] {
+      width: 0;
+      opacity: 0;
+    }
+    
+    .left-panel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      overflow: hidden;
     }
-    .energy-bar-container {
-      width: 120px;
-      height: 24px;
-      background: var(--tesla-card);
+    
+    /* Instrument Cluster */
+    .instrument-cluster {
+      height: 380px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .speedometer {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .speed-value {
+      font-size: 96px;
+      font-weight: 200;
+      line-height: 1;
+      letter-spacing: -4px;
+    }
+    
+    .speed-unit {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    
+    .gear-indicator {
+      display: flex;
+      gap: 16px;
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+    
+    .gear-indicator span {
+      opacity: 0.4;
+    }
+    
+    .gear-indicator span.active {
+      opacity: 1;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    
+    .battery-display {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .battery-bar {
+      width: 140px;
+      height: 16px;
+      background: var(--bg-card);
       border-radius: 4px;
       overflow: hidden;
       position: relative;
     }
-    .energy-bar-fill {
+    
+    .battery-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--tesla-green) 0%, #7fff00 100%);
-      transition: width 0.5s;
+      background: linear-gradient(90deg, var(--accent-green) 0%, #7fff00 100%);
+      border-radius: 4px;
+      transition: width 0.5s ease;
     }
-    .energy-bar-fill.low {
-      background: linear-gradient(90deg, var(--tesla-red) 0%, var(--tesla-orange) 100%);
+    
+    .battery-fill.low {
+      background: linear-gradient(90deg, var(--accent-red) 0%, var(--accent-orange) 100%);
     }
-    .energy-bar-fill.medium {
-      background: linear-gradient(90deg, var(--tesla-orange) 0%, #ffff00 100%);
+    
+    .battery-fill.medium {
+      background: linear-gradient(90deg, var(--accent-orange) 0%, #ffff00 100%);
     }
-    .energy-percent {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
+    
+    .battery-text {
       font-size: 14px;
       font-weight: 600;
     }
-    .energy-label {
-      font-size: 10px;
-      color: var(--tesla-dim);
-    }
-    .status-center {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .remaining-display {
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-    }
-    .remaining-value {
-      font-size: 32px;
-      font-weight: 600;
-    }
-    .remaining-unit {
-      font-size: 14px;
-      color: var(--tesla-dim);
-    }
-    .remaining-label {
-      font-size: 11px;
-      color: var(--tesla-dim);
-    }
-    .status-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-    }
-    .cost-display {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--tesla-orange);
-    }
-    .velocity-display {
+    
+    .battery-miles {
       font-size: 12px;
-      color: var(--tesla-red);
+      color: var(--text-secondary);
     }
-    .arrival-time {
-      font-size: 11px;
-      color: var(--tesla-dim);
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       POI PANEL (Slide-up)
-       ═══════════════════════════════════════════════════════════ */
-    .poi-panel {
-      position: absolute;
-      bottom: -300px;
-      left: 0;
-      right: 0;
-      height: 300px;
-      background: var(--tesla-card);
-      border-radius: 20px 20px 0 0;
-      transition: bottom 0.3s ease;
-      z-index: 200;
-      padding: 16px;
-    }
-    .poi-panel.open {
-      bottom: 0;
-    }
-    .poi-panel-header {
+    
+    /* Autopilot Icons */
+    .autopilot-icons {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 20px;
     }
-    .poi-panel-title {
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .poi-panel-close {
-      width: 32px;
-      height: 32px;
-      background: var(--tesla-bg);
-      border: none;
-      border-radius: 50%;
-      color: var(--tesla-text);
-      font-size: 18px;
-      cursor: pointer;
-    }
-    .poi-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 220px;
-      overflow-y: auto;
-    }
-    .poi-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: var(--tesla-bg);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .poi-item:hover {
-      background: #3a3a3a;
-    }
-    .poi-item-icon {
-      width: 44px;
-      height: 44px;
-      background: var(--tesla-card);
-      border-radius: 10px;
+    
+    .autopilot-icon {
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      font-size: 24px;
+      opacity: 0.4;
     }
-    .poi-item-info {
+    
+    .autopilot-icon.active {
+      opacity: 1;
+      color: var(--accent-blue);
+    }
+    
+    /* Vehicle Visualization */
+    .vehicle-viz {
       flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
     }
-    .poi-item-name {
-      font-size: 14px;
+    
+    .vehicle-svg {
+      width: 200px;
+      height: 280px;
+      opacity: 0.9;
+    }
+    
+    .vehicle-lane {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 200px;
+      perspective: 500px;
+    }
+    
+    .lane-line {
+      position: absolute;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(to bottom, transparent, var(--accent-cyan));
+      opacity: 0.6;
+    }
+    
+    .lane-line.left {
+      left: 0;
+      transform: rotateY(10deg);
+    }
+    
+    .lane-line.right {
+      right: 0;
+      transform: rotateY(-10deg);
+    }
+    
+    /* Bottom Controls */
+    .panel-controls {
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+    
+    .control-btn {
+      width: 48px;
+      height: 48px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .control-btn:hover {
+      background: var(--bg-hover);
+      transform: scale(1.05);
+    }
+    
+    .control-btn.active {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+    
+    /* Pagination dots */
+    .pagination-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+    }
+    
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      opacity: 0.4;
+    }
+    
+    .dot.active {
+      background: var(--text-primary);
+      opacity: 1;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       LAYER 5: MANEUVER CARD (Nav Card + Media)
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    [data-layer="L5"] {
+      transition: transform 0.3s ease;
+    }
+    
+    [data-maneuver="hidden"] [data-layer="L5"] {
+      transform: translateX(100%);
+    }
+    
+    [data-maneuver="collapsed"] [data-layer="L5"] {
+      transform: translateY(calc(100% - 180px));
+    }
+    
+    [data-maneuver="promoted"] [data-layer="L5"] {
+      filter: none;
+      transform: scale(1);
+    }
+    
+    .nav-card-container {
+      position: absolute;
+      top: 60px;
+      left: 100px;
+      width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .nav-header {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    
+    .nav-header-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .nav-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent-blue);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    
+    .nav-title {
+      flex: 1;
+      font-size: 16px;
       font-weight: 500;
     }
-    .poi-item-desc {
-      font-size: 11px;
-      color: var(--tesla-dim);
+    
+    .nav-arrow {
+      font-size: 20px;
+      color: var(--text-dim);
     }
-    .poi-item-distance {
+    
+    /* Turn Steps */
+    .turn-steps {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .turn-step {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .turn-step:last-child {
+      border-bottom: none;
+    }
+    
+    .turn-icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--accent-blue);
+    }
+    
+    .turn-info {
+      flex: 1;
+    }
+    
+    .turn-distance {
       font-size: 14px;
       font-weight: 600;
-      color: var(--tesla-blue);
     }
-
-    /* ═══════════════════════════════════════════════════════════
-       RESPONSIVE
-       ═══════════════════════════════════════════════════════════ */
-    @media (max-width: 380px) {
-      .speed-value { font-size: 36px; }
-      .remaining-value { font-size: 24px; }
-      .energy-bar-container { width: 80px; }
-      .turn-guide { min-width: 140px; padding: 8px 12px; }
+    
+    .turn-road {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .turn-charging {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .charging-icon {
+      font-size: 16px;
+      color: var(--accent-green);
+    }
+    
+    .charging-percent {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    /* Cancel Button */
+    .cancel-btn {
+      padding: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .cancel-btn:hover {
+      background: var(--bg-hover);
+    }
+    
+    /* Trip Summary */
+    .trip-summary {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    
+    .trip-item {
+      text-align: center;
+    }
+    
+    .trip-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .trip-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    
+    /* Center Info Card */
+    .center-card {
+      position: absolute;
+      top: 60px;
+      left: 480px;
+      width: 420px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    
+    .center-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .card-close {
+      width: 28px;
+      height: 28px;
+      background: var(--bg-dark);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    
+    .card-title {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .card-action {
+      font-size: 14px;
+      color: var(--accent-blue);
+      cursor: pointer;
+    }
+    
+    .center-card-body {
+      padding: 24px;
+      text-align: center;
+    }
+    
+    .model-name {
+      font-size: 36px;
+      font-weight: 300;
+      font-style: italic;
+      margin-bottom: 24px;
+    }
+    
+    .model-image {
+      width: 280px;
+      height: 140px;
+      background: linear-gradient(135deg, #333 0%, #222 100%);
+      border-radius: 8px;
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+    }
+    
+    .model-stats {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .stat-miles {
+      font-size: 28px;
+      font-weight: 300;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    /* Media Player */
+    .media-player {
+      position: absolute;
+      bottom: 100px;
+      left: 100px;
+      right: 100px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .media-artwork {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #444 0%, #222 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+    
+    .media-info {
+      flex: 1;
+    }
+    
+    .media-heart {
+      font-size: 18px;
+      color: var(--accent-red);
+      margin-bottom: 4px;
+    }
+    
+    .media-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .media-artist {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .media-album {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .media-progress {
+      width: 200px;
+      height: 4px;
+      background: var(--bg-dark);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    
+    .media-progress-fill {
+      height: 100%;
+      width: 45%;
+      background: var(--accent-blue);
+    }
+    
+    .media-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .media-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      opacity: 0.7;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    
+    .media-btn:hover {
+      opacity: 1;
+    }
+    
+    .media-btn.play {
+      width: 48px;
+      height: 48px;
+      background: var(--text-primary);
+      color: var(--bg-dark);
+      border-radius: 50%;
+      opacity: 1;
+    }
+    
+    .media-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .media-action {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      opacity: 0.5;
+      cursor: pointer;
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       LAYER 6: ALERTS & INTERVENTION
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    [data-layer="L6"] {
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    [data-mode="ALERT"] [data-layer="L6"] {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .alert-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(232, 33, 39, 0.15);
+      pointer-events: none;
+    }
+    
+    .alert-banner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(232, 33, 39, 0.9);
+      padding: 24px 48px;
+      border-radius: 12px;
+      text-align: center;
+      pointer-events: auto;
+    }
+    
+    .alert-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    .alert-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .alert-message {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 16px;
+    }
+    
+    .alert-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    /* Alert border pulse */
+    .alert-border {
+      position: absolute;
+      inset: 0;
+      border: 4px solid var(--accent-red);
+      pointer-events: none;
+      animation: alertBorderPulse 1s ease-in-out infinite;
+    }
+    
+    @keyframes alertBorderPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       LAYER 7: MODAL / SYSTEM OVERLAY (Quick Controls)
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    [data-layer="L7"] {
+      visibility: hidden;
+      background: rgba(0, 0, 0, 0.7);
+    }
+    
+    [data-mode="CONTROL"] [data-layer="L7"],
+    [data-mode="SETTINGS"] [data-layer="L7"] {
+      visibility: visible;
+    }
+    
+    .quick-controls {
+      position: absolute;
+      top: 60px;
+      left: 400px;
+      width: 480px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    
+    .qc-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .qc-close {
+      width: 28px;
+      height: 28px;
+      background: var(--bg-dark);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    
+    .qc-title {
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .qc-section {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .qc-section:last-child {
+      border-bottom: none;
+    }
+    
+    .qc-section-title {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Brightness Slider */
+    .brightness-slider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-dark);
+      border-radius: 8px;
+      padding: 8px 16px;
+    }
+    
+    .brightness-value {
+      padding: 6px 16px;
+      background: var(--bg-card);
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .brightness-track {
+      flex: 1;
+      height: 8px;
+      background: var(--bg-card);
+      border-radius: 4px;
+      position: relative;
+    }
+    
+    .brightness-fill {
+      width: 10%;
+      height: 100%;
+      background: var(--text-primary);
+      border-radius: 4px;
+    }
+    
+    .brightness-icon {
+      font-size: 20px;
+    }
+    
+    /* Light Controls */
+    .light-options {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-dark);
+      border-radius: 8px;
+      padding: 4px;
+      margin-bottom: 12px;
+    }
+    
+    .light-option {
+      flex: 1;
+      padding: 10px 16px;
+      text-align: center;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .light-option.active {
+      background: var(--bg-card);
+    }
+    
+    .fog-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: var(--bg-card);
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    /* Adjustments */
+    .adjustments-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .adjust-card {
+      padding: 20px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .adjust-card:hover {
+      background: var(--bg-hover);
+    }
+    
+    .adjust-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    
+    .adjust-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .fold-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg-card);
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    
+    /* Right Quick Menu */
+    .quick-menu {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      width: 200px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .qm-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .qm-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .qm-item:hover {
+      background: var(--bg-hover);
+    }
+    
+    .qm-icon {
+      width: 24px;
+      font-size: 18px;
+      text-align: center;
+    }
+    
+    .qm-label {
+      font-size: 14px;
+    }
+    
+    .qm-glovebox {
+      margin: 16px;
+      padding: 12px;
+      background: var(--bg-card);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    /* Map Controls */
+    .map-controls {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .map-control-btn {
+      width: 44px;
+      height: 44px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .map-control-btn:hover {
+      background: var(--bg-hover);
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       BOTTOM BAR
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    .bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--bottom-bar-height);
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      z-index: var(--z-L3);
+    }
+    
+    .bottom-btn {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 8px;
+    }
+    
+    .bottom-btn:hover {
+      background: var(--bg-hover);
+    }
+    
+    .bottom-btn.active {
+      color: var(--accent-blue);
+    }
+    
+    .bottom-icon {
+      font-size: 24px;
+    }
+    
+    .bottom-label {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    
+    .temp-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .temp-value {
+      font-size: 24px;
+      font-weight: 300;
+    }
+    
+    .temp-arrow {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    
+    .hvac-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .hvac-icon {
+      font-size: 24px;
+    }
+    
+    .hvac-label {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    
+    /* ═══════════════════════════════════════════════════════════════════════════════
+       GOLDEN RENDER MODE STYLES
+       ═══════════════════════════════════════════════════════════════════════════════ */
+    [data-golden="true"] * {
+      animation-duration: 0s !important;
+      animation-delay: 0s !important;
+      transition-duration: 0s !important;
+      transition-delay: 0s !important;
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <!-- TOP BAR -->
-    <div class="top-bar">
-      <div class="destination-info">
-        <div class="dest-icon">🎯</div>
-        <div class="dest-details">
-          <div class="dest-name">정착 완료</div>
-          <div class="dest-address">Settlement Complete • Decision #20</div>
-        </div>
-      </div>
-      <div class="eta-info">
-        <div class="eta-time" id="etaTime">14d</div>
-        <div class="eta-label">예상 도착</div>
-      </div>
-    </div>
-
-    <!-- LEFT SIDEBAR - POI -->
-    <div class="left-sidebar">
-      <div class="poi-btn" data-poi="charging" onclick="togglePOI('charging')">
-        <span class="poi-icon">⚡</span>
-        <span class="poi-label">충전</span>
-      </div>
-      <div class="poi-btn alert" data-poi="gas" onclick="togglePOI('gas')" style="position: relative;">
-        <span class="poi-badge">!</span>
-        <span class="poi-icon">⛽</span>
-        <span class="poi-label">자금</span>
-      </div>
-      <div class="poi-btn" data-poi="rest" onclick="togglePOI('rest')">
-        <span class="poi-icon">🏠</span>
-        <span class="poi-label">휴게소</span>
-      </div>
-      <div class="poi-btn" data-poi="food" onclick="togglePOI('food')">
-        <span class="poi-icon">🍽️</span>
-        <span class="poi-label">식당</span>
-      </div>
-      <div class="poi-btn" data-poi="hospital" onclick="togglePOI('hospital')">
-        <span class="poi-icon">🏥</span>
-        <span class="poi-label">의료</span>
-      </div>
-      <div class="poi-btn" data-poi="info" onclick="togglePOI('info')">
-        <span class="poi-icon">ℹ️</span>
-        <span class="poi-label">정보</span>
-      </div>
-    </div>
-
-    <!-- MAP AREA -->
-    <div class="map-area">
-      <div class="road-canvas">
-        <svg class="road-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
-          <!-- Road -->
-          <path class="road-path" d="M200,800 C200,650 180,550 200,450 C220,350 200,250 200,100 C200,50 200,0 200,0" />
-          <path class="road-center-line" d="M200,800 C200,650 180,550 200,450 C220,350 200,250 200,100 C200,50 200,0 200,0" />
-          <!-- Route Highlight -->
-          <path class="route-highlight" d="M200,750 C200,650 180,550 200,450 C220,350 200,250 200,150" />
-        </svg>
-      </div>
-
-      <!-- Waypoints -->
-      <div class="waypoint" style="left: 50%; top: 90%;">
-        <div class="waypoint-marker origin">S</div>
-        <div class="waypoint-label">진입 완료</div>
-      </div>
-      <div class="waypoint" style="left: 48%; top: 70%;">
-        <div class="waypoint-marker checkpoint">✓</div>
-        <div class="waypoint-label">준비 완료</div>
-      </div>
-      <div class="waypoint" style="left: 50%; top: 50%;">
-        <div class="waypoint-marker warning">E</div>
-        <div class="waypoint-label">석사 지속 #16</div>
-        <div class="waypoint-distance">현재 위치</div>
-      </div>
-      <div class="waypoint" style="left: 52%; top: 30%;">
-        <div class="waypoint-marker checkpoint">P</div>
-        <div class="waypoint-label">취업</div>
-        <div class="waypoint-distance">+45d</div>
-      </div>
-      <div class="waypoint" style="left: 50%; top: 12%;">
-        <div class="waypoint-marker destination">🎯</div>
-        <div class="waypoint-label">정착 완료</div>
-        <div class="waypoint-distance">+120d</div>
-      </div>
-
-      <!-- POI Markers -->
-      <div class="poi-marker charging" style="left: 35%; top: 60%;">
-        <div class="poi-marker-icon">⚡</div>
-      </div>
-      <div class="poi-marker rest" style="left: 65%; top: 45%;">
-        <div class="poi-marker-icon">🏠</div>
-      </div>
-      <div class="poi-marker warning" style="left: 30%; top: 35%;">
-        <div class="poi-marker-icon">⚠️</div>
-      </div>
-
-      <!-- Current Car Position -->
-      <div class="current-car" style="left: 50%; top: 55%;">
-        <div class="car-direction"></div>
-        <div class="car-icon">👤</div>
-      </div>
-    </div>
-
-    <!-- TURN GUIDE -->
-    <div class="turn-guide">
-      <div class="turn-header">
-        <div class="turn-icon">↗️</div>
-        <div>
-          <span class="turn-distance">14</span>
-          <span class="turn-unit">d</span>
-        </div>
-      </div>
-      <div class="turn-instruction">석사 학위 취득 후 취업 전환</div>
-      <div class="turn-next">
-        <span class="turn-next-icon">→</span>
-        <span>그 다음: 비자 전환 (T4)</span>
-      </div>
-    </div>
-
-    <!-- BOTTOM BAR -->
-    <div class="bottom-bar">
-      <div class="status-left">
-        <div class="speed-display">
-          <div class="speed-value" id="velocityValue">41</div>
-          <div class="speed-unit">₩K/d</div>
-        </div>
-        <div class="energy-display">
-          <div class="energy-bar-container">
-            <div class="energy-bar-fill medium" id="energyBar" style="width: 45%"></div>
-            <span class="energy-percent" id="energyPercent">45%</span>
+  <div class="app" id="app" data-mode="NAV" data-leftpanel="rail" data-maneuver="active">
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════════════
+         LAYER 1: BASE CANVAS (Map)
+         ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div data-layer="L1">
+      <div class="map-container">
+        <div class="map-canvas">
+          <div class="map-grid"></div>
+          
+          <!-- Route SVG -->
+          <svg class="map-route" viewBox="0 0 600 400">
+            <path class="route-pulse" d="M50,350 C100,300 150,250 200,220 C300,160 400,140 500,80 L550,50" />
+            <path class="route-line" d="M50,350 C100,300 150,250 200,220 C300,160 400,140 500,80 L550,50" />
+          </svg>
+          
+          <!-- Map Markers -->
+          <div class="map-marker current">
+            <div class="marker-dot"></div>
+            <div class="marker-label">현재 위치</div>
           </div>
-          <div class="energy-label">ENERGY</div>
+          <div class="map-marker destination">
+            <div class="marker-dot destination"></div>
+            <div class="marker-label">목적지</div>
+          </div>
+          
+          <!-- Road Labels -->
+          <div class="road-labels">
+            <div class="road-label primary" style="top: 20%; right: 15%;">Auchinairn Rd</div>
+            <div class="road-label" style="top: 35%; right: 10%;">M8</div>
+            <div class="road-label" style="top: 50%; right: 8%;">Edinburgh</div>
+            <div class="road-label" style="top: 65%; right: 12%;">Hallhill</div>
+            <div class="road-label" style="top: 25%; right: 25%;">Ave End Rd</div>
+          </div>
+          
+          <!-- Map Controls -->
+          <div class="map-controls">
+            <div class="map-control-btn">📍</div>
+            <div class="map-control-btn">+</div>
+            <div class="map-control-btn">−</div>
+            <div class="map-control-btn">⚙️</div>
+          </div>
         </div>
-      </div>
-      <div class="status-center">
-        <div class="remaining-display">
-          <span class="remaining-value" id="pnrValue">14</span>
-          <span class="remaining-unit">d</span>
-        </div>
-        <div class="remaining-label">PNR REMAINING</div>
-      </div>
-      <div class="status-right">
-        <div class="cost-display" id="resistanceValue">₩12.4M</div>
-        <div class="velocity-display" id="burnRate">+₩41K/day</div>
-        <div class="arrival-time">도착: 2026.04</div>
       </div>
     </div>
-
-    <!-- POI PANEL -->
-    <div class="poi-panel" id="poiPanel">
-      <div class="poi-panel-header">
-        <div class="poi-panel-title" id="poiPanelTitle">주변 충전소</div>
-        <button class="poi-panel-close" onclick="closePOI()">×</button>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════════════
+         LAYER 2: ROUTE GEOMETRY
+         ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div data-layer="L2"></div>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════════════
+         LAYER 3: HUD CHROME (Top Bar)
+         ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div data-layer="L3">
+      <div class="top-bar">
+        <div class="hud-left">
+          <div class="status-icons">
+            <div class="status-icon">🅿️</div>
+            <div class="status-icon warning">⚠️</div>
+            <div class="status-icon">🔔</div>
+            <div class="status-icon active">📶</div>
+            <div class="status-icon">4G</div>
+            <div class="status-icon alert">❗</div>
+            <div class="status-icon">📡</div>
+          </div>
+        </div>
+        <div class="hud-center">
+          <span class="tesla-logo">⚡</span>
+        </div>
+        <div class="hud-right">
+          <div class="weather-display">
+            <span class="weather-temp" id="hud-temp">17°C</span>
+          </div>
+          <div class="time-display" id="hud-time">10:21 AM</div>
+        </div>
       </div>
-      <div class="poi-list" id="poiList">
-        <!-- Dynamic content -->
+    </div>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════════════
+         LAYER 4: PRIMARY PANEL (Left - Instrument Cluster)
+         ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div data-layer="L4">
+      <div class="left-panel">
+        <!-- Instrument Cluster -->
+        <div class="instrument-cluster">
+          <div class="speedometer">
+            <div class="speed-value" id="speed-value">20</div>
+            <div class="speed-unit" id="speed-unit">MPH</div>
+          </div>
+          <div class="gear-indicator">
+            <span>P</span>
+            <span>R</span>
+            <span>N</span>
+            <span class="active" id="gear">D</span>
+          </div>
+          <div class="battery-display">
+            <div class="battery-bar">
+              <div class="battery-fill" id="battery-fill" style="width: 83%"></div>
+            </div>
+            <div>
+              <div class="battery-text" id="battery-miles">315 mi</div>
+            </div>
+          </div>
+          <div class="autopilot-icons">
+            <div class="autopilot-icon active">🚗</div>
+            <div class="autopilot-icon">30</div>
+            <div class="autopilot-icon active">🎯</div>
+          </div>
+        </div>
+        
+        <!-- Vehicle Visualization -->
+        <div class="vehicle-viz">
+          <div class="vehicle-lane">
+            <div class="lane-line left"></div>
+            <div class="lane-line right"></div>
+          </div>
+          <svg class="vehicle-svg" viewBox="0 0 100 140">
+            <!-- Simplified Tesla Model 3 top-down view -->
+            <ellipse cx="50" cy="70" rx="30" ry="55" fill="#444" />
+            <ellipse cx="50" cy="70" rx="25" ry="48" fill="#333" />
+            <rect x="35" y="35" width="30" height="20" rx="3" fill="#222" />
+            <rect x="38" y="90" width="24" height="15" rx="2" fill="#222" />
+            <!-- Headlights -->
+            <ellipse cx="35" cy="25" rx="8" ry="4" fill="#0af" opacity="0.8" />
+            <ellipse cx="65" cy="25" rx="8" ry="4" fill="#0af" opacity="0.8" />
+          </svg>
+        </div>
+        
+        <!-- Bottom Controls -->
+        <div class="panel-controls">
+          <div class="control-btn">📷</div>
+          <div class="control-btn">⚡</div>
+          <div class="control-btn">🎤</div>
+        </div>
+        
+        <div class="pagination-dots">
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
       </div>
+    </div>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════════════
+         LAYER 5: MANEUVER CARD (Nav Cards + Media)
+         ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div data-layer="L5">
+      <!-- Nav Card -->
+      <div class="nav-card-container">
+        <div class="nav-header">
+          <div class="nav-header-row">
+            <div class="nav-icon">◁</div>
+            <div class="nav-title">Navigate</div>
+            <div class="nav-arrow">›</div>
+          </div>
+        </div>
+        
+        <div class="turn-steps">
+          <div class="turn-step">
+            <div class="turn-icon">↖️</div>
+            <div class="turn-info">
+              <div class="turn-distance">0.5 mi</div>
+              <div class="turn-road">M80 J23</div>
+            </div>
+          </div>
+          <div class="turn-step">
+            <div class="turn-icon">↖️</div>
+            <div class="turn-info">
+              <div class="turn-distance">22.5 mi</div>
+              <div class="turn-road">Stirling</div>
+            </div>
+          </div>
+          <div class="turn-step">
+            <div class="turn-icon">↗️</div>
+            <div class="turn-info">
+              <div class="turn-distance">500ft</div>
+              <div class="turn-road">A87</div>
+            </div>
+          </div>
+          <div class="turn-step">
+            <div class="turn-icon">📍</div>
+            <div class="turn-info">
+              <div class="turn-distance">500ft</div>
+              <div class="turn-road">Ecotricity</div>
+            </div>
+            <div class="turn-charging">
+              <span class="charging-icon">⚡</span>
+              <span class="charging-percent">72%</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="cancel-btn">CANCEL TRIP</div>
+        
+        <div class="trip-summary">
+          <div class="trip-item">
+            <div class="trip-value" id="trip-distance">22.8 mi</div>
+          </div>
+          <div class="trip-item">
+            <div class="trip-value" id="trip-time">37 min</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Center Info Card -->
+      <div class="center-card">
+        <div class="center-card-header">
+          <div class="card-close">×</div>
+          <div class="card-title">About Your Tesla</div>
+          <div class="card-action">Alpha Omega</div>
+        </div>
+        <div class="center-card-body">
+          <div class="model-name">MODEL 3</div>
+          <div class="model-image">🚗</div>
+          <div class="model-stats">
+            <div class="stat-miles">172 mi</div>
+            <div class="stat-label">VIN #5YJ3B8E38GF1496679</div>
+            <div class="stat-label">v8.1 (2017.30 37ca7cf)</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Media Player -->
+      <div class="media-player">
+        <div class="media-artwork">🎵</div>
+        <div class="media-info">
+          <div class="media-heart">❤️</div>
+          <div class="media-title" id="media-title">Alpha Omega</div>
+          <div class="media-artist" id="media-artist">Karnivool</div>
+          <div class="media-album" id="media-album">Asymmetry</div>
+          <div class="media-progress">
+            <div class="media-progress-fill" id="media-progress" style="width: 45%"></div>
+          </div>
+        </div>
+        <div class="media-controls">
+          <div class="media-btn">⏮</div>
+          <div class="media-btn play">▶</div>
+          <div class="media-btn">⏭</div>
+          <div class="media-btn">🔍</div>
+          <div class="media-btn">⬆️</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════════════
+         LAYER 6: ALERTS & INTERVENTION
+         ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div data-layer="L6">
+      <div class="alert-overlay"></div>
+      <div class="alert-border"></div>
+      <div class="alert-banner">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-title" id="alert-title">FRICTION BOTTLENECK</div>
+        <div class="alert-message" id="alert-message">System taking over for route safety adjustment</div>
+        <div class="alert-value" id="alert-value">0.78</div>
+      </div>
+    </div>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════════════
+         LAYER 7: MODAL / QUICK CONTROLS
+         ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div data-layer="L7">
+      <!-- Quick Controls Panel -->
+      <div class="quick-controls">
+        <div class="qc-header">
+          <div class="qc-close">×</div>
+        </div>
+        
+        <div class="qc-section">
+          <div class="qc-section-title">☀️ Display Brightness</div>
+          <div class="brightness-slider">
+            <div class="brightness-value">10%</div>
+            <div class="brightness-track">
+              <div class="brightness-fill"></div>
+            </div>
+            <div class="brightness-icon">☀️</div>
+          </div>
+        </div>
+        
+        <div class="qc-section">
+          <div class="qc-section-title">💡 Exterior Lights</div>
+          <div class="light-options">
+            <div class="light-option">OFF</div>
+            <div class="light-option">PARKING</div>
+            <div class="light-option">ON</div>
+            <div class="light-option active">AUTO</div>
+          </div>
+          <div class="fog-btn">FRONT FOG</div>
+        </div>
+        
+        <div class="qc-section">
+          <div class="qc-section-title">⚙️ Adjustments</div>
+          <div class="adjustments-grid">
+            <div class="adjust-card">
+              <div class="adjust-icon">🪞</div>
+              <div class="adjust-label">MIRRORS</div>
+            </div>
+            <div class="adjust-card">
+              <div class="adjust-icon">🎡</div>
+              <div class="adjust-label">STEERING WHEEL</div>
+            </div>
+          </div>
+          <div class="fold-btn">FOLD MIRRORS</div>
+        </div>
+      </div>
+      
+      <!-- Right Quick Menu -->
+      <div class="quick-menu">
+        <div class="qm-header">⚙️ Quick Controls</div>
+        <div class="qm-item"><span class="qm-icon">💡</span><span class="qm-label">Lights</span></div>
+        <div class="qm-item"><span class="qm-icon">🔒</span><span class="qm-label">Locks</span></div>
+        <div class="qm-item"><span class="qm-icon">📺</span><span class="qm-label">Display</span></div>
+        <div class="qm-item"><span class="qm-icon">🚗</span><span class="qm-label">Driving</span></div>
+        <div class="qm-item"><span class="qm-icon">🎯</span><span class="qm-label">Autopilot</span></div>
+        <div class="qm-item"><span class="qm-icon">🛡️</span><span class="qm-label">Safety & Security</span></div>
+        <div class="qm-item"><span class="qm-icon">🔧</span><span class="qm-label">Service</span></div>
+        <div class="qm-glovebox">📦 GLOVEBOX</div>
+      </div>
+    </div>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════════════
+         BOTTOM BAR
+         ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div class="bottom-bar">
+      <div class="bottom-btn"><span class="bottom-icon">🚗</span></div>
+      <div class="bottom-btn active"><span class="bottom-icon">🔒</span></div>
+      <div class="bottom-btn"><span class="bottom-icon">⚡</span></div>
+      <div class="bottom-btn">
+        <div class="temp-display">
+          <span class="temp-arrow">^</span>
+          <span class="temp-value">20°</span>
+          <span class="temp-arrow">v</span>
+        </div>
+      </div>
+      <div class="hvac-btn">
+        <span class="hvac-icon">❄️</span>
+        <span class="hvac-label">MANUAL</span>
+      </div>
+      <div class="bottom-btn">
+        <div class="temp-display">
+          <span class="temp-arrow">^</span>
+          <span class="temp-value">20°</span>
+          <span class="temp-arrow">v</span>
+        </div>
+      </div>
+      <div class="bottom-btn"><span class="bottom-icon">💨</span></div>
+      <div class="bottom-btn"><span class="bottom-icon">🎵</span></div>
+      <div class="bottom-btn"><span class="bottom-icon">📱</span></div>
+      <div class="bottom-btn"><span class="bottom-icon">🔊</span></div>
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════════════════════════════
+       GOLDEN RENDER MODE SCRIPT
+       ═══════════════════════════════════════════════════════════════════════════════ -->
   <script>
-    // POI Data
-    const poiData = {
-      charging: {
-        title: '에너지 충전',
-        items: [
-          { icon: '💰', name: '장학금 (한국장학재단)', desc: '월 50만원 지원', distance: '+₩6M/year' },
-          { icon: '🎓', name: '연구비 (BK21)', desc: '석사 연구 지원금', distance: '+₩3M/year' },
-          { icon: '💼', name: '인턴십 급여', desc: '주 20시간 근무', distance: '+₩2.5M/month' },
-        ]
-      },
-      gas: {
-        title: '자금 보충',
-        items: [
-          { icon: '🏦', name: '학자금 대출', desc: '긴급 자금 확보', distance: '₩10M 가능' },
-          { icon: '💳', name: '비상 자금', desc: '예비비 사용', distance: '₩2M 잔액' },
-          { icon: '👨‍👩‍👧', name: '가족 지원', desc: '송금 요청', distance: '협의 필요' },
-        ]
-      },
-      rest: {
-        title: '휴게소',
-        items: [
-          { icon: '🏠', name: '방학 휴식', desc: '에너지 회복 기간', distance: '2주' },
-          { icon: '✈️', name: '일시 귀국', desc: '가족 방문', distance: '1주' },
-          { icon: '🧘', name: '멘탈 케어', desc: '상담 서비스', distance: '무료' },
-        ]
-      },
-      food: {
-        title: '생활 지원',
-        items: [
-          { icon: '🍱', name: '학생 식당', desc: '저렴한 식사', distance: '₩4K/식' },
-          { icon: '🏪', name: '생활협동조합', desc: '할인 물품', distance: '10% 할인' },
-          { icon: '📦', name: '푸드뱅크', desc: '무료 식품 지원', distance: '신청 가능' },
-        ]
-      },
-      hospital: {
-        title: '의료/건강',
-        items: [
-          { icon: '🏥', name: '학교 보건소', desc: '기본 진료', distance: '무료' },
-          { icon: '💊', name: '국민건강보험', desc: '의료비 지원', distance: '70% 지원' },
-          { icon: '🧠', name: '심리상담센터', desc: '전문 상담', distance: '무료 5회' },
-        ]
-      },
-      info: {
-        title: '정보 센터',
-        items: [
-          { icon: '📋', name: '비자 정보', desc: 'D-2 → E-7 전환 안내', distance: '필수 확인' },
-          { icon: '📊', name: '취업 정보', desc: '외국인 채용 기업', distance: '128개 기업' },
-          { icon: '📞', name: '긴급 연락처', desc: '출입국관리사무소', distance: '1345' },
-        ]
-      }
+    /**
+     * AUTUS LayerSet 상태기계 (inline)
+     */
+    const LAYERSETS = {
+      DRIVE:    { L1:true, L2:true, L3:true, L4:true, L5:true, L6:false, L7:false, leftPanel:"rail",     maneuver:"collapsed" },
+      NAV:      { L1:true, L2:true, L3:true, L4:true, L5:true, L6:false, L7:false, leftPanel:"rail",     maneuver:"active" },
+      ALERT:    { L1:true, L2:true, L3:true, L4:true, L5:true, L6:true,  L7:false, leftPanel:"rail",     maneuver:"promoted" },
+      CONTROL:  { L1:true, L2:true, L3:true, L4:true, L5:true, L6:false, L7:true,  leftPanel:"expanded", maneuver:"collapsed" },
+      SETTINGS: { L1:true, L2:false,L3:true, L4:false,L5:false,L6:false, L7:true,  leftPanel:"collapsed",maneuver:"hidden" }
     };
 
-    let currentPOI = null;
+    function applyLayerSet(mode) {
+      const root = document.getElementById('app');
+      const s = LAYERSETS[mode];
+      if (!s) return;
 
-    function togglePOI(type) {
-      const panel = document.getElementById('poiPanel');
-      const btns = document.querySelectorAll('.poi-btn');
-      
-      // Toggle button active state
-      btns.forEach(btn => btn.classList.remove('active'));
-      
-      if (currentPOI === type) {
-        panel.classList.remove('open');
-        currentPOI = null;
+      root.setAttribute('data-mode', mode);
+      root.setAttribute('data-leftpanel', s.leftPanel);
+      root.setAttribute('data-maneuver', s.maneuver);
+
+      ['L1','L2','L3','L4','L5','L6','L7'].forEach(layer => {
+        const el = root.querySelector(`[data-layer="${layer}"]`);
+        if (el) el.style.visibility = s[layer] ? 'visible' : 'hidden';
+      });
+    }
+
+    /**
+     * Golden Render Mode
+     * - window.__AUTUS_GOLDEN__ 읽어서 UI 고정 렌더
+     */
+    function applyGoldenData(data) {
+      const root = document.getElementById('app');
+      root.setAttribute('data-golden', 'true');
+
+      // Mode 적용
+      if (data.mode) {
+        applyLayerSet(data.mode);
+      }
+
+      // Time
+      if (data.time) {
+        const timeEl = document.getElementById('hud-time');
+        if (timeEl) timeEl.textContent = data.time;
+      }
+
+      // Temperature
+      if (data.tempC !== undefined) {
+        const tempEl = document.getElementById('hud-temp');
+        if (tempEl) tempEl.textContent = data.tempC + '°C';
+      }
+
+      // Speed
+      if (data.speed) {
+        const speedEl = document.getElementById('speed-value');
+        const speedUnitEl = document.getElementById('speed-unit');
+        if (speedEl) speedEl.textContent = data.speed.value;
+        if (speedUnitEl) speedUnitEl.textContent = data.speed.unit;
+      }
+
+      // Gear
+      if (data.gear) {
+        const gearEl = document.getElementById('gear');
+        if (gearEl) gearEl.textContent = data.gear;
+      }
+
+      // Battery
+      if (data.batteryMiles !== undefined) {
+        const milesEl = document.getElementById('battery-miles');
+        const fillEl = document.getElementById('battery-fill');
+        if (milesEl) milesEl.textContent = data.batteryMiles + ' mi';
+        if (fillEl) fillEl.style.width = Math.min(100, data.batteryMiles / 400 * 100) + '%';
+      }
+
+      // Route
+      if (data.route) {
+        const distEl = document.getElementById('trip-distance');
+        const timeEl = document.getElementById('trip-time');
+        if (distEl) distEl.textContent = data.route.distanceMi + ' mi';
+        if (timeEl) timeEl.textContent = data.route.etaMin + ' min';
+      }
+
+      // Media
+      if (data.media) {
+        const titleEl = document.getElementById('media-title');
+        const artistEl = document.getElementById('media-artist');
+        const albumEl = document.getElementById('media-album');
+        const progressEl = document.getElementById('media-progress');
+        if (titleEl) titleEl.textContent = data.media.title;
+        if (artistEl) artistEl.textContent = data.media.artist;
+        if (albumEl) albumEl.textContent = data.media.album;
+        if (progressEl) progressEl.style.width = (data.media.progress * 100) + '%';
+      }
+
+      // Alert
+      if (data.alert) {
+        const titleEl = document.getElementById('alert-title');
+        const msgEl = document.getElementById('alert-message');
+        const valEl = document.getElementById('alert-value');
+        if (titleEl) titleEl.textContent = data.alert.code.replace(/_/g, ' ');
+        if (msgEl) msgEl.textContent = data.alert.message || 'System intervention active';
+        if (valEl) valEl.textContent = data.alert.value;
+      }
+    }
+
+    /**
+     * 초기화
+     */
+    function init() {
+      // Golden 모드 체크
+      if (window.__AUTUS_GOLDEN__) {
+        applyGoldenData(window.__AUTUS_GOLDEN__);
         return;
       }
-      
-      document.querySelector(`[data-poi="${type}"]`).classList.add('active');
-      currentPOI = type;
-      
-      // Update panel content
-      const data = poiData[type];
-      document.getElementById('poiPanelTitle').textContent = data.title;
-      document.getElementById('poiList').innerHTML = data.items.map(item => `
-        <div class="poi-item">
-          <div class="poi-item-icon">${item.icon}</div>
-          <div class="poi-item-info">
-            <div class="poi-item-name">${item.name}</div>
-            <div class="poi-item-desc">${item.desc}</div>
-          </div>
-          <div class="poi-item-distance">${item.distance}</div>
-        </div>
-      `).join('');
-      
-      panel.classList.add('open');
+
+      // 기본 NAV 모드
+      applyLayerSet('NAV');
+
+      // 키보드 모드 전환 (개발용)
+      document.addEventListener('keydown', (e) => {
+        switch(e.key) {
+          case '1': applyLayerSet('NAV'); break;
+          case '2': applyLayerSet('ALERT'); break;
+          case '3': applyLayerSet('CONTROL'); break;
+          case '4': applyLayerSet('SETTINGS'); break;
+        }
+      });
     }
 
-    function closePOI() {
-      const panel = document.getElementById('poiPanel');
-      const btns = document.querySelectorAll('.poi-btn');
-      
-      panel.classList.remove('open');
-      btns.forEach(btn => btn.classList.remove('active'));
-      currentPOI = null;
+    // Custom event listener for state injection
+    window.addEventListener('autus:state-change', (e) => {
+      if (e.detail) applyGoldenData(e.detail);
+    });
+
+    // DOM Ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
     }
-
-    // Subject data from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const subjectId = urlParams.get('id') || 'S001';
-
-    const subjects = {
-      'S001': { name: 'Kim', pnr: 7, energy: 45, resistance: 15.2, velocity: 52, status: 'critical' },
-      'S002': { name: 'Lee', pnr: 14, energy: 68, resistance: 12.4, velocity: 41, status: 'warning' },
-      'S003': { name: 'Park', pnr: 45, energy: 85, resistance: 8.5, velocity: 22, status: 'safe' },
-    };
-
-    const subject = subjects[subjectId] || subjects['S001'];
-
-    // Update UI
-    function updateUI() {
-      document.getElementById('etaTime').textContent = subject.pnr + 'd';
-      document.getElementById('pnrValue').textContent = subject.pnr;
-      document.getElementById('energyPercent').textContent = subject.energy + '%';
-      document.getElementById('energyBar').style.width = subject.energy + '%';
-      document.getElementById('energyBar').className = 'energy-bar-fill ' + 
-        (subject.energy >= 70 ? '' : subject.energy >= 40 ? 'medium' : 'low');
-      document.getElementById('velocityValue').textContent = subject.velocity;
-      document.getElementById('resistanceValue').textContent = '₩' + subject.resistance + 'M';
-      document.getElementById('burnRate').textContent = '+₩' + subject.velocity + 'K/day';
-    }
-
-    updateUI();
   </script>
 </body>
 </html>
