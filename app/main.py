@@ -411,6 +411,13 @@ def startup():
 
 @app.get("/")
 def root():
+    """루트 접속 시 프론트엔드로 리다이렉트"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/frontend/", status_code=302)
+
+@app.get("/api")
+def api_root():
+    """API 상태 확인"""
     return {"status": "AUTUS v1.1", "features": ["persistence", "actors", "audit"], "security": bool(AUTUS_API_KEY)}
 
 @app.get("/health")
