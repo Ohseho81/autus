@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AUTUS Navigation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --tesla-bg: #1a1a1a;
+      --tesla-card: #2a2a2a;
+      --tesla-border: #3a3a3a;
+      --tesla-blue: #3e6ae1;
+      --tesla-red: #e82127;
+      --tesla-green: #32cd32;
+      --tesla-orange: #ff8c00;
+      --tesla-text: #ffffff;
+      --tesla-dim: #888888;
+      --road: #3a3a3a;
+      --road-line: #4a4a4a;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--tesla-bg);
+      color: var(--tesla-text);
+      font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       TOP BAR - 목적지 & ETA
+       ═══════════════════════════════════════════════════════════ */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    .destination-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .dest-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--tesla-blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .dest-details {
+      display: flex;
+      flex-direction: column;
+    }
+    .dest-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .dest-address {
+      font-size: 12px;
+      color: var(--tesla-dim);
+    }
+    .eta-info {
+      text-align: right;
+    }
+    .eta-time {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--tesla-green);
+    }
+    .eta-label {
+      font-size: 11px;
+      color: var(--tesla-dim);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       LEFT SIDEBAR - 주변 검색
+       ═══════════════════════════════════════════════════════════ */
+    .left-sidebar {
+      position: absolute;
+      left: 0;
+      top: 70px;
+      bottom: 120px;
+      width: 72px;
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      gap: 4px;
+      z-index: 100;
+    }
+    .poi-btn {
+      width: 56px;
+      height: 56px;
+      background: var(--tesla-card);
+      border: 1px solid var(--tesla-border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .poi-btn:hover {
+      background: #3a3a3a;
+      transform: scale(1.05);
+    }
+    .poi-btn.active {
+      border-color: var(--tesla-blue);
+      background: rgba(62, 106, 225, 0.2);
+    }
+    .poi-btn.alert {
+      border-color: var(--tesla-orange);
+      animation: alertPulse 2s infinite;
+    }
+    .poi-icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+    .poi-label {
+      font-size: 8px;
+      color: var(--tesla-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .poi-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--tesla-red);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MAP AREA - 경로 시각화
+       ═══════════════════════════════════════════════════════════ */
+    .map-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: var(--tesla-bg);
+    }
+    .road-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+    .road-svg {
+      width: 100%;
+      height: 100%;
+    }
+    .road-path {
+      fill: none;
+      stroke: var(--road);
+      stroke-width: 60;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .road-center-line {
+      fill: none;
+      stroke: var(--road-line);
+      stroke-width: 2;
+      stroke-dasharray: 20 15;
+    }
+    .route-highlight {
+      fill: none;
+      stroke: var(--tesla-blue);
+      stroke-width: 8;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 10px var(--tesla-blue));
+      animation: routeFlow 2s linear infinite;
+    }
+    @keyframes routeFlow {
+      0% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: -50; }
+    }
+    .route-highlight {
+      stroke-dasharray: 25 25;
+    }
+
+    /* Waypoints */
+    .waypoint {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .waypoint:hover {
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+    .waypoint-marker {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      border: 3px solid;
+    }
+    .waypoint-marker.origin {
+      background: var(--tesla-green);
+      border-color: var(--tesla-green);
+      color: #000;
+    }
+    .waypoint-marker.destination {
+      background: var(--tesla-blue);
+      border-color: var(--tesla-blue);
+    }
+    .waypoint-marker.checkpoint {
+      background: var(--tesla-card);
+      border-color: var(--tesla-dim);
+    }
+    .waypoint-marker.current {
+      background: var(--tesla-blue);
+      border-color: white;
+      box-shadow: 0 0 20px var(--tesla-blue);
+      animation: currentPulse 2s infinite;
+    }
+    .waypoint-marker.warning {
+      background: var(--tesla-orange);
+      border-color: var(--tesla-orange);
+      animation: warningPulse 1.5s infinite;
+    }
+    .waypoint-marker.danger {
+      background: var(--tesla-red);
+      border-color: var(--tesla-red);
+      animation: dangerPulse 1s infinite;
+    }
+    .waypoint-label {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--tesla-text);
+      background: rgba(0,0,0,0.7);
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .waypoint-distance {
+      font-size: 9px;
+      color: var(--tesla-dim);
+    }
+
+    /* Current Position Car */
+    .current-car {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 50;
+    }
+    .car-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--tesla-blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 0 30px var(--tesla-blue);
+      animation: carPulse 2s infinite;
+    }
+    .car-direction {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 16px solid var(--tesla-blue);
+    }
+
+    /* POI Markers on Map */
+    .poi-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .poi-marker:hover {
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+    .poi-marker-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--tesla-card);
+      border: 2px solid var(--tesla-border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .poi-marker.charging .poi-marker-icon {
+      border-color: var(--tesla-green);
+      background: rgba(50, 205, 50, 0.2);
+    }
+    .poi-marker.rest .poi-marker-icon {
+      border-color: var(--tesla-blue);
+      background: rgba(62, 106, 225, 0.2);
+    }
+    .poi-marker.warning .poi-marker-icon {
+      border-color: var(--tesla-orange);
+      background: rgba(255, 140, 0, 0.2);
+    }
+
+    @keyframes currentPulse {
+      0%, 100% { box-shadow: 0 0 15px var(--tesla-blue); }
+      50% { box-shadow: 0 0 30px var(--tesla-blue); }
+    }
+    @keyframes warningPulse {
+      0%, 100% { box-shadow: 0 0 10px var(--tesla-orange); }
+      50% { box-shadow: 0 0 25px var(--tesla-orange); }
+    }
+    @keyframes dangerPulse {
+      0%, 100% { box-shadow: 0 0 15px var(--tesla-red); transform: translate(-50%, -50%) scale(1); }
+      50% { box-shadow: 0 0 30px var(--tesla-red); transform: translate(-50%, -50%) scale(1.1); }
+    }
+    @keyframes carPulse {
+      0%, 100% { box-shadow: 0 0 20px var(--tesla-blue); }
+      50% { box-shadow: 0 0 40px var(--tesla-blue); }
+    }
+    @keyframes alertPulse {
+      0%, 100% { border-color: var(--tesla-orange); }
+      50% { border-color: var(--tesla-red); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       TURN BY TURN - 다음 안내
+       ═══════════════════════════════════════════════════════════ */
+    .turn-guide {
+      position: absolute;
+      top: 80px;
+      right: 16px;
+      background: var(--tesla-card);
+      border: 1px solid var(--tesla-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      min-width: 180px;
+      z-index: 100;
+    }
+    .turn-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .turn-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--tesla-blue);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .turn-distance {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .turn-unit {
+      font-size: 12px;
+      color: var(--tesla-dim);
+    }
+    .turn-instruction {
+      font-size: 13px;
+      color: var(--tesla-dim);
+    }
+    .turn-next {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--tesla-border);
+      font-size: 11px;
+      color: var(--tesla-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .turn-next-icon {
+      font-size: 14px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       BOTTOM BAR - 상태 정보
+       ═══════════════════════════════════════════════════════════ */
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .speed-display {
+      text-align: center;
+    }
+    .speed-value {
+      font-size: 48px;
+      font-weight: 300;
+      line-height: 1;
+    }
+    .speed-unit {
+      font-size: 12px;
+      color: var(--tesla-dim);
+    }
+    .energy-display {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .energy-bar-container {
+      width: 120px;
+      height: 24px;
+      background: var(--tesla-card);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .energy-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--tesla-green) 0%, #7fff00 100%);
+      transition: width 0.5s;
+    }
+    .energy-bar-fill.low {
+      background: linear-gradient(90deg, var(--tesla-red) 0%, var(--tesla-orange) 100%);
+    }
+    .energy-bar-fill.medium {
+      background: linear-gradient(90deg, var(--tesla-orange) 0%, #ffff00 100%);
+    }
+    .energy-percent {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .energy-label {
+      font-size: 10px;
+      color: var(--tesla-dim);
+    }
+    .status-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .remaining-display {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .remaining-value {
+      font-size: 32px;
+      font-weight: 600;
+    }
+    .remaining-unit {
+      font-size: 14px;
+      color: var(--tesla-dim);
+    }
+    .remaining-label {
+      font-size: 11px;
+      color: var(--tesla-dim);
+    }
+    .status-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .cost-display {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--tesla-orange);
+    }
+    .velocity-display {
+      font-size: 12px;
+      color: var(--tesla-red);
+    }
+    .arrival-time {
+      font-size: 11px;
+      color: var(--tesla-dim);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       POI PANEL (Slide-up)
+       ═══════════════════════════════════════════════════════════ */
+    .poi-panel {
+      position: absolute;
+      bottom: -300px;
+      left: 0;
+      right: 0;
+      height: 300px;
+      background: var(--tesla-card);
+      border-radius: 20px 20px 0 0;
+      transition: bottom 0.3s ease;
+      z-index: 200;
+      padding: 16px;
+    }
+    .poi-panel.open {
+      bottom: 0;
+    }
+    .poi-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .poi-panel-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .poi-panel-close {
+      width: 32px;
+      height: 32px;
+      background: var(--tesla-bg);
+      border: none;
+      border-radius: 50%;
+      color: var(--tesla-text);
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .poi-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .poi-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--tesla-bg);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .poi-item:hover {
+      background: #3a3a3a;
+    }
+    .poi-item-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--tesla-card);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .poi-item-info {
+      flex: 1;
+    }
+    .poi-item-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .poi-item-desc {
+      font-size: 11px;
+      color: var(--tesla-dim);
+    }
+    .poi-item-distance {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--tesla-blue);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 380px) {
+      .speed-value { font-size: 36px; }
+      .remaining-value { font-size: 24px; }
+      .energy-bar-container { width: 80px; }
+      .turn-guide { min-width: 140px; padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <div class="destination-info">
+        <div class="dest-icon">🎯</div>
+        <div class="dest-details">
+          <div class="dest-name">정착 완료</div>
+          <div class="dest-address">Settlement Complete • Decision #20</div>
+        </div>
+      </div>
+      <div class="eta-info">
+        <div class="eta-time" id="etaTime">14d</div>
+        <div class="eta-label">예상 도착</div>
+      </div>
+    </div>
+
+    <!-- LEFT SIDEBAR - POI -->
+    <div class="left-sidebar">
+      <div class="poi-btn" data-poi="charging" onclick="togglePOI('charging')">
+        <span class="poi-icon">⚡</span>
+        <span class="poi-label">충전</span>
+      </div>
+      <div class="poi-btn alert" data-poi="gas" onclick="togglePOI('gas')" style="position: relative;">
+        <span class="poi-badge">!</span>
+        <span class="poi-icon">⛽</span>
+        <span class="poi-label">자금</span>
+      </div>
+      <div class="poi-btn" data-poi="rest" onclick="togglePOI('rest')">
+        <span class="poi-icon">🏠</span>
+        <span class="poi-label">휴게소</span>
+      </div>
+      <div class="poi-btn" data-poi="food" onclick="togglePOI('food')">
+        <span class="poi-icon">🍽️</span>
+        <span class="poi-label">식당</span>
+      </div>
+      <div class="poi-btn" data-poi="hospital" onclick="togglePOI('hospital')">
+        <span class="poi-icon">🏥</span>
+        <span class="poi-label">의료</span>
+      </div>
+      <div class="poi-btn" data-poi="info" onclick="togglePOI('info')">
+        <span class="poi-icon">ℹ️</span>
+        <span class="poi-label">정보</span>
+      </div>
+    </div>
+
+    <!-- MAP AREA -->
+    <div class="map-area">
+      <div class="road-canvas">
+        <svg class="road-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+          <!-- Road -->
+          <path class="road-path" d="M200,800 C200,650 180,550 200,450 C220,350 200,250 200,100 C200,50 200,0 200,0" />
+          <path class="road-center-line" d="M200,800 C200,650 180,550 200,450 C220,350 200,250 200,100 C200,50 200,0 200,0" />
+          <!-- Route Highlight -->
+          <path class="route-highlight" d="M200,750 C200,650 180,550 200,450 C220,350 200,250 200,150" />
+        </svg>
+      </div>
+
+      <!-- Waypoints -->
+      <div class="waypoint" style="left: 50%; top: 90%;">
+        <div class="waypoint-marker origin">S</div>
+        <div class="waypoint-label">진입 완료</div>
+      </div>
+      <div class="waypoint" style="left: 48%; top: 70%;">
+        <div class="waypoint-marker checkpoint">✓</div>
+        <div class="waypoint-label">준비 완료</div>
+      </div>
+      <div class="waypoint" style="left: 50%; top: 50%;">
+        <div class="waypoint-marker warning">E</div>
+        <div class="waypoint-label">석사 지속 #16</div>
+        <div class="waypoint-distance">현재 위치</div>
+      </div>
+      <div class="waypoint" style="left: 52%; top: 30%;">
+        <div class="waypoint-marker checkpoint">P</div>
+        <div class="waypoint-label">취업</div>
+        <div class="waypoint-distance">+45d</div>
+      </div>
+      <div class="waypoint" style="left: 50%; top: 12%;">
+        <div class="waypoint-marker destination">🎯</div>
+        <div class="waypoint-label">정착 완료</div>
+        <div class="waypoint-distance">+120d</div>
+      </div>
+
+      <!-- POI Markers -->
+      <div class="poi-marker charging" style="left: 35%; top: 60%;">
+        <div class="poi-marker-icon">⚡</div>
+      </div>
+      <div class="poi-marker rest" style="left: 65%; top: 45%;">
+        <div class="poi-marker-icon">🏠</div>
+      </div>
+      <div class="poi-marker warning" style="left: 30%; top: 35%;">
+        <div class="poi-marker-icon">⚠️</div>
+      </div>
+
+      <!-- Current Car Position -->
+      <div class="current-car" style="left: 50%; top: 55%;">
+        <div class="car-direction"></div>
+        <div class="car-icon">👤</div>
+      </div>
+    </div>
+
+    <!-- TURN GUIDE -->
+    <div class="turn-guide">
+      <div class="turn-header">
+        <div class="turn-icon">↗️</div>
+        <div>
+          <span class="turn-distance">14</span>
+          <span class="turn-unit">d</span>
+        </div>
+      </div>
+      <div class="turn-instruction">석사 학위 취득 후 취업 전환</div>
+      <div class="turn-next">
+        <span class="turn-next-icon">→</span>
+        <span>그 다음: 비자 전환 (T4)</span>
+      </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar">
+      <div class="status-left">
+        <div class="speed-display">
+          <div class="speed-value" id="velocityValue">41</div>
+          <div class="speed-unit">₩K/d</div>
+        </div>
+        <div class="energy-display">
+          <div class="energy-bar-container">
+            <div class="energy-bar-fill medium" id="energyBar" style="width: 45%"></div>
+            <span class="energy-percent" id="energyPercent">45%</span>
+          </div>
+          <div class="energy-label">ENERGY</div>
+        </div>
+      </div>
+      <div class="status-center">
+        <div class="remaining-display">
+          <span class="remaining-value" id="pnrValue">14</span>
+          <span class="remaining-unit">d</span>
+        </div>
+        <div class="remaining-label">PNR REMAINING</div>
+      </div>
+      <div class="status-right">
+        <div class="cost-display" id="resistanceValue">₩12.4M</div>
+        <div class="velocity-display" id="burnRate">+₩41K/day</div>
+        <div class="arrival-time">도착: 2026.04</div>
+      </div>
+    </div>
+
+    <!-- POI PANEL -->
+    <div class="poi-panel" id="poiPanel">
+      <div class="poi-panel-header">
+        <div class="poi-panel-title" id="poiPanelTitle">주변 충전소</div>
+        <button class="poi-panel-close" onclick="closePOI()">×</button>
+      </div>
+      <div class="poi-list" id="poiList">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // POI Data
+    const poiData = {
+      charging: {
+        title: '에너지 충전',
+        items: [
+          { icon: '💰', name: '장학금 (한국장학재단)', desc: '월 50만원 지원', distance: '+₩6M/year' },
+          { icon: '🎓', name: '연구비 (BK21)', desc: '석사 연구 지원금', distance: '+₩3M/year' },
+          { icon: '💼', name: '인턴십 급여', desc: '주 20시간 근무', distance: '+₩2.5M/month' },
+        ]
+      },
+      gas: {
+        title: '자금 보충',
+        items: [
+          { icon: '🏦', name: '학자금 대출', desc: '긴급 자금 확보', distance: '₩10M 가능' },
+          { icon: '💳', name: '비상 자금', desc: '예비비 사용', distance: '₩2M 잔액' },
+          { icon: '👨‍👩‍👧', name: '가족 지원', desc: '송금 요청', distance: '협의 필요' },
+        ]
+      },
+      rest: {
+        title: '휴게소',
+        items: [
+          { icon: '🏠', name: '방학 휴식', desc: '에너지 회복 기간', distance: '2주' },
+          { icon: '✈️', name: '일시 귀국', desc: '가족 방문', distance: '1주' },
+          { icon: '🧘', name: '멘탈 케어', desc: '상담 서비스', distance: '무료' },
+        ]
+      },
+      food: {
+        title: '생활 지원',
+        items: [
+          { icon: '🍱', name: '학생 식당', desc: '저렴한 식사', distance: '₩4K/식' },
+          { icon: '🏪', name: '생활협동조합', desc: '할인 물품', distance: '10% 할인' },
+          { icon: '📦', name: '푸드뱅크', desc: '무료 식품 지원', distance: '신청 가능' },
+        ]
+      },
+      hospital: {
+        title: '의료/건강',
+        items: [
+          { icon: '🏥', name: '학교 보건소', desc: '기본 진료', distance: '무료' },
+          { icon: '💊', name: '국민건강보험', desc: '의료비 지원', distance: '70% 지원' },
+          { icon: '🧠', name: '심리상담센터', desc: '전문 상담', distance: '무료 5회' },
+        ]
+      },
+      info: {
+        title: '정보 센터',
+        items: [
+          { icon: '📋', name: '비자 정보', desc: 'D-2 → E-7 전환 안내', distance: '필수 확인' },
+          { icon: '📊', name: '취업 정보', desc: '외국인 채용 기업', distance: '128개 기업' },
+          { icon: '📞', name: '긴급 연락처', desc: '출입국관리사무소', distance: '1345' },
+        ]
+      }
+    };
+
+    let currentPOI = null;
+
+    function togglePOI(type) {
+      const panel = document.getElementById('poiPanel');
+      const btns = document.querySelectorAll('.poi-btn');
+      
+      // Toggle button active state
+      btns.forEach(btn => btn.classList.remove('active'));
+      
+      if (currentPOI === type) {
+        panel.classList.remove('open');
+        currentPOI = null;
+        return;
+      }
+      
+      document.querySelector(`[data-poi="${type}"]`).classList.add('active');
+      currentPOI = type;
+      
+      // Update panel content
+      const data = poiData[type];
+      document.getElementById('poiPanelTitle').textContent = data.title;
+      document.getElementById('poiList').innerHTML = data.items.map(item => `
+        <div class="poi-item">
+          <div class="poi-item-icon">${item.icon}</div>
+          <div class="poi-item-info">
+            <div class="poi-item-name">${item.name}</div>
+            <div class="poi-item-desc">${item.desc}</div>
+          </div>
+          <div class="poi-item-distance">${item.distance}</div>
+        </div>
+      `).join('');
+      
+      panel.classList.add('open');
+    }
+
+    function closePOI() {
+      const panel = document.getElementById('poiPanel');
+      const btns = document.querySelectorAll('.poi-btn');
+      
+      panel.classList.remove('open');
+      btns.forEach(btn => btn.classList.remove('active'));
+      currentPOI = null;
+    }
+
+    // Subject data from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const subjectId = urlParams.get('id') || 'S001';
+
+    const subjects = {
+      'S001': { name: 'Kim', pnr: 7, energy: 45, resistance: 15.2, velocity: 52, status: 'critical' },
+      'S002': { name: 'Lee', pnr: 14, energy: 68, resistance: 12.4, velocity: 41, status: 'warning' },
+      'S003': { name: 'Park', pnr: 45, energy: 85, resistance: 8.5, velocity: 22, status: 'safe' },
+    };
+
+    const subject = subjects[subjectId] || subjects['S001'];
+
+    // Update UI
+    function updateUI() {
+      document.getElementById('etaTime').textContent = subject.pnr + 'd';
+      document.getElementById('pnrValue').textContent = subject.pnr;
+      document.getElementById('energyPercent').textContent = subject.energy + '%';
+      document.getElementById('energyBar').style.width = subject.energy + '%';
+      document.getElementById('energyBar').className = 'energy-bar-fill ' + 
+        (subject.energy >= 70 ? '' : subject.energy >= 40 ? 'medium' : 'low');
+      document.getElementById('velocityValue').textContent = subject.velocity;
+      document.getElementById('resistanceValue').textContent = '₩' + subject.resistance + 'M';
+      document.getElementById('burnRate').textContent = '+₩' + subject.velocity + 'K/day';
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
