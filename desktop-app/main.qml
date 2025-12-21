@@ -44,6 +44,7 @@ Window {
     readonly property color accentGreen: "#4ade80"
     readonly property color accentOrange: "#ff9500"
     readonly property color alertRed: "#ff3b30"
+    readonly property color warningYellow: "#ffcc00"
     
     readonly property int radiusSm: 4
     readonly property int radiusMd: 8
@@ -569,7 +570,7 @@ Window {
         }
         
         // ═══════════════════════════════════════════════════════════════════════════════
-        // RIGHT PANEL — 지도 + 네비게이션 (65%)
+        // RIGHT PANEL — 지도 + 네비게이션 (65%) — Tesla 3D Tilt View
         // ═══════════════════════════════════════════════════════════════════════════════
         
         Rectangle {
@@ -579,103 +580,241 @@ Window {
             anchors.top: parent.top
             anchors.bottom: dock.top
             anchors.margins: 8
-            color: "#0c1620"
+            color: "#0a1218"
             radius: radiusLg
             clip: true
             
-            // 실제 지도 (QtLocation)
+            // 검색 모드 상태
+            property bool searchMode: false
+            
+            // 경로 좌표 (서울 강남역 → 삼성역)
+            property var routeCoordinates: [
+                QtPositioning.coordinate(37.4979, 127.0276),  // 강남역
+                QtPositioning.coordinate(37.4988, 127.0300),
+                QtPositioning.coordinate(37.5005, 127.0350),
+                QtPositioning.coordinate(37.5020, 127.0400),
+                QtPositioning.coordinate(37.5089, 127.0637)   // 삼성역
+            ]
+            
+            // 지도 플러그인
             Plugin {
                 id: mapPlugin
-                name: "osm"  // OpenStreetMap
+                name: "osm"
                 PluginParameter {
                     name: "osm.mapping.custom.host"
                     value: "https://tile.openstreetmap.org/"
                 }
             }
             
+            // 메인 지도
             Map {
                 id: map
                 anchors.fill: parent
                 plugin: mapPlugin
                 center: QtPositioning.coordinate(navState.latitude, navState.longitude)
-                zoomLevel: 15
+                zoomLevel: 16
+                
+                // Tesla 스타일 3D Tilt View
+                tilt: 45
+                bearing: vehicleState.gear === "D" ? 0 : 0
+                fieldOfView: 45
+                
+                // 부드러운 애니메이션
+                Behavior on center {
+                    CoordinateAnimation { duration: 1000; easing.type: Easing.InOutQuad }
+                }
+                Behavior on zoomLevel {
+                    NumberAnimation { duration: 300 }
+                }
+                Behavior on tilt {
+                    NumberAnimation { duration: 500 }
+                }
                 
                 // 다크 테마 오버레이
                 Rectangle {
                     anchors.fill: parent
-                    color: "#0c1620"
-                    opacity: 0.7
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: Qt.rgba(0.04, 0.07, 0.09, 0.75) }
+                        GradientStop { position: 0.5; color: Qt.rgba(0.04, 0.07, 0.09, 0.65) }
+                        GradientStop { position: 1.0; color: Qt.rgba(0.04, 0.07, 0.09, 0.80) }
+                    }
+                }
+                
+                // 경로 라인 (Tesla Blue Polyline)
+                MapPolyline {
+                    id: routeLine
+                    line.width: 8
+                    line.color: accentTeal
+                    path: mapArea.routeCoordinates
+                    
+                    // 글로우 효과용 추가 라인
+                }
+                
+                // 경로 글로우 (아래 레이어)
+                MapPolyline {
+                    line.width: 16
+                    line.color: Qt.rgba(0, 0.83, 0.67, 0.3)
+                    path: mapArea.routeCoordinates
                 }
                 
                 // 현재 위치 마커
                 MapQuickItem {
+                    id: currentPosMarker
                     coordinate: QtPositioning.coordinate(navState.latitude, navState.longitude)
-                    anchorPoint.x: posMarker.width / 2
-                    anchorPoint.y: posMarker.height / 2
+                    anchorPoint.x: 20
+                    anchorPoint.y: 20
                     
-                    sourceItem: Rectangle {
-                        id: posMarker
-                        width: 24; height: 24
-                        radius: 12
-                        color: accentTeal
+                    sourceItem: Item {
+                        width: 40; height: 40
                         
+                        // 방향 화살표 (차량 방향)
                         Rectangle {
-                            anchors.centerIn: parent
-                            width: 8; height: 8
-                            radius: 4
-                            color: "white"
+                            id: directionArrow
+                            width: 40; height: 40
+                            color: "transparent"
+                            
+                            Canvas {
+                                anchors.fill: parent
+                                onPaint: {
+                                    var ctx = getContext("2d");
+                                    ctx.clearRect(0, 0, width, height);
+                                    
+                                    // 테슬라 스타일 네비게이션 화살표
+                                    ctx.fillStyle = "#00d4aa";
+                                    ctx.beginPath();
+                                    ctx.moveTo(20, 5);   // 상단 꼭지점
+                                    ctx.lineTo(35, 35);  // 우하단
+                                    ctx.lineTo(20, 28);  // 중앙 하단
+                                    ctx.lineTo(5, 35);   // 좌하단
+                                    ctx.closePath();
+                                    ctx.fill();
+                                    
+                                    // 내부 하이라이트
+                                    ctx.fillStyle = "#00ffcc";
+                                    ctx.beginPath();
+                                    ctx.moveTo(20, 10);
+                                    ctx.lineTo(28, 28);
+                                    ctx.lineTo(20, 24);
+                                    ctx.lineTo(12, 28);
+                                    ctx.closePath();
+                                    ctx.fill();
+                                }
+                            }
+                            
+                            rotation: 0
+                            
+                            Behavior on rotation {
+                                NumberAnimation { duration: 300 }
+                            }
                         }
                         
                         // 펄스 링
                         Rectangle {
                             anchors.centerIn: parent
-                            width: 40; height: 40
-                            radius: 20
+                            width: 60; height: 60
+                            radius: 30
                             color: "transparent"
                             border.color: accentTeal
                             border.width: 2
+                            opacity: 0.5
                             
                             SequentialAnimation on scale {
                                 loops: Animation.Infinite
-                                NumberAnimation { from: 0.5; to: 1.5; duration: 1500 }
+                                NumberAnimation { from: 0.6; to: 1.2; duration: 2000; easing.type: Easing.OutQuad }
+                                NumberAnimation { from: 1.2; to: 0.6; duration: 0 }
                             }
                             SequentialAnimation on opacity {
                                 loops: Animation.Infinite
-                                NumberAnimation { from: 1; to: 0; duration: 1500 }
+                                NumberAnimation { from: 0.6; to: 0; duration: 2000 }
+                                NumberAnimation { from: 0; to: 0.6; duration: 0 }
                             }
                         }
                     }
                 }
-            }
-            
-            // 폴백: 지도 로드 실패 시 그리드
-            Canvas {
-                anchors.fill: parent
-                visible: !map.visible
-                onPaint: {
-                    var ctx = getContext("2d");
-                    ctx.strokeStyle = "rgba(255,255,255,0.02)";
-                    ctx.lineWidth = 1;
+                
+                // 목적지 마커
+                MapQuickItem {
+                    coordinate: mapArea.routeCoordinates[mapArea.routeCoordinates.length - 1]
+                    anchorPoint.x: 15
+                    anchorPoint.y: 40
                     
-                    for (var x = 0; x < width; x += 50) {
-                        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+                    sourceItem: Item {
+                        width: 30; height: 45
+                        
+                        // 핀 모양
+                        Rectangle {
+                            width: 30; height: 30
+                            radius: 15
+                            color: accentRed
+                            
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 10; height: 10
+                                radius: 5
+                                color: "white"
+                            }
+                        }
+                        
+                        // 핀 꼬리
+                        Canvas {
+                            anchors.top: parent.top
+                            anchors.topMargin: 25
+                            width: 30; height: 20
+                            onPaint: {
+                                var ctx = getContext("2d");
+                                ctx.fillStyle = "#e82127";
+                                ctx.beginPath();
+                                ctx.moveTo(10, 0);
+                                ctx.lineTo(15, 18);
+                                ctx.lineTo(20, 0);
+                                ctx.closePath();
+                                ctx.fill();
+                            }
+                        }
+                        
+                        // 바운스 애니메이션
+                        SequentialAnimation on y {
+                            loops: Animation.Infinite
+                            NumberAnimation { to: -5; duration: 500; easing.type: Easing.OutQuad }
+                            NumberAnimation { to: 0; duration: 500; easing.type: Easing.InQuad }
+                        }
                     }
-                    for (var y = 0; y < height; y += 50) {
-                        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+                }
+                
+                // 지도 제스처
+                PinchHandler {
+                    id: pinch
+                    target: null
+                    onScaleChanged: (delta) => {
+                        map.zoomLevel += Math.log2(delta)
+                    }
+                }
+                
+                WheelHandler {
+                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                    onWheel: (event) => {
+                        map.zoomLevel += event.angleDelta.y / 120 * 0.5
+                    }
+                }
+                
+                DragHandler {
+                    target: null
+                    onTranslationChanged: (delta) => {
+                        map.pan(-delta.x, -delta.y)
                     }
                 }
             }
             
-            // 상단 바
+            // 상단 바 + 검색
             Rectangle {
                 id: mapTopBar
                 width: parent.width
-                height: 48
-                color: Qt.rgba(0, 0, 0, 0.7)
+                height: 52
+                color: Qt.rgba(0, 0, 0, 0.75)
                 radius: radiusLg
                 
                 Rectangle {
-                    width: parent.width; height: 24
+                    width: parent.width; height: 26
                     anchors.bottom: parent.bottom
                     color: parent.color
                 }
@@ -684,66 +823,168 @@ Window {
                     anchors.fill: parent
                     anchors.margins: 12
                     
+                    // 뒤로가기 / 검색 토글
                     Rectangle {
-                        width: 100; height: 30
-                        radius: 15
+                        width: 36; height: 36
+                        radius: 18
                         color: Qt.rgba(1, 1, 1, 0.1)
                         
-                        Row {
+                        Text {
+                            text: mapArea.searchMode ? "✕" : "◁"
+                            font.pixelSize: 16
+                            color: textPrimary
                             anchors.centerIn: parent
-                            spacing: 6
-                            Text { text: "◁"; font.pixelSize: 12; color: textPrimary }
-                            Text { text: "Navigate"; font.pixelSize: 12; color: textPrimary }
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: mapArea.searchMode = !mapArea.searchMode
                         }
                     }
                     
-                    Item { Layout.fillWidth: true }
-                    
-                    Text {
-                        text: "AUTUS"
-                        font.pixelSize: 14
-                        font.weight: Font.DemiBold
-                        font.letterSpacing: 3
-                        color: textPrimary
+                    // 검색바
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 36
+                        radius: 18
+                        color: mapArea.searchMode ? Qt.rgba(1, 1, 1, 0.15) : Qt.rgba(1, 1, 1, 0.08)
+                        
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        
+                        Row {
+                            anchors.fill: parent
+                            anchors.leftMargin: 14
+                            anchors.rightMargin: 14
+                            spacing: 10
+                            
+                            Text {
+                                text: "🔍"
+                                font.pixelSize: 14
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                            
+                            TextInput {
+                                id: searchInput
+                                width: parent.width - 40
+                                anchors.verticalCenter: parent.verticalCenter
+                                color: textPrimary
+                                font.pixelSize: 14
+                                clip: true
+                                
+                                Text {
+                                    anchors.fill: parent
+                                    text: "목적지 검색..."
+                                    color: textTertiary
+                                    font.pixelSize: 14
+                                    visible: !searchInput.text && !searchInput.activeFocus
+                                }
+                                
+                                onAccepted: {
+                                    // 검색 실행 (데모: 삼성역으로 이동)
+                                    map.center = mapArea.routeCoordinates[mapArea.routeCoordinates.length - 1]
+                                    mapArea.searchMode = false
+                                }
+                            }
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                mapArea.searchMode = true
+                                searchInput.forceActiveFocus()
+                            }
+                        }
                     }
                     
-                    Item { Layout.fillWidth: true }
-                    
+                    // 시간/온도
                     Row {
-                        spacing: 16
-                        Text { text: vehicleState.temperature + "°"; font.pixelSize: 13; color: textSecondary }
+                        spacing: 12
+                        visible: !mapArea.searchMode
+                        
+                        Text {
+                            text: vehicleState.temperature + "°"
+                            font.pixelSize: 13
+                            color: textSecondary
+                        }
+                        
                         Text {
                             id: clockText
                             text: Qt.formatTime(new Date(), "h:mm AP")
                             font.pixelSize: 13
+                            font.weight: Font.Medium
                             color: textPrimary
                         }
                     }
                 }
             }
             
-            // 네비게이션 카드
+            // 네비게이션 카드 (턴 바이 턴)
             Rectangle {
+                id: navCard
                 anchors.top: mapTopBar.bottom
-                anchors.topMargin: 10
+                anchors.topMargin: 12
                 anchors.right: parent.right
                 anchors.rightMargin: 14
-                width: 200; height: 100
+                width: 220; height: 120
                 radius: radiusLg
                 color: bgGlass
+                border.color: Qt.rgba(1, 1, 1, 0.08)
                 
                 Column {
                     anchors.fill: parent
                     anchors.margins: 14
-                    spacing: 4
+                    spacing: 6
                     
+                    // 방향 아이콘 + 거리
                     Row {
-                        spacing: 3
-                        Text { text: "1.2"; font.pixelSize: 28; font.weight: Font.DemiBold; color: accentTeal }
-                        Text { text: "km"; font.pixelSize: 14; color: accentTeal; anchors.baseline: parent.children[0].baseline }
+                        spacing: 10
+                        
+                        Rectangle {
+                            width: 40; height: 40
+                            radius: 8
+                            color: accentTeal
+                            
+                            Text {
+                                text: "↱"
+                                font.pixelSize: 24
+                                font.weight: Font.Bold
+                                color: bgPrimary
+                                anchors.centerIn: parent
+                            }
+                        }
+                        
+                        Column {
+                            anchors.verticalCenter: parent.verticalCenter
+                            
+                            Row {
+                                spacing: 3
+                                Text { text: "350"; font.pixelSize: 26; font.weight: Font.DemiBold; color: textPrimary }
+                                Text { text: "m"; font.pixelSize: 14; color: textSecondary; anchors.baseline: parent.children[0].baseline }
+                            }
+                            
+                            Text {
+                                text: "우회전"
+                                font.pixelSize: 12
+                                color: textSecondary
+                            }
+                        }
                     }
-                    Text { text: navState.destination; font.pixelSize: 16; font.weight: Font.DemiBold; color: accentTeal }
-                    Text { text: navState.eta + " • " + navState.distance; font.pixelSize: 11; color: textSecondary }
+                    
+                    // 도로명
+                    Text {
+                        text: "테헤란로"
+                        font.pixelSize: 16
+                        font.weight: Font.DemiBold
+                        color: accentTeal
+                    }
+                    
+                    // ETA
+                    Row {
+                        spacing: 8
+                        Text { text: "🏁"; font.pixelSize: 12 }
+                        Text { text: navState.eta + " • " + navState.distance; font.pixelSize: 11; color: textSecondary }
+                    }
                 }
             }
             
@@ -756,20 +997,29 @@ Window {
                 
                 Repeater {
                     model: [
-                        { icon: "📍", action: function() { map.center = QtPositioning.coordinate(navState.latitude, navState.longitude) } },
-                        { icon: "+", action: function() { map.zoomLevel = Math.min(20, map.zoomLevel + 1) } },
-                        { icon: "−", action: function() { map.zoomLevel = Math.max(1, map.zoomLevel - 1) } },
-                        { icon: "⚙", action: function() {} }
+                        { icon: "📍", tip: "현재 위치", action: function() { 
+                            map.center = QtPositioning.coordinate(navState.latitude, navState.longitude)
+                            map.zoomLevel = 16
+                        }},
+                        { icon: "🛤️", tip: "경로 전체", action: function() { 
+                            map.center = mapArea.routeCoordinates[2]
+                            map.zoomLevel = 14
+                        }},
+                        { icon: "+", tip: "확대", action: function() { map.zoomLevel = Math.min(20, map.zoomLevel + 1) }},
+                        { icon: "−", tip: "축소", action: function() { map.zoomLevel = Math.max(10, map.zoomLevel - 1) }},
+                        { icon: "3D", tip: "틸트 전환", action: function() { map.tilt = map.tilt > 0 ? 0 : 45 }}
                     ]
                     
                     Rectangle {
                         width: 44; height: 44
                         radius: 22
                         color: bgElevated
+                        border.color: Qt.rgba(1, 1, 1, 0.1)
                         
                         Text {
                             text: modelData.icon
-                            font.pixelSize: 16
+                            font.pixelSize: modelData.icon.length > 2 ? 11 : 16
+                            font.weight: modelData.icon.length > 2 ? Font.Bold : Font.Normal
                             color: textPrimary
                             anchors.centerIn: parent
                         }
@@ -782,51 +1032,101 @@ Window {
                             onExited: parent.color = bgElevated
                             onClicked: modelData.action()
                         }
+                        
+                        // 툴팁
+                        ToolTip {
+                            visible: parent.children[1].containsMouse
+                            text: modelData.tip
+                            delay: 500
+                        }
                     }
                 }
             }
             
-            // ─────────────────────────────────────────────────────────────────────────────
-            // 미디어 플레이어 카드 (하단)
-            // ─────────────────────────────────────────────────────────────────────────────
+            // 속도 표시 (지도 위)
+            Rectangle {
+                anchors.bottom: mediaCard.top
+                anchors.bottomMargin: 10
+                anchors.left: parent.left
+                anchors.leftMargin: 14
+                width: 80; height: 80
+                radius: 40
+                color: bgGlass
+                border.color: vehicleState.speed > 30 ? warningYellow : Qt.rgba(1, 1, 1, 0.1)
+                border.width: vehicleState.speed > 30 ? 2 : 1
+                
+                Behavior on border.color { ColorAnimation { duration: 300 } }
+                
+                Column {
+                    anchors.centerIn: parent
+                    
+                    Text {
+                        text: vehicleState.speed
+                        font.pixelSize: 28
+                        font.weight: Font.DemiBold
+                        color: textPrimary
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: "km/h"
+                        font.pixelSize: 10
+                        color: textSecondary
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
             
+            // 미디어 플레이어 카드
             Rectangle {
                 id: mediaCard
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 14
                 anchors.left: parent.left
                 anchors.leftMargin: 14
-                width: 280; height: 80
+                width: 300; height: 85
                 radius: radiusLg
                 color: bgGlass
+                border.color: Qt.rgba(1, 1, 1, 0.08)
                 
                 Row {
                     anchors.fill: parent
-                    anchors.margins: 10
+                    anchors.margins: 12
                     spacing: 12
                     
-                    // 앨범 아트 (플레이스홀더)
+                    // 앨범 아트
                     Rectangle {
                         width: 60; height: 60
                         radius: radiusMd
-                        color: bgElevated
+                        
+                        gradient: Gradient {
+                            GradientStop { position: 0.0; color: "#3e6ae1" }
+                            GradientStop { position: 1.0; color: "#1e3a71" }
+                        }
                         
                         Text {
                             text: "🎵"
-                            font.pixelSize: 28
+                            font.pixelSize: 26
                             anchors.centerIn: parent
+                        }
+                        
+                        // 재생 중 회전 효과
+                        RotationAnimation on rotation {
+                            running: mediaState.isPlaying
+                            from: 0; to: 360
+                            duration: 10000
+                            loops: Animation.Infinite
                         }
                     }
                     
-                    // 트랙 정보
                     Column {
                         width: parent.width - 85
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: 4
+                        spacing: 5
                         
                         Text {
                             text: mediaState.title
-                            font.pixelSize: 13
+                            font.pixelSize: 14
                             font.weight: Font.DemiBold
                             color: textPrimary
                             elide: Text.ElideRight
@@ -844,15 +1144,15 @@ Window {
                         // 프로그레스 바
                         Rectangle {
                             width: parent.width
-                            height: 3
-                            radius: 1
+                            height: 4
+                            radius: 2
                             color: bgElevated
                             
                             Rectangle {
                                 width: parent.width * mediaState.progress
                                 height: parent.height
-                                radius: 1
-                                color: textPrimary
+                                radius: 2
+                                color: accentTeal
                                 
                                 Behavior on width { NumberAnimation { duration: 200 } }
                             }
@@ -860,35 +1160,46 @@ Window {
                         
                         // 컨트롤
                         Row {
-                            spacing: 16
+                            spacing: 20
                             anchors.horizontalCenter: parent.horizontalCenter
                             
                             Text {
                                 text: "⏮"
-                                font.pixelSize: 14
+                                font.pixelSize: 16
                                 color: textSecondary
                                 MouseArea {
                                     anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
                                     onClicked: mediaState.prevTrack()
                                 }
                             }
                             
-                            Text {
-                                text: mediaState.isPlaying ? "⏸" : "▶"
-                                font.pixelSize: 16
+                            Rectangle {
+                                width: 32; height: 32
+                                radius: 16
                                 color: textPrimary
+                                
+                                Text {
+                                    text: mediaState.isPlaying ? "⏸" : "▶"
+                                    font.pixelSize: 14
+                                    color: bgPrimary
+                                    anchors.centerIn: parent
+                                }
+                                
                                 MouseArea {
                                     anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
                                     onClicked: mediaState.togglePlay()
                                 }
                             }
                             
                             Text {
                                 text: "⏭"
-                                font.pixelSize: 14
+                                font.pixelSize: 16
                                 color: textSecondary
                                 MouseArea {
                                     anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
                                     onClicked: mediaState.nextTrack()
                                 }
                             }
