@@ -556,11 +556,24 @@
             STATE.state = data.state;
           }
           
-          // Deviation from risk (TC/PNR_TC 비율로 변환)
-          const riskRatio = STATE.totalCost / STATE.pnrCost;
-          STATE.roll = riskRatio * 0.8 + Math.random() * 0.1;
-          STATE.pitch = riskRatio * 0.7 + Math.random() * 0.1;
-          STATE.yaw = riskRatio * 0.6 + Math.random() * 0.1;
+          // Deviation 계산 (SpaceX 스타일)
+          // Roll = |timeCost - optimalTime| / optimalTime
+          // Pitch = |riskCost - optimalRisk| / optimalRisk  
+          // Yaw = |positionCost - optimalPosition| / optimalPosition
+          if (data.costs) {
+            const optimalTime = 1500000;
+            const optimalRisk = 2000000;
+            const optimalPosition = 1500000;
+            STATE.roll = Math.min(1, Math.abs((data.costs.time || 0) - optimalTime) / optimalTime);
+            STATE.pitch = Math.min(1, Math.abs((data.costs.risk || 0) - optimalRisk) / optimalRisk);
+            STATE.yaw = Math.min(1, Math.abs((data.costs.position || 0) - optimalPosition) / optimalPosition);
+          } else {
+            // Fallback: TC/PNR_TC 비율로 변환
+            const riskRatio = STATE.totalCost / STATE.pnrCost;
+            STATE.roll = Math.min(1, riskRatio * 0.8 + Math.random() * 0.05);
+            STATE.pitch = Math.min(1, riskRatio * 0.7 + Math.random() * 0.05);
+            STATE.yaw = Math.min(1, riskRatio * 0.6 + Math.random() * 0.05);
+          }
           
           updateUI();
         } catch (e) {
@@ -701,9 +714,13 @@
         updateDeviation(els.pitchValue, STATE.pitch);
         updateDeviation(els.yawValue, STATE.yaw);
 
-        // Rate & Range
+        // Rate (Cost Velocity normalized) & Range (PNR ETA)
+        // RATE < 0.2 안전, RANGE > 0 안전
+        STATE.rate = Math.min(1, STATE.costVelocity / 200000);
         els.rateValue.textContent = STATE.rate.toFixed(2);
+        els.rateValue.style.color = STATE.rate > 0.5 ? 'var(--critical)' : STATE.rate > 0.2 ? 'var(--warning)' : 'var(--safe)';
         els.rangeValue.textContent = `${STATE.pnrDays}d`;
+        els.rangeValue.style.color = STATE.pnrDays <= 0 ? 'var(--critical)' : STATE.pnrDays < 7 ? 'var(--warning)' : 'var(--safe)';
 
         // Dashboard (Tesla gauges)
         els.velocityValue.textContent = `+₩${Math.round(STATE.costVelocity/1000)}K`;
@@ -728,17 +745,21 @@
           els.precisionMode.classList.add('active');
         }
 
-        // State & Choose button
+        // State Machine (LOCK)
+        // SAFE:        deviation < 0.4, PNR > 21d
+        // WARNING:     deviation < 0.7, PNR 7-21d  
+        // CRITICAL:    deviation < 1.0, PNR < 7d
+        // IRREVERSIBLE: deviation ≥ 1.0, PNR ≤ 0
         const totalDev = Math.sqrt(STATE.roll**2 + STATE.pitch**2 + STATE.yaw**2) / Math.sqrt(3);
         
-        if (STATE.pnrDays <= 0 || totalDev >= 1.0 || STATE.state === 'IRREVERSIBLE') {
+        if (STATE.pnrDays <= 0 || totalDev >= 1.0) {
           STATE.state = 'IRREVERSIBLE';
           els.chooseBtn.classList.remove('enabled');
           els.chooseBtn.textContent = 'LOCKED';
-        } else if (totalDev > 0.7 || STATE.pnrDays < 7 || STATE.state === 'CRITICAL') {
+        } else if (totalDev >= 0.7 || STATE.pnrDays < 7) {
           STATE.state = 'CRITICAL';
           els.chooseBtn.classList.add('enabled');
-        } else if (totalDev > 0.4 || STATE.state === 'WARNING') {
+        } else if (totalDev >= 0.4 || STATE.pnrDays <= 21) {
           STATE.state = 'WARNING';
           els.chooseBtn.classList.remove('enabled');
         } else {
