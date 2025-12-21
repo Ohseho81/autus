@@ -301,84 +301,170 @@ async def physics_laws():
 
 @router.get("/ui-binding")
 async def physics_ui_binding(
-    role: str = Query("subject", description="subject/operator/sponsor/employer/institution")
+    role: str = Query("subject", description="subject/operator/sponsor/ceo")
 ):
     """
     Role별 UI 바인딩 데이터
     Engine → UI Element 직접 매핑
     """
     role = role.lower()
-    valid_roles = ["subject", "operator", "sponsor", "employer", "institution"]
+    valid_roles = ["subject", "operator", "sponsor", "ceo", "employer", "institution"]
     if role not in valid_roles:
         role = "subject"
+    
+    # ceo는 institution과 동일 처리
+    if role == "ceo":
+        role = "institution"
     
     # Engine 사용 가능하면 실제 계산
     if ENGINE_AVAILABLE:
         engine = get_engine()
         if engine:
-            engine.compute_snapshot()
-            return engine.to_role_ui_binding(role)
+            engine.compute_snapshot(role=role)
+            binding = engine.to_role_ui_binding(role)
+            # Brief 형식으로 변환
+            return _convert_to_brief_format(binding, role)
     
     # Fallback: Brief 기준 데이터
+    return _get_fallback_binding(role)
+
+
+def _convert_to_brief_format(binding: dict, role: str) -> dict:
+    """Engine 바인딩 → Brief UI 형식 변환"""
+    engine_data = binding.get("engine", {})
+    
+    # Role별 메트릭 계산
+    metrics = _calculate_role_metrics(role, engine_data)
+    
+    return {
+        "role": role,
+        "state": binding.get("gate", "WARNING"),
+        "pnr_days": 14,  # TODO: Engine에서 계산
+        "total_loss": int(engine_data.get("risk", 50) * 200000),
+        "loss_rate": 41000,
+        "unit": "₩" if role in ["subject", "sponsor"] else "₩+OCU" if role == "operator" else "OCU",
+        "costs": {
+            "time": 2100000,
+            "risk": 3500000,
+            "resource": 1200000,
+            "position": 2000000,
+            "learning": 1500000,
+            "trust": 1600000,
+            "irreversibility": 500000
+        },
+        "metrics": metrics,
+        "config": binding.get("config", {}),
+        "action": binding.get("action", {}),
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+def _calculate_role_metrics(role: str, engine_data: dict) -> dict:
+    """Role별 메트릭 계산"""
+    risk = engine_data.get("risk", 50)
+    survival_days = engine_data.get("survival_days", 216)
+    
+    if role == "subject":
+        return {
+            "primary": {
+                "label": "SURVIVAL",
+                "value": int(survival_days),
+                "unit": "일",
+                "sub": f"−₩{int(risk * 2)}만/월"
+            },
+            "secondary": [
+                {"label": "BURN", "value": f"−₩{int(risk * 2)}만", "class": ""},
+                {"label": "RISK", "value": f"{int(risk)}%", "class": "danger" if risk >= 50 else ""}
+            ]
+        }
+    
+    elif role == "operator":
+        total = 47
+        at_risk = max(1, int(risk / 20))
+        critical = 1 if risk >= 60 else 0
+        return {
+            "primary": {
+                "label": "TOTAL",
+                "value": total,
+                "unit": "명",
+                "sub": f"위험 {at_risk}명"
+            },
+            "secondary": [
+                {"label": "AT_RISK", "value": f"{at_risk}명", "class": "warning" if at_risk > 0 else ""},
+                {"label": "CRITICAL", "value": f"{critical}명", "class": "danger" if critical > 0 else ""}
+            ]
+        }
+    
+    elif role == "sponsor":
+        invested = 2.5  # 억
+        efficiency = max(50, 100 - int(risk))
+        loss_risk = int(risk * 100)
+        return {
+            "primary": {
+                "label": "INVESTED",
+                "value": f"₩{invested:.1f}억",
+                "unit": "",
+                "sub": f"효율 {efficiency}%"
+            },
+            "secondary": [
+                {"label": "EFFICIENCY", "value": f"{efficiency}%", "class": "warning" if efficiency < 80 else "success"},
+                {"label": "LOSS_RISK", "value": f"₩{loss_risk}만", "class": "danger" if loss_risk > 3000 else ""}
+            ]
+        }
+    
+    else:  # institution / ceo
+        mass = survival_days * 0.5
+        governance = "STABLE" if risk < 60 else "UNSTABLE"
+        expansion = "UNLOCKED" if risk < 40 else "LOCKED"
+        return {
+            "primary": {
+                "label": "SYSTEM",
+                "value": f"{mass:.1f}",
+                "unit": "OCU",
+                "sub": governance
+            },
+            "secondary": [
+                {"label": "GOVERNANCE", "value": governance, "class": "success" if governance == "STABLE" else "danger"},
+                {"label": "EXPANSION", "value": expansion, "class": "success" if expansion == "UNLOCKED" else ""}
+            ]
+        }
+
+
+def _get_fallback_binding(role: str) -> dict:
+    """Fallback 바인딩 데이터"""
     costs = calculate_costs()
     cost_rates = calculate_cost_rates()
     total_loss = sum(costs.values())
     loss_rate = sum(cost_rates.values())
     pnr_days = 14
     state = determine_state(pnr_days)
-    risk = min(100, int(total_loss / 200000))
     
-    # Role별 설정
     configs = {
-        "subject": {
-            "icon": "👤", "name": "SUBJECT", "action": "선택",
-            "success_text": "기록됨", "primary_label": "SURVIVAL",
-            "primary_unit": "일", "impact_prefix": "₩", "color": "#00ff88"
-        },
-        "operator": {
-            "icon": "🎯", "name": "OPERATOR", "action": "개입",
-            "success_text": "개입됨", "primary_label": "TOTAL",
-            "primary_unit": "명", "impact_prefix": "⚠️", "color": "#45B7D1"
-        },
-        "sponsor": {
-            "icon": "💰", "name": "SPONSOR", "action": "최적화",
-            "success_text": "최적화됨", "primary_label": "INVESTED",
-            "primary_unit": "", "impact_prefix": "📉", "color": "#FFD700"
-        },
-        "employer": {
-            "icon": "🏢", "name": "EMPLOYER", "action": "유지",
-            "success_text": "유지됨", "primary_label": "HIRED",
-            "primary_unit": "명", "impact_prefix": "👥", "color": "#96CEB4"
-        },
-        "institution": {
-            "icon": "🏛️", "name": "INSTITUTION", "action": None,
-            "success_text": "", "primary_label": "SYSTEM MASS",
-            "primary_unit": "OCU", "impact_prefix": "🔒", "color": "#DDA0DD"
-        }
+        "subject": {"icon": "👤", "name": "SUBJECT", "action": "선택", "color": "#00ff88"},
+        "operator": {"icon": "🎯", "name": "OPERATOR", "action": "개입", "color": "#45B7D1"},
+        "sponsor": {"icon": "💰", "name": "SPONSOR", "action": "최적화", "color": "#FFD700"},
+        "institution": {"icon": "📊", "name": "CEO", "action": None, "color": "#DDA0DD"}
     }
     
-    config = configs[role]
+    config = configs.get(role, configs["subject"])
+    metrics = _calculate_role_metrics(role, {"risk": 58, "survival_days": 216})
     
     return {
         "role": role,
-        "config": config,
         "state": state,
-        "gate": "GREEN" if state == "SAFE" else "AMBER" if state == "WARNING" else "RED",
+        "pnr_days": pnr_days,
         "total_loss": total_loss,
         "loss_rate": loss_rate,
-        "pnr_days": pnr_days,
+        "unit": "₩" if role in ["subject", "sponsor"] else "₩+OCU" if role == "operator" else "OCU",
         "costs": costs,
         "cost_rates": cost_rates,
+        "metrics": metrics,
+        "config": config,
         "action": {
-            "visible": state != "IRREVERSIBLE" and role != "institution",
-            "name": config["action"],
-            "success_text": config["success_text"]
+            "visible": state != "IRREVERSIBLE" and config["action"] is not None,
+            "name": config["action"]
         },
-        "style": {
-            "primary_color": config["color"],
-            "danger_color": "#ff4444",
-            "warning_color": "#ffaa00"
-        }
+        "timestamp": datetime.utcnow().isoformat()
     }
 
 

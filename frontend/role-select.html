@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>AUTUS — Select Role</title>
+  <title>AUTUS — Role Select</title>
   <style>
     * {
       margin: 0;
@@ -26,51 +26,46 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 40px 20px;
     }
 
     .logo {
-      font-size: 14px;
-      letter-spacing: 4px;
-      color: rgba(255, 255, 255, 0.4);
-      margin-bottom: 48px;
-    }
-
-    .title {
-      font-size: 28px;
-      font-weight: 300;
+      font-size: 32px;
+      font-weight: 200;
+      letter-spacing: 8px;
       margin-bottom: 8px;
+      color: #fff;
     }
 
-    .subtitle {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.5);
+    .tagline {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 2px;
       margin-bottom: 48px;
     }
 
     .roles {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 16px;
-      max-width: 600px;
+      max-width: 400px;
       width: 100%;
     }
 
     .role-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 24px 16px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 24px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s;
       text-decoration: none;
-      color: inherit;
+      color: #fff;
     }
 
     .role-card:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: var(--role-color, #fff);
       transform: translateY(-2px);
     }
 
@@ -78,67 +73,52 @@
       transform: scale(0.98);
     }
 
-    .role-card[data-role="subject"] { --accent: #00ff88; }
-    .role-card[data-role="operator"] { --accent: #45B7D1; }
-    .role-card[data-role="sponsor"] { --accent: #FFD700; }
-    .role-card[data-role="employer"] { --accent: #96CEB4; }
-    .role-card[data-role="institution"] { --accent: #DDA0DD; }
-
-    .role-card:hover {
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
-    }
+    .role-card[data-role="subject"] { --role-color: #00ff88; }
+    .role-card[data-role="operator"] { --role-color: #45B7D1; }
+    .role-card[data-role="sponsor"] { --role-color: #FFD700; }
+    .role-card[data-role="ceo"] { --role-color: #DDA0DD; }
 
     .role-icon {
-      font-size: 36px;
+      font-size: 40px;
       margin-bottom: 12px;
     }
 
     .role-name {
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 600;
       letter-spacing: 2px;
-      color: var(--accent);
-      margin-bottom: 4px;
+      color: var(--role-color, #fff);
+      margin-bottom: 8px;
     }
 
     .role-desc {
       font-size: 11px;
-      color: rgba(255, 255, 255, 0.4);
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1.5;
     }
 
-    .footer {
-      margin-top: 48px;
-      font-size: 11px;
+    .role-metrics {
+      margin-top: 12px;
+      font-size: 10px;
       color: rgba(255, 255, 255, 0.3);
     }
 
-    .footer a {
-      color: rgba(255, 255, 255, 0.5);
-      text-decoration: none;
-    }
-
-    .footer a:hover {
-      color: #fff;
+    .version {
+      position: fixed;
+      bottom: 20px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 1px;
     }
 
     /* Mobile */
     @media (max-width: 480px) {
       .roles {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        grid-template-columns: 1fr;
       }
-
+      
       .role-card {
-        padding: 20px 12px;
-      }
-
-      .role-icon {
-        font-size: 32px;
-      }
-
-      .title {
-        font-size: 24px;
+        padding: 20px;
       }
     }
   </style>
@@ -146,45 +126,49 @@
 <body>
   <div class="container">
     <div class="logo">AUTUS</div>
-    <h1 class="title">Select Your Role</h1>
-    <p class="subtitle">역할을 선택하세요</p>
+    <div class="tagline">OPPORTUNITY COST ENGINE</div>
 
     <div class="roles">
-      <a href="solar-roles.html?role=subject" class="role-card" data-role="subject">
+      <a href="autus-role.html?role=subject" class="role-card" data-role="subject">
         <div class="role-icon">👤</div>
         <div class="role-name">SUBJECT</div>
-        <div class="role-desc">학생 / 구직자</div>
+        <div class="role-desc">학생 / 대상자<br>개인 생존 시간 관리</div>
+        <div class="role-metrics">SURVIVAL · BURN · RISK</div>
       </a>
 
-      <a href="solar-roles.html?role=operator" class="role-card" data-role="operator">
+      <a href="autus-role.html?role=operator" class="role-card" data-role="operator">
         <div class="role-icon">🎯</div>
         <div class="role-name">OPERATOR</div>
-        <div class="role-desc">운영자 / PM</div>
+        <div class="role-desc">운영자 / 관리자<br>다중 대상자 개입</div>
+        <div class="role-metrics">TOTAL · AT_RISK · CRITICAL</div>
       </a>
 
-      <a href="solar-roles.html?role=sponsor" class="role-card" data-role="sponsor">
+      <a href="autus-role.html?role=sponsor" class="role-card" data-role="sponsor">
         <div class="role-icon">💰</div>
         <div class="role-name">SPONSOR</div>
-        <div class="role-desc">후원자 / 투자자</div>
+        <div class="role-desc">후원자 / 기업<br>투자 효율 최적화</div>
+        <div class="role-metrics">INVESTED · EFFICIENCY · LOSS_RISK</div>
       </a>
 
-      <a href="solar-roles.html?role=employer" class="role-card" data-role="employer">
-        <div class="role-icon">🏢</div>
-        <div class="role-name">EMPLOYER</div>
-        <div class="role-desc">고용주 / 기업</div>
-      </a>
-
-      <a href="solar-roles.html?role=institution" class="role-card" data-role="institution">
-        <div class="role-icon">🏛️</div>
-        <div class="role-name">INSTITUTION</div>
-        <div class="role-desc">기관 / 대학</div>
+      <a href="autus-role.html?role=ceo" class="role-card" data-role="ceo">
+        <div class="role-icon">📊</div>
+        <div class="role-name">CEO</div>
+        <div class="role-desc">시스템 총괄<br>거버넌스 모니터링</div>
+        <div class="role-metrics">SYSTEM · GOVERNANCE · EXPANSION</div>
       </a>
     </div>
 
-    <div class="footer">
-      <a href="solar-responsive.html">기본 UI로 이동</a> · 
-      <a href="solar.html">ELON EDITION</a>
-    </div>
+    <div class="version">v2.0 — BRIEF COMPLIANT</div>
   </div>
+
+  <script>
+    // 마지막 선택 역할이 있으면 바로 이동
+    const lastRole = localStorage.getItem('autus.role');
+    const autoRedirect = localStorage.getItem('autus.autoRedirect') === 'true';
+    
+    if (lastRole && autoRedirect) {
+      window.location.href = `autus-role.html?role=${lastRole}`;
+    }
+  </script>
 </body>
 </html>

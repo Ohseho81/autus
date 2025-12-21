@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>AUTUS</title>
+  <style>
+    :root {
+      --primary: #00ff88;
+      --danger: #ff4444;
+      --warning: #ffaa00;
+      --safe: #00ff88;
+    }
+
+    /* Role별 테마 */
+    [data-role="subject"] { --primary: #00ff88; }
+    [data-role="operator"] { --primary: #45B7D1; }
+    [data-role="sponsor"] { --primary: #FFD700; }
+    [data-role="ceo"] { --primary: #DDA0DD; }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, 'SF Pro Display', sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      background: rgba(0, 0, 0, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 100;
+    }
+
+    .role-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .role-icon {
+      font-size: 20px;
+    }
+
+    .role-name {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: var(--primary);
+    }
+
+    .pnr-marker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pnr-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--danger);
+    }
+
+    .pnr-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .state-badge {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .state-badge.safe { background: #00ff88; color: #000; }
+    .state-badge.warning { background: #ffaa00; color: #000; }
+    .state-badge.critical { background: #ff4444; color: #fff; }
+    .state-badge.irreversible { background: #660000; color: #fff; }
+
+    /* Primary Metric */
+    .primary-metric {
+      position: fixed;
+      top: 56px;
+      left: 0;
+      right: 0;
+      padding: 20px 16px;
+      background: rgba(0, 0, 0, 0.8);
+      text-align: center;
+      z-index: 90;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 48px;
+      font-weight: 200;
+      color: #fff;
+    }
+
+    .metric-unit {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-left: 4px;
+    }
+
+    .metric-sub {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--primary);
+    }
+
+    /* Secondary Metrics */
+    .secondary-metrics {
+      position: fixed;
+      top: 180px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      padding: 0 16px;
+      z-index: 90;
+    }
+
+    .secondary-item {
+      text-align: center;
+    }
+
+    .secondary-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 1px;
+    }
+
+    .secondary-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      margin-top: 4px;
+    }
+
+    .secondary-value.danger { color: var(--danger); }
+    .secondary-value.warning { color: var(--warning); }
+    .secondary-value.success { color: var(--safe); }
+
+    /* Canvas */
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 220px;
+      padding-bottom: 200px;
+    }
+
+    #erosion-canvas {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* Action Area */
+    .action-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 16px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.98) 30%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .loss-gauge {
+      text-align: center;
+    }
+
+    .loss-total {
+      display: block;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--danger);
+    }
+
+    .loss-rate {
+      display: block;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      width: 100%;
+      max-width: 400px;
+      padding: 18px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: #222;
+      color: #fff;
+      border: 2px solid #444;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .action-btn.highlight {
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+      animation: pulse 1s infinite;
+    }
+
+    .action-btn:disabled {
+      background: #1a1a1a;
+      color: #444;
+      border-color: #333;
+      cursor: not-allowed;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    .status-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Audit Screen */
+    .audit-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      animation: fadeIn 0.5s;
+    }
+
+    .audit-screen.hidden { display: none; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .audit-icon {
+      width: 80px;
+      height: 80px;
+      border: 3px solid var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin-bottom: 24px;
+    }
+
+    .audit-text {
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .audit-id {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: monospace;
+      margin-top: 8px;
+    }
+
+    .audit-note {
+      margin-top: 32px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.3);
+      text-align: center;
+    }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      .header { height: 48px; padding: 0 12px; }
+      .primary-metric { top: 48px; padding: 16px 12px; }
+      .metric-value { font-size: 40px; }
+      .secondary-metrics { top: 160px; gap: 24px; }
+      .canvas-container { padding-top: 200px; padding-bottom: 220px; }
+      .loss-total { font-size: 32px; }
+      .action-btn { padding: 20px 24px; font-size: 18px; }
+    }
+  </style>
+</head>
+<body data-role="subject">
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="role-indicator">
+        <span class="role-icon" id="role-icon">👤</span>
+        <span class="role-name" id="role-name">SUBJECT</span>
+      </div>
+      <div class="pnr-marker">
+        <span class="pnr-value" id="pnr-value">14일</span>
+        <span class="pnr-label" id="pnr-label">후 복구 불가</span>
+      </div>
+      <div class="state-badge critical" id="state-badge">CRITICAL</div>
+    </header>
+
+    <!-- Primary Metric -->
+    <div class="primary-metric">
+      <div class="metric-label" id="metric-label">SURVIVAL</div>
+      <div>
+        <span class="metric-value" id="metric-value">216</span>
+        <span class="metric-unit" id="metric-unit">일</span>
+      </div>
+      <div class="metric-sub" id="metric-sub">−₩120만/월</div>
+    </div>
+
+    <!-- Secondary Metrics -->
+    <div class="secondary-metrics" id="secondary-metrics">
+      <div class="secondary-item">
+        <div class="secondary-label">BURN</div>
+        <div class="secondary-value" id="sec-1">−₩120만</div>
+      </div>
+      <div class="secondary-item">
+        <div class="secondary-label">RISK</div>
+        <div class="secondary-value danger" id="sec-2">58%</div>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="canvas-container">
+      <canvas id="erosion-canvas"></canvas>
+    </div>
+
+    <!-- Action Area -->
+    <div class="action-area" id="action-area">
+      <div class="loss-gauge">
+        <span class="loss-total" id="loss-total">₩12,400,000</span>
+        <span class="loss-rate" id="loss-rate">+₩41,000/일 증가 중</span>
+      </div>
+      <button class="action-btn" id="action-btn">선택</button>
+      <div class="status-text" id="status-text">선택하지 않으면 비용은 계속 증가합니다</div>
+    </div>
+
+    <!-- Audit Screen -->
+    <div class="audit-screen hidden" id="audit-screen">
+      <div class="audit-icon">◉</div>
+      <div class="audit-text" id="audit-text">기록됨</div>
+      <div class="audit-id" id="audit-id">---</div>
+      <div class="audit-note">이 선택은 변경할 수 없습니다</div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // ═══════════════════════════════════════════════════════════
+      // ROLE CONFIGURATION (LOCK)
+      // ═══════════════════════════════════════════════════════════
+      const ROLE_CONFIG = {
+        subject: {
+          icon: '👤',
+          name: 'SUBJECT',
+          primaryLabel: 'SURVIVAL',
+          primaryUnit: '일',
+          action: '선택',
+          auditText: '기록됨',
+          secondaryLabels: ['BURN', 'RISK'],
+          unitDisplay: '₩'
+        },
+        operator: {
+          icon: '🎯',
+          name: 'OPERATOR',
+          primaryLabel: 'TOTAL',
+          primaryUnit: '명',
+          action: '개입',
+          auditText: '개입됨',
+          secondaryLabels: ['AT_RISK', 'CRITICAL'],
+          unitDisplay: '₩+OCU'
+        },
+        sponsor: {
+          icon: '💰',
+          name: 'SPONSOR',
+          primaryLabel: 'INVESTED',
+          primaryUnit: '',
+          action: '최적화',
+          auditText: '최적화됨',
+          secondaryLabels: ['EFFICIENCY', 'LOSS_RISK'],
+          unitDisplay: '₩'
+        },
+        ceo: {
+          icon: '📊',
+          name: 'CEO',
+          primaryLabel: 'SYSTEM',
+          primaryUnit: 'OCU',
+          action: null,  // CEO는 모니터링만
+          auditText: '',
+          secondaryLabels: ['GOVERNANCE', 'EXPANSION'],
+          unitDisplay: 'OCU'
+        }
+      };
+
+      // ═══════════════════════════════════════════════════════════
+      // CONFIG
+      // ═══════════════════════════════════════════════════════════
+      const API_BASE = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8000' 
+        : 'https://autus-production.up.railway.app';
+
+      // URL에서 role 추출
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentRole = (urlParams.get('role') || 'subject').toLowerCase();
+      const config = ROLE_CONFIG[currentRole] || ROLE_CONFIG.subject;
+
+      // ═══════════════════════════════════════════════════════════
+      // STATE
+      // ═══════════════════════════════════════════════════════════
+      const STATE = {
+        role: currentRole,
+        totalLoss: 12400000,
+        lossRate: 41000,
+        pnrDays: 14,
+        state: 'WARNING',
+        unit: config.unitDisplay,
+        primary: { value: 216, sub: '−₩120만/월' },
+        secondary: [
+          { label: config.secondaryLabels[0], value: '−₩120만', class: '' },
+          { label: config.secondaryLabels[1], value: '58%', class: 'danger' }
+        ],
+        costs: {
+          time: 2100000,
+          risk: 3500000,
+          resource: 1200000,
+          position: 2000000,
+          learning: 1500000,
+          trust: 1600000,
+          irreversibility: 500000
+        }
+      };
+
+      let erosionInterval = null;
+
+      // Elements
+      const els = {
+        roleIcon: document.getElementById('role-icon'),
+        roleName: document.getElementById('role-name'),
+        pnrValue: document.getElementById('pnr-value'),
+        pnrLabel: document.getElementById('pnr-label'),
+        stateBadge: document.getElementById('state-badge'),
+        metricLabel: document.getElementById('metric-label'),
+        metricValue: document.getElementById('metric-value'),
+        metricUnit: document.getElementById('metric-unit'),
+        metricSub: document.getElementById('metric-sub'),
+        secondaryMetrics: document.getElementById('secondary-metrics'),
+        lossTotal: document.getElementById('loss-total'),
+        lossRate: document.getElementById('loss-rate'),
+        actionBtn: document.getElementById('action-btn'),
+        statusText: document.getElementById('status-text'),
+        actionArea: document.getElementById('action-area'),
+        auditScreen: document.getElementById('audit-screen'),
+        auditText: document.getElementById('audit-text'),
+        auditId: document.getElementById('audit-id'),
+        canvas: document.getElementById('erosion-canvas')
+      };
+
+      // ═══════════════════════════════════════════════════════════
+      // INIT
+      // ═══════════════════════════════════════════════════════════
+      function init() {
+        // Role 설정
+        document.body.setAttribute('data-role', currentRole);
+        setupRoleUI();
+        setupCanvas();
+        fetchState();
+        setupEvents();
+        startErosion();
+      }
+
+      function setupRoleUI() {
+        els.roleIcon.textContent = config.icon;
+        els.roleName.textContent = config.name;
+        els.metricLabel.textContent = config.primaryLabel;
+        els.metricUnit.textContent = config.primaryUnit;
+        
+        // ACTION 버튼 (CEO는 숨김)
+        if (!config.action) {
+          els.actionBtn.style.display = 'none';
+          els.statusText.textContent = '모니터링 전용';
+        } else {
+          els.actionBtn.textContent = config.action;
+        }
+
+        // Secondary 메트릭 라벨 업데이트
+        const secLabels = els.secondaryMetrics.querySelectorAll('.secondary-label');
+        secLabels.forEach((el, i) => {
+          if (config.secondaryLabels[i]) {
+            el.textContent = config.secondaryLabels[i];
+          }
+        });
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // CANVAS (EROSION LINE)
+      // ═══════════════════════════════════════════════════════════
+      function setupCanvas() {
+        const canvas = els.canvas;
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+          const container = canvas.parentElement;
+          const size = Math.min(container.clientWidth, container.clientHeight) * 0.8;
+          canvas.width = size;
+          canvas.height = size;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const costTypes = [
+          { key: 'time', color: '#4ECDC4' },
+          { key: 'risk', color: '#FF6B6B' },
+          { key: 'resource', color: '#45B7D1' },
+          { key: 'position', color: '#96CEB4' },
+          { key: 'learning', color: '#FFEAA7' },
+          { key: 'trust', color: '#DDA0DD' },
+          { key: 'irreversibility', color: '#FF4444' }
+        ];
+
+        const startAngles = costTypes.map(() => Math.random() * Math.PI * 2);
+
+        function render() {
+          const w = canvas.width, h = canvas.height;
+          const cx = w / 2, cy = h / 2;
+          const maxR = Math.min(w, h) / 2 - 20;
+
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, w, h);
+
+          // Center
+          const coreSize = maxR * 0.12;
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreSize);
+          const roleColor = getComputedStyle(document.body).getPropertyValue('--primary').trim();
+          grad.addColorStop(0, roleColor || '#00ff88');
+          grad.addColorStop(0.7, '#333');
+          grad.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.arc(cx, cy, coreSize, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          // Planets
+          const time = Date.now() / 1000;
+          const totalCost = Object.values(STATE.costs).reduce((a, b) => a + b, 0);
+
+          costTypes.forEach((type, i) => {
+            const cost = STATE.costs[type.key];
+            const ratio = cost / totalCost;
+            const orbit = maxR * (0.25 + i * 0.1);
+            const speed = 0.012 - (ratio * 0.008);
+            const angle = startAngles[i] + time * speed;
+            const x = cx + Math.cos(angle) * orbit;
+            const y = cy + Math.sin(angle) * orbit;
+
+            // Orbit
+            ctx.beginPath();
+            ctx.arc(cx, cy, orbit, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Planet
+            const size = 5 + (ratio * 16);
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fillStyle = type.color;
+            ctx.fill();
+          });
+
+          requestAnimationFrame(render);
+        }
+        render();
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // FETCH STATE
+      // ═══════════════════════════════════════════════════════════
+      async function fetchState() {
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/physics/ui-binding?role=${currentRole}`);
+          const data = await res.json();
+          
+          // 상태 업데이트
+          if (data.total_loss) STATE.totalLoss = data.total_loss;
+          if (data.loss_rate) STATE.lossRate = data.loss_rate;
+          if (data.pnr_days !== undefined) STATE.pnrDays = data.pnr_days;
+          if (data.state) STATE.state = data.state;
+          if (data.unit) STATE.unit = data.unit;
+          if (data.costs) STATE.costs = data.costs;
+          
+          // 메트릭 업데이트
+          if (data.metrics) {
+            if (data.metrics.primary) {
+              STATE.primary.value = data.metrics.primary.value;
+              STATE.primary.sub = data.metrics.primary.sub || '';
+            }
+            if (data.metrics.secondary) {
+              STATE.secondary = data.metrics.secondary;
+            }
+          }
+          
+          updateUI();
+        } catch (e) {
+          console.log('[AUTUS] Using local state');
+          updateUI();
+        }
+      }
+
+      function updateUI() {
+        // PNR
+        if (STATE.state === 'IRREVERSIBLE') {
+          els.pnrValue.textContent = '복구 불가';
+          els.pnrLabel.style.display = 'none';
+        } else {
+          els.pnrValue.textContent = `${STATE.pnrDays}일`;
+        }
+        
+        // State Badge
+        els.stateBadge.textContent = STATE.state;
+        els.stateBadge.className = `state-badge ${STATE.state.toLowerCase()}`;
+        
+        // Primary Metric
+        els.metricValue.textContent = formatMetricValue(STATE.primary.value);
+        if (STATE.primary.sub) {
+          els.metricSub.textContent = STATE.primary.sub;
+        }
+        
+        // Secondary Metrics
+        const secValues = els.secondaryMetrics.querySelectorAll('.secondary-value');
+        STATE.secondary.forEach((item, i) => {
+          if (secValues[i]) {
+            secValues[i].textContent = item.value;
+            secValues[i].className = `secondary-value ${item.class || ''}`;
+          }
+        });
+        
+        // Loss Gauge
+        els.lossTotal.textContent = formatLoss(STATE.totalLoss, STATE.unit);
+        els.lossRate.textContent = `+${formatLoss(STATE.lossRate, STATE.unit)}/일`;
+        
+        // IRREVERSIBLE 상태
+        if (STATE.state === 'IRREVERSIBLE') {
+          els.actionBtn.disabled = true;
+          els.actionBtn.textContent = '복구 불가';
+          els.statusText.textContent = '임계점을 초과했습니다';
+        }
+        
+        // CRITICAL 상태 강조
+        if (STATE.state === 'CRITICAL' && config.action) {
+          els.actionBtn.classList.add('highlight');
+        }
+      }
+
+      function formatMetricValue(val) {
+        if (typeof val === 'number') {
+          if (val >= 100000000) return `${(val / 100000000).toFixed(1)}억`;
+          if (val >= 10000) return `${Math.round(val / 10000)}만`;
+          return val.toLocaleString('ko-KR');
+        }
+        return val;
+      }
+
+      function formatLoss(num, unit) {
+        if (unit === 'OCU') {
+          return `${(num / 100000).toFixed(1)} OCU`;
+        }
+        return `₩${num.toLocaleString('ko-KR')}`;
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // EROSION
+      // ═══════════════════════════════════════════════════════════
+      function startErosion() {
+        erosionInterval = setInterval(() => {
+          if (STATE.state === 'IRREVERSIBLE') return;
+          
+          const increment = Math.round(STATE.lossRate / 8640);
+          STATE.totalLoss += increment;
+          
+          Object.keys(STATE.costs).forEach(key => {
+            STATE.costs[key] += Math.round(increment * (STATE.costs[key] / STATE.totalLoss));
+          });
+          
+          if (Math.random() < 0.08) {
+            STATE.pnrDays = Math.max(0, STATE.pnrDays - 1);
+            if (STATE.pnrDays <= 0) STATE.state = 'IRREVERSIBLE';
+            else if (STATE.pnrDays <= 7) STATE.state = 'CRITICAL';
+            else if (STATE.pnrDays <= 21) STATE.state = 'WARNING';
+          }
+          
+          updateUI();
+        }, 10000);
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // EVENTS
+      // ═══════════════════════════════════════════════════════════
+      function setupEvents() {
+        els.actionBtn.addEventListener('click', executeAction);
+      }
+
+      async function executeAction() {
+        if (els.actionBtn.disabled || !config.action) return;
+        
+        if (erosionInterval) {
+          clearInterval(erosionInterval);
+          erosionInterval = null;
+        }
+        
+        els.actionBtn.disabled = true;
+        els.actionBtn.textContent = '기록 중...';
+        els.actionBtn.classList.remove('highlight');
+        
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/action/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: config.action.toUpperCase(),
+              role: currentRole,
+              total_loss: STATE.totalLoss,
+              costs: STATE.costs,
+              state: STATE.state,
+              pnr_days: STATE.pnrDays
+            })
+          });
+          const data = await res.json();
+          showAudit(data.audit_id || `AUD-${Date.now().toString(36).toUpperCase()}`);
+        } catch (e) {
+          showAudit(`AUD-${Date.now().toString(36).toUpperCase()}`);
+        }
+      }
+
+      function showAudit(auditId) {
+        els.actionArea.style.display = 'none';
+        els.auditScreen.classList.remove('hidden');
+        els.auditText.textContent = config.auditText || '기록됨';
+        els.auditId.textContent = auditId;
+        
+        localStorage.setItem('autus.lastAuditId', auditId);
+        localStorage.setItem('autus.role', currentRole);
+        
+        window.history.pushState(null, '', window.location.pathname + window.location.search);
+        window.addEventListener('popstate', () => {
+          window.history.pushState(null, '', window.location.pathname + window.location.search);
+        });
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // START
+      // ═══════════════════════════════════════════════════════════
+      document.readyState === 'loading'
+        ? document.addEventListener('DOMContentLoaded', init)
+        : init();
+
+    })();
+  </script>
+</body>
+</html>
