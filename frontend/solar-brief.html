@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>AUTUS</title>
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       RESET & BASE — Brief Compliant
+       "AUTUS는 설득하지 않는다. 측정만 한다."
+       ═══════════════════════════════════════════════════════════ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0a0a;
+      color: #fff;
+      font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       HEADER — 상태 + 증가율
+       ═══════════════════════════════════════════════════════════ */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      background: rgba(10, 10, 10, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 100;
+    }
+
+    .state-badge {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .state-badge.safe { background: #00ff88; color: #000; }
+    .state-badge.warning { background: #ffaa00; color: #000; }
+    .state-badge.critical { background: #ff4444; color: #fff; }
+    .state-badge.irreversible { background: #8b0000; color: #fff; animation: pulse-danger 1s infinite; }
+
+    @keyframes pulse-danger {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .loss-rate {
+      font-size: 12px;
+      color: #ff6b6b;
+      font-family: 'SF Mono', monospace;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       LOSS GAUGE — 손실 총액 (절대값)
+       ═══════════════════════════════════════════════════════════ */
+    .loss-gauge {
+      position: fixed;
+      top: 72px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      padding: 16px;
+      z-index: 90;
+    }
+
+    .loss-total {
+      font-size: 36px;
+      font-weight: 200;
+      color: #ff6b6b;
+      font-family: 'SF Mono', monospace;
+      letter-spacing: -1px;
+    }
+
+    .loss-rate-sub {
+      font-size: 14px;
+      color: rgba(255, 107, 107, 0.7);
+      margin-top: 4px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       EROSION LINE (Canvas) — 7종 기회비용 시각화
+       ═══════════════════════════════════════════════════════════ */
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 140px;
+      padding-bottom: 320px;
+    }
+
+    #erosion-canvas {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       LOSS CARDS — 7종 기회비용 (하단)
+       ═══════════════════════════════════════════════════════════ */
+    .loss-cards {
+      position: fixed;
+      bottom: 140px;
+      left: 0;
+      right: 0;
+      display: flex;
+      overflow-x: auto;
+      gap: 8px;
+      padding: 0 12px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      z-index: 80;
+    }
+
+    .loss-cards::-webkit-scrollbar { display: none; }
+
+    .loss-card {
+      flex-shrink: 0;
+      min-width: 100px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .loss-card-label {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .loss-card-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ff6b6b;
+      font-family: 'SF Mono', monospace;
+    }
+
+    .loss-card-rate {
+      font-size: 10px;
+      color: rgba(255, 107, 107, 0.6);
+      margin-top: 2px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       PNR MARKER — 복구 불가 시점
+       ═══════════════════════════════════════════════════════════ */
+    .pnr-marker {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 85;
+    }
+
+    .pnr-days {
+      font-size: 24px;
+      font-weight: 600;
+      color: #ffaa00;
+      font-family: 'SF Mono', monospace;
+    }
+
+    .pnr-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 2px;
+    }
+
+    .pnr-marker.critical .pnr-days {
+      color: #ff4444;
+    }
+
+    .pnr-marker.irreversible .pnr-days {
+      color: #8b0000;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       ACTION AREA — 선택 버튼 (자동 실행 ❌)
+       ═══════════════════════════════════════════════════════════ */
+    .action-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      background: linear-gradient(transparent, rgba(10, 10, 10, 0.98) 30%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    .action-area.hidden {
+      display: none;
+    }
+
+    .action-btn {
+      width: 100%;
+      max-width: 400px;
+      padding: 18px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .action-btn:active {
+      transform: scale(0.98);
+    }
+
+    .action-btn.highlight {
+      background: #00ff88;
+      color: #000;
+      border-color: #00ff88;
+      animation: highlight-pulse 1.5s infinite;
+    }
+
+    @keyframes highlight-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4); }
+      50% { box-shadow: 0 0 20px 5px rgba(0, 255, 136, 0.2); }
+    }
+
+    .action-btn:disabled {
+      background: #333;
+      color: #666;
+      border-color: #333;
+      cursor: default;
+      transform: none;
+      animation: none;
+    }
+
+    .action-status {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       IRREVERSIBLE STATE — 복구 불가 표시
+       ═══════════════════════════════════════════════════════════ */
+    .irreversible-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(139, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .irreversible-overlay.hidden {
+      display: none;
+    }
+
+    .irreversible-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .irreversible-text {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 2px;
+    }
+
+    .irreversible-sub {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 8px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SUCCESS SCREEN — 기록 완료
+       ═══════════════════════════════════════════════════════════ */
+    .success-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 10, 10, 0.98);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      animation: fadeIn 0.3s;
+    }
+
+    .success-screen.hidden {
+      display: none;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(0, 255, 136, 0.1);
+      border: 2px solid #00ff88;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      color: #00ff88;
+      margin-bottom: 20px;
+    }
+
+    .success-text {
+      font-size: 18px;
+      color: #fff;
+      font-weight: 500;
+      letter-spacing: 2px;
+    }
+
+    .record-id {
+      margin-top: 16px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: 'SF Mono', monospace;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    .immutable-badge {
+      margin-top: 24px;
+      font-size: 9px;
+      color: rgba(0, 255, 136, 0.5);
+      border: 1px solid rgba(0, 255, 136, 0.2);
+      padding: 4px 10px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       LOADING
+       ═══════════════════════════════════════════════════════════ */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 400;
+      transition: opacity 0.3s;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top-color: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MOBILE RESPONSIVE
+       ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 480px) {
+      .header { height: 48px; padding: 0 12px; }
+      .loss-gauge { top: 60px; padding: 12px; }
+      .loss-total { font-size: 28px; }
+      .canvas-container { padding-top: 120px; padding-bottom: 300px; }
+      .loss-cards { bottom: 130px; }
+      .loss-card { min-width: 90px; padding: 10px; }
+      .pnr-marker { bottom: 90px; }
+      .action-btn { padding: 16px 24px; font-size: 15px; }
+    }
+
+    @media (min-width: 769px) {
+      .header { height: 60px; padding: 0 24px; }
+      .loss-total { font-size: 42px; }
+      .loss-cards { justify-content: center; }
+      .action-btn { max-width: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="state-badge safe" id="state-badge">SAFE</div>
+      <div class="loss-rate" id="loss-rate">+₩0/일</div>
+    </header>
+
+    <!-- Loss Gauge -->
+    <div class="loss-gauge">
+      <div class="loss-total" id="loss-total">₩0</div>
+      <div class="loss-rate-sub" id="loss-rate-sub">누적 손실</div>
+    </div>
+
+    <!-- Erosion Line (Canvas) -->
+    <div class="canvas-container">
+      <canvas id="erosion-canvas"></canvas>
+    </div>
+
+    <!-- Loss Cards (7종 기회비용) -->
+    <div class="loss-cards" id="loss-cards">
+      <!-- JS로 생성 -->
+    </div>
+
+    <!-- PNR Marker -->
+    <div class="pnr-marker" id="pnr-marker">
+      <div class="pnr-days" id="pnr-days">--일</div>
+      <div class="pnr-label">후 복구 불가</div>
+    </div>
+
+    <!-- Action Area -->
+    <div class="action-area" id="action-area">
+      <button class="action-btn" id="action-btn">선택</button>
+      <div class="action-status" id="action-status">선택 대기</div>
+    </div>
+
+    <!-- Irreversible Overlay -->
+    <div class="irreversible-overlay hidden" id="irreversible-overlay">
+      <div class="irreversible-icon">⚠️</div>
+      <div class="irreversible-text">복구 불가</div>
+      <div class="irreversible-sub">임계점을 초과했습니다</div>
+    </div>
+
+    <!-- Success Screen -->
+    <div class="success-screen hidden" id="success-screen">
+      <div class="success-icon">✓</div>
+      <div class="success-text">기록 완료</div>
+      <div class="record-id" id="record-id">RECORD: ---</div>
+      <div class="immutable-badge">IMMUTABLE</div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * AUTUS — Brief Compliant Version
+     * 
+     * 핵심 원칙:
+     * - 설득하지 않는다. 측정만 한다.
+     * - 추천 없음
+     * - 자동 결정 없음
+     * - 비교 없음
+     * - 숫자는 절대값
+     * - 선택은 인간
+     */
+    (function() {
+      'use strict';
+
+      // ═══════════════════════════════════════════════════════════
+      // CONFIG
+      // ═══════════════════════════════════════════════════════════
+      const API_BASE = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8000' 
+        : 'https://autus-production.up.railway.app';
+
+      // 7종 기회비용 정의
+      const COST_TYPES = [
+        { id: 'time', label: 'TIME', color: '#45B7D1' },
+        { id: 'risk', label: 'RISK', color: '#FF6B6B' },
+        { id: 'resource', label: 'RESOURCE', color: '#96CEB4' },
+        { id: 'position', label: 'POSITION', color: '#FFEAA7' },
+        { id: 'learning', label: 'LEARNING', color: '#DDA0DD' },
+        { id: 'trust', label: 'TRUST', color: '#87CEEB' },
+        { id: 'irreversibility', label: 'IRREVERSIBLE', color: '#FFB6C1' }
+      ];
+
+      // State
+      const STATE = {
+        state: 'SAFE',  // SAFE, WARNING, CRITICAL, IRREVERSIBLE
+        totalLoss: 0,
+        lossRate: 0,
+        pnrDays: 30,
+        costs: {
+          time: 0,
+          risk: 0,
+          resource: 0,
+          position: 0,
+          learning: 0,
+          trust: 0,
+          irreversibility: 0
+        },
+        costRates: {
+          time: 0,
+          risk: 0,
+          resource: 0,
+          position: 0,
+          learning: 0,
+          trust: 0,
+          irreversibility: 0
+        }
+      };
+
+      let animationId = null;
+      let highlightTimeout = null;
+
+      // Elements
+      const els = {
+        loadingOverlay: document.getElementById('loading-overlay'),
+        stateBadge: document.getElementById('state-badge'),
+        lossRate: document.getElementById('loss-rate'),
+        lossTotal: document.getElementById('loss-total'),
+        lossRateSub: document.getElementById('loss-rate-sub'),
+        lossCards: document.getElementById('loss-cards'),
+        pnrMarker: document.getElementById('pnr-marker'),
+        pnrDays: document.getElementById('pnr-days'),
+        actionArea: document.getElementById('action-area'),
+        actionBtn: document.getElementById('action-btn'),
+        actionStatus: document.getElementById('action-status'),
+        irreversibleOverlay: document.getElementById('irreversible-overlay'),
+        successScreen: document.getElementById('success-screen'),
+        recordId: document.getElementById('record-id'),
+        canvas: document.getElementById('erosion-canvas')
+      };
+
+      // ═══════════════════════════════════════════════════════════
+      // INIT
+      // ═══════════════════════════════════════════════════════════
+      async function init() {
+        setupCanvas();
+        renderLossCards();
+        await fetchState();
+        setupEvents();
+        
+        // Hide loading
+        setTimeout(() => {
+          els.loadingOverlay.classList.add('hidden');
+        }, 500);
+
+        // Polling (30초)
+        setInterval(fetchState, 30000);
+
+        // 강조 타이머 (자동 실행 ❌, 강조만 ✅)
+        highlightTimeout = setTimeout(() => {
+          if (STATE.state !== 'IRREVERSIBLE') {
+            els.actionBtn.classList.add('highlight');
+            els.actionStatus.textContent = '선택 권장';
+          }
+        }, 5000);
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // FORMAT
+      // ═══════════════════════════════════════════════════════════
+      function formatMoney(value) {
+        if (value >= 100000000) {
+          return `₩${(value / 100000000).toFixed(1)}억`;
+        } else if (value >= 10000) {
+          return `₩${Math.round(value / 10000)}만`;
+        }
+        return `₩${value.toLocaleString()}`;
+      }
+
+      function formatRate(value) {
+        if (value >= 10000) {
+          return `+₩${Math.round(value / 10000)}만/일`;
+        }
+        return `+₩${value.toLocaleString()}/일`;
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // LOSS CARDS
+      // ═══════════════════════════════════════════════════════════
+      function renderLossCards() {
+        els.lossCards.innerHTML = COST_TYPES.map(type => `
+          <div class="loss-card" data-type="${type.id}">
+            <div class="loss-card-label">${type.label}</div>
+            <div class="loss-card-value" id="cost-${type.id}">₩0</div>
+            <div class="loss-card-rate" id="rate-${type.id}">+₩0/일</div>
+          </div>
+        `).join('');
+      }
+
+      function updateLossCards() {
+        COST_TYPES.forEach(type => {
+          const valueEl = document.getElementById(`cost-${type.id}`);
+          const rateEl = document.getElementById(`rate-${type.id}`);
+          if (valueEl) valueEl.textContent = formatMoney(STATE.costs[type.id] || 0);
+          if (rateEl) rateEl.textContent = formatRate(STATE.costRates[type.id] || 0);
+        });
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // CANVAS — 7종 Erosion Line
+      // ═══════════════════════════════════════════════════════════
+      function setupCanvas() {
+        const canvas = els.canvas;
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+          const container = canvas.parentElement;
+          const size = Math.min(container.clientWidth, container.clientHeight) * 0.85;
+          canvas.width = size;
+          canvas.height = size;
+        }
+
+        resize();
+        window.addEventListener('resize', resize);
+
+        function render() {
+          const w = canvas.width;
+          const h = canvas.height;
+          const cx = w / 2;
+          const cy = h / 2;
+          const maxR = Math.min(w, h) / 2 - 20;
+
+          // Clear
+          ctx.fillStyle = '#0a0a0a';
+          ctx.fillRect(0, 0, w, h);
+
+          // Center (Total Loss indicator)
+          const centerSize = maxR * 0.15;
+          const lossRatio = Math.min(1, STATE.totalLoss / 50000000);  // 5천만 기준
+          
+          const centerGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, centerSize * 1.5);
+          const centerColor = STATE.state === 'IRREVERSIBLE' ? '#8b0000' :
+                              STATE.state === 'CRITICAL' ? '#ff4444' :
+                              STATE.state === 'WARNING' ? '#ffaa00' : '#00ff88';
+          
+          centerGradient.addColorStop(0, centerColor);
+          centerGradient.addColorStop(0.5 + lossRatio * 0.3, centerColor + '44');
+          centerGradient.addColorStop(1, 'transparent');
+          
+          ctx.beginPath();
+          ctx.arc(cx, cy, centerSize * (1 + lossRatio * 0.5), 0, Math.PI * 2);
+          ctx.fillStyle = centerGradient;
+          ctx.fill();
+
+          // 7 Cost Orbits
+          const time = Date.now() / 1000;
+          const totalCost = Object.values(STATE.costs).reduce((a, b) => a + b, 0) || 1;
+
+          COST_TYPES.forEach((type, i) => {
+            const orbitR = maxR * (0.25 + i * 0.1);
+            const cost = STATE.costs[type.id] || 0;
+            const ratio = cost / totalCost;
+            const size = 4 + ratio * 20;  // 크기 = 비용 비율
+            const speed = 0.005 + (STATE.costRates[type.id] || 0) / 100000;  // 속도 = 증가율
+            const angle = time * speed + (i * Math.PI * 2 / 7);
+
+            const x = cx + Math.cos(angle) * orbitR;
+            const y = cy + Math.sin(angle) * orbitR;
+
+            // Orbit line
+            ctx.beginPath();
+            ctx.arc(cx, cy, orbitR, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Glow
+            ctx.beginPath();
+            ctx.arc(x, y, size + 3, 0, Math.PI * 2);
+            ctx.fillStyle = type.color + '33';
+            ctx.fill();
+
+            // Planet
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fillStyle = type.color;
+            ctx.fill();
+          });
+
+          animationId = requestAnimationFrame(render);
+        }
+
+        render();
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // STATE FETCH
+      // ═══════════════════════════════════════════════════════════
+      async function fetchState() {
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/physics/solar-binding`);
+          if (!res.ok) throw new Error('API error');
+          
+          const data = await res.json();
+          
+          // 기존 API 호환 + 새 필드
+          const risk = data.risk || 32;
+          
+          // 상태 결정 (브리프 기준)
+          if (risk >= 90) {
+            STATE.state = 'IRREVERSIBLE';
+          } else if (risk >= 60) {
+            STATE.state = 'CRITICAL';
+          } else if (risk >= 30) {
+            STATE.state = 'WARNING';
+          } else {
+            STATE.state = 'SAFE';
+          }
+
+          // 손실 계산 (시뮬레이션)
+          const dailyBurn = 100000;  // ₩10만/일
+          STATE.totalLoss = data.total_loss || Math.round(risk * dailyBurn * 30 / 10);
+          STATE.lossRate = data.loss_rate || Math.round(risk * dailyBurn / 100);
+          STATE.pnrDays = data.pnr_days || Math.max(1, Math.round((90 - risk) / 3));
+
+          // 7종 기회비용 분배
+          const totalLoss = STATE.totalLoss;
+          STATE.costs = {
+            time: Math.round(totalLoss * 0.18),
+            risk: Math.round(totalLoss * 0.22),
+            resource: Math.round(totalLoss * 0.12),
+            position: Math.round(totalLoss * 0.15),
+            learning: Math.round(totalLoss * 0.10),
+            trust: Math.round(totalLoss * 0.13),
+            irreversibility: Math.round(totalLoss * 0.10)
+          };
+
+          STATE.costRates = {
+            time: Math.round(STATE.lossRate * 0.18),
+            risk: Math.round(STATE.lossRate * 0.22),
+            resource: Math.round(STATE.lossRate * 0.12),
+            position: Math.round(STATE.lossRate * 0.15),
+            learning: Math.round(STATE.lossRate * 0.10),
+            trust: Math.round(STATE.lossRate * 0.13),
+            irreversibility: Math.round(STATE.lossRate * 0.10)
+          };
+
+          updateUI();
+        } catch (e) {
+          console.warn('[AUTUS] API offline, using defaults');
+          updateUI();
+        }
+      }
+
+      function updateUI() {
+        // State Badge
+        els.stateBadge.textContent = STATE.state;
+        els.stateBadge.className = `state-badge ${STATE.state.toLowerCase()}`;
+
+        // Loss Gauge
+        els.lossTotal.textContent = formatMoney(STATE.totalLoss);
+        els.lossRate.textContent = formatRate(STATE.lossRate);
+
+        // PNR Marker
+        els.pnrDays.textContent = `${STATE.pnrDays}일`;
+        els.pnrMarker.className = `pnr-marker ${STATE.state.toLowerCase()}`;
+
+        // Loss Cards
+        updateLossCards();
+
+        // Action Area
+        if (STATE.state === 'IRREVERSIBLE') {
+          els.actionArea.classList.add('hidden');
+          els.irreversibleOverlay.classList.remove('hidden');
+        } else {
+          els.actionArea.classList.remove('hidden');
+          els.irreversibleOverlay.classList.add('hidden');
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // ACTION (자동 실행 ❌, 인간 선택만 ✅)
+      // ═══════════════════════════════════════════════════════════
+      async function executeAction() {
+        if (highlightTimeout) {
+          clearTimeout(highlightTimeout);
+        }
+        
+        els.actionBtn.disabled = true;
+        els.actionBtn.textContent = '기록 중...';
+        els.actionBtn.classList.remove('highlight');
+
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/action/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              action: 'CHOOSE',  // RECOVER → CHOOSE
+              state: STATE.state,
+              total_loss: STATE.totalLoss,
+              costs: STATE.costs
+            })
+          });
+          
+          const data = await res.json();
+          showSuccess(data.audit_id || `REC-${Date.now().toString(36).toUpperCase()}`);
+        } catch (e) {
+          console.log('[AUTUS] API offline, local mode');
+          showSuccess(`REC-LOCAL-${Date.now().toString(36).toUpperCase()}`);
+        }
+      }
+
+      function showSuccess(recordId) {
+        els.actionArea.classList.add('hidden');
+        els.successScreen.classList.remove('hidden');
+        els.recordId.textContent = `RECORD: ${recordId}`;
+
+        localStorage.setItem('autus.lastRecordId', recordId);
+        localStorage.setItem('autus.recorded', 'true');
+
+        // Stop animation
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // EVENTS
+      // ═══════════════════════════════════════════════════════════
+      function setupEvents() {
+        els.actionBtn.addEventListener('click', () => {
+          if (!els.actionBtn.disabled) {
+            executeAction();
+          }
+        });
+
+        // Touch
+        els.actionBtn.addEventListener('touchstart', () => {
+          els.actionBtn.style.transform = 'scale(0.98)';
+        }, { passive: true });
+
+        els.actionBtn.addEventListener('touchend', () => {
+          els.actionBtn.style.transform = '';
+        }, { passive: true });
+
+        // Prevent zoom
+        let lastTap = 0;
+        document.addEventListener('touchend', (e) => {
+          const now = Date.now();
+          if (now - lastTap < 300) {
+            e.preventDefault();
+          }
+          lastTap = now;
+        }, { passive: false });
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // START
+      // ═══════════════════════════════════════════════════════════
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+    })();
+  </script>
+</body>
+</html>

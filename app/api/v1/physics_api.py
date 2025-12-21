@@ -34,40 +34,84 @@ def get_engine() -> 'PhysicsEngine':
 async def solar_binding():
     """
     SOLAR UI 바인딩 데이터
-    9 Planets + 물리 상태 반환
+    
+    Brief 호환:
+    - 절대값 (₩) 반환
+    - 7종 기회비용 포함
+    - SAFE/WARNING/CRITICAL/IRREVERSIBLE 상태
     """
     # 현재 시간 기반 동적 값 (데모)
     t = time.time() % 100 / 100  # 0-1 사이클
+    risk = 32 + int(t * 10)  # 32-42% 변동
+    
+    # Brief 기준 상태 결정
+    if risk >= 90:
+        state = "IRREVERSIBLE"
+    elif risk >= 60:
+        state = "CRITICAL"
+    elif risk >= 30:
+        state = "WARNING"
+    else:
+        state = "SAFE"
+    
+    # 손실 계산 (절대값)
+    daily_burn = 100000  # ₩10만/일
+    total_loss = int(risk * daily_burn * 30 / 10)
+    loss_rate = int(risk * daily_burn / 100)
+    pnr_days = max(1, int((90 - risk) / 3))
+    
+    # 7종 기회비용 (Brief 호환)
+    costs = {
+        "time": int(total_loss * 0.18),
+        "risk": int(total_loss * 0.22),
+        "resource": int(total_loss * 0.12),
+        "position": int(total_loss * 0.15),
+        "learning": int(total_loss * 0.10),
+        "trust": int(total_loss * 0.13),
+        "irreversibility": int(total_loss * 0.10)
+    }
+    
+    cost_rates = {
+        "time": int(loss_rate * 0.18),
+        "risk": int(loss_rate * 0.22),
+        "resource": int(loss_rate * 0.12),
+        "position": int(loss_rate * 0.15),
+        "learning": int(loss_rate * 0.10),
+        "trust": int(loss_rate * 0.13),
+        "irreversibility": int(loss_rate * 0.10)
+    }
     
     return {
+        # Brief 호환 필드 (절대값)
+        "state": state,
+        "total_loss": total_loss,
+        "loss_rate": loss_rate,
+        "pnr_days": pnr_days,
+        "costs": costs,
+        "cost_rates": cost_rates,
+        
+        # 기존 호환 필드
         "survival_time": 216,
         "float_pressure": 0.38,
-        "risk": 32 + int(t * 10),  # 32-42% 변동
+        "risk": risk,
         "entropy": 0.14 + t * 0.05,
         "pressure": 0.22,
         "flow": 0.65,
-        "status": "GREEN" if t < 0.7 else "AMBER",
-        "gate": "GREEN" if t < 0.7 else "AMBER",
-        "impact_percent": -48,
+        "status": "GREEN" if risk < 30 else "AMBER" if risk < 60 else "RED",
+        "gate": "GREEN" if risk < 30 else "AMBER" if risk < 60 else "RED",
+        
         "binding": {
             "core": {"scale": 0.8, "glow": 0.3},
             "orbits": {"speed": 0.7, "distortion": 0.1},
             "ring": {"radiusScale": 0.9, "thickness": 0.18, "pulseHz": 0.5, "asymStrength": 0.2}
         },
         "physics": {
-            "risk": 0.32 + t * 0.1,
+            "risk": risk / 100,
             "entropy": 0.14 + t * 0.05,
             "pressure": 0.22,
             "flow": 0.65,
             "survival_days": 216,
             "collapse_days": 365
-        },
-        "state": {
-            "system_state": "GREEN" if t < 0.7 else "YELLOW",
-            "can_create_commit": True,
-            "can_expand": True,
-            "recommended_action": "RECOVER",
-            "violations": []
         },
         "planets": {
             "recovery": 0.72,
