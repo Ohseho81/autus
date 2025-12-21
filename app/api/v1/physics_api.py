@@ -12,7 +12,11 @@ from datetime import datetime
 
 # Physics Engine Import
 try:
-    from app.physics.engine import PhysicsEngine, create_demo_engine
+    from app.physics.engine import (
+        PhysicsEngine, create_demo_engine, 
+        create_critical_engine, create_irreversible_engine,
+        COST_COLORS, COST_RATIOS
+    )
     ENGINE_AVAILABLE = True
 except ImportError:
     ENGINE_AVAILABLE = False
@@ -79,16 +83,30 @@ def determine_state(pnr_days: int) -> str:
 # ═══════════════════════════════════════════════════════════
 
 @router.get("/solar-binding")
-async def solar_binding():
+async def solar_binding(
+    role: str = Query("subject", description="subject/operator/sponsor"),
+    domain: str = Query("education", description="education/employment/default")
+):
     """
     LOSS GAUGE + EROSION LINE 바인딩
     브리프 준수: 절대값(₩), 7종 비용
+    
+    Engine 기반 계산
     """
+    # Engine 사용 가능하면 실제 계산
+    if ENGINE_AVAILABLE:
+        engine = get_engine()
+        if engine:
+            engine.domain = domain
+            engine.compute_snapshot(role=role)
+            return engine.to_brief_binding(role)
+    
+    # Fallback: 수동 계산
     costs = calculate_costs()
     cost_rates = calculate_cost_rates()
     total_loss = sum(costs.values())
     loss_rate = sum(cost_rates.values())
-    pnr_days = 14  # 실제 데이터 연동 시 계산
+    pnr_days = 14
     state = determine_state(pnr_days)
     
     return {
@@ -100,6 +118,17 @@ async def solar_binding():
         "costs": costs,
         "cost_rates": cost_rates,
         "timestamp": datetime.utcnow().isoformat(),
+        
+        # 단위
+        "unit": "₩" if role in ["subject", "sponsor"] else "₩+OCU",
+        
+        # ACTION
+        "can_action": state != "IRREVERSIBLE",
+        "action_text": "선택" if state != "IRREVERSIBLE" else "복구 불가",
+        "status_text": "" if state == "SAFE" else 
+                       "비용이 증가하고 있습니다" if state == "WARNING" else
+                       "선택하지 않으면 비용은 계속 증가합니다" if state == "CRITICAL" else
+                       "이 상태는 변경할 수 없습니다",
         
         # Legacy 호환
         "risk": min(100, int(total_loss / 200000)),
@@ -159,6 +188,37 @@ async def get_state():
         "can_recover": state != "IRREVERSIBLE",
         "timestamp": datetime.utcnow().isoformat()
     }
+
+
+@router.get("/demo/{state_type}")
+async def get_demo_state(
+    state_type: str,
+    role: str = Query("subject", description="subject/operator/sponsor")
+):
+    """
+    데모 상태별 바인딩
+    
+    state_type: safe, warning, critical, irreversible
+    """
+    if not ENGINE_AVAILABLE:
+        return {"error": "Engine not available"}
+    
+    # 상태별 엔진 생성
+    state_type = state_type.lower()
+    
+    if state_type == "critical":
+        engine = create_critical_engine()
+    elif state_type == "irreversible":
+        engine = create_irreversible_engine()
+    else:
+        engine = create_demo_engine()
+        if state_type == "safe":
+            engine.pnr_initial = 30
+        elif state_type == "warning":
+            engine.pnr_initial = 14
+    
+    engine.compute_snapshot(role=role)
+    return engine.to_brief_binding(role)
 
 
 # ═══════════════════════════════════════════════════════════

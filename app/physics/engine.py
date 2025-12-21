@@ -1,14 +1,91 @@
 """
 ═══════════════════════════════════════════════════════════════════════════════
-AUTUS PHYSICS ENGINE — 7 Laws + TIME-MONEY Integration
+AUTUS PHYSICS ENGINE — 7 Laws + TIME-MONEY + Opportunity Cost Integration
 
 통합 물리 엔진: UI, 거버넌스, Audit과 직접 연결
+LOCK: 2024-12-18
+
+"AUTUS는 설득하지 않는다. 측정만 한다."
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 import time
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 7종 기회비용 정의 (LOCK)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class OpportunityCost:
+    """7종 기회비용 구조체"""
+    time: int = 0           # 시간 가치 손실
+    risk: int = 0           # 위험 증가
+    resource: int = 0       # 추가 자원
+    position: int = 0       # 기회/자리 손실
+    learning: int = 0       # 학습 지연
+    trust: int = 0          # 신뢰 감소
+    irreversibility: int = 0  # 복구불가 손실
+    
+    def to_dict(self) -> Dict[str, int]:
+        return {
+            "time": self.time,
+            "risk": self.risk,
+            "resource": self.resource,
+            "position": self.position,
+            "learning": self.learning,
+            "trust": self.trust,
+            "irreversibility": self.irreversibility
+        }
+    
+    @property
+    def total(self) -> int:
+        return sum(self.to_dict().values())
+
+
+# 도메인별 가중치 (LOCK)
+DOMAIN_WEIGHTS: Dict[str, Dict[str, float]] = {
+    "education": {
+        "time": 1.0, "risk": 1.0, "resource": 1.0,
+        "position": 1.0, "learning": 1.5, "trust": 1.0,
+        "irreversibility": 1.0
+    },
+    "employment": {
+        "time": 1.0, "risk": 1.0, "resource": 1.2,
+        "position": 1.5, "learning": 1.0, "trust": 1.3,
+        "irreversibility": 1.0
+    },
+    "default": {
+        "time": 1.0, "risk": 1.0, "resource": 1.0,
+        "position": 1.0, "learning": 1.0, "trust": 1.0,
+        "irreversibility": 1.0
+    }
+}
+
+# 비용 비율 (LOCK)
+COST_RATIOS: Dict[str, float] = {
+    "time": 0.17,
+    "risk": 0.28,
+    "resource": 0.10,
+    "position": 0.16,
+    "learning": 0.12,
+    "trust": 0.13,
+    "irreversibility": 0.04
+}
+
+# 비용 색상 (LOCK)
+COST_COLORS: Dict[str, str] = {
+    "time": "#4ECDC4",
+    "risk": "#FF6B6B",
+    "resource": "#45B7D1",
+    "position": "#96CEB4",
+    "learning": "#FFEAA7",
+    "trust": "#DDA0DD",
+    "irreversibility": "#FF4444"
+}
 
 from .laws import (
     SystemState, Person, Commit, MoneyFlow,
@@ -48,6 +125,15 @@ class PhysicsSnapshot:
     
     # 법칙 위반
     violations: List[str]
+    
+    # 7종 기회비용 (Brief-Compliant)
+    costs: OpportunityCost = field(default_factory=OpportunityCost)
+    cost_rates: Dict[str, int] = field(default_factory=dict)
+    total_loss: int = 0
+    loss_rate: int = 0
+    pnr_days: int = 30
+    state: str = "SAFE"  # SAFE / WARNING / CRITICAL / IRREVERSIBLE
+    unit: str = "₩"  # ₩ / OCU / ₩+OCU
 
 
 class PhysicsEngine:
@@ -62,9 +148,18 @@ class PhysicsEngine:
     5. Failure Containment (실패 격리) — 연쇄 붕괴 방지
     6. Responsibility Density (책임 밀도) — 역할 최소화
     7. Survival Mass Threshold (생존 질량) — 확장 제어
+    
+    7종 기회비용:
+    1. Time — 시간 가치 손실
+    2. Risk — 위험 증가
+    3. Resource — 추가 자원
+    4. Position — 기회/자리 손실
+    5. Learning — 학습 지연
+    6. Trust — 신뢰 감소
+    7. Irreversibility — 복구불가 손실
     """
     
-    def __init__(self):
+    def __init__(self, domain: str = "default"):
         self.persons: List[Person] = []
         self.commits: List[Commit] = []
         self.commit_data: List[CommitData] = []  # 상세 물리 데이터
@@ -73,7 +168,146 @@ class PhysicsEngine:
         self.daily_burn: float = 100000  # 기본 일일 소비 ₩10만
         self.required_expansion_mass: float = 0
         
+        # Brief-Compliant 설정
+        self.domain: str = domain  # education / employment / default
+        self.base_loss: int = 10000000  # 기본 손실액 ₩1000만
+        self.base_rate: int = 41000  # 기본 증가율 ₩41,000/일
+        self.days_delayed: int = 0  # 지연 일수
+        self.pnr_initial: int = 30  # 초기 PNR 일수
+        
         self._last_snapshot: Optional[PhysicsSnapshot] = None
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # 7종 기회비용 계산 (LOCK)
+    # ═══════════════════════════════════════════════════════════════════════════
+    
+    def calculate_costs(self) -> OpportunityCost:
+        """
+        7종 기회비용 계산
+        
+        공식: Cost_i = BaseLoss × Ratio_i × Weight_i × TimeDecay_i
+        """
+        weights = DOMAIN_WEIGHTS.get(self.domain, DOMAIN_WEIGHTS["default"])
+        pnr_days = self.calculate_pnr_days()
+        
+        costs = {}
+        for cost_type, ratio in COST_RATIOS.items():
+            base = self.base_loss * ratio
+            weight = weights.get(cost_type, 1.0)
+            time_decay = self.calculate_time_decay(cost_type, pnr_days)
+            
+            costs[cost_type] = int(base * weight * time_decay)
+        
+        return OpportunityCost(**costs)
+    
+    def calculate_cost_rates(self) -> Dict[str, int]:
+        """7종 기회비용 증가율"""
+        weights = DOMAIN_WEIGHTS.get(self.domain, DOMAIN_WEIGHTS["default"])
+        
+        rates = {}
+        for cost_type, ratio in COST_RATIOS.items():
+            base = self.base_rate * ratio
+            weight = weights.get(cost_type, 1.0)
+            rates[cost_type] = int(base * weight)
+        
+        return rates
+    
+    def calculate_time_decay(self, cost_type: str, pnr_days: int) -> float:
+        """
+        시간 가속 계수 (TimeDecay_i)
+        
+        기본 모드: 1.0 (가속 없음)
+        가속 모드: PNR 7일 이내 시 활성화
+        Irreversibility: PNR = 0 시 ×10
+        """
+        # 기본 모드
+        if pnr_days > 7:
+            return 1.0
+        
+        # 가속 모드
+        base_decay = 1.0 + (0.1 * self.days_delayed)
+        
+        # Irreversibility 특수 처리
+        if cost_type == "irreversibility" and pnr_days <= 0:
+            return base_decay * 10
+        
+        return base_decay
+    
+    def calculate_pnr_days(self) -> int:
+        """
+        Point of No Return 계산
+        
+        PNR = (survival_days - T_MIN) / acceleration
+        """
+        if self._last_snapshot:
+            survival = self._last_snapshot.survival_days
+        else:
+            survival = 180  # 기본값
+        
+        # 가속도 계산 (pressure 기반)
+        acceleration = max(1.0, self.daily_burn / 100000)
+        
+        # PNR 계산
+        pnr = int(max(0, (survival - T_MIN) / acceleration))
+        
+        return min(pnr, self.pnr_initial)
+    
+    def calculate_total_opportunity_cost(self) -> int:
+        """
+        총 기회비용 계산
+        
+        공식: TotalOpportunityCost = Σ(Cost_i × Weight_i × TimeDecay_i)
+        UI 표시: 단순 합계만
+        """
+        costs = self.calculate_costs()
+        return costs.total
+    
+    def determine_state(self, pnr_days: int) -> str:
+        """
+        상태 결정 (Brief 기준)
+        
+        SAFE: pnr > 21일
+        WARNING: 7일 < pnr ≤ 21일
+        CRITICAL: 0일 < pnr ≤ 7일
+        IRREVERSIBLE: pnr = 0일
+        """
+        if pnr_days <= 0:
+            return "IRREVERSIBLE"
+        elif pnr_days <= 7:
+            return "CRITICAL"
+        elif pnr_days <= 21:
+            return "WARNING"
+        else:
+            return "SAFE"
+    
+    def select_unit(self, role: str = "subject") -> str:
+        """
+        단위 자동 선택
+        
+        ₩: 금액 환산 가능
+        OCU: 금액 환산 불가
+        ₩+OCU: 병기
+        """
+        role = role.lower()
+        
+        # 역할별 고정
+        if role == "sponsor":
+            return "₩"
+        if role == "operator":
+            return "₩+OCU"
+        if role == "institution":
+            return "OCU"
+        
+        # Subject 기본: ₩
+        return "₩"
+    
+    def convert_to_ocu(self, won: int) -> float:
+        """
+        원화 → OCU 변환
+        
+        1 OCU = 1일 × 1인 기회비용 = daily_burn
+        """
+        return round(won / self.daily_burn, 1)
     
     # ═══════════════════════════════════════════════════════════════════════════
     # 데이터 관리
@@ -133,10 +367,10 @@ class PhysicsEngine:
     # 물리 계산
     # ═══════════════════════════════════════════════════════════════════════════
     
-    def compute_snapshot(self, current_timestamp: float = None) -> PhysicsSnapshot:
+    def compute_snapshot(self, current_timestamp: float = None, role: str = "subject") -> PhysicsSnapshot:
         """
         현재 상태 스냅샷 계산
-        7 Laws + TIME-MONEY PHYSICS 통합
+        7 Laws + TIME-MONEY PHYSICS + 7종 기회비용 통합
         """
         if current_timestamp is None:
             current_timestamp = time.time()
@@ -180,7 +414,14 @@ class PhysicsEngine:
         # 5. 권한 결정
         allowed = law3_allowed_actions(SystemState[system_state])
         
-        # 6. 스냅샷 생성
+        # 6. 7종 기회비용 계산 (Brief-Compliant)
+        costs = self.calculate_costs()
+        cost_rates = self.calculate_cost_rates()
+        pnr_days = self.calculate_pnr_days()
+        state = self.determine_state(pnr_days)
+        unit = self.select_unit(role)
+        
+        # 7. 스냅샷 생성
         snapshot = PhysicsSnapshot(
             timestamp=current_timestamp,
             system_state=system_state,
@@ -193,7 +434,15 @@ class PhysicsEngine:
             can_create_commit=allowed["can_create_commit"],
             can_expand=allowed["can_expand"] and tm_result["expansion"]["can_expand"],
             recommended_action=tm_result["recommended_action"]["action"],
-            violations=laws_result["violations"]
+            violations=laws_result["violations"],
+            # Brief-Compliant 필드
+            costs=costs,
+            cost_rates=cost_rates,
+            total_loss=costs.total,
+            loss_rate=sum(cost_rates.values()),
+            pnr_days=pnr_days,
+            state=state,
+            unit=unit
         )
         
         self._last_snapshot = snapshot
@@ -355,7 +604,16 @@ class PhysicsEngine:
             
             # 법칙 상태
             "violations": snapshot.violations,
-            "laws_passed": len(snapshot.violations) == 0
+            "laws_passed": len(snapshot.violations) == 0,
+            
+            # Brief-Compliant (7종 기회비용)
+            "total_loss": snapshot.total_loss,
+            "loss_rate": snapshot.loss_rate,
+            "pnr_days": snapshot.pnr_days,
+            "state": snapshot.state,
+            "costs": snapshot.costs.to_dict(),
+            "cost_rates": snapshot.cost_rates,
+            "unit": snapshot.unit
         }
     
     def to_ui_model(self) -> Dict[str, Any]:
@@ -387,6 +645,80 @@ class PhysicsEngine:
             "system_state": snapshot.system_state,
             "violations": snapshot.violations
         }
+    
+    def to_brief_binding(self, role: str = "subject") -> Dict[str, Any]:
+        """
+        Brief-Compliant UI 바인딩
+        solar-final.html용
+        
+        절대값(₩), 7종 비용, 상태 머신
+        """
+        snapshot = self._last_snapshot or self.compute_snapshot(role=role)
+        
+        # IRREVERSIBLE 상태 처리
+        can_action = snapshot.state != "IRREVERSIBLE"
+        
+        return {
+            # 상태
+            "state": snapshot.state,
+            "pnr_days": snapshot.pnr_days,
+            
+            # LOSS GAUGE (절대값)
+            "total_loss": snapshot.total_loss,
+            "loss_rate": snapshot.loss_rate,
+            
+            # 7종 기회비용
+            "costs": snapshot.costs.to_dict(),
+            "cost_rates": snapshot.cost_rates,
+            
+            # 단위
+            "unit": snapshot.unit,
+            
+            # ACTION
+            "can_action": can_action,
+            "action_text": "선택" if can_action else "복구 불가",
+            
+            # 상태별 메시지
+            "status_text": self._get_status_text(snapshot.state),
+            
+            # EROSION LINE (시각화용)
+            "planets": self._get_planets_data(snapshot),
+            
+            # Legacy 호환
+            "risk": round(snapshot.risk * 100, 1),
+            "gate": snapshot.system_state,
+            "survival_time": round(snapshot.survival_days, 1),
+            "float_pressure": round(snapshot.pressure, 2),
+            
+            # 타임스탬프
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    def _get_status_text(self, state: str) -> str:
+        """상태별 하단 텍스트"""
+        texts = {
+            "SAFE": "",
+            "WARNING": "비용이 증가하고 있습니다",
+            "CRITICAL": "선택하지 않으면 비용은 계속 증가합니다",
+            "IRREVERSIBLE": "이 상태는 변경할 수 없습니다"
+        }
+        return texts.get(state, "")
+    
+    def _get_planets_data(self, snapshot: PhysicsSnapshot) -> List[Dict[str, Any]]:
+        """EROSION LINE 행성 데이터"""
+        costs = snapshot.costs.to_dict()
+        total = snapshot.total_loss or 1
+        
+        return [
+            {
+                "name": cost_type.capitalize(),
+                "value": value / total,
+                "amount": value,
+                "rate": snapshot.cost_rates.get(cost_type, 0),
+                "color": COST_COLORS.get(cost_type, "#ffffff")
+            }
+            for cost_type, value in costs.items()
+        ]
     
     def _get_bottleneck_type(self, snapshot: PhysicsSnapshot) -> str:
         """병목 타입 결정"""
@@ -686,9 +1018,14 @@ class PhysicsEngine:
 # 팩토리 함수
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def create_demo_engine() -> PhysicsEngine:
-    """데모용 엔진 생성"""
-    engine = PhysicsEngine()
+def create_demo_engine(domain: str = "education") -> PhysicsEngine:
+    """
+    데모용 엔진 생성
+    
+    Args:
+        domain: 'education', 'employment', 'default'
+    """
+    engine = PhysicsEngine(domain=domain)
     
     now = time.time()
     six_months = 180 * 86400
@@ -723,4 +1060,28 @@ def create_demo_engine() -> PhysicsEngine:
     engine.daily_burn = 100000  # ₩10만
     engine.required_expansion_mass = 50000000
     
+    # Brief-Compliant 기본값
+    engine.base_loss = 12400000  # ₩1,240만
+    engine.base_rate = 41000  # ₩41,000/일
+    engine.pnr_initial = 14  # 14일
+    engine.days_delayed = 3  # 3일 지연
+    
+    return engine
+
+
+def create_critical_engine(domain: str = "education") -> PhysicsEngine:
+    """CRITICAL 상태 데모 엔진"""
+    engine = create_demo_engine(domain)
+    engine.pnr_initial = 5  # 5일 (CRITICAL)
+    engine.days_delayed = 10  # 10일 지연
+    engine.base_loss = 18000000  # ₩1,800만
+    return engine
+
+
+def create_irreversible_engine(domain: str = "education") -> PhysicsEngine:
+    """IRREVERSIBLE 상태 데모 엔진"""
+    engine = create_demo_engine(domain)
+    engine.pnr_initial = 0  # 0일 (IRREVERSIBLE)
+    engine.days_delayed = 30  # 30일 지연
+    engine.base_loss = 50000000  # ₩5,000만
     return engine
