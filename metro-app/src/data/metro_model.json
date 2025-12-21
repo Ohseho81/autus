@@ -1,0 +1,204 @@
+{
+  "lines": [
+    {
+      "line_id": "L1",
+      "name": "1호선",
+      "color_hex": "#0052A4",
+      "path_station_ids": ["S_SOYOSAN", "S_DONGDUCHEON", "S_UIJEONGBU", "S_CHANGDONG", "S_DOBONGSAN", "S_NOWON", "S_CHEONGNYANGNI", "S_JONGNO3", "S_JONGNO5", "S_JONGGAK", "S_CITYHALL", "S_SEOUL", "S_NAMYEONG", "S_YONGSAN"],
+      "is_circular": false
+    },
+    {
+      "line_id": "L2",
+      "name": "2호선",
+      "color_hex": "#00A84D",
+      "path_station_ids": ["S_CITYHALL", "S_EULJIRO1", "S_EULJIRO3", "S_EULJIRO4", "S_DDP", "S_SINDANG", "S_SANGWANGSIMNI", "S_WANGSIMNI", "S_HANYANGUNI", "S_TTUKSEOM", "S_SEONGSU", "S_KONDAE", "S_GUUI", "S_GANGBYEON", "S_JAMSILNARU", "S_JAMSIL", "S_JAMSILSAENAE", "S_SPORTS", "S_SAMSUNG", "S_SEOLLEUNG", "S_YEOKSAM", "S_GANGNAM", "S_GYODAE", "S_SEOCHO", "S_BANGBAE", "S_SADANG", "S_NAKSEONGDAE", "S_SNU", "S_BONGCHEON", "S_SILLIM", "S_SINDAEBANG", "S_GURODIGITAL", "S_DAERIM", "S_SINDORIM", "S_MULLAE", "S_YEONGDEUNGPO", "S_DANGSAN", "S_HAPJEONG", "S_HONGDAE", "S_SINCHON", "S_EWHA", "S_AHYEON", "S_CHUNGJEONGNO", "S_CITYHALL"],
+      "is_circular": true
+    },
+    {
+      "line_id": "L3",
+      "name": "3호선",
+      "color_hex": "#EF7C1C",
+      "path_station_ids": ["S_DAEHWA", "S_JUYEOP", "S_JEONGBALSAN", "S_MADU", "S_BAENGMA", "S_DAEGOK", "S_HWAJEON", "S_WONHEUNG", "S_SAMSEONG", "S_YEONSINNAE", "S_BULGWANG", "S_NOKBEON", "S_HONGJE", "S_MUAK", "S_DONGNIMMUN", "S_GYEONGBOK", "S_ANGUK", "S_JONGNO3", "S_EULJIRO3", "S_CHUNGMURO", "S_DONGGUK", "S_YAKSU", "S_GEUMHO", "S_APGUJEONG", "S_SINSA", "S_JAMWON", "S_GOSOK", "S_GYODAE", "S_NAMBU", "S_YANGJAE", "S_MAEBONG", "S_DOGOK", "S_DAECHEONG", "S_HAGYE", "S_OGEUM"],
+      "is_circular": false
+    },
+    {
+      "line_id": "L4",
+      "name": "4호선",
+      "color_hex": "#00A5DE",
+      "path_station_ids": ["S_DANGGOGAE", "S_SANGGYE", "S_NOWON", "S_CHANGDONG4", "S_SSANGMUN", "S_SUYU", "S_MIASAMGEORI", "S_MIASAGEORI", "S_GIREUM", "S_SUNGSHIN", "S_HANSUNG", "S_HYEHWA", "S_DONGDAEMUN", "S_DDP", "S_CHUNGMURO", "S_MYEONGDONG", "S_HOEHYEON", "S_SEOUL", "S_SOOKMYUNG", "S_SAMGAKJI", "S_SINYONGSAN", "S_ICHON", "S_DONGJAK", "S_CHONGSHIN", "S_SADANG", "S_NAMTAERYEONG", "S_SEONBAWI", "S_GWACHEON", "S_INDEOK"],
+      "is_circular": false
+    },
+    {
+      "line_id": "L5",
+      "name": "5호선",
+      "color_hex": "#996CAC",
+      "path_station_ids": ["S_BANGHWA", "S_GAEHWA", "S_GIMPO", "S_SONGJEONG", "S_MAGONGNARU", "S_BALSAN", "S_UJANGSANST", "S_HWAGOK", "S_KKACHISAN", "S_SINJEONG", "S_MOKDONG", "S_OMOKGYO", "S_YANGPYEONG", "S_YEONGDEUNGPO", "S_YEONGDEUNGPOSI", "S_SINDORIM5", "S_MULLAE5", "S_YEOUIDO", "S_MAPO", "S_GONGDEOK", "S_AEOGAE", "S_CHUNGJEONGNO5", "S_SEODAEMUN", "S_GWANGHWAMUN", "S_JONGNO3_5", "S_EULJIRO4_5", "S_DDP5", "S_CHEONGGU", "S_SINGEUMHO", "S_HAENGDANG", "S_WANGSIMNI5", "S_MAJANG", "S_DAPSIMNI", "S_JANGHANPYEONG", "S_GUNJA", "S_ACHASAN", "S_GWANGNARU", "S_CHEONHO", "S_GANGDONG", "S_GILDONG", "S_GUBEUNDARI", "S_MYEONMOK", "S_SANGIL", "S_GODEOK", "S_SANGILDONG"],
+      "is_circular": false
+    },
+    {
+      "line_id": "L6",
+      "name": "6호선",
+      "color_hex": "#CD7C2F",
+      "path_station_ids": ["S_EUNGAM", "S_YEOKCHON", "S_BULGWANG6", "S_DOKBAWI", "S_YEONSINNAE6", "S_GUSAN", "S_EUNGAM6", "S_SAETGANG", "S_JEUNGSAN", "S_DIGITALMEDIA", "S_WORLDCUP", "S_MAPOGUCHEONG", "S_MANGWON", "S_HAPJEONG6", "S_SANGSU", "S_GWANGHEUNGCHANG", "S_DAEHUNG", "S_GONGDEOK6", "S_HYOCHANG", "S_SAMGAKJI6", "S_NOKSAPYEONG", "S_ITAEWON", "S_HANGANGJIN", "S_BOGWANG", "S_SINSA6", "S_CHEONGDAM", "S_APGUJEONG6", "S_GANGNAM6"],
+      "is_circular": false
+    },
+    {
+      "line_id": "L7",
+      "name": "7호선",
+      "color_hex": "#747F00",
+      "path_station_ids": ["S_JANGAM", "S_DOBONGSAN7", "S_SURAKSAN", "S_MADEUL", "S_NOWON7", "S_JUNGGYE", "S_HAGYE7", "S_GONGNEUNG", "S_TAEREUNG", "S_MEOKGOL", "S_JUNGHWA", "S_SANGBONG", "S_MYEONMOK7", "S_SAGAJEONG", "S_YONGMASAN", "S_JUNGNANGCAMPING", "S_GUNJA7", "S_CHILDREN", "S_GUNJA7_2", "S_KONKUK", "S_TTUKSEOM7", "S_CHEONGDAM7", "S_GANGNAM7", "S_NONHYEON", "S_HAKDONG", "S_GANGNAMDONG", "S_MAEBONG7", "S_DAECHEONG7", "S_DOGOK7", "S_YANGJAE7", "S_NAMBU7", "S_GYODAE7", "S_GOSOK7", "S_BANGBAE7", "S_ISU", "S_NAMSUNG", "S_CHONWANG", "S_SINDAEBANG7", "S_BORAMAE", "S_SINGIL", "S_DAELIM7", "S_NAMGURO", "S_GASAN", "S_CHULSAN"],
+      "is_circular": false
+    },
+    {
+      "line_id": "L8",
+      "name": "8호선",
+      "color_hex": "#E6186C",
+      "path_station_ids": ["S_AMSA", "S_CHEONHO8", "S_GANGDONG8", "S_MONGCHON", "S_JAMSIL8", "S_SEOKCHON", "S_SONGPA", "S_GARAK", "S_MORAN"],
+      "is_circular": false
+    },
+    {
+      "line_id": "L9",
+      "name": "9호선",
+      "color_hex": "#BDB092",
+      "path_station_ids": ["S_GAEHWA9", "S_GIMPO9", "S_AIRPORT9", "S_GONGHANG", "S_MAGOKN", "S_MAGOK", "S_SINBANGHWA", "S_YANGCHEON", "S_GASAN9", "S_YEOMCHANG", "S_DEUNGCHON", "S_YEOUIDO9", "S_SAETGANG9", "S_NORYANGJIN9", "S_NORYANGJIN", "S_HEUKSEOK", "S_DONGJAK9", "S_GUBAN", "S_SINNONHYEON", "S_SEONJEONGNEUNG", "S_SAMSUNG9", "S_BONGEUNSA", "S_SPORTS9", "S_SEOKCHON9", "S_SONGPA9", "S_HANSEONGHUNDAE", "S_OLIMPICPARK", "S_JUNGANG"],
+      "is_circular": false
+    }
+  ],
+  "stations": [
+    {"station_id": "S_CITYHALL", "label": "시청 · INIT_BASE", "x": 460, "y": 420, "is_transfer": true, "transfer_lines": ["L1", "L2"]},
+    {"station_id": "S_EULJIRO1", "label": "을지로입구 · CHECKPOINT", "x": 520, "y": 400, "is_transfer": false},
+    {"station_id": "S_EULJIRO3", "label": "을지로3가 · DECISION_HUB", "x": 580, "y": 380, "is_transfer": true, "transfer_lines": ["L2", "L3"]},
+    {"station_id": "S_EULJIRO4", "label": "을지로4가 · PROGRESS", "x": 640, "y": 360, "is_transfer": true, "transfer_lines": ["L2", "L5"]},
+    {"station_id": "S_DDP", "label": "동대문역사 · DISCOVERY", "x": 700, "y": 340, "is_transfer": true, "transfer_lines": ["L2", "L4", "L5"], "category": "Discovery"},
+    {"station_id": "S_SINDANG", "label": "신당 · TRANSITION", "x": 760, "y": 340, "is_transfer": true, "transfer_lines": ["L2", "L6"]},
+    {"station_id": "S_SANGWANGSIMNI", "label": "상왕십리 · BUFFER", "x": 820, "y": 360, "is_transfer": false},
+    {"station_id": "S_WANGSIMNI", "label": "왕십리 · MAJOR_HUB", "x": 880, "y": 380, "is_transfer": true, "transfer_lines": ["L2", "L5", "KB", "KK"], "category": "Decision"},
+    {"station_id": "S_HANYANGUNI", "label": "한양대 · CAMPUS", "x": 920, "y": 420, "is_transfer": false},
+    {"station_id": "S_TTUKSEOM", "label": "뚝섬 · REST", "x": 940, "y": 480, "is_transfer": false},
+    {"station_id": "S_SEONGSU", "label": "성수 · BRANCH", "x": 960, "y": 540, "is_transfer": true, "transfer_lines": ["L2", "L2B"]},
+    {"station_id": "S_KONDAE", "label": "건대입구 · MAJOR_NODE", "x": 1000, "y": 580, "is_transfer": true, "transfer_lines": ["L2", "L7"], "category": "Deal"},
+    {"station_id": "S_GUUI", "label": "구의 · CHECKPOINT", "x": 1020, "y": 640, "is_transfer": false},
+    {"station_id": "S_GANGBYEON", "label": "강변 · TRANSIT", "x": 1020, "y": 700, "is_transfer": false},
+    {"station_id": "S_JAMSILNARU", "label": "잠실나루 · ENTRY", "x": 1000, "y": 760, "is_transfer": false},
+    {"station_id": "S_JAMSIL", "label": "잠실 · MEGA_HUB", "x": 960, "y": 820, "is_transfer": true, "transfer_lines": ["L2", "L8"], "category": "Decision"},
+    {"station_id": "S_JAMSILSAENAE", "label": "잠실새내 · PROGRESS", "x": 900, "y": 860, "is_transfer": false},
+    {"station_id": "S_SPORTS", "label": "종합운동장 · EVENT", "x": 840, "y": 880, "is_transfer": true, "transfer_lines": ["L2", "L9"]},
+    {"station_id": "S_SAMSUNG", "label": "삼성 · CORP_HQ", "x": 780, "y": 880, "is_transfer": true, "transfer_lines": ["L2"], "category": "Deal"},
+    {"station_id": "S_SEOLLEUNG", "label": "선릉 · TECH_HUB", "x": 720, "y": 880, "is_transfer": true, "transfer_lines": ["L2", "KB"]},
+    {"station_id": "S_YEOKSAM", "label": "역삼 · STARTUP", "x": 660, "y": 880, "is_transfer": false, "category": "Init"},
+    {"station_id": "S_GANGNAM", "label": "강남 · EPICENTER", "x": 600, "y": 880, "is_transfer": true, "transfer_lines": ["L2", "SB"], "category": "Decision"},
+    {"station_id": "S_GYODAE", "label": "교대 · JUNCTION", "x": 540, "y": 860, "is_transfer": true, "transfer_lines": ["L2", "L3"]},
+    {"station_id": "S_SEOCHO", "label": "서초 · LEGAL", "x": 480, "y": 840, "is_transfer": false, "category": "Validation"},
+    {"station_id": "S_BANGBAE", "label": "방배 · RESIDENTIAL", "x": 420, "y": 800, "is_transfer": false},
+    {"station_id": "S_SADANG", "label": "사당 · TRANSFER_MEGA", "x": 380, "y": 740, "is_transfer": true, "transfer_lines": ["L2", "L4"], "category": "Decision"},
+    {"station_id": "S_NAKSEONGDAE", "label": "낙성대 · CAMPUS", "x": 360, "y": 680, "is_transfer": false},
+    {"station_id": "S_SNU", "label": "서울대입구 · ACADEMIA", "x": 340, "y": 620, "is_transfer": false, "category": "Discovery"},
+    {"station_id": "S_BONGCHEON", "label": "봉천 · NODE", "x": 320, "y": 560, "is_transfer": false},
+    {"station_id": "S_SILLIM", "label": "신림 · BRANCH", "x": 300, "y": 500, "is_transfer": true, "transfer_lines": ["L2", "SL"]},
+    {"station_id": "S_SINDAEBANG", "label": "신대방 · CHECKPOINT", "x": 300, "y": 440, "is_transfer": false},
+    {"station_id": "S_GURODIGITAL", "label": "구로디지털 · TECH_PARK", "x": 300, "y": 380, "is_transfer": false, "category": "Org"},
+    {"station_id": "S_DAERIM", "label": "대림 · JUNCTION", "x": 300, "y": 320, "is_transfer": true, "transfer_lines": ["L2", "L7"]},
+    {"station_id": "S_SINDORIM", "label": "신도림 · MEGA_TRANSFER", "x": 320, "y": 260, "is_transfer": true, "transfer_lines": ["L1", "L2"], "category": "Decision"},
+    {"station_id": "S_MULLAE", "label": "문래 · INDUSTRIAL", "x": 360, "y": 240, "is_transfer": false},
+    {"station_id": "S_YEONGDEUNGPO", "label": "영등포구청 · GOVT", "x": 400, "y": 240, "is_transfer": true, "transfer_lines": ["L2", "L5"], "category": "Org"},
+    {"station_id": "S_DANGSAN", "label": "당산 · JUNCTION", "x": 440, "y": 240, "is_transfer": true, "transfer_lines": ["L2", "L9"]},
+    {"station_id": "S_HAPJEONG", "label": "합정 · CULTURE_HUB", "x": 440, "y": 300, "is_transfer": true, "transfer_lines": ["L2", "L6"], "category": "Deal"},
+    {"station_id": "S_HONGDAE", "label": "홍대입구 · CREATIVE", "x": 440, "y": 360, "is_transfer": true, "transfer_lines": ["L2", "KA", "KK"], "category": "Init"},
+    {"station_id": "S_SINCHON", "label": "신촌 · CAMPUS", "x": 460, "y": 400, "is_transfer": false},
+    {"station_id": "S_EWHA", "label": "이대 · CAMPUS", "x": 460, "y": 380, "is_transfer": false},
+    {"station_id": "S_AHYEON", "label": "아현 · NODE", "x": 460, "y": 360, "is_transfer": false},
+    {"station_id": "S_CHUNGJEONGNO", "label": "충정로 · JUNCTION", "x": 460, "y": 340, "is_transfer": true, "transfer_lines": ["L2", "L5"]},
+    
+    {"station_id": "S_SEOUL", "label": "서울역 · ORIGIN", "x": 480, "y": 480, "is_transfer": true, "transfer_lines": ["L1", "L4", "KA", "KK"], "category": "Init"},
+    {"station_id": "S_JONGNO3", "label": "종로3가 · CENTRAL", "x": 540, "y": 360, "is_transfer": true, "transfer_lines": ["L1", "L3", "L5"], "category": "Decision"},
+    {"station_id": "S_CHUNGMURO", "label": "충무로 · JUNCTION", "x": 560, "y": 440, "is_transfer": true, "transfer_lines": ["L3", "L4"]},
+    {"station_id": "S_MYEONGDONG", "label": "명동 · COMMERCE", "x": 520, "y": 460, "is_transfer": false, "category": "Deal"},
+    
+    {"station_id": "S_GONGDEOK", "label": "공덕 · MEGA_HUB", "x": 400, "y": 340, "is_transfer": true, "transfer_lines": ["L5", "L6", "KA", "KK"], "category": "Decision"},
+    {"station_id": "S_YEOUIDO", "label": "여의도 · FINANCE", "x": 360, "y": 380, "is_transfer": true, "transfer_lines": ["L5", "L9"], "category": "Deal"},
+    
+    {"station_id": "S_GOSOK", "label": "고속터미널 · EXIT_GATE", "x": 500, "y": 780, "is_transfer": true, "transfer_lines": ["L3", "L7", "L9"], "is_exit": true, "category": "EndAbort"},
+    {"station_id": "S_GIMPO", "label": "김포공항 · EXIT_AIRPORT", "x": 200, "y": 400, "is_transfer": true, "transfer_lines": ["L5", "L9", "KA"], "is_exit": true, "category": "EndAbort"},
+    
+    {"station_id": "S_NOWON", "label": "노원 · RESIDENTIAL", "x": 900, "y": 200, "is_transfer": true, "transfer_lines": ["L4", "L7"]},
+    {"station_id": "S_CHEONGNYANGNI", "label": "청량리 · TERMINAL", "x": 780, "y": 280, "is_transfer": true, "transfer_lines": ["L1", "KK", "KB"]},
+    
+    {"station_id": "S_APGUJEONG", "label": "압구정 · LUXURY", "x": 700, "y": 720, "is_transfer": false, "category": "Deal"},
+    {"station_id": "S_SINSA", "label": "신사 · LIFESTYLE", "x": 660, "y": 760, "is_transfer": true, "transfer_lines": ["L3", "SB"]},
+    
+    {"station_id": "S_KONKUK", "label": "건국대 · CAMPUS", "x": 1040, "y": 520, "is_transfer": true, "transfer_lines": ["L2", "L7"]},
+    {"station_id": "S_SEONJEONGNEUNG", "label": "선정릉 · HERITAGE", "x": 740, "y": 840, "is_transfer": true, "transfer_lines": ["L9", "KB"]}
+  ],
+  "transfers": [
+    {
+      "station_id": "S_CITYHALL",
+      "options": ["L1", "L2"],
+      "switch_cost": {"dt": 3, "dE": -0.05, "dS": 0.03, "dR": 0.02}
+    },
+    {
+      "station_id": "S_GANGNAM",
+      "options": ["L2", "SB"],
+      "switch_cost": {"dt": 4, "dE": -0.06, "dS": 0.04, "dR": 0.03}
+    },
+    {
+      "station_id": "S_WANGSIMNI",
+      "options": ["L2", "L5", "KB", "KK"],
+      "switch_cost": {"dt": 5, "dE": -0.08, "dS": 0.05, "dR": 0.04}
+    },
+    {
+      "station_id": "S_JAMSIL",
+      "options": ["L2", "L8"],
+      "switch_cost": {"dt": 4, "dE": -0.06, "dS": 0.04, "dR": 0.03}
+    },
+    {
+      "station_id": "S_SADANG",
+      "options": ["L2", "L4"],
+      "switch_cost": {"dt": 4, "dE": -0.06, "dS": 0.04, "dR": 0.03}
+    },
+    {
+      "station_id": "S_SINDORIM",
+      "options": ["L1", "L2"],
+      "switch_cost": {"dt": 3, "dE": -0.05, "dS": 0.03, "dR": 0.02}
+    },
+    {
+      "station_id": "S_HONGDAE",
+      "options": ["L2", "KA", "KK"],
+      "switch_cost": {"dt": 5, "dE": -0.07, "dS": 0.05, "dR": 0.04}
+    },
+    {
+      "station_id": "S_GONGDEOK",
+      "options": ["L5", "L6", "KA", "KK"],
+      "switch_cost": {"dt": 6, "dE": -0.09, "dS": 0.06, "dR": 0.05}
+    },
+    {
+      "station_id": "S_SEOUL",
+      "options": ["L1", "L4", "KA", "KK"],
+      "switch_cost": {"dt": 6, "dE": -0.09, "dS": 0.06, "dR": 0.05}
+    },
+    {
+      "station_id": "S_GOSOK",
+      "options": ["L3", "L7", "L9"],
+      "switch_cost": {"dt": 5, "dE": -0.08, "dS": 0.05, "dR": 0.04}
+    },
+    {
+      "station_id": "S_GIMPO",
+      "options": ["L5", "L9", "KA"],
+      "switch_cost": {"dt": 5, "dE": -0.08, "dS": 0.05, "dR": 0.04}
+    },
+    {
+      "station_id": "S_KONDAE",
+      "options": ["L2", "L7"],
+      "switch_cost": {"dt": 4, "dE": -0.06, "dS": 0.04, "dR": 0.03}
+    },
+    {
+      "station_id": "S_JONGNO3",
+      "options": ["L1", "L3", "L5"],
+      "switch_cost": {"dt": 5, "dE": -0.07, "dS": 0.05, "dR": 0.04}
+    },
+    {
+      "station_id": "S_YEOUIDO",
+      "options": ["L5", "L9"],
+      "switch_cost": {"dt": 4, "dE": -0.06, "dS": 0.04, "dR": 0.03}
+    }
+  ]
+}
