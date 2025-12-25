@@ -227,15 +227,34 @@ class PWAInstallManager {
     const btn = document.createElement('button');
     btn.id = 'pwa-install-btn';
     btn.className = 'pwa-install-btn';
-    btn.innerHTML = `
-      <span class="btn-icon">📲</span>
-      <span class="btn-text">앱 설치</span>
-    `;
+    
+    // 플랫폼별 다른 메시지
+    if (this.platform === 'ios') {
+      btn.innerHTML = `
+        <span class="btn-icon">📲</span>
+        <span class="btn-text">홈에 추가</span>
+      `;
+    } else {
+      btn.innerHTML = `
+        <span class="btn-icon">📲</span>
+        <span class="btn-text">앱 설치</span>
+      `;
+    }
     btn.title = '홈 화면에 추가';
     
-    btn.addEventListener('click', () => this.promptInstall());
+    btn.addEventListener('click', () => {
+      console.log('[PWA] Install button clicked, platform:', this.platform);
+      this.promptInstall();
+    });
     
     document.body.appendChild(btn);
+    
+    // 3초 후 배너도 표시
+    setTimeout(() => {
+      if (!this.isInstalled && !this.isStandalone) {
+        this.showInstallBanner();
+      }
+    }, 3000);
   }
 
   hideInstallButton() {

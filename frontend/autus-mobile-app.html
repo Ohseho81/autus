@@ -507,30 +507,33 @@
     <div id="container">
         <!-- Core Loop Layer -->
         <div class="layer" id="layer-core" onclick="openDetail('core')">
-            <h2>CORE LOOP</h2>
-            <p>Goal Anchor • AUTO Execution<br>Decision Trinity Processing</p>
+            <h2>🎯 결정 루프</h2>
+            <p>목표까지 남은 거리 측정<br>자동으로 최적 경로 추천</p>
             <div class="layer-visual">
                 <canvas id="loop-canvas" width="180" height="180"></canvas>
+            </div>
+            <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 10px;">
+                탭하여 상세 보기
             </div>
         </div>
         
         <!-- Sensory Input Layer -->
         <div class="layer" id="layer-sensory" onclick="openDetail('sensory')">
-            <h2>SENSORY INPUT</h2>
-            <p>Real-time Vector Processing<br>Raw Data → Instant Wipe</p>
+            <h2>📡 실시간 입력</h2>
+            <p>일정, 금융, 건강 데이터 수집<br>프라이버시 100% 보장</p>
             <div class="layer-visual">
                 <div class="sensory-grid">
                     <div class="sensor-item">
-                        <div class="sensor-icon">🎤</div>
-                        <span class="sensor-label">MIC</span>
+                        <div class="sensor-icon">📅</div>
+                        <span class="sensor-label">일정</span>
                     </div>
                     <div class="sensor-item">
-                        <div class="sensor-icon">📷</div>
-                        <span class="sensor-label">CAM</span>
+                        <div class="sensor-icon">💰</div>
+                        <span class="sensor-label">금융</span>
                     </div>
                     <div class="sensor-item">
-                        <div class="sensor-icon">🖥️</div>
-                        <span class="sensor-label">SCREEN</span>
+                        <div class="sensor-icon">❤️</div>
+                        <span class="sensor-label">건강</span>
                     </div>
                 </div>
             </div>
@@ -538,27 +541,36 @@
         
         <!-- Physics Map Layer -->
         <div class="layer" id="layer-physics" onclick="openDetail('physics')">
-            <h2>PHYSICS MAP</h2>
-            <p>State Vector Network<br>S(t) = [Energy, Flow, Risk]</p>
+            <h2>🗺️ 물리 지도</h2>
+            <p>내 상태를 3가지로 표현<br>에너지 · 흐름 · 리스크</p>
             <div class="layer-visual">
-                <div class="physics-network" id="physicsNetwork"></div>
+                <div class="physics-summary" style="text-align: center;">
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: #00ff88; font-size: 24px; font-weight: bold;" data-autus="energy">72</span>
+                        <span style="font-size: 10px; color: rgba(255,255,255,0.5);">에너지</span>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: #00ccff; font-size: 24px; font-weight: bold;" data-autus="flow">0.8</span>
+                        <span style="font-size: 10px; color: rgba(255,255,255,0.5);">흐름</span>
+                    </div>
+                    <div>
+                        <span style="color: #ff6600; font-size: 24px; font-weight: bold;" data-autus="risk">23%</span>
+                        <span style="font-size: 10px; color: rgba(255,255,255,0.5);">리스크</span>
+                    </div>
+                </div>
             </div>
         </div>
         
         <!-- Feedback Layer -->
         <div class="layer" id="layer-feedback" onclick="openDetail('feedback')">
-            <h2>FEEDBACK</h2>
-            <p>Loss Velocity Analysis<br>Prediction Error ε = predicted - actual</p>
+            <h2>📊 피드백</h2>
+            <p>지금 결정하지 않으면<br>초당 얼마를 잃는가?</p>
             <div class="layer-visual">
                 <div class="feedback-display">
-                    <div class="loss-velocity" data-autus="loss_velocity" data-format="currency">₩0.00</div>
-                    <div class="loss-unit">Loss / Second</div>
-                    <div class="feedback-bars">
-                        <div class="feedback-bar" style="height: 60px; animation-delay: 0s;"></div>
-                        <div class="feedback-bar" style="height: 80px; animation-delay: 0.1s;"></div>
-                        <div class="feedback-bar" style="height: 50px; animation-delay: 0.2s;"></div>
-                        <div class="feedback-bar" style="height: 90px; animation-delay: 0.3s;"></div>
-                        <div class="feedback-bar" style="height: 70px; animation-delay: 0.4s;"></div>
+                    <div class="loss-velocity" data-autus="loss_velocity" data-format="currency">₩2.50</div>
+                    <div class="loss-unit">초당 손실</div>
+                    <div style="font-size: 11px; color: #ff6600; margin-top: 10px;">
+                        ⚠️ 1시간 대기 시 ₩9,000 손실
                     </div>
                 </div>
             </div>
@@ -575,27 +587,34 @@
     <div class="detail-page" id="detail-core">
         <div class="detail-header">
             <div class="back-btn" onclick="closeDetail()">‹</div>
-            <div class="detail-title">CORE LOOP</div>
+            <div class="detail-title">🎯 결정 루프</div>
         </div>
         <div class="detail-content">
             <div class="detail-visual">
                 <canvas id="detail-loop-canvas" width="250" height="250"></canvas>
             </div>
             <div class="detail-info">
-                <h3>DECISION TRINITY</h3>
-                <p>Before State → Action → After State<br><br>
-                모든 결정은 상태 변화로 기록됩니다.<br>
-                예측과 실제의 차이(Δ)가 학습의 핵심입니다.</p>
+                <h3>🤔 AUTUS가 하는 일</h3>
+                <p>
+                1. 목표를 입력하면<br>
+                2. 현재 상태를 분석하고<br>
+                3. 최적 경로를 계산해서<br>
+                4. "지금 뭘 해야 하는지" 알려줍니다<br><br>
+                <b style="color: var(--cyan);">70% 정보면 실행 추천</b> (베조스 원칙)
+                </p>
             </div>
             <div class="detail-info">
-                <h3>AUTUS MODULES</h3>
-                <p>• DecisionLog.complete()<br>
-                • LifePhysicsEngine.predict()<br>
-                • StateVector.magnitude()</p>
+                <h3>📊 결정 기록</h3>
+                <p>
+                • 오늘 결정: <span style="color: var(--cyan);">5회</span><br>
+                • 자동 실행: <span style="color: #00ff88;">3회 (60%)</span><br>
+                • 수동 개입: <span style="color: #ff6600;">2회 (40%)</span><br><br>
+                목표: 인간 개입 5% 이하
+                </p>
             </div>
         </div>
         <div class="detail-bottom">
-            <button class="detail-btn">EXECUTE LOOP</button>
+            <button class="detail-btn" onclick="showGoalInput()">목표 설정하기</button>
         </div>
     </div>
     
@@ -642,65 +661,98 @@
     <div class="detail-page" id="detail-physics">
         <div class="detail-header">
             <div class="back-btn" onclick="closeDetail()">‹</div>
-            <div class="detail-title">PHYSICS MAP</div>
+            <div class="detail-title">🗺️ 물리 지도</div>
         </div>
         <div class="detail-content">
-            <div class="detail-visual">
-                <div class="physics-network" id="detailPhysicsNetwork" style="width: 250px; height: 250px;"></div>
+            <div class="detail-visual" style="padding: 20px;">
+                <!-- 3가지 상태 미터 -->
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12px;">⚡ 에너지 (시간·돈·체력)</span>
+                        <span style="color: #00ff88; font-weight: bold;">72%</span>
+                    </div>
+                    <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                        <div style="width: 72%; height: 100%; background: linear-gradient(90deg, #00ff88, #00cc66); border-radius: 4px;"></div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12px;">🌊 흐름 (진행 속도)</span>
+                        <span style="color: #00ccff; font-weight: bold;">0.8</span>
+                    </div>
+                    <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                        <div style="width: 80%; height: 100%; background: linear-gradient(90deg, #00ccff, #0088ff); border-radius: 4px;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12px;">⚠️ 리스크 (불확실성)</span>
+                        <span style="color: #ff6600; font-weight: bold;">23%</span>
+                    </div>
+                    <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                        <div style="width: 23%; height: 100%; background: linear-gradient(90deg, #ff6600, #ff3333); border-radius: 4px;"></div>
+                    </div>
+                </div>
             </div>
             <div class="detail-info">
-                <h3>STATE VECTOR</h3>
-                <p>S(t) = [Energy, Flow, Risk]<br><br>
-                삶의 궤적은 3차원 상태 공간에서 표현됩니다.<br>
-                모든 결정은 이 궤적에 힘을 가합니다.</p>
+                <h3>📌 무엇을 표현하나요?</h3>
+                <p>
+                • <b>개체</b>: 목표, 장애물, 기회, 사람<br>
+                • <b>이벤트</b>: 마감일, 회의, 결제일<br>
+                • <b>상태</b>: 현재 에너지, 흐름, 리스크<br><br>
+                모든 것이 3가지 숫자로 변환됩니다.
+                </p>
             </div>
             <div class="detail-info">
-                <h3>LIFE PHYSICS</h3>
-                <p>dS/dt = F(intention) - R(friction) - λ·H(entropy)<br><br>
-                • Energy: 자원, 시간, 의지력<br>
-                • Flow: 진행 속도, 모멘텀<br>
-                • Risk: 불확실성, 장애물</p>
+                <h3>💡 어떤 도움을 주나요?</h3>
+                <p>
+                • "지금 에너지가 낮으니 쉬세요"<br>
+                • "흐름이 막혔으니 우회하세요"<br>
+                • "리스크가 높으니 대안을 준비하세요"
+                </p>
             </div>
         </div>
         <div class="detail-bottom">
-            <button class="detail-btn">SYNC STATE</button>
+            <button class="detail-btn" onclick="alert('현재 상태: 에너지 72%, 흐름 0.8, 리스크 23%')">내 상태 확인</button>
         </div>
     </div>
     
     <div class="detail-page" id="detail-feedback">
         <div class="detail-header">
             <div class="back-btn" onclick="closeDetail()">‹</div>
-            <div class="detail-title">FEEDBACK</div>
+            <div class="detail-title">📊 피드백</div>
         </div>
         <div class="detail-content">
-            <div class="detail-visual">
-                <div class="feedback-display">
-                    <div class="loss-velocity" style="font-size: 48px;" data-autus="total_loss" data-format="currency">₩0</div>
-                    <div class="loss-unit" style="font-size: 14px;">Total Loss (₩)</div>
-                    <div class="feedback-bars" style="margin-top: 30px;">
-                        <div class="feedback-bar" style="height: 80px; width: 25px;"></div>
-                        <div class="feedback-bar" style="height: 100px; width: 25px;"></div>
-                        <div class="feedback-bar" style="height: 70px; width: 25px;"></div>
-                        <div class="feedback-bar" style="height: 120px; width: 25px;"></div>
-                        <div class="feedback-bar" style="height: 90px; width: 25px;"></div>
-                    </div>
+            <div class="detail-visual" style="padding: 20px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.6);">지금 결정하지 않으면</div>
+                    <div style="font-size: 48px; font-weight: bold; color: #ff6600;">₩2.50</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.5);">초당 손실</div>
+                </div>
+                <div style="background: rgba(255,102,0,0.1); border: 1px solid rgba(255,102,0,0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                    <div style="font-size: 13px; color: #ff6600;">⏰ 1시간 대기 시</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #ff3333;">₩9,000 손실</div>
                 </div>
             </div>
             <div class="detail-info">
-                <h3>PREDICTION ERROR</h3>
-                <p>ε = predicted - actual<br><br>
-                예측 오차를 최소화하는 것이<br>
-                AUTUS 학습의 핵심입니다.</p>
+                <h3>💡 왜 손실이 발생하나요?</h3>
+                <p>
+                • <b>시간 비용</b>: 기회는 기다려주지 않음<br>
+                • <b>기회 비용</b>: 다른 일을 못 함<br>
+                • <b>심리 비용</b>: 미루면 스트레스 증가<br>
+                </p>
             </div>
             <div class="detail-info">
-                <h3>METRICS</h3>
-                <p>• Efficiency: 예측 정확도<br>
-                • Resistance: 실제 마찰<br>
-                • Entropy Loss: 불확실성 손실</p>
+                <h3>✅ AUTUS 추천</h3>
+                <p style="color: var(--cyan);">
+                정보가 70% 이상이면 지금 결정하세요.<br>
+                완벽한 정보를 기다리면 손실만 커집니다.<br><br>
+                <span style="color: rgba(255,255,255,0.5);">"Most decisions should be made with 70% of the information." — Jeff Bezos</span>
+                </p>
             </div>
         </div>
         <div class="detail-bottom">
-            <button class="detail-btn">ANALYZE</button>
+            <button class="detail-btn" onclick="alert('✅ AUTO 모드를 활성화하면 AUTUS가 자동으로 최적 시점에 결정합니다.')">AUTO 모드 설명</button>
         </div>
     </div>
 
@@ -726,7 +778,8 @@
         document.addEventListener('touchmove', (e) => {
             if (!isDragging || e.target.closest('.detail-page')) return;
             const deltaX = e.touches[0].clientX - startX;
-            targetRotationY = rotationY - deltaX * 0.5;
+            // 오른쪽 스와이프 = 다음 레이어 (자연스러운 방향)
+            targetRotationY = rotationY + deltaX * 0.5;
         });
         
         document.addEventListener('touchend', () => {
@@ -754,7 +807,8 @@
         document.addEventListener('mousemove', (e) => {
             if (!isDragging || e.target.closest('.detail-page')) return;
             const deltaX = e.clientX - startX;
-            targetRotationY = rotationY - deltaX * 0.3;
+            // 오른쪽 드래그 = 다음 레이어 (자연스러운 방향)
+            targetRotationY = rotationY + deltaX * 0.3;
         });
         
         document.addEventListener('mouseup', () => {
@@ -1227,6 +1281,32 @@
                         return { execute: true, mode: 'AUTO', confidence: regret.confidence };
                     }
                     return { execute: false, mode: 'MANUAL', confidence: regret.confidence };
+                }
+            };
+            
+            // ═══════════════════════════════════════════════════════════════
+            // 9. 유틸리티 함수들
+            // ═══════════════════════════════════════════════════════════════
+            
+            // 목표 설정 함수
+            window.showGoalInput = () => {
+                const goal = prompt('🎯 목표를 입력하세요:\n예: "이번 주 매출 500만원"');
+                if (goal && goal.trim()) {
+                    if (centralLoop) {
+                        centralLoop.setGoal(goal.trim());
+                    }
+                    alert(`✅ 목표 설정됨: "${goal.trim()}"\n\nAUTUS가 이 목표까지의 최적 경로를 계산합니다.`);
+                }
+            };
+            
+            // PWA 설치 함수 (직접 호출 가능)
+            window.installApp = async () => {
+                if (window.pwaInstall && window.pwaInstall.deferredPrompt) {
+                    await window.pwaInstall.promptInstall();
+                } else if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                    alert('📱 iOS 설치 방법:\n\n1. 하단의 공유 버튼(⎙) 탭\n2. "홈 화면에 추가" 선택\n3. "추가" 탭');
+                } else {
+                    alert('📱 이미 설치되었거나 설치할 수 없는 환경입니다.');
                 }
             };
             
