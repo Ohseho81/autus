@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a1428">
+    <link rel="manifest" href="manifest.json">
+    <title>AUTUS × Bezos Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cyan: #00e5cc;
+            --cyan-dim: rgba(0, 229, 204, 0.3);
+            --orange: #ff6b4a;
+            --orange-dim: rgba(255, 107, 74, 0.3);
+            --green: #34c759;
+            --red: #ff3b30;
+            --gold: #ffd700;
+            --bg-dark: #0a1428;
+            --bg-card: rgba(20, 35, 60, 0.85);
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            padding: calc(20px + var(--safe-top)) 15px calc(90px + var(--safe-bottom));
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .header h1 span {
+            color: var(--gold);
+            font-weight: 300;
+        }
+        
+        .connection-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--red);
+        }
+        
+        .connection-dot.connected {
+            background: var(--green);
+            box-shadow: 0 0 10px var(--green);
+        }
+        
+        /* Future PR Card */
+        .future-pr-card {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(0, 229, 204, 0.1));
+            border: 1px solid var(--gold);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .future-pr-card::before {
+            content: 'FUTURE PRESS RELEASE';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 9px;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+        
+        .pr-date {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        
+        .pr-headline {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .pr-quote {
+            font-size: 12px;
+            font-style: italic;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+        }
+        
+        .countdown {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+        }
+        
+        .countdown .label {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+        
+        .countdown .value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--cyan);
+            text-shadow: 0 0 20px var(--cyan-dim);
+        }
+        
+        .countdown .unit {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+        
+        /* Bezos Metrics Grid */
+        .bezos-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 15px;
+        }
+        
+        .metric-card .label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .metric-card .value {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .metric-card .sub {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 5px;
+        }
+        
+        /* Day Status */
+        .day-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .day-status .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .day-status.day_1 .indicator { background: var(--green); box-shadow: 0 0 10px var(--green); }
+        .day-status.day_1_caution .indicator { background: var(--orange); }
+        .day-status.day_2_warning .indicator { background: var(--red); animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            50% { opacity: 0.5; }
+        }
+        
+        /* Door Type */
+        .door-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .door-type .icon {
+            font-size: 20px;
+        }
+        
+        .door-type.one-way { color: var(--orange); }
+        .door-type.two-way { color: var(--cyan); }
+        
+        /* Info Level Gauge */
+        .info-gauge {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .info-gauge .fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        .info-gauge.ready .fill { background: var(--cyan); }
+        .info-gauge.waiting .fill { background: var(--orange); }
+        
+        /* Flywheel Ring */
+        .flywheel-ring {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.1);
+            position: relative;
+            margin: 0 auto 10px;
+        }
+        
+        .flywheel-ring .progress {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: var(--cyan);
+            transform: rotate(0deg);
+            transition: transform 0.5s;
+        }
+        
+        .flywheel-ring .center {
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* Regret Bars */
+        .regret-bars {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .regret-bar {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .regret-bar .bar-bg {
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .regret-bar .bar-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            transition: height 0.3s;
+        }
+        
+        .regret-bar.skip .bar-fill { background: var(--orange); }
+        .regret-bar.act .bar-fill { background: var(--cyan); }
+        
+        .regret-bar .label {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 5px;
+        }
+        
+        .regret-bar .percent {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* Bezos Quote */
+        .bezos-quote-card {
+            background: var(--bg-card);
+            border-left: 3px solid var(--gold);
+            padding: 15px;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 20px;
+        }
+        
+        .bezos-quote-card .quote {
+            font-size: 13px;
+            font-style: italic;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .bezos-quote-card .author {
+            font-size: 11px;
+            color: var(--gold);
+            text-align: right;
+        }
+        
+        /* Action Section */
+        .action-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .action-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        
+        .action-btn.primary {
+            background: var(--cyan);
+            color: #000;
+        }
+        
+        .action-btn.secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--text);
+        }
+        
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* Recommendations */
+        .recommendations {
+            margin-top: 15px;
+        }
+        
+        .rec-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .rec-item .icon {
+            font-size: 18px;
+        }
+        
+        .rec-item.high { border-left: 3px solid var(--orange); }
+        .rec-item.medium { border-left: 3px solid var(--cyan); }
+        
+        /* Tab Bar */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(60px + var(--safe-bottom));
+            padding-bottom: var(--safe-bottom);
+            background: var(--bg-card);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        
+        .tab-item {
+            padding: 10px 15px;
+            font-size: 11px;
+            color: var(--text-dim);
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .tab-item.active {
+            color: var(--cyan);
+        }
+        
+        .tab-item .icon {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 3px;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: calc(20px + var(--safe-top));
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--bg-card);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .toast.success { border-left: 3px solid var(--green); }
+        .toast.warning { border-left: 3px solid var(--orange); }
+        .toast.info { border-left: 3px solid var(--cyan); }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>AUTUS <span>× Bezos</span></h1>
+        <div class="connection-dot" id="connection-dot"></div>
+    </div>
+    
+    <!-- Future PR Card -->
+    <div class="future-pr-card">
+        <div class="pr-date" data-autus="target_date">2026년 1월 1일</div>
+        <h2 class="pr-headline" data-autus="goal_headline">당신, 월 1억 MRR 달성</h2>
+        <p class="pr-quote">"매일의 작은 결정들이 이 순간을 만들었습니다."</p>
+        <div class="countdown">
+            <span class="label">D-</span>
+            <span class="value" data-autus="days_remaining">365</span>
+            <span class="unit">days</span>
+        </div>
+    </div>
+    
+    <!-- Bezos Metrics -->
+    <div class="bezos-metrics">
+        <!-- Day 1 Status -->
+        <div class="metric-card">
+            <div class="label">Day Status</div>
+            <div class="day-status day_1" id="day-status">
+                <div class="indicator"></div>
+                <span class="value" data-autus="day_status">DAY 1</span>
+            </div>
+            <div class="sub" data-autus="day1_health">건강도 95%</div>
+        </div>
+        
+        <!-- Door Type -->
+        <div class="metric-card">
+            <div class="label">Decision Type</div>
+            <div class="door-type two-way" id="door-type">
+                <span class="icon">🚪↔️</span>
+                <span class="value" data-autus="door_type">TWO-WAY</span>
+            </div>
+            <div class="sub" data-autus="door_message">빠르게 실행 가능</div>
+        </div>
+        
+        <!-- Info Level -->
+        <div class="metric-card">
+            <div class="label">Information Level</div>
+            <div class="value"><span data-autus="info_level">70</span>%</div>
+            <div class="info-gauge ready" id="info-gauge">
+                <div class="fill" style="width: 70%"></div>
+            </div>
+            <div class="sub">/ 70% threshold</div>
+        </div>
+        
+        <!-- Flywheel -->
+        <div class="metric-card">
+            <div class="label">Flywheel Momentum</div>
+            <div class="flywheel-ring">
+                <div class="progress" id="flywheel-progress"></div>
+                <div class="center" data-autus="momentum">45</div>
+            </div>
+            <div class="sub" style="text-align: center" data-autus="flywheel_stage">BUILDING</div>
+        </div>
+    </div>
+    
+    <!-- Regret Minimization -->
+    <div class="metric-card" style="margin-bottom: 20px;">
+        <div class="label">80세 후회 분석</div>
+        <div class="regret-bars">
+            <div class="regret-bar skip">
+                <div class="bar-bg">
+                    <div class="bar-fill" id="regret-skip-bar" style="height: 65%"></div>
+                </div>
+                <div class="label">안 하면</div>
+                <div class="percent"><span data-autus="regret_skip">65</span>%</div>
+            </div>
+            <div class="regret-bar act">
+                <div class="bar-bg">
+                    <div class="bar-fill" id="regret-act-bar" style="height: 15%"></div>
+                </div>
+                <div class="label">하면</div>
+                <div class="percent"><span data-autus="regret_act">15</span>%</div>
+            </div>
+        </div>
+        <div class="sub" style="margin-top: 10px; text-align: center;" data-autus="regret_message">
+            80세의 당신: "그때 했어야지..." 확률 65%
+        </div>
+    </div>
+    
+    <!-- Bezos Quote -->
+    <div class="bezos-quote-card">
+        <div class="quote" data-autus="bezos_quote">
+            "I knew that if I failed I wouldn't regret that, but I knew the one thing I might regret is not trying."
+        </div>
+        <div class="author">— Jeff Bezos</div>
+    </div>
+    
+    <!-- Action Section -->
+    <div class="action-section">
+        <h3>🎯 권장 액션</h3>
+        <button class="action-btn primary" id="act-btn">
+            지금 실행하기 (권장)
+        </button>
+        <button class="action-btn secondary" id="skip-btn">
+            더 많은 정보 수집
+        </button>
+        
+        <div class="recommendations" id="recommendations">
+            <div class="rec-item high">
+                <span class="icon">⚡</span>
+                <span>오늘 1개 결정 즉시 실행</span>
+            </div>
+            <div class="rec-item medium">
+                <span class="icon">🗑️</span>
+                <span>불필요한 프로세스 1개 삭제</span>
+            </div>
+            <div class="rec-item medium">
+                <span class="icon">👥</span>
+                <span>고객 피드백 직접 확인</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item active">
+            <span class="icon">📊</span>
+            Dashboard
+        </div>
+        <div class="tab-item">
+            <span class="icon">🎯</span>
+            Goals
+        </div>
+        <div class="tab-item">
+            <span class="icon">📝</span>
+            Decisions
+        </div>
+        <div class="tab-item">
+            <span class="icon">⚙️</span>
+            Settings
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Scripts -->
+    <script src="js/realtime-bridge.js"></script>
+    <script src="js/bezos/regret-minimization.js"></script>
+    <script src="js/bezos/decision-type.js"></script>
+    <script src="js/bezos/day-one-monitor.js"></script>
+    <script src="js/bezos/flywheel.js"></script>
+    <script src="js/bezos/velocity-decision.js"></script>
+    <script src="js/bezos/working-backwards.js"></script>
+    <script src="js/bezos/disagree-commit.js"></script>
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ═══════════════════════════════════════════════════════════════
+        window.AUTUS_AUTO_CONNECT = true;
+        
+        // Bezos 모듈 초기화
+        const regretEngine = new RegretMinimization();
+        const decisionClassifier = new DecisionTypeClassifier();
+        const dayMonitor = new DayOneMonitor();
+        const flywheel = new FlywheelEngine();
+        const velocityEngine = new VelocityDecisionEngine();
+        const workingBackwards = new WorkingBackwards();
+        const disagreeCommit = new DisagreeAndCommit();
+        
+        // 미래 PR 생성
+        workingBackwards.generateFuturePR({
+            goal: '월 1억 MRR 달성',
+            targetDate: '2026-01-01',
+            userName: '당신'
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // UI UPDATE
+        // ═══════════════════════════════════════════════════════════════
+        function updateAllMetrics() {
+            // 시뮬레이션 데이터 (실제로는 WebSocket에서)
+            const mockData = {
+                risk: 30 + Math.random() * 20,
+                entropy: 25 + Math.random() * 15,
+                flow: 60 + Math.random() * 20,
+                pressure: 35 + Math.random() * 15
+            };
+            
+            // Regret Minimization
+            const regretResult = regretEngine.calculate({
+                impact: mockData.risk / 100 + 0.3,
+                reversibility: 1 - mockData.entropy / 100,
+                timeValue: mockData.flow / 100,
+                urgency: mockData.pressure / 100
+            });
+            updateRegretUI(regretResult);
+            
+            // Decision Type
+            const doorResult = decisionClassifier.classifyFromPhysics(mockData);
+            updateDoorTypeUI(doorResult);
+            
+            // Day One Monitor
+            dayMonitor.update({
+                entropy: mockData.entropy,
+                decisionVelocity: mockData.flow,
+                processComplexity: mockData.pressure,
+                customerFocus: 100 - mockData.risk
+            });
+            const dayResult = dayMonitor.diagnose();
+            updateDayStatusUI(dayResult);
+            
+            // Velocity Decision
+            const velocityResult = velocityEngine.evaluate({
+                informationLevel: 0.6 + Math.random() * 0.3,
+                hourlyLoss: 10000,
+                urgency: mockData.pressure / 100
+            });
+            updateVelocityUI(velocityResult);
+            
+            // Flywheel
+            const flywheelStatus = flywheel.getStatus();
+            updateFlywheelUI(flywheelStatus);
+            
+            // Working Backwards
+            workingBackwards.updateUI();
+            
+            // Bezos Quote
+            updateBezosQuote(regretResult, dayResult, velocityResult);
+        }
+        
+        function updateRegretUI(result) {
+            document.querySelector('[data-autus="regret_skip"]').textContent = result.regretIfSkip;
+            document.querySelector('[data-autus="regret_act"]').textContent = result.regretIfAct;
+            document.querySelector('[data-autus="regret_message"]').textContent = result.message;
+            
+            document.getElementById('regret-skip-bar').style.height = `${result.regretIfSkip}%`;
+            document.getElementById('regret-act-bar').style.height = `${result.regretIfAct}%`;
+            
+            // 권장 버튼 강조
+            const actBtn = document.getElementById('act-btn');
+            if (result.recommendation === 'ACT') {
+                actBtn.textContent = '지금 실행하기 (강력 권장)';
+                actBtn.style.background = 'var(--cyan)';
+            }
+        }
+        
+        function updateDoorTypeUI(result) {
+            const container = document.getElementById('door-type');
+            container.className = `door-type ${result.type === 1 ? 'one-way' : 'two-way'}`;
+            container.querySelector('.icon').textContent = result.icon;
+            container.querySelector('.value').textContent = result.label;
+            document.querySelector('[data-autus="door_message"]').textContent = result.approach.message;
+        }
+        
+        function updateDayStatusUI(result) {
+            if (!result || result.status === 'INSUFFICIENT_DATA') return;
+            
+            const container = document.getElementById('day-status');
+            container.className = `day-status ${result.status.toLowerCase()}`;
+            document.querySelector('[data-autus="day_status"]').textContent = result.status.replace('_', ' ');
+            document.querySelector('[data-autus="day1_health"]').textContent = `건강도 ${result.healthScore}%`;
+            
+            // 권장 사항 업데이트
+            if (result.recommendations.length > 0) {
+                const recContainer = document.getElementById('recommendations');
+                recContainer.innerHTML = result.recommendations.map(rec => `
+                    <div class="rec-item ${rec.priority}">
+                        <span class="icon">${rec.icon}</span>
+                        <span>${rec.action}</span>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function updateVelocityUI(result) {
+            document.querySelector('[data-autus="info_level"]').textContent = result.informationLevel;
+            
+            const gauge = document.getElementById('info-gauge');
+            gauge.className = `info-gauge ${result.isReady ? 'ready' : 'waiting'}`;
+            gauge.querySelector('.fill').style.width = `${result.informationLevel}%`;
+        }
+        
+        function updateFlywheelUI(status) {
+            document.querySelector('[data-autus="momentum"]').textContent = status.momentum;
+            document.querySelector('[data-autus="flywheel_stage"]').textContent = status.stage;
+            
+            const progress = document.getElementById('flywheel-progress');
+            progress.style.transform = `rotate(${status.momentum * 3.6}deg)`;
+        }
+        
+        function updateBezosQuote(regret, day, velocity) {
+            let quote = regret.bezosQuote;
+            
+            if (day && day.status === 'DAY_2_WARNING') {
+                quote = '"Day 2 is stasis, followed by irrelevance, followed by painful decline." - Jeff Bezos';
+            } else if (velocity && velocity.isReady) {
+                quote = '"Most decisions should be made with around 70% of the information you wish you had." - Jeff Bezos';
+            }
+            
+            document.querySelector('[data-autus="bezos_quote"]').textContent = quote.replace('" - Jeff Bezos', '"');
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // ACTIONS
+        // ═══════════════════════════════════════════════════════════════
+        document.getElementById('act-btn').addEventListener('click', () => {
+            flywheel.push({ success: true, impact: 0.7, effort: 0.6 });
+            updateFlywheelUI(flywheel.getStatus());
+            showToast('✓ 결정 실행됨! 플라이휠 가속 중...', 'success');
+            haptic('success');
+        });
+        
+        document.getElementById('skip-btn').addEventListener('click', () => {
+            showToast('⏳ 정보 수집 중... 대기 비용 ₩10,000/hr', 'warning');
+            haptic();
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // UTILITIES
+        // ═══════════════════════════════════════════════════════════════
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        function haptic(type = 'light') {
+            if (!navigator.vibrate) return;
+            const patterns = {
+                light: [10],
+                success: [30, 50, 30],
+                warning: [100, 50, 100]
+            };
+            navigator.vibrate(patterns[type] || [10]);
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // WEBSOCKET
+        // ═══════════════════════════════════════════════════════════════
+        if (window.autusBridge) {
+            window.autusBridge.on('connected', () => {
+                document.getElementById('connection-dot').classList.add('connected');
+                showToast('🔗 실시간 연결됨', 'success');
+            });
+            
+            window.autusBridge.on('disconnected', () => {
+                document.getElementById('connection-dot').classList.remove('connected');
+            });
+            
+            window.autusBridge.on('physics_update', (data) => {
+                // 실제 데이터로 업데이트
+                const regretResult = regretEngine.calculate({
+                    impact: (data.risk || 30) / 100 + 0.3,
+                    reversibility: 1 - (data.entropy || 30) / 100,
+                    timeValue: (data.flow || 50) / 100,
+                    urgency: (data.pressure || 30) / 100
+                });
+                updateRegretUI(regretResult);
+                
+                // ... 다른 업데이트
+            });
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // START
+        // ═══════════════════════════════════════════════════════════════
+        updateAllMetrics();
+        
+        // 주기적 업데이트 (시뮬레이션)
+        setInterval(updateAllMetrics, 5000);
+        
+        // Flywheel 자연 감속
+        flywheel.startTicking(60000);
+        
+        console.log('🚀 AUTUS × Bezos Edition Ready');
+        console.log('Philosophy: Regret Minimization + Day 1 + Flywheel Effect');
+    </script>
+</body>
+</html>
