@@ -10,6 +10,7 @@
     <link rel="manifest" href="manifest.json">
     <title>AUTUS - Life FSD</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/autus-main.css">
     <style>
         :root {
             --cyan: #00e5cc;
@@ -936,51 +937,190 @@
         console.log('🌌 AUTUS Life FSD Ready');
     </script>
     
-    <!-- Three.js & Realtime Bridge -->
+    <!-- Threshold Slider (길게 누르면 표시) -->
+    <div id="threshold-slider" class="hidden">
+        <input type="range" min="0" max="2" value="1" id="threshold-level">
+        <div class="threshold-labels">
+            <span>Chill</span>
+            <span class="active">Standard</span>
+            <span>Mad Max</span>
+        </div>
+    </div>
+    
+    <!-- Feedback Bar -->
+    <div class="feedback-bar" style="position: fixed; bottom: calc(180px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); display: flex; gap: 20px; padding: 8px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; font-size: 11px;">
+        <span>오늘 결정 <span data-autus="decision_count" style="color: var(--cyan);">0</span>회</span>
+        <span class="delta energy">Energy <span data-autus="energy_delta" style="color: #00ff88;">+0</span></span>
+        <span class="delta risk">Risk <span data-autus="risk_delta" style="color: #ff6600;">+0</span></span>
+    </div>
+    
+    <!-- Voice Toggle -->
+    <div id="voice-toggle" style="position: fixed; top: calc(60px + var(--safe-top)); right: 15px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; cursor: pointer; font-size: 16px; z-index: 100;">🎤</div>
+    
+    <!-- Three.js & Realtime Bridge & AUTUS Modules -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="js/realtime-bridge.js"></script>
     <script src="js/three-effects.js"></script>
+    <script src="js/core-loop.js"></script>
+    <script src="js/auto-mode.js"></script>
+    <script src="js/physics-map.js"></script>
+    <script src="js/brainwave.js"></script>
+    <script src="js/feedback.js"></script>
     <script>
         window.AUTUS_AUTO_CONNECT = true;
         
         document.addEventListener('DOMContentLoaded', () => {
-            // Three.js 파티클 효과 초기화
+            console.log('🚀 AUTUS Modules Loading...');
+            
+            // ═══════════════════════════════════════════════════════════════
+            // 1. Three.js 파티클 효과
+            // ═══════════════════════════════════════════════════════════════
             try {
                 window.autusEffects = initAutusEffects('three-container', {
                     particleCount: 200,
                     colorPrimary: 0x00e5cc,
                     colorWarning: 0xff6600
                 });
-                console.log('✨ Three.js effects initialized');
+                console.log('✅ Three.js effects initialized');
             } catch (e) {
-                console.warn('Three.js effects not available:', e);
+                console.warn('⚠️ Three.js effects not available:', e);
             }
             
-            // WebSocket 연결 상태 리스너
+            // ═══════════════════════════════════════════════════════════════
+            // 2. AUTO Mode 초기화
+            // ═══════════════════════════════════════════════════════════════
+            try {
+                window.autoMode = new AutoMode();
+                console.log('✅ AUTO Mode initialized');
+            } catch (e) {
+                console.warn('⚠️ AUTO Mode not available:', e);
+            }
+            
+            // ═══════════════════════════════════════════════════════════════
+            // 3. Feedback System 초기화
+            // ═══════════════════════════════════════════════════════════════
+            try {
+                window.feedbackSystem = new FeedbackSystem();
+                console.log('✅ Feedback System initialized');
+            } catch (e) {
+                console.warn('⚠️ Feedback System not available:', e);
+            }
+            
+            // ═══════════════════════════════════════════════════════════════
+            // 4. WebSocket 연결 이벤트
+            // ═══════════════════════════════════════════════════════════════
             if (window.autusBridge) {
                 window.autusBridge.on('physics_update', (data) => {
-                    // Loss Velocity 업데이트 시 효과
+                    // Three.js 효과 연동
                     if (window.autusEffects && data.risk) {
                         window.autusEffects.setIntensity(data.risk / 100);
-                        if (data.risk > 70) {
-                            window.autusEffects.setMode('warning');
-                        } else {
-                            window.autusEffects.setMode('normal');
-                        }
+                        window.autusEffects.setMode(data.risk > 70 ? 'warning' : 'normal');
                     }
                 });
                 
                 window.autusBridge.on('connected', () => {
-                    console.log('🔗 Realtime connected');
+                    console.log('🔗 WebSocket connected');
+                });
+                
+                window.autusBridge.on('disconnected', () => {
+                    console.log('🔌 WebSocket disconnected');
                 });
             }
             
-            // Service Worker 등록 (PWA)
+            // ═══════════════════════════════════════════════════════════════
+            // 5. AUTO 버튼 기능 강화
+            // ═══════════════════════════════════════════════════════════════
+            const autoBtn = document.getElementById('auto-btn');
+            let autoActive = false;
+            let pressTimer = null;
+            
+            // 길게 누르면 Threshold 슬라이더
+            autoBtn.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    document.getElementById('threshold-slider').classList.remove('hidden');
+                    document.getElementById('threshold-slider').classList.add('visible');
+                    if (navigator.vibrate) navigator.vibrate(30);
+                }, 500);
+            });
+            
+            autoBtn.addEventListener('touchend', () => {
+                clearTimeout(pressTimer);
+            });
+            
+            // 클릭 시 AUTO 토글
+            autoBtn.onclick = () => {
+                autoActive = !autoActive;
+                
+                if (autoActive) {
+                    autoBtn.textContent = 'STOP';
+                    autoBtn.style.background = 'linear-gradient(135deg, #ff6600, #ff3333)';
+                    autoBtn.style.color = '#fff';
+                    
+                    // AUTO 모드 시작
+                    if (window.autoMode) {
+                        window.autoMode.startLoop();
+                    }
+                    
+                    // WebSocket 액션
+                    if (window.autusBridge) {
+                        window.autusBridge.sendAction('AUTO_START');
+                    }
+                } else {
+                    autoBtn.textContent = 'AUTO';
+                    autoBtn.style.background = 'var(--cyan-dim)';
+                    autoBtn.style.color = '#fff';
+                    
+                    if (window.autoMode) {
+                        window.autoMode.stopLoop();
+                    }
+                    
+                    if (window.autusBridge) {
+                        window.autusBridge.sendAction('AUTO_STOP');
+                    }
+                }
+                
+                if (navigator.vibrate) navigator.vibrate(autoActive ? [30, 50, 30] : [10]);
+            };
+            
+            // ═══════════════════════════════════════════════════════════════
+            // 6. Threshold 슬라이더 이벤트
+            // ═══════════════════════════════════════════════════════════════
+            const thresholdSlider = document.getElementById('threshold-level');
+            const thresholdLabels = document.querySelectorAll('.threshold-labels span');
+            
+            thresholdSlider?.addEventListener('input', (e) => {
+                const level = parseInt(e.target.value);
+                thresholdLabels.forEach((label, i) => {
+                    label.classList.toggle('active', i === level);
+                });
+                
+                if (window.autoMode) {
+                    window.autoMode.thresholdLevel = level;
+                }
+                
+                if (navigator.vibrate) navigator.vibrate(10);
+            });
+            
+            // 슬라이더 외부 클릭 시 닫기
+            document.addEventListener('click', (e) => {
+                const slider = document.getElementById('threshold-slider');
+                if (slider && !slider.contains(e.target) && e.target !== autoBtn) {
+                    slider.classList.remove('visible');
+                    slider.classList.add('hidden');
+                }
+            });
+            
+            // ═══════════════════════════════════════════════════════════════
+            // 7. Service Worker (PWA)
+            // ═══════════════════════════════════════════════════════════════
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
                     .then(reg => console.log('📱 Service Worker registered'))
                     .catch(err => console.warn('SW registration failed:', err));
             }
+            
+            console.log('🌌 AUTUS Life FSD v2.0 Ready');
+            console.log('📊 Modules: Three.js, WebSocket, AUTO Mode, Feedback System');
         });
     </script>
 </body>
