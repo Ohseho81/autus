@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a0f">
+    <link rel="manifest" href="manifest.json">
+    <title>AUTUS × Musk Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/ota.css">
+    <style>
+        :root {
+            --cyan: #00e5cc;
+            --red: #ff3b30;
+            --orange: #ff6b4a;
+            --green: #34c759;
+            --bg: #0a0a0f;
+            --card: rgba(20, 25, 35, 0.9);
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: calc(20px + var(--safe-top)) 16px calc(80px + var(--safe-bottom));
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .logo-group h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--cyan);
+            letter-spacing: 2px;
+        }
+        
+        .logo-group .edition {
+            font-size: 11px;
+            color: var(--orange);
+            letter-spacing: 1px;
+        }
+        
+        .version-display {
+            text-align: right;
+        }
+        
+        .version-display .v {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        
+        .version-display .ver {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--cyan);
+        }
+        
+        /* Philosophy Card */
+        .philosophy-card {
+            background: linear-gradient(135deg, rgba(255, 107, 74, 0.1), rgba(0, 229, 204, 0.05));
+            border: 1px solid rgba(255, 107, 74, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .philosophy-card .quote {
+            font-size: 18px;
+            font-style: italic;
+            color: var(--text);
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .philosophy-card .author {
+            font-size: 12px;
+            color: var(--orange);
+        }
+        
+        .philosophy-card .principle {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .principle-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .principle-step .icon {
+            font-size: 24px;
+        }
+        
+        .principle-step .label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .principle-arrow {
+            color: var(--text-dim);
+            font-size: 20px;
+            align-self: center;
+        }
+        
+        /* Intervention Meter */
+        .intervention-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .intervention-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 16px;
+        }
+        
+        .intervention-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .intervention-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--cyan);
+        }
+        
+        .intervention-bar {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        
+        .intervention-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+        
+        .intervention-targets {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        
+        .target-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .target-item .percent {
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .target-item.active .percent {
+            color: var(--cyan);
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px;
+        }
+        
+        .stat-card .label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .stat-card .sub {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        
+        .value-red { color: var(--red); }
+        .value-cyan { color: var(--cyan); }
+        .value-green { color: var(--green); }
+        
+        /* Deletion Candidates */
+        .deletion-section {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .deletion-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .deletion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .deletion-info {
+            flex: 1;
+        }
+        
+        .deletion-feature {
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        
+        .deletion-reason {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        
+        .deletion-usage {
+            text-align: right;
+        }
+        
+        .usage-percent {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--red);
+        }
+        
+        .usage-label {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+        
+        /* Roadmap */
+        .roadmap-section {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .roadmap-item {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .roadmap-item:last-child {
+            border-bottom: none;
+        }
+        
+        .roadmap-version {
+            width: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--cyan);
+        }
+        
+        .roadmap-content {
+            flex: 1;
+        }
+        
+        .roadmap-target {
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        
+        .roadmap-meta {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        
+        .roadmap-eta {
+            font-size: 11px;
+            color: var(--orange);
+        }
+        
+        /* Action Buttons */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .action-btn {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--cyan), #00aaff);
+            border: none;
+        }
+        
+        .action-btn.primary .btn-text {
+            color: #000;
+        }
+        
+        .action-btn.danger {
+            border-color: rgba(255, 59, 48, 0.3);
+        }
+        
+        .btn-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .btn-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .btn-sub {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        
+        /* Musk Quote */
+        .musk-quote-card {
+            background: rgba(255, 107, 74, 0.1);
+            border-left: 3px solid var(--orange);
+            padding: 16px 20px;
+            border-radius: 0 16px 16px 0;
+            margin-bottom: 20px;
+        }
+        
+        .musk-quote-card .quote {
+            font-size: 14px;
+            font-style: italic;
+            color: var(--text);
+            line-height: 1.5;
+        }
+        
+        .musk-quote-card .author {
+            font-size: 11px;
+            color: var(--orange);
+            text-align: right;
+            margin-top: 8px;
+        }
+        
+        /* Tab Spacer */
+        .tab-spacer {
+            height: 60px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-group">
+            <h1>AUTUS</h1>
+            <span class="edition">× Musk Edition</span>
+        </div>
+        <div class="version-display">
+            <div class="v">VERSION</div>
+            <div class="ver" id="current-version">v1.2.0</div>
+        </div>
+    </div>
+    
+    <!-- Philosophy Card -->
+    <div class="philosophy-card">
+        <div class="quote">"The best part is no part.<br>The best process is no process."</div>
+        <div class="author">— Elon Musk</div>
+        <div class="principle">
+            <div class="principle-step">
+                <span class="icon">🗑️</span>
+                <span class="label">Delete</span>
+            </div>
+            <span class="principle-arrow">→</span>
+            <div class="principle-step">
+                <span class="icon">✂️</span>
+                <span class="label">Simplify</span>
+            </div>
+            <span class="principle-arrow">→</span>
+            <div class="principle-step">
+                <span class="icon">🤖</span>
+                <span class="label">Automate</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Human Intervention Meter -->
+    <div class="intervention-card">
+        <div class="intervention-header">
+            <span class="intervention-title">인간 개입률</span>
+            <span class="intervention-value" id="intervention-percent">5%</span>
+        </div>
+        <div class="intervention-bar">
+            <div class="intervention-fill" id="intervention-fill" style="width: 95%"></div>
+        </div>
+        <div class="intervention-targets">
+            <div class="target-item">
+                <span class="percent">15%</span>
+                <span>시작</span>
+            </div>
+            <div class="target-item active">
+                <span class="percent">5%</span>
+                <span>현재</span>
+            </div>
+            <div class="target-item">
+                <span class="percent">1%</span>
+                <span>v1.5</span>
+            </div>
+            <div class="target-item">
+                <span class="percent">0%</span>
+                <span>목표</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="label">삭제된 기능</div>
+            <div class="value value-red" id="deleted-features">12</div>
+            <div class="sub">올해 누적</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">자동화율 향상</div>
+            <div class="value value-green" id="automation-improvement">+23%</div>
+            <div class="sub">전월 대비</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">현재 기능 수</div>
+            <div class="value" id="current-features">47</div>
+            <div class="sub">목표: 25개</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">코드 라인 삭제</div>
+            <div class="value value-red" id="deleted-lines">-4,523</div>
+            <div class="sub">최적화</div>
+        </div>
+    </div>
+    
+    <!-- Deletion Candidates -->
+    <div class="deletion-section">
+        <div class="section-header">
+            <span class="section-title">🗑️ 삭제 후보</span>
+            <span style="font-size: 11px; color: var(--text-dim)">사용률 5% 미만</span>
+        </div>
+        <div id="deletion-list">
+            <div class="deletion-item">
+                <div class="deletion-info">
+                    <div class="deletion-feature">수동 Threshold 슬라이더</div>
+                    <div class="deletion-reason">AUTO 모드가 95% 대체</div>
+                </div>
+                <div class="deletion-usage">
+                    <div class="usage-percent">3%</div>
+                    <div class="usage-label">사용률</div>
+                </div>
+            </div>
+            <div class="deletion-item">
+                <div class="deletion-info">
+                    <div class="deletion-feature">PDF 내보내기</div>
+                    <div class="deletion-reason">0.8% 사용자만 사용</div>
+                </div>
+                <div class="deletion-usage">
+                    <div class="usage-percent">0.8%</div>
+                    <div class="usage-label">사용률</div>
+                </div>
+            </div>
+            <div class="deletion-item">
+                <div class="deletion-info">
+                    <div class="deletion-feature">상세 물리 뷰</div>
+                    <div class="deletion-reason">요약 뷰로 충분</div>
+                </div>
+                <div class="deletion-usage">
+                    <div class="usage-percent">2%</div>
+                    <div class="usage-label">사용률</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Automation Roadmap -->
+    <div class="roadmap-section">
+        <div class="section-header">
+            <span class="section-title">🤖 자동화 로드맵</span>
+        </div>
+        <div id="roadmap-list">
+            <div class="roadmap-item">
+                <div class="roadmap-version">v1.3.0</div>
+                <div class="roadmap-content">
+                    <div class="roadmap-target">Type 2 결정 100% 자동화</div>
+                    <div class="roadmap-meta">인간 개입: 3% 목표</div>
+                </div>
+                <div class="roadmap-eta">7월 15일</div>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-version">v1.5.0</div>
+                <div class="roadmap-content">
+                    <div class="roadmap-target">Threshold 완전 자동화</div>
+                    <div class="roadmap-meta">인간 개입: 1% 목표</div>
+                </div>
+                <div class="roadmap-eta">8월 1일</div>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-version">v2.0.0</div>
+                <div class="roadmap-content">
+                    <div class="roadmap-target">Full Autonomous Mode</div>
+                    <div class="roadmap-meta">인간 개입: 0.1% 목표</div>
+                </div>
+                <div class="roadmap-eta">10월 1일</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="actions-grid">
+        <div class="action-btn primary" id="btn-check-update">
+            <div class="btn-icon">🚀</div>
+            <div class="btn-text">업데이트 확인</div>
+            <div class="btn-sub">OTA 자동 업데이트</div>
+        </div>
+        <div class="action-btn" id="btn-changelog">
+            <div class="btn-icon">📋</div>
+            <div class="btn-text">변경 로그</div>
+            <div class="btn-sub">삭제/자동화 기록</div>
+        </div>
+        <div class="action-btn danger" id="btn-deletion-report">
+            <div class="btn-icon">🗑️</div>
+            <div class="btn-text">삭제 리포트</div>
+            <div class="btn-sub">Console 출력</div>
+        </div>
+        <div class="action-btn" id="btn-automation-report">
+            <div class="btn-icon">📊</div>
+            <div class="btn-text">자동화 현황</div>
+            <div class="btn-sub">Console 출력</div>
+        </div>
+    </div>
+    
+    <!-- Musk Quote -->
+    <div class="musk-quote-card">
+        <div class="quote" id="musk-quote">
+            "If you're not occasionally deleting requirements, you're not deleting enough."
+        </div>
+        <div class="author">— Elon Musk</div>
+    </div>
+    
+    <div class="tab-spacer"></div>
+
+    <!-- Scripts -->
+    <script src="js/ota/update-manager.js"></script>
+    <script src="js/ota/deletion-engine.js"></script>
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // MUSK QUOTES ROTATION
+        // ═══════════════════════════════════════════════════════════════
+        
+        const MUSK_QUOTES = [
+            "The best part is no part.",
+            "The best process is no process.",
+            "Delete, delete, delete.",
+            "If you're not occasionally deleting requirements, you're not deleting enough.",
+            "The most common error of a smart engineer is to optimize something that should not exist.",
+            "Simplify, simplify, simplify.",
+            "If the design or process is getting complex, it's wrong.",
+            "Automation should be invisible.",
+            "Speed is the ultimate weapon."
+        ];
+        
+        let quoteIndex = 0;
+        
+        function rotateQuote() {
+            quoteIndex = (quoteIndex + 1) % MUSK_QUOTES.length;
+            const quoteEl = document.getElementById('musk-quote');
+            if (quoteEl) {
+                quoteEl.style.opacity = '0';
+                setTimeout(() => {
+                    quoteEl.textContent = `"${MUSK_QUOTES[quoteIndex]}"`;
+                    quoteEl.style.opacity = '1';
+                }, 300);
+            }
+        }
+        
+        setInterval(rotateQuote, 10000);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // DATA LOADING
+        // ═══════════════════════════════════════════════════════════════
+        
+        async function loadDeletionCandidates() {
+            try {
+                const response = await fetch('/api/deletion-candidates');
+                const data = await response.json();
+                
+                // 통계 업데이트
+                document.getElementById('deleted-features').textContent = data.total_features_removed_ytd;
+                document.getElementById('automation-improvement').textContent = data.automation_rate_improvement;
+                document.getElementById('current-features').textContent = data.current_feature_count;
+                
+                // 삭제 후보 목록 업데이트
+                const list = document.getElementById('deletion-list');
+                if (data.candidates?.length > 0) {
+                    list.innerHTML = data.candidates.map(c => `
+                        <div class="deletion-item">
+                            <div class="deletion-info">
+                                <div class="deletion-feature">${c.feature.replace(/_/g, ' ')}</div>
+                                <div class="deletion-reason">${c.reason}</div>
+                            </div>
+                            <div class="deletion-usage">
+                                <div class="usage-percent">${(c.usage_rate * 100).toFixed(1)}%</div>
+                                <div class="usage-label">사용률</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.log('[Musk] Using default data');
+            }
+        }
+        
+        async function loadAutomationRoadmap() {
+            try {
+                const response = await fetch('/api/automation-roadmap');
+                const data = await response.json();
+                
+                // 개입률 업데이트
+                const currentIntervention = parseFloat(data.current_human_intervention);
+                document.getElementById('intervention-percent').textContent = data.current_human_intervention;
+                document.getElementById('intervention-fill').style.width = `${100 - currentIntervention}%`;
+                
+                // 로드맵 업데이트
+                const list = document.getElementById('roadmap-list');
+                if (data.roadmap?.length > 0) {
+                    list.innerHTML = data.roadmap.map(r => `
+                        <div class="roadmap-item">
+                            <div class="roadmap-version">${r.version}</div>
+                            <div class="roadmap-content">
+                                <div class="roadmap-target">${r.target}</div>
+                                <div class="roadmap-meta">인간 개입: ${r.human_intervention_target} 목표</div>
+                            </div>
+                            <div class="roadmap-eta">${formatETA(r.eta)}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.log('[Musk] Using default roadmap');
+            }
+        }
+        
+        function formatETA(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // EVENT HANDLERS
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.getElementById('btn-check-update')?.addEventListener('click', async () => {
+            const result = await window.updateManager?.checkVersion();
+            if (result && !result.update_available) {
+                showToast('✓ 최신 버전입니다');
+            }
+        });
+        
+        document.getElementById('btn-changelog')?.addEventListener('click', () => {
+            window.updateManager?.showChangelog();
+        });
+        
+        document.getElementById('btn-deletion-report')?.addEventListener('click', () => {
+            window.deletionEngine?.showDeletionReport();
+            showToast('Console에서 확인하세요');
+        });
+        
+        document.getElementById('btn-automation-report')?.addEventListener('click', () => {
+            window.deletionEngine?.showAutomationProgress();
+            showToast('Console에서 확인하세요');
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // UTILITIES
+        // ═══════════════════════════════════════════════════════════════
+        
+        function showToast(message) {
+            const existing = document.querySelector('.musk-toast');
+            if (existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = 'musk-toast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(10, 10, 15, 0.95);
+                border: 1px solid var(--orange);
+                padding: 12px 24px;
+                border-radius: 10px;
+                font-size: 14px;
+                color: #fff;
+                z-index: 9999;
+                animation: toast-in 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toast-out 0.3s ease-out forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+        
+        // Toast 애니메이션
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes toast-in {
+                from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+                to { transform: translateX(-50%) translateY(0); opacity: 1; }
+            }
+            @keyframes toast-out {
+                from { transform: translateX(-50%) translateY(0); opacity: 1; }
+                to { transform: translateX(-50%) translateY(20px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ═══════════════════════════════════════════════════════════════
+        
+        loadDeletionCandidates();
+        loadAutomationRoadmap();
+        
+        console.log('🚀 AUTUS × Musk Edition Ready');
+        console.log('Philosophy: Delete → Simplify → Automate');
+        console.log('Dev tools: autusDelete.report(), autusDelete.roadmap(), autusDelete.local()');
+    </script>
+</body>
+</html>
