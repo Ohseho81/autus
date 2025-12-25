@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#00e5cc">
+    <meta name="autus-realtime" content="true">
+    <link rel="manifest" href="manifest.json">
     <title>AUTUS - Life FSD</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -427,9 +430,56 @@
             cursor: pointer;
             box-shadow: 0 0 30px var(--cyan-dim);
         }
+        
+        /* 실시간 업데이트 펄스 */
+        .autus-updated {
+            animation: autus-pulse 0.3s ease-out;
+        }
+        @keyframes autus-pulse {
+            0% { background-color: rgba(0,229,204,0.3); transform: scale(1.02); }
+            100% { background-color: transparent; transform: scale(1); }
+        }
+        
+        /* 연결 상태 인디케이터 */
+        .autus-connection-indicator {
+            position: fixed;
+            top: calc(15px + var(--safe-top));
+            right: 60px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            z-index: 9999;
+        }
+        .autus-connection-indicator.connected {
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+        .autus-connection-indicator.disconnected {
+            background: #ff3333;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* Three.js 배경 */
+        #three-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
+    <!-- WebSocket 연결 상태 -->
+    <div class="autus-connection-indicator disconnected"></div>
+    
+    <!-- Three.js 배경 효과 -->
+    <div id="three-container"></div>
+    
     <!-- Status Bar -->
     <div class="status-bar">
         <span>9:41</span>
@@ -493,7 +543,7 @@
             <p>Loss Velocity Analysis<br>Prediction Error ε = predicted - actual</p>
             <div class="layer-visual">
                 <div class="feedback-display">
-                    <div class="loss-velocity">₩0.00</div>
+                    <div class="loss-velocity" data-autus="loss_velocity" data-format="currency">₩0.00</div>
                     <div class="loss-unit">Loss / Second</div>
                     <div class="feedback-bars">
                         <div class="feedback-bar" style="height: 60px; animation-delay: 0s;"></div>
@@ -617,8 +667,8 @@
         <div class="detail-content">
             <div class="detail-visual">
                 <div class="feedback-display">
-                    <div class="loss-velocity" style="font-size: 48px;">₩0.00</div>
-                    <div class="loss-unit" style="font-size: 14px;">Loss Velocity (₩/sec)</div>
+                    <div class="loss-velocity" style="font-size: 48px;" data-autus="total_loss" data-format="currency">₩0</div>
+                    <div class="loss-unit" style="font-size: 14px;">Total Loss (₩)</div>
                     <div class="feedback-bars" style="margin-top: 30px;">
                         <div class="feedback-bar" style="height: 80px; width: 25px;"></div>
                         <div class="feedback-bar" style="height: 100px; width: 25px;"></div>
@@ -884,6 +934,54 @@
         }
         
         console.log('🌌 AUTUS Life FSD Ready');
+    </script>
+    
+    <!-- Three.js & Realtime Bridge -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="js/realtime-bridge.js"></script>
+    <script src="js/three-effects.js"></script>
+    <script>
+        window.AUTUS_AUTO_CONNECT = true;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Three.js 파티클 효과 초기화
+            try {
+                window.autusEffects = initAutusEffects('three-container', {
+                    particleCount: 200,
+                    colorPrimary: 0x00e5cc,
+                    colorWarning: 0xff6600
+                });
+                console.log('✨ Three.js effects initialized');
+            } catch (e) {
+                console.warn('Three.js effects not available:', e);
+            }
+            
+            // WebSocket 연결 상태 리스너
+            if (window.autusBridge) {
+                window.autusBridge.on('physics_update', (data) => {
+                    // Loss Velocity 업데이트 시 효과
+                    if (window.autusEffects && data.risk) {
+                        window.autusEffects.setIntensity(data.risk / 100);
+                        if (data.risk > 70) {
+                            window.autusEffects.setMode('warning');
+                        } else {
+                            window.autusEffects.setMode('normal');
+                        }
+                    }
+                });
+                
+                window.autusBridge.on('connected', () => {
+                    console.log('🔗 Realtime connected');
+                });
+            }
+            
+            // Service Worker 등록 (PWA)
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('📱 Service Worker registered'))
+                    .catch(err => console.warn('SW registration failed:', err));
+            }
+        });
     </script>
 </body>
 </html>

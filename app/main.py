@@ -2354,6 +2354,26 @@ try:
 except Exception as e:
     print(f"⚠️ Realtime API not loaded: {e}")
 
+# === WebSocket API (Physics Realtime) ===
+try:
+    from app.api.websocket import router as ws_router, get_manager
+    app.include_router(ws_router)
+    
+    # Physics Engine 연결
+    if 'PHYSICS_ENGINE' in dir():
+        get_manager().set_physics_engine(PHYSICS_ENGINE)
+    
+    # 브로드캐스트 루프 시작
+    @app.on_event("startup")
+    async def start_ws_broadcast():
+        import asyncio
+        manager = get_manager()
+        asyncio.create_task(manager.start_broadcast_loop())
+    
+    logger.info("✅ WebSocket API loaded (Physics Realtime)")
+except Exception as e:
+    logger.warning(f"⚠️ WebSocket API not loaded: {e}")
+
 # === Google Sheets API ===
 try:
     from app.routes.sheets_api import router as sheets_router
