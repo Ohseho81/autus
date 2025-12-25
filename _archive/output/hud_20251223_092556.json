@@ -1,0 +1,87 @@
+{
+  "hud_version": "2.0",
+  "timestamp": "2025-12-23T09:25:56.937381",
+  "hash": "29eace90",
+  "core_metrics": {
+    "loss_velocity_won_sec": 51.7,
+    "pnr_days": 53,
+    "mva": "자원 배분 우선순위 재정렬 (관련 금액: 5.0억)",
+    "risk": "LOW"
+  },
+  "noise_analysis": {
+    "dominant": "FRICTION",
+    "total_score": 0.157,
+    "indicators": [
+      {
+        "type": "BIAS",
+        "name_kr": "선입견",
+        "score": 0.0,
+        "threshold": 0.7,
+        "status": "SAFE",
+        "evidence": "객관적 분석 기반",
+        "impact_won": 0.0
+      },
+      {
+        "type": "SCARCITY",
+        "name_kr": "조사부족",
+        "score": 0.35,
+        "threshold": 0.6,
+        "status": "SAFE",
+        "evidence": "충분한 데이터 확보",
+        "impact_won": 56000000.0
+      },
+      {
+        "type": "STAGNATION",
+        "name_kr": "실행지연",
+        "score": 0.3,
+        "threshold": 0.5,
+        "status": "SAFE",
+        "evidence": "실행 준비 완료",
+        "impact_won": 24000000.0
+      },
+      {
+        "type": "ATTACHMENT",
+        "name_kr": "감정매몰",
+        "score": 0.0,
+        "threshold": 0.5,
+        "status": "SAFE",
+        "evidence": "합리적 판단 가능",
+        "impact_won": 0.0
+      },
+      {
+        "type": "FRICTION",
+        "name_kr": "자원간섭",
+        "score": 0.45,
+        "threshold": 0.4,
+        "status": "DANGER",
+        "evidence": "자원 배분 충돌 감지",
+        "impact_won": 54000000.0
+      },
+      {
+        "type": "HORIZON",
+        "name_kr": "맥락근시",
+        "score": 0,
+        "threshold": 0.6,
+        "status": "SAFE",
+        "evidence": "장기 관점 유지",
+        "impact_won": 0.0
+      },
+      {
+        "type": "PARADOX",
+        "name_kr": "정보마비",
+        "score": 0.0,
+        "threshold": 0.5,
+        "status": "SAFE",
+        "evidence": "명확한 선택지 존재",
+        "impact_won": 0.0
+      }
+    ]
+  },
+  "actions": {
+    "recommended": "자원 배분 우선순위 재정렬 (관련 금액: 5.0억)",
+    "alternatives": [
+      "자원 풀 분리 운영"
+    ]
+  },
+  "vault": "./vault/2025-12-23_29eace90.json"
+}

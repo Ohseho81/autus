@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1440, height=900">
+    <title>AUTUS — 7-Layer × 90-Type Kernel Integration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
+
+        :root {
+            --bg-base: #F4F4F4;
+            --bg-card: #FFFFFF;
+            --bg-dock: #1a1a1a;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --stroke-weak: #e8e8e8;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+
+            --blue: #3498db;
+            --red: #E82127;
+            --green: #27ae60;
+            --orange: #f39c12;
+            --yellow: #f1c40f;
+            --purple: #9b59b6;
+            --cyan: #1abc9c;
+            --pink: #e91e63;
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        [data-theme="dark"] {
+            --bg-base: #0a0a0a;
+            --bg-card: #1a1a1a;
+            --bg-dock: #000000;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --text-muted: #666666;
+            --stroke-weak: #333333;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            width: 1440px;
+            height: 900px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════════════
+           7-LAYER SYSTEM
+           ═══════════════════════════════════════════════════════════════════════════════ */
+
+        .app {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* L0: ExternalField (z-index: 0) — Background */
+        .L0_ExternalField {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background: var(--bg-base);
+            transition: background 0.3s;
+        }
+
+        .L0_ExternalField::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 20%, rgba(52, 152, 219, 0.08) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 80%, rgba(155, 89, 182, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        /* Layer Badge */
+        .layer-badge {
+            position: absolute;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            z-index: 999;
+            opacity: 0.9;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .layer-badge.L0 { background: #2c3e50; color: white; top: 5px; left: 5px; }
+        .layer-badge.L1 { background: var(--blue); color: white; top: 62px; right: 5px; }
+        .layer-badge.L2 { background: var(--green); color: white; top: 100px; left: 5px; }
+        .layer-badge.L3 { background: var(--orange); color: white; top: 100px; right: 230px; }
+        .layer-badge.L4 { background: var(--purple); color: white; bottom: 95px; left: 50%; transform: translateX(-50%); }
+        .layer-badge.L5 { background: var(--cyan); color: white; top: 80px; right: 10px; }
+        .layer-badge.L6 { background: var(--red); color: white; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        .hide-badges .layer-badge { opacity: 0; }
+
+        /* L1: SystemBar (z-index: 10) — Top Bar */
+        .L1_SystemBar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            z-index: 10;
+            background: var(--bg-card);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            transition: background 0.3s;
+        }
+
+        .top-section { display: flex; align-items: center; gap: 14px; }
+
+        .logo {
+            width: 34px; height: 34px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: white; font-size: 15px;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .logo:hover { transform: scale(1.1); }
+
+        .title-section h1 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+        .title-section p { font-size: 10px; color: var(--text-secondary); }
+
+        .breadcrumb {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 12px; color: var(--text-secondary);
+        }
+        .breadcrumb .active { color: var(--text-primary); font-weight: 600; }
+
+        .status-pill {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 16px;
+            background: var(--bg-base); font-size: 11px;
+        }
+        .status-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--green); }
+
+        .clock {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px; color: var(--text-secondary);
+            background: var(--bg-base); padding: 6px 14px; border-radius: 16px;
+        }
+
+        .icon-btn {
+            width: 34px; height: 34px; border-radius: 17px;
+            background: var(--bg-base); border: 1px solid var(--stroke-weak);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px; transition: all 0.2s;
+        }
+        .icon-btn:hover { background: var(--stroke-weak); transform: scale(1.08); }
+
+        /* L2: EntityPanel (z-index: 20) — Left Sidebar */
+        .L2_EntityPanel {
+            position: absolute;
+            top: 56px;
+            left: 0;
+            bottom: 90px;
+            width: 320px;
+            z-index: 20;
+            background: var(--bg-card);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            transition: background 0.3s;
+        }
+
+        .entity-card {
+            background: var(--bg-base);
+            border-radius: var(--radius-md);
+            padding: 14px;
+        }
+
+        .entity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .entity-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .entity-subtitle { font-size: 10px; color: var(--text-muted); }
+
+        .velocity-display { text-align: center; padding: 10px 0; }
+        .velocity-value { font-size: 72px; font-weight: 200; line-height: 1; color: var(--text-primary); }
+        .velocity-unit { font-size: 12px; color: var(--text-muted); letter-spacing: 3px; }
+
+        .entropy-bar { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+        .entropy-track { flex: 1; height: 6px; background: var(--stroke-weak); border-radius: 3px; overflow: hidden; }
+        .entropy-fill { height: 100%; border-radius: 3px; transition: all 0.3s; }
+        .entropy-label { font-size: 11px; color: var(--text-secondary); min-width: 70px; }
+        .entropy-value { font-size: 13px; font-weight: 600; min-width: 40px; text-align: right; }
+
+        /* Layer-Type Mapping */
+        .layer-mapping {
+            background: var(--bg-base);
+            border-radius: var(--radius-md);
+            padding: 12px;
+        }
+
+        .mapping-title { font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; }
+
+        .mapping-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 8px; border-radius: var(--radius-sm);
+            cursor: pointer; transition: all 0.15s;
+            margin-bottom: 4px;
+        }
+        .mapping-row:hover { background: var(--bg-card); }
+        .mapping-row.active { background: rgba(52, 152, 219, 0.15); }
+
+        .mapping-layer {
+            width: 24px; height: 24px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700; color: white;
+        }
+
+        .mapping-info { flex: 1; }
+        .mapping-name { font-size: 11px; font-weight: 500; color: var(--text-primary); }
+        .mapping-types { font-size: 9px; color: var(--text-muted); }
+
+        .mapping-count {
+            font-size: 10px; font-weight: 600;
+            padding: 2px 8px; border-radius: 10px;
+            background: var(--stroke-weak);
+        }
+
+        /* Type Flow List */
+        .type-flow {
+            background: var(--bg-base);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .flow-title { font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+
+        .flow-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px; border-radius: var(--radius-sm);
+            cursor: pointer; transition: all 0.15s;
+            border-left: 3px solid transparent;
+            margin-bottom: 4px;
+        }
+        .flow-item:hover { background: var(--bg-card); }
+        .flow-item.active { background: rgba(52, 152, 219, 0.1); border-left-color: var(--blue); }
+
+        .flow-icon { font-size: 14px; }
+        .flow-name { flex: 1; font-size: 11px; color: var(--text-primary); }
+        .flow-policy {
+            font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 600;
+        }
+        .flow-policy.normal { background: rgba(52, 152, 219, 0.2); color: var(--blue); }
+        .flow-policy.alternate { background: rgba(232, 33, 39, 0.2); color: var(--red); }
+        .flow-policy.loop { background: rgba(241, 196, 15, 0.2); color: #c9a90c; }
+
+        /* L3: CoreCanvas (z-index: 30) — Main Content */
+        .L3_CoreCanvas {
+            position: absolute;
+            top: 56px;
+            left: 320px;
+            right: 0;
+            bottom: 90px;
+            z-index: 30;
+            background: var(--bg-card);
+            overflow: hidden;
+            transition: background 0.3s;
+        }
+
+        .canvas-grid {
+            position: absolute; inset: 0; opacity: 0.3;
+            background-image: linear-gradient(var(--stroke-weak) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--stroke-weak) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .canvas-content {
+            position: relative; z-index: 1;
+            height: 100%; padding: 20px;
+            display: flex; flex-direction: column;
+        }
+
+        .canvas-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .canvas-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .canvas-subtitle { font-size: 11px; color: var(--text-secondary); }
+
+        /* 7-Layer Router Graph */
+        .router-graph {
+            flex: 1; position: relative;
+        }
+
+        .router-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+        @keyframes dashFlow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -40; } }
+        @keyframes loopPulse { 0%, 100% { stroke-dashoffset: 0; } 50% { stroke-dashoffset: 60; } }
+
+        .route-path { transition: stroke 0.3s, stroke-dasharray 0.3s; }
+        .route-path.alternate { animation: dashFlow 1s linear infinite; }
+        .route-path.loop { animation: loopPulse 2s ease-in-out infinite; }
+
+        /* Layer Nodes */
+        .layer-node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .layer-node:hover { transform: translate(-50%, -50%) scale(1.1); }
+
+        .layer-node-inner {
+            width: 80px; height: 80px;
+            border-radius: 40px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+        }
+
+        .layer-node.active .layer-node-inner {
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.3), 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .layer-node-inner .layer-id { font-size: 11px; font-weight: 700; color: white; }
+        .layer-node-inner .layer-name { font-size: 9px; color: rgba(255,255,255,0.8); }
+        .layer-node-inner .type-count { font-size: 16px; font-weight: 700; color: white; margin-top: 4px; }
+
+        .layer-pulse {
+            position: absolute;
+            inset: -8px;
+            border: 2px solid;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Connection Info */
+        .connection-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: var(--bg-base);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .connection-stat { text-align: center; }
+        .connection-value { font-size: 20px; font-weight: 700; }
+        .connection-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; }
+
+        .connection-flow {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .flow-arrow { color: var(--text-muted); font-size: 12px; }
+
+        .flow-layer {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* L4: FlowDock (z-index: 40) — Bottom Dock */
+        .L4_FlowDock {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 90px;
+            z-index: 40;
+            background: var(--bg-dock);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            transition: background 0.3s;
+        }
+
+        .dock-section { display: flex; align-items: center; gap: 10px; }
+
+        .dock-layers {
+            display: flex; gap: 6px;
+        }
+
+        .dock-layer-btn {
+            width: 50px; height: 50px;
+            border-radius: var(--radius-md);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .dock-layer-btn:hover { transform: scale(1.08); }
+        .dock-layer-btn.active { border-color: white; }
+
+        .dock-layer-btn .layer-id { font-size: 12px; font-weight: 700; color: white; }
+        .dock-layer-btn .layer-short { font-size: 8px; color: rgba(255,255,255,0.6); }
+
+        .bucket-buttons { display: flex; gap: 6px; }
+
+        .bucket-btn {
+            width: 80px; height: 50px;
+            border-radius: var(--radius-md);
+            background: rgba(255,255,255,0.06);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 2px; cursor: pointer; transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .bucket-btn:hover { background: rgba(255,255,255,0.12); }
+        .bucket-btn.active { background: rgba(255,255,255,0.15); }
+        .bucket-btn .icon { font-size: 14px; }
+        .bucket-btn .label { font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.5); }
+        .bucket-btn.active .label { color: white; }
+
+        .debug-pill {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px; padding: 6px 12px; border-radius: 14px;
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.5); font-weight: 600;
+        }
+
+        .debug-pill.alt { background: rgba(232, 33, 39, 0.2); color: var(--red); }
+        .debug-pill.loop { background: rgba(241, 196, 15, 0.2); color: var(--yellow); }
+
+        /* L5: ContextOverlay (z-index: 50) — Toast & Drawer */
+        .L5_ContextOverlay {
+            position: absolute;
+            inset: 0;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .toast {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.4s ease;
+            pointer-events: auto;
+        }
+
+        .toast.show { transform: translateX(0); }
+
+        .toast-icon { font-size: 20px; }
+        .toast-icon.success { color: var(--green); }
+        .toast-icon.warning { color: var(--orange); }
+        .toast-icon.error { color: var(--red); }
+        .toast-icon.info { color: var(--blue); }
+
+        .toast-content .toast-title { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+        .toast-content .toast-message { font-size: 10px; color: var(--text-muted); }
+        .toast-close { cursor: pointer; font-size: 14px; color: var(--text-muted); }
+
+        .drawer-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .drawer-backdrop.show { opacity: 1; pointer-events: auto; }
+
+        .drawer {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            width: 500px;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            padding: 20px;
+            transition: transform 0.4s ease;
+            pointer-events: auto;
+        }
+
+        .drawer.show { transform: translateX(-50%) translateY(0); }
+
+        .drawer-handle {
+            width: 40px; height: 4px;
+            background: var(--stroke-weak);
+            border-radius: 2px;
+            margin: 0 auto 16px;
+        }
+
+        .drawer-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text-primary); }
+
+        .drawer-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .drawer-item {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 6px;
+            padding: 14px; border-radius: var(--radius-md);
+            background: var(--bg-base);
+            cursor: pointer; transition: all 0.2s;
+        }
+
+        .drawer-item:hover { background: var(--stroke-weak); transform: scale(1.05); }
+        .drawer-item-icon { font-size: 24px; }
+        .drawer-item-label { font-size: 10px; color: var(--text-secondary); }
+
+        /* L6: Override (z-index: 60) — Full Screen Alert */
+        .L6_Override {
+            position: absolute;
+            inset: 0;
+            z-index: 60;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(8px);
+        }
+
+        .L6_Override.show { opacity: 1; pointer-events: auto; }
+
+        .alert-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            text-align: center;
+            max-width: 400px;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .L6_Override.show .alert-card { transform: scale(1); }
+
+        .alert-icon { font-size: 48px; margin-bottom: 16px; }
+        .alert-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
+        .alert-message { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+
+        .alert-layers {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-layer {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .alert-btn {
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .alert-btn:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <!-- Layer Badges -->
+    <div class="layer-badge L0">L0</div>
+    <div class="layer-badge L1">L1</div>
+    <div class="layer-badge L2">L2</div>
+    <div class="layer-badge L3">L3</div>
+    <div class="layer-badge L4">L4</div>
+    <div class="layer-badge L5" id="L5Badge" style="opacity: 0;">L5</div>
+    <div class="layer-badge L6" id="L6Badge" style="opacity: 0;">L6</div>
+
+    <!-- L0: ExternalField -->
+    <div class="L0_ExternalField"></div>
+
+    <!-- L1: SystemBar -->
+    <header class="L1_SystemBar">
+        <div class="top-section">
+            <div class="logo">A</div>
+            <div class="title-section">
+                <h1>AUTUS 7-Layer Kernel</h1>
+                <p>90-Type Integration • <span id="activeLayerCount">7</span> layers active</p>
+            </div>
+        </div>
+
+        <div class="breadcrumb">
+            <span>System</span>
+            <span>→</span>
+            <span class="active" id="currentLayerBreadcrumb">L3_CoreCanvas</span>
+        </div>
+
+        <div class="top-section">
+            <div class="status-pill">
+                <div class="status-dot"></div>
+                <span>Connected</span>
+            </div>
+            <div class="clock" id="clock">00:00:00</div>
+            <div class="icon-btn" onclick="showToast('Layer notification', 'info')" title="Toast">🔔</div>
+            <div class="icon-btn" onclick="openDrawer()" title="Drawer">☰</div>
+            <div class="icon-btn" onclick="toggleTheme()" title="Theme" id="themeBtn">🌙</div>
+            <div class="icon-btn" onclick="document.body.classList.toggle('hide-badges')" title="Badges">👁</div>
+        </div>
+    </header>
+
+    <!-- L2: EntityPanel -->
+    <aside class="L2_EntityPanel">
+        <div class="entity-card">
+            <div class="entity-header">
+                <div>
+                    <div class="entity-title">System Velocity</div>
+                    <div class="entity-subtitle">Real-time routing speed</div>
+                </div>
+            </div>
+            <div class="velocity-display">
+                <div class="velocity-value" id="velocityValue">74</div>
+                <div class="velocity-unit">MPH</div>
+            </div>
+            <div class="entropy-bar">
+                <span class="entropy-label">⚡ Entropy</span>
+                <div class="entropy-track">
+                    <div class="entropy-fill" id="entropyFill" style="width: 32%; background: var(--green);"></div>
+                </div>
+                <span class="entropy-value" id="entropyValue">0.32</span>
+            </div>
+        </div>
+
+        <!-- Layer-Type Mapping -->
+        <div class="layer-mapping">
+            <div class="mapping-title">🔗 LAYER ↔ TYPE MAPPING</div>
+            <div id="layerMappingList"></div>
+        </div>
+
+        <!-- Type Flow -->
+        <div class="type-flow">
+            <div class="flow-title">📊 TYPE FLOW (Bucket: <span id="currentBucketLabel">ALL</span>)</div>
+            <div id="typeFlowList"></div>
+        </div>
+    </aside>
+
+    <!-- L3: CoreCanvas -->
+    <main class="L3_CoreCanvas">
+        <div class="canvas-grid"></div>
+        <div class="canvas-content">
+            <div class="canvas-header">
+                <div>
+                    <div class="canvas-title">🚇 7-Layer Router Graph</div>
+                    <div class="canvas-subtitle">EdgePolicy: <span id="currentPolicy">NORMAL</span> • Type: <span id="currentType">decision.approve</span></div>
+                </div>
+            </div>
+
+            <div class="router-graph">
+                <svg class="router-svg" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                    <!-- Layer Connections -->
+                    <path id="routePath" class="route-path" d="M80 380 Q150 380 180 300 Q210 220 300 220 Q400 220 450 150 Q500 80 600 80 Q700 80 750 50" stroke="var(--blue)" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#glow)"/>
+                </svg>
+
+                <!-- Layer Nodes -->
+                <div id="layerNodesContainer"></div>
+            </div>
+
+            <div class="connection-info">
+                <div class="connection-stat">
+                    <div class="connection-value" id="velocityStat" style="color: var(--blue);">74</div>
+                    <div class="connection-label">Velocity</div>
+                </div>
+                <div class="connection-flow" id="connectionFlow"></div>
+                <div class="connection-stat">
+                    <div class="connection-value" style="color: var(--purple);">90</div>
+                    <div class="connection-label">Types</div>
+                </div>
+                <div class="connection-stat">
+                    <div class="connection-value" style="color: var(--green);">7</div>
+                    <div class="connection-label">Layers</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- L4: FlowDock -->
+    <nav class="L4_FlowDock">
+        <div class="dock-section">
+            <div class="dock-layers" id="dockLayers"></div>
+        </div>
+
+        <div class="bucket-buttons" id="bucketButtons"></div>
+
+        <div class="dock-section">
+            <div class="debug-pill" id="debugPill">LAYER: L3 | POLICY: NORMAL</div>
+        </div>
+    </nav>
+
+    <!-- L5: ContextOverlay -->
+    <div class="L5_ContextOverlay">
+        <div class="toast" id="toast">
+            <div class="toast-icon info" id="toastIcon">ℹ️</div>
+            <div class="toast-content">
+                <div class="toast-title" id="toastTitle">Notification</div>
+                <div class="toast-message" id="toastMessage">Message here</div>
+            </div>
+            <div class="toast-close" onclick="hideToast()">✕</div>
+        </div>
+
+        <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+        <div class="drawer" id="drawer">
+            <div class="drawer-handle"></div>
+            <div class="drawer-title">🔗 Layer Quick Access</div>
+            <div class="drawer-grid" id="drawerGrid"></div>
+        </div>
+    </div>
+
+    <!-- L6: Override -->
+    <div class="L6_Override" id="overrideLayer">
+        <div class="alert-card">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-title">Alternate Route Activated</div>
+            <div class="alert-message">Policy threshold exceeded. Routing through alternate layers.</div>
+            <div class="alert-layers" id="alertLayers"></div>
+            <button class="alert-btn" onclick="hideOverride()">Acknowledge</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // 7-LAYER SYSTEM DEFINITION
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    const LAYERS = {
+        L0: { name: 'ExternalField', short: 'EXT', color: '#2c3e50', zIndex: 0, types: ['state.initial', 'state.archived'], x: 10, y: 85 },
+        L1: { name: 'SystemBar', short: 'SYS', color: '#3498db', zIndex: 10, types: ['signal.info', 'signal.notification'], x: 22, y: 70 },
+        L2: { name: 'EntityPanel', short: 'ENT', color: '#27ae60', zIndex: 20, types: ['state.active', 'record.metric'], x: 38, y: 50 },
+        L3: { name: 'CoreCanvas', short: 'CORE', color: '#f39c12', zIndex: 30, types: ['decision.approve', 'decision.route', 'action.execute'], x: 55, y: 35 },
+        L4: { name: 'FlowDock', short: 'DOCK', color: '#9b59b6', zIndex: 40, types: ['action.queue', 'action.process'], x: 72, y: 20 },
+        L5: { name: 'ContextOverlay', short: 'CTX', color: '#1abc9c', zIndex: 50, types: ['signal.alert', 'signal.warning'], x: 85, y: 12 },
+        L6: { name: 'Override', short: 'OVR', color: '#E82127', zIndex: 60, types: ['constraint.policy', 'signal.error'], x: 95, y: 8 }
+    };
+
+    const LAYER_TYPE_MAP = {
+        // State types → L0, L2
+        'state.initial': 'L0', 'state.active': 'L2', 'state.pending': 'L5',
+        'state.paused': 'L4', 'state.completed': 'L3', 'state.failed': 'L6',
+        'state.cancelled': 'L6', 'state.archived': 'L0', 'state.draft': 'L2',
+        'state.review': 'L5', 'state.approved': 'L3', 'state.rejected': 'L6',
+        'state.escalated': 'L5', 'state.delegated': 'L3', 'state.locked': 'L4',
+
+        // Signal types → L1, L5
+        'signal.trigger': 'L5', 'signal.alert': 'L5', 'signal.warning': 'L5',
+        'signal.info': 'L1', 'signal.error': 'L6', 'signal.success': 'L1',
+        'signal.timeout': 'L6', 'signal.retry': 'L4', 'signal.callback': 'L3',
+        'signal.webhook': 'L3', 'signal.event': 'L1', 'signal.notification': 'L1',
+        'signal.broadcast': 'L1', 'signal.pulse': 'L4', 'signal.heartbeat': 'L0',
+
+        // Decision types → L3
+        'decision.approve': 'L3', 'decision.reject': 'L6', 'decision.defer': 'L4',
+        'decision.escalate': 'L5', 'decision.delegate': 'L3', 'decision.override': 'L6',
+        'decision.confirm': 'L3', 'decision.cancel': 'L6', 'decision.retry': 'L4',
+        'decision.split': 'L3', 'decision.merge': 'L3', 'decision.route': 'L3',
+        'decision.filter': 'L2', 'decision.transform': 'L3', 'decision.validate': 'L5',
+
+        // Action types → L3, L4
+        'action.create': 'L3', 'action.read': 'L2', 'action.update': 'L3',
+        'action.delete': 'L6', 'action.execute': 'L3', 'action.schedule': 'L4',
+        'action.queue': 'L4', 'action.process': 'L4', 'action.send': 'L3',
+        'action.receive': 'L2', 'action.sync': 'L4', 'action.async': 'L3',
+        'action.batch': 'L4', 'action.stream': 'L3', 'action.poll': 'L4',
+
+        // Constraint types → L5, L6
+        'constraint.policy': 'L6', 'constraint.rule': 'L5', 'constraint.limit': 'L5',
+        'constraint.quota': 'L5', 'constraint.threshold': 'L5', 'constraint.boundary': 'L6',
+        'constraint.filter': 'L2', 'constraint.validation': 'L5', 'constraint.authorization': 'L6',
+        'constraint.authentication': 'L6', 'constraint.encryption': 'L6', 'constraint.compliance': 'L5',
+        'constraint.audit': 'L5', 'constraint.governance': 'L6', 'constraint.sla': 'L5',
+
+        // Record types → L0, L2
+        'record.log': 'L0', 'record.audit': 'L2', 'record.trace': 'L2',
+        'record.metric': 'L2', 'record.event': 'L1', 'record.snapshot': 'L0',
+        'record.backup': 'L0', 'record.archive': 'L0', 'record.checkpoint': 'L4',
+        'record.replay': 'L4', 'record.history': 'L2', 'record.timeline': 'L2',
+        'record.ledger': 'L2', 'record.journal': 'L2', 'record.manifest': 'L0'
+    };
+
+    const AUTUS_90_TYPES = {
+        "state.initial": { policy: "NORMAL", bucket: "state", icon: "🏁" },
+        "state.active": { policy: "NORMAL", bucket: "state", icon: "▶️" },
+        "state.pending": { policy: "ALTERNATE", bucket: "state", icon: "⏳" },
+        "state.paused": { policy: "LOOP", bucket: "state", icon: "⏸" },
+        "state.completed": { policy: "NORMAL", bucket: "state", icon: "✅" },
+        "state.failed": { policy: "ALTERNATE", bucket: "state", icon: "❌" },
+        "state.cancelled": { policy: "ALTERNATE", bucket: "state", icon: "🚫" },
+        "state.archived": { policy: "NORMAL", bucket: "state", icon: "📦" },
+        "state.draft": { policy: "LOOP", bucket: "state", icon: "📝" },
+        "state.review": { policy: "ALTERNATE", bucket: "state", icon: "👁" },
+        "state.approved": { policy: "NORMAL", bucket: "state", icon: "👍" },
+        "state.rejected": { policy: "ALTERNATE", bucket: "state", icon: "👎" },
+        "state.escalated": { policy: "ALTERNATE", bucket: "state", icon: "⬆️" },
+        "state.delegated": { policy: "NORMAL", bucket: "state", icon: "➡️" },
+        "state.locked": { policy: "LOOP", bucket: "state", icon: "🔐" },
+        "signal.trigger": { policy: "ALTERNATE", bucket: "signal", icon: "🎯" },
+        "signal.alert": { policy: "ALTERNATE", bucket: "signal", icon: "🚨" },
+        "signal.warning": { policy: "ALTERNATE", bucket: "signal", icon: "⚠️" },
+        "signal.info": { policy: "NORMAL", bucket: "signal", icon: "ℹ️" },
+        "signal.error": { policy: "ALTERNATE", bucket: "signal", icon: "🔴" },
+        "signal.success": { policy: "NORMAL", bucket: "signal", icon: "🟢" },
+        "signal.timeout": { policy: "ALTERNATE", bucket: "signal", icon: "⏰" },
+        "signal.retry": { policy: "LOOP", bucket: "signal", icon: "🔄" },
+        "signal.callback": { policy: "NORMAL", bucket: "signal", icon: "📞" },
+        "signal.webhook": { policy: "NORMAL", bucket: "signal", icon: "🪝" },
+        "signal.event": { policy: "NORMAL", bucket: "signal", icon: "📢" },
+        "signal.notification": { policy: "NORMAL", bucket: "signal", icon: "🔔" },
+        "signal.broadcast": { policy: "NORMAL", bucket: "signal", icon: "📻" },
+        "signal.pulse": { policy: "LOOP", bucket: "signal", icon: "💓" },
+        "signal.heartbeat": { policy: "NORMAL", bucket: "signal", icon: "❤️" },
+        "decision.approve": { policy: "NORMAL", bucket: "decision", icon: "✓" },
+        "decision.reject": { policy: "ALTERNATE", bucket: "decision", icon: "✗" },
+        "decision.defer": { policy: "LOOP", bucket: "decision", icon: "⏰" },
+        "decision.escalate": { policy: "ALTERNATE", bucket: "decision", icon: "📈" },
+        "decision.delegate": { policy: "NORMAL", bucket: "decision", icon: "👥" },
+        "decision.override": { policy: "ALTERNATE", bucket: "decision", icon: "⚡" },
+        "decision.confirm": { policy: "NORMAL", bucket: "decision", icon: "🔒" },
+        "decision.cancel": { policy: "ALTERNATE", bucket: "decision", icon: "❌" },
+        "decision.retry": { policy: "LOOP", bucket: "decision", icon: "🔁" },
+        "decision.split": { policy: "ALTERNATE", bucket: "decision", icon: "✂️" },
+        "decision.merge": { policy: "NORMAL", bucket: "decision", icon: "🔀" },
+        "decision.route": { policy: "NORMAL", bucket: "decision", icon: "🛤" },
+        "decision.filter": { policy: "NORMAL", bucket: "decision", icon: "🔍" },
+        "decision.transform": { policy: "NORMAL", bucket: "decision", icon: "⚙️" },
+        "decision.validate": { policy: "ALTERNATE", bucket: "decision", icon: "✅" },
+        "action.create": { policy: "NORMAL", bucket: "action", icon: "➕" },
+        "action.read": { policy: "NORMAL", bucket: "action", icon: "👁" },
+        "action.update": { policy: "LOOP", bucket: "action", icon: "✏️" },
+        "action.delete": { policy: "ALTERNATE", bucket: "action", icon: "🗑" },
+        "action.execute": { policy: "NORMAL", bucket: "action", icon: "▶️" },
+        "action.schedule": { policy: "LOOP", bucket: "action", icon: "📅" },
+        "action.queue": { policy: "LOOP", bucket: "action", icon: "📋" },
+        "action.process": { policy: "NORMAL", bucket: "action", icon: "⚙️" },
+        "action.send": { policy: "NORMAL", bucket: "action", icon: "📤" },
+        "action.receive": { policy: "NORMAL", bucket: "action", icon: "📥" },
+        "action.sync": { policy: "LOOP", bucket: "action", icon: "🔄" },
+        "action.async": { policy: "NORMAL", bucket: "action", icon: "⏳" },
+        "action.batch": { policy: "LOOP", bucket: "action", icon: "📦" },
+        "action.stream": { policy: "NORMAL", bucket: "action", icon: "🌊" },
+        "action.poll": { policy: "LOOP", bucket: "action", icon: "🔂" },
+        "constraint.policy": { policy: "ALTERNATE", bucket: "constraint", icon: "📜" },
+        "constraint.rule": { policy: "ALTERNATE", bucket: "constraint", icon: "📏" },
+        "constraint.limit": { policy: "ALTERNATE", bucket: "constraint", icon: "🚧" },
+        "constraint.quota": { policy: "ALTERNATE", bucket: "constraint", icon: "📊" },
+        "constraint.threshold": { policy: "ALTERNATE", bucket: "constraint", icon: "📉" },
+        "constraint.boundary": { policy: "ALTERNATE", bucket: "constraint", icon: "🔲" },
+        "constraint.filter": { policy: "ALTERNATE", bucket: "constraint", icon: "🔍" },
+        "constraint.validation": { policy: "ALTERNATE", bucket: "constraint", icon: "✔️" },
+        "constraint.authorization": { policy: "ALTERNATE", bucket: "constraint", icon: "🔑" },
+        "constraint.authentication": { policy: "ALTERNATE", bucket: "constraint", icon: "🔐" },
+        "constraint.encryption": { policy: "ALTERNATE", bucket: "constraint", icon: "🔒" },
+        "constraint.compliance": { policy: "ALTERNATE", bucket: "constraint", icon: "📋" },
+        "constraint.audit": { policy: "ALTERNATE", bucket: "constraint", icon: "🔎" },
+        "constraint.governance": { policy: "ALTERNATE", bucket: "constraint", icon: "🏛" },
+        "constraint.sla": { policy: "ALTERNATE", bucket: "constraint", icon: "📄" },
+        "record.log": { policy: "NORMAL", bucket: "record", icon: "📜" },
+        "record.audit": { policy: "NORMAL", bucket: "record", icon: "🔎" },
+        "record.trace": { policy: "NORMAL", bucket: "record", icon: "🔬" },
+        "record.metric": { policy: "NORMAL", bucket: "record", icon: "📊" },
+        "record.event": { policy: "NORMAL", bucket: "record", icon: "📢" },
+        "record.snapshot": { policy: "LOOP", bucket: "record", icon: "📸" },
+        "record.backup": { policy: "LOOP", bucket: "record", icon: "💾" },
+        "record.archive": { policy: "NORMAL", bucket: "record", icon: "🗄" },
+        "record.checkpoint": { policy: "LOOP", bucket: "record", icon: "🏁" },
+        "record.replay": { policy: "LOOP", bucket: "record", icon: "⏪" },
+        "record.history": { policy: "NORMAL", bucket: "record", icon: "📚" },
+        "record.timeline": { policy: "NORMAL", bucket: "record", icon: "📅" },
+        "record.ledger": { policy: "NORMAL", bucket: "record", icon: "📒" },
+        "record.journal": { policy: "NORMAL", bucket: "record", icon: "📓" },
+        "record.manifest": { policy: "NORMAL", bucket: "record", icon: "📋" }
+    };
+
+    const POLICY_COLORS = { NORMAL: '#3498db', ALTERNATE: '#E82127', LOOP: '#f1c40f' };
+    const BUCKETS = ['all', 'state', 'signal', 'decision', 'action', 'constraint', 'record'];
+    const BUCKET_ICONS = { all: '🔗', state: '📊', signal: '📡', decision: '⦿', action: '⚡', constraint: '🔒', record: '📝' };
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    let state = {
+        currentLayer: 'L3',
+        currentType: 'decision.approve',
+        currentBucket: 'all',
+        velocity: 74,
+        entropy: 0.32,
+        theme: 'light'
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // RENDER FUNCTIONS
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function renderLayerMapping() {
+        const container = document.getElementById('layerMappingList');
+        container.innerHTML = Object.entries(LAYERS).map(([id, layer]) => {
+            const typeCount = Object.values(LAYER_TYPE_MAP).filter(l => l === id).length;
+            return `
+                <div class="mapping-row ${state.currentLayer === id ? 'active' : ''}" onclick="selectLayer('${id}')">
+                    <div class="mapping-layer" style="background: ${layer.color};">${id}</div>
+                    <div class="mapping-info">
+                        <div class="mapping-name">${layer.name}</div>
+                        <div class="mapping-types">z-index: ${layer.zIndex}</div>
+                    </div>
+                    <div class="mapping-count">${typeCount}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderTypeFlow() {
+        const container = document.getElementById('typeFlowList');
+        const filteredTypes = state.currentBucket === 'all' 
+            ? Object.keys(AUTUS_90_TYPES) 
+            : Object.keys(AUTUS_90_TYPES).filter(k => AUTUS_90_TYPES[k].bucket === state.currentBucket);
+
+        container.innerHTML = filteredTypes.slice(0, 15).map(typeSlug => {
+            const data = AUTUS_90_TYPES[typeSlug];
+            const layer = LAYER_TYPE_MAP[typeSlug];
+            return `
+                <div class="flow-item ${state.currentType === typeSlug ? 'active' : ''}" onclick="selectType('${typeSlug}')">
+                    <span class="flow-icon">${data.icon}</span>
+                    <span class="flow-name">${typeSlug}</span>
+                    <span class="flow-policy ${data.policy.toLowerCase()}">${layer}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderLayerNodes() {
+        const container = document.getElementById('layerNodesContainer');
+        container.innerHTML = Object.entries(LAYERS).map(([id, layer]) => {
+            const typeCount = Object.values(LAYER_TYPE_MAP).filter(l => l === id).length;
+            const isActive = state.currentLayer === id;
+            return `
+                <div class="layer-node ${isActive ? 'active' : ''}" 
+                     style="left: ${layer.x}%; top: ${layer.y}%;" 
+                     onclick="selectLayer('${id}')">
+                    ${isActive ? `<div class="layer-pulse" style="border-color: ${layer.color};"></div>` : ''}
+                    <div class="layer-node-inner" style="background: ${layer.color};">
+                        <div class="layer-id">${id}</div>
+                        <div class="layer-name">${layer.short}</div>
+                        <div class="type-count">${typeCount}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderDockLayers() {
+        const container = document.getElementById('dockLayers');
+        container.innerHTML = Object.entries(LAYERS).map(([id, layer]) => `
+            <div class="dock-layer-btn ${state.currentLayer === id ? 'active' : ''}" 
+                 style="background: ${layer.color};"
+                 onclick="selectLayer('${id}')">
+                <div class="layer-id">${id}</div>
+                <div class="layer-short">${layer.short}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderBucketButtons() {
+        const container = document.getElementById('bucketButtons');
+        container.innerHTML = BUCKETS.map(bucket => `
+            <div class="bucket-btn ${state.currentBucket === bucket ? 'active' : ''}" 
+                 data-bucket="${bucket}" onclick="filterBucket('${bucket}')">
+                <span class="icon">${BUCKET_ICONS[bucket]}</span>
+                <span class="label">${bucket.toUpperCase()}</span>
+            </div>
+        `).join('');
+    }
+
+    function renderDrawerGrid() {
+        const container = document.getElementById('drawerGrid');
+        container.innerHTML = Object.entries(LAYERS).map(([id, layer]) => `
+            <div class="drawer-item" onclick="selectLayer('${id}'); closeDrawer();">
+                <div class="drawer-item-icon" style="color: ${layer.color};">◉</div>
+                <div class="drawer-item-label">${id}: ${layer.name}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderConnectionFlow() {
+        const container = document.getElementById('connectionFlow');
+        const typeData = AUTUS_90_TYPES[state.currentType];
+        const targetLayer = LAYER_TYPE_MAP[state.currentType];
+        const layerData = LAYERS[targetLayer];
+
+        // Show flow path based on policy
+        let flowLayers = [];
+        if (typeData.policy === 'NORMAL') {
+            flowLayers = ['L0', 'L2', targetLayer];
+        } else if (typeData.policy === 'ALTERNATE') {
+            flowLayers = ['L0', 'L5', 'L6', targetLayer];
+        } else {
+            flowLayers = ['L0', 'L4', targetLayer, 'L4'];
+        }
+
+        container.innerHTML = flowLayers.map((l, i) => `
+            <div class="flow-layer" style="background: ${LAYERS[l].color};">${l}</div>
+            ${i < flowLayers.length - 1 ? '<span class="flow-arrow">→</span>' : ''}
+        `).join('');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // SELECTION
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function selectLayer(layerId) {
+        state.currentLayer = layerId;
+        const layer = LAYERS[layerId];
+
+        document.getElementById('currentLayerBreadcrumb').textContent = `${layerId}_${layer.name}`;
+
+        // Update route path color
+        const routePath = document.getElementById('routePath');
+        routePath.style.stroke = layer.color;
+
+        updateDebugPill();
+        renderLayerMapping();
+        renderLayerNodes();
+        renderDockLayers();
+        renderConnectionFlow();
+
+        showToast(`Layer ${layerId} selected`, 'info');
+    }
+
+    function selectType(typeSlug) {
+        state.currentType = typeSlug;
+        const typeData = AUTUS_90_TYPES[typeSlug];
+        const targetLayer = LAYER_TYPE_MAP[typeSlug];
+
+        document.getElementById('currentType').textContent = typeSlug;
+        document.getElementById('currentPolicy').textContent = typeData.policy;
+
+        // Update route path style
+        const routePath = document.getElementById('routePath');
+        const color = POLICY_COLORS[typeData.policy];
+        routePath.style.stroke = color;
+        routePath.classList.remove('alternate', 'loop');
+
+        if (typeData.policy === 'ALTERNATE') {
+            routePath.style.strokeDasharray = '15,10';
+            routePath.classList.add('alternate');
+        } else if (typeData.policy === 'LOOP') {
+            routePath.style.strokeDasharray = '25,15';
+            routePath.classList.add('loop');
+        } else {
+            routePath.style.strokeDasharray = '0';
+        }
+
+        // Auto-select target layer
+        selectLayer(targetLayer);
+
+        // Show L6 override for ALTERNATE policies with specific types
+        if (typeData.policy === 'ALTERNATE' && ['constraint.policy', 'signal.error', 'decision.reject'].includes(typeSlug)) {
+            showOverride(typeSlug);
+        }
+
+        renderTypeFlow();
+        updateDebugPill();
+    }
+
+    function filterBucket(bucket) {
+        state.currentBucket = bucket;
+        document.getElementById('currentBucketLabel').textContent = bucket.toUpperCase();
+        renderTypeFlow();
+        renderBucketButtons();
+    }
+
+    function updateDebugPill() {
+        const debugPill = document.getElementById('debugPill');
+        const typeData = AUTUS_90_TYPES[state.currentType];
+        debugPill.textContent = `LAYER: ${state.currentLayer} | POLICY: ${typeData.policy}`;
+        debugPill.classList.remove('alt', 'loop');
+        if (typeData.policy === 'ALTERNATE') debugPill.classList.add('alt');
+        if (typeData.policy === 'LOOP') debugPill.classList.add('loop');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // L5: TOAST & DRAWER
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        const toastIcon = document.getElementById('toastIcon');
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+
+        const icons = { success: '✓', warning: '⚠️', error: '✗', info: 'ℹ️' };
+        toastIcon.textContent = icons[type];
+        toastIcon.className = `toast-icon ${type}`;
+        toastTitle.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+        toastMessage.textContent = message;
+
+        document.getElementById('L5Badge').style.opacity = '1';
+        toast.classList.add('show');
+        setTimeout(() => hideToast(), 3000);
+    }
+
+    function hideToast() {
+        document.getElementById('toast').classList.remove('show');
+        setTimeout(() => {
+            document.getElementById('L5Badge').style.opacity = '0';
+        }, 400);
+    }
+
+    function openDrawer() {
+        document.getElementById('L5Badge').style.opacity = '1';
+        document.getElementById('drawerBackdrop').classList.add('show');
+        document.getElementById('drawer').classList.add('show');
+    }
+
+    function closeDrawer() {
+        document.getElementById('drawerBackdrop').classList.remove('show');
+        document.getElementById('drawer').classList.remove('show');
+        setTimeout(() => {
+            document.getElementById('L5Badge').style.opacity = '0';
+        }, 400);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // L6: OVERRIDE
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function showOverride(typeSlug) {
+        const overlay = document.getElementById('overrideLayer');
+        const alertLayers = document.getElementById('alertLayers');
+        const targetLayer = LAYER_TYPE_MAP[typeSlug];
+
+        alertLayers.innerHTML = ['L0', 'L5', 'L6', targetLayer].map(l => 
+            `<div class="alert-layer" style="background: ${LAYERS[l].color};">${l}</div>`
+        ).join('');
+
+        document.getElementById('L6Badge').style.opacity = '1';
+        overlay.classList.add('show');
+    }
+
+    function hideOverride() {
+        document.getElementById('overrideLayer').classList.remove('show');
+        setTimeout(() => {
+            document.getElementById('L6Badge').style.opacity = '0';
+        }, 300);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // THEME & SIMULATION
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function toggleTheme() {
+        state.theme = state.theme === 'light' ? 'dark' : 'light';
+        document.body.setAttribute('data-theme', state.theme);
+        document.getElementById('themeBtn').textContent = state.theme === 'light' ? '🌙' : '☀️';
+    }
+
+    function simulate() {
+        state.velocity = Math.max(0, Math.min(120, state.velocity + (Math.random() - 0.4) * 4));
+        state.entropy = Math.max(0, Math.min(1, state.entropy + (Math.random() - 0.5) * 0.05));
+
+        document.getElementById('velocityValue').textContent = Math.round(state.velocity);
+        document.getElementById('velocityStat').textContent = Math.round(state.velocity);
+        document.getElementById('entropyValue').textContent = state.entropy.toFixed(2);
+        document.getElementById('entropyFill').style.width = (state.entropy * 100) + '%';
+        document.getElementById('entropyFill').style.background = 
+            state.entropy > 0.6 ? 'var(--red)' : state.entropy > 0.3 ? 'var(--orange)' : 'var(--green)';
+    }
+
+    function updateClock() {
+        document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    renderLayerMapping();
+    renderTypeFlow();
+    renderLayerNodes();
+    renderDockLayers();
+    renderBucketButtons();
+    renderDrawerGrid();
+    renderConnectionFlow();
+    updateClock();
+    selectType('decision.approve');
+
+    setInterval(simulate, 300);
+    setInterval(updateClock, 1000);
+
+    console.log('🔗 AUTUS 7-Layer × 90-Type Kernel Integration');
+    console.log(`📊 7 Layers | 90 Types | ${Object.keys(LAYER_TYPE_MAP).length} Mappings`);
+</script>
+
+</body>
+</html>
+

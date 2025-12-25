@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1440, height=900">
+    <title>AUTUS Kernel V3 — 90-Type Router</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        :root {
+            --bg-base: #F4F4F4;
+            --bg-card: #FFFFFF;
+            --bg-glass: rgba(0, 0, 0, 0.03);
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --stroke-weak: #e8e8e8;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+
+            --blue: #3498db;
+            --red: #E82127;
+            --green: #27ae60;
+            --orange: #f39c12;
+            --yellow: #f1c40f;
+            --purple: #9b59b6;
+            --cyan: #1abc9c;
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        body {
+            width: 1440px;
+            height: 900px;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════════════
+           TOP BAR
+           ═══════════════════════════════════════════════════════════════════════════════ */
+        .top-bar {
+            height: 56px;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 100;
+        }
+
+        .top-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 16px;
+        }
+
+        .title-section h1 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .title-section p {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .search-bar {
+            width: 320px;
+            height: 40px;
+            background: var(--bg-base);
+            border-radius: 20px;
+            border: 1px solid var(--stroke-weak);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+
+        .search-bar input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .search-bar input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .policy-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .policy-badge .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .clock {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            background: var(--bg-base);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: var(--text-secondary);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════════════
+           MAIN CONTENT
+           ═══════════════════════════════════════════════════════════════════════════════ */
+        .main-content {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            height: calc(100% - 56px - 90px);
+        }
+
+        /* ─── LEFT PANEL ─── */
+        .left-panel {
+            width: 32%;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .speed-display {
+            text-align: center;
+        }
+
+        .speed-value {
+            font-size: 96px;
+            font-weight: 200;
+            line-height: 1;
+        }
+
+        .speed-unit {
+            font-size: 14px;
+            color: var(--text-muted);
+            letter-spacing: 4px;
+        }
+
+        .entropy-gauge {
+            background: var(--bg-base);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .entropy-gauge .label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            min-width: 80px;
+        }
+
+        .entropy-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--stroke-weak);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .entropy-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .entropy-value {
+            font-size: 16px;
+            font-weight: 600;
+            min-width: 45px;
+            text-align: right;
+        }
+
+        /* ─── CAR SVG CONTAINER ─── */
+        .car-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 280px;
+        }
+
+        .car-svg {
+            width: 160px;
+            height: 280px;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.15));
+        }
+
+        .car-svg .body {
+            fill: #2c3e50;
+            transition: fill 0.3s;
+        }
+
+        .car-svg .glass {
+            fill: rgba(52, 152, 219, 0.4);
+        }
+
+        .car-svg .light {
+            transition: fill 0.3s;
+        }
+
+        .car-svg .wheel {
+            fill: #1a1a1a;
+        }
+
+        .car-svg .wheel-inner {
+            fill: #333;
+        }
+
+        /* Door animations */
+        .car-door {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: rgba(52, 152, 219, 0.1);
+            border: 2px dashed var(--blue);
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .car-door:hover {
+            opacity: 1;
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        .car-door.left-front { left: calc(50% - 90px); top: 40%; }
+        .car-door.left-rear { left: calc(50% - 90px); top: 55%; }
+        .car-door.right-front { right: calc(50% - 90px); top: 40%; }
+        .car-door.right-rear { right: calc(50% - 90px); top: 55%; }
+
+        .type-badge {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: var(--bg-base);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            background: #eaeaea;
+        }
+
+        .stat-card .icon { font-size: 16px; margin-bottom: 4px; }
+        .stat-card .value { font-size: 16px; font-weight: 600; }
+        .stat-card .label { font-size: 9px; color: var(--text-muted); }
+
+        /* ─── RIGHT PANEL ─── */
+        .right-panel {
+            flex: 1;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.4;
+            background-image: 
+                linear-gradient(var(--stroke-weak) 1px, transparent 1px),
+                linear-gradient(90deg, var(--stroke-weak) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .panel-content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .panel-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 6px;
+        }
+
+        /* Toggle Button for Type List */
+        .toggle-list-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            background: var(--bg-base);
+            border: 1px solid var(--stroke-weak);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .toggle-list-btn:hover {
+            background: #eaeaea;
+            transform: scale(1.05);
+        }
+
+        .toggle-list-btn.active {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+
+        /* Subway Graph */
+        .subway-canvas {
+            flex: 1;
+            position: relative;
+        }
+
+        .subway-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Route Path Animations */
+        @keyframes dashFlow {
+            from { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: -40; }
+        }
+
+        @keyframes loopPulse {
+            0%, 100% { stroke-dashoffset: 0; }
+            50% { stroke-dashoffset: 60; }
+        }
+
+        .route-path {
+            transition: stroke 0.3s, stroke-dasharray 0.3s;
+        }
+
+        .route-path.alternate {
+            animation: dashFlow 1s linear infinite;
+        }
+
+        .route-path.loop {
+            animation: loopPulse 2s ease-in-out infinite;
+        }
+
+        /* Dynamic Stations */
+        .dynamic-station {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+        }
+
+        .station-node {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-card);
+            border-radius: 40px;
+            border: 3px solid var(--stroke-weak);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .station-node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .station-node.active {
+            border-width: 4px;
+        }
+
+        .station-node .icon { font-size: 20px; }
+        .station-node .value { font-size: 14px; font-weight: 700; }
+        .station-node .label { font-size: 9px; color: var(--text-muted); }
+
+        .station-pulse {
+            position: absolute;
+            inset: -8px;
+            border: 2px solid;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Decision Node (Center) */
+        .decision-node {
+            position: absolute;
+            left: 50%;
+            top: 45%;
+            transform: translate(-50%, -50%);
+            width: 130px;
+            height: 130px;
+            background: var(--bg-card);
+            border-radius: 65px;
+            border: 5px solid var(--blue);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .decision-node:hover {
+            transform: translate(-50%, -50%) scale(1.08);
+        }
+
+        .decision-node .title {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .decision-node .current {
+            font-size: 28px;
+            font-weight: 700;
+            transition: color 0.3s;
+        }
+
+        .decision-node .divider {
+            width: 50px;
+            height: 2px;
+            background: var(--stroke-weak);
+            margin: 4px 0;
+        }
+
+        .decision-node .target {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .pulse-ring {
+            position: absolute;
+            inset: -12px;
+            border: 3px solid;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            pointer-events: none;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            background: var(--bg-base);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .progress-info {
+            flex: 1;
+        }
+
+        .progress-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .progress-track {
+            height: 8px;
+            background: var(--stroke-weak);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--green));
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .progress-stat {
+            text-align: center;
+        }
+
+        .progress-stat .value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .progress-stat .label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Type List — Collapsible */
+        .type-list {
+            position: absolute;
+            right: 24px;
+            top: 80px;
+            bottom: 100px;
+            width: 220px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--stroke-weak);
+            overflow: hidden;
+            z-index: 20;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .type-list.collapsed {
+            width: 0;
+            opacity: 0;
+            pointer-events: none;
+            right: -20px;
+        }
+
+        .type-list-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--stroke-weak);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .type-list-content {
+            overflow-y: auto;
+            max-height: calc(100% - 45px);
+        }
+
+        .type-item {
+            padding: 10px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.15s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .type-item:hover {
+            background: var(--bg-base);
+        }
+
+        .type-item.active {
+            background: rgba(52, 152, 219, 0.1);
+            border-left-color: var(--blue);
+        }
+
+        .type-item .name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .type-item .policy {
+            font-size: 8px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .type-item .policy.normal { background: rgba(52, 152, 219, 0.2); color: var(--blue); }
+        .type-item .policy.alternate { background: rgba(232, 33, 39, 0.2); color: var(--red); }
+        .type-item .policy.loop { background: rgba(241, 196, 15, 0.2); color: #c9a90c; }
+
+        /* ═══════════════════════════════════════════════════════════════════════════════
+           BOTTOM DOCK — 6-Bucket Filter
+           ═══════════════════════════════════════════════════════════════════════════════ */
+        .dock {
+            height: 90px;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .dock-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dock-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            background: rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .dock-icon:hover {
+            background: rgba(255,255,255,0.15);
+            transform: scale(1.08);
+        }
+
+        .dock-car-svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .dock-car-svg .body { fill: #fff; }
+        .dock-car-svg .glass { fill: rgba(52, 152, 219, 0.6); }
+
+        .bucket-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .bucket-btn {
+            width: 100px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            background: rgba(255,255,255,0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .bucket-btn:hover {
+            background: rgba(255,255,255,0.12);
+        }
+
+        .bucket-btn.active {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .bucket-btn .icon { font-size: 18px; }
+        .bucket-btn .label {
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.5);
+            transition: color 0.2s;
+        }
+
+        .bucket-btn.active .label { color: white; }
+
+        .debug-pill {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.5);
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .debug-pill.alt {
+            background: rgba(232, 33, 39, 0.2);
+            color: var(--red);
+        }
+
+        .debug-pill.loop {
+            background: rgba(241, 196, 15, 0.2);
+            color: var(--yellow);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════════════
+           MODAL
+           ═══════════════════════════════════════════════════════════════════════════════ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            width: 380px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+
+        .modal-icon { font-size: 48px; margin-bottom: 16px; }
+        .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .modal-type { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+        .modal-value {
+            font-size: 64px;
+            font-weight: 200;
+            margin-bottom: 8px;
+            transition: color 0.3s;
+        }
+
+        .modal-target {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .modal-progress {
+            height: 8px;
+            background: var(--stroke-weak);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .modal-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--green));
+            border-radius: 4px;
+            transition: width 1.5s ease;
+        }
+
+        .modal-btn {
+            background: var(--text-primary);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="top-section">
+            <div class="logo">A</div>
+            <div class="title-section">
+                <h1>AUTUS Kernel V3</h1>
+                <p>90-Type Router • <span id="typeCount">90</span> types loaded</p>
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <span>🔍</span>
+            <input type="text" placeholder="Search 90 types..." id="searchInput">
+        </div>
+
+        <div class="top-section">
+            <div class="policy-badge" id="policyBadge">
+                <div class="dot"></div>
+                <span id="policyText">NORMAL</span>
+            </div>
+            <div class="clock" id="clock">10:21:45</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- LEFT PANEL -->
+        <div class="left-panel">
+            <div class="speed-display">
+                <div class="speed-value" id="velocityValue">74</div>
+                <div class="speed-unit">MPH</div>
+            </div>
+
+            <div class="entropy-gauge">
+                <span class="label">⚡ Entropy</span>
+                <div class="entropy-bar">
+                    <div class="entropy-fill" id="entropyFill" style="width: 32%; background: var(--green);"></div>
+                </div>
+                <span class="entropy-value" id="entropyValue">0.32</span>
+            </div>
+
+            <div class="car-container">
+                <!-- Tesla Model S Top View SVG -->
+                <svg class="car-svg" viewBox="0 0 200 350" fill="none">
+                    <!-- Main Body -->
+                    <path class="body" d="M100 15 C145 15 165 35 170 75 L175 140 L180 260 C180 310 160 335 100 335 C40 335 20 310 20 260 L25 140 L30 75 C35 35 55 15 100 15Z"/>
+                    
+                    <!-- Roof/Glass Area -->
+                    <path class="glass" d="M100 50 C135 50 150 65 155 95 L158 155 C158 190 145 215 100 215 C55 215 42 190 42 155 L45 95 C50 65 65 50 100 50Z"/>
+                    
+                    <!-- Windshield -->
+                    <path class="glass" d="M100 55 C130 55 143 68 147 92 L148 125 C148 145 138 158 100 158 C62 158 52 145 52 125 L53 92 C57 68 70 55 100 55Z" opacity="0.7"/>
+                    
+                    <!-- Headlights -->
+                    <ellipse class="light" id="leftHeadlight" cx="50" cy="45" rx="20" ry="10" fill="#1abc9c"/>
+                    <ellipse class="light" id="rightHeadlight" cx="150" cy="45" rx="20" ry="10" fill="#1abc9c"/>
+                    
+                    <!-- DRL Lines -->
+                    <path d="M35 48 Q50 55 65 48" stroke="#1abc9c" stroke-width="2" fill="none"/>
+                    <path d="M135 48 Q150 55 165 48" stroke="#1abc9c" stroke-width="2" fill="none"/>
+                    
+                    <!-- Tail lights -->
+                    <rect class="light" id="leftTaillight" x="35" y="315" width="30" height="8" rx="4" fill="#E82127"/>
+                    <rect class="light" id="rightTaillight" x="135" y="315" width="30" height="8" rx="4" fill="#E82127"/>
+                    
+                    <!-- Light bar connecting tail lights -->
+                    <rect x="65" y="318" width="70" height="2" rx="1" fill="#E82127" opacity="0.5"/>
+                    
+                    <!-- Wheels -->
+                    <circle class="wheel" cx="50" cy="90" r="25"/>
+                    <circle class="wheel-inner" cx="50" cy="90" r="18"/>
+                    <circle cx="50" cy="90" r="8" fill="#555"/>
+                    
+                    <circle class="wheel" cx="150" cy="90" r="25"/>
+                    <circle class="wheel-inner" cx="150" cy="90" r="18"/>
+                    <circle cx="150" cy="90" r="8" fill="#555"/>
+                    
+                    <circle class="wheel" cx="50" cy="270" r="25"/>
+                    <circle class="wheel-inner" cx="50" cy="270" r="18"/>
+                    <circle cx="50" cy="270" r="8" fill="#555"/>
+                    
+                    <circle class="wheel" cx="150" cy="270" r="25"/>
+                    <circle class="wheel-inner" cx="150" cy="270" r="18"/>
+                    <circle cx="150" cy="270" r="8" fill="#555"/>
+                    
+                    <!-- Door handles -->
+                    <rect x="25" y="130" width="8" height="3" rx="1.5" fill="#444"/>
+                    <rect x="25" y="180" width="8" height="3" rx="1.5" fill="#444"/>
+                    <rect x="167" y="130" width="8" height="3" rx="1.5" fill="#444"/>
+                    <rect x="167" y="180" width="8" height="3" rx="1.5" fill="#444"/>
+                    
+                    <!-- Side mirrors -->
+                    <ellipse cx="22" cy="70" rx="8" ry="5" fill="#2c3e50"/>
+                    <ellipse cx="178" cy="70" rx="8" ry="5" fill="#2c3e50"/>
+                    
+                    <!-- Center line (hood) -->
+                    <line x1="100" y1="25" x2="100" y2="50" stroke="#3a4a5a" stroke-width="1"/>
+                    
+                    <!-- Tesla T Logo hint -->
+                    <path d="M95 30 L100 25 L105 30 L100 45 Z" fill="#3a4a5a" opacity="0.5"/>
+                </svg>
+
+                <div class="type-badge" id="typeBadge" style="background: var(--blue);">decision.approve</div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card" onclick="openModal(state.currentType)">
+                    <div class="icon">📊</div>
+                    <div class="value" id="currentStat">1842</div>
+                    <div class="label">Current</div>
+                </div>
+                <div class="stat-card" onclick="openModal(state.currentType)">
+                    <div class="icon">🎯</div>
+                    <div class="value" id="targetStat">2500</div>
+                    <div class="label">Target</div>
+                </div>
+                <div class="stat-card" onclick="openModal(state.currentType)">
+                    <div class="icon">📈</div>
+                    <div class="value" id="progressStat">74%</div>
+                    <div class="label">Progress</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel">
+            <div class="grid-bg"></div>
+            <div class="panel-content">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-title">🚇 90-Type Router Graph</div>
+                        <div class="panel-subtitle">EdgePolicy: <span id="edgePolicy">NORMAL</span> • Bucket: <span id="currentBucket">DECISION</span></div>
+                    </div>
+                    <div class="header-controls">
+                        <div class="legend">
+                            <div class="legend-item"><div class="legend-dot" style="background: var(--blue);"></div>NORMAL</div>
+                            <div class="legend-item"><div class="legend-dot" style="background: var(--red);"></div>ALTERNATE</div>
+                            <div class="legend-item"><div class="legend-dot" style="background: var(--yellow);"></div>LOOP</div>
+                        </div>
+                        <div class="toggle-list-btn" id="toggleListBtn" onclick="toggleTypeList()" title="Toggle Type List">☰</div>
+                    </div>
+                </div>
+
+                <div class="subway-canvas" id="subwayCanvas">
+                    <svg class="subway-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#3498db"/>
+                                <stop offset="100%" style="stop-color:#27ae60"/>
+                            </linearGradient>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- Background path -->
+                        <path d="M60 350 Q180 350 220 260 Q260 170 400 170 Q540 170 580 80 Q620 30 740 30" 
+                              stroke="#e8e8e8" stroke-width="10" fill="none" stroke-linecap="round"/>
+                        <!-- Active path -->
+                        <path id="routePath" class="route-path" 
+                              d="M60 350 Q180 350 220 260 Q260 170 400 170 Q540 170 580 80 Q620 30 740 30" 
+                              stroke="var(--blue)" stroke-width="8" fill="none" stroke-linecap="round"
+                              stroke-dasharray="0" filter="url(#glow)"/>
+                    </svg>
+
+                    <!-- Dynamic Stations Container -->
+                    <div id="stationsContainer"></div>
+
+                    <!-- Decision Node (Center) -->
+                    <div class="decision-node" id="decisionNode">
+                        <div class="pulse-ring" id="pulseRing" style="border-color: var(--blue);"></div>
+                        <div class="title" id="nodeTitle">Decision ⦿</div>
+                        <div class="current" id="nodeValue">1842</div>
+                        <div class="divider"></div>
+                        <div class="target" id="nodeTarget">2500</div>
+                    </div>
+
+                    <!-- Type List (Collapsible) -->
+                    <div class="type-list" id="typeList">
+                        <div class="type-list-header">
+                            <span>TYPES (<span id="filteredCount">90</span>)</span>
+                            <span style="cursor: pointer;" onclick="toggleTypeList()">✕</span>
+                        </div>
+                        <div class="type-list-content" id="typeListContent"></div>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-info">
+                        <div class="progress-title">Pipeline Progress</div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="pipelineProgress" style="width: 74%;"></div>
+                        </div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="value" id="velocityStat" style="color: var(--blue);">74</div>
+                        <div class="label">Velocity</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="value" id="typesCountStat" style="color: var(--purple);">90</div>
+                        <div class="label">Types</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM DOCK -->
+    <div class="dock">
+        <div class="dock-section">
+            <div class="dock-icon" onclick="filterBucket('all')" title="All Types">
+                <svg class="dock-car-svg" viewBox="0 0 200 350" fill="none">
+                    <path class="body" d="M100 15 C145 15 165 35 170 75 L175 140 L180 260 C180 310 160 335 100 335 C40 335 20 310 20 260 L25 140 L30 75 C35 35 55 15 100 15Z"/>
+                    <path class="glass" d="M100 50 C135 50 150 65 155 95 L158 155 C158 190 145 215 100 215 C55 215 42 190 42 155 L45 95 C50 65 65 50 100 50Z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="bucket-buttons" id="bucketButtons">
+            <div class="bucket-btn" data-bucket="state" onclick="filterBucket('state')">
+                <span class="icon">📊</span>
+                <span class="label">STATE</span>
+            </div>
+            <div class="bucket-btn" data-bucket="signal" onclick="filterBucket('signal')">
+                <span class="icon">📡</span>
+                <span class="label">SIGNAL</span>
+            </div>
+            <div class="bucket-btn active" data-bucket="decision" onclick="filterBucket('decision')">
+                <span class="icon">⦿</span>
+                <span class="label">DECISION</span>
+            </div>
+            <div class="bucket-btn" data-bucket="action" onclick="filterBucket('action')">
+                <span class="icon">⚡</span>
+                <span class="label">ACTION</span>
+            </div>
+            <div class="bucket-btn" data-bucket="constraint" onclick="filterBucket('constraint')">
+                <span class="icon">🔒</span>
+                <span class="label">CONSTRAINT</span>
+            </div>
+            <div class="bucket-btn" data-bucket="record" onclick="filterBucket('record')">
+                <span class="icon">📝</span>
+                <span class="label">RECORD</span>
+            </div>
+        </div>
+
+        <div class="dock-section">
+            <div class="debug-pill" id="debugPill">POLICY: NORMAL</div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal" onclick="if(event.target === this) closeModal()">
+        <div class="modal">
+            <div class="modal-icon" id="modalIcon">⦿</div>
+            <div class="modal-title" id="modalTitle">decision.approve</div>
+            <div class="modal-type" id="modalType">Bucket: DECISION • Policy: NORMAL</div>
+            <div class="modal-value" id="modalValue" style="color: var(--blue);">0</div>
+            <div class="modal-target" id="modalTarget">Target: 2500</div>
+            <div class="modal-progress">
+                <div class="modal-progress-fill" id="modalProgress" style="width: 0%;"></div>
+            </div>
+            <button class="modal-btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // 90-TYPE DICTIONARY (Single Source of Truth)
+        // ═══════════════════════════════════════════════════════════════════════════════
+
+        const AUTUS_90_TYPES = {
+            // STATE (15)
+            "state.initial": { policy: "NORMAL", bucket: "state", current: 100, target: 100, icon: "🏁" },
+            "state.active": { policy: "NORMAL", bucket: "state", current: 842, target: 1000, icon: "▶️" },
+            "state.pending": { policy: "ALTERNATE", bucket: "state", current: 156, target: 500, icon: "⏳" },
+            "state.paused": { policy: "LOOP", bucket: "state", current: 45, target: 200, icon: "⏸" },
+            "state.completed": { policy: "NORMAL", bucket: "state", current: 1200, target: 1200, icon: "✅" },
+            "state.failed": { policy: "ALTERNATE", bucket: "state", current: 23, target: 0, icon: "❌" },
+            "state.cancelled": { policy: "ALTERNATE", bucket: "state", current: 8, target: 0, icon: "🚫" },
+            "state.archived": { policy: "NORMAL", bucket: "state", current: 3400, target: 5000, icon: "📦" },
+            "state.draft": { policy: "LOOP", bucket: "state", current: 67, target: 100, icon: "📝" },
+            "state.review": { policy: "ALTERNATE", bucket: "state", current: 234, target: 300, icon: "👁" },
+            "state.approved": { policy: "NORMAL", bucket: "state", current: 890, target: 1000, icon: "👍" },
+            "state.rejected": { policy: "ALTERNATE", bucket: "state", current: 12, target: 0, icon: "👎" },
+            "state.escalated": { policy: "ALTERNATE", bucket: "state", current: 34, target: 50, icon: "⬆️" },
+            "state.delegated": { policy: "NORMAL", bucket: "state", current: 78, target: 100, icon: "➡️" },
+            "state.locked": { policy: "LOOP", bucket: "state", current: 5, target: 10, icon: "🔐" },
+
+            // SIGNAL (15)
+            "signal.trigger": { policy: "ALTERNATE", bucket: "signal", current: 456, target: 800, icon: "🎯" },
+            "signal.alert": { policy: "ALTERNATE", bucket: "signal", current: 89, target: 100, icon: "🚨" },
+            "signal.warning": { policy: "ALTERNATE", bucket: "signal", current: 234, target: 300, icon: "⚠️" },
+            "signal.info": { policy: "NORMAL", bucket: "signal", current: 1200, target: 2000, icon: "ℹ️" },
+            "signal.error": { policy: "ALTERNATE", bucket: "signal", current: 45, target: 0, icon: "🔴" },
+            "signal.success": { policy: "NORMAL", bucket: "signal", current: 678, target: 1000, icon: "🟢" },
+            "signal.timeout": { policy: "ALTERNATE", bucket: "signal", current: 12, target: 0, icon: "⏰" },
+            "signal.retry": { policy: "LOOP", bucket: "signal", current: 34, target: 50, icon: "🔄" },
+            "signal.callback": { policy: "NORMAL", bucket: "signal", current: 567, target: 800, icon: "📞" },
+            "signal.webhook": { policy: "NORMAL", bucket: "signal", current: 234, target: 500, icon: "🪝" },
+            "signal.event": { policy: "NORMAL", bucket: "signal", current: 890, target: 1500, icon: "📢" },
+            "signal.notification": { policy: "NORMAL", bucket: "signal", current: 1456, target: 2000, icon: "🔔" },
+            "signal.broadcast": { policy: "NORMAL", bucket: "signal", current: 345, target: 500, icon: "📻" },
+            "signal.pulse": { policy: "LOOP", bucket: "signal", current: 78, target: 100, icon: "💓" },
+            "signal.heartbeat": { policy: "NORMAL", bucket: "signal", current: 9999, target: 10000, icon: "❤️" },
+
+            // DECISION (15)
+            "decision.approve": { policy: "NORMAL", bucket: "decision", current: 1842, target: 2500, icon: "✓" },
+            "decision.reject": { policy: "ALTERNATE", bucket: "decision", current: 156, target: 200, icon: "✗" },
+            "decision.defer": { policy: "LOOP", bucket: "decision", current: 89, target: 150, icon: "⏰" },
+            "decision.escalate": { policy: "ALTERNATE", bucket: "decision", current: 45, target: 100, icon: "📈" },
+            "decision.delegate": { policy: "NORMAL", bucket: "decision", current: 234, target: 400, icon: "👥" },
+            "decision.override": { policy: "ALTERNATE", bucket: "decision", current: 12, target: 50, icon: "⚡" },
+            "decision.confirm": { policy: "NORMAL", bucket: "decision", current: 567, target: 800, icon: "🔒" },
+            "decision.cancel": { policy: "ALTERNATE", bucket: "decision", current: 34, target: 100, icon: "❌" },
+            "decision.retry": { policy: "LOOP", bucket: "decision", current: 78, target: 200, icon: "🔁" },
+            "decision.split": { policy: "ALTERNATE", bucket: "decision", current: 23, target: 50, icon: "✂️" },
+            "decision.merge": { policy: "NORMAL", bucket: "decision", current: 45, target: 100, icon: "🔀" },
+            "decision.route": { policy: "NORMAL", bucket: "decision", current: 890, target: 1200, icon: "🛤" },
+            "decision.filter": { policy: "NORMAL", bucket: "decision", current: 456, target: 600, icon: "🔍" },
+            "decision.transform": { policy: "NORMAL", bucket: "decision", current: 234, target: 500, icon: "⚙️" },
+            "decision.validate": { policy: "ALTERNATE", bucket: "decision", current: 678, target: 800, icon: "✅" },
+
+            // ACTION (15)
+            "action.create": { policy: "NORMAL", bucket: "action", current: 2345, target: 3000, icon: "➕" },
+            "action.read": { policy: "NORMAL", bucket: "action", current: 8900, target: 10000, icon: "👁" },
+            "action.update": { policy: "LOOP", bucket: "action", current: 1234, target: 2000, icon: "✏️" },
+            "action.delete": { policy: "ALTERNATE", bucket: "action", current: 156, target: 500, icon: "🗑" },
+            "action.execute": { policy: "NORMAL", bucket: "action", current: 567, target: 800, icon: "▶️" },
+            "action.schedule": { policy: "LOOP", bucket: "action", current: 234, target: 400, icon: "📅" },
+            "action.queue": { policy: "LOOP", bucket: "action", current: 456, target: 600, icon: "📋" },
+            "action.process": { policy: "NORMAL", bucket: "action", current: 890, target: 1200, icon: "⚙️" },
+            "action.send": { policy: "NORMAL", bucket: "action", current: 3456, target: 5000, icon: "📤" },
+            "action.receive": { policy: "NORMAL", bucket: "action", current: 3400, target: 5000, icon: "📥" },
+            "action.sync": { policy: "LOOP", bucket: "action", current: 678, target: 1000, icon: "🔄" },
+            "action.async": { policy: "NORMAL", bucket: "action", current: 1234, target: 2000, icon: "⏳" },
+            "action.batch": { policy: "LOOP", bucket: "action", current: 89, target: 200, icon: "📦" },
+            "action.stream": { policy: "NORMAL", bucket: "action", current: 456, target: 800, icon: "🌊" },
+            "action.poll": { policy: "LOOP", bucket: "action", current: 234, target: 500, icon: "🔂" },
+
+            // CONSTRAINT (15)
+            "constraint.policy": { policy: "ALTERNATE", bucket: "constraint", current: 45, target: 50, icon: "📜" },
+            "constraint.rule": { policy: "ALTERNATE", bucket: "constraint", current: 89, target: 100, icon: "📏" },
+            "constraint.limit": { policy: "ALTERNATE", bucket: "constraint", current: 234, target: 300, icon: "🚧" },
+            "constraint.quota": { policy: "ALTERNATE", bucket: "constraint", current: 78, target: 100, icon: "📊" },
+            "constraint.threshold": { policy: "ALTERNATE", bucket: "constraint", current: 156, target: 200, icon: "📉" },
+            "constraint.boundary": { policy: "ALTERNATE", bucket: "constraint", current: 34, target: 50, icon: "🔲" },
+            "constraint.filter": { policy: "ALTERNATE", bucket: "constraint", current: 567, target: 600, icon: "🔍" },
+            "constraint.validation": { policy: "ALTERNATE", bucket: "constraint", current: 890, target: 1000, icon: "✔️" },
+            "constraint.authorization": { policy: "ALTERNATE", bucket: "constraint", current: 234, target: 300, icon: "🔑" },
+            "constraint.authentication": { policy: "ALTERNATE", bucket: "constraint", current: 456, target: 500, icon: "🔐" },
+            "constraint.encryption": { policy: "ALTERNATE", bucket: "constraint", current: 678, target: 800, icon: "🔒" },
+            "constraint.compliance": { policy: "ALTERNATE", bucket: "constraint", current: 89, target: 100, icon: "📋" },
+            "constraint.audit": { policy: "ALTERNATE", bucket: "constraint", current: 1234, target: 1500, icon: "🔎" },
+            "constraint.governance": { policy: "ALTERNATE", bucket: "constraint", current: 45, target: 100, icon: "🏛" },
+            "constraint.sla": { policy: "ALTERNATE", bucket: "constraint", current: 98, target: 100, icon: "📄" },
+
+            // RECORD (15)
+            "record.log": { policy: "NORMAL", bucket: "record", current: 45000, target: 50000, icon: "📜" },
+            "record.audit": { policy: "NORMAL", bucket: "record", current: 12345, target: 15000, icon: "🔎" },
+            "record.trace": { policy: "NORMAL", bucket: "record", current: 8900, target: 10000, icon: "🔬" },
+            "record.metric": { policy: "NORMAL", bucket: "record", current: 23456, target: 30000, icon: "📊" },
+            "record.event": { policy: "NORMAL", bucket: "record", current: 5678, target: 8000, icon: "📢" },
+            "record.snapshot": { policy: "LOOP", bucket: "record", current: 234, target: 500, icon: "📸" },
+            "record.backup": { policy: "LOOP", bucket: "record", current: 89, target: 100, icon: "💾" },
+            "record.archive": { policy: "NORMAL", bucket: "record", current: 3456, target: 5000, icon: "🗄" },
+            "record.checkpoint": { policy: "LOOP", bucket: "record", current: 456, target: 600, icon: "🏁" },
+            "record.replay": { policy: "LOOP", bucket: "record", current: 78, target: 200, icon: "⏪" },
+            "record.history": { policy: "NORMAL", bucket: "record", current: 6789, target: 10000, icon: "📚" },
+            "record.timeline": { policy: "NORMAL", bucket: "record", current: 1234, target: 2000, icon: "📅" },
+            "record.ledger": { policy: "NORMAL", bucket: "record", current: 890, target: 1000, icon: "📒" },
+            "record.journal": { policy: "NORMAL", bucket: "record", current: 567, target: 800, icon: "📓" },
+            "record.manifest": { policy: "NORMAL", bucket: "record", current: 234, target: 500, icon: "📋" }
+        };
+
+        const POLICY_COLORS = {
+            NORMAL: '#3498db',
+            ALTERNATE: '#E82127',
+            LOOP: '#f1c40f',
+            MIXED: '#9b59b6'
+        };
+
+        const BUCKET_ICONS = {
+            state: '📊', signal: '📡', decision: '⦿',
+            action: '⚡', constraint: '🔒', record: '📝'
+        };
+
+        // Station positions along the path (percentage)
+        const STATION_POSITIONS = [
+            { x: 8, y: 88, label: 'Start' },
+            { x: 25, y: 65, label: 'Process' },
+            { x: 50, y: 45, label: 'Decision' },
+            { x: 72, y: 22, label: 'Execute' },
+            { x: 92, y: 8, label: 'Deliver' }
+        ];
+
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════════════════════════════════════════
+
+        let state = {
+            velocity: 74,
+            entropy: 0.32,
+            currentType: 'decision.approve',
+            currentBucket: 'decision',
+            filteredTypes: Object.keys(AUTUS_90_TYPES),
+            typeListVisible: true
+        };
+
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // DYNAMIC STATION RENDERING
+        // ═══════════════════════════════════════════════════════════════════════════════
+
+        function renderDynamicStations() {
+            const container = document.getElementById('stationsContainer');
+            const filteredTypes = state.filteredTypes.slice(0, 5); // Max 5 stations
+            
+            container.innerHTML = '';
+            
+            filteredTypes.forEach((typeSlug, index) => {
+                if (index === 2) return; // Skip center (Decision node)
+                
+                const typeData = AUTUS_90_TYPES[typeSlug];
+                const pos = STATION_POSITIONS[index];
+                const color = POLICY_COLORS[typeData.policy];
+                const isActive = typeSlug === state.currentType;
+                
+                const station = document.createElement('div');
+                station.className = 'dynamic-station';
+                station.style.left = `${pos.x}%`;
+                station.style.top = `${pos.y}%`;
+                
+                station.innerHTML = `
+                    <div class="station-node ${isActive ? 'active' : ''}" 
+                         style="border-color: ${color};"
+                         onclick="selectType('${typeSlug}')">
+                        ${isActive ? `<div class="station-pulse" style="border-color: ${color};"></div>` : ''}
+                        <div class="icon">${typeData.icon || BUCKET_ICONS[typeData.bucket]}</div>
+                        <div class="value" style="color: ${color};">${typeData.current.toLocaleString()}</div>
+                        <div class="label">${typeSlug.split('.')[1]}</div>
+                    </div>
+                `;
+                
+                container.appendChild(station);
+            });
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // TYPE LIST TOGGLE
+        // ═══════════════════════════════════════════════════════════════════════════════
+
+        function toggleTypeList() {
+            state.typeListVisible = !state.typeListVisible;
+            const typeList = document.getElementById('typeList');
+            const toggleBtn = document.getElementById('toggleListBtn');
+            
+            typeList.classList.toggle('collapsed', !state.typeListVisible);
+            toggleBtn.classList.toggle('active', state.typeListVisible);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // UI UPDATE FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════════════════════
+
+        function selectType(typeSlug) {
+            if (!AUTUS_90_TYPES[typeSlug]) return;
+
+            const typeData = AUTUS_90_TYPES[typeSlug];
+            state.currentType = typeSlug;
+            state.currentBucket = typeData.bucket;
+
+            const color = POLICY_COLORS[typeData.policy];
+
+            // Update UI
+            document.getElementById('typeBadge').textContent = typeSlug;
+            document.getElementById('typeBadge').style.background = color;
+
+            document.getElementById('currentStat').textContent = typeData.current.toLocaleString();
+            document.getElementById('targetStat').textContent = typeData.target.toLocaleString();
+            const progress = typeData.target > 0 ? Math.round(typeData.current / typeData.target * 100) : 100;
+            document.getElementById('progressStat').textContent = progress + '%';
+
+            // Update Decision Node
+            document.getElementById('nodeTitle').textContent = typeSlug.split('.')[1] + ' ⦿';
+            document.getElementById('nodeValue').textContent = typeData.current.toLocaleString();
+            document.getElementById('nodeValue').style.color = color;
+            document.getElementById('nodeTarget').textContent = typeData.target.toLocaleString();
+
+            document.getElementById('decisionNode').style.borderColor = color;
+            document.getElementById('pulseRing').style.borderColor = color;
+
+            document.getElementById('edgePolicy').textContent = typeData.policy;
+            document.getElementById('currentBucket').textContent = typeData.bucket.toUpperCase();
+
+            document.getElementById('policyBadge').style.background = color + '20';
+            document.getElementById('policyBadge').querySelector('.dot').style.background = color;
+            document.getElementById('policyText').textContent = typeData.policy;
+            document.getElementById('policyText').style.color = color;
+
+            // Update route path with animation
+            const routePath = document.getElementById('routePath');
+            routePath.style.stroke = color;
+            routePath.classList.remove('alternate', 'loop');
+            
+            if (typeData.policy === 'ALTERNATE') {
+                routePath.style.strokeDasharray = '20,15';
+                routePath.classList.add('alternate');
+            } else if (typeData.policy === 'LOOP') {
+                routePath.style.strokeDasharray = '30,20';
+                routePath.classList.add('loop');
+            } else {
+                routePath.style.strokeDasharray = '0';
+            }
+
+            // Update debug pill
+            const debugPill = document.getElementById('debugPill');
+            debugPill.textContent = 'POLICY: ' + typeData.policy;
+            debugPill.classList.remove('alt', 'loop');
+            if (typeData.policy === 'ALTERNATE') debugPill.classList.add('alt');
+            if (typeData.policy === 'LOOP') debugPill.classList.add('loop');
+
+            // Update progress
+            document.getElementById('pipelineProgress').style.width = progress + '%';
+
+            // Update type list active state
+            document.querySelectorAll('.type-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.type === typeSlug);
+            });
+
+            // Update car headlight color based on policy
+            document.getElementById('leftHeadlight').setAttribute('fill', color);
+            document.getElementById('rightHeadlight').setAttribute('fill', color);
+
+            // Render dynamic stations
+            renderDynamicStations();
+
+            console.log(`[KERNEL] Selected: ${typeSlug} → Policy: ${typeData.policy}`);
+        }
+
+        function filterBucket(bucket) {
+            state.currentBucket = bucket;
+
+            // Update filtered types
+            if (bucket === 'all') {
+                state.filteredTypes = Object.keys(AUTUS_90_TYPES);
+            } else {
+                state.filteredTypes = Object.keys(AUTUS_90_TYPES).filter(
+                    k => AUTUS_90_TYPES[k].bucket === bucket
+                );
+            }
+
+            // Update bucket buttons
+            document.querySelectorAll('.bucket-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.bucket === bucket);
+                const bucketName = btn.dataset.bucket;
+                if (bucketName && btn.classList.contains('active')) {
+                    const firstType = state.filteredTypes[0];
+                    if (firstType) {
+                        btn.style.borderColor = POLICY_COLORS[AUTUS_90_TYPES[firstType].policy];
+                    }
+                } else {
+                    btn.style.borderColor = 'transparent';
+                }
+            });
+
+            // Update type list
+            renderTypeList();
+            document.getElementById('filteredCount').textContent = state.filteredTypes.length;
+            document.getElementById('typesCountStat').textContent = state.filteredTypes.length;
+
+            // Select first type in filtered list
+            if (state.filteredTypes.length > 0) {
+                selectType(state.filteredTypes[0]);
+            }
+
+            console.log(`[KERNEL] Filtered: ${bucket} (${state.filteredTypes.length} types)`);
+        }
+
+        function renderTypeList() {
+            const container = document.getElementById('typeListContent');
+            container.innerHTML = state.filteredTypes.map(slug => {
+                const data = AUTUS_90_TYPES[slug];
+                return `
+                    <div class="type-item ${slug === state.currentType ? 'active' : ''}" 
+                         data-type="${slug}" onclick="selectType('${slug}')">
+                        <span class="name">${data.icon || ''} ${slug}</span>
+                        <span class="policy ${data.policy.toLowerCase()}">${data.policy}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function searchTypes(query) {
+            query = query.toLowerCase().trim();
+            if (!query) {
+                state.filteredTypes = Object.keys(AUTUS_90_TYPES);
+            } else {
+                state.filteredTypes = Object.keys(AUTUS_90_TYPES).filter(k => k.includes(query));
+            }
+            renderTypeList();
+            document.getElementById('filteredCount').textContent = state.filteredTypes.length;
+            document.getElementById('typesCountStat').textContent = state.filteredTypes.length;
+            renderDynamicStations();
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // MODAL
+        // ═══════════════════════════════════════════════════════════════════════════════
+
+        function openModal(typeSlug) {
+            const data = AUTUS_90_TYPES[typeSlug];
+            if (!data) return;
+
+            const color = POLICY_COLORS[data.policy];
+
+            document.getElementById('modalIcon').textContent = data.icon || BUCKET_ICONS[data.bucket];
+            document.getElementById('modalTitle').textContent = typeSlug;
+            document.getElementById('modalType').textContent = `Bucket: ${data.bucket.toUpperCase()} • Policy: ${data.policy}`;
+            document.getElementById('modalValue').textContent = '0';
+            document.getElementById('modalValue').style.color = color;
+            document.getElementById('modalTarget').textContent = `Target: ${data.target.toLocaleString()}`;
+            document.getElementById('modalProgress').style.width = '0%';
+
+            document.getElementById('modal').classList.add('show');
+
+            // Count-up animation
+            let count = 0;
+            const duration = 1500;
+            const increment = data.current / (duration / 16);
+            const counter = setInterval(() => {
+                count = Math.min(count + increment, data.current);
+                document.getElementById('modalValue').textContent = Math.round(count).toLocaleString();
+                const pct = data.target > 0 ? (count / data.target * 100) : 100;
+                document.getElementById('modalProgress').style.width = Math.min(pct, 100) + '%';
+                if (count >= data.current) clearInterval(counter);
+            }, 16);
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // SIMULATION
+        // ═══════════════════════════════════════════════════════════════════════════════
+
+        function simulate() {
+            // Velocity
+            state.velocity = Math.max(0, Math.min(120, state.velocity + (Math.random() - 0.4) * 4));
+            document.getElementById('velocityValue').textContent = Math.round(state.velocity);
+            document.getElementById('velocityStat').textContent = Math.round(state.velocity);
+
+            // Entropy
+            state.entropy = Math.max(0, Math.min(1, state.entropy + (Math.random() - 0.5) * 0.05));
+            document.getElementById('entropyValue').textContent = state.entropy.toFixed(2);
+            document.getElementById('entropyFill').style.width = (state.entropy * 100) + '%';
+            document.getElementById('entropyFill').style.background = 
+                state.entropy > 0.6 ? 'var(--red)' : state.entropy > 0.3 ? 'var(--orange)' : 'var(--green)';
+            document.getElementById('entropyValue').style.color = 
+                state.entropy > 0.6 ? 'var(--red)' : 'inherit';
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // CLOCK
+        // ═══════════════════════════════════════════════════════════════════════════════
+
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════════════════════════
+
+        document.getElementById('searchInput').addEventListener('input', (e) => searchTypes(e.target.value));
+        document.getElementById('decisionNode').addEventListener('click', () => openModal(state.currentType));
+
+        renderTypeList();
+        selectType('decision.approve');
+        renderDynamicStations();
+        updateClock();
+
+        setInterval(simulate, 300);
+        setInterval(updateClock, 1000);
+
+        console.log('🚗 AUTUS Kernel V3 — 90-Type Router Loaded');
+        console.log(`📊 ${Object.keys(AUTUS_90_TYPES).length} types across 6 buckets`);
+    </script>
+
+</body>
+</html>
+

@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS Layers - Exact</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: #2a2a3e;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .phone-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .label {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        
+        .phone {
+            width: 260px;
+            height: 540px;
+            background: linear-gradient(180deg, #0d0d12 0%, #0a0a0e 100%);
+            border-radius: 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.08);
+        }
+        
+        .status {
+            position: absolute;
+            top: 12px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 24px;
+            font-size: 12px;
+            color: #fff;
+            font-weight: 500;
+            z-index: 20;
+        }
+        
+        .header {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 18px;
+            z-index: 20;
+        }
+        
+        .header span {
+            color: #fff;
+            font-size: 15px;
+        }
+        
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 3px;
+        }
+        
+        .canvas-area {
+            position: absolute;
+            top: 70px;
+            left: 0;
+            right: 0;
+            bottom: 110px;
+        }
+        
+        .canvas-area canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px 20px 20px;
+            text-align: center;
+            z-index: 20;
+        }
+        
+        .layer-name {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        
+        .auto-btn {
+            background: linear-gradient(135deg, #00d4c8 0%, #00b8ae 100%);
+            color: #000;
+            border: none;
+            padding: 12px 50px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 212, 200, 0.4);
+        }
+        
+        .auto-btn.small {
+            padding: 8px 35px;
+            font-size: 12px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+            margin-top: 10px;
+        }
+        
+        .control-item {
+            text-align: center;
+            color: rgba(255,255,255,0.4);
+            font-size: 7px;
+            letter-spacing: 0.5px;
+        }
+        
+        .control-icon {
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+        
+        .home-bar {
+            width: 100px;
+            height: 4px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 2px;
+            margin: 12px auto 0;
+        }
+        
+        /* Overlays */
+        .info-top {
+            position: absolute;
+            top: 80px;
+            right: 15px;
+            text-align: right;
+            font-size: 9px;
+            color: rgba(255,255,255,0.5);
+            z-index: 20;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-top .sync {
+            color: #00d4c8;
+        }
+        
+        .sensors-box {
+            position: absolute;
+            bottom: 120px;
+            left: 15px;
+            z-index: 20;
+        }
+        
+        .sensors-title {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        
+        .sensors-list {
+            font-size: 9px;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.6;
+        }
+        
+        .chart {
+            display: flex;
+            gap: 5px;
+            align-items: flex-end;
+            margin-top: 10px;
+        }
+        
+        .bar {
+            width: 14px;
+            border-radius: 2px 2px 0 0;
+        }
+        
+        .hub-labels {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            z-index: 20;
+            pointer-events: none;
+        }
+        
+        .hub-label {
+            position: absolute;
+            font-size: 9px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 1px;
+        }
+        
+        .hub-label.left { left: 15px; }
+        .hub-label.right { right: 15px; }
+        
+        .feedback-label {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 1px;
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. Main Page -->
+    <div class="phone-wrap">
+        <div class="label">Main Page</div>
+        <div class="phone">
+            <div class="status"><span>9:41</span><span>📶 🔋</span></div>
+            <div class="header">
+                <span>☰</span>
+                <span class="header-title">AUTUS</span>
+                <span>🔍</span>
+            </div>
+            <div class="hub-labels">
+                <div class="hub-label left">Sensors</div>
+                <div class="hub-label right">Energy</div>
+            </div>
+            <div class="canvas-area" id="c1"></div>
+            <div class="bottom">
+                <div class="layer-name">Core Loop Layer</div>
+                <button class="auto-btn">AUTO</button>
+                <div class="controls">
+                    <div class="control-item">
+                        <div class="control-icon">🎚️</div>
+                        MANUAL<br>CONTROL
+                    </div>
+                    <div class="control-item">
+                        <div class="control-icon">🤖</div>
+                        AI<br>ASSIST
+                    </div>
+                </div>
+                <div class="home-bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 2. Sensory Input -->
+    <div class="phone-wrap">
+        <div class="label">Sensory Input Layer</div>
+        <div class="phone">
+            <div class="status"><span>9:41</span><span>📶 🔋</span></div>
+            <div class="header">
+                <span>‹</span>
+                <span class="header-title">Sensors</span>
+                <span>⋯</span>
+            </div>
+            <div class="canvas-area" id="c2"></div>
+            <div class="sensors-box">
+                <div class="sensors-title">Sensors</div>
+                <div class="sensors-list">
+                    ◉ Energy Confidence<br>
+                    ◉ Stress Pattern<br>
+                    ◉ Risk On Alert<br>
+                    ◉ Biometric Input
+                </div>
+                <div class="chart">
+                    <div class="bar" style="height:22px; background:#00d4c8;"></div>
+                    <div class="bar" style="height:35px; background:#ff6b35;"></div>
+                    <div class="bar" style="height:50px; background:#8b5cf6;"></div>
+                    <div class="bar" style="height:30px; background:#3b82f6;"></div>
+                    <div class="bar" style="height:40px; background:#00d4c8;"></div>
+                </div>
+            </div>
+            <div class="bottom">
+                <div class="home-bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 3. Physics Map -->
+    <div class="phone-wrap">
+        <div class="label">Physics Map Layer</div>
+        <div class="phone">
+            <div class="status"><span>9:41</span><span>📶 🔋</span></div>
+            <div class="header">
+                <span>‹</span>
+                <span class="header-title">AUTUS</span>
+                <span>⋯</span>
+            </div>
+            <div class="info-top">
+                Collective Data<br>
+                <span class="sync">◉ Synchronized</span>
+            </div>
+            <div class="canvas-area" id="c3"></div>
+            <div class="bottom">
+                <div class="layer-name">Real-Time Collection<br>Linked</div>
+                <button class="auto-btn small">AUTO</button>
+                <div class="home-bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 4. Core Loop -->
+    <div class="phone-wrap">
+        <div class="label">Core Loop Layer</div>
+        <div class="phone">
+            <div class="status"><span>9:41</span><span>📶 🔋</span></div>
+            <div class="header">
+                <span>‹</span>
+                <span class="header-title">AUTUS</span>
+                <span>🔍</span>
+            </div>
+            <div class="canvas-area" id="c4"></div>
+            <div class="bottom">
+                <div class="layer-name">Real-Time Collection<br>Linked</div>
+                <button class="auto-btn small">AUT</button>
+                <div class="home-bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 5. Feedback -->
+    <div class="phone-wrap">
+        <div class="label">Feedback Layer</div>
+        <div class="phone">
+            <div class="status"><span>9:41</span><span>📶 🔋</span></div>
+            <div class="header">
+                <span>‹</span>
+                <span class="header-title">AUTUS</span>
+                <span>🔍</span>
+            </div>
+            <div class="feedback-label">Feedback Layer</div>
+            <div class="canvas-area" id="c5"></div>
+            <div class="bottom">
+                <div class="layer-name">Real-Time Collection<br>Linked</div>
+                <button class="auto-btn small">AUT</button>
+                <div class="home-bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 6. Brainwave -->
+    <div class="phone-wrap">
+        <div class="label">Brainwave Integration Layer</div>
+        <div class="phone">
+            <div class="status"><span>9:41</span><span>📶 🔋</span></div>
+            <div class="header">
+                <span>‹</span>
+                <span class="header-title">AUTUS</span>
+                <span>🔍</span>
+            </div>
+            <div class="canvas-area" id="c6"></div>
+            <div class="bottom">
+                <div class="layer-name">Real-Time Collection<br>Linked</div>
+                <button class="auto-btn small">AUJT</button>
+                <div class="home-bar"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// Colors
+const CYAN = 0x00d4c8;
+const ORANGE = 0xff6b35;
+const PURPLE = 0x8b5cf6;
+const BLUE = 0x3b82f6;
+const YELLOW = 0xffc107;
+
+const renderers = [];
+const scenes = [];
+const cameras = [];
+const animationData = [];
+
+function createRenderer(container) {
+    const w = 260, h = 360;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+    
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, w/h, 0.1, 1000);
+    
+    renderers.push(renderer);
+    scenes.push(scene);
+    cameras.push(camera);
+    
+    return { renderer, scene, camera };
+}
+
+// ════════════════════════════════════════════════════════════════
+// 1. MAIN HUB - 원형 허브 + 노드들
+// ════════════════════════════════════════════════════════════════
+function createMainHub() {
+    const { scene, camera } = createRenderer(document.getElementById('c1'));
+    camera.position.z = 5;
+    
+    const data = { nodes: [], lines: [] };
+    
+    // 중앙 글로우
+    const centerGlow = new THREE.Mesh(
+        new THREE.CircleGeometry(0.4, 32),
+        new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.8 })
+    );
+    scene.add(centerGlow);
+    
+    const outerGlow = new THREE.Mesh(
+        new THREE.CircleGeometry(0.6, 32),
+        new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.3 })
+    );
+    scene.add(outerGlow);
+    
+    // 링들
+    const ringRadii = [0.9, 1.4, 1.9];
+    ringRadii.forEach((r, i) => {
+        const ring = new THREE.Mesh(
+            new THREE.RingGeometry(r - 0.015, r + 0.015, 64),
+            new THREE.MeshBasicMaterial({ 
+                color: CYAN, 
+                transparent: true, 
+                opacity: i === 1 ? 0.2 : 0.4,
+                side: THREE.DoubleSide
+            })
+        );
+        scene.add(ring);
+    });
+    
+    // 점선 링 (중간)
+    const dashCount = 40;
+    for (let i = 0; i < dashCount; i++) {
+        const angle = (i / dashCount) * Math.PI * 2;
+        if (i % 2 === 0) {
+            const dash = new THREE.Mesh(
+                new THREE.CircleGeometry(0.03, 8),
+                new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.3 })
+            );
+            dash.position.x = Math.cos(angle) * 1.4;
+            dash.position.y = Math.sin(angle) * 1.4;
+            scene.add(dash);
+        }
+    }
+    
+    // 노드들 (6개)
+    const nodeConfigs = [
+        { angle: -Math.PI/2, color: CYAN, size: 0.18 },
+        { angle: -Math.PI/6, color: ORANGE, size: 0.18 },
+        { angle: Math.PI/6, color: CYAN, size: 0.12, outline: true },
+        { angle: Math.PI/2, color: PURPLE, size: 0.18 },
+        { angle: Math.PI * 5/6, color: BLUE, size: 0.18 },
+        { angle: -Math.PI * 5/6, color: CYAN, size: 0.12, outline: true }
+    ];
+    
+    nodeConfigs.forEach((cfg, i) => {
+        const r = 1.9;
+        const x = Math.cos(cfg.angle) * r;
+        const y = Math.sin(cfg.angle) * r;
+        
+        if (cfg.outline) {
+            const ring = new THREE.Mesh(
+                new THREE.RingGeometry(cfg.size - 0.03, cfg.size, 32),
+                new THREE.MeshBasicMaterial({ color: CYAN, side: THREE.DoubleSide })
+            );
+            ring.position.set(x, y, 0);
+            scene.add(ring);
+            data.nodes.push({ mesh: ring, baseAngle: cfg.angle, radius: r });
+        } else {
+            const node = new THREE.Mesh(
+                new THREE.CircleGeometry(cfg.size, 32),
+                new THREE.MeshBasicMaterial({ color: cfg.color })
+            );
+            node.position.set(x, y, 0);
+            scene.add(node);
+            data.nodes.push({ mesh: node, baseAngle: cfg.angle, radius: r });
+        }
+        
+        // 연결선
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(x * 0.45, y * 0.45, 0)
+        ]);
+        const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ 
+            color: CYAN, transparent: true, opacity: 0.25 
+        }));
+        scene.add(line);
+        data.lines.push({ line, angle: cfg.angle });
+    });
+    
+    animationData.push(data);
+}
+
+// ════════════════════════════════════════════════════════════════
+// 2. SENSORY WAVE - 불꽃 파형
+// ════════════════════════════════════════════════════════════════
+function createSensoryWave() {
+    const { scene, camera } = createRenderer(document.getElementById('c2'));
+    camera.position.set(0, 1.5, 4);
+    camera.lookAt(0, 0, 0);
+    
+    const data = { peaks: [], rings: [] };
+    
+    // 불꽃 피크들
+    const peakCount = 60;
+    for (let i = 0; i < peakCount; i++) {
+        const x = (Math.random() - 0.5) * 4;
+        const z = (Math.random() - 0.5) * 2;
+        const height = 0.3 + Math.random() * 2;
+        
+        // 색상 (아래: 주황, 중간: 노랑, 위: 보라)
+        let color;
+        if (height < 0.8) color = ORANGE;
+        else if (height < 1.5) color = YELLOW;
+        else color = PURPLE;
+        
+        const peak = new THREE.Mesh(
+            new THREE.ConeGeometry(0.08, height, 6),
+            new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.7 })
+        );
+        peak.position.set(x, height/2 - 1, z);
+        scene.add(peak);
+        data.peaks.push({ mesh: peak, baseHeight: height, baseY: height/2 - 1 });
+    }
+    
+    // 동심원 링들 (isometric)
+    for (let i = 0; i < 4; i++) {
+        const ring = new THREE.Mesh(
+            new THREE.RingGeometry(0.8 + i * 0.6, 0.85 + i * 0.6, 64),
+            new THREE.MeshBasicMaterial({ 
+                color: CYAN, transparent: true, opacity: 0.15 - i * 0.03, side: THREE.DoubleSide 
+            })
+        );
+        ring.rotation.x = -Math.PI / 2.5;
+        ring.position.y = -1.5;
+        scene.add(ring);
+        data.rings.push(ring);
+    }
+    
+    animationData.push(data);
+}
+
+// ════════════════════════════════════════════════════════════════
+// 3. PHYSICS NETWORK - 별자리 네트워크
+// ════════════════════════════════════════════════════════════════
+function createPhysicsNetwork() {
+    const { scene, camera } = createRenderer(document.getElementById('c3'));
+    camera.position.z = 5;
+    
+    const data = { nodes: [] };
+    const nodeCount = 50;
+    const nodePositions = [];
+    
+    // 노드 생성
+    for (let i = 0; i < nodeCount; i++) {
+        const x = (Math.random() - 0.5) * 5;
+        const y = (Math.random() - 0.5) * 5;
+        const z = (Math.random() - 0.5) * 1;
+        
+        const isHighlight = Math.random() > 0.8;
+        const size = isHighlight ? 0.08 : 0.04;
+        const color = isHighlight ? ORANGE : CYAN;
+        
+        const node = new THREE.Mesh(
+            new THREE.CircleGeometry(size, 16),
+            new THREE.MeshBasicMaterial({ color })
+        );
+        node.position.set(x, y, z);
+        scene.add(node);
+        nodePositions.push({ x, y, z });
+        data.nodes.push({ mesh: node, phase: Math.random() * Math.PI * 2 });
+        
+        // 글로우
+        if (isHighlight) {
+            const glow = new THREE.Mesh(
+                new THREE.CircleGeometry(size * 2, 16),
+                new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.2 })
+            );
+            glow.position.set(x, y, z - 0.01);
+            scene.add(glow);
+        }
+    }
+    
+    // 연결선
+    for (let i = 0; i < nodePositions.length; i++) {
+        for (let j = i + 1; j < nodePositions.length; j++) {
+            const dx = nodePositions[i].x - nodePositions[j].x;
+            const dy = nodePositions[i].y - nodePositions[j].y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist < 1.2) {
+                const line = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(nodePositions[i].x, nodePositions[i].y, nodePositions[i].z),
+                        new THREE.Vector3(nodePositions[j].x, nodePositions[j].y, nodePositions[j].z)
+                    ]),
+                    new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.15 })
+                );
+                scene.add(line);
+            }
+        }
+    }
+    
+    animationData.push(data);
+}
+
+// ════════════════════════════════════════════════════════════════
+// 4. CORE LOOP - 3층 스택
+// ════════════════════════════════════════════════════════════════
+function createCoreLoop() {
+    const { scene, camera } = createRenderer(document.getElementById('c4'));
+    camera.position.set(0, 2, 4);
+    camera.lookAt(0, 0, 0);
+    
+    const data = { layers: [], rings: [] };
+    
+    // 3개 레이어
+    const layerSizes = [1.4, 1.2, 1.0];
+    const layerHeights = [-0.8, 0, 0.8];
+    
+    layerSizes.forEach((size, i) => {
+        // 플랫폼
+        const geo = new THREE.BoxGeometry(size, 0.15, size * 0.6);
+        const edges = new THREE.EdgesGeometry(geo);
+        const layer = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: CYAN }));
+        layer.position.y = layerHeights[i];
+        layer.rotation.x = 0.3;
+        scene.add(layer);
+        
+        // 채우기
+        const fill = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ 
+            color: CYAN, transparent: true, opacity: 0.1 
+        }));
+        fill.position.y = layerHeights[i];
+        fill.rotation.x = 0.3;
+        scene.add(fill);
+        
+        data.layers.push({ edges: layer, fill });
+        
+        // 각 레이어 위의 링
+        const ring = new THREE.Mesh(
+            new THREE.RingGeometry(size * 0.5, size * 0.52, 64),
+            new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+        );
+        ring.position.y = layerHeights[i] + 0.1;
+        ring.rotation.x = -Math.PI / 2;
+        scene.add(ring);
+        data.rings.push(ring);
+    });
+    
+    // 중앙 글로우
+    const glow = new THREE.Mesh(
+        new THREE.CircleGeometry(0.4, 32),
+        new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.3 })
+    );
+    glow.position.set(0, 0, 1);
+    scene.add(glow);
+    
+    // 하단 동심원
+    for (let i = 0; i < 3; i++) {
+        const bRing = new THREE.Mesh(
+            new THREE.RingGeometry(1 + i * 0.4, 1.05 + i * 0.4, 64),
+            new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.1, side: THREE.DoubleSide })
+        );
+        bRing.rotation.x = -Math.PI / 2;
+        bRing.position.y = -1.5;
+        scene.add(bRing);
+    }
+    
+    animationData.push(data);
+}
+
+// ════════════════════════════════════════════════════════════════
+// 5. FEEDBACK - 다이아몬드 큐브들
+// ════════════════════════════════════════════════════════════════
+function createFeedback() {
+    const { scene, camera } = createRenderer(document.getElementById('c5'));
+    camera.position.z = 5;
+    
+    const data = { cubes: [] };
+    
+    // 4개 큐브 위치/색상
+    const configs = [
+        { x: 0, y: 1.3, color: CYAN },
+        { x: -1, y: 0, color: ORANGE },
+        { x: 1, y: 0, color: CYAN },
+        { x: 0, y: -1.3, color: PURPLE }
+    ];
+    
+    configs.forEach((cfg, i) => {
+        const geo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+        const edges = new THREE.EdgesGeometry(geo);
+        const cube = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: cfg.color }));
+        cube.position.set(cfg.x, cfg.y, 0);
+        cube.rotation.x = Math.PI / 4;
+        cube.rotation.z = Math.PI / 4;
+        scene.add(cube);
+        
+        const fill = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ 
+            color: cfg.color, transparent: true, opacity: 0.15 
+        }));
+        fill.position.copy(cube.position);
+        fill.rotation.copy(cube.rotation);
+        scene.add(fill);
+        
+        data.cubes.push({ edges: cube, fill, baseX: cfg.x, baseY: cfg.y });
+    });
+    
+    // 연결선
+    const connections = [[0,1], [0,2], [1,3], [2,3]];
+    connections.forEach(([a, b]) => {
+        const line = new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(configs[a].x, configs[a].y, 0),
+                new THREE.Vector3(configs[b].x, configs[b].y, 0)
+            ]),
+            new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.4 })
+        );
+        scene.add(line);
+    });
+    
+    // 에너지 선 (번개 효과)
+    for (let i = 0; i < 8; i++) {
+        const points = [];
+        let x = (Math.random() - 0.5) * 3;
+        let y = -2;
+        points.push(new THREE.Vector3(x, y, 0));
+        
+        for (let j = 0; j < 5; j++) {
+            y += 0.8;
+            x += (Math.random() - 0.5) * 0.5;
+            points.push(new THREE.Vector3(x, y, 0));
+        }
+        
+        const lightning = new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints(points),
+            new THREE.LineBasicMaterial({ color: PURPLE, transparent: true, opacity: 0.2 })
+        );
+        scene.add(lightning);
+    }
+    
+    animationData.push(data);
+}
+
+// ════════════════════════════════════════════════════════════════
+// 6. BRAINWAVE - 뇌 형상
+// ════════════════════════════════════════════════════════════════
+function createBrainwave() {
+    const { scene, camera } = createRenderer(document.getElementById('c6'));
+    camera.position.z = 4;
+    
+    const data = { brain: null, nodes: [], particles: null };
+    
+    // 뇌 형상 (반구 2개)
+    const brainGroup = new THREE.Group();
+    
+    // 좌반구
+    const leftHemi = new THREE.Mesh(
+        new THREE.SphereGeometry(0.8, 32, 32, 0, Math.PI),
+        new THREE.MeshBasicMaterial({ 
+            color: 0x4a90a4, transparent: true, opacity: 0.7 
+        })
+    );
+    leftHemi.scale.set(1, 0.8, 0.7);
+    leftHemi.position.x = -0.05;
+    brainGroup.add(leftHemi);
+    
+    // 우반구
+    const rightHemi = new THREE.Mesh(
+        new THREE.SphereGeometry(0.8, 32, 32, Math.PI, Math.PI),
+        new THREE.MeshBasicMaterial({ 
+            color: 0x3d7a8c, transparent: true, opacity: 0.7 
+        })
+    );
+    rightHemi.scale.set(1, 0.8, 0.7);
+    rightHemi.position.x = 0.05;
+    brainGroup.add(rightHemi);
+    
+    scene.add(brainGroup);
+    data.brain = brainGroup;
+    
+    // 뇌 텍스처 (주름 느낌의 선)
+    for (let i = 0; i < 10; i++) {
+        const curve = new THREE.EllipseCurve(
+            0, (Math.random() - 0.5) * 0.8,
+            0.6 + Math.random() * 0.3, 0.2 + Math.random() * 0.2,
+            0, Math.PI * 2, false, 0
+        );
+        const points = curve.getPoints(30);
+        const geo = new THREE.BufferGeometry().setFromPoints(
+            points.map(p => new THREE.Vector3(p.x, p.y, 0.5))
+        );
+        const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ 
+            color: 0x2d5a6b, transparent: true, opacity: 0.3 
+        }));
+        brainGroup.add(line);
+    }
+    
+    // 신경 노드들
+    for (let i = 0; i < 20; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.random() * Math.PI;
+        const r = 1.2 + Math.random() * 0.8;
+        
+        const node = new THREE.Mesh(
+            new THREE.CircleGeometry(0.04, 8),
+            new THREE.MeshBasicMaterial({ color: CYAN })
+        );
+        node.position.set(
+            r * Math.sin(phi) * Math.cos(theta),
+            r * Math.cos(phi) * 0.7,
+            r * Math.sin(phi) * Math.sin(theta) * 0.6
+        );
+        scene.add(node);
+        data.nodes.push({ mesh: node, phase: Math.random() * Math.PI * 2 });
+    }
+    
+    // 파티클
+    const particleGeo = new THREE.BufferGeometry();
+    const particleCount = 150;
+    const positions = new Float32Array(particleCount * 3);
+    
+    for (let i = 0; i < particleCount * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 5;
+        positions[i + 1] = (Math.random() - 0.5) * 4;
+        positions[i + 2] = (Math.random() - 0.5) * 2;
+    }
+    
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const particles = new THREE.Points(particleGeo, new THREE.PointsMaterial({
+        color: CYAN, size: 0.03, transparent: true, opacity: 0.4
+    }));
+    scene.add(particles);
+    data.particles = particles;
+    
+    animationData.push(data);
+}
+
+// ════════════════════════════════════════════════════════════════
+// 초기화 & 애니메이션
+// ════════════════════════════════════════════════════════════════
+createMainHub();
+createSensoryWave();
+createPhysicsNetwork();
+createCoreLoop();
+createFeedback();
+createBrainwave();
+
+function animate() {
+    requestAnimationFrame(animate);
+    const t = Date.now() * 0.001;
+    
+    // 1. Main Hub - 노드 회전
+    if (animationData[0]) {
+        animationData[0].nodes.forEach((n, i) => {
+            const angle = n.baseAngle + t * 0.15;
+            n.mesh.position.x = Math.cos(angle) * n.radius;
+            n.mesh.position.y = Math.sin(angle) * n.radius;
+        });
+    }
+    
+    // 2. Sensory - 피크 펄스
+    if (animationData[1]) {
+        animationData[1].peaks.forEach((p, i) => {
+            const scale = 1 + Math.sin(t * 3 + i * 0.5) * 0.15;
+            p.mesh.scale.y = scale;
+        });
+    }
+    
+    // 3. Network - 노드 펄스
+    if (animationData[2]) {
+        animationData[2].nodes.forEach((n, i) => {
+            const scale = 1 + Math.sin(t * 2 + n.phase) * 0.3;
+            n.mesh.scale.setScalar(scale);
+        });
+    }
+    
+    // 4. Core Loop - 레이어 회전
+    if (animationData[3]) {
+        animationData[3].rings.forEach((r, i) => {
+            r.rotation.z = t * 0.5 + i * 0.5;
+        });
+    }
+    
+    // 5. Feedback - 큐브 회전
+    if (animationData[4]) {
+        animationData[4].cubes.forEach((c, i) => {
+            c.edges.rotation.x = Math.PI/4 + Math.sin(t + i) * 0.1;
+            c.edges.rotation.z = Math.PI/4 + Math.cos(t + i) * 0.1;
+            c.fill.rotation.copy(c.edges.rotation);
+        });
+    }
+    
+    // 6. Brainwave - 뇌 회전
+    if (animationData[5]) {
+        if (animationData[5].brain) {
+            animationData[5].brain.rotation.y = Math.sin(t * 0.3) * 0.2;
+        }
+        animationData[5].nodes.forEach(n => {
+            const s = 1 + Math.sin(t * 2 + n.phase) * 0.3;
+            n.mesh.scale.setScalar(s);
+        });
+        if (animationData[5].particles) {
+            animationData[5].particles.rotation.y = t * 0.05;
+        }
+    }
+    
+    // 렌더링
+    for (let i = 0; i < renderers.length; i++) {
+        renderers[i].render(scenes[i], cameras[i]);
+    }
+}
+
+animate();
+console.log('🌌 AUTUS Exact Layers Ready');
+</script>
+</body>
+</html>

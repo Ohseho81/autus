@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1440, height=900, initial-scale=1">
+  <title>AUTUS Tesla Shell — Station/Line/Alternate</title>
+  <link rel="stylesheet" href="./tokens.css">
+  <style>
+    /* ═══════════════════════════════════════════════════════════════
+       RESET & BASE
+       ═══════════════════════════════════════════════════════════════ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { 
+      height: 100%; 
+      overflow: hidden;
+      font-family: var(--font-family);
+      background: var(--bg-base);
+      color: var(--text-primary);
+    }
+    .mono { font-family: var(--font-mono); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       APP FRAME (1440x900)
+       ═══════════════════════════════════════════════════════════════ */
+    .app {
+      width: var(--frame-width);
+      height: var(--frame-height);
+      display: grid;
+      grid-template-rows: var(--height-topbar) 1fr var(--height-dock);
+      grid-template-columns: var(--width-entity-panel) 1fr;
+      grid-template-areas:
+        "topbar topbar"
+        "entity canvas"
+        "dock dock";
+      position: relative;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       L0_ExternalField
+       ═══════════════════════════════════════════════════════════════ */
+    .L0_ExternalField {
+      position: absolute;
+      inset: 0;
+      z-index: var(--z-L0);
+      pointer-events: none;
+      background:
+        radial-gradient(1100px 700px at 70% 20%, rgba(255,255,255,0.08), transparent 55%),
+        radial-gradient(900px 700px at 20% 80%, rgba(61,220,151,0.08), transparent 60%);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       L1_SystemBar
+       ═══════════════════════════════════════════════════════════════ */
+    .L1_SystemBar {
+      grid-area: topbar;
+      z-index: var(--z-L1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      background: var(--bg-panel-blur);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--stroke-weak);
+    }
+    .topbar-left, .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .brand {
+      width: 34px; height: 34px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      border: 1px solid var(--stroke-weak);
+      box-shadow: var(--shadow-button);
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 14px;
+    }
+    .breadcrumb { display: flex; flex-direction: column; line-height: 1.1; }
+    .breadcrumb-title { font-size: var(--font-size-body); font-weight: var(--font-weight-title); }
+    .breadcrumb-sub { font-size: var(--font-size-meta); color: var(--text-muted); }
+    .pill {
+      height: 30px; padding: 0 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stroke-weak);
+      background: var(--bg-button);
+      display: flex; align-items: center; gap: 8px;
+      font-size: var(--font-size-body-sm);
+      color: var(--text-secondary);
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-good);
+      box-shadow: 0 0 0 3px rgba(61,220,151,0.12);
+    }
+    .dot.warn { background: var(--accent-warn); box-shadow: 0 0 0 3px rgba(255,204,102,0.12); }
+    .iconbtn {
+      width: 34px; height: 34px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--stroke-weak);
+      background: var(--bg-button);
+      display: grid; place-items: center;
+      cursor: pointer;
+      transition: transform var(--duration-fast) var(--ease-out),
+                  background var(--duration-fast) var(--ease-out);
+    }
+    .iconbtn:hover { transform: translateY(-1px); background: var(--bg-button-hover); }
+    .ic { width: 16px; height: 16px; opacity: 0.9; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       L2_EntityPanel
+       ═══════════════════════════════════════════════════════════════ */
+    .L2_EntityPanel {
+      grid-area: entity;
+      z-index: var(--z-L2);
+      padding: var(--padding-entity-panel);
+      background: var(--bg-panel-left);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid var(--stroke-weak);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+    .card {
+      border-radius: var(--radius-lg);
+      background: var(--bg-card);
+      border: 1px solid var(--stroke-weak);
+      box-shadow: var(--shadow-panel);
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 12px 12px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--stroke-divider);
+    }
+    .card-head-title { font-size: var(--font-size-body); font-weight: 750; }
+    .card-head-sub { font-size: var(--font-size-meta); color: var(--text-muted); margin-top: 2px; }
+    .badge {
+      font-size: var(--font-size-meta);
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stroke-weak);
+      background: rgba(0,0,0,0.20);
+    }
+    .badge.good { box-shadow: inset 0 0 0 3px rgba(61,220,151,0.10); }
+    .badge.warn { box-shadow: inset 0 0 0 3px rgba(255,204,102,0.10); }
+    .badge.bad { box-shadow: inset 0 0 0 3px rgba(255,92,92,0.10); }
+    .card-body { padding: 12px; }
+    .kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 10px; font-size: var(--font-size-body-sm); }
+    .kv-key { color: var(--text-muted); }
+    .kv-val { color: var(--text-primary); }
+    .risk-bar {
+      margin-top: 10px;
+      height: 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stroke-weak);
+      background: rgba(0,0,0,0.35);
+      overflow: hidden;
+    }
+    .risk-bar > div {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-good), var(--accent-warn), var(--accent-bad));
+      transition: width var(--duration-normal) var(--ease-out);
+    }
+    .section-title {
+      margin-top: 2px;
+      padding: 8px 2px 0;
+      font-size: var(--font-size-meta);
+      color: var(--text-muted);
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+    .list {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--stroke-weak);
+      background: rgba(255,255,255,0.04);
+      overflow: hidden;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--stroke-divider);
+      font-size: var(--font-size-body-sm);
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease-out);
+    }
+    .row:last-child { border-bottom: none; }
+    .row:hover { background: rgba(255,255,255,0.03); }
+    .tag {
+      font-size: var(--font-size-meta);
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stroke-weak);
+      color: var(--text-secondary);
+    }
+    .tag.good { color: #bffbe4; border-color: rgba(61,220,151,0.25); background: rgba(61,220,151,0.08); }
+    .tag.warn { color: #ffe6b0; border-color: rgba(255,204,102,0.25); background: rgba(255,204,102,0.08); }
+    .tag.bad { color: #ffd0d0; border-color: rgba(255,92,92,0.25); background: rgba(255,92,92,0.08); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       L3_CoreCanvas
+       ═══════════════════════════════════════════════════════════════ */
+    .L3_CoreCanvas {
+      grid-area: canvas;
+      z-index: var(--z-L3);
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(900px 600px at 60% 40%, rgba(255,255,255,0.07), transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+    }
+    .map-grid {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(var(--map-grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--map-grid-color) 1px, transparent 1px);
+      background-size: var(--map-grid-size) var(--map-grid-size);
+      pointer-events: none;
+      transition: opacity var(--duration-normal) var(--ease-out);
+    }
+    .canvas-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    /* HOME variant */
+    .app[data-view="HOME"] .canvas-content { padding: var(--padding-canvas-home); }
+    .app[data-view="HOME"] .map-grid { opacity: var(--map-grid-opacity-home); }
+    .app[data-view="HOME"] .search { width: min(var(--width-search-home), 92%); height: var(--height-search-home); }
+    .app[data-view="HOME"] .hud { 
+      width: min(760px, 96%); 
+      height: var(--height-hud-home);
+      grid-template-columns: repeat(var(--columns-hud-home), 1fr);
+    }
+    .app[data-view="HOME"] .map-layer { display: none; }
+    /* MAP variant */
+    .app[data-view="MAP"] .canvas-content { padding: 16px; }
+    .app[data-view="MAP"] .map-grid { opacity: var(--map-grid-opacity-map); }
+    .app[data-view="MAP"] .search { width: min(var(--width-search-map), 92%); height: var(--height-search-map); }
+    .app[data-view="MAP"] .hud { 
+      width: min(560px, 96%); 
+      height: var(--height-hud-map);
+      grid-template-columns: repeat(var(--columns-hud-map), 1fr);
+    }
+    .app[data-view="MAP"] .map-layer { display: block; }
+    .app[data-view="MAP"] .hud-tile:nth-child(3) { display: none; }
+    /* CONTROLS variant */
+    .app[data-view="CONTROLS"] .controls-panel { display: block; }
+
+    .search {
+      align-self: flex-start;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stroke-weak);
+      background: var(--bg-input);
+      backdrop-filter: blur(10px);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 14px 50px rgba(0,0,0,0.45);
+    }
+    .search input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: var(--font-size-body);
+    }
+    .search input::placeholder { color: var(--text-muted); }
+    .chip {
+      font-size: var(--font-size-meta);
+      padding: 6px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stroke-weak);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease-out);
+    }
+    .chip:hover { background: rgba(255,255,255,0.08); }
+
+    /* Map Layer (MAP view only) */
+    .map-layer {
+      position: absolute;
+      inset: 0;
+      display: none;
+    }
+    .map-svg {
+      width: 100%;
+      height: 100%;
+    }
+    .route-normal { stroke: var(--text-secondary); stroke-width: var(--route-normal-width); fill: none; }
+    .route-active { stroke: var(--accent-good); stroke-width: var(--route-active-width); fill: none; filter: drop-shadow(0 0 8px rgba(61,220,151,0.4)); }
+    .route-alternate { stroke: var(--accent-warn); stroke-width: var(--route-alternate-width); fill: none; stroke-dasharray: 6 4; filter: drop-shadow(0 0 8px rgba(255,204,102,0.4)); }
+    .station-node { fill: var(--text-secondary); }
+    .station-node.active { fill: var(--accent-good); }
+    .station-ring { fill: rgba(61,220,151,0.12); }
+    .focus-marker {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: var(--focus-marker-size);
+      height: var(--focus-marker-size);
+      border-radius: 50%;
+      background: var(--accent-good);
+      box-shadow: 0 0 12px rgba(61,220,151,0.6);
+    }
+
+    .hud {
+      margin-top: auto;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--stroke-weak);
+      background: var(--bg-hud);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-panel);
+      padding: 12px;
+      display: grid;
+      gap: var(--gap-hud);
+    }
+    .hud-tile {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--stroke-weak);
+      background: var(--bg-button);
+      padding: 10px;
+      min-height: 70px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .hud-tile-label { font-size: var(--font-size-meta); color: var(--text-muted); }
+    .hud-tile-value { font-size: 16px; font-weight: 700; }
+    .hud-tile-sub { font-size: var(--font-size-meta); color: var(--text-secondary); }
+    .meter {
+      height: 8px;
+      flex: 1;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stroke-weak);
+      background: rgba(0,0,0,0.30);
+      overflow: hidden;
+    }
+    .meter > div {
+      height: 100%;
+      background: var(--accent-good);
+      transition: width var(--duration-normal) var(--ease-out);
+    }
+    .meter-row { display: flex; align-items: center; gap: 8px; }
+
+    /* Controls Panel */
+    .controls-panel {
+      position: absolute;
+      top: 76px;
+      right: 16px;
+      width: min(420px, 94%);
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--stroke-strong);
+      background: rgba(10,12,15,0.72);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-panel);
+      padding: 12px;
+      display: none;
+    }
+    .controls-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .controls-head-title { font-size: var(--font-size-body); font-weight: 800; }
+    .controls-head-sub { font-size: var(--font-size-meta); color: var(--text-muted); margin-top: 2px; }
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--stroke-divider);
+      background: rgba(255,255,255,0.04);
+      margin-bottom: 10px;
+    }
+    .ctrl-row:last-child { margin-bottom: 0; }
+    .ctrl-label-h { font-size: var(--font-size-body-sm); font-weight: 650; }
+    .ctrl-label-p { font-size: var(--font-size-meta); color: var(--text-muted); }
+    .toggle {
+      width: 44px;
+      height: 26px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stroke-weak);
+      background: rgba(0,0,0,0.35);
+      position: relative;
+      cursor: pointer;
+    }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.85);
+      transition: transform var(--duration-fast) var(--ease-out);
+    }
+    .toggle.on { border-color: rgba(61,220,151,0.35); background: rgba(61,220,151,0.12); }
+    .toggle.on::after { transform: translateX(18px); background: var(--accent-good); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       L4_FlowDock
+       ═══════════════════════════════════════════════════════════════ */
+    .L4_FlowDock {
+      grid-area: dock;
+      z-index: var(--z-L4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--padding-dock);
+      background: var(--bg-panel-blur);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--stroke-weak);
+    }
+    .dock-left, .dock-right { display: flex; align-items: center; gap: 10px; }
+    .dock-center {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stroke-weak);
+      background: rgba(255,255,255,0.05);
+    }
+    .slot {
+      height: 42px;
+      padding: 0 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stroke-weak);
+      background: var(--bg-button);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: var(--font-size-body-sm);
+      color: var(--text-secondary);
+    }
+    .slot b { color: var(--text-primary); }
+    .dock-app {
+      width: var(--size-dock-app);
+      height: var(--size-dock-app);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--stroke-weak);
+      background: var(--bg-button);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: transform var(--duration-fast) var(--ease-out),
+                  border-color var(--duration-fast) var(--ease-out);
+    }
+    .dock-app:hover { transform: translateY(-1px); border-color: var(--stroke-strong); }
+    .dock-app.active {
+      border-color: rgba(61,220,151,0.35);
+      box-shadow: inset 0 0 0 3px rgba(61,220,151,0.12);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       L5_ContextOverlay
+       ═══════════════════════════════════════════════════════════════ */
+    .L5_ContextOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: var(--z-L5);
+      pointer-events: none;
+    }
+    .toast {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: min(360px, 90%);
+      border-radius: 18px;
+      border: 1px solid var(--stroke-strong);
+      background: var(--bg-toast);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow-panel);
+      padding: 12px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      pointer-events: auto;
+      opacity: 0;
+      translate: 0 -8px;
+      transition: opacity var(--duration-normal) var(--ease-out),
+                  translate var(--duration-normal) var(--ease-out);
+    }
+    .toast.show { opacity: 1; translate: 0 0; }
+    .toast-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent-warn); margin-top: 4px; }
+    .toast-title { font-size: var(--font-size-body-sm); font-weight: 700; }
+    .toast-body { font-size: var(--font-size-meta); color: var(--text-secondary); margin-top: 3px; }
+    .toast-close {
+      margin-left: auto;
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--stroke-weak);
+      background: var(--bg-button);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .drawer {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(var(--height-dock) + 14px);
+      width: min(var(--max-width-overlay-sheet), 96%);
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--stroke-strong);
+      background: var(--bg-drawer);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-panel);
+      overflow: hidden;
+      pointer-events: auto;
+      opacity: 0;
+      translate: 0 18px;
+      transition: opacity var(--duration-normal) var(--ease-out),
+                  translate var(--duration-normal) var(--ease-out);
+      display: none;
+    }
+    .drawer.open { display: block; opacity: 1; translate: 0 0; }
+    .drawer-head {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--stroke-divider);
+    }
+    .drawer-head-title { font-size: var(--font-size-body); font-weight: 700; }
+    .drawer-body {
+      padding: 12px 14px 14px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .drawer-item {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--stroke-weak);
+      background: var(--bg-button);
+      padding: 12px;
+      cursor: pointer;
+      transition: transform var(--duration-fast) var(--ease-out),
+                  border-color var(--duration-fast) var(--ease-out);
+    }
+    .drawer-item:hover { transform: translateY(-1px); border-color: var(--stroke-strong); }
+    .drawer-item-name { font-size: var(--font-size-body-sm); font-weight: 650; }
+    .drawer-item-desc { font-size: var(--font-size-meta); color: var(--text-muted); margin-top: 4px; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       L6_Override
+       ═══════════════════════════════════════════════════════════════ */
+    .L6_Override {
+      position: absolute;
+      inset: 0;
+      z-index: var(--z-L6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-override-dim);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration-slow) var(--ease-out);
+    }
+    .L6_Override.active { opacity: 1; pointer-events: auto; }
+    .alert-card {
+      width: 400px;
+      border-radius: var(--radius-2xl);
+      border: 2px solid var(--accent-warn);
+      background: var(--bg-override-card);
+      backdrop-filter: blur(20px);
+      padding: 24px;
+      text-align: center;
+    }
+    .alert-icon { font-size: 48px; margin-bottom: 16px; }
+    .alert-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .alert-desc { font-size: var(--font-size-body); color: var(--text-secondary); margin-bottom: 16px; }
+    .alert-btn {
+      padding: 10px 24px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--accent-warn);
+      background: rgba(255,204,102,0.15);
+      color: var(--accent-warn);
+      font-size: var(--font-size-body);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease-out);
+    }
+    .alert-btn:hover { background: rgba(255,204,102,0.25); }
+  </style>
+</head>
+<body>
+  <div class="app" data-view="HOME">
+    <!-- L0_ExternalField -->
+    <div class="L0_ExternalField"></div>
+
+    <!-- L1_SystemBar -->
+    <header class="L1_SystemBar">
+      <div class="topbar-left">
+        <div class="brand">A</div>
+        <div class="breadcrumb">
+          <div class="breadcrumb-title" id="stationTitle">HOME</div>
+          <div class="breadcrumb-sub" id="stationSub">Station · Line · Alternate Route</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="pill"><span class="dot" id="netDot"></span><span id="netText">Online</span></div>
+        <div class="pill mono" id="clock">--:--</div>
+        <div class="iconbtn" id="btnToast" title="Toast">
+          <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.2 0 2-.8 2-2H10c0 1.2.8 2 2 2Z" stroke="white" stroke-opacity=".9"/><path d="M18 16H6l1-2v-5a5 5 0 0 1 10 0v5l1 2Z" stroke="white" stroke-opacity=".9"/></svg>
+        </div>
+        <div class="iconbtn" id="btnDrawer" title="Drawer">
+          <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="white" stroke-opacity=".9" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- L2_EntityPanel -->
+    <aside class="L2_EntityPanel">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-head-title">ENTITY CARD</div>
+            <div class="card-head-sub">Autus Object · Internal/External State</div>
+          </div>
+          <div class="badge good" id="riskBadge">RISK: LOW</div>
+        </div>
+        <div class="card-body">
+          <div class="kv">
+            <div class="kv-key">Internal Energy</div><div class="kv-val" id="kEnergy">72</div>
+            <div class="kv-key">Entropy</div><div class="kv-val" id="kEntropy">0.32</div>
+            <div class="kv-key">Pressure</div><div class="kv-val" id="kPressure">1.4</div>
+            <div class="kv-key">External Signal</div><div class="kv-val" id="kExternal">Stable</div>
+          </div>
+          <div class="risk-bar"><div id="riskBar" style="width:22%"></div></div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-muted)">
+            Alternate triggers: <span class="mono">info_missing</span>, <span class="mono">risk_over</span>, <span class="mono">policy_block</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Flow (Station/Line)</div>
+      <div class="list" id="flowList"></div>
+
+      <div class="section-title">Quick Actions</div>
+      <div class="list">
+        <div class="row" id="btnInfoMissing"><div>Simulate: info_missing</div><div class="tag warn">RUN</div></div>
+        <div class="row" id="btnRiskOver"><div>Simulate: risk_over</div><div class="tag bad">RUN</div></div>
+        <div class="row" id="btnReset"><div>Reset to normal</div><div class="tag good">RESET</div></div>
+      </div>
+    </aside>
+
+    <!-- L3_CoreCanvas -->
+    <main class="L3_CoreCanvas">
+      <div class="map-grid"></div>
+      
+      <div class="map-layer">
+        <svg class="map-svg" viewBox="0 0 800 600">
+          <path class="route-normal" d="M100,500 L200,400 L400,350 L600,200 L700,100" id="routeNormal"/>
+          <path class="route-active" d="M100,500 L200,400 L400,350" id="routeActive"/>
+          <path class="route-alternate" d="M400,350 L450,380 L500,350 L550,380 L600,200" id="routeAlternate" style="display:none"/>
+          <circle class="station-ring" cx="100" cy="500" r="14"/>
+          <circle class="station-node active" cx="100" cy="500" r="5"/>
+          <circle class="station-node" cx="200" cy="400" r="5"/>
+          <circle class="station-node" cx="400" cy="350" r="5"/>
+          <circle class="station-node" cx="600" cy="200" r="5"/>
+          <circle class="station-node" cx="700" cy="100" r="5"/>
+        </svg>
+        <div class="focus-marker"></div>
+      </div>
+
+      <div class="canvas-content">
+        <div class="search">
+          <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="white" stroke-opacity=".85"/><path d="M16.5 16.5 21 21" stroke="white" stroke-opacity=".85" stroke-linecap="round"/></svg>
+          <input id="searchInput" placeholder="Search destination / Station…">
+          <div class="chip" data-station="HOME">HOME</div>
+          <div class="chip" data-station="MAP">MAP</div>
+          <div class="chip" data-station="CONTROLS">CONTROLS</div>
+        </div>
+
+        <div class="controls-panel">
+          <div class="controls-head">
+            <div>
+              <div class="controls-head-title">CONTROLS</div>
+              <div class="controls-head-sub">Web demo · Toggle/Rules</div>
+            </div>
+            <div class="badge mono" id="policyState">policy_ok</div>
+          </div>
+          <div class="ctrl-row">
+            <div><div class="ctrl-label-h">Auto Alternate Route</div><div class="ctrl-label-p">조건 실패 시 자동 우회</div></div>
+            <div class="toggle on" id="togAutoAlt"></div>
+          </div>
+          <div class="ctrl-row">
+            <div><div class="ctrl-label-h">Policy Gate</div><div class="ctrl-label-p">policy_block 발생 가능</div></div>
+            <div class="toggle" id="togPolicy"></div>
+          </div>
+          <div class="ctrl-row">
+            <div><div class="ctrl-label-h">External Noise</div><div class="ctrl-label-p">외부 신호 변동 증가</div></div>
+            <div class="toggle" id="togNoise"></div>
+          </div>
+        </div>
+
+        <div class="hud">
+          <div class="hud-tile">
+            <div class="hud-tile-label">Current Station</div>
+            <div class="hud-tile-value" id="hudStation">HOME</div>
+            <div class="hud-tile-sub" id="hudDesc">Baseline route</div>
+          </div>
+          <div class="hud-tile">
+            <div class="hud-tile-label">Route Status</div>
+            <div class="meter-row">
+              <div class="meter"><div id="meterFill" style="width:78%"></div></div>
+              <span class="mono" id="meterText">OK</span>
+            </div>
+            <div class="hud-tile-sub" id="altHint">No alternate active</div>
+          </div>
+          <div class="hud-tile">
+            <div class="hud-tile-label">Next Action</div>
+            <div class="hud-tile-value" id="hudNext">Open Drawer</div>
+            <div class="hud-tile-sub">Bottom launcher or App Drawer</div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- L4_FlowDock -->
+    <nav class="L4_FlowDock">
+      <div class="dock-left">
+        <div class="slot"><span>Cabin</span><b id="tempVal">22°</b></div>
+        <div class="slot"><span>Media</span><b class="mono">PLAY</b></div>
+      </div>
+      <div class="dock-center">
+        <div class="dock-app active" data-station="HOME" title="Home">
+          <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M4 11 12 4l8 7v9a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9Z" stroke="white" stroke-opacity=".9" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="dock-app" data-station="MAP" title="Map">
+          <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M9 18 3 20V6l6-2 6 2 6-2v14l-6 2-6-2Z" stroke="white" stroke-opacity=".9" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="white" stroke-opacity=".9" stroke-linecap="round"/></svg>
+        </div>
+        <div class="dock-app" data-station="CONTROLS" title="Controls">
+          <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M4 7h10M4 17h16M4 12h16" stroke="white" stroke-opacity=".9" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <div class="dock-app" id="dockDrawer" title="Drawer">
+          <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M5 7h4v4H5V7Zm0 6h4v4H5v-4Zm10-6h4v4h-4V7Zm0 6h4v4h-4v-4Z" stroke="white" stroke-opacity=".9"/></svg>
+        </div>
+      </div>
+      <div class="dock-right">
+        <div class="pill mono" id="debugPill">ALT: none</div>
+      </div>
+    </nav>
+
+    <!-- L5_ContextOverlay -->
+    <div class="L5_ContextOverlay">
+      <div class="toast" id="toast">
+        <div class="toast-dot"></div>
+        <div>
+          <div class="toast-title" id="toastTitle">Alert</div>
+          <div class="toast-body" id="toastBody">Sample notification</div>
+        </div>
+        <div class="toast-close" id="toastClose">✕</div>
+      </div>
+
+      <div class="drawer" id="drawer">
+        <div class="drawer-head">
+          <div class="drawer-head-title">APP DRAWER</div>
+          <div class="iconbtn" id="drawerClose">
+            <svg class="ic" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="white" stroke-opacity=".9" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+        <div class="drawer-body" id="drawerBody"></div>
+      </div>
+    </div>
+
+    <!-- L6_Override -->
+    <div class="L6_Override" id="override">
+      <div class="alert-card">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-title" id="alertTitle">ALTERNATE ROUTE ACTIVE</div>
+        <div class="alert-desc" id="alertDesc">Trigger: info_missing — routing to ALT: INFO</div>
+        <button class="alert-btn" id="alertAck">Acknowledge</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   AUTUS Tesla Shell — State Machine
+   ═══════════════════════════════════════════════════════════════ */
+
+const FlowSpec = {
+  stations: {
+    HOME:       { label: "HOME",       desc: "Baseline route" },
+    MAP:        { label: "MAP",        desc: "Context canvas (map-like)" },
+    CONTROLS:   { label: "CONTROLS",   desc: "Rules & toggles" },
+    ALT_INFO:   { label: "ALT: INFO",  desc: "정보 부족 우회 경로" },
+    ALT_RISK:   { label: "ALT: RISK",  desc: "리스크 초과 우회 경로" },
+    ALT_POLICY: { label: "ALT: POLICY", desc: "정책/규정 차단 우회" }
+  },
+  alternates: [
+    { trigger: "info_missing", when: ctx => ctx.infoMissing, to: "ALT_INFO" },
+    { trigger: "risk_over",    when: ctx => ctx.risk > 0.75, to: "ALT_RISK" },
+    { trigger: "policy_block", when: ctx => ctx.policyGate,  to: "ALT_POLICY" }
+  ]
+};
+
+const State = {
+  station: "HOME",
+  alt: null,
+  ctx: {
+    autoAlt: true,
+    policyGate: false,
+    noise: false,
+    infoMissing: false,
+    risk: 0.22,
+    energy: 72,
+    entropy: 0.32,
+    pressure: 1.4,
+    external: "Stable"
+  }
+};
+
+const $ = id => document.getElementById(id);
+const app = document.querySelector(".app");
+
+const els = {
+  stationTitle: $("stationTitle"),
+  stationSub: $("stationSub"),
+  clock: $("clock"),
+  flowList: $("flowList"),
+  riskBadge: $("riskBadge"),
+  riskBar: $("riskBar"),
+  kEnergy: $("kEnergy"),
+  kEntropy: $("kEntropy"),
+  kPressure: $("kPressure"),
+  kExternal: $("kExternal"),
+  hudStation: $("hudStation"),
+  hudDesc: $("hudDesc"),
+  hudNext: $("hudNext"),
+  meterFill: $("meterFill"),
+  meterText: $("meterText"),
+  altHint: $("altHint"),
+  debugPill: $("debugPill"),
+  drawer: $("drawer"),
+  drawerBody: $("drawerBody"),
+  toast: $("toast"),
+  toastTitle: $("toastTitle"),
+  toastBody: $("toastBody"),
+  override: $("override"),
+  alertTitle: $("alertTitle"),
+  alertDesc: $("alertDesc"),
+  netDot: $("netDot"),
+  netText: $("netText"),
+  policyState: $("policyState"),
+  togAutoAlt: $("togAutoAlt"),
+  togPolicy: $("togPolicy"),
+  togNoise: $("togNoise"),
+  routeAlternate: $("routeAlternate")
+};
+
+function pad2(n) { return String(n).padStart(2, "0"); }
+function tickClock() {
+  const d = new Date();
+  els.clock.textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+function showToast(title, body) {
+  els.toastTitle.textContent = title;
+  els.toastBody.textContent = body;
+  els.toast.classList.add("show");
+  setTimeout(() => els.toast.classList.remove("show"), 3000);
+}
+
+function hideToast() { els.toast.classList.remove("show"); }
+
+function openDrawer(open = true) {
+  els.drawer.classList.toggle("open", open);
+}
+
+function showOverride(show = true) {
+  els.override.classList.toggle("active", show);
+}
+
+function setToggle(el, on) {
+  el.classList.toggle("on", !!on);
+}
+
+function computeRiskTag(r) {
+  if (r < 0.35) return { txt: "RISK: LOW", cls: "good" };
+  if (r < 0.70) return { txt: "RISK: MED", cls: "warn" };
+  return { txt: "RISK: HIGH", cls: "bad" };
+}
+
+function maybeAlternate() {
+  State.alt = null;
+  if (!State.ctx.autoAlt) return;
+  for (const a of FlowSpec.alternates) {
+    if (a.when(State.ctx)) {
+      State.alt = a.to;
+      return;
+    }
+  }
+}
+
+function gotoStation(st) {
+  State.station = st;
+  app.setAttribute("data-view", st);
+  maybeAlternate();
+  render();
+}
+
+function render() {
+  if (State.ctx.noise) {
+    State.ctx.risk = Math.min(0.99, Math.max(0.05, State.ctx.risk + rand(-0.06, 0.06)));
+    State.ctx.entropy = Math.min(0.99, Math.max(0.05, State.ctx.entropy + rand(-0.05, 0.05)));
+    State.ctx.pressure = Math.min(2.9, Math.max(0.7, State.ctx.pressure + rand(-0.12, 0.12)));
+    State.ctx.energy = Math.round(Math.min(98, Math.max(22, State.ctx.energy + rand(-3, 3))));
+    State.ctx.external = State.ctx.risk > 0.7 ? "Volatile" : (State.ctx.risk > 0.35 ? "Noisy" : "Stable");
+  }
+
+  maybeAlternate();
+
+  const active = State.alt ? State.alt : State.station;
+
+  els.stationTitle.textContent = FlowSpec.stations[active]?.label ?? active;
+  els.stationSub.textContent = State.alt ? "Alternate Route · trigger active" : "Station · normal line";
+
+  els.kEnergy.textContent = State.ctx.energy;
+  els.kEntropy.textContent = State.ctx.entropy.toFixed(2);
+  els.kPressure.textContent = State.ctx.pressure.toFixed(1);
+  els.kExternal.textContent = State.ctx.external;
+
+  const tag = computeRiskTag(State.ctx.risk);
+  els.riskBadge.textContent = tag.txt;
+  els.riskBadge.className = `badge ${tag.cls}`;
+  els.riskBar.style.width = `${Math.round(State.ctx.risk * 100)}%`;
+
+  els.hudStation.textContent = FlowSpec.stations[active]?.label ?? active;
+  els.hudDesc.textContent = FlowSpec.stations[active]?.desc ?? "";
+  els.meterFill.style.width = `${Math.round((1 - State.ctx.risk) * 100)}%`;
+  els.meterText.textContent = State.alt ? "ALT" : "OK";
+  els.altHint.textContent = State.alt ? `Alternate active → ${FlowSpec.stations[State.alt].label}` : "No alternate active";
+  els.debugPill.textContent = `ALT: ${State.alt ?? "none"}`;
+
+  els.policyState.textContent = State.ctx.policyGate ? "policy_block" : "policy_ok";
+
+  els.routeAlternate.style.display = State.alt ? "block" : "none";
+
+  showOverride(!!State.alt);
+  if (State.alt) {
+    const trigger = FlowSpec.alternates.find(a => a.to === State.alt);
+    els.alertTitle.textContent = `ALTERNATE ROUTE: ${State.alt}`;
+    els.alertDesc.textContent = `Trigger: ${trigger?.trigger ?? "unknown"} — routing to ${FlowSpec.stations[State.alt].label}`;
+  }
+
+  renderFlowList();
+  renderDockActive();
+
+  els.hudNext.textContent = State.station === "CONTROLS" ? "Toggle rules" : "Tap dock icons";
+}
+
+function renderFlowList() {
+  const active = State.alt ? State.alt : State.station;
+  const primary = ["HOME", "MAP", "CONTROLS"];
+  const alts = ["ALT_INFO", "ALT_RISK", "ALT_POLICY"];
+
+  const rows = [...primary, ...alts].map(s => {
+    const isActive = active === s;
+    const isAlt = alts.includes(s);
+    const cls = isAlt ? (s === "ALT_RISK" ? "bad" : "warn") : "good";
+    return `<div class="row" data-st="${s}">
+      <div>${FlowSpec.stations[s].label}</div>
+      <div class="tag ${isActive ? cls : ""}" style="${isActive ? "" : "opacity:.55"}">${isActive ? "ACTIVE" : "GO"}</div>
+    </div>`;
+  }).join("");
+
+  els.flowList.innerHTML = rows;
+  els.flowList.querySelectorAll("[data-st]").forEach(n => {
+    n.addEventListener("click", () => {
+      const st = n.getAttribute("data-st");
+      State.station = st;
+      State.alt = null;
+      app.setAttribute("data-view", ["HOME", "MAP", "CONTROLS"].includes(st) ? st : "HOME");
+      render();
+    });
+  });
+}
+
+function renderDockActive() {
+  document.querySelectorAll(".dock-app[data-station]").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-station") === State.station);
+  });
+}
+
+const DrawerItems = [
+  { id: "HOME", name: "Home", desc: "Main station" },
+  { id: "MAP", name: "Map", desc: "Canvas" },
+  { id: "CONTROLS", name: "Controls", desc: "Rules" },
+  { id: "SIM_INFO", name: "Sim: info_missing", desc: "Trigger alternate" },
+  { id: "SIM_RISK", name: "Sim: risk_over", desc: "Trigger alternate" },
+  { id: "RESET", name: "Reset", desc: "Clear triggers" }
+];
+
+function renderDrawer() {
+  els.drawerBody.innerHTML = DrawerItems.map(x => `
+    <div class="drawer-item" data-id="${x.id}">
+      <div class="drawer-item-name">${x.name}</div>
+      <div class="drawer-item-desc">${x.desc}</div>
+    </div>
+  `).join("");
+
+  els.drawerBody.querySelectorAll("[data-id]").forEach(n => {
+    n.addEventListener("click", () => {
+      const id = n.getAttribute("data-id");
+      if (id === "SIM_INFO") simulateInfoMissing(true);
+      else if (id === "SIM_RISK") simulateRiskOver(true);
+      else if (id === "RESET") resetAll();
+      else gotoStation(id);
+      openDrawer(false);
+    });
+  });
+}
+
+function simulateInfoMissing(on) {
+  State.ctx.infoMissing = !!on;
+  showToast("Alternate Trigger", "info_missing activated → ALT: INFO");
+  render();
+}
+
+function simulateRiskOver(on) {
+  State.ctx.risk = on ? 0.86 : 0.22;
+  showToast("Alternate Trigger", "risk_over activated → ALT: RISK");
+  render();
+}
+
+function resetAll() {
+  State.ctx.infoMissing = false;
+  State.ctx.risk = 0.22;
+  State.ctx.policyGate = false;
+  State.ctx.noise = false;
+  setToggle(els.togPolicy, false);
+  setToggle(els.togNoise, false);
+  els.netDot.className = "dot";
+  els.netText.textContent = "Online";
+  showToast("Reset", "All triggers cleared");
+  render();
+}
+
+// Event listeners
+$("btnDrawer").addEventListener("click", () => openDrawer(!els.drawer.classList.contains("open")));
+$("drawerClose").addEventListener("click", () => openDrawer(false));
+$("dockDrawer").addEventListener("click", () => openDrawer(true));
+$("btnToast").addEventListener("click", () => showToast("Notification", "Sample toast overlay"));
+$("toastClose").addEventListener("click", hideToast);
+$("btnInfoMissing").addEventListener("click", () => simulateInfoMissing(true));
+$("btnRiskOver").addEventListener("click", () => simulateRiskOver(true));
+$("btnReset").addEventListener("click", resetAll);
+$("alertAck").addEventListener("click", () => {
+  State.alt = null;
+  State.ctx.infoMissing = false;
+  State.ctx.risk = 0.22;
+  State.ctx.policyGate = false;
+  render();
+});
+
+els.togAutoAlt.addEventListener("click", () => {
+  State.ctx.autoAlt = !State.ctx.autoAlt;
+  setToggle(els.togAutoAlt, State.ctx.autoAlt);
+  showToast("Rule", `Auto Alternate Route: ${State.ctx.autoAlt ? "ON" : "OFF"}`);
+  render();
+});
+
+els.togPolicy.addEventListener("click", () => {
+  State.ctx.policyGate = !State.ctx.policyGate;
+  setToggle(els.togPolicy, State.ctx.policyGate);
+  if (State.ctx.policyGate) {
+    els.netDot.classList.add("warn");
+    els.netText.textContent = "Policy Gate";
+    showToast("Policy", "policy_block can trigger ALT: POLICY");
+  } else {
+    els.netDot.classList.remove("warn");
+    els.netText.textContent = "Online";
+    showToast("Policy", "policy_ok");
+  }
+  render();
+});
+
+els.togNoise.addEventListener("click", () => {
+  State.ctx.noise = !State.ctx.noise;
+  setToggle(els.togNoise, State.ctx.noise);
+  showToast("External", `Noise: ${State.ctx.noise ? "ON" : "OFF"}`);
+  render();
+});
+
+document.querySelectorAll(".dock-app[data-station]").forEach(btn => {
+  btn.addEventListener("click", () => gotoStation(btn.getAttribute("data-station")));
+});
+
+document.querySelectorAll(".chip[data-station]").forEach(chip => {
+  chip.addEventListener("click", () => gotoStation(chip.getAttribute("data-station")));
+});
+
+$("searchInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    const q = e.target.value.trim().toLowerCase();
+    if (!q) return;
+    if (q.includes("home")) gotoStation("HOME");
+    else if (q.includes("map")) gotoStation("MAP");
+    else if (q.includes("control")) gotoStation("CONTROLS");
+    else showToast("Search", `No route for: "${q}"`);
+    e.target.value = "";
+  }
+});
+
+// Init
+renderDrawer();
+setToggle(els.togAutoAlt, State.ctx.autoAlt);
+setToggle(els.togPolicy, State.ctx.policyGate);
+setToggle(els.togNoise, State.ctx.noise);
+render();
+
+setInterval(() => { if (State.ctx.noise) render(); }, 700);
+</script>
+</body>
+</html>
+
+

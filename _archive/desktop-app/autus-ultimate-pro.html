@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AUTUS Ultimate Pro — Full Customization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ═══════════════════════════════════════════════════════════════════════════════
+           A: CUSTOMIZABLE THEMES & FONTS
+           ═══════════════════════════════════════════════════════════════════════════════ */
+        :root {
+            /* Theme: Default (Tesla White) */
+            --bg-base: #F4F4F4; --bg-card: #FFFFFF; --bg-dock: #1a1a1a;
+            --text-primary: #1a1a1a; --text-secondary: #666666; --text-muted: #999999;
+            --stroke-weak: #e8e8e8; --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --accent: #3498db; --accent-alt: #9b59b6;
+            --blue: #3498db; --red: #E82127; --green: #27ae60;
+            --orange: #f39c12; --yellow: #f1c40f; --purple: #9b59b6; --cyan: #1abc9c;
+            --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 24px;
+            --font-main: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-display: 'Inter', sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --bg-base: #0a0a0a; --bg-card: #1a1a1a; --bg-dock: #000000;
+            --text-primary: #ffffff; --text-secondary: #aaaaaa; --text-muted: #666666;
+            --stroke-weak: #333333; --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        [data-theme="neon"] {
+            --bg-base: #0d0d1a; --bg-card: #1a1a2e; --bg-dock: #0f0f23;
+            --text-primary: #00f5ff; --text-secondary: #ff00ff; --text-muted: #666699;
+            --stroke-weak: #333366; --shadow: 0 0 30px rgba(0, 245, 255, 0.2);
+            --accent: #00f5ff; --accent-alt: #ff00ff;
+        }
+
+        [data-theme="sunset"] {
+            --bg-base: #1a0a0a; --bg-card: #2d1515; --bg-dock: #0d0505;
+            --text-primary: #ffcc99; --text-secondary: #ff9966; --text-muted: #996666;
+            --stroke-weak: #4d2626; --shadow: 0 4px 24px rgba(255, 100, 50, 0.2);
+            --accent: #ff6633; --accent-alt: #ffcc00;
+        }
+
+        [data-theme="forest"] {
+            --bg-base: #0a1a0a; --bg-card: #152515; --bg-dock: #050d05;
+            --text-primary: #99ffcc; --text-secondary: #66cc99; --text-muted: #336655;
+            --stroke-weak: #264d26; --shadow: 0 4px 24px rgba(50, 200, 100, 0.2);
+            --accent: #33cc66; --accent-alt: #00ff99;
+        }
+
+        [data-font="inter"] { --font-main: 'Inter', sans-serif; --font-display: 'Inter', sans-serif; }
+        [data-font="space"] { --font-main: 'Space Grotesk', sans-serif; --font-display: 'Space Grotesk', sans-serif; }
+        [data-font="orbitron"] { --font-main: 'Orbitron', sans-serif; --font-display: 'Orbitron', sans-serif; }
+        [data-font="mono"] { --font-main: 'JetBrains Mono', monospace; --font-display: 'JetBrains Mono', monospace; }
+
+        html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--font-main); }
+        body { background: var(--bg-base); color: var(--text-primary); transition: all 0.4s ease; }
+
+        /* ═══════════════════════════════════════════════════════════════════════════════
+           LAYOUT
+           ═══════════════════════════════════════════════════════════════════════════════ */
+        .app { display: grid; width: 100%; height: 100%; grid-template-rows: 50px 1fr 70px; }
+
+        @media (min-width: 768px) {
+            .app { grid-template-columns: 280px 1fr; grid-template-rows: 50px 1fr 70px; }
+            .top-bar, .dock { grid-column: 1 / -1; }
+        }
+
+        @media (max-width: 767px) {
+            .left-panel { display: none; }
+            .top-bar { padding: 0 10px; }
+            .dock { overflow-x: auto; }
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            background: var(--bg-card); box-shadow: var(--shadow);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; z-index: 100;
+        }
+
+        .top-section { display: flex; align-items: center; gap: 8px; }
+
+        .logo {
+            width: 32px; height: 32px; border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: white; font-size: 14px; cursor: pointer;
+        }
+
+        .title-section h1 { font-size: 13px; font-weight: 600; font-family: var(--font-display); }
+        .title-section p { font-size: 9px; color: var(--text-secondary); }
+
+        .view-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+
+        .view-tab {
+            padding: 6px 12px; border-radius: 14px; font-size: 10px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s; background: var(--bg-base);
+            color: var(--text-secondary); border: none;
+        }
+
+        .view-tab:hover { background: var(--stroke-weak); }
+        .view-tab.active { background: var(--accent); color: white; }
+
+        .icon-btn {
+            width: 30px; height: 30px; border-radius: 15px;
+            background: var(--bg-base); border: 1px solid var(--stroke-weak);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 12px; transition: all 0.2s;
+        }
+
+        .icon-btn:hover { background: var(--stroke-weak); transform: scale(1.1); }
+
+        .clock { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+
+        /* LEFT PANEL */
+        .left-panel {
+            background: var(--bg-card); box-shadow: var(--shadow);
+            padding: 12px; display: flex; flex-direction: column; gap: 10px;
+            overflow-y: auto;
+        }
+
+        .panel-card { background: var(--bg-base); border-radius: var(--radius-md); padding: 10px; }
+        .panel-title { font-size: 10px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+
+        .velocity-display { text-align: center; padding: 6px 0; }
+        .velocity-value { font-size: 48px; font-weight: 200; font-family: var(--font-display); color: var(--accent); }
+        .velocity-unit { font-size: 10px; color: var(--text-muted); letter-spacing: 2px; }
+
+        .metric-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+        .metric-label { font-size: 10px; color: var(--text-secondary); min-width: 60px; }
+        .metric-bar { flex: 1; height: 4px; background: var(--stroke-weak); border-radius: 2px; overflow: hidden; }
+        .metric-fill { height: 100%; border-radius: 2px; transition: all 0.3s; }
+        .metric-value { font-size: 11px; font-weight: 600; min-width: 30px; text-align: right; font-family: var(--font-mono); }
+
+        /* B: STATS CARDS */
+        .stats-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+        .stat-mini {
+            background: var(--bg-card); border-radius: var(--radius-sm);
+            padding: 8px; text-align: center;
+        }
+
+        .stat-mini-icon { font-size: 14px; margin-bottom: 2px; }
+        .stat-mini-value { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--accent); }
+        .stat-mini-label { font-size: 7px; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Layer List */
+        .layer-list { display: flex; flex-direction: column; gap: 3px; }
+
+        .layer-item {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 8px; border-radius: var(--radius-sm);
+            cursor: pointer; transition: all 0.15s;
+        }
+
+        .layer-item:hover { background: var(--bg-card); }
+        .layer-item.active { background: rgba(52, 152, 219, 0.15); }
+
+        .layer-badge {
+            width: 24px; height: 24px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 8px; font-weight: 700; color: white;
+        }
+
+        .layer-info { flex: 1; }
+        .layer-name { font-size: 10px; font-weight: 500; }
+        .layer-count { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 6px; background: var(--stroke-weak); }
+
+        /* MAIN CANVAS */
+        .main-canvas { background: var(--bg-card); position: relative; overflow: hidden; }
+
+        .canvas-grid {
+            position: absolute; inset: 0; opacity: 0.3;
+            background-image: linear-gradient(var(--stroke-weak) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--stroke-weak) 1px, transparent 1px);
+            background-size: 30px 30px; pointer-events: none;
+        }
+
+        .view-container { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: all 0.4s; }
+        .view-container.active { opacity: 1; pointer-events: auto; }
+
+        /* D: ROUTER LAYOUTS */
+        .router-view { padding: 16px; display: flex; flex-direction: column; height: 100%; }
+        .router-header { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .router-title { font-size: 13px; font-weight: 600; }
+        .router-subtitle { font-size: 9px; color: var(--text-secondary); }
+
+        .layout-btns { display: flex; gap: 4px; }
+        .layout-btn {
+            padding: 4px 10px; border-radius: 10px; font-size: 9px;
+            background: var(--bg-base); border: none; cursor: pointer;
+            color: var(--text-secondary); transition: all 0.2s;
+        }
+        .layout-btn.active { background: var(--accent); color: white; }
+
+        .router-graph { flex: 1; position: relative; }
+        .router-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+        @keyframes dashFlow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -40; } }
+        @keyframes loopPulse { 0%, 100% { stroke-dashoffset: 0; } 50% { stroke-dashoffset: 60; } }
+        @keyframes neonGlow { 0%, 100% { filter: drop-shadow(0 0 3px var(--accent)); } 50% { filter: drop-shadow(0 0 12px var(--accent)); } }
+
+        .route-path { transition: all 0.4s; }
+        .route-path.alternate { animation: dashFlow 1s linear infinite; }
+        .route-path.loop { animation: loopPulse 2s ease-in-out infinite; }
+        [data-theme="neon"] .route-path { animation: neonGlow 2s ease-in-out infinite; }
+
+        .layer-node {
+            position: absolute; transform: translate(-50%, -50%);
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .layer-node:hover { transform: translate(-50%, -50%) scale(1.15); }
+
+        .layer-node-inner {
+            width: 50px; height: 50px; border-radius: 25px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: var(--shadow);
+        }
+
+        @media (min-width: 768px) {
+            .layer-node-inner { width: 60px; height: 60px; border-radius: 30px; }
+        }
+
+        .layer-node.active .layer-node-inner { box-shadow: 0 0 0 3px rgba(255,255,255,0.3), 0 8px 24px rgba(0,0,0,0.2); }
+
+        .layer-node .id { font-size: 9px; font-weight: 700; color: white; }
+        .layer-node .name { font-size: 7px; color: rgba(255,255,255,0.7); }
+        .layer-node .count { font-size: 12px; font-weight: 700; color: white; }
+
+        .node-pulse {
+            position: absolute; inset: -5px; border: 2px solid; border-radius: 50%;
+            animation: nodePulse 2s infinite; pointer-events: none;
+        }
+
+        @keyframes nodePulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
+
+        /* Stats View */
+        .stats-view { padding: 16px; height: 100%; overflow-y: auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+
+        .stat-card {
+            background: var(--bg-base); border-radius: var(--radius-md);
+            padding: 14px; display: flex; flex-direction: column; gap: 6px;
+        }
+
+        .stat-header { display: flex; justify-content: space-between; align-items: center; }
+        .stat-title { font-size: 10px; color: var(--text-secondary); }
+        .stat-icon { font-size: 14px; }
+        .stat-value { font-size: 28px; font-weight: 200; font-family: var(--font-display); }
+        .stat-bar { height: 4px; background: var(--stroke-weak); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+        .stat-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+
+        /* 3D View */
+        .three-container { position: absolute; inset: 0; }
+        #threeCanvas { width: 100%; height: 100%; }
+
+        .three-controls {
+            position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 6px; background: var(--bg-card); padding: 8px 12px;
+            border-radius: var(--radius-md); box-shadow: var(--shadow);
+        }
+
+        .three-btn {
+            padding: 6px 12px; border-radius: var(--radius-sm);
+            background: var(--bg-base); border: none; font-size: 10px;
+            cursor: pointer; transition: all 0.2s; color: var(--text-primary);
+        }
+
+        .three-btn:hover { background: var(--stroke-weak); }
+        .three-btn.active { background: var(--accent); color: white; }
+
+        /* Settings View */
+        .settings-view { padding: 16px; height: 100%; overflow-y: auto; }
+        .settings-section { margin-bottom: 20px; }
+        .settings-title { font-size: 12px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
+        .theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
+
+        .theme-option {
+            padding: 12px 8px; border-radius: var(--radius-md); text-align: center;
+            cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
+        }
+
+        .theme-option:hover { border-color: var(--stroke-weak); }
+        .theme-option.active { border-color: var(--accent); }
+        .theme-preview { width: 30px; height: 30px; border-radius: 15px; margin: 0 auto 6px; }
+        .theme-name { font-size: 9px; font-weight: 500; }
+
+        .font-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+
+        .font-option {
+            padding: 8px 14px; border-radius: var(--radius-sm);
+            cursor: pointer; border: 2px solid transparent; font-size: 11px;
+            background: var(--bg-base); transition: all 0.2s;
+        }
+
+        .font-option:hover { border-color: var(--stroke-weak); }
+        .font-option.active { border-color: var(--accent); background: var(--accent); color: white; }
+
+        /* Info Bar */
+        .info-bar {
+            position: absolute; bottom: 12px; left: 12px; right: 12px;
+            background: var(--bg-base); border-radius: var(--radius-md);
+            padding: 10px 14px; display: flex; align-items: center; gap: 12px;
+        }
+
+        .info-stat { text-align: center; }
+        .info-value { font-size: 16px; font-weight: 700; font-family: var(--font-mono); color: var(--accent); }
+        .info-label { font-size: 7px; color: var(--text-muted); text-transform: uppercase; }
+
+        .info-flow { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; }
+        .flow-chip { padding: 3px 8px; border-radius: 8px; font-size: 8px; font-weight: 600; color: white; }
+        .flow-arrow { color: var(--text-muted); font-size: 9px; }
+
+        /* DOCK */
+        .dock {
+            background: var(--bg-dock); display: flex; align-items: center;
+            justify-content: space-between; padding: 0 12px; gap: 8px;
+        }
+
+        .dock-section { display: flex; align-items: center; gap: 6px; }
+
+        .dock-layers { display: flex; gap: 3px; }
+
+        .dock-layer {
+            width: 38px; height: 38px; border-radius: var(--radius-sm);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+        }
+
+        .dock-layer:hover { transform: scale(1.08); }
+        .dock-layer.active { border-color: white; }
+        .dock-layer .id { font-size: 9px; font-weight: 700; color: white; }
+        .dock-layer .short { font-size: 6px; color: rgba(255,255,255,0.6); }
+
+        .debug-pill {
+            font-family: var(--font-mono); font-size: 8px; padding: 5px 10px;
+            border-radius: 10px; background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.5); font-weight: 600;
+        }
+
+        /* C: TOAST ANIMATIONS */
+        .toast {
+            position: fixed; top: 60px; right: 16px; z-index: 1000;
+            background: var(--bg-card); border-radius: var(--radius-md);
+            padding: 10px 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 8px;
+            transform: translateX(120%); opacity: 0;
+        }
+
+        /* Toast Animation Styles */
+        .toast.anim-slide { transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s; }
+        .toast.anim-slide.show { transform: translateX(0); opacity: 1; }
+
+        .toast.anim-bounce { transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; }
+        .toast.anim-bounce.show { transform: translateX(0); opacity: 1; }
+
+        .toast.anim-fade { transition: opacity 0.4s ease; transform: translateX(0); }
+        .toast.anim-fade.show { opacity: 1; }
+
+        .toast.anim-scale { transition: transform 0.3s ease, opacity 0.3s; transform: scale(0.5) translateX(50%); }
+        .toast.anim-scale.show { transform: scale(1) translateX(0); opacity: 1; }
+
+        .toast-icon { font-size: 16px; }
+        .toast-content .toast-title { font-size: 10px; font-weight: 600; }
+        .toast-content .toast-msg { font-size: 8px; color: var(--text-muted); }
+        .toast-close { cursor: pointer; color: var(--text-muted); font-size: 10px; margin-left: 8px; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+
+        .modal {
+            background: var(--bg-card); border-radius: var(--radius-xl);
+            padding: 24px; max-width: 360px; width: 90%; text-align: center;
+            transform: scale(0.9); transition: transform 0.3s;
+        }
+
+        .modal-overlay.show .modal { transform: scale(1); }
+
+        .modal-btn {
+            background: var(--accent); color: white; border: none;
+            padding: 10px 24px; border-radius: var(--radius-md);
+            font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app" id="app">
+    <!-- TOP BAR -->
+    <header class="top-bar">
+        <div class="top-section">
+            <div class="logo">A</div>
+            <div class="title-section">
+                <h1>AUTUS Ultimate Pro</h1>
+                <p>Full Customization</p>
+            </div>
+        </div>
+
+        <div class="view-tabs">
+            <button class="view-tab active" data-view="router" onclick="switchView('router')">🚇 Router</button>
+            <button class="view-tab" data-view="stats" onclick="switchView('stats')">📊 Stats</button>
+            <button class="view-tab" data-view="three" onclick="switchView('three')">🎮 3D</button>
+            <button class="view-tab" data-view="settings" onclick="switchView('settings')">⚙️</button>
+        </div>
+
+        <div class="top-section">
+            <div class="clock" id="clock">00:00:00</div>
+            <div class="icon-btn" onclick="cycleToastAnim(); showToast('Toast Style Changed!', 'info')" title="Toast Test">🔔</div>
+            <div class="icon-btn" onclick="cycleTheme()" title="Theme" id="themeBtn">🎨</div>
+        </div>
+    </header>
+
+    <!-- LEFT PANEL -->
+    <aside class="left-panel">
+        <div class="panel-card">
+            <div class="velocity-display">
+                <div class="velocity-value" id="velocityValue">74</div>
+                <div class="velocity-unit">MPH</div>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">⚡ Entropy</span>
+                <div class="metric-bar"><div class="metric-fill" id="entropyFill" style="width:32%;background:var(--green);"></div></div>
+                <span class="metric-value" id="entropyValue">0.32</span>
+            </div>
+        </div>
+
+        <!-- B: MINI STATS -->
+        <div class="panel-card">
+            <div class="panel-title">📊 SYSTEM STATS</div>
+            <div class="stats-mini">
+                <div class="stat-mini">
+                    <div class="stat-mini-icon">💻</div>
+                    <div class="stat-mini-value" id="cpuValue">42%</div>
+                    <div class="stat-mini-label">CPU</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-icon">🧠</div>
+                    <div class="stat-mini-value" id="memValue">67%</div>
+                    <div class="stat-mini-label">Memory</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-icon">📶</div>
+                    <div class="stat-mini-value" id="netValue">124</div>
+                    <div class="stat-mini-label">Net KB/s</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-icon">💾</div>
+                    <div class="stat-mini-value" id="diskValue">58%</div>
+                    <div class="stat-mini-label">Disk</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-card" style="flex:1;overflow-y:auto;">
+            <div class="panel-title">🔗 7-LAYER SYSTEM</div>
+            <div class="layer-list" id="layerList"></div>
+        </div>
+    </aside>
+
+    <!-- MAIN CANVAS -->
+    <main class="main-canvas" id="mainCanvas">
+        <div class="canvas-grid"></div>
+
+        <!-- Router View -->
+        <div class="view-container active" id="routerView">
+            <div class="router-view">
+                <div class="router-header">
+                    <div>
+                        <div class="router-title">🚇 7-Layer Router</div>
+                        <div class="router-subtitle">Layout: <span id="layoutLabel">Path</span> • Policy: <span id="currentPolicy">NORMAL</span></div>
+                    </div>
+                    <!-- D: LAYOUT BUTTONS -->
+                    <div class="layout-btns">
+                        <button class="layout-btn active" onclick="setLayout('path')">Path</button>
+                        <button class="layout-btn" onclick="setLayout('circle')">Circle</button>
+                        <button class="layout-btn" onclick="setLayout('tree')">Tree</button>
+                        <button class="layout-btn" onclick="setLayout('grid')">Grid</button>
+                    </div>
+                </div>
+                <div class="router-graph" id="routerGraph">
+                    <svg class="router-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <filter id="glow"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                        </defs>
+                        <path id="routePath" class="route-path" d="" stroke="var(--accent)" stroke-width="4" fill="none" stroke-linecap="round" filter="url(#glow)"/>
+                    </svg>
+                    <div id="layerNodesContainer"></div>
+                </div>
+                <div class="info-bar">
+                    <div class="info-stat"><div class="info-value" id="infoVelocity">74</div><div class="info-label">Velocity</div></div>
+                    <div class="info-flow" id="infoFlow"></div>
+                    <div class="info-stat"><div class="info-value" style="color:var(--purple);">90</div><div class="info-label">Types</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats View -->
+        <div class="view-container" id="statsView">
+            <div class="stats-view">
+                <div class="stats-grid" id="statsGrid"></div>
+            </div>
+        </div>
+
+        <!-- 3D View -->
+        <div class="view-container" id="threeView">
+            <div class="three-container">
+                <canvas id="threeCanvas"></canvas>
+            </div>
+            <div class="three-controls">
+                <button class="three-btn active" onclick="set3DMode('orbit')">🔄 Orbit</button>
+                <button class="three-btn" onclick="set3DMode('top')">⬆️ Top</button>
+                <button class="three-btn" onclick="set3DMode('side')">➡️ Side</button>
+                <button class="three-btn" onclick="toggle3DCar()">🚗 Car</button>
+            </div>
+        </div>
+
+        <!-- Settings View -->
+        <div class="view-container" id="settingsView">
+            <div class="settings-view">
+                <div class="settings-section">
+                    <div class="settings-title">🎨 Theme</div>
+                    <div class="theme-grid" id="themeGrid"></div>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-title">🔤 Font</div>
+                    <div class="font-grid" id="fontGrid"></div>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-title">🔔 Toast Animation</div>
+                    <div class="font-grid" id="toastAnimGrid"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- DOCK -->
+    <nav class="dock">
+        <div class="dock-section">
+            <div class="dock-layers" id="dockLayers"></div>
+        </div>
+        <div class="dock-section">
+            <div class="debug-pill" id="debugPill">L3 | NORMAL</div>
+        </div>
+    </nav>
+</div>
+
+<!-- Toast -->
+<div class="toast anim-slide" id="toast">
+    <div class="toast-icon" id="toastIcon">ℹ️</div>
+    <div class="toast-content">
+        <div class="toast-title" id="toastTitle">Info</div>
+        <div class="toast-msg" id="toastMsg">Message</div>
+    </div>
+    <div class="toast-close" onclick="hideToast()">✕</div>
+</div>
+
+<script>
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // DATA
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    const LAYERS = {
+        L0: { name: 'ExternalField', short: 'EXT', color: '#2c3e50' },
+        L1: { name: 'SystemBar', short: 'SYS', color: '#3498db' },
+        L2: { name: 'EntityPanel', short: 'ENT', color: '#27ae60' },
+        L3: { name: 'CoreCanvas', short: 'CORE', color: '#f39c12' },
+        L4: { name: 'FlowDock', short: 'DOCK', color: '#9b59b6' },
+        L5: { name: 'ContextOverlay', short: 'CTX', color: '#1abc9c' },
+        L6: { name: 'Override', short: 'OVR', color: '#E82127' }
+    };
+
+    // D: LAYOUT POSITIONS
+    const LAYOUTS = {
+        path: {
+            L0: { x: 8, y: 88 }, L1: { x: 20, y: 72 }, L2: { x: 35, y: 55 },
+            L3: { x: 50, y: 42 }, L4: { x: 65, y: 30 }, L5: { x: 80, y: 20 }, L6: { x: 92, y: 10 }
+        },
+        circle: {
+            L0: { x: 50, y: 85 }, L1: { x: 20, y: 65 }, L2: { x: 15, y: 35 },
+            L3: { x: 35, y: 12 }, L4: { x: 65, y: 12 }, L5: { x: 85, y: 35 }, L6: { x: 80, y: 65 }
+        },
+        tree: {
+            L0: { x: 50, y: 90 }, L1: { x: 30, y: 70 }, L2: { x: 70, y: 70 },
+            L3: { x: 50, y: 50 }, L4: { x: 25, y: 30 }, L5: { x: 50, y: 30 }, L6: { x: 75, y: 30 }
+        },
+        grid: {
+            L0: { x: 20, y: 75 }, L1: { x: 50, y: 75 }, L2: { x: 80, y: 75 },
+            L3: { x: 20, y: 35 }, L4: { x: 50, y: 35 }, L5: { x: 80, y: 35 }, L6: { x: 50, y: 10 }
+        }
+    };
+
+    const THEMES = [
+        { id: 'light', name: 'Light', colors: ['#F4F4F4', '#3498db'] },
+        { id: 'dark', name: 'Dark', colors: ['#0a0a0a', '#3498db'] },
+        { id: 'neon', name: 'Neon', colors: ['#0d0d1a', '#00f5ff'] },
+        { id: 'sunset', name: 'Sunset', colors: ['#1a0a0a', '#ff6633'] },
+        { id: 'forest', name: 'Forest', colors: ['#0a1a0a', '#33cc66'] }
+    ];
+
+    const FONTS = [
+        { id: 'inter', name: 'Inter' },
+        { id: 'space', name: 'Space Grotesk' },
+        { id: 'orbitron', name: 'Orbitron' },
+        { id: 'mono', name: 'Mono' }
+    ];
+
+    const TOAST_ANIMS = ['slide', 'bounce', 'fade', 'scale'];
+
+    const POLICY_COLORS = { NORMAL: '#3498db', ALTERNATE: '#E82127', LOOP: '#f1c40f' };
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    const state = {
+        currentView: 'router',
+        currentLayer: 'L3',
+        currentLayout: 'path',
+        currentTheme: 'light',
+        currentFont: 'inter',
+        toastAnim: 'slide',
+        velocity: 74,
+        entropy: 0.32,
+        cpu: 42, memory: 67, network: 124, disk: 58,
+        show3DCar: false
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // RENDER
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function renderLayerList() {
+        document.getElementById('layerList').innerHTML = Object.entries(LAYERS).map(([id, l]) => `
+            <div class="layer-item ${state.currentLayer === id ? 'active' : ''}" onclick="selectLayer('${id}')">
+                <div class="layer-badge" style="background:${l.color};">${id}</div>
+                <div class="layer-info"><div class="layer-name">${l.name}</div></div>
+                <div class="layer-count">${Math.floor(Math.random()*5)+1}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderLayerNodes() {
+        const positions = LAYOUTS[state.currentLayout];
+        const container = document.getElementById('layerNodesContainer');
+        container.innerHTML = Object.entries(LAYERS).map(([id, l]) => {
+            const pos = positions[id];
+            const isActive = state.currentLayer === id;
+            return `
+                <div class="layer-node ${isActive ? 'active' : ''}" style="left:${pos.x}%;top:${pos.y}%;" onclick="selectLayer('${id}')">
+                    ${isActive ? `<div class="node-pulse" style="border-color:${l.color};"></div>` : ''}
+                    <div class="layer-node-inner" style="background:${l.color};">
+                        <div class="id">${id}</div>
+                        <div class="name">${l.short}</div>
+                        <div class="count">${Math.floor(Math.random()*5)+1}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        updateRoutePath();
+    }
+
+    function updateRoutePath() {
+        const positions = LAYOUTS[state.currentLayout];
+        const path = document.getElementById('routePath');
+        const points = Object.keys(LAYERS).map(id => {
+            const pos = positions[id];
+            return { x: pos.x * 8, y: pos.y * 4 };
+        });
+
+        let d = `M${points[0].x} ${points[0].y}`;
+        for (let i = 1; i < points.length; i++) {
+            const prev = points[i - 1];
+            const curr = points[i];
+            const cpX = (prev.x + curr.x) / 2;
+            d += ` Q${cpX} ${prev.y} ${curr.x} ${curr.y}`;
+        }
+        path.setAttribute('d', d);
+    }
+
+    function renderDockLayers() {
+        document.getElementById('dockLayers').innerHTML = Object.entries(LAYERS).map(([id, l]) => `
+            <div class="dock-layer ${state.currentLayer === id ? 'active' : ''}" style="background:${l.color};" onclick="selectLayer('${id}')">
+                <div class="id">${id}</div>
+                <div class="short">${l.short}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderInfoFlow() {
+        const flow = ['L0', 'L2', state.currentLayer];
+        document.getElementById('infoFlow').innerHTML = flow.map((l, i) => `
+            <div class="flow-chip" style="background:${LAYERS[l].color};">${l}</div>
+            ${i < flow.length - 1 ? '<span class="flow-arrow">→</span>' : ''}
+        `).join('');
+    }
+
+    function renderStats() {
+        const stats = [
+            { title: 'Velocity', icon: '⚡', value: state.velocity, max: 200, color: 'var(--blue)' },
+            { title: 'Entropy', icon: '🔥', value: (state.entropy * 100).toFixed(0), max: 100, color: 'var(--orange)' },
+            { title: 'CPU Usage', icon: '💻', value: state.cpu, max: 100, color: 'var(--green)' },
+            { title: 'Memory', icon: '🧠', value: state.memory, max: 100, color: 'var(--purple)' },
+            { title: 'Network', icon: '📶', value: state.network, max: 500, color: 'var(--cyan)' },
+            { title: 'Disk', icon: '💾', value: state.disk, max: 100, color: 'var(--red)' },
+            { title: 'Active Layer', icon: '📍', value: state.currentLayer, max: 0, color: '' },
+            { title: 'Layout', icon: '🗺️', value: state.currentLayout, max: 0, color: '' }
+        ];
+
+        document.getElementById('statsGrid').innerHTML = stats.map(s => `
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">${s.title}</span>
+                    <span class="stat-icon">${s.icon}</span>
+                </div>
+                <div class="stat-value" style="color:${s.color || 'inherit'};">${s.value}${s.max ? '%' : ''}</div>
+                ${s.max ? `<div class="stat-bar"><div class="stat-bar-fill" style="width:${(s.value/s.max)*100}%;background:${s.color};"></div></div>` : ''}
+            </div>
+        `).join('');
+    }
+
+    function renderThemeGrid() {
+        document.getElementById('themeGrid').innerHTML = THEMES.map(t => `
+            <div class="theme-option ${state.currentTheme === t.id ? 'active' : ''}" onclick="setTheme('${t.id}')">
+                <div class="theme-preview" style="background: linear-gradient(135deg, ${t.colors[0]}, ${t.colors[1]});"></div>
+                <div class="theme-name">${t.name}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderFontGrid() {
+        document.getElementById('fontGrid').innerHTML = FONTS.map(f => `
+            <div class="font-option ${state.currentFont === f.id ? 'active' : ''}" onclick="setFont('${f.id}')" style="font-family: var(--font-${f.id === 'mono' ? 'mono' : 'main'});">
+                ${f.name}
+            </div>
+        `).join('');
+    }
+
+    function renderToastAnimGrid() {
+        document.getElementById('toastAnimGrid').innerHTML = TOAST_ANIMS.map(a => `
+            <div class="font-option ${state.toastAnim === a ? 'active' : ''}" onclick="setToastAnim('${a}')">
+                ${a.charAt(0).toUpperCase() + a.slice(1)}
+            </div>
+        `).join('');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // ACTIONS
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function selectLayer(id) {
+        state.currentLayer = id;
+        gsap.to('#routePath', { stroke: LAYERS[id].color, duration: 0.3 });
+        document.getElementById('debugPill').textContent = `${id} | NORMAL`;
+        renderLayerList();
+        renderLayerNodes();
+        renderDockLayers();
+        renderInfoFlow();
+        showToast(`Layer ${id} activated`, 'info');
+    }
+
+    function setLayout(layout) {
+        state.currentLayout = layout;
+        document.querySelectorAll('.layout-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(layout)));
+        document.getElementById('layoutLabel').textContent = layout.charAt(0).toUpperCase() + layout.slice(1);
+
+        // Animate nodes to new positions
+        const positions = LAYOUTS[layout];
+        Object.entries(LAYERS).forEach(([id]) => {
+            const node = document.querySelector(`.layer-node[onclick*="${id}"]`);
+            if (node) {
+                gsap.to(node, { left: positions[id].x + '%', top: positions[id].y + '%', duration: 0.6, ease: 'power2.out' });
+            }
+        });
+
+        setTimeout(updateRoutePath, 100);
+        showToast(`Layout: ${layout}`, 'info');
+    }
+
+    function setTheme(theme) {
+        state.currentTheme = theme;
+        document.body.setAttribute('data-theme', theme);
+        renderThemeGrid();
+        if (scene) scene.background = new THREE.Color(theme === 'light' ? 0xf4f4f4 : 0x0a0a0a);
+    }
+
+    function setFont(font) {
+        state.currentFont = font;
+        document.body.setAttribute('data-font', font);
+        renderFontGrid();
+    }
+
+    function setToastAnim(anim) {
+        state.toastAnim = anim;
+        const toast = document.getElementById('toast');
+        toast.className = `toast anim-${anim}`;
+        renderToastAnimGrid();
+    }
+
+    function cycleTheme() {
+        const idx = THEMES.findIndex(t => t.id === state.currentTheme);
+        setTheme(THEMES[(idx + 1) % THEMES.length].id);
+    }
+
+    function cycleToastAnim() {
+        const idx = TOAST_ANIMS.indexOf(state.toastAnim);
+        setToastAnim(TOAST_ANIMS[(idx + 1) % TOAST_ANIMS.length]);
+    }
+
+    function switchView(view) {
+        state.currentView = view;
+        document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+        document.querySelectorAll('.view-container').forEach(v => v.classList.toggle('active', v.id === view + 'View'));
+        if (view === 'three') initThree();
+        if (view === 'stats') renderStats();
+        if (view === 'settings') { renderThemeGrid(); renderFontGrid(); renderToastAnimGrid(); }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // E: THREE.JS 3D + CAR MODEL
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    let scene, camera, renderer, layerMeshes = [], carGroup;
+    let threeInitialized = false;
+
+    function initThree() {
+        if (threeInitialized) return;
+        threeInitialized = true;
+
+        const canvas = document.getElementById('threeCanvas');
+        const container = canvas.parentElement;
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(state.currentTheme === 'dark' || state.currentTheme === 'neon' ? 0x0a0a0a : 0xf4f4f4);
+
+        camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 8, 12);
+        camera.lookAt(0, 0, 0);
+
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 5);
+        scene.add(dirLight);
+
+        // Layer Discs
+        Object.entries(LAYERS).forEach(([id, layer], i) => {
+            const geometry = new THREE.CylinderGeometry(1, 1, 0.25, 32);
+            const material = new THREE.MeshStandardMaterial({ color: layer.color, metalness: 0.4, roughness: 0.6 });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.y = i * 1.1 - 3.3;
+            scene.add(mesh);
+            layerMeshes.push(mesh);
+        });
+
+        // E: CAR MODEL (Simple Tesla-like shape)
+        carGroup = new THREE.Group();
+
+        // Body
+        const bodyGeom = new THREE.BoxGeometry(1.5, 0.4, 3);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xcc0000, metalness: 0.8, roughness: 0.2 });
+        const body = new THREE.Mesh(bodyGeom, bodyMat);
+        body.position.y = 0.3;
+        carGroup.add(body);
+
+        // Cabin
+        const cabinGeom = new THREE.BoxGeometry(1.2, 0.35, 1.5);
+        const cabinMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.3 });
+        const cabin = new THREE.Mesh(cabinGeom, cabinMat);
+        cabin.position.y = 0.65;
+        cabin.position.z = -0.2;
+        carGroup.add(cabin);
+
+        // Wheels
+        const wheelGeom = new THREE.CylinderGeometry(0.25, 0.25, 0.15, 16);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        [[-0.7, 0.1, 0.9], [0.7, 0.1, 0.9], [-0.7, 0.1, -0.9], [0.7, 0.1, -0.9]].forEach(pos => {
+            const wheel = new THREE.Mesh(wheelGeom, wheelMat);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(...pos);
+            carGroup.add(wheel);
+        });
+
+        carGroup.position.set(3, -2.5, 0);
+        carGroup.visible = false;
+        scene.add(carGroup);
+
+        animate3D();
+    }
+
+    function animate3D() {
+        requestAnimationFrame(animate3D);
+        layerMeshes.forEach((mesh, i) => {
+            mesh.rotation.y += 0.005;
+            const isActive = `L${i}` === state.currentLayer;
+            mesh.scale.setScalar(isActive ? 1.2 : 1);
+        });
+        if (carGroup.visible) carGroup.rotation.y += 0.01;
+        renderer.render(scene, camera);
+    }
+
+    function set3DMode(mode) {
+        document.querySelectorAll('.three-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        gsap.to(camera.position, {
+            x: mode === 'side' ? 15 : 0,
+            y: mode === 'top' ? 15 : 8,
+            z: mode === 'top' ? 0.1 : (mode === 'side' ? 0 : 12),
+            duration: 1, ease: 'power2.out',
+            onUpdate: () => camera.lookAt(0, 0, 0)
+        });
+    }
+
+    function toggle3DCar() {
+        state.show3DCar = !state.show3DCar;
+        carGroup.visible = state.show3DCar;
+        showToast(`3D Car ${state.show3DCar ? 'ON' : 'OFF'}`, 'info');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // C: TOAST
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    function showToast(msg, type = 'info') {
+        const icons = { success: '✓', warning: '⚠️', error: '✗', info: 'ℹ️' };
+        document.getElementById('toastIcon').textContent = icons[type];
+        document.getElementById('toastTitle').textContent = type.charAt(0).toUpperCase() + type.slice(1);
+        document.getElementById('toastMsg').textContent = msg;
+        document.getElementById('toast').classList.add('show');
+        setTimeout(hideToast, 3000);
+    }
+
+    function hideToast() { document.getElementById('toast').classList.remove('show'); }
+
+    function updateClock() {
+        document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+    }
+
+    // B: SIMULATE STATS
+    function simulate() {
+        state.velocity = Math.max(0, Math.min(200, state.velocity + (Math.random() - 0.4) * 5));
+        state.entropy = Math.max(0, Math.min(1, state.entropy + (Math.random() - 0.5) * 0.05));
+        state.cpu = Math.max(5, Math.min(95, state.cpu + (Math.random() - 0.5) * 8));
+        state.memory = Math.max(30, Math.min(95, state.memory + (Math.random() - 0.5) * 5));
+        state.network = Math.max(10, Math.min(500, state.network + (Math.random() - 0.5) * 50));
+        state.disk = Math.max(40, Math.min(90, state.disk + (Math.random() - 0.5) * 3));
+
+        document.getElementById('velocityValue').textContent = Math.round(state.velocity);
+        document.getElementById('infoVelocity').textContent = Math.round(state.velocity);
+        document.getElementById('entropyValue').textContent = state.entropy.toFixed(2);
+        document.getElementById('entropyFill').style.width = (state.entropy * 100) + '%';
+
+        document.getElementById('cpuValue').textContent = Math.round(state.cpu) + '%';
+        document.getElementById('memValue').textContent = Math.round(state.memory) + '%';
+        document.getElementById('netValue').textContent = Math.round(state.network);
+        document.getElementById('diskValue').textContent = Math.round(state.disk) + '%';
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    renderLayerList();
+    renderLayerNodes();
+    renderDockLayers();
+    renderInfoFlow();
+    updateClock();
+
+    setInterval(simulate, 300);
+    setInterval(updateClock, 1000);
+
+    window.addEventListener('resize', () => {
+        if (renderer) {
+            const container = document.getElementById('threeCanvas').parentElement;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+    });
+
+    console.log('🚀 AUTUS Ultimate Pro — Full Customization');
+</script>
+
+</body>
+</html>
+

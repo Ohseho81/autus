@@ -1,0 +1,44 @@
+{
+  "task": "risk_assessment",
+  "model": "gemini-pro (Mock)",
+  "timestamp": "2025-12-23T08:29:09.337401",
+  "input_records": 76,
+  "risk_level": "LOW",
+  "summary": "총 76건 분석 완료. 순현금흐름: 628,440,000원",
+  "details": {
+    "cashflow_ratio": 5.87,
+    "expense_ratio": 17.0,
+    "risk_indicators": [
+      {
+        "name": "현금흐름 비율",
+        "value": 5.87,
+        "threshold": 1.2,
+        "status": "SAFE",
+        "description": "수입/지출 비율 (1.2 이상 권장)"
+      },
+      {
+        "name": "지출 비율",
+        "value": 17.0,
+        "threshold": 80,
+        "status": "SAFE",
+        "description": "지출/수입 비율 (80% 이하 권장)"
+      },
+      {
+        "name": "순현금흐름",
+        "value": 628440000,
+        "threshold": 0,
+        "status": "SAFE",
+        "description": "수입 - 지출 (양수 필요)"
+      }
+    ],
+    "monthly_burn_rate": 43006666.666666664,
+    "runway_months": 14.6
+  },
+  "recommendations": [
+    "현재 재무 상태 양호",
+    "지출 관리 양호",
+    "수입원 다양성 양호",
+    "세금 신고 일정 확인"
+  ],
+  "raw_response": null
+}

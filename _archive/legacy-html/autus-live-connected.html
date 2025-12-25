@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS Live - Backend Connected</title>
+    <style>
+        :root {
+            --core-active: #00ff88;
+            --core-blue: #3498db;
+            --stable: #00ff88;
+            --warning: #ffcc00;
+            --danger: #ff3366;
+            --detour: #ff6b35;
+            --bg-dark: #0a0a0f;
+            --bg-card: rgba(20, 20, 30, 0.95);
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0c0;
+            --text-dim: #666680;
+            --bead-unlock: #3498db;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           CONNECTION STATUS
+        ═══════════════════════════════════════════════════════════════ */
+        .connection-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--danger);
+            z-index: 1000;
+            transition: background 0.3s;
+        }
+        
+        .connection-bar.connected { background: var(--stable); }
+        .connection-bar.connecting { background: var(--warning); animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           HEADER
+        ═══════════════════════════════════════════════════════════════ */
+        .header {
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        
+        .logo span { color: var(--core-active); }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger);
+        }
+        
+        .status-dot.connected { background: var(--stable); }
+        
+        .accel-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border-radius: 20px;
+        }
+        
+        .accel-value {
+            font-weight: 700;
+            color: var(--core-active);
+            font-size: 18px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           MAIN GRID
+        ═══════════════════════════════════════════════════════════════ */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            padding: 20px 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           BEAD SECTION
+        ═══════════════════════════════════════════════════════════════ */
+        .bead-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .bead-card {
+            flex: 1;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        
+        .bead-card.locked { opacity: 0.5; }
+        .bead-card.active { border-color: var(--core-active); background: rgba(0,255,136,0.05); }
+        .bead-card.unlocked { border-color: var(--bead-unlock); background: rgba(52,152,219,0.05); }
+        
+        .bead-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .bead-num { font-size: 10px; color: var(--text-dim); }
+        .bead-state { font-size: 11px; font-weight: 600; }
+        .bead-card.active .bead-state { color: var(--core-active); }
+        .bead-card.unlocked .bead-state { color: var(--bead-unlock); }
+        
+        .bead-icon { font-size: 28px; margin-bottom: 8px; }
+        .bead-name { font-weight: 600; margin-bottom: 4px; }
+        .bead-cond { font-size: 11px; color: var(--text-dim); }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           GOAL SECTION
+        ═══════════════════════════════════════════════════════════════ */
+        .goal-section {
+            background: linear-gradient(135deg, rgba(0,255,136,0.1), rgba(52,152,219,0.1));
+            border: 1px solid rgba(0,255,136,0.3);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .goal-label {
+            font-size: 10px;
+            color: var(--core-active);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .goal-text {
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        
+        .goal-progress {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        
+        .goal-progress strong { color: var(--core-active); }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           METRO SECTION
+        ═══════════════════════════════════════════════════════════════ */
+        .metro-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .metro-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .metro-title {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .pack-badge {
+            padding: 6px 14px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        
+        .stations-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            position: relative;
+        }
+        
+        .stations-container::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 30px;
+            right: 30px;
+            height: 3px;
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-50%);
+        }
+        
+        .station {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .station:hover { transform: scale(1.1); }
+        
+        .station-node {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-dark);
+            border: 3px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+        
+        .station.passed .station-node {
+            background: var(--core-blue);
+            border-color: var(--core-blue);
+        }
+        
+        .station.active .station-node {
+            border-color: var(--core-active);
+            box-shadow: 0 0 25px var(--core-active);
+        }
+        
+        .station.warning .station-node {
+            border-color: var(--warning);
+            box-shadow: 0 0 20px var(--warning);
+        }
+        
+        .station-label {
+            margin-top: 8px;
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+        
+        .station.active .station-label { color: var(--core-active); }
+        .station.passed .station-label { color: var(--core-blue); }
+        
+        .metro-notice {
+            text-align: center;
+            padding: 12px;
+            background: rgba(255,107,53,0.05);
+            border-radius: 10px;
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 16px;
+        }
+        
+        .metro-notice strong { color: var(--detour); }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           METRICS GRID
+        ═══════════════════════════════════════════════════════════════ */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        .metric-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+        
+        .metric-card.energy::before { background: var(--stable); }
+        .metric-card.flow::before { background: var(--core-active); }
+        .metric-card.risk::before { background: var(--warning); }
+        .metric-card.loss::before { background: var(--danger); }
+        
+        .metric-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 28px;
+            font-weight: 300;
+        }
+        
+        .metric-unit {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        
+        .metric-card.loss .metric-value { color: var(--danger); }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           ACTION BUTTONS
+        ═══════════════════════════════════════════════════════════════ */
+        .action-section {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .action-btn:hover { transform: translateY(-2px); }
+        .action-btn:active { transform: scale(0.98); }
+        
+        .action-btn.primary {
+            background: var(--core-active);
+            color: var(--bg-dark);
+        }
+        
+        .action-btn.secondary {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .action-btn.danger {
+            background: rgba(255,107,53,0.1);
+            color: var(--detour);
+            border: 1px solid rgba(255,107,53,0.3);
+        }
+        
+        .action-btn-icon { font-size: 20px; }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           SIDEBAR
+        ═══════════════════════════════════════════════════════════════ */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .sidebar-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        
+        .sidebar-title {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* NOW/NEXT Cards */
+        .now-next-card {
+            padding: 14px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            border-left: 3px solid;
+            margin-bottom: 10px;
+        }
+        
+        .now-next-card.now { border-left-color: var(--core-active); }
+        .now-next-card.next { border-left-color: var(--core-blue); }
+        
+        .now-next-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        
+        .now-next-card.now .now-next-label { color: var(--core-active); }
+        .now-next-card.next .now-next-label { color: var(--core-blue); }
+        
+        .now-next-text {
+            font-size: 13px;
+        }
+        
+        /* Pack Selector */
+        .pack-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .pack-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .pack-item:hover { background: rgba(0,0,0,0.3); }
+        .pack-item.active { border-color: var(--core-active); background: rgba(0,255,136,0.05); }
+        
+        .pack-icon { font-size: 22px; }
+        .pack-info { flex: 1; }
+        .pack-name { font-size: 13px; font-weight: 500; }
+        .pack-desc { font-size: 10px; color: var(--text-dim); }
+        
+        /* Proof Section */
+        .proof-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .proof-btn {
+            flex: 1;
+            padding: 12px 8px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .proof-btn:hover {
+            background: rgba(52,152,219,0.1);
+            border-color: var(--bead-unlock);
+        }
+        
+        .proof-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .proof-btn-icon { font-size: 18px; margin-bottom: 4px; }
+        
+        .proof-status {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            font-size: 11px;
+            text-align: center;
+            color: var(--text-dim);
+        }
+        
+        .proof-status.has-proof {
+            background: rgba(0,255,136,0.1);
+            color: var(--stable);
+        }
+        
+        /* Event Log */
+        .log-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .log-item {
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+        
+        .log-time {
+            color: var(--text-dim);
+            font-size: 9px;
+        }
+        
+        .log-type {
+            font-weight: 600;
+            margin: 0 6px;
+        }
+        
+        .log-type.state { color: var(--core-blue); }
+        .log-type.bead { color: var(--bead-unlock); }
+        .log-type.action { color: var(--core-active); }
+        .log-type.warning { color: var(--warning); }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           TOAST
+        ═══════════════════════════════════════════════════════════════ */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 14px 28px;
+            background: var(--bg-card);
+            border-radius: 14px;
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .toast.success { border-color: var(--stable); }
+        .toast.warning { border-color: var(--warning); }
+        .toast.error { border-color: var(--danger); }
+    </style>
+</head>
+<body>
+    <!-- Connection Bar -->
+    <div class="connection-bar" id="connectionBar"></div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">AUT<span>US</span> <small style="font-size:12px;color:var(--text-dim)">LIVE</small></div>
+        <div style="display:flex;gap:15px;align-items:center">
+            <div class="status-badge">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="connectionStatus">연결 중...</span>
+            </div>
+            <div class="accel-display">
+                <span style="color:var(--text-dim)">⚡ ACCEL</span>
+                <span class="accel-value" id="accelValue">0.0</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Grid -->
+    <div class="main-grid">
+        <!-- Left Column -->
+        <div class="main-content">
+            <!-- Bead Section -->
+            <section class="bead-section">
+                <div class="bead-card active" id="bead1Card">
+                    <div class="bead-header">
+                        <span class="bead-num">BEAD 1</span>
+                        <span class="bead-state" id="bead1State">ACTIVE</span>
+                    </div>
+                    <div class="bead-icon">🎯</div>
+                    <div class="bead-name">GOAL</div>
+                    <div class="bead-cond">목표 정밀도</div>
+                </div>
+                <div class="bead-card locked" id="bead2Card">
+                    <div class="bead-header">
+                        <span class="bead-num">BEAD 2</span>
+                        <span class="bead-state" id="bead2State">LOCK</span>
+                    </div>
+                    <div class="bead-icon">📋</div>
+                    <div class="bead-name">PROOF</div>
+                    <div class="bead-cond" id="bead2Cond">Accel ≥ 1.0</div>
+                </div>
+                <div class="bead-card locked" id="bead3Card">
+                    <div class="bead-header">
+                        <span class="bead-num">BEAD 3</span>
+                        <span class="bead-state" id="bead3State">LOCK</span>
+                    </div>
+                    <div class="bead-icon">⚡</div>
+                    <div class="bead-name">AUTO</div>
+                    <div class="bead-cond" id="bead3Cond">Accel ≥ 2.0 + Proof</div>
+                </div>
+            </section>
+            
+            <!-- Goal Section -->
+            <section class="goal-section">
+                <div class="goal-label">GOAL</div>
+                <div class="goal-text" id="goalText">Backend 연결 대기 중...</div>
+                <div class="goal-progress">
+                    Station <strong id="stationNum">?/?</strong> — <span id="stageName">...</span>
+                </div>
+            </section>
+            
+            <!-- Metro Section -->
+            <section class="metro-section">
+                <div class="metro-header">
+                    <div class="metro-title">판단 루프</div>
+                    <div class="pack-badge" id="packBadge">📦 Pack</div>
+                </div>
+                
+                <div class="stations-container" id="stationsContainer">
+                    <div class="station" data-idx="0"><div class="station-node">📡</div><div class="station-label">Reality</div></div>
+                    <div class="station" data-idx="1"><div class="station-node">⚡</div><div class="station-label">State</div></div>
+                    <div class="station" data-idx="2"><div class="station-node">🎯</div><div class="station-label">Threshold</div></div>
+                    <div class="station" data-idx="3"><div class="station-node">📊</div><div class="station-label">Forecast</div></div>
+                    <div class="station" data-idx="4"><div class="station-node">🧠</div><div class="station-label">Decision</div></div>
+                    <div class="station" data-idx="5"><div class="station-node">🚀</div><div class="station-label">Action</div></div>
+                    <div class="station" data-idx="6"><div class="station-node">📝</div><div class="station-label">Log</div></div>
+                    <div class="station" data-idx="7"><div class="station-node">🔄</div><div class="station-label">Loop</div></div>
+                </div>
+                
+                <div class="metro-notice">
+                    <strong>Detour는 Threshold에서만.</strong> 우회 비용은 기록됨.
+                </div>
+            </section>
+            
+            <!-- Metrics Grid -->
+            <section class="metrics-grid">
+                <div class="metric-card energy">
+                    <div class="metric-label">Energy</div>
+                    <div class="metric-value"><span id="energyValue">--</span><span class="metric-unit">%</span></div>
+                </div>
+                <div class="metric-card flow">
+                    <div class="metric-label">Flow</div>
+                    <div class="metric-value"><span id="flowValue">--</span><span class="metric-unit">억</span></div>
+                </div>
+                <div class="metric-card risk">
+                    <div class="metric-label">Risk</div>
+                    <div class="metric-value" id="riskValue">--</div>
+                </div>
+                <div class="metric-card loss">
+                    <div class="metric-label">Loss Velocity</div>
+                    <div class="metric-value">₩<span id="lossValue">--</span><span class="metric-unit">/sec</span></div>
+                </div>
+            </section>
+            
+            <!-- Action Buttons -->
+            <section class="action-section">
+                <button class="action-btn primary" id="btnAuto">
+                    <span class="action-btn-icon">▶</span>
+                    AUTO PROCEED
+                </button>
+                <button class="action-btn secondary" id="btnThreshold">
+                    <span class="action-btn-icon">🎯</span>
+                    THRESHOLD
+                </button>
+                <button class="action-btn danger" id="btnDetour">
+                    <span class="action-btn-icon">⚠️</span>
+                    DETOUR
+                </button>
+            </section>
+        </div>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- NOW/NEXT -->
+            <div class="sidebar-card">
+                <div class="sidebar-title">현재 상태</div>
+                <div class="now-next-card now">
+                    <div class="now-next-label">NOW</div>
+                    <div class="now-next-text" id="nowAction">연결 대기...</div>
+                </div>
+                <div class="now-next-card next">
+                    <div class="now-next-label">NEXT</div>
+                    <div class="now-next-text" id="nextAction">...</div>
+                </div>
+            </div>
+            
+            <!-- Pack Selector -->
+            <div class="sidebar-card">
+                <div class="sidebar-title">Active Pack</div>
+                <div class="pack-list">
+                    <div class="pack-item active" data-pack="overseas">
+                        <div class="pack-icon">🌏</div>
+                        <div class="pack-info">
+                            <div class="pack-name">해외인력</div>
+                            <div class="pack-desc">인건비 최적화</div>
+                        </div>
+                    </div>
+                    <div class="pack-item" data-pack="tax">
+                        <div class="pack-icon">💰</div>
+                        <div class="pack-info">
+                            <div class="pack-name">절세</div>
+                            <div class="pack-desc">세금 최적화</div>
+                        </div>
+                    </div>
+                    <div class="pack-item" data-pack="b2b">
+                        <div class="pack-icon">🤝</div>
+                        <div class="pack-info">
+                            <div class="pack-name">B2B</div>
+                            <div class="pack-desc">거래 최적화</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Proof Section -->
+            <div class="sidebar-card">
+                <div class="sidebar-title">
+                    📋 Proof (Bead 2)
+                    <span id="proofLock" style="font-size:14px">🔒</span>
+                </div>
+                <div class="proof-buttons">
+                    <button class="proof-btn" id="proofCheck" disabled>
+                        <div class="proof-btn-icon">✅</div>
+                        CHECK
+                    </button>
+                    <button class="proof-btn" id="proofTimer" disabled>
+                        <div class="proof-btn-icon">⏱️</div>
+                        TIMER
+                    </button>
+                    <button class="proof-btn" id="proofUpload" disabled>
+                        <div class="proof-btn-icon">📤</div>
+                        UPLOAD
+                    </button>
+                </div>
+                <div class="proof-status" id="proofStatus">Bead 2 해금 필요</div>
+            </div>
+            
+            <!-- Event Log -->
+            <div class="sidebar-card">
+                <div class="sidebar-title">Event Log</div>
+                <div class="log-list" id="logList">
+                    <div class="log-item">
+                        <span class="log-time">--:--:--</span>
+                        <span class="log-type state">INIT</span>
+                        Backend 연결 대기
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // AUTUS WEBSOCKET CLIENT
+        // ═══════════════════════════════════════════════════════════════
+        
+        const WS_URL = 'ws://localhost:8000/ws';
+        const API_URL = 'http://localhost:8000/api';
+        
+        let ws = null;
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT = 5;
+        
+        const STATIONS = ['Reality', 'State', 'Threshold', 'Forecast', 'Decision', 'Action', 'Log', 'Loop'];
+        const PACK_LABELS = {
+            overseas: '🌏 해외인력',
+            tax: '💰 절세',
+            b2b: '🤝 B2B'
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // CONNECTION MANAGEMENT
+        // ═══════════════════════════════════════════════════════════════
+        
+        function connect() {
+            setConnectionStatus('connecting');
+            
+            ws = new WebSocket(WS_URL);
+            
+            ws.onopen = () => {
+                setConnectionStatus('connected');
+                reconnectAttempts = 0;
+                addLog('state', 'WebSocket 연결됨');
+                showToast('✅ Backend 연결 성공', 'success');
+            };
+            
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                handleMessage(msg);
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                addLog('warning', 'WebSocket 에러');
+            };
+            
+            ws.onclose = () => {
+                setConnectionStatus('disconnected');
+                addLog('warning', 'WebSocket 연결 끊김');
+                
+                if (reconnectAttempts < MAX_RECONNECT) {
+                    reconnectAttempts++;
+                    setTimeout(connect, 2000 * reconnectAttempts);
+                    addLog('state', `재연결 시도 ${reconnectAttempts}/${MAX_RECONNECT}`);
+                }
+            };
+        }
+        
+        function setConnectionStatus(status) {
+            const bar = document.getElementById('connectionBar');
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('connectionStatus');
+            
+            bar.className = 'connection-bar ' + status;
+            dot.className = 'status-dot ' + (status === 'connected' ? 'connected' : '');
+            
+            const statusText = {
+                connecting: '연결 중...',
+                connected: '실시간 연결됨',
+                disconnected: '연결 끊김'
+            };
+            text.textContent = statusText[status] || status;
+        }
+        
+        function send(action, data = {}) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action, ...data }));
+            } else {
+                showToast('⚠️ Backend 연결 필요', 'warning');
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // MESSAGE HANDLERS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function handleMessage(msg) {
+            if (msg.type === 'init' || msg.type === 'state_update' || msg.type === 'realtime') {
+                updateUI(msg.data);
+            } else if (msg.type === 'pong') {
+                // Keep-alive response
+            }
+        }
+        
+        function updateUI(state) {
+            // Goal
+            document.getElementById('goalText').textContent = state.goal;
+            document.getElementById('stationNum').textContent = `${state.current_station + 1}/8`;
+            document.getElementById('stageName').textContent = STATIONS[state.current_station];
+            
+            // Pack
+            document.getElementById('packBadge').textContent = PACK_LABELS[state.current_pack] || state.current_pack;
+            document.querySelectorAll('.pack-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.pack === state.current_pack);
+            });
+            
+            // Metrics
+            const m = state.metrics;
+            document.getElementById('energyValue').textContent = m.energy.toFixed(1);
+            document.getElementById('flowValue').textContent = (m.flow >= 0 ? '+' : '') + m.flow.toFixed(2);
+            document.getElementById('riskValue').textContent = m.risk.toFixed(2);
+            document.getElementById('lossValue').textContent = m.loss_velocity.toFixed(0);
+            
+            // Stations
+            document.querySelectorAll('.station').forEach((s, i) => {
+                s.classList.remove('passed', 'active', 'warning');
+                if (i < state.current_station) s.classList.add('passed');
+                else if (i === state.current_station) {
+                    s.classList.add('active');
+                    if (state.detour_active) s.classList.add('warning');
+                }
+            });
+            
+            // NOW/NEXT
+            document.getElementById('nowAction').textContent = state.now_action;
+            document.getElementById('nextAction').textContent = state.next_action;
+            
+            // Beads
+            updateBeads(state.beads);
+            
+            // Accel
+            document.getElementById('accelValue').textContent = state.beads.accel.toFixed(1);
+        }
+        
+        function updateBeads(beads) {
+            // Bead 1
+            const bead1 = document.getElementById('bead1Card');
+            bead1.className = 'bead-card ' + beads.bead1.toLowerCase();
+            document.getElementById('bead1State').textContent = beads.bead1;
+            
+            // Bead 2
+            const bead2 = document.getElementById('bead2Card');
+            bead2.className = 'bead-card ' + (beads.bead2 === 'LOCK' ? 'locked' : beads.bead2 === 'UNLOCK' ? 'unlocked' : 'active');
+            document.getElementById('bead2State').textContent = beads.bead2;
+            document.getElementById('bead2Cond').textContent = beads.bead2 === 'UNLOCK' ? 'UNLOCKED' : 'Accel ≥ 1.0';
+            
+            // Bead 3
+            const bead3 = document.getElementById('bead3Card');
+            bead3.className = 'bead-card ' + (beads.bead3 === 'LOCK' ? 'locked' : beads.bead3 === 'UNLOCK' ? 'unlocked' : 'active');
+            document.getElementById('bead3State').textContent = beads.bead3;
+            document.getElementById('bead3Cond').textContent = beads.bead3 === 'UNLOCK' ? 'UNLOCKED' : 'Accel ≥ 2.0 + Proof';
+            
+            // Proof buttons
+            const proofEnabled = beads.bead2 === 'UNLOCK';
+            document.getElementById('proofCheck').disabled = !proofEnabled;
+            document.getElementById('proofTimer').disabled = !proofEnabled;
+            document.getElementById('proofUpload').disabled = !proofEnabled;
+            document.getElementById('proofLock').textContent = proofEnabled ? '🔓' : '🔒';
+            
+            const proofStatus = document.getElementById('proofStatus');
+            if (beads.has_proof) {
+                proofStatus.textContent = `✅ Proof 기록됨 (연속 ${beads.check_streak}회)`;
+                proofStatus.classList.add('has-proof');
+            } else if (proofEnabled) {
+                proofStatus.textContent = '증거 기록 가능';
+                proofStatus.classList.remove('has-proof');
+            } else {
+                proofStatus.textContent = 'Bead 2 해금 필요';
+                proofStatus.classList.remove('has-proof');
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // UI HELPERS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function addLog(type, message) {
+            const list = document.getElementById('logList');
+            const time = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            const item = document.createElement('div');
+            item.className = 'log-item';
+            item.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="log-type ${type}">${type.toUpperCase()}</span>
+                ${message}
+            `;
+            
+            list.insertBefore(item, list.firstChild);
+            
+            // Keep only last 20
+            while (list.children.length > 20) {
+                list.removeChild(list.lastChild);
+            }
+        }
+        
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // EVENT LISTENERS
+        // ═══════════════════════════════════════════════════════════════
+        
+        // Action Buttons
+        document.getElementById('btnAuto').addEventListener('click', () => {
+            send('proceed');
+            addLog('action', 'AUTO PROCEED');
+        });
+        
+        document.getElementById('btnThreshold').addEventListener('click', () => {
+            send('threshold');
+            addLog('action', 'THRESHOLD 검사');
+        });
+        
+        document.getElementById('btnDetour').addEventListener('click', () => {
+            showToast('⚠️ Detour는 Threshold 실패 시만 가능', 'warning');
+            addLog('warning', 'DETOUR 시도');
+        });
+        
+        // Pack Selection
+        document.querySelectorAll('.pack-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const pack = item.dataset.pack;
+                send('switch_pack', { pack });
+                addLog('state', `Pack → ${PACK_LABELS[pack]}`);
+            });
+        });
+        
+        // Proof Buttons
+        document.getElementById('proofCheck').addEventListener('click', () => {
+            send('proof', { proof_type: 'check' });
+            addLog('bead', 'PROOF: CHECK');
+        });
+        
+        document.getElementById('proofTimer').addEventListener('click', () => {
+            send('proof', { proof_type: 'timer' });
+            addLog('bead', 'PROOF: TIMER');
+        });
+        
+        document.getElementById('proofUpload').addEventListener('click', () => {
+            send('proof', { proof_type: 'upload' });
+            addLog('bead', 'PROOF: UPLOAD');
+        });
+        
+        // Stations
+        document.querySelectorAll('.station').forEach(s => {
+            s.addEventListener('click', () => {
+                const idx = parseInt(s.dataset.idx);
+                showToast(`Station ${idx + 1}: ${STATIONS[idx]}`, 'info');
+            });
+        });
+        
+        // Keep-alive ping
+        setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                send('ping');
+            }
+        }, 30000);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════════
+        
+        connect();
+    </script>
+</body>
+</html>

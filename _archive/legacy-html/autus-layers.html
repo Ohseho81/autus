@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>AUTUS - 6 Layers</title>
+    <style>
+        :root {
+            --cyan: #00d4c8;
+            --cyan-dim: rgba(0, 212, 200, 0.3);
+            --orange: #ff6b35;
+            --purple: #8b5cf6;
+            --blue: #3b82f6;
+            --bg: #0a0a0f;
+            --surface: #12141a;
+            --text: #ffffff;
+            --text-dim: rgba(255,255,255,0.5);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           PHONE FRAME
+        ═══════════════════════════════════════════════════════════════ */
+        .phone {
+            width: 280px;
+            height: 580px;
+            background: var(--bg);
+            border-radius: 35px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .phone-label {
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .status-icons {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            height: 44px;
+        }
+        
+        .header-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: white;
+            letter-spacing: 2px;
+        }
+        
+        /* Content */
+        .content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Bottom Bar */
+        .bottom-bar {
+            padding: 12px 20px 30px;
+            text-align: center;
+        }
+        
+        .bottom-text {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .auto-btn {
+            background: var(--cyan);
+            color: var(--bg);
+            border: none;
+            padding: 12px 50px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            cursor: pointer;
+        }
+        
+        .auto-btn.small {
+            padding: 8px 30px;
+            font-size: 12px;
+        }
+        
+        /* Home Indicator */
+        .home-indicator {
+            width: 120px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            margin: 10px auto 0;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           LAYER 1: MAIN PAGE
+        ═══════════════════════════════════════════════════════════════ */
+        .main-hub {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 40px auto;
+        }
+        
+        .hub-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, var(--cyan) 0%, transparent 70%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .hub-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 50%;
+        }
+        
+        .hub-ring.r1 { width: 80px; height: 80px; }
+        .hub-ring.r2 { width: 120px; height: 120px; border-style: dashed; }
+        .hub-ring.r3 { width: 180px; height: 180px; }
+        
+        .hub-node {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .hub-node.cyan { background: var(--cyan); }
+        .hub-node.orange { background: var(--orange); }
+        .hub-node.purple { background: var(--purple); }
+        .hub-node.blue { background: var(--blue); }
+        .hub-node.outline { 
+            background: transparent; 
+            border: 2px solid var(--cyan);
+        }
+        
+        .hub-node.n1 { top: -5px; left: 50%; transform: translateX(-50%); }
+        .hub-node.n2 { top: 25%; right: -5px; }
+        .hub-node.n3 { bottom: 25%; right: -5px; }
+        .hub-node.n4 { bottom: -5px; left: 50%; transform: translateX(-50%); }
+        .hub-node.n5 { bottom: 25%; left: -5px; }
+        .hub-node.n6 { top: 25%; left: -5px; }
+        
+        .hub-label {
+            position: absolute;
+            font-size: 9px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+        
+        .hub-label.left { left: -60px; top: 50%; transform: translateY(-50%); }
+        .hub-label.right { right: -55px; top: 50%; transform: translateY(-50%); }
+        
+        .layer-text {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           LAYER 2: SENSORY INPUT
+        ═══════════════════════════════════════════════════════════════ */
+        .wave-container {
+            height: 180px;
+            position: relative;
+            margin: 20px;
+            overflow: hidden;
+        }
+        
+        .wave-visual {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background: linear-gradient(to top, 
+                rgba(255, 107, 53, 0.8) 0%, 
+                rgba(255, 200, 100, 0.6) 30%,
+                rgba(139, 92, 246, 0.4) 60%,
+                transparent 100%
+            );
+            clip-path: polygon(
+                0% 100%, 5% 70%, 10% 50%, 15% 60%, 20% 40%, 25% 30%, 
+                30% 20%, 35% 10%, 40% 5%, 45% 8%, 50% 15%, 55% 10%, 
+                60% 5%, 65% 10%, 70% 20%, 75% 30%, 80% 40%, 85% 50%,
+                90% 60%, 95% 70%, 100% 100%
+            );
+        }
+        
+        .wave-rings {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .wave-ring {
+            position: absolute;
+            border: 1px solid rgba(0, 212, 200, 0.3);
+            border-radius: 50%;
+            bottom: -50%;
+        }
+        
+        .wave-ring:nth-child(1) { width: 100px; height: 50px; left: -50px; }
+        .wave-ring:nth-child(2) { width: 200px; height: 100px; left: -100px; bottom: -60%; }
+        .wave-ring:nth-child(3) { width: 300px; height: 150px; left: -150px; bottom: -70%; }
+        
+        .sensors-section {
+            padding: 20px;
+        }
+        
+        .sensors-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .sensor-list {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+        }
+        
+        .sensor-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 60px;
+        }
+        
+        .chart-bar {
+            width: 20px;
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .chart-bar:nth-child(1) { height: 40%; background: var(--cyan); }
+        .chart-bar:nth-child(2) { height: 60%; background: var(--orange); }
+        .chart-bar:nth-child(3) { height: 80%; background: var(--purple); }
+        .chart-bar:nth-child(4) { height: 50%; background: var(--blue); }
+        .chart-bar:nth-child(5) { height: 70%; background: var(--cyan); }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           LAYER 3: PHYSICS MAP
+        ═══════════════════════════════════════════════════════════════ */
+        .network-container {
+            position: relative;
+            height: 350px;
+            margin: 10px;
+        }
+        
+        .network-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .network-node {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--cyan);
+        }
+        
+        .network-node.large {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .network-node.orange { background: var(--orange); box-shadow: 0 0 10px var(--orange); }
+        
+        .physics-label {
+            position: absolute;
+            font-size: 9px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+        
+        .physics-label.top-right { top: 20px; right: 20px; text-align: right; }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           LAYER 4: CORE LOOP
+        ═══════════════════════════════════════════════════════════════ */
+        .core-loop-container {
+            position: relative;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loop-stack {
+            position: relative;
+            width: 150px;
+            height: 200px;
+            transform: perspective(500px) rotateX(20deg);
+        }
+        
+        .loop-layer {
+            position: absolute;
+            width: 120px;
+            height: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 2px solid var(--cyan);
+            border-radius: 10px;
+            background: rgba(0, 212, 200, 0.1);
+        }
+        
+        .loop-layer:nth-child(1) { bottom: 0; }
+        .loop-layer:nth-child(2) { bottom: 40px; width: 100px; height: 70px; }
+        .loop-layer:nth-child(3) { bottom: 80px; width: 80px; height: 60px; }
+        
+        .loop-ring {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border: 2px solid var(--cyan-dim);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(60deg);
+            animation: loopRotate 8s linear infinite;
+        }
+        
+        @keyframes loopRotate {
+            from { transform: translate(-50%, -50%) rotateX(60deg) rotateZ(0deg); }
+            to { transform: translate(-50%, -50%) rotateX(60deg) rotateZ(360deg); }
+        }
+        
+        .loop-glow {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, var(--cyan-dim) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           LAYER 5: FEEDBACK
+        ═══════════════════════════════════════════════════════════════ */
+        .feedback-container {
+            position: relative;
+            height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .feedback-cubes {
+            position: relative;
+            width: 200px;
+            height: 250px;
+        }
+        
+        .feedback-cube {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--cyan);
+            background: rgba(0, 212, 200, 0.15);
+            transform: rotate(45deg);
+        }
+        
+        .feedback-cube:nth-child(1) { top: 20px; left: 75px; }
+        .feedback-cube:nth-child(2) { top: 100px; left: 30px; border-color: var(--orange); background: rgba(255, 107, 53, 0.15); }
+        .feedback-cube:nth-child(3) { top: 100px; left: 120px; }
+        .feedback-cube:nth-child(4) { top: 180px; left: 75px; border-color: var(--purple); background: rgba(139, 92, 246, 0.15); }
+        
+        .feedback-line {
+            position: absolute;
+            background: var(--cyan);
+            height: 2px;
+        }
+        
+        .feedback-line.v {
+            width: 2px;
+            height: 40px;
+        }
+        
+        .feedback-line.l1 { top: 70px; left: 100px; width: 2px; height: 30px; }
+        .feedback-line.l2 { top: 90px; left: 55px; width: 45px; }
+        .feedback-line.l3 { top: 90px; left: 100px; width: 45px; }
+        .feedback-line.l4 { top: 150px; left: 100px; width: 2px; height: 30px; }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           LAYER 6: BRAINWAVE
+        ═══════════════════════════════════════════════════════════════ */
+        .brain-container {
+            position: relative;
+            height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .brain-visual {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+        
+        .brain-shape {
+            width: 150px;
+            height: 120px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #4a90a4 0%, #2d5a6b 50%, #1a3a45 100%);
+            border-radius: 50% 50% 45% 45%;
+            position: relative;
+            box-shadow: 0 0 30px rgba(74, 144, 164, 0.3);
+        }
+        
+        .brain-shape::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 2px;
+            height: 80%;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .brain-node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--cyan);
+        }
+        
+        .brain-node:nth-child(2) { top: 0; left: 40%; }
+        .brain-node:nth-child(3) { top: 20%; right: 10%; }
+        .brain-node:nth-child(4) { bottom: 20%; right: 15%; }
+        .brain-node:nth-child(5) { bottom: 30%; left: 10%; }
+        .brain-node:nth-child(6) { top: 30%; left: 5%; }
+        
+        .brain-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--cyan);
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           ANIMATIONS
+        ═══════════════════════════════════════════════════════════════ */
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        .network-node {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .network-node:nth-child(odd) {
+            animation-delay: 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <!-- Layer 1: Main Page -->
+    <div>
+        <div class="phone-label">Main Page</div>
+        <div class="phone" id="mainPage">
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons">
+                    <span>📶</span>
+                    <span>🔋</span>
+                </div>
+            </div>
+            <div class="header">
+                <div class="header-btn">☰</div>
+                <div class="header-title">AUTUS</div>
+                <div class="header-btn">🔍</div>
+            </div>
+            
+            <div class="content">
+                <div class="main-hub">
+                    <div class="hub-ring r1"></div>
+                    <div class="hub-ring r2"></div>
+                    <div class="hub-ring r3"></div>
+                    
+                    <div class="hub-center">●</div>
+                    
+                    <div class="hub-node cyan n1">📡</div>
+                    <div class="hub-node orange n2">⚡</div>
+                    <div class="hub-node outline n3"></div>
+                    <div class="hub-node purple n4">🎯</div>
+                    <div class="hub-node blue n5">📊</div>
+                    <div class="hub-node outline n6"></div>
+                    
+                    <div class="hub-label left">Sensors</div>
+                    <div class="hub-label right">Energy</div>
+                </div>
+                
+                <div class="layer-text">Core Loop Layer</div>
+            </div>
+            
+            <div class="bottom-bar">
+                <button class="auto-btn" data-autus="life_physics_engine.auto_mode">AUTO</button>
+                <div style="display: flex; justify-content: center; gap: 30px; margin-top: 15px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 16px;">🎚️</div>
+                        <div style="font-size: 8px; color: var(--text-dim);">MANUAL<br>CONTROL</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 16px;">🤖</div>
+                        <div style="font-size: 8px; color: var(--text-dim);">AI<br>ASSIST</div>
+                    </div>
+                </div>
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Layer 2: Sensory Input -->
+    <div>
+        <div class="phone-label">Sensory Input Layer</div>
+        <div class="phone" id="sensoryInput">
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons">
+                    <span>📶</span>
+                    <span>🔋</span>
+                </div>
+            </div>
+            <div class="header">
+                <div class="header-btn">‹</div>
+                <div class="header-title">Sensors</div>
+                <div class="header-btn">⋯</div>
+            </div>
+            
+            <div class="content">
+                <div class="wave-container">
+                    <div class="wave-visual"></div>
+                    <div class="wave-rings">
+                        <div class="wave-ring"></div>
+                        <div class="wave-ring"></div>
+                        <div class="wave-ring"></div>
+                    </div>
+                </div>
+                
+                <div class="sensors-section">
+                    <div class="sensors-title">Sensors</div>
+                    <div class="sensor-list">
+                        <div>◉ Energy Confidence</div>
+                        <div>◉ Stress Pattern</div>
+                        <div>◉ Risk On Alert</div>
+                        <div>◉ Biometric Input</div>
+                    </div>
+                    <div class="sensor-chart" data-autus="local_distiller.all_sources">
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                        <div class="chart-bar"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bottom-bar">
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Layer 3: Physics Map -->
+    <div>
+        <div class="phone-label">Physics Map Layer</div>
+        <div class="phone" id="physicsMap">
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons">
+                    <span>📶</span>
+                    <span>🔋</span>
+                </div>
+            </div>
+            <div class="header">
+                <div class="header-btn">‹</div>
+                <div class="header-title">AUTUS</div>
+                <div class="header-btn">⋯</div>
+            </div>
+            
+            <div class="content">
+                <div class="network-container" data-autus="state_vector.network">
+                    <div class="physics-label top-right">
+                        Collective Data<br>
+                        <span style="color: var(--cyan)">◉</span> Synchronized
+                    </div>
+                    
+                    <!-- Network Nodes -->
+                    <div class="network-node" style="top: 20%; left: 30%;"></div>
+                    <div class="network-node large" style="top: 25%; left: 50%;"></div>
+                    <div class="network-node orange" style="top: 30%; left: 70%;"></div>
+                    <div class="network-node" style="top: 40%; left: 20%;"></div>
+                    <div class="network-node large" style="top: 45%; left: 45%;"></div>
+                    <div class="network-node" style="top: 50%; left: 65%;"></div>
+                    <div class="network-node orange" style="top: 55%; left: 80%;"></div>
+                    <div class="network-node" style="top: 60%; left: 35%;"></div>
+                    <div class="network-node large" style="top: 65%; left: 55%;"></div>
+                    <div class="network-node" style="top: 70%; left: 25%;"></div>
+                    <div class="network-node" style="top: 75%; left: 70%;"></div>
+                    <div class="network-node orange large" style="top: 80%; left: 45%;"></div>
+                    
+                    <!-- SVG Lines -->
+                    <svg class="network-canvas" style="position: absolute; top: 0; left: 0;">
+                        <line x1="30%" y1="20%" x2="50%" y2="25%" stroke="rgba(0,212,200,0.3)" stroke-width="1"/>
+                        <line x1="50%" y1="25%" x2="70%" y2="30%" stroke="rgba(0,212,200,0.3)" stroke-width="1"/>
+                        <line x1="20%" y1="40%" x2="45%" y2="45%" stroke="rgba(0,212,200,0.3)" stroke-width="1"/>
+                        <line x1="45%" y1="45%" x2="65%" y2="50%" stroke="rgba(0,212,200,0.3)" stroke-width="1"/>
+                        <line x1="35%" y1="60%" x2="55%" y2="65%" stroke="rgba(0,212,200,0.3)" stroke-width="1"/>
+                        <line x1="55%" y1="65%" x2="70%" y2="75%" stroke="rgba(0,212,200,0.3)" stroke-width="1"/>
+                        <line x1="25%" y1="70%" x2="45%" y2="80%" stroke="rgba(0,212,200,0.3)" stroke-width="1"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="bottom-bar">
+                <div class="bottom-text">Real-Time Collection<br>Linked</div>
+                <button class="auto-btn small" data-autus="physics.forecast">AUTO</button>
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Layer 4: Core Loop -->
+    <div>
+        <div class="phone-label">Core Loop Layer</div>
+        <div class="phone" id="coreLoop">
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons">
+                    <span>📶</span>
+                    <span>🔋</span>
+                </div>
+            </div>
+            <div class="header">
+                <div class="header-btn">‹</div>
+                <div class="header-title">AUTUS</div>
+                <div class="header-btn">🔍</div>
+            </div>
+            
+            <div class="content">
+                <div class="core-loop-container" data-autus="decision_log.trinity">
+                    <div class="loop-glow"></div>
+                    <div class="loop-ring"></div>
+                    <div class="loop-stack">
+                        <div class="loop-layer"></div>
+                        <div class="loop-layer"></div>
+                        <div class="loop-layer"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bottom-bar">
+                <div class="bottom-text">Real-Time Collection<br>Linked</div>
+                <button class="auto-btn small" data-autus="force_vector.apply">AUT</button>
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Layer 5: Feedback -->
+    <div>
+        <div class="phone-label">Feedback Layer</div>
+        <div class="phone" id="feedbackLayer">
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons">
+                    <span>📶</span>
+                    <span>🔋</span>
+                </div>
+            </div>
+            <div class="header">
+                <div class="header-btn">‹</div>
+                <div class="header-title">AUTUS</div>
+                <div class="header-btn">🔍</div>
+            </div>
+            
+            <div class="content">
+                <div style="text-align: center; margin-top: 10px; color: var(--text-dim); font-size: 11px;">
+                    Feedback Layer
+                </div>
+                <div class="feedback-container" data-autus="physics.prediction_error">
+                    <div class="feedback-cubes">
+                        <div class="feedback-cube"></div>
+                        <div class="feedback-cube"></div>
+                        <div class="feedback-cube"></div>
+                        <div class="feedback-cube"></div>
+                        
+                        <div class="feedback-line l1"></div>
+                        <div class="feedback-line l2"></div>
+                        <div class="feedback-line l3"></div>
+                        <div class="feedback-line l4"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bottom-bar">
+                <div class="bottom-text">Real-Time Collection<br>Linked</div>
+                <button class="auto-btn small" data-autus="feedback.loop">AUT</button>
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Layer 6: Brainwave Integration -->
+    <div>
+        <div class="phone-label">Brainwave Integration Layer</div>
+        <div class="phone" id="brainwaveLayer">
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-icons">
+                    <span>📶</span>
+                    <span>🔋</span>
+                </div>
+            </div>
+            <div class="header">
+                <div class="header-btn">‹</div>
+                <div class="header-title">AUTUS</div>
+                <div class="header-btn">🔍</div>
+            </div>
+            
+            <div class="content">
+                <div class="brain-container" data-autus="entropy.integration">
+                    <div class="brain-visual">
+                        <div class="brain-shape">
+                            <div class="brain-node"></div>
+                            <div class="brain-node"></div>
+                            <div class="brain-node"></div>
+                            <div class="brain-node"></div>
+                            <div class="brain-node"></div>
+                        </div>
+                        
+                        <div class="brain-particles">
+                            <div class="particle" style="top: 10%; left: 20%;"></div>
+                            <div class="particle" style="top: 15%; right: 25%;"></div>
+                            <div class="particle" style="top: 60%; left: 15%;"></div>
+                            <div class="particle" style="top: 70%; right: 20%;"></div>
+                            <div class="particle" style="bottom: 20%; left: 30%;"></div>
+                            <div class="particle" style="bottom: 25%; right: 35%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bottom-bar">
+                <div class="bottom-text">Real-Time Collection<br>Linked</div>
+                <button class="auto-btn small" data-autus="life_physics_engine.integrate">AUJT</button>
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // AUTUS Function Mapping
+        // ═══════════════════════════════════════════════════════════════
+        
+        const LAYER_MAPPING = {
+            'mainPage': {
+                layer: 'Main Page',
+                autus: 'LifePhysicsEngine',
+                functions: ['auto_mode()', 'current_state', 'intention'],
+                description: '중앙 허브 - 모든 레이어의 출발점'
+            },
+            'sensoryInput': {
+                layer: 'Sensory Input',
+                autus: 'LocalDistiller',
+                functions: ['process_mic()', 'process_cam()', 'process_screen()'],
+                description: 'Raw → Vector 즉시 가공 후 폐기'
+            },
+            'physicsMap': {
+                layer: 'Physics Map',
+                autus: 'StateVector + ForceVector',
+                functions: ['to_list()', 'magnitude()', 'apply_to_state()'],
+                description: '상태 벡터 네트워크 시각화'
+            },
+            'coreLoop': {
+                layer: 'Core Loop',
+                autus: 'DecisionLog',
+                functions: ['state_before', 'action', 'state_after', 'delta'],
+                description: 'Before → Action → After (Decision Trinity)'
+            },
+            'feedbackLayer': {
+                layer: 'Feedback',
+                autus: 'PhysicsMetrics',
+                functions: ['efficiency', 'prediction_error', 'entropy_loss'],
+                description: 'ε = predicted - actual → 학습'
+            },
+            'brainwaveLayer': {
+                layer: 'Brainwave Integration',
+                autus: 'LifePhysicsEngine.integrate()',
+                functions: ['predict_state()', 'can_reach_goal()', 'get_learning_summary()'],
+                description: '전체 시스템 통합 + 예측'
+            }
+        };
+        
+        // 클릭 이벤트
+        document.querySelectorAll('.phone').forEach(phone => {
+            phone.addEventListener('click', () => {
+                const mapping = LAYER_MAPPING[phone.id];
+                if (mapping) {
+                    console.log(`\n🔹 ${mapping.layer}`);
+                    console.log(`   AUTUS: ${mapping.autus}`);
+                    console.log(`   Functions: ${mapping.functions.join(', ')}`);
+                    console.log(`   ${mapping.description}`);
+                }
+            });
+        });
+        
+        // AUTO 버튼 클릭
+        document.querySelectorAll('.auto-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const autusFunc = btn.dataset.autus;
+                alert(`🚀 AUTUS Function: ${autusFunc}\n\n실행됨!`);
+            });
+        });
+        
+        console.log('🌌 AUTUS 6 Layers Ready');
+        console.log('각 화면을 클릭하면 AUTUS 매핑 정보가 표시됩니다.');
+    </script>
+</body>
+</html>

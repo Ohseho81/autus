@@ -1,0 +1,62 @@
+{
+  "timestamp": "2025-12-23T09:46:38.729960",
+  "alliance_summary": {
+    "founder": {
+      "name": "ATB_FOUNDER",
+      "assets": 200,
+      "debt": 180,
+      "debt_pressure": 0.9,
+      "annual_deficit": 10,
+      "annual_interest": 9.0
+    },
+    "jongho_corp": {
+      "name": "KIM_JONGHO_CORP",
+      "revenue": 500,
+      "profit": 70,
+      "available_for_transfer": 21.0
+    }
+  },
+  "optimized_plan": {
+    "total_transfer": 21.0,
+    "transactions": [
+      {
+        "type": "ROYALTY",
+        "amount": 4.2,
+        "description": "AUTUS 플랫폼 기술 로열티 (매출의 2% 이하)"
+      },
+      {
+        "type": "RND_SHARE",
+        "amount": 8.4,
+        "description": "공동 R&D 프로젝트 비용 분담금"
+      },
+      {
+        "type": "SERVICE_FEE",
+        "amount": 8.4,
+        "description": "통합 시스템 운영 및 유지보수 용역"
+      }
+    ],
+    "founder_impact": {
+      "deficit_coverage": 10,
+      "debt_reduction_annual": 11.0,
+      "years_to_debt_free": 16.4
+    },
+    "compliance_score": 1.0,
+    "warnings": []
+  },
+  "reinvestment_simulation": {
+    "5_year_tax_saved": -0.47499999999999987,
+    "5_year_reinvested": 13.75,
+    "paths": [
+      "필리핀 지주사",
+      "R&D 재단"
+    ]
+  },
+  "jeju_milestone": {
+    "completion_date": "2026-06-01",
+    "months_remaining": 5,
+    "monthly_revenue": 1,
+    "annual_depreciation": 1.25,
+    "annual_tax_savings": 0.275,
+    "36_month_cumulative_revenue": 47.5
+  }
+}

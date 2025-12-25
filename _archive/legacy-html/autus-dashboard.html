@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap');
+        
+        :root {
+            --bg-primary: #1a1d23;
+            --bg-secondary: #252830;
+            --bg-card: #2a2e38;
+            --bg-dark: #15171c;
+            --cyan: #00e5cc;
+            --cyan-dim: rgba(0, 229, 204, 0.3);
+            --cyan-glow: rgba(0, 229, 204, 0.5);
+            --text-primary: #ffffff;
+            --text-secondary: #8a8f9a;
+            --text-dim: #5a5f6a;
+            --success: #00e5cc;
+            --warning: #ffcc00;
+            --danger: #ff4466;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           LEFT SIDEBAR
+        ═══════════════════════════════════════════════════════════════ */
+        .sidebar-left {
+            width: 60px;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            gap: 8px;
+        }
+        
+        .sidebar-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+        
+        .sidebar-icon:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        .sidebar-icon.active {
+            background: var(--cyan);
+            color: var(--bg-dark);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           MAIN CONTENT
+        ═══════════════════════════════════════════════════════════════ */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* TOP BAR */
+        .top-bar {
+            height: 50px;
+            background: var(--bg-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .top-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .top-icon {
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        .top-icon.active {
+            color: var(--cyan);
+        }
+        
+        .wifi-indicator {
+            position: relative;
+        }
+        
+        .wifi-indicator::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 3px;
+            background: var(--cyan);
+            border-radius: 2px;
+        }
+        
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            font-weight: 500;
+            letter-spacing: 8px;
+            color: var(--text-primary);
+        }
+        
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .battery {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .battery-icon {
+            width: 28px;
+            height: 14px;
+            border: 2px solid var(--cyan);
+            border-radius: 3px;
+            position: relative;
+        }
+        
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 6px;
+            background: var(--cyan);
+            border-radius: 0 2px 2px 0;
+        }
+        
+        .battery-fill {
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            bottom: 2px;
+            width: 70%;
+            background: var(--cyan);
+            border-radius: 1px;
+        }
+        
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        /* DASHBOARD */
+        .dashboard {
+            flex: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 20px;
+        }
+        
+        /* TOP STATS ROW */
+        .stats-left {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 42px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .stat-value .unit {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-left: 4px;
+        }
+        
+        .stat-sub {
+            font-size: 11px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .stat-sub .bar {
+            width: 30px;
+            height: 4px;
+            background: var(--bg-card);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .stat-sub .bar-fill {
+            height: 100%;
+            background: var(--cyan);
+        }
+        
+        .stats-right {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+        }
+        
+        .stat-compact {
+            text-align: right;
+        }
+        
+        .stat-compact .stat-label {
+            text-align: right;
+        }
+        
+        .stat-compact .stat-value {
+            font-size: 32px;
+        }
+        
+        .stat-row {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-end;
+        }
+        
+        .stat-mini {
+            text-align: right;
+        }
+        
+        .stat-mini .label {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+        
+        .stat-mini .value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+        }
+        
+        /* CENTER AREA */
+        .center-area {
+            grid-column: 1 / 4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+        }
+        
+        /* CIRCULAR BUTTONS */
+        .circular-btn {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 3px solid var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 
+                inset 0 2px 10px rgba(0,0,0,0.3),
+                0 4px 20px rgba(0,0,0,0.4);
+        }
+        
+        .circular-btn:hover {
+            border-color: var(--cyan-dim);
+            box-shadow: 
+                inset 0 2px 10px rgba(0,0,0,0.3),
+                0 4px 30px var(--cyan-dim);
+        }
+        
+        .circular-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .circular-btn.active {
+            border-color: var(--cyan);
+            box-shadow: 
+                inset 0 2px 10px rgba(0,0,0,0.3),
+                0 0 40px var(--cyan-glow);
+        }
+        
+        .circular-btn span {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 3px;
+        }
+        
+        /* MAIN GAUGE */
+        .main-gauge {
+            width: 320px;
+            height: 320px;
+            position: relative;
+        }
+        
+        .gauge-outer {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 4px solid var(--bg-secondary);
+            position: relative;
+            box-shadow: 
+                inset 0 4px 20px rgba(0,0,0,0.4),
+                0 4px 30px rgba(0,0,0,0.5);
+        }
+        
+        .gauge-ring {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border-radius: 50%;
+            background: transparent;
+        }
+        
+        .gauge-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        
+        .gauge-track {
+            fill: none;
+            stroke: var(--bg-secondary);
+            stroke-width: 12;
+        }
+        
+        .gauge-progress {
+            fill: none;
+            stroke: var(--cyan);
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 565.48;
+            stroke-dashoffset: 56.55;
+            filter: drop-shadow(0 0 8px var(--cyan-glow));
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        
+        .gauge-labels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        .gauge-label {
+            position: absolute;
+            font-size: 9px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+        
+        .gauge-label.top { top: 25px; left: 50%; transform: translateX(-50%); }
+        .gauge-label.right { right: 20px; top: 50%; transform: translateY(-50%); }
+        .gauge-label.bottom { bottom: 25px; left: 50%; transform: translateX(-50%); }
+        .gauge-label.left { left: 20px; top: 50%; transform: translateY(-50%); }
+        .gauge-label.top-left { top: 50px; left: 50px; }
+        .gauge-label.top-right { top: 50px; right: 50px; }
+        .gauge-label.bottom-left { bottom: 50px; left: 50px; }
+        .gauge-label.bottom-right { bottom: 50px; right: 50px; }
+        
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .gauge-output-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+        
+        .gauge-output-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 56px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+        
+        .gauge-output-unit {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        .gauge-current {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .gauge-current-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+        
+        .gauge-current-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            color: var(--cyan);
+        }
+        
+        /* BOTTOM STATS */
+        .bottom-stats-left {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .bottom-stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .bottom-stat .label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        .bottom-stat .value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+        }
+        
+        .bottom-stats-right {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+        }
+        
+        /* STATUS BAR */
+        .status-bar {
+            grid-column: 1 / 4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+        
+        .progress-bar-container {
+            flex: 1;
+            max-width: 300px;
+            height: 12px;
+            background: var(--bg-dark);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan), var(--success));
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+        
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        
+        .status-item .label {
+            color: var(--text-secondary);
+        }
+        
+        .status-item .value {
+            font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--cyan);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--cyan-glow); }
+            50% { opacity: 0.8; box-shadow: 0 0 0 6px transparent; }
+        }
+        
+        .mode-indicator {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .mode-bar {
+            width: 12px;
+            height: 20px;
+            background: var(--bg-dark);
+            border-radius: 2px;
+        }
+        
+        .mode-bar.active {
+            background: var(--cyan);
+        }
+        
+        /* RIGHT SIDEBAR */
+        .sidebar-right {
+            width: 70px;
+            background: var(--bg-dark);
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+        }
+        
+        .sidebar-right-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            color: var(--text-dim);
+        }
+        
+        .sidebar-right-item.highlight {
+            color: var(--cyan);
+        }
+        
+        .sidebar-right-item.warning {
+            color: var(--warning);
+        }
+        
+        .sidebar-divider {
+            height: 1px;
+            background: var(--bg-secondary);
+            margin: 8px 0;
+        }
+        
+        .car-icon {
+            text-align: center;
+            padding: 16px 0;
+            font-size: 24px;
+            color: var(--cyan);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════════════════════════ */
+        @media (max-width: 1200px) {
+            .main-gauge { width: 260px; height: 260px; }
+            .circular-btn { width: 140px; height: 140px; }
+            .gauge-output-value { font-size: 42px; }
+        }
+        
+        @media (max-width: 900px) {
+            .sidebar-left, .sidebar-right { display: none; }
+            .center-area { flex-direction: column; gap: 20px; }
+            .circular-btn { width: 120px; height: 120px; }
+            .circular-btn span { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <nav class="sidebar-left">
+        <div class="sidebar-icon">⬚</div>
+        <div class="sidebar-icon active">◎</div>
+        <div class="sidebar-icon">💬</div>
+        <div class="sidebar-icon">↻</div>
+        <div class="sidebar-icon" style="margin-top: auto;">⚙</div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-left">
+                <span class="top-icon">◀</span>
+                <span class="top-icon">❄</span>
+                <span class="top-icon wifi-indicator">📶</span>
+            </div>
+            <div class="logo">AUTUS</div>
+            <div class="top-right">
+                <span class="top-icon">📊</span>
+                <span class="top-icon">🔔</span>
+                <div class="battery">
+                    <div class="battery-icon">
+                        <div class="battery-fill"></div>
+                    </div>
+                </div>
+                <div class="avatar">👤</div>
+            </div>
+        </header>
+        
+        <!-- Dashboard -->
+        <section class="dashboard">
+            <!-- Top Left Stats -->
+            <div class="stats-left">
+                <div class="stat-box">
+                    <div class="stat-label">GOAL</div>
+                    <div class="stat-value" id="goalValue">85<span class="unit">%</span></div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">PROGRESS</div>
+                    <div class="stat-value" id="progressValue">72<span class="unit">%</span></div>
+                    <div class="stat-sub">
+                        <span class="bar"><span class="bar-fill" style="width: 72%"></span></span>
+                        <span>4.0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Center (empty for grid) -->
+            <div></div>
+            
+            <!-- Top Right Stats -->
+            <div class="stats-right">
+                <div class="stat-compact">
+                    <div class="stat-label">SPEED</div>
+                    <div class="stat-value" id="speedValue">65<span class="unit">mph</span></div>
+                    <div class="stat-sub">94%</div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-mini">
+                        <div class="label">SPEED</div>
+                        <div class="value">3200</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="label">RPM</div>
+                        <div class="value">78°C</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="label">TEMP</div>
+                        <div class="value">78°C</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Center Area -->
+            <div class="center-area">
+                <!-- AUTO Button -->
+                <div class="circular-btn active" id="btnAuto">
+                    <span>AUTO</span>
+                </div>
+                
+                <!-- Main Gauge -->
+                <div class="main-gauge">
+                    <div class="gauge-outer">
+                        <div class="gauge-ring">
+                            <svg class="gauge-svg" viewBox="0 0 200 200">
+                                <circle class="gauge-track" cx="100" cy="100" r="90"/>
+                                <circle class="gauge-progress" id="gaugeProgress" cx="100" cy="100" r="90"/>
+                            </svg>
+                        </div>
+                        
+                        <div class="gauge-labels">
+                            <span class="gauge-label top">94%</span>
+                            <span class="gauge-label top-right">EFFICIENCY</span>
+                            <span class="gauge-label right">EFF%</span>
+                            <span class="gauge-label bottom-right">MGND</span>
+                            <span class="gauge-label bottom">CURRENT</span>
+                            <span class="gauge-label bottom-left">CURRENT%</span>
+                            <span class="gauge-label left">MO1P S.CN</span>
+                            <span class="gauge-label top-left">H-19HUV</span>
+                        </div>
+                        
+                        <div class="gauge-center">
+                            <div class="gauge-output-label">OUTPUT</div>
+                            <div class="gauge-output-value" id="outputValue">160</div>
+                            <div class="gauge-output-unit">units/hr</div>
+                        </div>
+                        
+                        <div class="gauge-current">
+                            <div class="gauge-current-label">CURRENT</div>
+                            <div class="gauge-current-value" id="currentValue">8.7A</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- THRESHOLD Button -->
+                <div class="circular-btn" id="btnThreshold">
+                    <span>THRESHOLD</span>
+                </div>
+            </div>
+            
+            <!-- Bottom Left Stats -->
+            <div class="bottom-stats-left">
+                <div class="bottom-stat">
+                    <div class="label">TEMP</div>
+                    <div class="value" id="tempValue">45°C</div>
+                </div>
+                <div class="bottom-stat">
+                    <div class="label">VOLTAGE</div>
+                    <div class="value" id="voltageValue">12.3V</div>
+                </div>
+            </div>
+            
+            <!-- Bottom Center (empty) -->
+            <div></div>
+            
+            <!-- Bottom Right Stats -->
+            <div class="bottom-stats-right">
+                <div class="bottom-stat">
+                    <div class="label">RMP</div>
+                    <div class="value">2°102</div>
+                </div>
+                <div class="bottom-stat">
+                    <div class="label">RMP</div>
+                    <div class="value">13°10</div>
+                </div>
+                <div class="bottom-stat">
+                    <div class="label">TEMP</div>
+                    <div class="value">6°&1</div>
+                </div>
+                <div class="bottom-stat">
+                    <div class="label">FUEL</div>
+                    <div class="value" style="color: var(--cyan)">3/4</div>
+                </div>
+            </div>
+            
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="statusProgress" style="width: 65%"></div>
+                </div>
+                
+                <div class="status-info">
+                    <div class="status-item">
+                        <span class="label">STATUS</span>
+                        <span class="value">ACTIVE</span>
+                        <span class="status-dot"></span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">MODE</span>
+                        <span class="value" id="modeValue">AUTO</span>
+                    </div>
+                </div>
+                
+                <div class="mode-indicator">
+                    <div class="mode-bar"></div>
+                    <div class="mode-bar active"></div>
+                    <div class="mode-bar active"></div>
+                    <div class="mode-bar active"></div>
+                    <div class="mode-bar active"></div>
+                    <div class="mode-bar"></div>
+                    <div class="mode-bar"></div>
+                    <div class="mode-bar"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Right Sidebar -->
+    <aside class="sidebar-right">
+        <div class="sidebar-right-item">0!</div>
+        <div class="sidebar-right-item">3200</div>
+        <div class="sidebar-right-item">3200</div>
+        <div class="sidebar-right-item">610</div>
+        <div class="sidebar-right-item">910</div>
+        <div class="sidebar-right-item">100</div>
+        <div class="sidebar-right-item highlight">110</div>
+        <div class="sidebar-right-item warning">650</div>
+        <div class="sidebar-right-item highlight">1.50</div>
+        <div class="sidebar-divider"></div>
+        <div class="car-icon">🚗</div>
+        <div class="sidebar-right-item">140</div>
+        <div class="sidebar-right-item">5:10</div>
+        <div class="sidebar-right-item">6100</div>
+        <div class="sidebar-right-item">7:10</div>
+        <div class="sidebar-right-item">5:10</div>
+        <div class="sidebar-right-item">6:10</div>
+        <div class="sidebar-right-item">6:10</div>
+        <div class="sidebar-right-item">1:10</div>
+        <div class="sidebar-right-item">2010</div>
+        <div class="sidebar-right-item highlight">2.00</div>
+        <div class="sidebar-right-item">2210</div>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-right-item">3/4</div>
+    </aside>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // AUTUS DASHBOARD ENGINE
+        // ═══════════════════════════════════════════════════════════════
+        
+        const State = {
+            mode: 'AUTO',
+            output: 160,
+            goal: 85,
+            progress: 72,
+            speed: 65,
+            temp: 45,
+            voltage: 12.3,
+            current: 8.7,
+            efficiency: 94,
+            autoActive: true,
+            thresholdActive: false
+        };
+        
+        // Gauge Animation
+        function updateGauge(percent) {
+            const circumference = 2 * Math.PI * 90; // 565.48
+            const offset = circumference - (percent / 100) * circumference;
+            document.getElementById('gaugeProgress').style.strokeDashoffset = offset;
+        }
+        
+        // Button Handlers
+        document.getElementById('btnAuto').addEventListener('click', function() {
+            State.autoActive = !State.autoActive;
+            this.classList.toggle('active', State.autoActive);
+            
+            if (State.autoActive) {
+                State.mode = 'AUTO';
+                document.getElementById('modeValue').textContent = 'AUTO';
+                simulateAutoMode();
+            }
+        });
+        
+        document.getElementById('btnThreshold').addEventListener('click', function() {
+            State.thresholdActive = !State.thresholdActive;
+            this.classList.toggle('active', State.thresholdActive);
+            
+            if (State.thresholdActive) {
+                State.mode = 'THRESHOLD';
+                document.getElementById('modeValue').textContent = 'THRESHOLD';
+                State.autoActive = false;
+                document.getElementById('btnAuto').classList.remove('active');
+            }
+        });
+        
+        // Auto Mode Simulation
+        function simulateAutoMode() {
+            if (!State.autoActive) return;
+            
+            // Random fluctuations
+            State.output = Math.round(150 + Math.random() * 30);
+            State.efficiency = Math.round(90 + Math.random() * 8);
+            State.current = (8 + Math.random() * 2).toFixed(1);
+            State.temp = Math.round(42 + Math.random() * 8);
+            State.progress = Math.min(100, State.progress + Math.random() * 0.5);
+            
+            // Update UI
+            document.getElementById('outputValue').textContent = State.output;
+            document.getElementById('currentValue').textContent = State.current + 'A';
+            document.getElementById('tempValue').textContent = State.temp + '°C';
+            document.getElementById('progressValue').innerHTML = Math.round(State.progress) + '<span class="unit">%</span>';
+            document.querySelector('.bar-fill').style.width = State.progress + '%';
+            document.getElementById('statusProgress').style.width = State.progress + '%';
+            
+            updateGauge(State.efficiency);
+            
+            setTimeout(simulateAutoMode, 2000);
+        }
+        
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'a':
+                    document.getElementById('btnAuto').click();
+                    break;
+                case 't':
+                    document.getElementById('btnThreshold').click();
+                    break;
+            }
+        });
+        
+        // Initialize
+        updateGauge(State.efficiency);
+        simulateAutoMode();
+    </script>
+</body>
+</html>

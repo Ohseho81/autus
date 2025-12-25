@@ -1,0 +1,153 @@
+/**
+ * AUTUS Tesla Shell — Design Tokens (Locked)
+ * Frame: 1440x900
+ * Grid: 12 columns, margin 80, gutter 24
+ */
+
+:root {
+  /* ═══════════════════════════════════════════════════════════════
+     BACKGROUND TOKENS
+     ═══════════════════════════════════════════════════════════════ */
+  --bg-base: #0B0D10;
+  --bg-panel: #0F141A;
+  --bg-overlay: rgba(15, 20, 26, 0.85);
+  --bg-panel-blur: rgba(10, 12, 15, 0.55);
+  --bg-panel-left: rgba(10, 12, 15, 0.35);
+  --bg-card: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+  --bg-button: rgba(255, 255, 255, 0.06);
+  --bg-button-hover: rgba(255, 255, 255, 0.08);
+  --bg-input: rgba(0, 0, 0, 0.35);
+  --bg-hud: rgba(0, 0, 0, 0.38);
+  --bg-toast: rgba(10, 12, 15, 0.80);
+  --bg-drawer: rgba(10, 12, 15, 0.82);
+  --bg-override-dim: rgba(0, 0, 0, 0.6);
+  --bg-override-card: rgba(15, 20, 26, 0.95);
+
+  /* ═══════════════════════════════════════════════════════════════
+     TEXT TOKENS
+     ═══════════════════════════════════════════════════════════════ */
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.62);
+  --text-muted: rgba(255, 255, 255, 0.42);
+
+  /* ═══════════════════════════════════════════════════════════════
+     ACCENT TOKENS
+     ═══════════════════════════════════════════════════════════════ */
+  --accent-good: #3DDC97;
+  --accent-warn: #FFCC66;
+  --accent-bad: #FF5C5C;
+
+  /* ═══════════════════════════════════════════════════════════════
+     STROKE TOKENS
+     ═══════════════════════════════════════════════════════════════ */
+  --stroke-weak: rgba(255, 255, 255, 0.10);
+  --stroke-strong: rgba(255, 255, 255, 0.16);
+  --stroke-divider: rgba(255, 255, 255, 0.06);
+
+  /* ═══════════════════════════════════════════════════════════════
+     SHADOW TOKENS
+     ═══════════════════════════════════════════════════════════════ */
+  --shadow-panel: 0 18px 60px rgba(0, 0, 0, 0.55);
+  --shadow-button: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+  /* ═══════════════════════════════════════════════════════════════
+     RADIUS TOKENS
+     ═══════════════════════════════════════════════════════════════ */
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 22px;
+  --radius-pill: 999px;
+
+  /* ═══════════════════════════════════════════════════════════════
+     LAYOUT TOKENS
+     ═══════════════════════════════════════════════════════════════ */
+  --frame-width: 1440px;
+  --frame-height: 900px;
+  --grid-columns: 12;
+  --grid-margin: 80px;
+  --grid-gutter: 24px;
+
+  --height-topbar: 56px;
+  --height-dock: 76px;
+  --width-entity-panel: 312px;
+  --padding-entity-panel: 12px;
+  --padding-dock: 10px 14px;
+  --size-dock-app: 42px;
+  --max-width-overlay-sheet: 720px;
+
+  --height-hud-home: 120px;
+  --height-hud-map: 96px;
+  --columns-hud-home: 3;
+  --columns-hud-map: 2;
+  --gap-hud: 10px;
+
+  --width-search-home: 560px;
+  --height-search-home: 40px;
+  --width-search-map: 420px;
+  --height-search-map: 36px;
+
+  --padding-canvas-home: 16px 18px;
+  --padding-canvas-map: 0px;
+
+  /* ═══════════════════════════════════════════════════════════════
+     TYPOGRAPHY TOKENS
+     ═══════════════════════════════════════════════════════════════ */
+  --font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  --font-size-title: 14px;
+  --font-weight-title: 600;
+  --letter-spacing-title: -0.01em;
+
+  --font-size-body: 13px;
+  --font-weight-body: 500;
+
+  --font-size-body-sm: 12px;
+  --font-weight-body-sm: 400;
+
+  --font-size-meta: 11px;
+  --font-weight-meta: 400;
+
+  /* ═══════════════════════════════════════════════════════════════
+     TRANSITION TOKENS
+     ═══════════════════════════════════════════════════════════════ */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 0.15s;
+  --duration-normal: 0.18s;
+  --duration-slow: 0.25s;
+
+  /* ═══════════════════════════════════════════════════════════════
+     Z-INDEX TOKENS (7 LAYERS)
+     ═══════════════════════════════════════════════════════════════ */
+  --z-L0: 0;
+  --z-L1: 10;
+  --z-L2: 20;
+  --z-L3: 30;
+  --z-L4: 40;
+  --z-L5: 50;
+  --z-L6: 60;
+
+  /* ═══════════════════════════════════════════════════════════════
+     ROUTE TOKENS (MAP VIEW)
+     ═══════════════════════════════════════════════════════════════ */
+  --route-normal-width: 2px;
+  --route-active-width: 3px;
+  --route-alternate-width: 3px;
+  --route-alternate-dash: 6px 4px;
+  --station-node-size: 10px;
+  --station-ring-size: 14px;
+  --station-ring-opacity: 0.12;
+  --focus-marker-size: 12px;
+
+  /* ═══════════════════════════════════════════════════════════════
+     MAP BACKGROUND TOKENS
+     ═══════════════════════════════════════════════════════════════ */
+  --map-grid-opacity-home: 0.35;
+  --map-grid-opacity-map: 0.07;
+  --map-grid-size: 52px;
+  --map-grid-color: rgba(255, 255, 255, 0.045);
+}
+
+
