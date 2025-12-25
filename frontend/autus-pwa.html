@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#00e5cc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AUTUS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="AUTUS">
+    <meta name="msapplication-TileColor" content="#0a0a0f">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="apple-touch-startup-image" href="icons/splash.png">
+    
+    <title>AUTUS - Decision Physics OS</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/pwa.css">
+    <link rel="stylesheet" href="css/network.css">
+    <link rel="stylesheet" href="css/ota.css">
+    
+    <style>
+        :root {
+            --cyan: #00e5cc;
+            --gold: #ffd700;
+            --orange: #ff6b4a;
+            --green: #34c759;
+            --red: #ff3b30;
+            --bg: #0a0a0f;
+            --card: rgba(20, 25, 35, 0.9);
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: calc(20px + var(--safe-top)) 16px calc(100px + var(--safe-bottom));
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--cyan);
+            letter-spacing: 3px;
+        }
+        
+        .connection-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--red);
+        }
+        
+        .status-dot.online {
+            background: var(--green);
+            box-shadow: 0 0 10px var(--green);
+        }
+        
+        /* Titans Cards */
+        .titans-grid {
+            display: grid;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        
+        .titan-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        
+        .titan-card:active {
+            transform: scale(0.98);
+        }
+        
+        .titan-card.bezos { border-color: rgba(255, 215, 0, 0.3); }
+        .titan-card.thiel { border-color: rgba(0, 229, 204, 0.3); }
+        .titan-card.musk { border-color: rgba(255, 107, 74, 0.3); }
+        
+        .titan-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+        
+        .titan-card.bezos .titan-icon { background: linear-gradient(135deg, #ffd700, #ff9500); }
+        .titan-card.thiel .titan-icon { background: linear-gradient(135deg, #00e5cc, #00aaff); }
+        .titan-card.musk .titan-icon { background: linear-gradient(135deg, #ff6b4a, #ff3b30); }
+        
+        .titan-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .titan-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .titan-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        
+        .titan-arrow {
+            color: var(--text-dim);
+            font-size: 18px;
+        }
+        
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-mini {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 14px 12px;
+            text-align: center;
+        }
+        
+        .stat-mini .value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .stat-mini .label {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        
+        .value-cyan { color: var(--cyan); }
+        .value-gold { color: var(--gold); }
+        .value-orange { color: var(--orange); }
+        
+        /* Quote Section */
+        .quote-section {
+            background: linear-gradient(135deg, rgba(0, 229, 204, 0.1), rgba(255, 215, 0, 0.05));
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .quote-text {
+            font-size: 15px;
+            font-style: italic;
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .quote-author {
+            font-size: 12px;
+            color: var(--cyan);
+        }
+        
+        /* Action Grid */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .action-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .action-card:active {
+            transform: scale(0.96);
+        }
+        
+        .action-card.primary {
+            background: linear-gradient(135deg, var(--cyan), #00aaff);
+        }
+        
+        .action-card.primary .action-text {
+            color: #000;
+        }
+        
+        .action-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .action-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .action-sub {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        
+        .action-card.primary .action-sub {
+            color: rgba(0, 0, 0, 0.6);
+        }
+        
+        /* Features Section */
+        .features-section {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .features-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-icon {
+            font-size: 20px;
+        }
+        
+        .feature-text {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        
+        .feature-status {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .feature-status.active {
+            background: rgba(52, 199, 89, 0.2);
+            color: var(--green);
+        }
+        
+        .feature-status.pending {
+            background: rgba(255, 107, 74, 0.2);
+            color: var(--orange);
+        }
+        
+        /* Tab Bar */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(60px + var(--safe-bottom));
+            padding-bottom: var(--safe-bottom);
+            background: linear-gradient(180deg, rgba(10, 10, 15, 0.95) 0%, rgba(10, 10, 15, 1) 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .tab-item.active {
+            color: var(--cyan);
+        }
+        
+        .tab-icon {
+            font-size: 22px;
+        }
+        
+        .tab-label {
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">AUTUS</div>
+        <div class="connection-indicator">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">연결 중...</span>
+        </div>
+    </div>
+    
+    <!-- Titans Cards -->
+    <div class="titans-grid">
+        <div class="titan-card bezos" onclick="location.href='autus-bezos.html'">
+            <div class="titan-icon">🎯</div>
+            <div class="titan-content">
+                <div class="titan-name">Bezos Mode</div>
+                <div class="titan-desc">80세 후회 분석 · Flywheel · Day 1</div>
+            </div>
+            <span class="titan-arrow">→</span>
+        </div>
+        
+        <div class="titan-card thiel" onclick="location.href='autus-thiel.html'">
+            <div class="titan-icon">🔗</div>
+            <div class="titan-content">
+                <div class="titan-name">Thiel Mode</div>
+                <div class="titan-desc">독점 · 네트워크 효과 · Secrets</div>
+            </div>
+            <span class="titan-arrow">→</span>
+        </div>
+        
+        <div class="titan-card musk" onclick="location.href='autus-musk.html'">
+            <div class="titan-icon">🚀</div>
+            <div class="titan-content">
+                <div class="titan-name">Musk Mode</div>
+                <div class="titan-desc">Delete · Simplify · Automate</div>
+            </div>
+            <span class="titan-arrow">→</span>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+        <div class="stat-mini">
+            <div class="value value-cyan" data-autus="network_size">847</div>
+            <div class="label">창업자</div>
+        </div>
+        <div class="stat-mini">
+            <div class="value value-gold" data-autus="monopoly">45%</div>
+            <div class="label">독점률</div>
+        </div>
+        <div class="stat-mini">
+            <div class="value value-orange" data-autus="intervention">5%</div>
+            <div class="label">인간 개입</div>
+        </div>
+    </div>
+    
+    <!-- Quote -->
+    <div class="quote-section">
+        <div class="quote-text" id="titan-quote">
+            "Competition is for losers. Build a monopoly."
+        </div>
+        <div class="quote-author">— Peter Thiel</div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="action-grid">
+        <div class="action-card primary" onclick="startAutoMode()">
+            <div class="action-icon">🎯</div>
+            <div class="action-text">AUTO 시작</div>
+            <div class="action-sub">결정 루프 실행</div>
+        </div>
+        <div class="action-card" onclick="showDecisionHistory()">
+            <div class="action-icon">📊</div>
+            <div class="action-text">결정 기록</div>
+            <div class="action-sub">히스토리 확인</div>
+        </div>
+        <div class="action-card" onclick="generateInvite()">
+            <div class="action-icon">🎟️</div>
+            <div class="action-text">초대 코드</div>
+            <div class="action-sub">창업자 초대</div>
+        </div>
+        <div class="action-card" onclick="checkUpdate()">
+            <div class="action-icon">🔄</div>
+            <div class="action-text">업데이트</div>
+            <div class="action-sub">v2.0.0</div>
+        </div>
+    </div>
+    
+    <!-- Features -->
+    <div class="features-section">
+        <div class="features-title">✨ 핵심 기능</div>
+        <div class="feature-item">
+            <span class="feature-icon">📴</span>
+            <span class="feature-text">오프라인 모드</span>
+            <span class="feature-status active">활성</span>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">🔔</span>
+            <span class="feature-text">푸시 알림</span>
+            <span class="feature-status active">활성</span>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">📲</span>
+            <span class="feature-text">홈 화면 설치</span>
+            <span class="feature-status" id="install-status">대기</span>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">🔄</span>
+            <span class="feature-text">백그라운드 동기화</span>
+            <span class="feature-status active">활성</span>
+        </div>
+    </div>
+    
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item active" data-page="home">
+            <span class="tab-icon">🏠</span>
+            <span class="tab-label">홈</span>
+        </div>
+        <div class="tab-item" data-page="bezos" onclick="location.href='autus-bezos.html'">
+            <span class="tab-icon">🎯</span>
+            <span class="tab-label">Bezos</span>
+        </div>
+        <div class="tab-item" data-page="thiel" onclick="location.href='autus-thiel.html'">
+            <span class="tab-icon">🔗</span>
+            <span class="tab-label">Thiel</span>
+        </div>
+        <div class="tab-item" data-page="musk" onclick="location.href='autus-musk.html'">
+            <span class="tab-icon">🚀</span>
+            <span class="tab-label">Musk</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/pwa/pwa-install.js"></script>
+    <script src="js/ota/update-manager.js"></script>
+    <script src="js/network/founder-network.js"></script>
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // SERVICE WORKER REGISTRATION
+        // ═══════════════════════════════════════════════════════════════
+        
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/frontend/sw.js', {
+                        scope: '/'
+                    });
+                    console.log('[PWA] Service Worker registered:', registration.scope);
+                    
+                    // 업데이트 체크
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        console.log('[PWA] New Service Worker installing...');
+                        
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // 새 버전 사용 가능
+                                showUpdateReady();
+                            }
+                        });
+                    });
+                } catch (e) {
+                    console.error('[PWA] Service Worker registration failed:', e);
+                }
+            });
+        }
+        
+        function showUpdateReady() {
+            const toast = document.createElement('div');
+            toast.className = 'pwa-update-prompt visible';
+            toast.innerHTML = `
+                <div class="update-content">
+                    <span class="update-icon">🚀</span>
+                    <div class="update-text">
+                        <div class="update-title">새 버전 준비됨</div>
+                        <div class="update-desc">새로고침하여 업데이트하세요</div>
+                    </div>
+                    <button class="update-btn" onclick="location.reload()">업데이트</button>
+                </div>
+            `;
+            document.body.appendChild(toast);
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // QUOTES ROTATION
+        // ═══════════════════════════════════════════════════════════════
+        
+        const TITAN_QUOTES = [
+            { text: "Competition is for losers. Build a monopoly.", author: "Peter Thiel" },
+            { text: "I knew that if I failed I wouldn't regret that. I might regret not trying.", author: "Jeff Bezos" },
+            { text: "The best part is no part. The best process is no process.", author: "Elon Musk" },
+            { text: "Most decisions should be made with 70% of the information.", author: "Jeff Bezos" },
+            { text: "Every great business is built around a secret.", author: "Peter Thiel" },
+            { text: "Delete, delete, delete.", author: "Elon Musk" },
+            { text: "Day 2 is stasis, followed by irrelevance, followed by death.", author: "Jeff Bezos" },
+            { text: "Going from 0 to 1 is qualitatively different from 1 to n.", author: "Peter Thiel" }
+        ];
+        
+        let quoteIndex = 0;
+        
+        function rotateQuote() {
+            quoteIndex = (quoteIndex + 1) % TITAN_QUOTES.length;
+            const quote = TITAN_QUOTES[quoteIndex];
+            
+            const quoteEl = document.getElementById('titan-quote');
+            const authorEl = document.querySelector('.quote-author');
+            
+            if (quoteEl && authorEl) {
+                quoteEl.style.opacity = '0';
+                authorEl.style.opacity = '0';
+                
+                setTimeout(() => {
+                    quoteEl.textContent = `"${quote.text}"`;
+                    authorEl.textContent = `— ${quote.author}`;
+                    quoteEl.style.opacity = '1';
+                    authorEl.style.opacity = '1';
+                }, 300);
+            }
+        }
+        
+        setInterval(rotateQuote, 8000);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // CONNECTION STATUS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function updateConnectionStatus() {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            
+            if (navigator.onLine) {
+                dot.classList.add('online');
+                text.textContent = '온라인';
+            } else {
+                dot.classList.remove('online');
+                text.textContent = '오프라인';
+            }
+        }
+        
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        updateConnectionStatus();
+        
+        // ═══════════════════════════════════════════════════════════════
+        // ACTIONS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function startAutoMode() {
+            showToast('🎯 AUTO 모드 시작');
+            // 진동 피드백
+            if (navigator.vibrate) {
+                navigator.vibrate([30, 20, 50]);
+            }
+        }
+        
+        function showDecisionHistory() {
+            showToast('📊 결정 기록 로딩 중...');
+        }
+        
+        function generateInvite() {
+            if (window.founderNetwork) {
+                window.founderNetwork.generateInviteCode();
+            } else {
+                showToast('🔗 네트워크 연결 필요');
+            }
+        }
+        
+        function checkUpdate() {
+            if (window.updateManager) {
+                window.updateManager.checkVersion();
+            }
+            showToast('🔄 업데이트 확인 중...');
+        }
+        
+        function showToast(message) {
+            const existing = document.querySelector('.simple-toast');
+            if (existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = 'simple-toast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(20, 25, 35, 0.95);
+                border: 1px solid rgba(0, 229, 204, 0.3);
+                padding: 14px 24px;
+                border-radius: 30px;
+                font-size: 14px;
+                color: #fff;
+                z-index: 9999;
+                animation: toastIn 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.3s ease-out forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+        
+        // Toast 애니메이션
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes toastIn {
+                from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+                to { transform: translateX(-50%) translateY(0); opacity: 1; }
+            }
+            @keyframes toastOut {
+                from { transform: translateX(-50%) translateY(0); opacity: 1; }
+                to { transform: translateX(-50%) translateY(20px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // PWA INSTALL STATUS
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // 설치 상태 확인
+            setTimeout(() => {
+                const installStatus = document.getElementById('install-status');
+                const state = window.pwaInstall?.getInstallState();
+                
+                if (state?.isInstalled || state?.isStandalone) {
+                    installStatus.textContent = '설치됨';
+                    installStatus.className = 'feature-status active';
+                } else if (state?.canPrompt) {
+                    installStatus.textContent = '설치 가능';
+                    installStatus.className = 'feature-status pending';
+                }
+            }, 1000);
+        });
+        
+        console.log('🚀 AUTUS PWA Ready');
+        console.log('Titans: Bezos × Thiel × Musk');
+    </script>
+</body>
+</html>
