@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AUTUS 3D Layers</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --cyan: #00d4c8;
+            --orange: #ff6b35;
+            --purple: #8b5cf6;
+            --blue: #3b82f6;
+            --bg: #0a0a0f;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            overflow-x: auto;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .phone-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .phone-label {
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        .phone {
+            width: 280px;
+            height: 580px;
+            background: var(--bg);
+            border-radius: 35px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 10;
+        }
+        
+        .header {
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            height: 44px;
+            z-index: 10;
+        }
+        
+        .header-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: white;
+            letter-spacing: 2px;
+        }
+        
+        .canvas-container {
+            position: absolute;
+            top: 88px;
+            left: 0;
+            right: 0;
+            bottom: 120px;
+        }
+        
+        .canvas-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px 25px;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .bottom-text {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .auto-btn {
+            background: var(--cyan);
+            color: var(--bg);
+            border: none;
+            padding: 10px 40px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .auto-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 212, 200, 0.5);
+        }
+        
+        .home-indicator {
+            width: 100px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            margin: 12px auto 0;
+        }
+        
+        .layer-label {
+            position: absolute;
+            top: 100px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+        
+        .sensors-list {
+            position: absolute;
+            bottom: 140px;
+            left: 20px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+            z-index: 10;
+        }
+        
+        .sensors-list div {
+            margin: 3px 0;
+        }
+        
+        .chart-bars {
+            position: absolute;
+            bottom: 130px;
+            left: 20px;
+            display: flex;
+            gap: 6px;
+            align-items: flex-end;
+            z-index: 10;
+        }
+        
+        .chart-bar {
+            width: 18px;
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .info-label {
+            position: absolute;
+            top: 110px;
+            right: 15px;
+            text-align: right;
+            font-size: 9px;
+            color: rgba(255,255,255,0.6);
+            z-index: 10;
+        }
+        
+        .info-label .sync {
+            color: var(--cyan);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Layer 1: Main Page -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Main Page</div>
+            <div class="phone">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>📶 🔋</span>
+                </div>
+                <div class="header">
+                    <div class="header-btn">☰</div>
+                    <div class="header-title">AUTUS</div>
+                    <div class="header-btn">🔍</div>
+                </div>
+                <div class="canvas-container" id="canvas1"></div>
+                <div class="layer-label">Core Loop Layer</div>
+                <div class="bottom-bar">
+                    <button class="auto-btn">AUTO</button>
+                    <div style="display: flex; justify-content: center; gap: 30px; margin-top: 12px;">
+                        <div style="text-align: center; font-size: 8px; color: rgba(255,255,255,0.5);">
+                            🎚️<br>MANUAL<br>CONTROL
+                        </div>
+                        <div style="text-align: center; font-size: 8px; color: rgba(255,255,255,0.5);">
+                            🤖<br>AI<br>ASSIST
+                        </div>
+                    </div>
+                    <div class="home-indicator"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Layer 2: Sensory Input -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Sensory Input Layer</div>
+            <div class="phone">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>📶 🔋</span>
+                </div>
+                <div class="header">
+                    <div class="header-btn">‹</div>
+                    <div class="header-title">Sensors</div>
+                    <div class="header-btn">⋯</div>
+                </div>
+                <div class="canvas-container" id="canvas2"></div>
+                <div class="sensors-list">
+                    <strong style="color: white; font-size: 12px;">Sensors</strong>
+                    <div>◉ Energy Confidence</div>
+                    <div>◉ Stress Pattern</div>
+                    <div>◉ Risk On Alert</div>
+                    <div>◉ Biometric Input</div>
+                </div>
+                <div class="chart-bars">
+                    <div class="chart-bar" style="height: 25px; background: var(--cyan);"></div>
+                    <div class="chart-bar" style="height: 40px; background: var(--orange);"></div>
+                    <div class="chart-bar" style="height: 55px; background: var(--purple);"></div>
+                    <div class="chart-bar" style="height: 35px; background: var(--blue);"></div>
+                    <div class="chart-bar" style="height: 45px; background: var(--cyan);"></div>
+                </div>
+                <div class="bottom-bar">
+                    <div class="home-indicator"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Layer 3: Physics Map -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Physics Map Layer</div>
+            <div class="phone">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>📶 🔋</span>
+                </div>
+                <div class="header">
+                    <div class="header-btn">‹</div>
+                    <div class="header-title">AUTUS</div>
+                    <div class="header-btn">⋯</div>
+                </div>
+                <div class="info-label">
+                    Collective Data<br>
+                    <span class="sync">◉ Synchronized</span>
+                </div>
+                <div class="canvas-container" id="canvas3"></div>
+                <div class="bottom-bar">
+                    <div class="bottom-text">Real-Time Collection<br>Linked</div>
+                    <button class="auto-btn">AUTO</button>
+                    <div class="home-indicator"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Layer 4: Core Loop -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Core Loop Layer</div>
+            <div class="phone">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>📶 🔋</span>
+                </div>
+                <div class="header">
+                    <div class="header-btn">‹</div>
+                    <div class="header-title">AUTUS</div>
+                    <div class="header-btn">🔍</div>
+                </div>
+                <div class="canvas-container" id="canvas4"></div>
+                <div class="bottom-bar">
+                    <div class="bottom-text">Real-Time Collection<br>Linked</div>
+                    <button class="auto-btn">AUT</button>
+                    <div class="home-indicator"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Layer 5: Feedback -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Feedback Layer</div>
+            <div class="phone">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>📶 🔋</span>
+                </div>
+                <div class="header">
+                    <div class="header-btn">‹</div>
+                    <div class="header-title">AUTUS</div>
+                    <div class="header-btn">🔍</div>
+                </div>
+                <div class="layer-label">Feedback Layer</div>
+                <div class="canvas-container" id="canvas5"></div>
+                <div class="bottom-bar">
+                    <div class="bottom-text">Real-Time Collection<br>Linked</div>
+                    <button class="auto-btn">AUT</button>
+                    <div class="home-indicator"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Layer 6: Brainwave -->
+        <div class="phone-wrapper">
+            <div class="phone-label">Brainwave Integration Layer</div>
+            <div class="phone">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>📶 🔋</span>
+                </div>
+                <div class="header">
+                    <div class="header-btn">‹</div>
+                    <div class="header-title">AUTUS</div>
+                    <div class="header-btn">🔍</div>
+                </div>
+                <div class="canvas-container" id="canvas6"></div>
+                <div class="bottom-bar">
+                    <div class="bottom-text">Real-Time Collection<br>Linked</div>
+                    <button class="auto-btn">AUJT</button>
+                    <div class="home-indicator"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // THREE.JS SCENES
+        // ═══════════════════════════════════════════════════════════════
+        
+        const scenes = [];
+        const cameras = [];
+        const renderers = [];
+        
+        const CYAN = 0x00d4c8;
+        const ORANGE = 0xff6b35;
+        const PURPLE = 0x8b5cf6;
+        const BLUE = 0x3b82f6;
+        
+        // ═══════════════════════════════════════════════════════════════
+        // LAYER 1: Main Hub
+        // ═══════════════════════════════════════════════════════════════
+        function createMainHub(container) {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, 280/372, 0.1, 1000);
+            camera.position.z = 5;
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(280, 372);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+            
+            // Center sphere with glow
+            const centerGeo = new THREE.SphereGeometry(0.3, 32, 32);
+            const centerMat = new THREE.MeshBasicMaterial({ color: CYAN });
+            const center = new THREE.Mesh(centerGeo, centerMat);
+            scene.add(center);
+            
+            // Glow effect
+            const glowGeo = new THREE.SphereGeometry(0.5, 32, 32);
+            const glowMat = new THREE.MeshBasicMaterial({ 
+                color: CYAN, 
+                transparent: true, 
+                opacity: 0.3 
+            });
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+            scene.add(glow);
+            
+            // Rings
+            const ringColors = [CYAN, CYAN, CYAN];
+            const ringSizes = [1, 1.5, 2.2];
+            const rings = [];
+            
+            ringSizes.forEach((size, i) => {
+                const ringGeo = new THREE.RingGeometry(size - 0.02, size, 64);
+                const ringMat = new THREE.MeshBasicMaterial({ 
+                    color: ringColors[i], 
+                    transparent: true, 
+                    opacity: i === 1 ? 0.3 : 0.5,
+                    side: THREE.DoubleSide
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = Math.PI / 2;
+                scene.add(ring);
+                rings.push(ring);
+            });
+            
+            // Orbital nodes
+            const nodeColors = [CYAN, ORANGE, CYAN, PURPLE, BLUE, CYAN];
+            const nodes = [];
+            
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
+                const radius = 1.8;
+                
+                const nodeGeo = new THREE.SphereGeometry(0.15, 16, 16);
+                const nodeMat = new THREE.MeshBasicMaterial({ color: nodeColors[i] });
+                const node = new THREE.Mesh(nodeGeo, nodeMat);
+                
+                node.position.x = Math.cos(angle) * radius;
+                node.position.y = Math.sin(angle) * radius;
+                scene.add(node);
+                nodes.push({ mesh: node, angle: angle, radius: radius });
+                
+                // Connection line
+                const lineGeo = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(node.position.x * 0.7, node.position.y * 0.7, 0)
+                ]);
+                const lineMat = new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.3 });
+                const line = new THREE.Line(lineGeo, lineMat);
+                scene.add(line);
+            }
+            
+            scenes.push(scene);
+            cameras.push(camera);
+            renderers.push(renderer);
+            
+            return { scene, camera, renderer, nodes, rings, glow };
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // LAYER 2: Sensory Wave
+        // ═══════════════════════════════════════════════════════════════
+        function createSensoryWave(container) {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, 280/372, 0.1, 1000);
+            camera.position.set(0, 2, 5);
+            camera.lookAt(0, 0, 0);
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(280, 372);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+            
+            // Wave surface
+            const waveGeo = new THREE.PlaneGeometry(8, 6, 50, 50);
+            const waveMat = new THREE.MeshBasicMaterial({
+                color: ORANGE,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.4
+            });
+            const wave = new THREE.Mesh(waveGeo, waveMat);
+            wave.rotation.x = -Math.PI / 3;
+            wave.position.y = -1;
+            scene.add(wave);
+            
+            // Glowing peaks
+            for (let i = 0; i < 20; i++) {
+                const peakGeo = new THREE.ConeGeometry(0.1, 0.5 + Math.random() * 1.5, 8);
+                const peakMat = new THREE.MeshBasicMaterial({
+                    color: i % 3 === 0 ? ORANGE : (i % 3 === 1 ? 0xffcc00 : PURPLE),
+                    transparent: true,
+                    opacity: 0.6
+                });
+                const peak = new THREE.Mesh(peakGeo, peakMat);
+                peak.position.x = (Math.random() - 0.5) * 4;
+                peak.position.y = Math.random() * 2 - 1;
+                peak.position.z = (Math.random() - 0.5) * 2;
+                scene.add(peak);
+            }
+            
+            // Concentric rings at bottom
+            for (let i = 0; i < 3; i++) {
+                const ringGeo = new THREE.RingGeometry(1 + i * 0.8, 1.1 + i * 0.8, 64);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: CYAN,
+                    transparent: true,
+                    opacity: 0.2 - i * 0.05,
+                    side: THREE.DoubleSide
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = -Math.PI / 2.5;
+                ring.position.y = -2 - i * 0.3;
+                scene.add(ring);
+            }
+            
+            scenes.push(scene);
+            cameras.push(camera);
+            renderers.push(renderer);
+            
+            return { scene, camera, renderer, wave };
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // LAYER 3: Physics Network
+        // ═══════════════════════════════════════════════════════════════
+        function createPhysicsNetwork(container) {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, 280/372, 0.1, 1000);
+            camera.position.z = 6;
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(280, 372);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+            
+            const nodes = [];
+            const nodeCount = 30;
+            
+            // Create nodes
+            for (let i = 0; i < nodeCount; i++) {
+                const size = 0.05 + Math.random() * 0.1;
+                const nodeGeo = new THREE.SphereGeometry(size, 16, 16);
+                const color = Math.random() > 0.7 ? ORANGE : CYAN;
+                const nodeMat = new THREE.MeshBasicMaterial({ color });
+                const node = new THREE.Mesh(nodeGeo, nodeMat);
+                
+                node.position.x = (Math.random() - 0.5) * 5;
+                node.position.y = (Math.random() - 0.5) * 6;
+                node.position.z = (Math.random() - 0.5) * 2;
+                
+                scene.add(node);
+                nodes.push(node);
+            }
+            
+            // Create connections
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dist = nodes[i].position.distanceTo(nodes[j].position);
+                    if (dist < 1.5) {
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints([
+                            nodes[i].position,
+                            nodes[j].position
+                        ]);
+                        const lineMat = new THREE.LineBasicMaterial({
+                            color: CYAN,
+                            transparent: true,
+                            opacity: 0.2
+                        });
+                        const line = new THREE.Line(lineGeo, lineMat);
+                        scene.add(line);
+                    }
+                }
+            }
+            
+            scenes.push(scene);
+            cameras.push(camera);
+            renderers.push(renderer);
+            
+            return { scene, camera, renderer, nodes };
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // LAYER 4: Core Loop Stack
+        // ═══════════════════════════════════════════════════════════════
+        function createCoreLoopStack(container) {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, 280/372, 0.1, 1000);
+            camera.position.set(0, 2, 5);
+            camera.lookAt(0, 0, 0);
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(280, 372);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+            
+            const layers = [];
+            const layerCount = 3;
+            
+            // Stacked layers
+            for (let i = 0; i < layerCount; i++) {
+                const size = 1.5 - i * 0.2;
+                const layerGeo = new THREE.BoxGeometry(size, 0.3, size);
+                const edges = new THREE.EdgesGeometry(layerGeo);
+                const lineMat = new THREE.LineBasicMaterial({ color: CYAN });
+                const layer = new THREE.LineSegments(edges, lineMat);
+                
+                layer.position.y = -1 + i * 0.8;
+                scene.add(layer);
+                layers.push(layer);
+                
+                // Fill
+                const fillMat = new THREE.MeshBasicMaterial({
+                    color: CYAN,
+                    transparent: true,
+                    opacity: 0.1
+                });
+                const fill = new THREE.Mesh(layerGeo, fillMat);
+                fill.position.y = layer.position.y;
+                scene.add(fill);
+            }
+            
+            // Rotating ring
+            const ringGeo = new THREE.TorusGeometry(2, 0.02, 16, 100);
+            const ringMat = new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.5 });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.x = Math.PI / 2.5;
+            scene.add(ring);
+            
+            // Center glow
+            const glowGeo = new THREE.SphereGeometry(0.5, 32, 32);
+            const glowMat = new THREE.MeshBasicMaterial({
+                color: CYAN,
+                transparent: true,
+                opacity: 0.2
+            });
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+            scene.add(glow);
+            
+            scenes.push(scene);
+            cameras.push(camera);
+            renderers.push(renderer);
+            
+            return { scene, camera, renderer, layers, ring };
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // LAYER 5: Feedback Cubes
+        // ═══════════════════════════════════════════════════════════════
+        function createFeedbackCubes(container) {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, 280/372, 0.1, 1000);
+            camera.position.z = 5;
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(280, 372);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+            
+            const cubes = [];
+            const positions = [
+                { x: 0, y: 1.5, color: CYAN },
+                { x: -1, y: 0, color: ORANGE },
+                { x: 1, y: 0, color: CYAN },
+                { x: 0, y: -1.5, color: PURPLE }
+            ];
+            
+            positions.forEach((pos, i) => {
+                const cubeGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+                const edges = new THREE.EdgesGeometry(cubeGeo);
+                const lineMat = new THREE.LineBasicMaterial({ color: pos.color });
+                const cube = new THREE.LineSegments(edges, lineMat);
+                
+                cube.position.x = pos.x;
+                cube.position.y = pos.y;
+                cube.rotation.x = Math.PI / 4;
+                cube.rotation.z = Math.PI / 4;
+                scene.add(cube);
+                cubes.push(cube);
+                
+                // Fill
+                const fillMat = new THREE.MeshBasicMaterial({
+                    color: pos.color,
+                    transparent: true,
+                    opacity: 0.15
+                });
+                const fill = new THREE.Mesh(cubeGeo, fillMat);
+                fill.position.copy(cube.position);
+                fill.rotation.copy(cube.rotation);
+                scene.add(fill);
+            });
+            
+            // Connection lines
+            const connections = [[0, 1], [0, 2], [1, 3], [2, 3]];
+            connections.forEach(([a, b]) => {
+                const lineGeo = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(positions[a].x, positions[a].y, 0),
+                    new THREE.Vector3(positions[b].x, positions[b].y, 0)
+                ]);
+                const lineMat = new THREE.LineBasicMaterial({
+                    color: CYAN,
+                    transparent: true,
+                    opacity: 0.5
+                });
+                const line = new THREE.Line(lineGeo, lineMat);
+                scene.add(line);
+            });
+            
+            scenes.push(scene);
+            cameras.push(camera);
+            renderers.push(renderer);
+            
+            return { scene, camera, renderer, cubes };
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // LAYER 6: Brainwave
+        // ═══════════════════════════════════════════════════════════════
+        function createBrainwave(container) {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, 280/372, 0.1, 1000);
+            camera.position.z = 5;
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(280, 372);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+            
+            // Brain shape (ellipsoid)
+            const brainGeo = new THREE.SphereGeometry(1, 32, 32);
+            brainGeo.scale(1.2, 1, 0.9);
+            
+            const brainMat = new THREE.MeshBasicMaterial({
+                color: 0x4a90a4,
+                transparent: true,
+                opacity: 0.6
+            });
+            const brain = new THREE.Mesh(brainGeo, brainMat);
+            scene.add(brain);
+            
+            // Brain wireframe
+            const wireGeo = new THREE.SphereGeometry(1.01, 16, 16);
+            wireGeo.scale(1.2, 1, 0.9);
+            const wireMat = new THREE.MeshBasicMaterial({
+                color: 0x2d5a6b,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3
+            });
+            const wire = new THREE.Mesh(wireGeo, wireMat);
+            scene.add(wire);
+            
+            // Neural nodes
+            const nodes = [];
+            for (let i = 0; i < 15; i++) {
+                const nodeGeo = new THREE.SphereGeometry(0.08, 8, 8);
+                const nodeMat = new THREE.MeshBasicMaterial({ color: CYAN });
+                const node = new THREE.Mesh(nodeGeo, nodeMat);
+                
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                const r = 1.3 + Math.random() * 0.5;
+                
+                node.position.x = r * Math.sin(phi) * Math.cos(theta);
+                node.position.y = r * Math.cos(phi);
+                node.position.z = r * Math.sin(phi) * Math.sin(theta) * 0.8;
+                
+                scene.add(node);
+                nodes.push(node);
+            }
+            
+            // Particle dust
+            const particleGeo = new THREE.BufferGeometry();
+            const particleCount = 100;
+            const positions = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 6;
+                positions[i + 1] = (Math.random() - 0.5) * 6;
+                positions[i + 2] = (Math.random() - 0.5) * 3;
+            }
+            
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const particleMat = new THREE.PointsMaterial({
+                color: CYAN,
+                size: 0.05,
+                transparent: true,
+                opacity: 0.5
+            });
+            const particles = new THREE.Points(particleGeo, particleMat);
+            scene.add(particles);
+            
+            scenes.push(scene);
+            cameras.push(camera);
+            renderers.push(renderer);
+            
+            return { scene, camera, renderer, brain, wire, nodes, particles };
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // INITIALIZE
+        // ═══════════════════════════════════════════════════════════════
+        
+        const layer1 = createMainHub(document.getElementById('canvas1'));
+        const layer2 = createSensoryWave(document.getElementById('canvas2'));
+        const layer3 = createPhysicsNetwork(document.getElementById('canvas3'));
+        const layer4 = createCoreLoopStack(document.getElementById('canvas4'));
+        const layer5 = createFeedbackCubes(document.getElementById('canvas5'));
+        const layer6 = createBrainwave(document.getElementById('canvas6'));
+        
+        // ═══════════════════════════════════════════════════════════════
+        // ANIMATION LOOP
+        // ═══════════════════════════════════════════════════════════════
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = Date.now() * 0.001;
+            
+            // Layer 1: Rotate nodes
+            layer1.nodes.forEach((n, i) => {
+                const newAngle = n.angle + time * 0.2;
+                n.mesh.position.x = Math.cos(newAngle) * n.radius;
+                n.mesh.position.y = Math.sin(newAngle) * n.radius;
+            });
+            layer1.glow.scale.setScalar(1 + Math.sin(time * 2) * 0.1);
+            
+            // Layer 2: Wave animation
+            if (layer2.wave) {
+                const positions = layer2.wave.geometry.attributes.position;
+                for (let i = 0; i < positions.count; i++) {
+                    const x = positions.getX(i);
+                    const y = positions.getY(i);
+                    positions.setZ(i, Math.sin(x * 2 + time * 2) * 0.3 + Math.cos(y * 2 + time * 2) * 0.3);
+                }
+                positions.needsUpdate = true;
+            }
+            
+            // Layer 3: Pulse nodes
+            layer3.nodes.forEach((node, i) => {
+                const scale = 1 + Math.sin(time * 3 + i) * 0.3;
+                node.scale.setScalar(scale);
+            });
+            
+            // Layer 4: Rotate ring
+            if (layer4.ring) {
+                layer4.ring.rotation.z = time * 0.5;
+            }
+            layer4.layers.forEach((layer, i) => {
+                layer.rotation.y = time * 0.3 + i * 0.2;
+            });
+            
+            // Layer 5: Rotate cubes
+            layer5.cubes.forEach((cube, i) => {
+                cube.rotation.x = Math.PI / 4 + Math.sin(time + i) * 0.2;
+                cube.rotation.z = Math.PI / 4 + Math.cos(time + i) * 0.2;
+            });
+            
+            // Layer 6: Rotate brain
+            if (layer6.brain) {
+                layer6.brain.rotation.y = time * 0.3;
+                layer6.wire.rotation.y = time * 0.3;
+            }
+            if (layer6.particles) {
+                layer6.particles.rotation.y = time * 0.1;
+            }
+            
+            // Render all
+            for (let i = 0; i < scenes.length; i++) {
+                renderers[i].render(scenes[i], cameras[i]);
+            }
+        }
+        
+        animate();
+        
+        console.log('🌌 AUTUS 3D Layers Ready');
+    </script>
+</body>
+</html>

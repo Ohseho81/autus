@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>AUTUS - Life FSD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cyan: #00e5cc;
+            --cyan-dim: rgba(0, 229, 204, 0.3);
+            --bg: #0a1428;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Orbitron', -apple-system, sans-serif;
+            background: #000;
+            color: var(--cyan);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            touch-action: none;
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: calc(44px + var(--safe-top));
+            padding-top: var(--safe-top);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 20px;
+            padding-right: 20px;
+            font-size: 12px;
+            color: white;
+            z-index: 100;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--cyan);
+            text-shadow: 0 0 20px var(--cyan);
+        }
+        
+        /* 3D Container */
+        #container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+        
+        /* 3D Cube Layers */
+        .layer {
+            position: absolute;
+            width: 280px;
+            height: 480px;
+            margin-left: -140px;
+            margin-top: -240px;
+            background: rgba(10, 20, 40, 0.85);
+            border: 2px solid var(--cyan);
+            border-radius: 25px;
+            box-shadow: 
+                0 0 40px var(--cyan-dim),
+                inset 0 0 60px rgba(0, 229, 204, 0.1);
+            backface-visibility: hidden;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: box-shadow 0.3s;
+        }
+        
+        .layer:hover, .layer:active {
+            box-shadow: 
+                0 0 80px var(--cyan),
+                inset 0 0 80px rgba(0, 229, 204, 0.2);
+        }
+        
+        .layer h2 {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--cyan);
+            text-shadow: 0 0 15px var(--cyan);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .layer p {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+            line-height: 1.6;
+            letter-spacing: 0.5px;
+        }
+        
+        .layer-visual {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        /* Layer positions (cube) */
+        #layer-core { transform: rotateY(0deg) translateZ(200px); }
+        #layer-sensory { transform: rotateY(90deg) translateZ(200px); }
+        #layer-physics { transform: rotateY(180deg) translateZ(200px); }
+        #layer-feedback { transform: rotateY(270deg) translateZ(200px); }
+        
+        /* Core Loop Canvas */
+        #loop-canvas {
+            filter: drop-shadow(0 0 20px var(--cyan));
+        }
+        
+        /* Sensory Visual */
+        .sensory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+        
+        .sensor-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .sensor-icon {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--cyan);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 20px var(--cyan-dim);
+            animation: sensorPulse 2s ease-in-out infinite;
+        }
+        
+        .sensor-icon:nth-child(1) { animation-delay: 0s; }
+        .sensor-icon:nth-child(2) { animation-delay: 0.3s; }
+        .sensor-icon:nth-child(3) { animation-delay: 0.6s; }
+        
+        @keyframes sensorPulse {
+            0%, 100% { box-shadow: 0 0 20px var(--cyan-dim); }
+            50% { box-shadow: 0 0 40px var(--cyan); }
+        }
+        
+        .sensor-label {
+            font-size: 9px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 1px;
+        }
+        
+        /* Physics Visual */
+        .physics-network {
+            width: 200px;
+            height: 200px;
+            position: relative;
+        }
+        
+        .physics-node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--cyan);
+            animation: nodePulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes nodePulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+        
+        .physics-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            transform-origin: left center;
+            opacity: 0.4;
+        }
+        
+        /* Feedback Visual */
+        .feedback-display {
+            text-align: center;
+        }
+        
+        .loss-velocity {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--cyan);
+            text-shadow: 0 0 30px var(--cyan);
+            margin-bottom: 10px;
+        }
+        
+        .loss-unit {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .feedback-bars {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .feedback-bar {
+            width: 20px;
+            background: linear-gradient(to top, var(--cyan), transparent);
+            border-radius: 10px;
+            animation: barPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes barPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        /* AUTO Button */
+        #auto-btn {
+            position: fixed;
+            bottom: calc(40px + var(--safe-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 120px;
+            background: var(--cyan-dim);
+            border: 4px solid var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 60px var(--cyan-dim);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #fff;
+            cursor: pointer;
+            z-index: 100;
+            animation: autoPulse 2s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @keyframes autoPulse {
+            0%, 100% { 
+                box-shadow: 0 0 40px var(--cyan-dim);
+                transform: translateX(-50%) scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 80px var(--cyan);
+                transform: translateX(-50%) scale(1.05);
+            }
+        }
+        
+        #auto-btn:active {
+            transform: translateX(-50%) scale(0.95);
+            box-shadow: 0 0 100px var(--cyan);
+        }
+        
+        /* Navigation hint */
+        .nav-hint {
+            position: fixed;
+            bottom: calc(180px + var(--safe-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 2px;
+            text-align: center;
+            z-index: 50;
+        }
+        
+        /* Layer indicator */
+        .layer-indicator {
+            position: fixed;
+            top: calc(60px + var(--safe-top));
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        .indicator-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transition: all 0.3s;
+        }
+        
+        .indicator-dot.active {
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+        
+        /* Detail Page */
+        .detail-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 200;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-page.active {
+            transform: translateX(0);
+        }
+        
+        .detail-header {
+            height: calc(90px + var(--safe-top));
+            padding-top: var(--safe-top);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            padding-top: var(--safe-top);
+        }
+        
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--cyan);
+            cursor: pointer;
+        }
+        
+        .detail-title {
+            flex: 1;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--cyan);
+            text-shadow: 0 0 15px var(--cyan);
+            margin-right: 40px;
+        }
+        
+        .detail-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .detail-visual {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .detail-info {
+            background: rgba(0, 229, 204, 0.1);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-info h3 {
+            font-size: 12px;
+            color: var(--cyan);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        
+        .detail-info p {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+        
+        .detail-bottom {
+            padding: 20px;
+            padding-bottom: calc(20px + var(--safe-bottom));
+        }
+        
+        .detail-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--cyan);
+            border: none;
+            border-radius: 30px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #000;
+            cursor: pointer;
+            box-shadow: 0 0 30px var(--cyan-dim);
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span>9:41</span>
+        <span class="header-title">AUTUS</span>
+        <span>📶 🔋</span>
+    </div>
+    
+    <!-- Layer Indicator -->
+    <div class="layer-indicator">
+        <div class="indicator-dot active" data-layer="0"></div>
+        <div class="indicator-dot" data-layer="1"></div>
+        <div class="indicator-dot" data-layer="2"></div>
+        <div class="indicator-dot" data-layer="3"></div>
+    </div>
+    
+    <!-- 3D Container -->
+    <div id="container">
+        <!-- Core Loop Layer -->
+        <div class="layer" id="layer-core" onclick="openDetail('core')">
+            <h2>CORE LOOP</h2>
+            <p>Goal Anchor • AUTO Execution<br>Decision Trinity Processing</p>
+            <div class="layer-visual">
+                <canvas id="loop-canvas" width="180" height="180"></canvas>
+            </div>
+        </div>
+        
+        <!-- Sensory Input Layer -->
+        <div class="layer" id="layer-sensory" onclick="openDetail('sensory')">
+            <h2>SENSORY INPUT</h2>
+            <p>Real-time Vector Processing<br>Raw Data → Instant Wipe</p>
+            <div class="layer-visual">
+                <div class="sensory-grid">
+                    <div class="sensor-item">
+                        <div class="sensor-icon">🎤</div>
+                        <span class="sensor-label">MIC</span>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-icon">📷</div>
+                        <span class="sensor-label">CAM</span>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-icon">🖥️</div>
+                        <span class="sensor-label">SCREEN</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Physics Map Layer -->
+        <div class="layer" id="layer-physics" onclick="openDetail('physics')">
+            <h2>PHYSICS MAP</h2>
+            <p>State Vector Network<br>S(t) = [Energy, Flow, Risk]</p>
+            <div class="layer-visual">
+                <div class="physics-network" id="physicsNetwork"></div>
+            </div>
+        </div>
+        
+        <!-- Feedback Layer -->
+        <div class="layer" id="layer-feedback" onclick="openDetail('feedback')">
+            <h2>FEEDBACK</h2>
+            <p>Loss Velocity Analysis<br>Prediction Error ε = predicted - actual</p>
+            <div class="layer-visual">
+                <div class="feedback-display">
+                    <div class="loss-velocity">₩0.00</div>
+                    <div class="loss-unit">Loss / Second</div>
+                    <div class="feedback-bars">
+                        <div class="feedback-bar" style="height: 60px; animation-delay: 0s;"></div>
+                        <div class="feedback-bar" style="height: 80px; animation-delay: 0.1s;"></div>
+                        <div class="feedback-bar" style="height: 50px; animation-delay: 0.2s;"></div>
+                        <div class="feedback-bar" style="height: 90px; animation-delay: 0.3s;"></div>
+                        <div class="feedback-bar" style="height: 70px; animation-delay: 0.4s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Hint -->
+    <div class="nav-hint">← SWIPE TO ROTATE →</div>
+    
+    <!-- AUTO Button -->
+    <div id="auto-btn" onclick="activateAuto()">AUTO</div>
+    
+    <!-- Detail Pages -->
+    <div class="detail-page" id="detail-core">
+        <div class="detail-header">
+            <div class="back-btn" onclick="closeDetail()">‹</div>
+            <div class="detail-title">CORE LOOP</div>
+        </div>
+        <div class="detail-content">
+            <div class="detail-visual">
+                <canvas id="detail-loop-canvas" width="250" height="250"></canvas>
+            </div>
+            <div class="detail-info">
+                <h3>DECISION TRINITY</h3>
+                <p>Before State → Action → After State<br><br>
+                모든 결정은 상태 변화로 기록됩니다.<br>
+                예측과 실제의 차이(Δ)가 학습의 핵심입니다.</p>
+            </div>
+            <div class="detail-info">
+                <h3>AUTUS MODULES</h3>
+                <p>• DecisionLog.complete()<br>
+                • LifePhysicsEngine.predict()<br>
+                • StateVector.magnitude()</p>
+            </div>
+        </div>
+        <div class="detail-bottom">
+            <button class="detail-btn">EXECUTE LOOP</button>
+        </div>
+    </div>
+    
+    <div class="detail-page" id="detail-sensory">
+        <div class="detail-header">
+            <div class="back-btn" onclick="closeDetail()">‹</div>
+            <div class="detail-title">SENSORY INPUT</div>
+        </div>
+        <div class="detail-content">
+            <div class="detail-visual">
+                <div class="sensory-grid" style="width: 250px;">
+                    <div class="sensor-item">
+                        <div class="sensor-icon" style="width: 70px; height: 70px; font-size: 32px;">🎤</div>
+                        <span class="sensor-label">MICROPHONE</span>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-icon" style="width: 70px; height: 70px; font-size: 32px;">📷</div>
+                        <span class="sensor-label">CAMERA</span>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-icon" style="width: 70px; height: 70px; font-size: 32px;">🖥️</div>
+                        <span class="sensor-label">SCREEN</span>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-info">
+                <h3>DATA SOVEREIGNTY</h3>
+                <p>• 원본 데이터는 즉시 폐기됩니다<br>
+                • 가공된 벡터만 사용자 클라우드에 저장<br>
+                • AUTUS는 Δ 공식만 수신합니다</p>
+            </div>
+            <div class="detail-info">
+                <h3>AUTUS MODULES</h3>
+                <p>• LocalDistiller.process()<br>
+                • RawBuffer.wipe()<br>
+                • DistilledVector.to_delta()</p>
+            </div>
+        </div>
+        <div class="detail-bottom">
+            <button class="detail-btn">START CAPTURE</button>
+        </div>
+    </div>
+    
+    <div class="detail-page" id="detail-physics">
+        <div class="detail-header">
+            <div class="back-btn" onclick="closeDetail()">‹</div>
+            <div class="detail-title">PHYSICS MAP</div>
+        </div>
+        <div class="detail-content">
+            <div class="detail-visual">
+                <div class="physics-network" id="detailPhysicsNetwork" style="width: 250px; height: 250px;"></div>
+            </div>
+            <div class="detail-info">
+                <h3>STATE VECTOR</h3>
+                <p>S(t) = [Energy, Flow, Risk]<br><br>
+                삶의 궤적은 3차원 상태 공간에서 표현됩니다.<br>
+                모든 결정은 이 궤적에 힘을 가합니다.</p>
+            </div>
+            <div class="detail-info">
+                <h3>LIFE PHYSICS</h3>
+                <p>dS/dt = F(intention) - R(friction) - λ·H(entropy)<br><br>
+                • Energy: 자원, 시간, 의지력<br>
+                • Flow: 진행 속도, 모멘텀<br>
+                • Risk: 불확실성, 장애물</p>
+            </div>
+        </div>
+        <div class="detail-bottom">
+            <button class="detail-btn">SYNC STATE</button>
+        </div>
+    </div>
+    
+    <div class="detail-page" id="detail-feedback">
+        <div class="detail-header">
+            <div class="back-btn" onclick="closeDetail()">‹</div>
+            <div class="detail-title">FEEDBACK</div>
+        </div>
+        <div class="detail-content">
+            <div class="detail-visual">
+                <div class="feedback-display">
+                    <div class="loss-velocity" style="font-size: 48px;">₩0.00</div>
+                    <div class="loss-unit" style="font-size: 14px;">Loss Velocity (₩/sec)</div>
+                    <div class="feedback-bars" style="margin-top: 30px;">
+                        <div class="feedback-bar" style="height: 80px; width: 25px;"></div>
+                        <div class="feedback-bar" style="height: 100px; width: 25px;"></div>
+                        <div class="feedback-bar" style="height: 70px; width: 25px;"></div>
+                        <div class="feedback-bar" style="height: 120px; width: 25px;"></div>
+                        <div class="feedback-bar" style="height: 90px; width: 25px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-info">
+                <h3>PREDICTION ERROR</h3>
+                <p>ε = predicted - actual<br><br>
+                예측 오차를 최소화하는 것이<br>
+                AUTUS 학습의 핵심입니다.</p>
+            </div>
+            <div class="detail-info">
+                <h3>METRICS</h3>
+                <p>• Efficiency: 예측 정확도<br>
+                • Resistance: 실제 마찰<br>
+                • Entropy Loss: 불확실성 손실</p>
+            </div>
+        </div>
+        <div class="detail-bottom">
+            <button class="detail-btn">ANALYZE</button>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // 3D ROTATION
+        // ═══════════════════════════════════════════════════════════════
+        const container = document.getElementById('container');
+        let rotationY = 0;
+        let targetRotationY = 0;
+        let currentLayer = 0;
+        
+        // Touch/Mouse handling
+        let startX = 0;
+        let isDragging = false;
+        
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.detail-page')) return;
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging || e.target.closest('.detail-page')) return;
+            const deltaX = e.touches[0].clientX - startX;
+            targetRotationY = rotationY - deltaX * 0.5;
+        });
+        
+        document.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            rotationY = targetRotationY;
+            
+            // Snap to nearest layer
+            const snappedRotation = Math.round(rotationY / 90) * 90;
+            targetRotationY = snappedRotation;
+            rotationY = snappedRotation;
+            
+            // Update current layer
+            currentLayer = (((-snappedRotation % 360) + 360) % 360) / 90;
+            updateIndicator();
+        });
+        
+        // Mouse support
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.detail-page')) return;
+            startX = e.clientX;
+            isDragging = true;
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging || e.target.closest('.detail-page')) return;
+            const deltaX = e.clientX - startX;
+            targetRotationY = rotationY - deltaX * 0.3;
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            rotationY = targetRotationY;
+            
+            const snappedRotation = Math.round(rotationY / 90) * 90;
+            targetRotationY = snappedRotation;
+            rotationY = snappedRotation;
+            
+            currentLayer = (((-snappedRotation % 360) + 360) % 360) / 90;
+            updateIndicator();
+        });
+        
+        // Animation loop
+        function animate() {
+            container.style.transform = `rotateY(${targetRotationY}deg)`;
+            requestAnimationFrame(animate);
+        }
+        animate();
+        
+        // Update indicator
+        function updateIndicator() {
+            document.querySelectorAll('.indicator-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentLayer);
+            });
+        }
+        
+        // Click indicator to rotate
+        document.querySelectorAll('.indicator-dot').forEach((dot) => {
+            dot.addEventListener('click', () => {
+                const layer = parseInt(dot.dataset.layer);
+                targetRotationY = -layer * 90;
+                rotationY = targetRotationY;
+                currentLayer = layer;
+                updateIndicator();
+            });
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // CORE LOOP CANVAS
+        // ═══════════════════════════════════════════════════════════════
+        function drawLoopCanvas(canvas) {
+            const ctx = canvas.getContext('2d');
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const radius = Math.min(cx, cy) - 20;
+            let angle = 0;
+            
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Outer ring
+                ctx.strokeStyle = 'rgba(0, 229, 204, 0.3)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Animated arc
+                ctx.strokeStyle = '#00e5cc';
+                ctx.lineWidth = 8;
+                ctx.lineCap = 'round';
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#00e5cc';
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, angle, angle + Math.PI * 1.5);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                // Center glow
+                const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30);
+                gradient.addColorStop(0, 'rgba(0, 229, 204, 0.5)');
+                gradient.addColorStop(1, 'rgba(0, 229, 204, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 30, 0, Math.PI * 2);
+                ctx.fill();
+                
+                angle += 0.02;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+        
+        drawLoopCanvas(document.getElementById('loop-canvas'));
+        
+        // ═══════════════════════════════════════════════════════════════
+        // PHYSICS NETWORK
+        // ═══════════════════════════════════════════════════════════════
+        function createPhysicsNetwork(container) {
+            const nodeCount = 12;
+            const nodes = [];
+            
+            for (let i = 0; i < nodeCount; i++) {
+                const node = document.createElement('div');
+                node.className = 'physics-node';
+                node.style.left = Math.random() * 180 + 10 + 'px';
+                node.style.top = Math.random() * 180 + 10 + 'px';
+                node.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(node);
+                nodes.push(node);
+            }
+            
+            // Create lines
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    if (Math.random() > 0.6) continue;
+                    
+                    const line = document.createElement('div');
+                    line.className = 'physics-line';
+                    
+                    const x1 = parseFloat(nodes[i].style.left);
+                    const y1 = parseFloat(nodes[i].style.top);
+                    const x2 = parseFloat(nodes[j].style.left);
+                    const y2 = parseFloat(nodes[j].style.top);
+                    
+                    const length = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+                    const angle = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
+                    
+                    line.style.left = x1 + 6 + 'px';
+                    line.style.top = y1 + 6 + 'px';
+                    line.style.width = length + 'px';
+                    line.style.transform = `rotate(${angle}deg)`;
+                    
+                    container.appendChild(line);
+                }
+            }
+        }
+        
+        createPhysicsNetwork(document.getElementById('physicsNetwork'));
+        
+        // ═══════════════════════════════════════════════════════════════
+        // DETAIL PAGES
+        // ═══════════════════════════════════════════════════════════════
+        let detailCanvasInitialized = false;
+        
+        function openDetail(layer) {
+            const page = document.getElementById('detail-' + layer);
+            page.classList.add('active');
+            
+            if (layer === 'core' && !detailCanvasInitialized) {
+                drawLoopCanvas(document.getElementById('detail-loop-canvas'));
+                detailCanvasInitialized = true;
+            }
+            
+            if (layer === 'physics') {
+                const network = document.getElementById('detailPhysicsNetwork');
+                if (network.children.length === 0) {
+                    createPhysicsNetwork(network);
+                }
+            }
+            
+            haptic();
+        }
+        
+        function closeDetail() {
+            document.querySelectorAll('.detail-page').forEach(page => {
+                page.classList.remove('active');
+            });
+            haptic();
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // AUTO BUTTON
+        // ═══════════════════════════════════════════════════════════════
+        function activateAuto() {
+            const btn = document.getElementById('auto-btn');
+            btn.textContent = 'ACTIVE';
+            btn.style.background = 'var(--cyan)';
+            btn.style.color = '#000';
+            
+            haptic();
+            
+            setTimeout(() => {
+                btn.textContent = 'AUTO';
+                btn.style.background = 'var(--cyan-dim)';
+                btn.style.color = '#fff';
+            }, 2000);
+        }
+        
+        function haptic() {
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+        
+        console.log('🌌 AUTUS Life FSD Ready');
+    </script>
+</body>
+</html>

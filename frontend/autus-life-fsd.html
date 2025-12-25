@@ -1,0 +1,3125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>AUTUS / Life FSD</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0a0c10;
+            --surface: #0f1115;
+            --cyan: #00d4c8;
+            --cyan-dim: rgba(0,212,200,0.15);
+            --cyan-glow: rgba(0,212,200,0.4);
+            --text: #ffffff;
+            --text-dim: #5a5f70;
+            --border: rgba(255,255,255,0.06);
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           MAIN CONTAINER (Tesla Screen Ratio)
+        ═══════════════════════════════════════════════════════════════ */
+        .screen {
+            width: 100%;
+            max-width: 900px;
+            height: 100vh;
+            max-height: 1200px;
+            background: linear-gradient(180deg, #0d0f14 0%, #080a0e 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Starfield Background */
+        .starfield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
+                radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,0.25) 0%, transparent 100%),
+                radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.15) 0%, transparent 100%),
+                radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+                radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.3) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           HEADER
+        ═══════════════════════════════════════════════════════════════ */
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .logo {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        
+        .logo span {
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+        
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        
+        .signal {
+            display: flex;
+            gap: 2px;
+            align-items: flex-end;
+        }
+        
+        .signal-bar {
+            width: 3px;
+            background: var(--text);
+            border-radius: 1px;
+        }
+        
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 7px; }
+        .signal-bar:nth-child(3) { height: 10px; }
+        .signal-bar:nth-child(4) { height: 13px; opacity: 0.3; }
+        
+        .time {
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .battery {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .battery-icon {
+            width: 22px;
+            height: 10px;
+            border: 1px solid var(--text);
+            border-radius: 2px;
+            padding: 1px;
+            position: relative;
+        }
+        
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 2px;
+            width: 2px;
+            height: 4px;
+            background: var(--text);
+            border-radius: 0 1px 1px 0;
+        }
+        
+        .battery-fill {
+            width: 80%;
+            height: 100%;
+            background: var(--text);
+            border-radius: 1px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           GOAL HEADER
+        ═══════════════════════════════════════════════════════════════ */
+        .goal-header {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+        }
+        
+        .goal-label {
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           CENTRAL GOAL RING
+        ═══════════════════════════════════════════════════════════════ */
+        .goal-ring-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 340px;
+            height: 340px;
+        }
+        
+        .goal-ring {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        /* Outer Glow Ring */
+        .ring-outer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(0,212,200,0.2);
+            box-shadow: 
+                0 0 40px var(--cyan-dim),
+                inset 0 0 40px var(--cyan-dim);
+        }
+        
+        /* Main Ring SVG */
+        .ring-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .ring-track {
+            fill: none;
+            stroke: rgba(255,255,255,0.05);
+            stroke-width: 3;
+        }
+        
+        .ring-progress {
+            fill: none;
+            stroke: url(#ringGradient);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 1005;
+            stroke-dashoffset: 251;
+            filter: drop-shadow(0 0 8px var(--cyan-glow));
+            transition: stroke-dashoffset 1s ease;
+        }
+        
+        /* Infinity Loop */
+        .infinity-loop {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 100px;
+        }
+        
+        .infinity-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+        
+        .infinity-path {
+            fill: none;
+            stroke: url(#infinityGradient);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 10px var(--cyan-glow));
+            stroke-dasharray: 400;
+            stroke-dashoffset: 0;
+            animation: infinityFlow 4s linear infinite;
+        }
+        
+        @keyframes infinityFlow {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -400; }
+        }
+        
+        /* Center Point */
+        .center-point {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background: var(--text);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--text), 0 0 40px rgba(255,255,255,0.3);
+        }
+        
+        .center-point::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 6px solid var(--text);
+        }
+        
+        /* Orbit Points */
+        .orbit-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--cyan);
+        }
+        
+        .orbit-point.p1 { top: 45%; right: 5%; }
+        .orbit-point.p2 { bottom: 30%; left: 15%; }
+        .orbit-point.p3 { top: 20%; left: 30%; opacity: 0.5; width: 5px; height: 5px; }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           AUTO / THRESHOLD BUTTONS
+        ═══════════════════════════════════════════════════════════════ */
+        .control-buttons {
+            position: absolute;
+            bottom: 25%;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 50px;
+        }
+        
+        .control-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(10,12,16,0.8);
+            border: 2px solid rgba(0,212,200,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 0 30px rgba(0,212,200,0.1),
+                inset 0 0 30px rgba(0,212,200,0.05);
+        }
+        
+        .control-btn:hover {
+            border-color: var(--cyan);
+            box-shadow: 
+                0 0 40px var(--cyan-dim),
+                inset 0 0 40px var(--cyan-dim);
+        }
+        
+        .control-btn.active {
+            border-color: var(--cyan);
+            background: rgba(0,212,200,0.1);
+            box-shadow: 
+                0 0 50px var(--cyan-dim),
+                inset 0 0 50px var(--cyan-dim);
+        }
+        
+        .control-btn .icon {
+            font-size: 28px;
+            opacity: 0.9;
+        }
+        
+        .control-btn .label {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        /* Steering Wheel Icon */
+        .steering-icon {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--text);
+            border-radius: 50%;
+            position: relative;
+        }
+        
+        .steering-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: var(--text);
+            border-radius: 50%;
+        }
+        
+        .steering-icon::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 6px;
+            border: 2px solid var(--text);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        /* Threshold Icon (Bar Chart) */
+        .threshold-icon {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 28px;
+        }
+        
+        .threshold-bar {
+            width: 6px;
+            background: var(--text);
+            border-radius: 2px;
+        }
+        
+        .threshold-bar:nth-child(1) { height: 10px; }
+        .threshold-bar:nth-child(2) { height: 16px; }
+        .threshold-bar:nth-child(3) { height: 24px; }
+        .threshold-bar:nth-child(4) { height: 20px; }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           BOTTOM DOCK
+        ═══════════════════════════════════════════════════════════════ */
+        .bottom-dock {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            padding: 0 20px;
+        }
+        
+        .dock-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.2s;
+        }
+        
+        .dock-item:hover {
+            opacity: 1;
+        }
+        
+        .dock-item.active {
+            opacity: 1;
+        }
+        
+        .dock-icon {
+            font-size: 20px;
+        }
+        
+        .dock-label {
+            font-size: 8px;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           LAYERS SYSTEM
+        ═══════════════════════════════════════════════════════════════ */
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            overflow-y: auto;
+            padding: 80px 24px 100px;
+        }
+        
+        .layer.active {
+            transform: translateY(0);
+        }
+        
+        .layer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .layer-title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .layer-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--text);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Layer: Goal Detail */
+        .goal-detail-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+        
+        .goal-detail-title {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        .goal-detail-value {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .goal-detail-sub {
+            font-size: 12px;
+            color: var(--cyan);
+        }
+        
+        /* Layer: Metrics */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .metric-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .metric-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .metric-value.energy { color: #00ff88; }
+        .metric-value.flow { color: var(--cyan); }
+        .metric-value.risk { color: #ffcc00; }
+        .metric-value.loss { color: #ff3366; }
+        
+        /* Layer: Packs */
+        .pack-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .pack-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .pack-card:hover {
+            border-color: var(--cyan);
+        }
+        
+        .pack-card.active {
+            border-color: var(--cyan);
+            background: var(--cyan-dim);
+        }
+        
+        .pack-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .pack-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .pack-status {
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .pack-status.active {
+            background: var(--cyan);
+            color: var(--bg);
+        }
+        
+        .pack-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+        
+        .pack-metrics {
+            display: flex;
+            gap: 20px;
+            font-size: 11px;
+        }
+        
+        .pack-metric {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* Layer: Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 24px;
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            left: -20px;
+            top: 0;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2px solid var(--cyan);
+        }
+        
+        .timeline-item.done .timeline-dot {
+            background: var(--cyan);
+        }
+        
+        .timeline-content {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border);
+        }
+        
+        .timeline-title {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .timeline-time {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        
+        /* Layer: Settings */
+        .settings-group {
+            margin-bottom: 24px;
+        }
+        
+        .settings-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .setting-name {
+            font-size: 14px;
+        }
+        
+        .toggle {
+            width: 50px;
+            height: 28px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.1);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .toggle.active {
+            background: var(--cyan);
+        }
+        
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            transition: all 0.2s;
+        }
+        
+        .toggle.active::after {
+            left: 24px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           PROBABILITY DISPLAY (Next Loop Delta)
+        ═══════════════════════════════════════════════════════════════ */
+        .probability-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 260px;
+            height: 260px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .probability-ring.show {
+            display: flex;
+        }
+        
+        .prob-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 20px;
+            font-size: 11px;
+            border: 1px solid var(--border);
+        }
+        
+        .prob-bar {
+            width: 60px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .prob-fill {
+            height: 100%;
+            background: var(--cyan);
+            border-radius: 2px;
+        }
+        
+        .prob-pct {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--cyan);
+            width: 35px;
+            text-align: right;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           THRESHOLD QUESTION MODAL
+        ═══════════════════════════════════════════════════════════════ */
+        .threshold-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            padding: 40px;
+        }
+        
+        .threshold-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .threshold-question {
+            font-size: 24px;
+            font-weight: 300;
+            text-align: center;
+            max-width: 400px;
+            line-height: 1.5;
+            margin-bottom: 40px;
+        }
+        
+        .threshold-actions {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .threshold-btn {
+            padding: 16px 40px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+        }
+        
+        .threshold-btn.yes {
+            background: var(--cyan);
+            border: none;
+            color: var(--bg);
+        }
+        
+        .threshold-btn.no {
+            background: transparent;
+            border: 1px solid var(--text-dim);
+            color: var(--text);
+        }
+        
+        .threshold-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           PRESSURE INDICATOR
+        ═══════════════════════════════════════════════════════════════ */
+        .pressure-indicator {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 20px;
+            background: rgba(255,51,102,0.2);
+            border: 1px solid rgba(255,51,102,0.5);
+            border-radius: 20px;
+            font-size: 11px;
+            color: #ff3366;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .pressure-indicator.show {
+            opacity: 1;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           MODE INDICATOR
+        ═══════════════════════════════════════════════════════════════ */
+        .mode-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--cyan);
+            margin-top: 80px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           INTERVENTION CAUSE (추가 - UI 최소 변경)
+        ═══════════════════════════════════════════════════════════════ */
+        .intervention-cause {
+            font-size: 10px;
+            color: #ff6b6b;
+            margin-top: 12px;
+            font-family: monospace;
+            letter-spacing: 0.5px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           ACTION SELECTOR (최소 스타일)
+        ═══════════════════════════════════════════════════════════════ */
+        .action-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .action-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .action-option:hover {
+            border-color: var(--cyan);
+            background: var(--cyan-dim);
+        }
+        
+        .action-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .action-effect {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        
+        .action-effect.positive { color: #00ff88; }
+        .action-effect.negative { color: #ff3366; }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           FORECAST DELTA (Next Loop Delta 추가)
+        ═══════════════════════════════════════════════════════════════ */
+        .forecast-delta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 16px;
+            font-size: 11px;
+            border: 1px solid var(--border);
+            margin-top: 6px;
+        }
+        
+        .delta-label {
+            color: var(--text-dim);
+            font-size: 9px;
+            letter-spacing: 1px;
+        }
+        
+        .delta-value {
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .delta-value.positive { color: #00ff88; }
+        .delta-value.negative { color: #ff3366; }
+        .delta-value.neutral { color: var(--cyan); }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           SYSTEM STATUS (Threshold 재평가)
+        ═══════════════════════════════════════════════════════════════ */
+        .system-status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin-top: 115px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            padding: 6px 14px;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            box-shadow: 0 0 8px #00ff88;
+            transition: all 0.3s;
+        }
+        
+        .system-status.stable .status-dot { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+        .system-status.sensitive .status-dot { background: #ffcc00; box-shadow: 0 0 8px #ffcc00; }
+        .system-status.critical .status-dot { background: #ff3366; box-shadow: 0 0 8px #ff3366; animation: blink 1s infinite; }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .system-status.stable .status-text { color: #00ff88; }
+        .system-status.sensitive .status-text { color: #ffcc00; }
+        .system-status.critical .status-text { color: #ff3366; }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           PACK RECOMMENDATION (자동 추천)
+        ═══════════════════════════════════════════════════════════════ */
+        .pack-recommendation {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15,17,21,0.95);
+            border: 1px solid var(--cyan);
+            border-radius: 16px;
+            padding: 16px;
+            width: 280px;
+            z-index: 150;
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0,212,200,0.2);
+        }
+        
+        .pack-recommendation.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .pack-rec-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .pack-rec-icon {
+            font-size: 18px;
+        }
+        
+        .pack-rec-title {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--cyan);
+            font-weight: 600;
+        }
+        
+        .pack-rec-content {
+            margin-bottom: 14px;
+        }
+        
+        .pack-rec-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .pack-rec-reason {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        
+        .pack-rec-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .pack-rec-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .pack-rec-btn.apply {
+            background: var(--cyan);
+            color: var(--bg);
+        }
+        
+        .pack-rec-btn.dismiss {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+        
+        .pack-rec-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           VOICE COMMAND INDICATOR
+        ═══════════════════════════════════════════════════════════════ */
+        .voice-indicator {
+            position: absolute;
+            bottom: 180px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: rgba(15,17,21,0.95);
+            border: 2px solid var(--cyan);
+            border-radius: 30px;
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 160;
+            transition: all 0.3s;
+        }
+        
+        .voice-indicator.active {
+            transform: translateX(-50%) scale(1);
+        }
+        
+        .voice-waves {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .voice-wave {
+            width: 3px;
+            background: var(--cyan);
+            border-radius: 2px;
+            animation: voiceWave 0.5s ease infinite;
+        }
+        
+        .voice-wave:nth-child(1) { height: 12px; animation-delay: 0s; }
+        .voice-wave:nth-child(2) { height: 20px; animation-delay: 0.1s; }
+        .voice-wave:nth-child(3) { height: 16px; animation-delay: 0.2s; }
+        .voice-wave:nth-child(4) { height: 24px; animation-delay: 0.15s; }
+        .voice-wave:nth-child(5) { height: 14px; animation-delay: 0.25s; }
+        
+        @keyframes voiceWave {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+        
+        .voice-text {
+            font-size: 12px;
+            color: var(--cyan);
+            letter-spacing: 1px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           NOTIFICATION TOAST
+        ═══════════════════════════════════════════════════════════════ */
+        .notification-container {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 170;
+        }
+        
+        .notification {
+            background: rgba(15,17,21,0.95);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            min-width: 240px;
+            transform: translateX(300px);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success { border-color: #00ff88; }
+        .notification.warning { border-color: #ffcc00; }
+        .notification.error { border-color: #ff3366; }
+        .notification.info { border-color: var(--cyan); }
+        
+        .notification-icon { font-size: 18px; }
+        .notification-text { font-size: 12px; flex: 1; }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           MULTI-GOAL SELECTOR
+        ═══════════════════════════════════════════════════════════════ */
+        .goal-selector {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 50;
+        }
+        
+        .goal-tab {
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .goal-tab:hover {
+            border-color: var(--cyan);
+            color: var(--text);
+        }
+        
+        .goal-tab.active {
+            background: var(--cyan-dim);
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+        
+        .goal-tab .progress-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-left: 6px;
+        }
+        
+        .goal-tab .progress-dot.low { background: #ff3366; }
+        .goal-tab .progress-dot.mid { background: #ffcc00; }
+        .goal-tab .progress-dot.high { background: #00ff88; }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           CONNECTION STATUS
+        ═══════════════════════════════════════════════════════════════ */
+        .connection-status {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            padding: 4px 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+        
+        .connection-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00ff88;
+        }
+        
+        .connection-status.disconnected .connection-dot {
+            background: #ff3366;
+            animation: blink 1s infinite;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════
+           VOICE BUTTON (하단)
+        ═══════════════════════════════════════════════════════════════ */
+        .voice-btn {
+            position: absolute;
+            bottom: 100px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 60;
+        }
+        
+        .voice-btn:hover {
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px var(--cyan-dim);
+        }
+        
+        .voice-btn.listening {
+            border-color: var(--cyan);
+            background: var(--cyan-dim);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,200,0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(0,212,200,0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <!-- Starfield Background -->
+        <div class="starfield"></div>
+        
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">AUTUS <span>/ Life FSD</span></div>
+            <div class="status-bar">
+                <div class="signal">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <span class="time" id="timeDisplay">9:41</span>
+                <div class="battery">
+                    <div class="battery-icon">
+                        <div class="battery-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Connection Status -->
+        <div class="connection-status" id="connectionStatus">
+            <span class="connection-dot"></span>
+            <span>LIVE</span>
+        </div>
+        
+        <!-- Multi-Goal Selector -->
+        <div class="goal-selector" id="goalSelector">
+            <div class="goal-tab active" data-goal="0">
+                Q1 매출<span class="progress-dot high"></span>
+            </div>
+            <div class="goal-tab" data-goal="1">
+                파트너십<span class="progress-dot mid"></span>
+            </div>
+            <div class="goal-tab" data-goal="2">
+                제품출시<span class="progress-dot low"></span>
+            </div>
+        </div>
+        
+        <!-- Goal Header -->
+        <div class="goal-header">
+            <span class="goal-label">GOAL</span>
+            <span id="dateDisplay">MON 6</span>
+        </div>
+        
+        <!-- Central Goal Ring -->
+        <div class="goal-ring-container" id="goalRing">
+            <div class="goal-ring">
+                <!-- Outer Glow -->
+                <div class="ring-outer"></div>
+                
+                <!-- Main Ring SVG -->
+                <svg class="ring-svg" viewBox="0 0 340 340">
+                    <defs>
+                        <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00d4c8;stop-opacity:0.8" />
+                            <stop offset="50%" style="stop-color:#00d4c8;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#00d4c8;stop-opacity:0.8" />
+                        </linearGradient>
+                    </defs>
+                    <circle class="ring-track" cx="170" cy="170" r="160"/>
+                    <circle class="ring-progress" cx="170" cy="170" r="160" transform="rotate(-90 170 170)"/>
+                </svg>
+                
+                <!-- Infinity Loop SVG -->
+                <div class="infinity-loop">
+                    <svg class="infinity-svg" viewBox="0 0 200 100">
+                        <defs>
+                            <linearGradient id="infinityGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#00d4c8;stop-opacity:0.3" />
+                                <stop offset="50%" style="stop-color:#00d4c8;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#00d4c8;stop-opacity:0.3" />
+                            </linearGradient>
+                        </defs>
+                        <path class="infinity-path" d="M 50 50 C 50 20, 100 20, 100 50 C 100 80, 150 80, 150 50 C 150 20, 100 20, 100 50 C 100 80, 50 80, 50 50" />
+                    </svg>
+                </div>
+                
+                <!-- Center Point -->
+                <div class="center-point"></div>
+                
+                <!-- Orbit Points -->
+                <div class="orbit-point p1"></div>
+                <div class="orbit-point p2"></div>
+                <div class="orbit-point p3"></div>
+            </div>
+            
+            <!-- Probability Display (Hidden by default) -->
+            <div class="probability-ring" id="probRing">
+                <div class="prob-option" data-prob="proceed">
+                    <span>PROCEED</span>
+                    <div class="prob-bar"><div class="prob-fill" style="width: 72%"></div></div>
+                    <span class="prob-pct">72%</span>
+                </div>
+                <div class="prob-option" data-prob="detour">
+                    <span>DETOUR</span>
+                    <div class="prob-bar"><div class="prob-fill" style="width: 18%"></div></div>
+                    <span class="prob-pct">18%</span>
+                </div>
+                <div class="prob-option" data-prob="pause">
+                    <span>PAUSE</span>
+                    <div class="prob-bar"><div class="prob-fill" style="width: 10%"></div></div>
+                    <span class="prob-pct">10%</span>
+                </div>
+                <!-- Forecast Δt / Δ% 표시 -->
+                <div class="forecast-delta" id="forecastDelta">
+                    <span class="delta-label">Δt</span>
+                    <span class="delta-value" id="deltaTime">-2.3d</span>
+                    <span class="delta-label">Δ%</span>
+                    <span class="delta-value" id="deltaPct">+3%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mode Indicator -->
+        <div class="mode-indicator" id="modeIndicator">AUTO MODE</div>
+        
+        <!-- System Status (Threshold 재평가) -->
+        <div class="system-status" id="systemStatus">
+            <span class="status-dot"></span>
+            <span class="status-text">System Stable</span>
+        </div>
+        
+        <!-- Pressure Indicator -->
+        <div class="pressure-indicator" id="pressureIndicator">⚠ INTERVENTION NEEDED</div>
+        
+        <!-- Voice Indicator -->
+        <div class="voice-indicator" id="voiceIndicator">
+            <div class="voice-waves">
+                <div class="voice-wave"></div>
+                <div class="voice-wave"></div>
+                <div class="voice-wave"></div>
+                <div class="voice-wave"></div>
+                <div class="voice-wave"></div>
+            </div>
+            <span class="voice-text" id="voiceText">Listening...</span>
+        </div>
+        
+        <!-- Notification Container -->
+        <div class="notification-container" id="notificationContainer"></div>
+        
+        <!-- Voice Button -->
+        <button class="voice-btn" id="voiceBtn" title="음성 명령 (V)">🎙️</button>
+        
+        <!-- Control Buttons -->
+        <div class="control-buttons">
+            <div class="control-btn active" id="btnAuto">
+                <div class="steering-icon"></div>
+                <span class="label">AUTO</span>
+            </div>
+            <div class="control-btn" id="btnThreshold">
+                <div class="threshold-icon">
+                    <div class="threshold-bar"></div>
+                    <div class="threshold-bar"></div>
+                    <div class="threshold-bar"></div>
+                    <div class="threshold-bar"></div>
+                </div>
+                <span class="label">THRESHOLD</span>
+            </div>
+        </div>
+        
+        <!-- Bottom Dock -->
+        <nav class="bottom-dock">
+            <div class="dock-item" data-layer="goal">
+                <span class="dock-icon">◎</span>
+                <span class="dock-label">GOAL</span>
+            </div>
+            <div class="dock-item" data-layer="metrics">
+                <span class="dock-icon">◈</span>
+                <span class="dock-label">METRICS</span>
+            </div>
+            <div class="dock-item" data-layer="packs">
+                <span class="dock-icon">▤</span>
+                <span class="dock-label">PACKS</span>
+            </div>
+            <div class="dock-item" data-layer="timeline">
+                <span class="dock-icon">◷</span>
+                <span class="dock-label">HISTORY</span>
+            </div>
+            <div class="dock-item" data-layer="settings">
+                <span class="dock-icon">⚙</span>
+                <span class="dock-label">SETTINGS</span>
+            </div>
+        </nav>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             LAYER: Goal Detail
+        ═══════════════════════════════════════════════════════════════ -->
+        <div class="layer" id="layer-goal">
+            <div class="layer-header">
+                <span class="layer-title">GOAL</span>
+                <button class="layer-close" data-close>×</button>
+            </div>
+            
+            <div class="goal-detail-card">
+                <div class="goal-detail-title">CURRENT OBJECTIVE</div>
+                <div class="goal-detail-value">Q1 매출 30억 달성</div>
+                <div class="goal-detail-sub">75% Complete • 47 days left</div>
+            </div>
+            
+            <div class="goal-detail-card">
+                <div class="goal-detail-title">NEXT MILESTONE</div>
+                <div class="goal-detail-value">파트너 계약 3건</div>
+                <div class="goal-detail-sub">Expected: 2 weeks</div>
+            </div>
+            
+            <div class="goal-detail-card">
+                <div class="goal-detail-title">PROBABILITY</div>
+                <div class="goal-detail-value" style="color: var(--cyan)">72%</div>
+                <div class="goal-detail-sub">Based on current trajectory</div>
+            </div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             LAYER: Metrics
+        ═══════════════════════════════════════════════════════════════ -->
+        <div class="layer" id="layer-metrics">
+            <div class="layer-header">
+                <span class="layer-title">METRICS</span>
+                <button class="layer-close" data-close>×</button>
+            </div>
+            
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-label">ENERGY</div>
+                    <div class="metric-value energy">87%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">FLOW</div>
+                    <div class="metric-value flow">+4.2억</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">RISK</div>
+                    <div class="metric-value risk">0.18</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">LOSS VELOCITY</div>
+                    <div class="metric-value loss">₩186/s</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px">
+                <div class="goal-detail-card">
+                    <div class="goal-detail-title">ACCELERATION</div>
+                    <div class="goal-detail-value" style="color: var(--cyan)">2.4</div>
+                    <div class="goal-detail-sub">Bead 3 Unlocked</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             LAYER: Packs
+        ═══════════════════════════════════════════════════════════════ -->
+        <div class="layer" id="layer-packs">
+            <div class="layer-header">
+                <span class="layer-title">PACKS</span>
+                <button class="layer-close" data-close>×</button>
+            </div>
+            
+            <div class="pack-list">
+                <div class="pack-card active" data-pack="overseas">
+                    <div class="pack-header">
+                        <span class="pack-name">🌏 해외인력 Pack</span>
+                        <span class="pack-status active">ACTIVE</span>
+                    </div>
+                    <div class="pack-desc">해외 인력 비자, 고용, 관리 최적화</div>
+                    <div class="pack-metrics">
+                        <div class="pack-metric">
+                            <span style="color: #00ff88">↓</span> Cost -23%
+                        </div>
+                        <div class="pack-metric">
+                            <span style="color: var(--cyan)">↑</span> Efficiency +18%
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pack-card" data-pack="tax">
+                    <div class="pack-header">
+                        <span class="pack-name">🛡️ 절세 Pack</span>
+                        <span class="pack-status">STANDBY</span>
+                    </div>
+                    <div class="pack-desc">법인세, 원천세, 국제조세 최적화</div>
+                    <div class="pack-metrics">
+                        <div class="pack-metric">
+                            <span style="color: #00ff88">↓</span> Tax -35%
+                        </div>
+                        <div class="pack-metric">
+                            <span style="color: #ffcc00">→</span> Risk Stable
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pack-card" data-pack="b2b">
+                    <div class="pack-header">
+                        <span class="pack-name">🤝 B2B Pack</span>
+                        <span class="pack-status">STANDBY</span>
+                    </div>
+                    <div class="pack-desc">기업간 거래, 계약, 파트너십 최적화</div>
+                    <div class="pack-metrics">
+                        <div class="pack-metric">
+                            <span style="color: var(--cyan)">↑</span> Revenue +42%
+                        </div>
+                        <div class="pack-metric">
+                            <span style="color: #00ff88">↓</span> Cycle -30%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             LAYER: Timeline
+        ═══════════════════════════════════════════════════════════════ -->
+        <div class="layer" id="layer-timeline">
+            <div class="layer-header">
+                <span class="layer-title">HISTORY</span>
+                <button class="layer-close" data-close>×</button>
+            </div>
+            
+            <div class="timeline">
+                <div class="timeline-item done">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Loop #7 Completed</div>
+                        <div class="timeline-time">Today, 14:23</div>
+                    </div>
+                </div>
+                <div class="timeline-item done">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Goal Updated: +5%</div>
+                        <div class="timeline-time">Today, 11:45</div>
+                    </div>
+                </div>
+                <div class="timeline-item done">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Threshold Adjusted</div>
+                        <div class="timeline-time">Yesterday, 18:30</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Pack Switched: Tax → B2B</div>
+                        <div class="timeline-time">Dec 15, 09:12</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Bead 3 Unlocked</div>
+                        <div class="timeline-time">Dec 14, 16:45</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             LAYER: Settings
+        ═══════════════════════════════════════════════════════════════ -->
+        <div class="layer" id="layer-settings">
+            <div class="layer-header">
+                <span class="layer-title">SETTINGS</span>
+                <button class="layer-close" data-close>×</button>
+            </div>
+            
+            <div class="settings-group">
+                <div class="settings-label">AUTOMATION</div>
+                <div class="setting-item">
+                    <span class="setting-name">Auto Mode</span>
+                    <div class="toggle active" data-toggle="auto"></div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-name">Pressure Alerts</span>
+                    <div class="toggle active" data-toggle="pressure"></div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-name">Probability Display</span>
+                    <div class="toggle" data-toggle="prob"></div>
+                </div>
+            </div>
+            
+            <div class="settings-group">
+                <div class="settings-label">FEEDBACK</div>
+                <div class="setting-item">
+                    <span class="setting-name">Haptic Feedback</span>
+                    <div class="toggle active" data-toggle="haptic"></div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-name">Sound Effects</span>
+                    <div class="toggle" data-toggle="sound"></div>
+                </div>
+            </div>
+            
+            <div class="settings-group">
+                <div class="settings-label">DATA</div>
+                <div class="setting-item">
+                    <span class="setting-name">Export Data</span>
+                    <button class="layer-close" style="width: auto; padding: 8px 16px; font-size: 12px; border-radius: 8px;" id="exportBtn">Export</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════════════════════
+             THRESHOLD QUESTION MODAL
+        ═══════════════════════════════════════════════════════════════ -->
+        <div class="threshold-modal" id="thresholdModal">
+            <div class="threshold-question" id="thresholdQuestion">
+                이 결정을 지금 직접 내리시겠습니까?
+            </div>
+            <!-- #1 Intervention 원인 자동 삽입 -->
+            <div class="intervention-cause" id="interventionCause">
+                CAUSE: FRI 0.28 &lt; Threshold 0.40 → Recovery Delay Risk
+            </div>
+            <div class="threshold-actions" id="thresholdActions">
+                <button class="threshold-btn yes" id="thresholdYes">YES, 직접 선택</button>
+                <button class="threshold-btn no" id="thresholdNo">NO, AUTO 적용</button>
+            </div>
+            <!-- #2 Action Selector (YES 선택 후 표시) -->
+            <div class="action-selector" id="actionSelector" style="display: none;">
+                <div class="action-option" data-action="throttle">
+                    <span class="action-name">⚡ THROTTLE (가속)</span>
+                    <span class="action-effect">
+                        <span class="negative">₩210/s</span>
+                        <span class="positive" style="margin-left:8px">Δt -3.5d</span>
+                    </span>
+                </div>
+                <div class="action-option" data-action="detour">
+                    <span class="action-name">↩️ DETOUR (우회)</span>
+                    <span class="action-effect">
+                        <span class="positive">₩120/s</span>
+                        <span class="neutral" style="margin-left:8px;color:var(--cyan)">Δt +1.2d</span>
+                    </span>
+                </div>
+                <div class="action-option" data-action="brake">
+                    <span class="action-name">🛑 BRAKE (감속)</span>
+                    <span class="action-effect">
+                        <span class="positive">₩60/s</span>
+                        <span class="negative" style="margin-left:8px">Δt +4.0d</span>
+                    </span>
+                </div>
+                <div class="action-option" data-action="pause">
+                    <span class="action-name">⏸️ PAUSE (정지)</span>
+                    <span class="action-effect">
+                        <span class="positive">₩0/s</span>
+                        <span class="negative" style="margin-left:8px">Δt +7.0d</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // AUTUS LIFE FSD ENGINE v2.0 (Elon Approved)
+        // "You made it react to physics."
+        // ═══════════════════════════════════════════════════════════════
+        
+        // ═══════════════════════════════════════════════════════════════
+        // CORE STATE (Twin State)
+        // ═══════════════════════════════════════════════════════════════
+        
+        const State = {
+            mode: 'auto',
+            goalProgress: 75,
+            
+            // Twin State 벡터
+            energy: 87,      // ENE
+            flow: 4.2,       // FLO
+            risk: 0.18,      // RSK
+            friction: 0.28,  // FRI (핵심 지표)
+            output: 0.65,    // OUT
+            shock: 0.12,     // SHK
+            
+            // Thresholds (기준값)
+            thresholds: {
+                friction: 0.40,
+                risk: 0.30,
+                shock: 0.25,
+                energy: 50
+            },
+            
+            // Core metrics
+            loss: 186,
+            accel: 2.4,
+            activePack: 'overseas',
+            loopCount: 7,
+            
+            // Probability (실제 계산됨)
+            probability: {
+                proceed: 72,
+                detour: 18,
+                pause: 10
+            },
+            
+            // Forecast (Next Loop Delta 추가)
+            forecast: {
+                daysToGoal: 47,    // 목표까지 남은 일수
+                deltaDays: -2.3,   // Δt (일 단위)
+                deltaPct: +3       // Δ% (성공 확률 변화)
+            },
+            
+            showProbability: false,
+            pressureLevel: 0,
+            
+            // History Log
+            history: []
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // #3 ACTION → LOSS VELOCITY 매핑 테이블
+        // ═══════════════════════════════════════════════════════════════
+        
+        const ActionEffects = {
+            throttle: {
+                loss: 210,
+                probDelta: { proceed: +8, detour: -5, pause: -3 },
+                riskDelta: +0.05,
+                forecastDelta: { days: -3.5, pct: +5 }, // 빠르지만 위험
+                name: 'THROTTLE'
+            },
+            detour: {
+                loss: 120,
+                probDelta: { proceed: -5, detour: +12, pause: -7 },
+                riskDelta: +0.02,
+                forecastDelta: { days: +1.2, pct: +3 }, // 약간 느리지만 안전
+                name: 'DETOUR'
+            },
+            brake: {
+                loss: 60,
+                probDelta: { proceed: -10, detour: +5, pause: +5 },
+                riskDelta: -0.03,
+                forecastDelta: { days: +4.0, pct: -2 }, // 느리지만 리스크 감소
+                name: 'BRAKE'
+            },
+            pause: {
+                loss: 0,
+                probDelta: { proceed: -15, detour: +3, pause: +12 },
+                riskDelta: -0.05,
+                forecastDelta: { days: +7.0, pct: -5 }, // 가장 느림, 완전 정지
+                name: 'PAUSE'
+            }
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // #1 INTERVENTION 원인 자동 추출 + Recommended Action 매핑
+        // ═══════════════════════════════════════════════════════════════
+        
+        // Cause → Recommended Action 룰 테이블 (15줄)
+        const CauseToActionRules = {
+            // key: { condition: 함수, recommendedAction, causeLabel }
+            'REC_LOW':  { check: () => State.friction < 0.35, action: 'brake',  label: 'RECOVERY bottleneck' },
+            'SHK_HIGH': { check: () => State.shock >= 0.70,   action: 'pause',  label: 'SHOCK spike' },
+            'FRI_HIGH': { check: () => State.friction >= 0.70, action: 'detour', label: 'FRICTION spike' },
+            'RSK_HIGH': { check: () => State.risk >= 0.30,    action: 'brake',  label: 'RISK high' },
+            'ENE_LOW':  { check: () => State.energy < 50,     action: 'pause',  label: 'ENERGY depleted' },
+            'OUT_LOW':  { check: () => State.output < 0.50,   action: 'detour', label: 'OUTPUT bottleneck' },
+            'SHK_MID':  { check: () => State.shock >= 0.25,   action: 'brake',  label: 'SHOCK detected' },
+            'DEFAULT':  { check: () => true,                  action: 'detour', label: 'General instability' }
+        };
+        
+        function detectInterventionCause() {
+            const causes = [];
+            
+            // 1순위: Threshold 위반 (Recovery)
+            if (State.friction < State.thresholds.friction) {
+                causes.push({
+                    priority: 1,
+                    key: 'REC_LOW',
+                    value: State.friction,
+                    text: `FRI ${State.friction.toFixed(2)} < Threshold ${State.thresholds.friction.toFixed(2)}`,
+                    label: 'RECOVERY bottleneck',
+                    recommendedAction: 'brake'
+                });
+            }
+            
+            // 1순위: Risk 위반
+            if (State.risk > State.thresholds.risk) {
+                causes.push({
+                    priority: 1,
+                    key: 'RSK_HIGH',
+                    value: State.risk,
+                    text: `RSK ${State.risk.toFixed(2)} > Threshold ${State.thresholds.risk.toFixed(2)}`,
+                    label: 'RISK high',
+                    recommendedAction: 'brake'
+                });
+            }
+            
+            // 1순위: Energy 위반
+            if (State.energy < State.thresholds.energy) {
+                causes.push({
+                    priority: 1,
+                    key: 'ENE_LOW',
+                    value: State.energy,
+                    text: `ENE ${State.energy}% < Threshold ${State.thresholds.energy}%`,
+                    label: 'ENERGY depleted',
+                    recommendedAction: 'pause'
+                });
+            }
+            
+            // 2순위: Shock 감지
+            if (State.shock >= 0.70) {
+                causes.push({
+                    priority: 2,
+                    key: 'SHK_HIGH',
+                    value: State.shock,
+                    text: `SHK ${State.shock.toFixed(2)} ≥ 0.70`,
+                    label: 'SHOCK spike',
+                    recommendedAction: 'pause'
+                });
+            } else if (State.shock > State.thresholds.shock) {
+                causes.push({
+                    priority: 3,
+                    key: 'SHK_MID',
+                    value: State.shock,
+                    text: `SHK ${State.shock.toFixed(2)} > ${State.thresholds.shock.toFixed(2)}`,
+                    label: 'SHOCK detected',
+                    recommendedAction: 'brake'
+                });
+            }
+            
+            // 3순위: Output Bottleneck
+            if (State.output < 0.5) {
+                causes.push({
+                    priority: 3,
+                    key: 'OUT_LOW',
+                    value: State.output,
+                    text: `OUT ${State.output.toFixed(2)} < 0.50`,
+                    label: 'OUTPUT bottleneck',
+                    recommendedAction: 'detour'
+                });
+            }
+            
+            // 우선순위 정렬 후 첫 번째 반환
+            causes.sort((a, b) => a.priority - b.priority);
+            
+            // 기본값
+            const defaultCause = {
+                key: 'DEFAULT',
+                value: null,
+                text: 'System anomaly',
+                label: 'General instability',
+                recommendedAction: 'detour'
+            };
+            
+            return causes[0] || defaultCause;
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // #4 PROBABILITY 실제 계산
+        // ═══════════════════════════════════════════════════════════════
+        
+        function recalculateProbability() {
+            // 기본 확률 = 현재 상태 기반
+            let proceed = 50 + (State.energy - 50) * 0.3 + (State.flow * 2) - (State.risk * 50);
+            let detour = 25 + (State.friction * 20) + (State.risk * 30);
+            let pause = 25 - (State.energy - 50) * 0.2 + (State.shock * 40);
+            
+            // 정규화 (합계 100%)
+            const total = proceed + detour + pause;
+            State.probability.proceed = Math.round(Math.max(0, Math.min(100, (proceed / total) * 100)));
+            State.probability.detour = Math.round(Math.max(0, Math.min(100, (detour / total) * 100)));
+            State.probability.pause = 100 - State.probability.proceed - State.probability.detour;
+            
+            updateProbabilityUI();
+        }
+        
+        function applyActionToProbability(action) {
+            const effect = ActionEffects[action];
+            if (!effect) return;
+            
+            // 이전 값 저장 (로그용)
+            const prevProb = { ...State.probability };
+            const prevLoss = State.loss;
+            const prevForecast = { ...State.forecast };
+            
+            // Loss Velocity 즉시 변경
+            State.loss = effect.loss;
+            
+            // Probability 변경
+            State.probability.proceed = Math.max(0, Math.min(100, State.probability.proceed + effect.probDelta.proceed));
+            State.probability.detour = Math.max(0, Math.min(100, State.probability.detour + effect.probDelta.detour));
+            State.probability.pause = 100 - State.probability.proceed - State.probability.detour;
+            
+            // Risk 변경
+            State.risk = Math.max(0, Math.min(1, State.risk + effect.riskDelta));
+            
+            // Forecast Δt / Δ% 변경 (Next Loop Delta)
+            State.forecast.deltaDays = effect.forecastDelta.days;
+            State.forecast.deltaPct = effect.forecastDelta.pct;
+            State.forecast.daysToGoal = Math.max(1, State.forecast.daysToGoal + effect.forecastDelta.days);
+            
+            // UI 즉시 업데이트
+            updateLossUI();
+            updateProbabilityUI();
+            updateForecastUI();
+            updateMetricsUI();
+            
+            // Threshold 자동 재평가
+            reevaluateThreshold(action);
+            
+            // Pack 자동 추천 평가
+            evaluatePackRecommendation();
+            
+            // #5 History 자동 로그
+            addHistoryLog(`Action: ${effect.name}`);
+            addHistoryLog(`Loss: ₩${prevLoss} → ₩${State.loss}/s`);
+            addHistoryLog(`Forecast: Δt${effect.forecastDelta.days > 0 ? '+' : ''}${effect.forecastDelta.days}d, Δ%${effect.forecastDelta.pct > 0 ? '+' : ''}${effect.forecastDelta.pct}%`);
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // #6 AUTO MODE 실제 동작 (Cause 기반 룰 테이블)
+        // ═══════════════════════════════════════════════════════════════
+        
+        // 현재 원인에서 추천된 Action 저장
+        let currentCause = null;
+        
+        function autoDecide() {
+            // Cause 기반 Recommended Action 사용 (룰 테이블)
+            const cause = currentCause || detectInterventionCause();
+            let recommendedAction = cause.recommendedAction || 'detour';
+            
+            // AUTO에서 Throttle 금지 (보수적 운영)
+            if (recommendedAction === 'throttle') {
+                recommendedAction = 'detour';
+            }
+            
+            const effect = ActionEffects[recommendedAction];
+            
+            // 자동 실행 + 상세 로그
+            addHistoryLog(`[AUTO] Cause: ${cause.label} (${cause.key}=${cause.value ? cause.value.toFixed(2) : '—'})`);
+            addHistoryLog(`[AUTO] Recommended: ${effect.name}`);
+            addHistoryLog(`[AUTO] Applied: Loss ₩${State.loss} → ₩${effect.loss}`);
+            
+            applyActionToProbability(recommendedAction);
+            
+            // 압력 해소
+            State.pressureLevel = Math.max(0, State.pressureLevel - 0.5);
+            document.getElementById('pressureIndicator').classList.remove('show');
+            
+            // 현재 원인 초기화
+            currentCause = null;
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // #5 HISTORY 자동 로그
+        // ═══════════════════════════════════════════════════════════════
+        
+        function addHistoryLog(text) {
+            const now = new Date();
+            const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            State.history.unshift({
+                text: text,
+                time: `Today, ${timeStr}`
+            });
+            
+            // 최대 50개 유지
+            if (State.history.length > 50) State.history.pop();
+            
+            // Timeline UI 업데이트
+            updateTimelineUI();
+        }
+        
+        function updateTimelineUI() {
+            const timeline = document.querySelector('.timeline');
+            if (!timeline) return;
+            
+            // 기존 항목 유지하고 새 항목만 prepend
+            const existingItems = timeline.querySelectorAll('.timeline-item');
+            const newItem = document.createElement('div');
+            newItem.className = 'timeline-item done';
+            newItem.innerHTML = `
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">${State.history[0].text}</div>
+                    <div class="timeline-time">${State.history[0].time}</div>
+                </div>
+            `;
+            
+            if (existingItems.length > 0) {
+                timeline.insertBefore(newItem, existingItems[0]);
+            } else {
+                timeline.appendChild(newItem);
+            }
+            
+            // 최대 10개 표시
+            if (timeline.children.length > 10) {
+                timeline.removeChild(timeline.lastChild);
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // UI UPDATE FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function updateLossUI() {
+            const lossEl = document.querySelector('.metric-value.loss');
+            if (lossEl) lossEl.textContent = `₩${State.loss}/s`;
+        }
+        
+        function updateProbabilityUI() {
+            const probRing = document.getElementById('probRing');
+            if (!probRing) return;
+            
+            const options = probRing.querySelectorAll('.prob-option');
+            const values = [State.probability.proceed, State.probability.detour, State.probability.pause];
+            
+            options.forEach((opt, i) => {
+                const fill = opt.querySelector('.prob-fill');
+                const pct = opt.querySelector('.prob-pct');
+                if (fill) fill.style.width = `${values[i]}%`;
+                if (pct) pct.textContent = `${values[i]}%`;
+            });
+            
+            // Goal Layer의 Probability도 업데이트
+            const goalProb = document.querySelector('#layer-goal .goal-detail-value[style*="cyan"]');
+            if (goalProb) goalProb.textContent = `${State.probability.proceed}%`;
+        }
+        
+        function updateMetricsUI() {
+            const energyEl = document.querySelector('.metric-value.energy');
+            const flowEl = document.querySelector('.metric-value.flow');
+            const riskEl = document.querySelector('.metric-value.risk');
+            
+            if (energyEl) energyEl.textContent = `${State.energy}%`;
+            if (flowEl) flowEl.textContent = `+${State.flow.toFixed(1)}억`;
+            if (riskEl) riskEl.textContent = State.risk.toFixed(2);
+            
+            updateLossUI();
+        }
+        
+        // Forecast Δt / Δ% UI 업데이트 (Next Loop Delta)
+        function updateForecastUI() {
+            const deltaTimeEl = document.getElementById('deltaTime');
+            const deltaPctEl = document.getElementById('deltaPct');
+            
+            if (deltaTimeEl) {
+                const days = State.forecast.deltaDays;
+                deltaTimeEl.textContent = `${days > 0 ? '+' : ''}${days.toFixed(1)}d`;
+                deltaTimeEl.className = 'delta-value ' + (days < 0 ? 'positive' : days > 0 ? 'negative' : 'neutral');
+            }
+            
+            if (deltaPctEl) {
+                const pct = State.forecast.deltaPct;
+                deltaPctEl.textContent = `${pct > 0 ? '+' : ''}${pct}%`;
+                deltaPctEl.className = 'delta-value ' + (pct > 0 ? 'positive' : pct < 0 ? 'negative' : 'neutral');
+            }
+            
+            // Goal Layer의 days left도 업데이트
+            const goalSubEl = document.querySelector('#layer-goal .goal-detail-sub');
+            if (goalSubEl && goalSubEl.textContent.includes('days left')) {
+                goalSubEl.textContent = `${State.goalProgress}% Complete • ${Math.round(State.forecast.daysToGoal)} days left`;
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // THRESHOLD 자동 재평가
+        // ═══════════════════════════════════════════════════════════════
+        
+        // 시스템 상태: stable / sensitive / critical
+        State.systemStatus = 'stable';
+        
+        function reevaluateThreshold(action) {
+            const effect = ActionEffects[action];
+            if (!effect) return;
+            
+            const prevStatus = State.systemStatus;
+            
+            // 재평가 규칙
+            // 1. Risk 기준
+            const newRisk = State.risk;
+            
+            // 2. Forecast 방향 기준
+            const forecastImproving = effect.forecastDelta.pct > 0;
+            
+            // 3. Action 안정성 기준
+            const stableActions = ['detour', 'brake'];
+            const isStableAction = stableActions.includes(action);
+            
+            // 상태 결정
+            if (newRisk < 0.20 && forecastImproving && isStableAction) {
+                State.systemStatus = 'stable';
+            } else if (newRisk >= 0.35 || action === 'throttle') {
+                State.systemStatus = 'critical';
+            } else {
+                State.systemStatus = 'sensitive';
+            }
+            
+            // UI 업데이트
+            updateSystemStatusUI();
+            
+            // 상태 변경 시 로그
+            if (prevStatus !== State.systemStatus) {
+                addHistoryLog(`Threshold: ${prevStatus} → ${State.systemStatus}`);
+            }
+            
+            // 안정 상태면 Intervention 억제
+            if (State.systemStatus === 'stable') {
+                State.pressureLevel = Math.max(0, State.pressureLevel - 0.3);
+            }
+        }
+        
+        function updateSystemStatusUI() {
+            const statusEl = document.getElementById('systemStatus');
+            const textEl = statusEl?.querySelector('.status-text');
+            
+            if (!statusEl || !textEl) return;
+            
+            statusEl.classList.remove('stable', 'sensitive', 'critical');
+            statusEl.classList.add(State.systemStatus);
+            
+            const statusLabels = {
+                stable: 'System Stable',
+                sensitive: 'Threshold Sensitive',
+                critical: 'Critical Alert'
+            };
+            
+            textEl.textContent = statusLabels[State.systemStatus];
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // PACK 자동 추천 (Forecast 악화 시)
+        // ═══════════════════════════════════════════════════════════════
+        
+        // Pack → 상황 매핑 테이블
+        const PackRecommendationRules = {
+            // 상황: { condition, recommendedPack, reason }
+            'HIGH_RISK': {
+                check: () => State.risk >= 0.30,
+                pack: 'tax',
+                reason: 'Risk 과다 → 절세로 방어'
+            },
+            'LOW_FLOW': {
+                check: () => State.flow < 2.0,
+                pack: 'b2b',
+                reason: 'Flow 부족 → B2B 확장'
+            },
+            'HIGH_LOSS': {
+                check: () => State.loss > 150,
+                pack: 'overseas',
+                reason: 'Loss 과다 → 비용 최적화'
+            },
+            'FORECAST_DOWN': {
+                check: () => State.forecast.deltaPct < 0,
+                pack: 'b2b',
+                reason: 'Forecast 악화 → 매출 확대'
+            },
+            'CRITICAL_STATUS': {
+                check: () => State.systemStatus === 'critical',
+                pack: 'tax',
+                reason: 'Critical → 즉시 방어'
+            }
+        };
+        
+        // 현재 Pack 추천
+        State.packRecommendation = null;
+        
+        function evaluatePackRecommendation() {
+            // 현재 활성 Pack이 아닌 다른 Pack 추천
+            for (const [key, rule] of Object.entries(PackRecommendationRules)) {
+                if (rule.check() && rule.pack !== State.activePack) {
+                    State.packRecommendation = {
+                        key: key,
+                        pack: rule.pack,
+                        reason: rule.reason
+                    };
+                    showPackRecommendation();
+                    return;
+                }
+            }
+            
+            // 추천 없음
+            State.packRecommendation = null;
+            hidePackRecommendation();
+        }
+        
+        function showPackRecommendation() {
+            if (!State.packRecommendation) return;
+            
+            const rec = State.packRecommendation;
+            const packNames = {
+                overseas: '🌏 해외인력 Pack',
+                tax: '🛡️ 절세 Pack',
+                b2b: '🤝 B2B Pack'
+            };
+            
+            // 기존 알림 제거
+            const existing = document.getElementById('packRecommendation');
+            if (existing) existing.remove();
+            
+            // 새 알림 생성
+            const el = document.createElement('div');
+            el.id = 'packRecommendation';
+            el.className = 'pack-recommendation show';
+            el.innerHTML = `
+                <div class="pack-rec-header">
+                    <span class="pack-rec-icon">💡</span>
+                    <span class="pack-rec-title">PACK 추천</span>
+                </div>
+                <div class="pack-rec-content">
+                    <div class="pack-rec-name">${packNames[rec.pack]}</div>
+                    <div class="pack-rec-reason">${rec.reason}</div>
+                </div>
+                <div class="pack-rec-actions">
+                    <button class="pack-rec-btn apply" onclick="applyPackRecommendation()">적용</button>
+                    <button class="pack-rec-btn dismiss" onclick="dismissPackRecommendation()">무시</button>
+                </div>
+            `;
+            
+            document.querySelector('.screen').appendChild(el);
+            
+            // History 로그
+            addHistoryLog(`Pack 추천: ${packNames[rec.pack]}`);
+            addHistoryLog(`Reason: ${rec.reason}`);
+        }
+        
+        function hidePackRecommendation() {
+            const el = document.getElementById('packRecommendation');
+            if (el) {
+                el.classList.remove('show');
+                setTimeout(() => el.remove(), 300);
+            }
+        }
+        
+        function applyPackRecommendation() {
+            if (!State.packRecommendation) return;
+            
+            const prevPack = State.activePack;
+            const newPack = State.packRecommendation.pack;
+            
+            // Pack 변경
+            State.activePack = newPack;
+            
+            // UI 업데이트
+            document.querySelectorAll('.pack-card').forEach(card => {
+                card.classList.remove('active');
+                card.querySelector('.pack-status').classList.remove('active');
+                card.querySelector('.pack-status').textContent = 'STANDBY';
+                
+                if (card.dataset.pack === newPack) {
+                    card.classList.add('active');
+                    card.querySelector('.pack-status').classList.add('active');
+                    card.querySelector('.pack-status').textContent = 'ACTIVE';
+                }
+            });
+            
+            // 효과 적용 (Pack별 보너스)
+            const packEffects = {
+                overseas: { lossDelta: -30, riskDelta: 0 },
+                tax: { lossDelta: -20, riskDelta: -0.05 },
+                b2b: { lossDelta: +20, riskDelta: +0.02, flowDelta: +0.5 }
+            };
+            
+            const effect = packEffects[newPack];
+            if (effect) {
+                State.loss = Math.max(0, State.loss + (effect.lossDelta || 0));
+                State.risk = Math.max(0, Math.min(1, State.risk + (effect.riskDelta || 0)));
+                State.flow = State.flow + (effect.flowDelta || 0);
+                
+                updateMetricsUI();
+                updateLossUI();
+            }
+            
+            // History 로그
+            addHistoryLog(`Pack 적용: ${prevPack} → ${newPack}`);
+            
+            // 추천 숨기기
+            hidePackRecommendation();
+            State.packRecommendation = null;
+            
+            // Threshold 재평가
+            State.systemStatus = 'stable';
+            updateSystemStatusUI();
+            
+            haptic();
+        }
+        
+        function dismissPackRecommendation() {
+            addHistoryLog('Pack 추천 무시됨');
+            hidePackRecommendation();
+            State.packRecommendation = null;
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // TIME & DATE
+        // ═══════════════════════════════════════════════════════════════
+        
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('timeDisplay').textContent = 
+                now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+            
+            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            document.getElementById('dateDisplay').textContent = 
+                `${days[now.getDay()]} ${now.getDate()}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // ═══════════════════════════════════════════════════════════════
+        // MODE SWITCHING (AUTO / THRESHOLD)
+        // ═══════════════════════════════════════════════════════════════
+        
+        const btnAuto = document.getElementById('btnAuto');
+        const btnThreshold = document.getElementById('btnThreshold');
+        const modeIndicator = document.getElementById('modeIndicator');
+        const thresholdModal = document.getElementById('thresholdModal');
+        const thresholdActions = document.getElementById('thresholdActions');
+        const actionSelector = document.getElementById('actionSelector');
+        const interventionCause = document.getElementById('interventionCause');
+        
+        btnAuto.addEventListener('click', () => {
+            if (State.mode === 'auto') return;
+            setMode('auto');
+            addHistoryLog('Mode Changed: AUTO');
+            haptic();
+        });
+        
+        btnThreshold.addEventListener('click', () => {
+            if (State.mode === 'threshold') return;
+            showThresholdQuestion();
+            haptic();
+        });
+        
+        function setMode(mode) {
+            State.mode = mode;
+            
+            btnAuto.classList.toggle('active', mode === 'auto');
+            btnThreshold.classList.toggle('active', mode === 'threshold');
+            
+            modeIndicator.textContent = mode === 'auto' ? 'AUTO MODE' : 'MANUAL MODE';
+            modeIndicator.style.color = mode === 'auto' ? 'var(--cyan)' : '#ffcc00';
+        }
+        
+        function showThresholdQuestion() {
+            // #1 Intervention 원인 + Recommended Action 자동 삽입
+            const cause = detectInterventionCause();
+            currentCause = cause; // AUTO에서 사용하기 위해 저장
+            
+            const recEffect = ActionEffects[cause.recommendedAction];
+            const recLabel = recEffect ? recEffect.name : 'DETOUR';
+            
+            // CAUSE 텍스트: "원인 → REC: 추천액션"
+            interventionCause.innerHTML = `
+                CAUSE: ${cause.label} (${cause.key}=${cause.value ? cause.value.toFixed(2) : '—'})<br>
+                <span style="color: var(--cyan);">→ REC: ${recLabel} (₩${recEffect ? recEffect.loss : 120}/s)</span>
+            `;
+            
+            // UI 초기화
+            thresholdActions.style.display = 'flex';
+            actionSelector.style.display = 'none';
+            
+            // #5 History 로그
+            addHistoryLog(`Intervention: ${cause.label}`);
+            addHistoryLog(`Recommended: ${recLabel}`);
+            
+            thresholdModal.classList.add('show');
+        }
+        
+        // #2 YES → Action Selector 표시
+        document.getElementById('thresholdYes').addEventListener('click', () => {
+            thresholdActions.style.display = 'none';
+            actionSelector.style.display = 'flex';
+            setMode('threshold');
+        });
+        
+        // #2 NO → AUTO 로직 실행
+        document.getElementById('thresholdNo').addEventListener('click', () => {
+            addHistoryLog('User Choice: AUTO maintain');
+            autoDecide();
+            thresholdModal.classList.remove('show');
+        });
+        
+        // #2 Action 선택 처리
+        document.querySelectorAll('.action-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const action = option.dataset.action;
+                applyActionToProbability(action);
+                thresholdModal.classList.remove('show');
+                
+                // UI 초기화
+                thresholdActions.style.display = 'flex';
+                actionSelector.style.display = 'none';
+                
+                haptic();
+            });
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // LAYER NAVIGATION
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.querySelectorAll('.dock-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const layerId = item.dataset.layer;
+                openLayer(layerId);
+                haptic();
+                
+                document.querySelectorAll('.dock-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+        
+        document.querySelectorAll('[data-close]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                closeAllLayers();
+                document.querySelectorAll('.dock-item').forEach(i => i.classList.remove('active'));
+            });
+        });
+        
+        function openLayer(layerId) {
+            closeAllLayers();
+            document.getElementById(`layer-${layerId}`).classList.add('active');
+        }
+        
+        function closeAllLayers() {
+            document.querySelectorAll('.layer').forEach(l => l.classList.remove('active'));
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // PACK SELECTION
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.querySelectorAll('.pack-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const pack = card.dataset.pack;
+                const prevPack = State.activePack;
+                State.activePack = pack;
+                
+                document.querySelectorAll('.pack-card').forEach(c => {
+                    c.classList.remove('active');
+                    c.querySelector('.pack-status').classList.remove('active');
+                    c.querySelector('.pack-status').textContent = 'STANDBY';
+                });
+                
+                card.classList.add('active');
+                card.querySelector('.pack-status').classList.add('active');
+                card.querySelector('.pack-status').textContent = 'ACTIVE';
+                
+                // #5 History 로그
+                addHistoryLog(`Pack Switched: ${prevPack} → ${pack}`);
+                
+                haptic();
+            });
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // SETTINGS TOGGLES
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.querySelectorAll('.toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('active');
+                
+                const setting = toggle.dataset.toggle;
+                if (setting === 'prob') {
+                    State.showProbability = toggle.classList.contains('active');
+                    document.getElementById('probRing').classList.toggle('show', State.showProbability);
+                }
+                
+                haptic();
+            });
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // GOAL RING INTERACTION
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.getElementById('goalRing').addEventListener('click', () => {
+            State.showProbability = !State.showProbability;
+            document.getElementById('probRing').classList.toggle('show', State.showProbability);
+            haptic();
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // PRESSURE SIMULATION (물리 반응)
+        // ═══════════════════════════════════════════════════════════════
+        
+        function simulatePressure() {
+            if (State.mode === 'auto') {
+                // 물리 기반 압력 증가
+                const frictionPressure = Math.max(0, State.thresholds.friction - State.friction) * 0.5;
+                const riskPressure = Math.max(0, State.risk - State.thresholds.risk) * 0.3;
+                const shockPressure = Math.max(0, State.shock - State.thresholds.shock) * 0.2;
+                
+                State.pressureLevel += (frictionPressure + riskPressure + shockPressure + Math.random() * 0.05);
+                
+                if (State.pressureLevel > 0.7) {
+                    document.getElementById('pressureIndicator').classList.add('show');
+                    
+                    if (State.pressureLevel > 0.9 && !thresholdModal.classList.contains('show')) {
+                        showThresholdQuestion();
+                    }
+                }
+            } else {
+                State.pressureLevel = Math.max(0, State.pressureLevel - 0.15);
+                if (State.pressureLevel < 0.5) {
+                    document.getElementById('pressureIndicator').classList.remove('show');
+                }
+            }
+            
+            // 소수 상태 변동 (시뮬레이션)
+            State.friction += (Math.random() - 0.5) * 0.02;
+            State.friction = Math.max(0, Math.min(1, State.friction));
+            
+            State.shock += (Math.random() - 0.5) * 0.01;
+            State.shock = Math.max(0, Math.min(1, State.shock));
+            
+            // Probability 재계산
+            recalculateProbability();
+        }
+        
+        setInterval(simulatePressure, 3000);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // RING PROGRESS ANIMATION
+        // ═══════════════════════════════════════════════════════════════
+        
+        function updateRingProgress(percent) {
+            const circumference = 2 * Math.PI * 160;
+            const offset = circumference - (percent / 100) * circumference;
+            document.querySelector('.ring-progress').style.strokeDashoffset = offset;
+        }
+        
+        updateRingProgress(State.goalProgress);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // EXPORT
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const data = JSON.stringify(State, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `autus-life-fsd-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // HAPTIC FEEDBACK
+        // ═══════════════════════════════════════════════════════════════
+        
+        function haptic() {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(10);
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // KEYBOARD SHORTCUTS
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.addEventListener('keydown', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'a': btnAuto.click(); break;
+                case 't': btnThreshold.click(); break;
+                case 'g': document.querySelector('[data-layer="goal"]').click(); break;
+                case 'm': document.querySelector('[data-layer="metrics"]').click(); break;
+                case 'p': document.querySelector('[data-layer="packs"]').click(); break;
+                case 'h': document.querySelector('[data-layer="timeline"]').click(); break;
+                case 's': document.querySelector('[data-layer="settings"]').click(); break;
+                case 'escape': 
+                    closeAllLayers(); 
+                    thresholdModal.classList.remove('show');
+                    break;
+                // Action 단축키
+                case '1': if (actionSelector.style.display !== 'none') document.querySelector('[data-action="throttle"]').click(); break;
+                case '2': if (actionSelector.style.display !== 'none') document.querySelector('[data-action="detour"]').click(); break;
+                case '3': if (actionSelector.style.display !== 'none') document.querySelector('[data-action="brake"]').click(); break;
+                case '4': if (actionSelector.style.display !== 'none') document.querySelector('[data-action="pause"]').click(); break;
+            }
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 음성 명령 시스템
+        // ═══════════════════════════════════════════════════════════════
+        
+        const voiceBtn = document.getElementById('voiceBtn');
+        const voiceIndicator = document.getElementById('voiceIndicator');
+        const voiceText = document.getElementById('voiceText');
+        let isListening = false;
+        let recognition = null;
+        
+        // 음성 명령 매핑
+        const VoiceCommands = {
+            // 한국어
+            '오토': () => { setMode('auto'); showNotification('AUTO 모드 활성화', 'success'); },
+            '자동': () => { setMode('auto'); showNotification('AUTO 모드 활성화', 'success'); },
+            '수동': () => { setMode('threshold'); showNotification('MANUAL 모드 활성화', 'info'); },
+            '멈춰': () => { applyActionToProbability('pause'); showNotification('PAUSE 실행', 'warning'); },
+            '정지': () => { applyActionToProbability('pause'); showNotification('PAUSE 실행', 'warning'); },
+            '가속': () => { applyActionToProbability('throttle'); showNotification('THROTTLE 실행', 'info'); },
+            '감속': () => { applyActionToProbability('brake'); showNotification('BRAKE 실행', 'success'); },
+            '우회': () => { applyActionToProbability('detour'); showNotification('DETOUR 실행', 'success'); },
+            '목표': () => { openLayer('goal'); },
+            '메트릭': () => { openLayer('metrics'); },
+            '팩': () => { openLayer('packs'); },
+            '히스토리': () => { openLayer('timeline'); },
+            '설정': () => { openLayer('settings'); },
+            '닫기': () => { closeAllLayers(); },
+            // 영어
+            'auto': () => { setMode('auto'); showNotification('AUTO Mode', 'success'); },
+            'stop': () => { applyActionToProbability('pause'); showNotification('PAUSE', 'warning'); },
+            'go': () => { applyActionToProbability('throttle'); showNotification('THROTTLE', 'info'); },
+            'slow': () => { applyActionToProbability('brake'); showNotification('BRAKE', 'success'); },
+            'detour': () => { applyActionToProbability('detour'); showNotification('DETOUR', 'success'); }
+        };
+        
+        function initVoiceRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showNotification('음성 인식 미지원', 'error');
+                return;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ko-KR';
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            
+            recognition.onstart = () => {
+                isListening = true;
+                voiceBtn.classList.add('listening');
+                voiceIndicator.classList.add('active');
+                voiceText.textContent = 'Listening...';
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.toLowerCase().trim();
+                voiceText.textContent = `"${transcript}"`;
+                
+                // 명령 매칭
+                for (const [cmd, action] of Object.entries(VoiceCommands)) {
+                    if (transcript.includes(cmd)) {
+                        action();
+                        addHistoryLog(`Voice: "${transcript}" → ${cmd}`);
+                        break;
+                    }
+                }
+            };
+            
+            recognition.onend = () => {
+                isListening = false;
+                voiceBtn.classList.remove('listening');
+                setTimeout(() => {
+                    voiceIndicator.classList.remove('active');
+                }, 1000);
+            };
+            
+            recognition.onerror = (event) => {
+                showNotification(`음성 오류: ${event.error}`, 'error');
+                voiceBtn.classList.remove('listening');
+                voiceIndicator.classList.remove('active');
+            };
+        }
+        
+        voiceBtn.addEventListener('click', () => {
+            if (!recognition) initVoiceRecognition();
+            if (!recognition) return;
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+            haptic();
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 알림 시스템
+        // ═══════════════════════════════════════════════════════════════
+        
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            
+            const icons = {
+                success: '✓',
+                warning: '⚠',
+                error: '✕',
+                info: 'ℹ'
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <span class="notification-icon">${icons[type]}</span>
+                <span class="notification-text">${message}</span>
+            `;
+            
+            container.appendChild(notification);
+            
+            // 애니메이션
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            // 자동 제거
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+            
+            // Push Notification (권한 있을 경우)
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('AUTUS', { body: message, icon: '🎯' });
+            }
+        }
+        
+        // Push 알림 권한 요청
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 다중 Goal 관리
+        // ═══════════════════════════════════════════════════════════════
+        
+        const Goals = [
+            {
+                id: 0,
+                name: 'Q1 매출 30억',
+                progress: 75,
+                daysLeft: 47,
+                energy: 87,
+                flow: 4.2,
+                risk: 0.18,
+                loss: 186,
+                pack: 'overseas'
+            },
+            {
+                id: 1,
+                name: '파트너십 3건',
+                progress: 45,
+                daysLeft: 30,
+                energy: 72,
+                flow: 2.1,
+                risk: 0.25,
+                loss: 220,
+                pack: 'b2b'
+            },
+            {
+                id: 2,
+                name: '제품 출시',
+                progress: 30,
+                daysLeft: 60,
+                energy: 65,
+                flow: 1.5,
+                risk: 0.35,
+                loss: 310,
+                pack: 'tax'
+            }
+        ];
+        
+        State.activeGoalId = 0;
+        
+        function switchGoal(goalId) {
+            // 현재 Goal 저장
+            const currentGoal = Goals[State.activeGoalId];
+            currentGoal.progress = State.goalProgress;
+            currentGoal.energy = State.energy;
+            currentGoal.flow = State.flow;
+            currentGoal.risk = State.risk;
+            currentGoal.loss = State.loss;
+            currentGoal.pack = State.activePack;
+            
+            // 새 Goal 로드
+            State.activeGoalId = goalId;
+            const newGoal = Goals[goalId];
+            
+            State.goalProgress = newGoal.progress;
+            State.energy = newGoal.energy;
+            State.flow = newGoal.flow;
+            State.risk = newGoal.risk;
+            State.loss = newGoal.loss;
+            State.activePack = newGoal.pack;
+            State.forecast.daysToGoal = newGoal.daysLeft;
+            
+            // UI 업데이트
+            updateRingProgress(State.goalProgress);
+            updateMetricsUI();
+            recalculateProbability();
+            updateGoalSelectorUI();
+            
+            // Goal Layer 업데이트
+            const goalValueEl = document.querySelector('#layer-goal .goal-detail-value');
+            if (goalValueEl) goalValueEl.textContent = newGoal.name;
+            
+            // Pack UI 업데이트
+            document.querySelectorAll('.pack-card').forEach(card => {
+                card.classList.remove('active');
+                card.querySelector('.pack-status').classList.remove('active');
+                card.querySelector('.pack-status').textContent = 'STANDBY';
+                
+                if (card.dataset.pack === State.activePack) {
+                    card.classList.add('active');
+                    card.querySelector('.pack-status').classList.add('active');
+                    card.querySelector('.pack-status').textContent = 'ACTIVE';
+                }
+            });
+            
+            addHistoryLog(`Goal 전환: ${newGoal.name}`);
+            showNotification(`Goal: ${newGoal.name}`, 'info');
+            haptic();
+        }
+        
+        function updateGoalSelectorUI() {
+            document.querySelectorAll('.goal-tab').forEach(tab => {
+                const goalId = parseInt(tab.dataset.goal);
+                const goal = Goals[goalId];
+                
+                tab.classList.toggle('active', goalId === State.activeGoalId);
+                
+                // Progress dot 색상
+                const dot = tab.querySelector('.progress-dot');
+                if (dot) {
+                    dot.classList.remove('low', 'mid', 'high');
+                    if (goal.progress >= 60) dot.classList.add('high');
+                    else if (goal.progress >= 30) dot.classList.add('mid');
+                    else dot.classList.add('low');
+                }
+            });
+        }
+        
+        // Goal 탭 클릭 이벤트
+        document.querySelectorAll('.goal-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const goalId = parseInt(tab.dataset.goal);
+                switchGoal(goalId);
+            });
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // WebSocket 실시간 연동 (시뮬레이션)
+        // ═══════════════════════════════════════════════════════════════
+        
+        let ws = null;
+        let wsRetryCount = 0;
+        const WS_URL = 'ws://localhost:8000/ws';
+        
+        function connectWebSocket() {
+            const statusEl = document.getElementById('connectionStatus');
+            
+            try {
+                ws = new WebSocket(WS_URL);
+                
+                ws.onopen = () => {
+                    wsRetryCount = 0;
+                    statusEl.classList.remove('disconnected');
+                    statusEl.querySelector('span:last-child').textContent = 'LIVE';
+                    showNotification('서버 연결됨', 'success');
+                    
+                    // 초기 상태 요청
+                    ws.send(JSON.stringify({ type: 'init' }));
+                };
+                
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleWebSocketMessage(data);
+                    } catch (e) {
+                        console.error('WS parse error:', e);
+                    }
+                };
+                
+                ws.onclose = () => {
+                    statusEl.classList.add('disconnected');
+                    statusEl.querySelector('span:last-child').textContent = 'OFFLINE';
+                    
+                    // 재연결 시도
+                    if (wsRetryCount < 3) {
+                        wsRetryCount++;
+                        setTimeout(connectWebSocket, 3000);
+                    }
+                };
+                
+                ws.onerror = () => {
+                    statusEl.classList.add('disconnected');
+                };
+                
+            } catch (e) {
+                // WebSocket 서버 없음 - 로컬 모드
+                statusEl.querySelector('span:last-child').textContent = 'LOCAL';
+            }
+        }
+        
+        function handleWebSocketMessage(data) {
+            switch (data.type) {
+                case 'state_update':
+                    if (data.energy) State.energy = data.energy;
+                    if (data.flow) State.flow = data.flow;
+                    if (data.risk) State.risk = data.risk;
+                    if (data.loss) State.loss = data.loss;
+                    updateMetricsUI();
+                    recalculateProbability();
+                    break;
+                    
+                case 'intervention':
+                    showThresholdQuestion();
+                    showNotification('Intervention 필요', 'warning');
+                    break;
+                    
+                case 'alert':
+                    showNotification(data.message, data.level || 'info');
+                    break;
+            }
+        }
+        
+        function sendToServer(action, payload = {}) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: action, ...payload }));
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 키보드 단축키 확장
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch(e.key.toLowerCase()) {
+                case 'a': btnAuto.click(); break;
+                case 't': btnThreshold.click(); break;
+                case 'g': document.querySelector('[data-layer="goal"]').click(); break;
+                case 'm': document.querySelector('[data-layer="metrics"]').click(); break;
+                case 'p': document.querySelector('[data-layer="packs"]').click(); break;
+                case 'h': document.querySelector('[data-layer="timeline"]').click(); break;
+                case 's': document.querySelector('[data-layer="settings"]').click(); break;
+                case 'v': voiceBtn.click(); break;
+                case 'escape': 
+                    closeAllLayers(); 
+                    thresholdModal.classList.remove('show');
+                    break;
+                // Action 단축키
+                case '1': 
+                    if (actionSelector.style.display !== 'none') {
+                        document.querySelector('[data-action="throttle"]').click();
+                    } else {
+                        switchGoal(0);
+                    }
+                    break;
+                case '2': 
+                    if (actionSelector.style.display !== 'none') {
+                        document.querySelector('[data-action="detour"]').click();
+                    } else {
+                        switchGoal(1);
+                    }
+                    break;
+                case '3': 
+                    if (actionSelector.style.display !== 'none') {
+                        document.querySelector('[data-action="brake"]').click();
+                    } else {
+                        switchGoal(2);
+                    }
+                    break;
+                case '4': 
+                    if (actionSelector.style.display !== 'none') {
+                        document.querySelector('[data-action="pause"]').click();
+                    }
+                    break;
+            }
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ═══════════════════════════════════════════════════════════════
+        
+        recalculateProbability();
+        updateMetricsUI();
+        updateForecastUI();
+        updateSystemStatusUI();
+        updateGoalSelectorUI();
+        
+        // 초기 Forecast 값 설정
+        State.forecast.deltaDays = -2.3;
+        State.forecast.deltaPct = +3;
+        updateForecastUI();
+        
+        // 초기 System Status
+        State.systemStatus = 'stable';
+        updateSystemStatusUI();
+        
+        // WebSocket 연결 시도
+        connectWebSocket();
+        
+        // Push 알림 권한 요청
+        requestNotificationPermission();
+        
+        // 음성 인식 초기화
+        initVoiceRecognition();
+        
+        addHistoryLog('AUTUS Life FSD v3.0 Ready');
+        showNotification('AUTUS Life FSD v3.0', 'success');
+    </script>
+</body>
+</html>
