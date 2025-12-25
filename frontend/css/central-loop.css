@@ -1,0 +1,169 @@
+/**
+ * AUTUS Central Loop Styles
+ * Tesla FSD 스타일 결정 시각화
+ */
+
+/* Container */
+.central-loop-container {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.central-loop-canvas {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* Goal Anchor 외부 표시 */
+.goal-anchor-external {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+/* Stage Indicator 외부 */
+.stage-indicator-external {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.stage-number {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cyan, #00ffcc);
+  font-family: 'SF Mono', monospace;
+}
+
+.stage-name {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+}
+
+/* Loss Velocity Badge */
+.loss-velocity-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: 'SF Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.loss-velocity-badge.normal {
+  color: #ff6600;
+  border: 1px solid rgba(255, 102, 0, 0.3);
+}
+
+.loss-velocity-badge.warning {
+  color: #ff3366;
+  border: 1px solid rgba(255, 51, 102, 0.5);
+  animation: loss-pulse 1s infinite;
+}
+
+@keyframes loss-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 51, 102, 0); }
+}
+
+/* Titans Metrics Bar */
+.titans-metrics-bar {
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  font-size: 10px;
+}
+
+.titan-metric {
+  text-align: center;
+}
+
+.titan-metric .value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cyan, #00ffcc);
+}
+
+.titan-metric .label {
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 2px;
+}
+
+/* Touch Hint */
+.loop-touch-hint {
+  position: absolute;
+  bottom: -70px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.central-loop-container:not(.is-running) .loop-touch-hint {
+  opacity: 1;
+}
+
+/* Decision Moment Overlay */
+.decision-moment-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(0, 255, 204, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.central-loop-container.decision-stage .decision-moment-overlay {
+  opacity: 1;
+  animation: decision-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes decision-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Responsive */
+@media (max-width: 360px) {
+  .central-loop-container {
+    max-width: 280px;
+  }
+  
+  .titans-metrics-bar {
+    font-size: 9px;
+  }
+  
+  .titan-metric .value {
+    font-size: 12px;
+  }
+}

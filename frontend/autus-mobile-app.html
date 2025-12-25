@@ -5,12 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AUTUS">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#00e5cc">
     <meta name="autus-realtime" content="true">
+    <meta name="msapplication-TileColor" content="#0a1428">
     <link rel="manifest" href="manifest.json">
-    <title>AUTUS - Life FSD</title>
+    <link rel="icon" href="icons/icon-32.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <title>AUTUS - Decision Physics OS</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/autus-main.css">
+    <link rel="stylesheet" href="css/central-loop.css">
+    <link rel="stylesheet" href="css/pwa.css">
     <style>
         :root {
             --cyan: #00e5cc;
@@ -789,9 +796,51 @@
         });
         
         // ═══════════════════════════════════════════════════════════════
-        // CORE LOOP CANVAS
+        // CENTRAL LOOP (Tesla FSD Style)
         // ═══════════════════════════════════════════════════════════════
-        function drawLoopCanvas(canvas) {
+        let centralLoop = null;
+        
+        function initCentralLoopCanvas(canvas) {
+            if (window.CentralLoop) {
+                centralLoop = new CentralLoop(canvas, {
+                    primaryColor: '#00ffcc',
+                    pulseSpeed: 2,
+                    particleCount: 25
+                });
+                
+                // 목표 설정
+                centralLoop.setGoal('결정 물리학 활성화');
+                
+                // 스테이지 완료 콜백
+                centralLoop.onStageComplete = (stage) => {
+                    console.log(`[Loop] Stage: ${stage.name}`);
+                    
+                    // Decision 단계에서 Titans Kernel 실행
+                    if (stage.id === 'decision' && window.AUTUS_KERNEL) {
+                        const decision = window.AUTUS_KERNEL.shouldExecute({
+                            infoLevel: centralLoop.titansMetrics.infoLevel,
+                            impact: 0.7,
+                            reversibility: 0.6,
+                            timeValue: 0.8
+                        });
+                        console.log('[Titans] Decision:', decision);
+                    }
+                };
+                
+                // 루프 완료 콜백
+                centralLoop.onLoopComplete = () => {
+                    console.log('[Loop] Complete! Starting next cycle...');
+                };
+                
+                centralLoop.start();
+                console.log('✅ Central Loop initialized');
+            } else {
+                // Fallback: 기존 간단한 애니메이션
+                drawSimpleLoop(canvas);
+            }
+        }
+        
+        function drawSimpleLoop(canvas) {
             const ctx = canvas.getContext('2d');
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
@@ -800,15 +849,12 @@
             
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Outer ring
                 ctx.strokeStyle = 'rgba(0, 229, 204, 0.3)';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                 ctx.stroke();
                 
-                // Animated arc
                 ctx.strokeStyle = '#00e5cc';
                 ctx.lineWidth = 8;
                 ctx.lineCap = 'round';
@@ -819,22 +865,13 @@
                 ctx.stroke();
                 ctx.shadowBlur = 0;
                 
-                // Center glow
-                const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30);
-                gradient.addColorStop(0, 'rgba(0, 229, 204, 0.5)');
-                gradient.addColorStop(1, 'rgba(0, 229, 204, 0)');
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(cx, cy, 30, 0, Math.PI * 2);
-                ctx.fill();
-                
                 angle += 0.02;
                 requestAnimationFrame(draw);
             }
             draw();
         }
         
-        drawLoopCanvas(document.getElementById('loop-canvas'));
+        initCentralLoopCanvas(document.getElementById('loop-canvas'));
         
         // ═══════════════════════════════════════════════════════════════
         // PHYSICS NETWORK
@@ -961,11 +998,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="js/realtime-bridge.js"></script>
     <script src="js/three-effects.js"></script>
-    <script src="js/core-loop.js"></script>
+    <script src="js/core/central-loop.js"></script>
     <script src="js/auto-mode.js"></script>
     <script src="js/physics-map.js"></script>
     <script src="js/brainwave.js"></script>
     <script src="js/feedback.js"></script>
+    <script src="js/pwa/pwa-install.js"></script>
     <script>
         window.AUTUS_AUTO_CONNECT = true;
         
@@ -1114,13 +1152,86 @@
             // 7. Service Worker (PWA)
             // ═══════════════════════════════════════════════════════════════
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('📱 Service Worker registered'))
+                navigator.serviceWorker.register('/frontend/sw.js', { scope: '/' })
+                    .then(reg => {
+                        console.log('📱 Service Worker registered');
+                        
+                        // 업데이트 감지
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    showUpdateToast();
+                                }
+                            });
+                        });
+                    })
                     .catch(err => console.warn('SW registration failed:', err));
             }
             
-            console.log('🌌 AUTUS Life FSD v2.0 Ready');
-            console.log('📊 Modules: Three.js, WebSocket, AUTO Mode, Feedback System');
+            function showUpdateToast() {
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed; top: calc(100px + var(--safe-top)); left: 50%; transform: translateX(-50%);
+                    background: var(--cyan); color: #000; padding: 12px 24px; border-radius: 30px;
+                    font-size: 13px; font-weight: 600; z-index: 10000; cursor: pointer;
+                `;
+                toast.textContent = '🚀 업데이트 준비됨 - 탭하여 적용';
+                toast.onclick = () => location.reload();
+                document.body.appendChild(toast);
+            }
+            
+            // ═══════════════════════════════════════════════════════════════
+            // 8. TITANS KERNEL (Bezos × Thiel × Musk = AUTUS Core)
+            // ═══════════════════════════════════════════════════════════════
+            window.AUTUS_KERNEL = {
+                // Bezos: 80세 후회 최소화
+                regretMinimization: (decision) => {
+                    const { impact, reversibility, timeValue } = decision;
+                    const regretIfSkip = (impact * timeValue) / Math.max(reversibility, 0.1);
+                    const regretIfAct = (1 - impact) * (1 - reversibility);
+                    return {
+                        recommendation: regretIfSkip > regretIfAct ? 'ACT' : 'SKIP',
+                        confidence: Math.abs(regretIfSkip - regretIfAct)
+                    };
+                },
+                
+                // Bezos: 70% 정보면 실행
+                velocityDecision: (infoLevel) => {
+                    return infoLevel >= 0.7;
+                },
+                
+                // Thiel: 독점률 = 네트워크 효과
+                monopolyScore: (networkSize, accuracy) => {
+                    const networkEffect = Math.log10(Math.max(networkSize, 1)) / 3;
+                    return Math.min(networkEffect * accuracy, 1);
+                },
+                
+                // Musk: 인간 개입 최소화
+                interventionRate: (autoDecisions, totalDecisions) => {
+                    if (totalDecisions === 0) return 1;
+                    return 1 - (autoDecisions / totalDecisions);
+                },
+                
+                // 통합 결정 함수
+                shouldExecute: (state) => {
+                    const infoReady = window.AUTUS_KERNEL.velocityDecision(state.infoLevel || 0.7);
+                    const regret = window.AUTUS_KERNEL.regretMinimization({
+                        impact: state.impact || 0.5,
+                        reversibility: state.reversibility || 0.5,
+                        timeValue: state.timeValue || 0.5
+                    });
+                    
+                    // Musk 원칙: 자동화 가능하면 자동 실행
+                    if (infoReady && regret.recommendation === 'ACT') {
+                        return { execute: true, mode: 'AUTO', confidence: regret.confidence };
+                    }
+                    return { execute: false, mode: 'MANUAL', confidence: regret.confidence };
+                }
+            };
+            
+            console.log('🌌 AUTUS v2.0 Ready');
+            console.log('⚡ Kernel: Bezos × Thiel × Musk = Decision Physics');
         });
     </script>
 </body>
