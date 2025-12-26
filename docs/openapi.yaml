@@ -1,0 +1,503 @@
+openapi: 3.0.3
+info:
+  title: AUTUS Physics API
+  description: |
+    Semantic Neutrality Compliant API
+    
+    Rules:
+    - No semantic interpretation in responses
+    - Numbers and vectors only
+    - No labels on nodes
+    - All motion toward Origin
+  version: 1.0.0
+  contact:
+    name: AUTUS
+
+servers:
+  - url: https://api.autus-ai.com/v1
+    description: Production
+  - url: http://localhost:8000/v1
+    description: Development
+
+tags:
+  - name: state
+    description: Physical state operations
+  - name: nodes
+    description: Entity operations (사람/기업/국가)
+  - name: motions
+    description: Value flow operations (돈/시간/가치)
+  - name: goal
+    description: Origin/Goal operations
+
+paths:
+  /state:
+    get:
+      tags: [state]
+      summary: Get current physical state
+      operationId: getState
+      responses:
+        '200':
+          description: Current state vector
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/State'
+
+  /state/vector:
+    post:
+      tags: [state]
+      summary: Apply vector input
+      operationId: applyVector
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VectorInput'
+      responses:
+        '200':
+          description: Updated state after vector application
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateTransition'
+
+  /nodes:
+    get:
+      tags: [nodes]
+      summary: List all nodes
+      operationId: listNodes
+      parameters:
+        - name: level
+          in: query
+          description: Filter by proximity level (1, 2, 3)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3
+        - name: r_min
+          in: query
+          description: Minimum distance from Origin
+          schema:
+            type: number
+        - name: r_max
+          in: query
+          description: Maximum distance from Origin
+          schema:
+            type: number
+      responses:
+        '200':
+          description: List of nodes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nodes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Node'
+                  count:
+                    type: integer
+
+    post:
+      tags: [nodes]
+      summary: Create a node
+      operationId: createNode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodeCreate'
+      responses:
+        '201':
+          description: Node created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+
+  /nodes/{id}:
+    get:
+      tags: [nodes]
+      summary: Get node by ID
+      operationId: getNode
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Node details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+        '404':
+          description: Node not found
+
+    patch:
+      tags: [nodes]
+      summary: Update node physical properties
+      operationId: updateNode
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodeUpdate'
+      responses:
+        '200':
+          description: Updated node
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+
+    delete:
+      tags: [nodes]
+      summary: Remove node
+      operationId: deleteNode
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Node removed
+
+  /motions:
+    get:
+      tags: [motions]
+      summary: Get current motion state
+      operationId: listMotions
+      responses:
+        '200':
+          description: Active motions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  motions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Motion'
+                  flow_rate:
+                    type: number
+                    description: Aggregate flow rate toward Origin
+
+  /motions/stream:
+    get:
+      tags: [motions]
+      summary: WebSocket stream for real-time motions
+      operationId: streamMotions
+      description: |
+        WebSocket endpoint for real-time motion updates.
+        Connect via: wss://api.autus-ai.com/v1/motions/stream
+        
+        Message format:
+        ```json
+        {
+          "type": "motion_update",
+          "data": { "motions": [...], "flow_rate": 0.42 },
+          "timestamp": "2024-01-01T00:00:00Z"
+        }
+        ```
+      responses:
+        '101':
+          description: WebSocket upgrade
+
+  /goal:
+    get:
+      tags: [goal]
+      summary: Get current goal state
+      operationId: getGoal
+      responses:
+        '200':
+          description: Goal configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+
+    put:
+      tags: [goal]
+      summary: Set or update goal
+      operationId: setGoal
+      description: |
+        Setting a new goal resets the coordinate system.
+        All node distances are recalculated relative to new Origin.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalCreate'
+      responses:
+        '200':
+          description: Goal updated, system recalibrated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+
+  /physics/equation:
+    get:
+      tags: [state]
+      summary: Get state transition equation
+      operationId: getEquation
+      responses:
+        '200':
+          description: Current physics model
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  equation:
+                    type: string
+                    example: "S(t+1) = S(t) + ρ·Δv − μ·|v|"
+                  variables:
+                    type: object
+                    properties:
+                      S:
+                        type: string
+                        example: "State vector"
+                      rho:
+                        type: string
+                        example: "Momentum coefficient"
+                      mu:
+                        type: string
+                        example: "Friction coefficient"
+                      delta_v:
+                        type: string
+                        example: "Vector input"
+
+components:
+  schemas:
+    State:
+      type: object
+      description: Physical state vector (no semantic interpretation)
+      properties:
+        delta:
+          type: number
+          format: float
+          description: ΔGoal - normalized distance to goal (0 = reached)
+          minimum: 0
+          maximum: 1
+          example: 0.68
+        mu:
+          type: number
+          format: float
+          description: Friction coefficient
+          minimum: 0
+          maximum: 1
+          example: 0.23
+        rho:
+          type: number
+          format: float
+          description: Momentum
+          minimum: 0
+          maximum: 1
+          example: 0.81
+        sigma:
+          type: number
+          format: float
+          description: Variance
+          minimum: 0
+          example: 0.12
+        timestamp:
+          type: string
+          format: date-time
+
+    VectorInput:
+      type: object
+      required: [delta_v]
+      properties:
+        delta_v:
+          type: number
+          format: float
+          description: Vector change (-1, 0, +1 or continuous)
+          minimum: -1
+          maximum: 1
+          example: 1
+
+    StateTransition:
+      type: object
+      properties:
+        previous:
+          $ref: '#/components/schemas/State'
+        current:
+          $ref: '#/components/schemas/State'
+        delta_v_applied:
+          type: number
+        equation_used:
+          type: string
+          example: "S(t+1) = S(t) + ρ·Δv − μ·|v|"
+
+    Node:
+      type: object
+      description: Entity node (사람/기업/국가) - no labels
+      properties:
+        id:
+          type: string
+          format: uuid
+        r:
+          type: number
+          format: float
+          description: Distance from Origin
+          example: 85.5
+        theta:
+          type: number
+          format: float
+          description: Angle in radians
+          minimum: 0
+          maximum: 6.28318530718
+          example: 1.57
+        mass:
+          type: number
+          format: float
+          description: Node mass (affects size)
+          minimum: 0.1
+          example: 2.4
+        velocity:
+          type: number
+          format: float
+          description: Orbital velocity
+          example: 0.008
+        flow:
+          type: number
+          format: float
+          description: Current flow toward Origin
+          example: 8.2
+        level:
+          type: integer
+          description: Proximity level (derived from r)
+          enum: [1, 2, 3]
+          example: 2
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    NodeCreate:
+      type: object
+      required: [r, theta, mass]
+      properties:
+        r:
+          type: number
+          format: float
+          description: Initial distance from Origin
+          minimum: 1
+          example: 100
+        theta:
+          type: number
+          format: float
+          description: Initial angle
+          example: 0.785
+        mass:
+          type: number
+          format: float
+          description: Node mass
+          minimum: 0.1
+          example: 1.5
+
+    NodeUpdate:
+      type: object
+      properties:
+        r:
+          type: number
+          format: float
+        theta:
+          type: number
+          format: float
+        mass:
+          type: number
+          format: float
+        velocity:
+          type: number
+          format: float
+
+    Motion:
+      type: object
+      description: Value flow (돈/시간/가치) - always toward Origin
+      properties:
+        id:
+          type: string
+          format: uuid
+        angle:
+          type: number
+          format: float
+          description: Direction angle
+        progress:
+          type: number
+          format: float
+          description: Progress toward Origin (0 = start, 1 = arrived)
+          minimum: 0
+          maximum: 1
+        intensity:
+          type: number
+          format: float
+          description: Flow intensity
+          minimum: 0
+          maximum: 1
+        start_r:
+          type: number
+          format: float
+          description: Starting distance from Origin
+        source_node_id:
+          type: string
+          format: uuid
+          description: Originating node (optional)
+
+    Goal:
+      type: object
+      description: Origin point configuration
+      properties:
+        id:
+          type: string
+          format: uuid
+        anchor:
+          type: string
+          description: User-defined goal text (stored as-is, no interpretation)
+          example: "Q4 revenue target"
+        created_at:
+          type: string
+          format: date-time
+        state:
+          $ref: '#/components/schemas/State'
+
+    GoalCreate:
+      type: object
+      required: [anchor]
+      properties:
+        anchor:
+          type: string
+          description: Goal definition text
+          maxLength: 500
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
