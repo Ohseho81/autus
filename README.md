@@ -1,4 +1,4 @@
-# AUTUS Solar
+# AUTUS
 
 **Universal Action Equation for Human Systems**
 
@@ -47,6 +47,48 @@ POST /autus/solar/decision  → tick+1, cycle+1, entropy×γ
 ## Live Demo
 
 https://solar.autus-ai.com/frontend/index.html
+
+---
+
+## Physics UI
+
+**Semantic Neutrality Compliant** 시각화 모듈
+
+```
+physics-ui/
+├── backend/    # FastAPI (port 8000)
+└── frontend/   # React + Vite (port 5173)
+```
+
+### 실행
+```bash
+# Backend
+cd physics-ui/backend
+pip install -r requirements.txt
+python -m app.main
+
+# Frontend
+cd physics-ui/frontend
+npm install
+npm run dev
+```
+
+### API Endpoints
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/dashboard/state` | 6개 게이지 |
+| GET | `/nav/route` | 경로 상태 |
+| GET | `/physics/motions` | 모션 상태 |
+| POST | `/action/apply` | hold/push/drift |
+
+### SN 규칙
+- Canvas 텍스트 렌더링 ✗
+- from/to 노드 필드 ✗
+- 금액/통화/이름 ✗
+- 모션은 Goal 중심만 ✓
+- Alternate는 점선으로만 ✓
+
+---
 
 ## Philosophy
 
