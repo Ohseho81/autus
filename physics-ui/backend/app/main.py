@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.routes import health, dashboard, nav, motions, actions, goal
+from app.api.routes import health, dashboard, nav, motions, actions, goal, route_nav
 
 app = FastAPI(title=settings.app_name, version=settings.version)
 
@@ -20,6 +20,7 @@ app.include_router(nav.router)
 app.include_router(motions.router)
 app.include_router(actions.router)
 app.include_router(goal.router)
+app.include_router(route_nav.router)
 
 
 if __name__ == "__main__":

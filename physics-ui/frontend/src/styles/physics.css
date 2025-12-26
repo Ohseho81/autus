@@ -11,9 +11,45 @@
 .centerPanel { width: 380px; padding: 10px; display: flex; justify-content: center; }
 .bottomPanel { width: 380px; padding: 10px 10px 20px; }
 
-.goalHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.goalDot { width: 10px; height: 10px; border-radius: 50%; background: rgba(180, 180, 170, 0.55); box-shadow: 0 0 10px rgba(180, 180, 170, 0.25); }
-.goalStability { color: rgba(180, 180, 170, 0.70); font-size: 14px; }
+.goalHeader { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  margin-bottom: 10px; 
+  gap: 12px;
+}
+.goalDot { 
+  width: 10px; 
+  height: 10px; 
+  border-radius: 50%; 
+  background: rgba(180, 180, 170, 0.55); 
+  box-shadow: 0 0 10px rgba(180, 180, 170, 0.25); 
+}
+.goalStability { 
+  color: rgba(180, 180, 170, 0.70); 
+  font-size: 14px;
+  flex: 1;
+}
+
+.resetBtn {
+  padding: 6px 12px;
+  background: rgba(180, 180, 170, 0.06);
+  border: 1px solid rgba(180, 180, 170, 0.12);
+  color: rgba(180, 180, 170, 0.6);
+  font-family: inherit;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.resetBtn:hover { 
+  background: rgba(180, 180, 170, 0.1); 
+}
+.resetBtn:disabled { 
+  opacity: 0.45; 
+  cursor: not-allowed; 
+}
 
 .dashboard { display: flex; flex-direction: column; gap: 8px; }
 .gaugeRow { display: grid; grid-template-columns: 90px 1fr 44px; gap: 10px; align-items: center; }
@@ -24,6 +60,21 @@
 
 .routeWrap { border-radius: 14px; background: rgba(180, 180, 170, 0.03); padding: 8px; }
 .routeCanvas { border-radius: 10px; display: block; }
+
+.routeInfo {
+  width: 380px;
+  padding: 0 10px;
+}
+.routePath {
+  display: block;
+  font-size: 11px;
+  color: rgba(180, 180, 170, 0.5);
+  text-align: center;
+  padding: 8px;
+  background: rgba(180, 180, 170, 0.04);
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
 
 .actionBar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .actionBar button {
