@@ -1,644 +1,329 @@
 /**
- * AUTUS Central Loop Animation
- * Tesla FSD 스타일 결정 시각화
+ * AUTUS Central Loop v2.0
+ * Semantic Neutrality Compliant
  * 
- * "인간 결정의 살아있는 물리법칙 지도"
- * 
- * Titans Kernel 내장:
- * - Bezos: 80세 후회 최소화 / 70% 정보면 실행
- * - Thiel: 독점률 = 네트워크 효과
- * - Musk: 인간 개입 최소화 / Delete First
+ * Rules:
+ * - No node-to-node connections (Goal-centric only)
+ * - Neutral colors only
+ * - No semantic interpretation
+ * - Pure physical state display
  */
 
 class CentralLoop {
   constructor(canvas, options = {}) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
+    this.canvas = typeof canvas === 'string' ? document.getElementById(canvas) : canvas;
+    if (!this.canvas) {
+      console.warn('[CentralLoop] Canvas not found');
+      return;
+    }
     
-    // 캔버스 고해상도 설정
-    this.dpr = window.devicePixelRatio || 1;
-    this.resize();
+    this.ctx = this.canvas.getContext('2d');
+    this.width = this.canvas.width || 400;
+    this.height = this.canvas.height || 400;
+    this.origin = { x: this.width / 2, y: this.height / 2 };
     
-    // 8단계 노드 정의
-    this.stages = [
-      { id: 'reality', name: 'Reality', icon: '👁', desc: '현실 인식' },
-      { id: 'state', name: 'State', icon: '📊', desc: '상태 평가' },
-      { id: 'threshold', name: 'Threshold', icon: '⚖️', desc: '기준 설정' },
-      { id: 'forecast', name: 'Forecast', icon: '🔮', desc: '미래 예측' },
-      { id: 'decision', name: 'Decision', icon: '⚡', desc: '결정 순간' },
-      { id: 'action', name: 'Action', icon: '🚀', desc: '실행' },
-      { id: 'log', name: 'Log', icon: '📝', desc: '기록' },
-      { id: 'loop', name: 'Loop', icon: '🔄', desc: '학습 완료' }
-    ];
-    
-    // 상태
-    this.currentStage = 0;
-    this.progress = 0;
-    this.stageProgress = 0;
-    this.rotationAngle = -Math.PI / 2; // 12시 방향 시작
-    this.rotationSpeed = 0.001;
-    this.isRunning = false;
-    this.isPaused = false;
-    
-    // 시각 설정
-    this.config = {
-      primaryColor: '#00ffcc',
-      secondaryColor: '#0088ff',
-      warningColor: '#ff6600',
-      dangerColor: '#ff3366',
-      bgColor: 'transparent',
-      loopRadius: 0.35,
-      nodeRadius: 0.03,
-      lineWidth: 0.015,
-      pulseSpeed: 2,
-      particleCount: 30,
-      glowIntensity: 0.6,
+    // Options
+    this.options = {
+      nodeCount: options.nodeCount || 8,
+      baseRadius: options.baseRadius || 120,
       ...options
     };
     
-    // 입자 시스템
-    this.particles = [];
-    this.initParticles();
-    
-    // 터널링 효과
-    this.tunnelingWaves = [];
-    
-    // Goal Anchor
-    this.goalText = '목표를 설정하세요';
-    
-    // Loss Velocity
-    this.lossVelocity = 0;
-    this.lossWarning = false;
-    
-    // 뇌파 데이터
-    this.focusLevel = 0;
-    
-    // Titans 메트릭스
-    this.titansMetrics = {
-      regretScore: 0,
-      monopolyScore: 0,
-      interventionRate: 1,
-      infoLevel: 0.7
+    // 8 observation nodes - pure physical entities
+    this.nodes = Array.from({ length: this.options.nodeCount }, (_, i) => ({
+      id: i,
+      angle: (i * Math.PI * 2) / this.options.nodeCount,
+      r: this.options.baseRadius,
+      targetR: this.options.baseRadius,
+      mass: 1 + Math.random(),   // 1.0 - 2.0
+      flow: 0,                   // current flow toward origin
+    }));
+
+    // Pure physical state - no semantic meaning
+    this.state = {
+      delta: 0.68,      // ΔGoal: normalized distance to goal
+      mu: 0.23,         // friction coefficient
+      rho: 0.81,        // momentum
+      sigma: 0.12,      // variance
+    };
+
+    // Motion particles moving toward origin
+    this.motions = this.nodes.map((_, i) => ({
+      angle: (i * Math.PI * 2) / this.options.nodeCount + 0.2,
+      progress: Math.random(),
+      intensity: 0.5 + Math.random() * 0.5,
+    }));
+
+    // Neutral color palette
+    this.colors = {
+      primary: 'rgba(180, 180, 170, 0.9)',
+      secondary: 'rgba(180, 180, 170, 0.5)',
+      dim: 'rgba(180, 180, 170, 0.2)',
+      faint: 'rgba(180, 180, 170, 0.08)',
     };
     
-    // 이벤트 바인딩
-    this.bindEvents();
+    // Callbacks
+    this.onStateChange = null;
+    this.onVectorApplied = null;
     
-    // 시간 추적
-    this.lastTime = 0;
-    this.deltaTime = 0;
-    
-    // 콜백
-    this.onStageComplete = null;
-    this.onLoopComplete = null;
+    // Animation
+    this.running = false;
+    this.animationId = null;
   }
 
-  // ==================== 초기화 ====================
-
-  resize() {
-    const rect = this.canvas.getBoundingClientRect();
-    this.canvas.width = rect.width * this.dpr;
-    this.canvas.height = rect.height * this.dpr;
-    this.ctx.scale(this.dpr, this.dpr);
+  update(dt = 16) {
+    const { state, nodes, motions } = this;
     
-    this.width = rect.width;
-    this.height = rect.height;
-    this.centerX = this.width / 2;
-    this.centerY = this.height / 2;
-    this.radius = Math.min(this.width, this.height) * this.config.loopRadius;
-  }
-
-  initParticles() {
-    this.particles = [];
-    for (let i = 0; i < this.config.particleCount; i++) {
-      this.particles.push({
-        angle: Math.random() * Math.PI * 2,
-        distance: this.radius * (0.9 + Math.random() * 0.2),
-        size: 1 + Math.random() * 2,
-        speed: 0.5 + Math.random() * 0.5,
-        opacity: 0.3 + Math.random() * 0.5,
-        phase: Math.random() * Math.PI * 2
-      });
-    }
-  }
-
-  bindEvents() {
-    window.addEventListener('resize', () => this.resize());
+    // Scale factor based on canvas size
+    const scale = Math.min(this.width, this.height) / 400;
     
-    this.canvas.addEventListener('touchstart', (e) => this.handleTouch(e, 'start'));
-    this.canvas.addEventListener('touchmove', (e) => this.handleTouch(e, 'move'));
-    this.canvas.addEventListener('touchend', (e) => this.handleTouch(e, 'end'));
-    
-    this.canvas.addEventListener('mousedown', (e) => this.handleMouse(e, 'start'));
-    this.canvas.addEventListener('mousemove', (e) => this.handleMouse(e, 'move'));
-    this.canvas.addEventListener('mouseup', (e) => this.handleMouse(e, 'end'));
-  }
-
-  // ==================== 메인 렌더링 ====================
-
-  render(timestamp) {
-    this.deltaTime = timestamp - this.lastTime;
-    this.lastTime = timestamp;
-    
-    // 배경 클리어 (투명)
-    this.ctx.clearRect(0, 0, this.width, this.height);
-    
-    // 레이어 순서대로 렌더링
-    this.renderGlow();
-    this.renderParticles();
-    this.renderLoopTrack();
-    this.renderProgress();
-    this.renderEntanglements();
-    this.renderTunneling();
-    this.renderNodes();
-    this.renderCurrentNode();
-    this.renderGoalAnchor();
-    this.renderTitansMetrics();
-    this.renderStageInfo();
-    
-    // 상태 업데이트
-    if (this.isRunning && !this.isPaused) {
-      this.updateState();
-    }
-    
-    requestAnimationFrame((t) => this.render(t));
-  }
-
-  // ==================== 배경 글로우 ====================
-
-  renderGlow() {
-    const gradient = this.ctx.createRadialGradient(
-      this.centerX, this.centerY, this.radius * 0.3,
-      this.centerX, this.centerY, this.radius * 1.5
-    );
-    
-    const intensity = this.config.glowIntensity * (0.3 + this.progress * 0.7);
-    gradient.addColorStop(0, `rgba(0, 255, 204, ${intensity * 0.15})`);
-    gradient.addColorStop(0.5, `rgba(0, 255, 204, ${intensity * 0.05})`);
-    gradient.addColorStop(1, 'transparent');
-    
-    this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, this.width, this.height);
-  }
-
-  // ==================== 입자 효과 ====================
-
-  renderParticles() {
-    const time = this.lastTime * 0.001;
-    
-    this.particles.forEach(p => {
-      p.angle += p.speed * 0.01 * this.rotationSpeed * 10;
+    // Update nodes based on pure physics
+    nodes.forEach((node, i) => {
+      // Orbital distance responds to delta
+      node.targetR = (50 + (1 - state.delta) * 50) * scale;
       
-      const wave = Math.sin(time * 2 + p.phase) * 5;
-      const x = this.centerX + Math.cos(p.angle) * (p.distance + wave);
-      const y = this.centerY + Math.sin(p.angle) * (p.distance + wave);
+      // Smooth interpolation with friction
+      node.r += (node.targetR - node.r) * (1 - state.mu) * 0.1;
       
-      const progressAngle = this.rotationAngle + this.progress * Math.PI * 2;
-      const angleDiff = Math.abs(p.angle - progressAngle) % (Math.PI * 2);
-      const brightness = angleDiff < 0.5 ? 1 : 0.3;
+      // Rotation based on momentum
+      node.angle += state.rho * 0.01;
       
-      this.ctx.beginPath();
-      this.ctx.arc(x, y, p.size, 0, Math.PI * 2);
-      this.ctx.fillStyle = `rgba(0, 255, 204, ${p.opacity * brightness})`;
-      this.ctx.fill();
+      // Flow calculation (toward origin)
+      node.flow = (node.targetR - node.r) * node.mass;
     });
-  }
 
-  // ==================== 루프 트랙 ====================
-
-  renderLoopTrack() {
-    this.ctx.beginPath();
-    this.ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2);
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    this.ctx.lineWidth = this.width * this.config.lineWidth;
-    this.ctx.stroke();
-  }
-
-  // ==================== 진행 표시 ====================
-
-  renderProgress() {
-    if (this.progress <= 0) return;
-    
-    const startAngle = this.rotationAngle;
-    const endAngle = startAngle + this.progress * Math.PI * 2;
-    
-    const baseWidth = this.width * this.config.lineWidth;
-    const progressWidth = baseWidth * (0.5 + this.progress * 0.5);
-    
-    const gradient = this.ctx.createLinearGradient(
-      this.centerX - this.radius, this.centerY,
-      this.centerX + this.radius, this.centerY
-    );
-    gradient.addColorStop(0, this.config.primaryColor);
-    gradient.addColorStop(0.5, this.config.secondaryColor);
-    gradient.addColorStop(1, this.config.primaryColor);
-    
-    this.ctx.beginPath();
-    this.ctx.arc(this.centerX, this.centerY, this.radius, startAngle, endAngle);
-    this.ctx.strokeStyle = gradient;
-    this.ctx.lineWidth = progressWidth;
-    this.ctx.lineCap = 'round';
-    
-    this.ctx.shadowColor = this.config.primaryColor;
-    this.ctx.shadowBlur = 15;
-    this.ctx.stroke();
-    this.ctx.shadowBlur = 0;
-    
-    // 진행선 끝 밝은 점
-    const endX = this.centerX + Math.cos(endAngle) * this.radius;
-    const endY = this.centerY + Math.sin(endAngle) * this.radius;
-    
-    this.ctx.beginPath();
-    this.ctx.arc(endX, endY, progressWidth * 0.8, 0, Math.PI * 2);
-    this.ctx.fillStyle = '#ffffff';
-    this.ctx.fill();
-  }
-
-  // ==================== 8개 노드 ====================
-
-  renderNodes() {
-    const nodeRadius = this.width * this.config.nodeRadius;
-    
-    this.stages.forEach((stage, i) => {
-      const angle = this.rotationAngle + (i / 8) * Math.PI * 2;
-      const x = this.centerX + Math.cos(angle) * this.radius;
-      const y = this.centerY + Math.sin(angle) * this.radius;
-      
-      const isCompleted = i < this.currentStage;
-      const isCurrent = i === this.currentStage;
-      
-      this.ctx.beginPath();
-      this.ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);
-      
-      if (isCurrent) {
-        this.ctx.fillStyle = this.config.primaryColor;
-      } else if (isCompleted) {
-        this.ctx.fillStyle = 'rgba(0, 255, 204, 0.6)';
-      } else {
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-      }
-      this.ctx.fill();
-      
-      this.ctx.strokeStyle = isCurrent ? '#ffffff' : 'rgba(255, 255, 255, 0.3)';
-      this.ctx.lineWidth = isCurrent ? 2 : 1;
-      this.ctx.stroke();
-      
-      // 라벨
-      const labelRadius = this.radius + nodeRadius + 15;
-      const labelX = this.centerX + Math.cos(angle) * labelRadius;
-      const labelY = this.centerY + Math.sin(angle) * labelRadius;
-      
-      this.ctx.font = '10px -apple-system, sans-serif';
-      this.ctx.fillStyle = isCurrent ? this.config.primaryColor : 'rgba(255, 255, 255, 0.5)';
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      this.ctx.fillText(stage.name, labelX, labelY);
-    });
-  }
-
-  // ==================== 현재 노드 펄스 ====================
-
-  renderCurrentNode() {
-    const nodeRadius = this.width * this.config.nodeRadius;
-    const angle = this.rotationAngle + (this.currentStage / 8) * Math.PI * 2;
-    const x = this.centerX + Math.cos(angle) * this.radius;
-    const y = this.centerY + Math.sin(angle) * this.radius;
-    
-    const time = this.lastTime * 0.001;
-    const pulse = Math.sin(time * this.config.pulseSpeed) * 0.3 + 0.7;
-    const pulseRadius = nodeRadius * (1 + pulse * 0.5);
-    
-    // 펄스 링
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, pulseRadius * 1.5, 0, Math.PI * 2);
-    this.ctx.strokeStyle = `rgba(0, 255, 204, ${0.3 * pulse})`;
-    this.ctx.lineWidth = 2;
-    this.ctx.stroke();
-    
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, pulseRadius * 2, 0, Math.PI * 2);
-    this.ctx.strokeStyle = `rgba(0, 255, 204, ${0.15 * pulse})`;
-    this.ctx.lineWidth = 1;
-    this.ctx.stroke();
-    
-    // 내부 글로우
-    const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, nodeRadius * 2);
-    gradient.addColorStop(0, `rgba(0, 255, 204, ${0.8 * pulse})`);
-    gradient.addColorStop(0.5, `rgba(0, 255, 204, ${0.3 * pulse})`);
-    gradient.addColorStop(1, 'transparent');
-    
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, nodeRadius * 2, 0, Math.PI * 2);
-    this.ctx.fillStyle = gradient;
-    this.ctx.fill();
-  }
-
-  // ==================== 얽힘 연결선 (Decision) ====================
-
-  renderEntanglements() {
-    if (this.currentStage !== 4) return;
-    
-    const time = this.lastTime * 0.001;
-    const currentAngle = this.rotationAngle + (this.currentStage / 8) * Math.PI * 2;
-    const currentX = this.centerX + Math.cos(currentAngle) * this.radius;
-    const currentY = this.centerY + Math.sin(currentAngle) * this.radius;
-    
-    [0, 2, 5, 7].forEach((targetStage, i) => {
-      const targetAngle = this.rotationAngle + (targetStage / 8) * Math.PI * 2;
-      const targetX = this.centerX + Math.cos(targetAngle) * this.radius;
-      const targetY = this.centerY + Math.sin(targetAngle) * this.radius;
-      
-      const wave = Math.sin(time * 3 + i) * 0.5 + 0.5;
-      
-      this.ctx.beginPath();
-      this.ctx.moveTo(currentX, currentY);
-      this.ctx.quadraticCurveTo(this.centerX, this.centerY, targetX, targetY);
-      this.ctx.strokeStyle = `rgba(0, 255, 204, ${0.3 * wave})`;
-      this.ctx.lineWidth = 1;
-      this.ctx.setLineDash([5, 5]);
-      this.ctx.stroke();
-      this.ctx.setLineDash([]);
-      
-      // 이동 점
-      const t = (time * 0.5 + i * 0.25) % 1;
-      const pointX = (1-t)*(1-t)*currentX + 2*(1-t)*t*this.centerX + t*t*targetX;
-      const pointY = (1-t)*(1-t)*currentY + 2*(1-t)*t*this.centerY + t*t*targetY;
-      
-      this.ctx.beginPath();
-      this.ctx.arc(pointX, pointY, 3, 0, Math.PI * 2);
-      this.ctx.fillStyle = this.config.primaryColor;
-      this.ctx.fill();
-    });
-  }
-
-  // ==================== 터널링 파동 ====================
-
-  renderTunneling() {
-    this.tunnelingWaves = this.tunnelingWaves.filter(wave => {
-      wave.progress += 0.02;
-      
-      if (wave.progress >= 1) return false;
-      
-      const radius = this.radius * wave.progress;
-      const opacity = (1 - wave.progress) * 0.5;
-      
-      this.ctx.beginPath();
-      this.ctx.arc(this.centerX, this.centerY, radius, 0, Math.PI * 2);
-      this.ctx.strokeStyle = `rgba(0, 255, 204, ${opacity})`;
-      this.ctx.lineWidth = 3 * (1 - wave.progress);
-      this.ctx.stroke();
-      
-      return true;
-    });
-  }
-
-  triggerTunneling() {
-    for (let i = 0; i < 3; i++) {
-      setTimeout(() => {
-        this.tunnelingWaves.push({ progress: 0 });
-      }, i * 150);
-    }
-    navigator.vibrate?.([50, 30, 50, 30, 100]);
-  }
-
-  // ==================== Goal Anchor ====================
-
-  renderGoalAnchor() {
-    const bgRadius = this.radius * 0.4;
-    const gradient = this.ctx.createRadialGradient(
-      this.centerX, this.centerY, 0,
-      this.centerX, this.centerY, bgRadius
-    );
-    gradient.addColorStop(0, 'rgba(10, 10, 15, 0.9)');
-    gradient.addColorStop(1, 'rgba(10, 10, 15, 0.3)');
-    
-    this.ctx.beginPath();
-    this.ctx.arc(this.centerX, this.centerY, bgRadius, 0, Math.PI * 2);
-    this.ctx.fillStyle = gradient;
-    this.ctx.fill();
-    
-    // 테두리
-    this.ctx.strokeStyle = 'rgba(0, 255, 204, 0.2)';
-    this.ctx.lineWidth = 1;
-    this.ctx.stroke();
-    
-    // 텍스트
-    this.ctx.font = 'bold 13px -apple-system, sans-serif';
-    this.ctx.fillStyle = '#ffffff';
-    this.ctx.textAlign = 'center';
-    this.ctx.textBaseline = 'middle';
-    
-    const maxWidth = bgRadius * 1.5;
-    const words = this.goalText.split(' ');
-    let line = '';
-    let lines = [];
-    
-    words.forEach(word => {
-      const testLine = line + word + ' ';
-      const metrics = this.ctx.measureText(testLine);
-      if (metrics.width > maxWidth && line !== '') {
-        lines.push(line.trim());
-        line = word + ' ';
-      } else {
-        line = testLine;
+    // Update motion particles - always toward origin
+    motions.forEach(m => {
+      m.progress += 0.005 * m.intensity * state.rho;
+      if (m.progress >= 1) {
+        m.progress = 0;
+        m.angle += 0.3; // slight angle shift on reset
       }
     });
-    lines.push(line.trim());
-    
-    const lineHeight = 16;
-    const startY = this.centerY - (lines.length - 1) * lineHeight / 2;
-    
-    lines.forEach((l, i) => {
-      this.ctx.fillText(l, this.centerX, startY + i * lineHeight);
+  }
+
+  draw() {
+    const { ctx, origin, nodes, motions, colors, state, width, height } = this;
+    ctx.clearRect(0, 0, width, height);
+
+    const scale = Math.min(width, height) / 400;
+
+    // Background grid
+    this.drawGrid();
+
+    // Orbital reference rings (measurement only)
+    [40, 65, 90].map(r => r * scale).forEach(r => {
+      ctx.beginPath();
+      ctx.arc(origin.x, origin.y, r, 0, Math.PI * 2);
+      ctx.strokeStyle = colors.faint;
+      ctx.lineWidth = 1;
+      ctx.stroke();
     });
-  }
 
-  // ==================== Titans 메트릭스 ====================
+    // Motion trails toward origin (NOT node-to-node)
+    motions.forEach(m => {
+      const startR = 100 * scale;
+      const currentR = startR * (1 - m.progress);
+      const endX = origin.x + Math.cos(m.angle) * currentR;
+      const endY = origin.y + Math.sin(m.angle) * currentR;
+      const startX = origin.x + Math.cos(m.angle) * startR;
+      const startY = origin.y + Math.sin(m.angle) * startR;
 
-  renderTitansMetrics() {
-    const metrics = this.titansMetrics;
-    const baseY = this.centerY + this.radius + 35;
-    
-    // Loss Velocity (Musk)
-    if (this.lossVelocity > 0) {
-      const color = this.lossWarning ? this.config.dangerColor : this.config.warningColor;
-      this.ctx.font = 'bold 11px SF Mono, monospace';
-      this.ctx.fillStyle = color;
-      this.ctx.textAlign = 'left';
-      this.ctx.fillText(`₩${this.lossVelocity.toFixed(1)}/s`, 10, 20);
+      // Gradient trail
+      const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+      gradient.addColorStop(0, 'rgba(180, 180, 170, 0)');
+      gradient.addColorStop(1, `rgba(180, 180, 170, ${0.2 + m.progress * 0.3})`);
+
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Motion particle
+      const size = (2 + m.intensity * 3) * scale * 0.8;
+      ctx.beginPath();
+      ctx.arc(endX, endY, size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(180, 180, 170, ${0.3 + m.progress * 0.5})`;
+      ctx.fill();
+    });
+
+    // Nodes - size = mass, no labels, no connections
+    nodes.forEach(node => {
+      const x = origin.x + Math.cos(node.angle) * node.r;
+      const y = origin.y + Math.sin(node.angle) * node.r;
+      const size = (2 + node.mass * 2) * scale;
+
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fillStyle = colors.primary;
+      ctx.fill();
+    });
+
+    // Origin marker (Goal reference point)
+    this.drawOrigin(scale);
+
+    // State readout (if canvas is large enough)
+    if (width >= 200) {
+      this.drawStateReadout(scale);
     }
-    
-    // Info Level (Bezos 70%)
-    if (metrics.infoLevel > 0) {
-      const pct = Math.round(metrics.infoLevel * 100);
-      const ready = metrics.infoLevel >= 0.7;
-      this.ctx.font = '10px -apple-system, sans-serif';
-      this.ctx.fillStyle = ready ? this.config.primaryColor : 'rgba(255,255,255,0.5)';
-      this.ctx.textAlign = 'right';
-      this.ctx.fillText(`정보 ${pct}%${ready ? ' ✓' : ''}`, this.width - 10, 20);
+  }
+
+  drawGrid() {
+    const { ctx, width, height, colors } = this;
+    const gridSize = 32;
+
+    ctx.strokeStyle = colors.faint;
+    ctx.lineWidth = 0.5;
+
+    for (let x = 0; x <= width; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= height; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
     }
   }
 
-  // ==================== 단계 정보 ====================
+  drawOrigin(scale = 1) {
+    const { ctx, origin, colors } = this;
 
-  renderStageInfo() {
-    const stage = this.stages[this.currentStage];
-    const y = this.centerY + this.radius + 35;
+    // Crosshair
+    ctx.strokeStyle = colors.secondary;
+    ctx.lineWidth = 1;
     
-    this.ctx.font = 'bold 12px -apple-system, sans-serif';
-    this.ctx.fillStyle = this.config.primaryColor;
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText(`${this.currentStage + 1}/8`, this.centerX, y);
-    
-    this.ctx.font = '11px -apple-system, sans-serif';
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    this.ctx.fillText(stage.name, this.centerX, y + 14);
-  }
-
-  // ==================== 상태 업데이트 ====================
-
-  updateState() {
-    this.rotationAngle += this.rotationSpeed;
-    
-    if (this.stageProgress < 1) {
-      this.stageProgress += 0.005 * this.rotationSpeed * 100;
-    } else {
-      this.stageProgress = 0;
-      this.currentStage = (this.currentStage + 1) % 8;
+    const offset = 8 * scale;
+    [-1, 1].forEach(dir => {
+      ctx.beginPath();
+      ctx.moveTo(origin.x + offset * dir, origin.y);
+      ctx.lineTo(origin.x + offset * 0.5 * dir, origin.y);
+      ctx.stroke();
       
-      this.onStageComplete?.(this.stages[this.currentStage]);
-      navigator.vibrate?.(10);
-      
-      // Loop 완료
-      if (this.currentStage === 0) {
-        this.onLoopComplete?.();
-        this.triggerTunneling();
-      }
-      
-      // Decision 단계 얽힘 효과
-      if (this.currentStage === 4) {
-        navigator.vibrate?.([20, 10, 20]);
-      }
-    }
+      ctx.beginPath();
+      ctx.moveTo(origin.x, origin.y + offset * dir);
+      ctx.lineTo(origin.x, origin.y + offset * 0.5 * dir);
+      ctx.stroke();
+    });
+
+    // Center ring
+    ctx.beginPath();
+    ctx.arc(origin.x, origin.y, 8 * scale, 0, Math.PI * 2);
+    ctx.strokeStyle = colors.primary;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Center dot
+    ctx.beginPath();
+    ctx.arc(origin.x, origin.y, 2 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = colors.primary;
+    ctx.fill();
+
+    // Label
+    ctx.font = `${8 * scale}px monospace`;
+    ctx.fillStyle = colors.secondary;
+    ctx.textAlign = 'center';
+    ctx.fillText('ORIGIN', origin.x, origin.y + 20 * scale);
+  }
+
+  drawStateReadout(scale = 1) {
+    const { ctx, state, colors, width, height } = this;
+    const x = 12 * scale;
+    let y = 18 * scale;
+    const lineHeight = 14 * scale;
+
+    ctx.font = `${9 * scale}px monospace`;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = colors.secondary;
+
+    const readings = [
+      `Δ  ${state.delta.toFixed(2)}`,
+      `μ  ${state.mu.toFixed(2)}`,
+      `ρ  ${state.rho.toFixed(2)}`,
+    ];
+
+    readings.forEach(text => {
+      ctx.fillText(text, x, y);
+      y += lineHeight;
+    });
+
+    // State equation at bottom
+    ctx.font = `${7 * scale}px monospace`;
+    ctx.fillStyle = colors.dim;
+    ctx.fillText('S(t+1) = S(t) + ρ·Δv − μ·|v|', x, height - 10 * scale);
+  }
+
+  // Vector input - pure physics, no semantic meaning
+  applyVector(deltaV) {
+    const { state } = this;
     
-    this.progress = (this.currentStage + this.stageProgress) / 8;
+    // S(t+1) = S(t) + ρ·Δv − μ·|v|
+    state.rho = Math.max(0, Math.min(1, state.rho + deltaV * 0.1));
+    state.delta = Math.max(0, Math.min(1, state.delta - state.rho * 0.01 + state.mu * 0.005));
     
-    // AUTUS 모델 연동
-    if (window.__AUTUS_MODEL) {
-      const model = window.__AUTUS_MODEL;
-      this.setEnergy(model.energy || 0.5);
-      this.lossVelocity = model.loss_velocity || 0;
-      this.lossWarning = this.lossVelocity > 5;
-      this.focusLevel = model.focus_level || 0;
-      this.titansMetrics.infoLevel = model.info_level || 0.7;
+    if (this.onVectorApplied) {
+      this.onVectorApplied(deltaV, { ...state });
     }
   }
 
-  // ==================== 외부 제어 ====================
+  // Set state directly (for external integration)
+  setState(newState) {
+    Object.assign(this.state, newState);
+    if (this.onStateChange) {
+      this.onStateChange({ ...this.state });
+    }
+  }
 
+  // Flow readout - pure number
+  getFlowRate() {
+    return this.nodes.reduce((sum, n) => sum + Math.abs(n.flow), 0) / this.nodes.length;
+  }
+
+  // Get current state
+  getState() {
+    return { ...this.state };
+  }
+
+  // Animation control
   start() {
-    this.isRunning = true;
-    this.isPaused = false;
-    this.render(performance.now());
+    if (this.running) return;
+    this.running = true;
+    this.render();
   }
 
-  pause() { this.isPaused = true; }
-  resume() { this.isPaused = false; }
-  
   stop() {
-    this.isRunning = false;
-    this.progress = 0;
-    this.currentStage = 0;
-    this.stageProgress = 0;
-  }
-
-  reset() {
-    this.stop();
-    this.render(performance.now());
-  }
-
-  setGoal(text) { this.goalText = text; }
-  
-  setEnergy(energy) {
-    this.rotationSpeed = 0.0005 + energy * 0.002;
-  }
-
-  setStage(stageIndex) {
-    this.currentStage = Math.max(0, Math.min(7, stageIndex));
-    this.stageProgress = 0;
-  }
-
-  setLossVelocity(velocity, warning = false) {
-    this.lossVelocity = velocity;
-    this.lossWarning = warning;
-  }
-
-  setTitansMetrics(metrics) {
-    Object.assign(this.titansMetrics, metrics);
-  }
-
-  // ==================== 인터랙션 ====================
-
-  handleTouch(e, type) {
-    if (type === 'start') {
-      e.preventDefault();
-      const touch = e.touches[0];
-      this.touchStartX = touch.clientX;
-      this.touchStartTime = Date.now();
-      this.isDragging = true;
-    } else if (type === 'move' && this.isDragging) {
-      e.preventDefault();
-    } else if (type === 'end') {
-      const duration = Date.now() - this.touchStartTime;
-      if (duration < 200) {
-        this.nextStage();
-      }
-      this.isDragging = false;
+    this.running = false;
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
     }
   }
 
-  handleMouse(e, type) {
-    if (type === 'start') {
-      this.touchStartX = e.clientX;
-      this.touchStartTime = Date.now();
-      this.isDragging = true;
-    } else if (type === 'end') {
-      const duration = Date.now() - this.touchStartTime;
-      if (duration < 200) {
-        this.nextStage();
-      }
-      this.isDragging = false;
-    }
+  render() {
+    if (!this.running) return;
+    
+    this.update();
+    this.draw();
+    this.animationId = requestAnimationFrame(() => this.render());
   }
 
-  nextStage() {
-    this.currentStage = (this.currentStage + 1) % 8;
-    this.stageProgress = 0;
-    navigator.vibrate?.(10);
-    this.onStageComplete?.(this.stages[this.currentStage]);
-  }
-
-  prevStage() {
-    this.currentStage = (this.currentStage - 1 + 8) % 8;
-    this.stageProgress = 0;
-    navigator.vibrate?.(10);
+  // Resize handler
+  resize(width, height) {
+    this.width = this.canvas.width = width;
+    this.height = this.canvas.height = height;
+    this.origin = { x: width / 2, y: height / 2 };
   }
 }
 
-// 전역 등록
+// Export for module systems
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = CentralLoop;
+}
+
+// Global export
 window.CentralLoop = CentralLoop;
-
-// 자동 초기화 헬퍼
-window.initCentralLoop = (canvasId, options) => {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) {
-    console.error(`[CentralLoop] Canvas #${canvasId} not found`);
-    return null;
-  }
-  
-  const loop = new CentralLoop(canvas, options);
-  loop.start();
-  return loop;
-};
-
-console.log('🔄 CentralLoop loaded - Tesla FSD for Human Life');

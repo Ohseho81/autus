@@ -7,24 +7,30 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AUTUS">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#00e5cc">
+    <meta name="theme-color" content="#0a0a0c">
     <meta name="autus-realtime" content="true">
     <meta name="msapplication-TileColor" content="#0a1428">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-32.png" type="image/png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <title>AUTUS - Decision Physics OS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/autus-main.css">
     <link rel="stylesheet" href="css/central-loop.css">
     <link rel="stylesheet" href="css/pwa.css">
     <style>
         :root {
-            --cyan: #00e5cc;
-            --cyan-dim: rgba(0, 229, 204, 0.3);
-            --bg: #0a1428;
+            /* Semantic Neutral Color Palette */
+            --neutral: rgba(180, 180, 170, 0.9);
+            --neutral-dim: rgba(180, 180, 170, 0.5);
+            --neutral-faint: rgba(180, 180, 170, 0.2);
+            --neutral-bg: rgba(180, 180, 170, 0.08);
+            --bg: #0a0a0c;
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
+            /* Legacy alias for compatibility */
+            --cyan: var(--neutral);
+            --cyan-dim: var(--neutral-dim);
         }
         
         * {
@@ -35,9 +41,9 @@
         }
         
         body {
-            font-family: 'Orbitron', -apple-system, sans-serif;
-            background: #000;
-            color: var(--cyan);
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            background: var(--bg);
+            color: var(--neutral);
             overflow: hidden;
             width: 100vw;
             height: 100vh;
@@ -64,11 +70,10 @@
         }
         
         .header-title {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: 4px;
-            color: var(--cyan);
-            text-shadow: 0 0 20px var(--cyan);
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            color: var(--neutral);
         }
         
         /* 3D Container */
@@ -80,50 +85,46 @@
             transition: transform 0.1s ease-out;
         }
         
-        /* 3D Cube Layers */
+        /* 3D Cube Layers - Semantic Neutral */
         .layer {
             position: absolute;
             width: 280px;
             height: 480px;
             margin-left: -140px;
             margin-top: -240px;
-            background: rgba(10, 20, 40, 0.85);
-            border: 2px solid var(--cyan);
-            border-radius: 25px;
-            box-shadow: 
-                0 0 40px var(--cyan-dim),
-                inset 0 0 60px rgba(0, 229, 204, 0.1);
+            background: rgba(15, 15, 17, 0.95);
+            border: 1px solid var(--neutral-faint);
+            border-radius: 4px;
             backface-visibility: hidden;
-            padding: 30px 20px;
+            padding: 24px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             cursor: pointer;
-            transition: box-shadow 0.3s;
+            transition: border-color 0.2s, background 0.2s;
         }
         
         .layer:hover, .layer:active {
-            box-shadow: 
-                0 0 80px var(--cyan),
-                inset 0 0 80px rgba(0, 229, 204, 0.2);
+            background: rgba(20, 20, 22, 0.98);
+            border-color: var(--neutral-dim);
         }
         
         .layer h2 {
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            color: var(--cyan);
-            text-shadow: 0 0 15px var(--cyan);
-            margin-bottom: 15px;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            color: var(--neutral);
+            margin-bottom: 12px;
             text-align: center;
+            text-transform: uppercase;
         }
         
         .layer p {
-            font-size: 11px;
-            color: rgba(255,255,255,0.6);
+            font-size: 10px;
+            color: var(--neutral-dim);
             text-align: center;
             line-height: 1.6;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.05em;
         }
         
         .layer-visual {
@@ -141,9 +142,9 @@
         #layer-physics { transform: rotateY(180deg) translateZ(200px); }
         #layer-feedback { transform: rotateY(270deg) translateZ(200px); }
         
-        /* Core Loop Canvas */
+        /* Core Loop Canvas - No glow */
         #loop-canvas {
-            filter: drop-shadow(0 0 20px var(--cyan));
+            /* Semantic neutral - no color effects */
         }
         
         /* Sensory Visual */
@@ -246,8 +247,35 @@
         
         .feedback-bar {
             width: 20px;
-            background: linear-gradient(to top, var(--cyan), transparent);
-            border-radius: 10px;
+            background: linear-gradient(to top, var(--neutral), transparent);
+            border-radius: 2px;
+        }
+        
+        /* Vector Button - Semantic Neutral */
+        .vector-btn {
+            width: 100%;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--neutral-faint);
+            border-radius: 2px;
+            color: var(--neutral);
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+        
+        .vector-btn:hover, .vector-btn:active {
+            background: rgba(180, 180, 170, 0.1);
+            border-color: var(--neutral-dim);
+        }
+        
+        .vector-btn.selected {
+            background: rgba(180, 180, 170, 0.15);
+            border-color: var(--neutral);
             animation: barPulse 1s ease-in-out infinite;
         }
         
@@ -256,56 +284,56 @@
             50% { opacity: 1; }
         }
         
-        /* AUTO Button */
+        /* ORIGIN Button - Semantic Neutral */
         #auto-btn {
             position: fixed;
             bottom: calc(40px + var(--safe-bottom));
             left: 50%;
             transform: translateX(-50%);
-            width: 120px;
-            height: 120px;
-            background: var(--cyan-dim);
-            border: 4px solid var(--cyan);
+            width: 72px;
+            height: 72px;
+            background: rgba(15, 15, 17, 0.95);
+            border: 1.5px solid var(--neutral);
             border-radius: 50%;
-            box-shadow: 0 0 60px var(--cyan-dim);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8px;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            color: var(--neutral);
             cursor: pointer;
             z-index: 100;
-            animation: autoPulse 2s ease-in-out infinite;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 2px;
+            transition: all 0.15s ease;
         }
         
-        @keyframes autoPulse {
-            0%, 100% { 
-                box-shadow: 0 0 40px var(--cyan-dim);
-                transform: translateX(-50%) scale(1);
-            }
-            50% { 
-                box-shadow: 0 0 80px var(--cyan);
-                transform: translateX(-50%) scale(1.05);
-            }
+        #auto-btn::before {
+            content: '⊕';
+            font-size: 18px;
+            line-height: 1;
+        }
+        
+        #auto-btn:hover {
+            background: rgba(180, 180, 170, 0.08);
         }
         
         #auto-btn:active {
             transform: translateX(-50%) scale(0.95);
-            box-shadow: 0 0 100px var(--cyan);
+            background: rgba(180, 180, 170, 0.12);
         }
         
         /* Navigation hint */
         .nav-hint {
             position: fixed;
-            bottom: calc(180px + var(--safe-bottom));
+            bottom: calc(130px + var(--safe-bottom));
             left: 50%;
             transform: translateX(-50%);
-            font-size: 10px;
-            color: rgba(255,255,255,0.3);
-            letter-spacing: 2px;
+            font-size: 8px;
+            color: var(--neutral-faint);
+            letter-spacing: 0.15em;
             text-align: center;
             z-index: 50;
         }
@@ -317,21 +345,20 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 10px;
+            gap: 12px;
             z-index: 100;
         }
         
         .indicator-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            transition: all 0.3s;
+            background: var(--neutral-faint);
+            transition: all 0.2s;
         }
         
         .indicator-dot.active {
-            background: var(--cyan);
-            box-shadow: 0 0 10px var(--cyan);
+            background: var(--neutral);
         }
         
         /* Detail Page */
@@ -426,40 +453,45 @@
         
         .detail-btn {
             width: 100%;
-            padding: 16px;
-            background: var(--cyan);
-            border: none;
-            border-radius: 30px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: #000;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--neutral-dim);
+            border-radius: 2px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            color: var(--neutral);
             cursor: pointer;
-            box-shadow: 0 0 30px var(--cyan-dim);
+            transition: all 0.15s ease;
         }
         
-        /* 실시간 업데이트 펄스 */
+        .detail-btn:hover, .detail-btn:active {
+            background: rgba(180, 180, 170, 0.1);
+            border-color: var(--neutral);
+        }
+        
+        /* 실시간 업데이트 펄스 - Neutral */
         .autus-updated {
             animation: autus-pulse 0.3s ease-out;
         }
         @keyframes autus-pulse {
-            0% { background-color: rgba(0,229,204,0.3); transform: scale(1.02); }
+            0% { background-color: rgba(180,180,170,0.2); transform: scale(1.01); }
             100% { background-color: transparent; transform: scale(1); }
         }
         
-        /* 연결 상태 인디케이터 */
+        /* 연결 상태 인디케이터 - Neutral */
         .autus-connection-indicator {
             position: fixed;
             top: calc(15px + var(--safe-top));
             right: 60px;
-            width: 10px;
-            height: 10px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             z-index: 9999;
         }
         .autus-connection-indicator.connected {
-            background: var(--cyan);
+            background: var(--neutral);
             box-shadow: 0 0 10px var(--cyan);
         }
         .autus-connection-indicator.disconnected {
@@ -507,33 +539,30 @@
     <div id="container">
         <!-- Core Loop Layer -->
         <div class="layer" id="layer-core" onclick="openDetail('core')">
-            <h2>🎯 결정 루프</h2>
-            <p>목표까지 남은 거리 측정<br>자동으로 최적 경로 추천</p>
+            <h2>CENTRAL LOOP</h2>
+            <p>Pure state observation<br>S(t+1) = S(t) + ρ·Δv − μ·|v|</p>
             <div class="layer-visual">
                 <canvas id="loop-canvas" width="180" height="180"></canvas>
-            </div>
-            <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 10px;">
-                탭하여 상세 보기
             </div>
         </div>
         
         <!-- Sensory Input Layer -->
         <div class="layer" id="layer-sensory" onclick="openDetail('sensory')">
-            <h2>📡 실시간 입력</h2>
-            <p>일정, 금융, 건강 데이터 수집<br>프라이버시 100% 보장</p>
+            <h2>INPUT VECTORS</h2>
+            <p>Raw signal → Processed vector<br>Local distillation only</p>
             <div class="layer-visual">
-                <div class="sensory-grid">
+                <div class="sensory-grid" style="gap: 20px;">
                     <div class="sensor-item">
-                        <div class="sensor-icon">📅</div>
-                        <span class="sensor-label">일정</span>
+                        <div class="sensor-icon" style="border-color: var(--neutral-dim); box-shadow: none;">α</div>
+                        <span class="sensor-label">CHANNEL 1</span>
                     </div>
                     <div class="sensor-item">
-                        <div class="sensor-icon">💰</div>
-                        <span class="sensor-label">금융</span>
+                        <div class="sensor-icon" style="border-color: var(--neutral-dim); box-shadow: none;">β</div>
+                        <span class="sensor-label">CHANNEL 2</span>
                     </div>
                     <div class="sensor-item">
-                        <div class="sensor-icon">❤️</div>
-                        <span class="sensor-label">건강</span>
+                        <div class="sensor-icon" style="border-color: var(--neutral-dim); box-shadow: none;">γ</div>
+                        <span class="sensor-label">CHANNEL 3</span>
                     </div>
                 </div>
             </div>
@@ -541,21 +570,25 @@
         
         <!-- Physics Map Layer -->
         <div class="layer" id="layer-physics" onclick="openDetail('physics')">
-            <h2>🗺️ 물리 지도</h2>
-            <p>내 상태를 3가지로 표현<br>에너지 · 흐름 · 리스크</p>
+            <h2>STATE VECTOR</h2>
+            <p>Physical quantities only<br>No semantic interpretation</p>
             <div class="layer-visual">
-                <div class="physics-summary" style="text-align: center;">
-                    <div style="margin-bottom: 15px;">
-                        <span style="color: #00ff88; font-size: 24px; font-weight: bold;" data-autus="energy">72</span>
-                        <span style="font-size: 10px; color: rgba(255,255,255,0.5);">에너지</span>
+                <div class="physics-state" style="width: 100%; padding: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--neutral-faint);">
+                        <span style="font-size: 9px; letter-spacing: 0.1em; color: var(--neutral-dim);">ΔGoal</span>
+                        <span style="font-size: 18px; font-weight: 300; color: var(--neutral);" data-autus="delta">0.68</span>
                     </div>
-                    <div style="margin-bottom: 15px;">
-                        <span style="color: #00ccff; font-size: 24px; font-weight: bold;" data-autus="flow">0.8</span>
-                        <span style="font-size: 10px; color: rgba(255,255,255,0.5);">흐름</span>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--neutral-faint);">
+                        <span style="font-size: 9px; letter-spacing: 0.1em; color: var(--neutral-dim);">μ</span>
+                        <span style="font-size: 18px; font-weight: 300; color: var(--neutral);" data-autus="mu">0.23</span>
                     </div>
-                    <div>
-                        <span style="color: #ff6600; font-size: 24px; font-weight: bold;" data-autus="risk">23%</span>
-                        <span style="font-size: 10px; color: rgba(255,255,255,0.5);">리스크</span>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--neutral-faint);">
+                        <span style="font-size: 9px; letter-spacing: 0.1em; color: var(--neutral-dim);">ρ</span>
+                        <span style="font-size: 18px; font-weight: 300; color: var(--neutral);" data-autus="rho">0.81</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 9px; letter-spacing: 0.1em; color: var(--neutral-dim);">FLOW</span>
+                        <span style="font-size: 18px; font-weight: 300; color: var(--neutral);" data-autus="flow">₩12.4</span>
                     </div>
                 </div>
             </div>
@@ -563,196 +596,183 @@
         
         <!-- Feedback Layer -->
         <div class="layer" id="layer-feedback" onclick="openDetail('feedback')">
-            <h2>📊 피드백</h2>
-            <p>지금 결정하지 않으면<br>초당 얼마를 잃는가?</p>
+            <h2>VECTOR INPUT</h2>
+            <p>Momentum adjustment<br>Pure physical parameters</p>
             <div class="layer-visual">
-                <div class="feedback-display">
-                    <div class="loss-velocity" data-autus="loss_velocity" data-format="currency">₩2.50</div>
-                    <div class="loss-unit">초당 손실</div>
-                    <div style="font-size: 11px; color: #ff6600; margin-top: 10px;">
-                        ⚠️ 1시간 대기 시 ₩9,000 손실
-                    </div>
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
+                    <button class="vector-btn" data-vector="0" onclick="event.stopPropagation(); applyVector(0)">
+                        <span style="font-size: 14px;">Δv = 0</span>
+                        <span style="font-size: 8px; color: var(--neutral-dim);">HOLD</span>
+                    </button>
+                    <button class="vector-btn" data-vector="1" onclick="event.stopPropagation(); applyVector(1)">
+                        <span style="font-size: 14px;">Δv = +1</span>
+                        <span style="font-size: 8px; color: var(--neutral-dim);">MOMENTUM +</span>
+                    </button>
+                    <button class="vector-btn" data-vector="-1" onclick="event.stopPropagation(); applyVector(-1)">
+                        <span style="font-size: 14px;">Δv = −1</span>
+                        <span style="font-size: 8px; color: var(--neutral-dim);">MOMENTUM −</span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Navigation Hint -->
-    <div class="nav-hint">← SWIPE TO ROTATE →</div>
+    <div class="nav-hint">← SWIPE →</div>
     
-    <!-- AUTO Button -->
-    <div id="auto-btn" onclick="activateAuto()">AUTO</div>
+    <!-- ORIGIN Button -->
+    <div id="auto-btn" onclick="activateAuto()">ORIGIN</div>
     
     <!-- Detail Pages -->
     <div class="detail-page" id="detail-core">
         <div class="detail-header">
             <div class="back-btn" onclick="closeDetail()">‹</div>
-            <div class="detail-title">🎯 결정 루프</div>
+            <div class="detail-title">CENTRAL LOOP</div>
         </div>
         <div class="detail-content">
             <div class="detail-visual">
-                <canvas id="detail-loop-canvas" width="250" height="250"></canvas>
+                <canvas id="detail-loop-canvas" width="280" height="280"></canvas>
             </div>
             <div class="detail-info">
-                <h3>🤔 AUTUS가 하는 일</h3>
-                <p>
-                1. 목표를 입력하면<br>
-                2. 현재 상태를 분석하고<br>
-                3. 최적 경로를 계산해서<br>
-                4. "지금 뭘 해야 하는지" 알려줍니다<br><br>
-                <b style="color: var(--cyan);">70% 정보면 실행 추천</b> (베조스 원칙)
+                <h3>STATE EQUATION</h3>
+                <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--neutral-dim);">
+                S(t+1) = S(t) + ρ·Δv − μ·|v|<br><br>
+                Pure physical state transition.<br>
+                No semantic interpretation.
                 </p>
             </div>
             <div class="detail-info">
-                <h3>📊 결정 기록</h3>
-                <p>
-                • 오늘 결정: <span style="color: var(--cyan);">5회</span><br>
-                • 자동 실행: <span style="color: #00ff88;">3회 (60%)</span><br>
-                • 수동 개입: <span style="color: #ff6600;">2회 (40%)</span><br><br>
-                목표: 인간 개입 5% 이하
+                <h3>OBSERVATIONS</h3>
+                <p style="font-family: 'JetBrains Mono', monospace; font-size: 10px;">
+                • nodes: 8<br>
+                • motions: continuous<br>
+                • origin: fixed reference
                 </p>
             </div>
         </div>
         <div class="detail-bottom">
-            <button class="detail-btn" onclick="showGoalInput()">목표 설정하기</button>
+            <button class="detail-btn" onclick="closeDetail()">CLOSE</button>
         </div>
     </div>
     
     <div class="detail-page" id="detail-sensory">
         <div class="detail-header">
             <div class="back-btn" onclick="closeDetail()">‹</div>
-            <div class="detail-title">SENSORY INPUT</div>
+            <div class="detail-title">INPUT VECTORS</div>
         </div>
         <div class="detail-content">
             <div class="detail-visual">
-                <div class="sensory-grid" style="width: 250px;">
+                <div class="sensory-grid" style="width: 250px; gap: 24px;">
                     <div class="sensor-item">
-                        <div class="sensor-icon" style="width: 70px; height: 70px; font-size: 32px;">🎤</div>
-                        <span class="sensor-label">MICROPHONE</span>
+                        <div class="sensor-icon" style="width: 70px; height: 70px; font-size: 24px; border-color: var(--neutral-dim); box-shadow: none;">α</div>
+                        <span class="sensor-label">CHANNEL 1</span>
                     </div>
                     <div class="sensor-item">
-                        <div class="sensor-icon" style="width: 70px; height: 70px; font-size: 32px;">📷</div>
-                        <span class="sensor-label">CAMERA</span>
+                        <div class="sensor-icon" style="width: 70px; height: 70px; font-size: 24px; border-color: var(--neutral-dim); box-shadow: none;">β</div>
+                        <span class="sensor-label">CHANNEL 2</span>
                     </div>
                     <div class="sensor-item">
-                        <div class="sensor-icon" style="width: 70px; height: 70px; font-size: 32px;">🖥️</div>
-                        <span class="sensor-label">SCREEN</span>
+                        <div class="sensor-icon" style="width: 70px; height: 70px; font-size: 24px; border-color: var(--neutral-dim); box-shadow: none;">γ</div>
+                        <span class="sensor-label">CHANNEL 3</span>
                     </div>
                 </div>
             </div>
             <div class="detail-info">
-                <h3>DATA SOVEREIGNTY</h3>
-                <p>• 원본 데이터는 즉시 폐기됩니다<br>
-                • 가공된 벡터만 사용자 클라우드에 저장<br>
-                • AUTUS는 Δ 공식만 수신합니다</p>
+                <h3>LOCAL DISTILLATION</h3>
+                <p style="font-family: 'JetBrains Mono', monospace; font-size: 10px;">
+                • Raw signal → Vector<br>
+                • Immediate disposal<br>
+                • Δ only transmitted
+                </p>
             </div>
             <div class="detail-info">
-                <h3>AUTUS MODULES</h3>
-                <p>• LocalDistiller.process()<br>
+                <h3>MODULES</h3>
+                <p style="font-family: 'JetBrains Mono', monospace; font-size: 10px;">
+                • LocalDistiller.process()<br>
                 • RawBuffer.wipe()<br>
-                • DistilledVector.to_delta()</p>
+                • DistilledVector.to_delta()
+                </p>
             </div>
         </div>
         <div class="detail-bottom">
-            <button class="detail-btn">START CAPTURE</button>
+            <button class="detail-btn" onclick="closeDetail()">CLOSE</button>
         </div>
     </div>
     
     <div class="detail-page" id="detail-physics">
         <div class="detail-header">
             <div class="back-btn" onclick="closeDetail()">‹</div>
-            <div class="detail-title">🗺️ 물리 지도</div>
+            <div class="detail-title">STATE VECTOR</div>
         </div>
         <div class="detail-content">
             <div class="detail-visual" style="padding: 20px;">
-                <!-- 3가지 상태 미터 -->
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-size: 12px;">⚡ 에너지 (시간·돈·체력)</span>
-                        <span style="color: #00ff88; font-weight: bold;">72%</span>
+                <!-- Pure physical state readout -->
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--neutral-faint); border-radius: 2px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--neutral-faint);">
+                        <span style="font-size: 10px; letter-spacing: 0.15em; color: var(--neutral-dim);">ΔGoal</span>
+                        <span style="font-size: 24px; font-weight: 300; color: var(--neutral);" data-autus="delta">0.68</span>
                     </div>
-                    <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
-                        <div style="width: 72%; height: 100%; background: linear-gradient(90deg, #00ff88, #00cc66); border-radius: 4px;"></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--neutral-faint);">
+                        <span style="font-size: 10px; letter-spacing: 0.15em; color: var(--neutral-dim);">μ (friction)</span>
+                        <span style="font-size: 24px; font-weight: 300; color: var(--neutral);" data-autus="mu">0.23</span>
                     </div>
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-size: 12px;">🌊 흐름 (진행 속도)</span>
-                        <span style="color: #00ccff; font-weight: bold;">0.8</span>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--neutral-faint);">
+                        <span style="font-size: 10px; letter-spacing: 0.15em; color: var(--neutral-dim);">ρ (momentum)</span>
+                        <span style="font-size: 24px; font-weight: 300; color: var(--neutral);" data-autus="rho">0.81</span>
                     </div>
-                    <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
-                        <div style="width: 80%; height: 100%; background: linear-gradient(90deg, #00ccff, #0088ff); border-radius: 4px;"></div>
-                    </div>
-                </div>
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-size: 12px;">⚠️ 리스크 (불확실성)</span>
-                        <span style="color: #ff6600; font-weight: bold;">23%</span>
-                    </div>
-                    <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
-                        <div style="width: 23%; height: 100%; background: linear-gradient(90deg, #ff6600, #ff3333); border-radius: 4px;"></div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 10px; letter-spacing: 0.15em; color: var(--neutral-dim);">σ (variance)</span>
+                        <span style="font-size: 24px; font-weight: 300; color: var(--neutral);" data-autus="sigma">0.12</span>
                     </div>
                 </div>
             </div>
             <div class="detail-info">
-                <h3>📌 무엇을 표현하나요?</h3>
-                <p>
-                • <b>개체</b>: 목표, 장애물, 기회, 사람<br>
-                • <b>이벤트</b>: 마감일, 회의, 결제일<br>
-                • <b>상태</b>: 현재 에너지, 흐름, 리스크<br><br>
-                모든 것이 3가지 숫자로 변환됩니다.
-                </p>
-            </div>
-            <div class="detail-info">
-                <h3>💡 어떤 도움을 주나요?</h3>
-                <p>
-                • "지금 에너지가 낮으니 쉬세요"<br>
-                • "흐름이 막혔으니 우회하세요"<br>
-                • "리스크가 높으니 대안을 준비하세요"
+                <h3>PHYSICAL QUANTITIES</h3>
+                <p style="font-family: 'JetBrains Mono', monospace; font-size: 10px;">
+                Pure numbers.<br>
+                No semantic interpretation.<br>
+                Goal-centric measurement only.
                 </p>
             </div>
         </div>
         <div class="detail-bottom">
-            <button class="detail-btn" onclick="alert('현재 상태: 에너지 72%, 흐름 0.8, 리스크 23%')">내 상태 확인</button>
+            <button class="detail-btn" onclick="closeDetail()">CLOSE</button>
         </div>
     </div>
     
     <div class="detail-page" id="detail-feedback">
         <div class="detail-header">
             <div class="back-btn" onclick="closeDetail()">‹</div>
-            <div class="detail-title">📊 피드백</div>
+            <div class="detail-title">VECTOR INPUT</div>
         </div>
         <div class="detail-content">
             <div class="detail-visual" style="padding: 20px;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="font-size: 14px; color: rgba(255,255,255,0.6);">지금 결정하지 않으면</div>
-                    <div style="font-size: 48px; font-weight: bold; color: #ff6600;">₩2.50</div>
-                    <div style="font-size: 12px; color: rgba(255,255,255,0.5);">초당 손실</div>
-                </div>
-                <div style="background: rgba(255,102,0,0.1); border: 1px solid rgba(255,102,0,0.3); border-radius: 12px; padding: 15px; text-align: center;">
-                    <div style="font-size: 13px; color: #ff6600;">⏰ 1시간 대기 시</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #ff3333;">₩9,000 손실</div>
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <button class="vector-btn" data-vector="0" onclick="applyVector(0)">
+                        <span style="font-size: 18px;">Δv = 0</span>
+                        <span style="font-size: 9px; letter-spacing: 0.1em; color: var(--neutral-dim);">MOMENTUM HOLD</span>
+                    </button>
+                    <button class="vector-btn" data-vector="1" onclick="applyVector(1)">
+                        <span style="font-size: 18px;">Δv = +1</span>
+                        <span style="font-size: 9px; letter-spacing: 0.1em; color: var(--neutral-dim);">MOMENTUM +</span>
+                    </button>
+                    <button class="vector-btn" data-vector="-1" onclick="applyVector(-1)">
+                        <span style="font-size: 18px;">Δv = −1</span>
+                        <span style="font-size: 9px; letter-spacing: 0.1em; color: var(--neutral-dim);">MOMENTUM −</span>
+                    </button>
                 </div>
             </div>
             <div class="detail-info">
-                <h3>💡 왜 손실이 발생하나요?</h3>
-                <p>
-                • <b>시간 비용</b>: 기회는 기다려주지 않음<br>
-                • <b>기회 비용</b>: 다른 일을 못 함<br>
-                • <b>심리 비용</b>: 미루면 스트레스 증가<br>
-                </p>
-            </div>
-            <div class="detail-info">
-                <h3>✅ AUTUS 추천</h3>
-                <p style="color: var(--cyan);">
-                정보가 70% 이상이면 지금 결정하세요.<br>
-                완벽한 정보를 기다리면 손실만 커집니다.<br><br>
-                <span style="color: rgba(255,255,255,0.5);">"Most decisions should be made with 70% of the information." — Jeff Bezos</span>
+                <h3>STATE EQUATION</h3>
+                <p style="font-family: 'JetBrains Mono', monospace; font-size: 10px;">
+                S(t+1) = S(t) + ρ·Δv − μ·|v|<br><br>
+                Pure momentum adjustment.<br>
+                No value judgment.
                 </p>
             </div>
         </div>
         <div class="detail-bottom">
-            <button class="detail-btn" onclick="alert('✅ AUTO 모드를 활성화하면 AUTUS가 자동으로 최적 시점에 결정합니다.')">AUTO 모드 설명</button>
+            <button class="detail-btn" onclick="closeDetail()">CLOSE</button>
         </div>
     </div>
 
@@ -850,49 +870,69 @@
         });
         
         // ═══════════════════════════════════════════════════════════════
-        // CENTRAL LOOP (Tesla FSD Style)
+        // CENTRAL LOOP (Semantic Neutral)
         // ═══════════════════════════════════════════════════════════════
         let centralLoop = null;
         
         function initCentralLoopCanvas(canvas) {
             if (window.CentralLoop) {
                 centralLoop = new CentralLoop(canvas, {
-                    primaryColor: '#00ffcc',
-                    pulseSpeed: 2,
-                    particleCount: 25
+                    nodeCount: 8,
+                    baseRadius: 60
                 });
                 
-                // 목표 설정
-                centralLoop.setGoal('결정 물리학 활성화');
-                
-                // 스테이지 완료 콜백
-                centralLoop.onStageComplete = (stage) => {
-                    console.log(`[Loop] Stage: ${stage.name}`);
-                    
-                    // Decision 단계에서 Titans Kernel 실행
-                    if (stage.id === 'decision' && window.AUTUS_KERNEL) {
-                        const decision = window.AUTUS_KERNEL.shouldExecute({
-                            infoLevel: centralLoop.titansMetrics.infoLevel,
-                            impact: 0.7,
-                            reversibility: 0.6,
-                            timeValue: 0.8
-                        });
-                        console.log('[Titans] Decision:', decision);
-                    }
+                // State change callback
+                centralLoop.onStateChange = (state) => {
+                    updateStateDisplay(state);
                 };
                 
-                // 루프 완료 콜백
-                centralLoop.onLoopComplete = () => {
-                    console.log('[Loop] Complete! Starting next cycle...');
+                // Vector applied callback
+                centralLoop.onVectorApplied = (dv, state) => {
+                    console.log(`[Loop] Vector applied: Δv=${dv}, ρ=${state.rho.toFixed(2)}`);
+                    updateStateDisplay(state);
                 };
                 
                 centralLoop.start();
-                console.log('✅ Central Loop initialized');
+                console.log('✅ Central Loop initialized (Semantic Neutral)');
             } else {
-                // Fallback: 기존 간단한 애니메이션
+                // Fallback
                 drawSimpleLoop(canvas);
             }
         }
+        
+        // Update state display elements
+        function updateStateDisplay(state) {
+            document.querySelectorAll('[data-autus="delta"]').forEach(el => {
+                el.textContent = state.delta.toFixed(2);
+            });
+            document.querySelectorAll('[data-autus="mu"]').forEach(el => {
+                el.textContent = state.mu.toFixed(2);
+            });
+            document.querySelectorAll('[data-autus="rho"]').forEach(el => {
+                el.textContent = state.rho.toFixed(2);
+            });
+            document.querySelectorAll('[data-autus="sigma"]').forEach(el => {
+                el.textContent = (state.sigma || 0.12).toFixed(2);
+            });
+        }
+        
+        // Apply vector input - Semantic Neutral
+        window.applyVector = function(dv) {
+            if (centralLoop) {
+                centralLoop.applyVector(dv);
+                
+                // Update button states
+                document.querySelectorAll('.vector-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                    if (parseInt(btn.dataset.vector) === dv) {
+                        btn.classList.add('selected');
+                    }
+                });
+                
+                // Haptic feedback
+                if (navigator.vibrate) navigator.vibrate(10);
+            }
+        };
         
         function drawSimpleLoop(canvas) {
             const ctx = canvas.getContext('2d');
@@ -901,19 +941,23 @@
             const radius = Math.min(cx, cy) - 20;
             let angle = 0;
             
+            // Neutral color
+            const neutralColor = 'rgba(180, 180, 170, 0.9)';
+            const neutralDim = 'rgba(180, 180, 170, 0.3)';
+            
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = 'rgba(0, 229, 204, 0.3)';
-                ctx.lineWidth = 3;
+                ctx.strokeStyle = neutralDim;
+                ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                 ctx.stroke();
                 
-                ctx.strokeStyle = '#00e5cc';
-                ctx.lineWidth = 8;
+                ctx.strokeStyle = neutralColor;
+                ctx.lineWidth = 2;
                 ctx.lineCap = 'round';
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = '#00e5cc';
+                ctx.shadowBlur = 0;
+                ctx.shadowColor = 'transparent';
                 ctx.beginPath();
                 ctx.arc(cx, cy, radius, angle, angle + Math.PI * 1.5);
                 ctx.stroke();
