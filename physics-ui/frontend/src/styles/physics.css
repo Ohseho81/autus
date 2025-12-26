@@ -5,9 +5,11 @@
   flex-direction: column;
   align-items: center;
   font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  padding-top: 16px;
 }
 
-.topPanel { width: 380px; padding: 14px 10px 6px; }
+.goalPanel { width: 380px; padding: 0 10px 12px; }
+.topPanel { width: 380px; padding: 0 10px 6px; }
 .centerPanel { width: 380px; padding: 10px; display: flex; justify-content: center; }
 .bottomPanel { width: 380px; padding: 10px 10px 20px; }
 
