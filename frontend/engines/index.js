@@ -546,7 +546,9 @@ export const AutusEngines = {
             waitlistGravity: WaitlistGravityField.init(),
             networkEffect: NetworkEffectEngine.init(),
             multiOrbitStrategy: MultiOrbitStrategyEngine.init(),
-            entropyCalculator: Object.create(AutusEntropyCalculator).init()
+            entropyCalculator: Object.create(AutusEntropyCalculator).init(),
+            // Unified System Engine v3.0
+            unifiedSystem: UnifiedSystemEngine.init()
         };
         
         // 각 엔진 초기화
@@ -555,7 +557,7 @@ export const AutusEngines = {
         this.instances.hybridStorage.init();
         
         this.isInitialized = true;
-        console.log('[AutusEngines] 초기화 완료 - 19개 엔진 로드됨 (8대 코어 + Bezos V1 3개 + Bezos V2 4개 + Bezos V3 4개)');
+        console.log('[AutusEngines] 초기화 완료 - 20개 엔진 로드됨 (8대 코어 + Bezos V1 3개 + Bezos V2 4개 + Bezos V3 4개 + Unified 1개)');
         
         return this;
     },
@@ -758,8 +760,14 @@ export const AutusEngines = {
             results.entropyCalculator = testEntropyCalculator();
         } catch (e) { results.entropyCalculator = { error: e.message }; }
         
+        // Unified System Engine v3.0 Test
+        try {
+            const { testUnifiedSystemEngine } = await import('./UnifiedSystemEngine.js');
+            results.unifiedSystem = testUnifiedSystemEngine();
+        } catch (e) { results.unifiedSystem = { error: e.message }; }
+        
         console.log('='.repeat(60));
-        console.log('ALL TESTS COMPLETED (19 Engines)');
+        console.log('ALL TESTS COMPLETED (20 Engines)');
         console.log('='.repeat(60));
         
         return results;
