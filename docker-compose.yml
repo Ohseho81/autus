@@ -1,92 +1,140 @@
-version: '3.8'
+# AUTUS Docker Compose
+# =====================
+# Full Stack: Backend + PostgreSQL + Redis
+
+version: '3.9'
 
 services:
-  autus-api:
-    build: .
-    container_name: autus-api
-    ports:
-      - "8003:8003"
-    env_file:
-      - .env
-    environment:
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - ./evolved:/app/evolved
-      - ./specs:/app/specs
-      - ./logs:/app/logs
+  # ============================================================
+  # BACKEND API
+  # ============================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: autus-backend
     restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=AUTUS
+      - APP_VERSION=3.0.0
+      - DEBUG=false
+      - DATABASE_URL=postgresql+asyncpg://autus:autus2025@postgres:5432/autus
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=${JWT_SECRET:-autus-secret-key-change-in-production}
+      - SCHEDULER_ENABLED=true
+      - LOG_LEVEL=INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - autus-network
+    volumes:
+      - ./logs:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
-  autus-dashboard:
-    build: ./web
-    container_name: autus-dashboard
+  # ============================================================
+  # POSTGRESQL DATABASE
+  # ============================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: autus-postgres
+    restart: unless-stopped
     ports:
-      - "5173:5173"
+      - "5432:5432"
     environment:
-      - VITE_API_URL=http://autus-api:8003
-    depends_on:
-      autus-api:
-        condition: service_healthy
-    restart: unless-stopped
-
-  # ===== Prometheus Monitoring =====
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: autus-prometheus
-    ports:
-      - "9090:9090"
+      - POSTGRES_USER=autus
+      - POSTGRES_PASSWORD=autus2025
+      - POSTGRES_DB=autus
+      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    restart: unless-stopped
-    depends_on:
-      - autus-api
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - autus-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autus -d autus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # ===== Grafana Dashboard =====
-  grafana:
-    image: grafana/grafana:latest
-    container_name: autus-grafana
+  # ============================================================
+  # REDIS CACHE
+  # ============================================================
+  redis:
+    image: redis:7-alpine
+    container_name: autus-redis
+    restart: unless-stopped
     ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=autus123
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
-      - grafana_data:/var/lib/grafana
-    restart: unless-stopped
-    depends_on:
-      - prometheus
+      - redis_data:/data
+    networks:
+      - autus-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # ===== AlertManager =====
-  alertmanager:
-    image: prom/alertmanager:latest
-    container_name: autus-alertmanager
+  # ============================================================
+  # NGINX (Production)
+  # ============================================================
+  nginx:
+    image: nginx:alpine
+    container_name: autus-nginx
+    restart: unless-stopped
     ports:
-      - "9093:9093"
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-      - alertmanager_data:/alertmanager
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    networks:
+      - autus-network
+    profiles:
+      - production
+
+  # ============================================================
+  # ADMINER (Development)
+  # ============================================================
+  adminer:
+    image: adminer
+    container_name: autus-adminer
     restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - autus-network
+    profiles:
+      - development
 
-volumes:
-  prometheus_data:
-  grafana_data:
-  alertmanager_data:
-
+# ============================================================
+# NETWORKS
+# ============================================================
 networks:
-  default:
-    name: autus-network
+  autus-network:
+    driver: bridge
+
+# ============================================================
+# VOLUMES
+# ============================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
