@@ -1,0 +1,105 @@
+{
+  "version": "autus.state.v1",
+  "lock": true,
+  "schema": {
+    "session_id": {
+      "type": "string",
+      "required": true,
+      "description": "고유 세션 식별자"
+    },
+    "t_ms": {
+      "type": "integer",
+      "required": true,
+      "description": "타임스탬프 (밀리초)"
+    },
+    "measure": {
+      "type": "object",
+      "properties": {
+        "mass": {"type": "float", "range": [0.0, 1.0], "default": 0.5},
+        "E": {"type": "float", "range": [0.0, 1.0], "default": 0.5, "description": "Energy"},
+        "volume": {"type": "float", "range": [0.01, 1.0], "default": 0.5},
+        "sigma": {"type": "float", "range": [0.0, 1.0], "default": 0.3, "description": "Entropy/Uncertainty"},
+        "density": {"type": "float", "computed": true, "formula": "mass / volume"},
+        "stability": {"type": "float", "computed": true, "formula": "1 - sigma"},
+        "pressure": {"type": "float", "computed": true},
+        "leak": {"type": "float", "range": [0.0, 1.0], "default": 0.1},
+        "dE_dt": {"type": "float", "description": "에너지 변화율"},
+        "recovery": {"type": "float", "range": [0.0, 1.0]}
+      }
+    },
+    "forecast": {
+      "type": "object",
+      "properties": {
+        "P_outcome": {"type": "float", "range": [0.0, 1.0], "default": 0.0},
+        "trajectory_samples": {"type": "array", "items": "float"},
+        "horizon": {"type": "enum", "values": ["H1", "D1", "D7", "D30", "D180"], "default": "D30"}
+      }
+    },
+    "graph": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "id": "string",
+            "mass": "float",
+            "sigma": "float",
+            "type": "NodeType"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "a": "string",
+            "b": "string",
+            "weight": "float"
+          }
+        }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "properties": {
+        "mode": {"type": "enum", "values": ["SIM", "LIVE"], "default": "SIM"},
+        "current_page": {"type": "integer", "range": [1, 3], "default": 1},
+        "hud_visible": {"type": "boolean", "default": false}
+      }
+    },
+    "draft": {
+      "type": "object",
+      "description": "SIM 모드에서의 임시 변경사항",
+      "properties": {
+        "page1": {"mass_mod": "float", "volume_override": "float", "horizon": "string"},
+        "page2": {"sigma_delta": "float", "ops": "array"},
+        "page3": {"allocations": "object"}
+      }
+    },
+    "replay": {
+      "type": "object",
+      "properties": {
+        "markers": {"type": "array", "items": "ReplayMarker"},
+        "chain_hash": {"type": "string", "description": "SHA256 해시 체인"}
+      }
+    }
+  },
+  "node_types": [
+    "SELF", "POTENTIAL", "KINETIC", "STABLE", 
+    "THRESHOLD", "DIFFUSE", "ENTROPY_DOMINANT",
+    "MASS_DOMINANT", "FLOW_DOMINANT"
+  ],
+  "mandala_slots": {
+    "N": {"name": "Constraint", "icon": "lock", "physics": "volume_compression"},
+    "NE": {"name": "Risk", "icon": "lightbulb", "physics": "sigma_increase"},
+    "E": {"name": "Energy", "icon": "sun", "physics": "energy_supply"},
+    "SE": {"name": "Leak", "icon": "arrow_down", "physics": "leak_control"},
+    "S": {"name": "Pattern", "icon": "rings", "physics": "stability_boost"},
+    "SW": {"name": "Drag", "icon": "link", "physics": "friction"},
+    "W": {"name": "Connection", "icon": "chain", "physics": "flow_rate"},
+    "NW": {"name": "Constraint", "icon": "padlock", "physics": "pressure_control"}
+  }
+}
+
+
+
+
+

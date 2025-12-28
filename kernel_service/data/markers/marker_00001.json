@@ -1,0 +1,33 @@
+{
+  "id": "#00001",
+  "timestamp": "2025-12-27T23:54:47.713472",
+  "user_input": {
+    "mass": 7.0,
+    "energy_hours": 6,
+    "volume": 85,
+    "node_x": "Context Switching"
+  },
+  "physics": {
+    "M": 0.7,
+    "E": 0.6,
+    "volume": 0.7,
+    "leak": 0.02,
+    "pressure": 0.85,
+    "sigma": 0.15,
+    "density": 0.714,
+    "stability": 0.85,
+    "P_outcome": 0.7576
+  },
+  "mandala": {
+    "N": 0.2,
+    "NE": 0.08,
+    "E": 0.25,
+    "SE": 0.05,
+    "S": 0.18,
+    "SW": 0.07,
+    "W": 0.12,
+    "NW": 0.05
+  },
+  "state_hash": "7b88a17d6deb15d2",
+  "status": "COMMITTED"
+}

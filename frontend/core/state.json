@@ -1,0 +1,205 @@
+{
+  "$schema": "autus_state_v2",
+  "version": "2.0.0",
+  "description": "AUTUS Master State Definition - Physics-based Universal State",
+  
+  "universal_mass": {
+    "description": "Total energy capacity of the system",
+    "formula": "sum(potential_energy + kinetic_energy) across all nodes",
+    "default": 100,
+    "unit": "autus_energy_units",
+    "bounds": {
+      "min": 0,
+      "max": null
+    }
+  },
+  
+  "saved_time_asset": {
+    "description": "Cumulative time saved through automation (convertible to energy)",
+    "formula": "sum(automation_pack.time_saved) * conversion_rate",
+    "conversion_rate": 0.1,
+    "default": 0,
+    "unit": "minutes",
+    "sources": [
+      "automation_packs",
+      "learning_engine",
+      "report_agent"
+    ]
+  },
+  
+  "success_vector": {
+    "description": "Directional vector pointing toward goal achievement",
+    "components": {
+      "magnitude": {
+        "formula": "P_outcome * (1 - sigma)",
+        "default": 0.5
+      },
+      "direction": {
+        "formula": "goal_alignment_angle",
+        "default": 0,
+        "unit": "radians"
+      },
+      "trade_offs": {
+        "description": "Conflicting goal vectors that reduce magnitude",
+        "default": []
+      }
+    }
+  },
+  
+  "physics_attributes": {
+    "node_mass": {
+      "type": "number",
+      "range": [0, 10],
+      "default": 1.0,
+      "description": "Inertial mass of entity"
+    },
+    "connection_gravity": {
+      "type": "number",
+      "range": [0, 1],
+      "default": 0.5,
+      "description": "Attraction strength between nodes"
+    },
+    "friction_coefficient": {
+      "type": "number",
+      "range": [0, 1],
+      "default": 0.3,
+      "description": "Resistance to motion"
+    },
+    "potential_energy": {
+      "type": "number",
+      "range": [0, null],
+      "default": 0,
+      "description": "Stored energy (unrealized value)"
+    },
+    "kinetic_energy": {
+      "type": "number",
+      "range": [0, null],
+      "default": 0,
+      "description": "Active energy (money in motion)"
+    },
+    "entropy_level": {
+      "type": "number",
+      "range": [0, 1],
+      "default": 0.2,
+      "description": "System disorder/noise"
+    },
+    "stability_index": {
+      "type": "number",
+      "range": [0, 1],
+      "default": 0.5,
+      "description": "Pattern consistency"
+    },
+    "influence_radius": {
+      "type": "number",
+      "range": [0, 100],
+      "default": 10,
+      "description": "Range of gravitational influence"
+    },
+    "decay_rate": {
+      "type": "number",
+      "range": [0, 1],
+      "default": 0.01,
+      "description": "Energy loss over time"
+    },
+    "resonance_frequency": {
+      "type": "number",
+      "range": [0, 100],
+      "default": 1,
+      "description": "Synchronization frequency"
+    }
+  },
+  
+  "derived_metrics": {
+    "density": {
+      "formula": "node_mass / (volume || 1)",
+      "description": "Mass concentration"
+    },
+    "P_outcome": {
+      "formula": "density * (1 - entropy_level) * stability_index",
+      "description": "Success probability"
+    },
+    "sigma": {
+      "formula": "sqrt(entropy_level * (1 - stability_index))",
+      "description": "Uncertainty/noise level"
+    },
+    "velocity": {
+      "formula": "sqrt(2 * kinetic_energy / node_mass)",
+      "description": "Rate of change"
+    },
+    "momentum": {
+      "formula": "node_mass * velocity",
+      "description": "Change resistance"
+    }
+  },
+  
+  "pack_registry": {
+    "automation": {
+      "observers": ["web", "data", "comm"],
+      "agents": ["report", "member"],
+      "time_saved_multiplier": 1.0
+    },
+    "education": {
+      "agents": ["feedback", "habit", "hr", "marketing", "teaching"],
+      "privacy_level": "high",
+      "time_saved_multiplier": 1.2
+    },
+    "professional": {
+      "features": ["auto_report", "relationship_sync", "dopamine_effects"],
+      "time_saved_multiplier": 1.5
+    }
+  },
+  
+  "internal_metrics": {
+    "description": "Internal business engine metrics (n² data asset)",
+    "network_yield": {
+      "description": "User network contribution to success",
+      "range": [0, 1]
+    },
+    "automation_reliance": {
+      "description": "Dependency on automation (retention indicator)",
+      "range": [0, 1]
+    },
+    "money_flow_correlation": {
+      "description": "Action-to-money conversion rates by type"
+    },
+    "interaction_topology": {
+      "description": "Encrypted user interaction physics map",
+      "storage": "reference_only"
+    }
+  },
+  
+  "constraints": {
+    "energy_conservation": {
+      "rule": "sum(all_energy) remains constant unless external input",
+      "leakage_threshold": 0.01
+    },
+    "commit_threshold": {
+      "P_outcome_min": 0.8,
+      "sigma_max": 0.3
+    },
+    "data_policy": {
+      "raw_data_storage": false,
+      "physics_only": true,
+      "pii_policy": "never_store"
+    }
+  },
+  
+  "ui_state": {
+    "mode": {
+      "values": ["SIM", "LIVE"],
+      "default": "SIM"
+    },
+    "current_page": {
+      "values": [1, 2, 3, 4],
+      "default": 1
+    },
+    "persona": {
+      "values": ["professional", "student", "homemaker"],
+      "default": "professional"
+    }
+  }
+}
+
+
+
+

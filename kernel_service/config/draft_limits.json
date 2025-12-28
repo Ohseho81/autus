@@ -1,0 +1,129 @@
+{
+  "version": "autus.limits.v1",
+  "locked": true,
+  
+  "page1": {
+    "name": "Goal Calibration",
+    "fields": {
+      "mass_modifier": {
+        "type": "float",
+        "min": -0.50,
+        "max": 0.50,
+        "default": 0.0,
+        "step": 0.01,
+        "apply_formula": "M' = clamp01(M * (1 + mass_modifier))",
+        "damping_alpha": 0.35
+      },
+      "volume_override": {
+        "type": "float",
+        "min": 0.30,
+        "max": 0.90,
+        "default": 0.50,
+        "step": 0.01,
+        "apply_formula": "Volume' = volume_override",
+        "damping_alpha": 0.50
+      },
+      "horizon_override": {
+        "type": "enum",
+        "values": ["H1", "D1", "D7", "D30", "D180"],
+        "default": "D1"
+      }
+    }
+  },
+  
+  "page2": {
+    "name": "Route / Topology",
+    "fields": {
+      "mass_filter": {
+        "type": "float",
+        "min": 0.00,
+        "max": 1.00,
+        "default": 0.0,
+        "step": 0.01,
+        "note": "graph.nodes.mass >= mass_filter only shown"
+      },
+      "flow_filter": {
+        "type": "float",
+        "min": 0.00,
+        "max": 1.00,
+        "default": 0.0,
+        "step": 0.01,
+        "note": "graph.edges.flow >= flow_filter only shown"
+      },
+      "sigma_filter": {
+        "type": "float",
+        "min": 0.00,
+        "max": 1.00,
+        "default": 1.0,
+        "step": 0.01,
+        "note": "node.sigma <= sigma_filter only included"
+      },
+      "virtual_anchor_shift": {
+        "type": "vec2",
+        "min": [-1.0, -1.0],
+        "max": [1.0, 1.0],
+        "default": [0.0, 0.0],
+        "step": 0.01,
+        "note": "Observation only, no commit effect"
+      }
+    },
+    "node_operations": {
+      "mass_change": {
+        "min_delta": -0.50,
+        "max_delta": 0.50,
+        "damping_alpha": 0.30
+      },
+      "delete": {
+        "requires_consent": true,
+        "cooldown_ms": 5000
+      }
+    }
+  },
+  
+  "page3": {
+    "name": "Mandala Investment",
+    "slots": ["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
+    "fields": {
+      "allocations": {
+        "type": "dict[slot, float]",
+        "per_slot_min": 0.00,
+        "per_slot_max": 1.00,
+        "step": 0.01,
+        "sum_constraint": "exactly_1.0",
+        "normalization": "auto",
+        "damping_alpha": 0.40
+      }
+    },
+    "slot_physics_mapping": {
+      "N": {"primary": "volume", "direction": "decrease", "k": 0.35},
+      "NE": {"primary": "sigma", "direction": "increase", "k": 0.70},
+      "E": {"primary": "E", "direction": "increase", "k": 0.65},
+      "SE": {"primary": "leak", "direction": "increase", "k": 0.60},
+      "S": {"primary": "pressure", "direction": "increase", "k": 0.55, "secondary": {"sigma": -0.40}},
+      "SW": {"primary": "pressure", "direction": "decrease", "k": 0.50},
+      "W": {"primary": "leak", "direction": "decrease", "k": 0.45, "secondary": {"sigma": -0.25}},
+      "NW": {"primary": "volume", "direction": "decrease", "k": 0.55}
+    },
+    "base_values": {
+      "E_base": 0.35,
+      "P_base": 0.40,
+      "L_base": 0.35,
+      "V_base": 0.70,
+      "sigma_base": 0.30
+    }
+  },
+  
+  "validation_errors": [
+    "INVALID_PATCH_KEY",
+    "INVALID_PATCH_RANGE",
+    "INVALID_ALLOCATION_SUM",
+    "INVALID_ENUM",
+    "INVALID_VECTOR_RANGE",
+    "INVALID_NODE_OPERATION"
+  ]
+}
+
+
+
+
+

@@ -1,0 +1,253 @@
+/* Physics View Styles */
+
+.physicsView {
+  background: #070910;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 16px;
+}
+
+.loading {
+  color: rgba(180, 180, 170, 0.6);
+  padding: 40px;
+  text-align: center;
+}
+
+.errorScreen {
+  background: #070910;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+.errorScreen .errorMessage {
+  color: rgba(180, 120, 120, 0.8);
+  font-size: 14px;
+}
+
+.errorScreen button {
+  background: rgba(180, 180, 170, 0.1);
+  border: 1px solid rgba(180, 180, 170, 0.2);
+  color: rgba(180, 180, 170, 0.7);
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.viewHeader {
+  width: 380px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  margin-bottom: 8px;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stability {
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(180, 180, 170, 0.8);
+}
+
+.selfcheckTimer {
+  font-size: 12px;
+  color: rgba(180, 180, 170, 0.5);
+  padding: 4px 10px;
+  background: rgba(180, 180, 170, 0.08);
+  border-radius: 4px;
+}
+
+.historyBtn {
+  font-size: 14px;
+  color: rgba(180, 180, 170, 0.5);
+  padding: 2px 8px;
+  background: transparent;
+  border: 1px solid rgba(180, 180, 170, 0.15);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.historyBtn:hover {
+  background: rgba(180, 180, 170, 0.05);
+  border-color: rgba(180, 180, 170, 0.25);
+}
+
+.resetBtn {
+  font-size: 10px;
+  color: rgba(180, 180, 170, 0.5);
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid rgba(180, 180, 170, 0.15);
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+}
+
+.resetBtn:hover {
+  background: rgba(180, 180, 170, 0.05);
+  border-color: rgba(180, 180, 170, 0.25);
+}
+
+.resetBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.errorBanner {
+  width: 380px;
+  background: rgba(180, 100, 100, 0.1);
+  border: 1px solid rgba(180, 100, 100, 0.2);
+  color: rgba(180, 140, 140, 0.8);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.actionFeedback {
+  width: 380px;
+  background: rgba(180, 180, 170, 0.05);
+  border: 1px solid rgba(180, 180, 170, 0.1);
+  color: rgba(180, 180, 170, 0.6);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-bottom: 8px;
+  text-align: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.actionFeedback.advanced {
+  background: rgba(140, 180, 140, 0.1);
+  border-color: rgba(140, 180, 140, 0.2);
+  color: rgba(160, 180, 160, 0.8);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gauges {
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.gaugeRow {
+  display: grid;
+  grid-template-columns: 90px 1fr 44px;
+  gap: 10px;
+  align-items: center;
+}
+
+.gaugeLabel {
+  color: rgba(180, 180, 170, 0.55);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+
+.gaugePct {
+  color: rgba(180, 180, 170, 0.55);
+  font-size: 11px;
+  text-align: right;
+}
+
+.gaugeBar {
+  height: 6px;
+  background: rgba(180, 180, 170, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.gaugeFill {
+  height: 100%;
+  background: rgba(180, 180, 170, 0.30);
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.routeProgress {
+  width: 380px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  margin-bottom: 6px;
+}
+
+.routeLabel {
+  color: rgba(180, 180, 170, 0.4);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+.routePath {
+  color: rgba(180, 180, 170, 0.6);
+  font-size: 11px;
+}
+
+.mapContainer {
+  width: 380px;
+  padding: 10px;
+  background: rgba(180, 180, 170, 0.02);
+  border-radius: 14px;
+  margin-bottom: 12px;
+}
+
+.physicsCanvas {
+  border-radius: 10px;
+  display: block;
+  width: 100%;
+}
+
+.actions {
+  width: 380px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.actions button {
+  background: rgba(180, 180, 170, 0.06);
+  border: 1px solid rgba(180, 180, 170, 0.12);
+  color: rgba(180, 180, 170, 0.70);
+  padding: 12px 0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.actions button:hover {
+  background: rgba(180, 180, 170, 0.10);
+  border-color: rgba(180, 180, 170, 0.20);
+}
+
+.actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.actions button.active {
+  background: rgba(180, 180, 170, 0.12);
+  border-color: rgba(180, 180, 170, 0.25);
+}

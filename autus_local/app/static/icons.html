@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS App Icons</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      min-height: 100vh;
+      background: #0a0a0a;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 40px;
+    }
+
+    h1 {
+      font-size: 12px;
+      letter-spacing: 0.3em;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .icons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .icon-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 24px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .icon-preview {
+      width: 180px;
+      height: 180px;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .icon-preview svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .icon-name {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .icon-desc {
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .size-variants {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .size-variant {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .size-variant svg {
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .size-label {
+      font-size: 8px;
+      color: rgba(255,255,255,0.2);
+    }
+
+    .download-section {
+      margin-top: 60px;
+      text-align: center;
+    }
+
+    .download-btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: rgba(0, 212, 170, 0.1);
+      border: 1px solid rgba(0, 212, 170, 0.3);
+      border-radius: 30px;
+      color: #00d4aa;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .download-btn:hover {
+      background: rgba(0, 212, 170, 0.2);
+      box-shadow: 0 0 30px rgba(0, 212, 170, 0.2);
+    }
+
+    .spec-table {
+      margin-top: 60px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .spec-table h2 {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 11px;
+    }
+
+    .spec-label { color: rgba(255,255,255,0.4); }
+    .spec-value { color: rgba(255,255,255,0.7); }
+
+    .recommendation {
+      margin-top: 40px;
+      padding: 20px;
+      background: rgba(0, 212, 170, 0.05);
+      border: 1px solid rgba(0, 212, 170, 0.15);
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .recommendation-label {
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      color: rgba(0, 212, 170, 0.5);
+      margin-bottom: 8px;
+    }
+
+    .recommendation-value {
+      font-size: 14px;
+      color: #00d4aa;
+      letter-spacing: 0.1em;
+    }
+
+    .back-link {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.3);
+      text-decoration: none;
+      padding: 10px 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .back-link:hover {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.5);
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link">← BACK TO APP</a>
+  
+  <h1>AUTUS APP ICONS</h1>
+
+  <div class="icons-grid">
+    <!-- Icon 1: Infinity Loop -->
+    <div class="icon-card">
+      <div class="icon-preview">
+        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="bg1" cx="50%" cy="50%" r="70%">
+              <stop offset="0%" stop-color="#0a1a15"/>
+              <stop offset="100%" stop-color="#000000"/>
+            </radialGradient>
+            <filter id="glow1" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="20" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <linearGradient id="infinity1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#00ffcc"/>
+              <stop offset="50%" stop-color="#00d4aa"/>
+              <stop offset="100%" stop-color="#00ffcc"/>
+            </linearGradient>
+          </defs>
+          <rect width="1024" height="1024" fill="url(#bg1)"/>
+          <!-- Outer glow -->
+          <ellipse cx="512" cy="512" rx="280" ry="140" fill="none" stroke="rgba(0,212,170,0.1)" stroke-width="80" filter="url(#glow1)"/>
+          <!-- Infinity symbol -->
+          <path d="M512 512 
+                   C512 420, 620 380, 700 420 
+                   C780 460, 820 540, 780 600 
+                   C740 660, 620 660, 512 512 
+                   C404 364, 284 364, 244 420 
+                   C204 476, 244 580, 324 620 
+                   C404 660, 512 604, 512 512" 
+                fill="none" 
+                stroke="url(#infinity1)" 
+                stroke-width="28" 
+                stroke-linecap="round"
+                filter="url(#glow1)"/>
+          <!-- Center dot -->
+          <circle cx="512" cy="512" r="16" fill="#00ffcc" filter="url(#glow1)"/>
+        </svg>
+      </div>
+      <div class="icon-name">INFINITY LOOP</div>
+      <div class="icon-desc">무한 결정 순환<br/>The eternal decision cycle</div>
+      <div class="size-variants">
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <path d="M512 512 C512 420, 620 380, 700 420 C780 460, 820 540, 780 600 C740 660, 620 660, 512 512 C404 364, 284 364, 244 420 C204 476, 244 580, 324 620 C404 660, 512 604, 512 512" fill="none" stroke="#00d4aa" stroke-width="32" stroke-linecap="round"/>
+            <circle cx="512" cy="512" r="20" fill="#00ffcc"/>
+          </svg>
+          <span class="size-label">60px</span>
+        </div>
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <path d="M512 512 C512 420, 620 380, 700 420 C780 460, 820 540, 780 600 C740 660, 620 660, 512 512 C404 364, 284 364, 244 420 C204 476, 244 580, 324 620 C404 660, 512 604, 512 512" fill="none" stroke="#00d4aa" stroke-width="40" stroke-linecap="round"/>
+          </svg>
+          <span class="size-label">40px</span>
+        </div>
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <path d="M512 512 C512 420, 620 380, 700 420 C780 460, 820 540, 780 600 C740 660, 620 660, 512 512 C404 364, 284 364, 244 420 C204 476, 244 580, 324 620 C404 660, 512 604, 512 512" fill="none" stroke="#00d4aa" stroke-width="60" stroke-linecap="round"/>
+          </svg>
+          <span class="size-label">20px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Icon 2: Glowing Ring -->
+    <div class="icon-card">
+      <div class="icon-preview">
+        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="bg2" cx="50%" cy="50%" r="70%">
+              <stop offset="0%" stop-color="#0a1a15"/>
+              <stop offset="100%" stop-color="#000000"/>
+            </radialGradient>
+            <filter id="glow2" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="25" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <radialGradient id="centerGlow2" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="rgba(0,255,204,0.4)"/>
+              <stop offset="100%" stop-color="transparent"/>
+            </radialGradient>
+          </defs>
+          <rect width="1024" height="1024" fill="url(#bg2)"/>
+          <!-- Outer glow rings -->
+          <circle cx="512" cy="512" r="320" fill="none" stroke="rgba(0,212,170,0.08)" stroke-width="60"/>
+          <circle cx="512" cy="512" r="280" fill="none" stroke="rgba(0,212,170,0.15)" stroke-width="40"/>
+          <!-- Main ring -->
+          <circle cx="512" cy="512" r="220" fill="none" stroke="#00d4aa" stroke-width="24" filter="url(#glow2)"/>
+          <!-- Inner ring -->
+          <circle cx="512" cy="512" r="180" fill="none" stroke="rgba(0,212,170,0.3)" stroke-width="2"/>
+          <!-- Center glow -->
+          <circle cx="512" cy="512" r="100" fill="url(#centerGlow2)"/>
+          <!-- Center dot -->
+          <circle cx="512" cy="512" r="24" fill="#00ffcc" filter="url(#glow2)"/>
+        </svg>
+      </div>
+      <div class="icon-name">GLOWING RING</div>
+      <div class="icon-desc">핵심 루프의 심장<br/>The heart of the core loop</div>
+      <div class="size-variants">
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="280" fill="none" stroke="rgba(0,212,170,0.2)" stroke-width="40"/>
+            <circle cx="512" cy="512" r="220" fill="none" stroke="#00d4aa" stroke-width="28"/>
+            <circle cx="512" cy="512" r="28" fill="#00ffcc"/>
+          </svg>
+          <span class="size-label">60px</span>
+        </div>
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="260" fill="none" stroke="#00d4aa" stroke-width="40"/>
+            <circle cx="512" cy="512" r="40" fill="#00ffcc"/>
+          </svg>
+          <span class="size-label">40px</span>
+        </div>
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="300" fill="none" stroke="#00d4aa" stroke-width="80"/>
+          </svg>
+          <span class="size-label">20px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Icon 3: Quantum Wave -->
+    <div class="icon-card">
+      <div class="icon-preview">
+        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="bg3" cx="50%" cy="50%" r="70%">
+              <stop offset="0%" stop-color="#0a1a15"/>
+              <stop offset="100%" stop-color="#000000"/>
+            </radialGradient>
+            <filter id="glow3" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="15" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <rect width="1024" height="1024" fill="url(#bg3)"/>
+          <!-- Outer circle -->
+          <circle cx="512" cy="512" r="300" fill="none" stroke="rgba(0,212,170,0.15)" stroke-width="2"/>
+          <!-- Wave paths -->
+          <path d="M212 512 Q312 412, 412 512 T612 512 T812 512" fill="none" stroke="rgba(0,212,170,0.4)" stroke-width="16" stroke-linecap="round"/>
+          <path d="M212 512 Q312 612, 412 512 T612 512 T812 512" fill="none" stroke="rgba(0,212,170,0.4)" stroke-width="16" stroke-linecap="round"/>
+          <!-- Main ring -->
+          <circle cx="512" cy="512" r="240" fill="none" stroke="#00d4aa" stroke-width="20" filter="url(#glow3)"/>
+          <!-- Center orb -->
+          <circle cx="512" cy="512" r="50" fill="rgba(0,212,170,0.2)"/>
+          <circle cx="512" cy="512" r="30" fill="#00d4aa" filter="url(#glow3)"/>
+          <!-- Particles -->
+          <circle cx="380" cy="460" r="8" fill="#00ffcc" opacity="0.6"/>
+          <circle cx="644" cy="564" r="6" fill="#00ffcc" opacity="0.5"/>
+          <circle cx="450" cy="600" r="5" fill="#00ffcc" opacity="0.4"/>
+          <circle cx="580" cy="430" r="7" fill="#00ffcc" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="icon-name">QUANTUM WAVE</div>
+      <div class="icon-desc">양자 파동 에너지<br/>Quantum wave energy</div>
+      <div class="size-variants">
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <path d="M212 512 Q362 362, 512 512 T812 512" fill="none" stroke="rgba(0,212,170,0.5)" stroke-width="20" stroke-linecap="round"/>
+            <circle cx="512" cy="512" r="240" fill="none" stroke="#00d4aa" stroke-width="24"/>
+            <circle cx="512" cy="512" r="36" fill="#00ffcc"/>
+          </svg>
+          <span class="size-label">60px</span>
+        </div>
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="260" fill="none" stroke="#00d4aa" stroke-width="36"/>
+            <path d="M262 512 Q387 387, 512 512 T762 512" fill="none" stroke="rgba(0,212,170,0.6)" stroke-width="24"/>
+            <circle cx="512" cy="512" r="40" fill="#00ffcc"/>
+          </svg>
+          <span class="size-label">40px</span>
+        </div>
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="300" fill="none" stroke="#00d4aa" stroke-width="60"/>
+            <circle cx="512" cy="512" r="80" fill="#00ffcc"/>
+          </svg>
+          <span class="size-label">20px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Icon 4: Holographic Orb -->
+    <div class="icon-card">
+      <div class="icon-preview">
+        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="bg4" cx="50%" cy="50%" r="70%">
+              <stop offset="0%" stop-color="#0a1a15"/>
+              <stop offset="100%" stop-color="#000000"/>
+            </radialGradient>
+            <radialGradient id="orb4" cx="35%" cy="35%" r="60%">
+              <stop offset="0%" stop-color="rgba(0,255,204,0.5)"/>
+              <stop offset="40%" stop-color="rgba(0,212,170,0.25)"/>
+              <stop offset="70%" stop-color="rgba(0,212,170,0.1)"/>
+              <stop offset="100%" stop-color="transparent"/>
+            </radialGradient>
+            <filter id="glow4" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="20" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <rect width="1024" height="1024" fill="url(#bg4)"/>
+          <!-- Outer glow -->
+          <circle cx="512" cy="512" r="280" fill="rgba(0,212,170,0.05)" filter="url(#glow4)"/>
+          <!-- Main orb -->
+          <circle cx="512" cy="512" r="240" fill="url(#orb4)" stroke="rgba(0,212,170,0.5)" stroke-width="3"/>
+          <!-- Highlight -->
+          <ellipse cx="440" cy="420" rx="60" ry="40" fill="rgba(255,255,255,0.15)"/>
+          <!-- Inner ring -->
+          <ellipse cx="512" cy="512" rx="160" ry="60" fill="none" stroke="rgba(0,212,170,0.3)" stroke-width="2" transform="rotate(-20 512 512)"/>
+          <!-- Core -->
+          <circle cx="512" cy="512" r="40" fill="rgba(0,255,204,0.4)"/>
+          <circle cx="512" cy="512" r="20" fill="#00ffcc" filter="url(#glow4)"/>
+        </svg>
+      </div>
+      <div class="icon-name">HOLOGRAPHIC ORB</div>
+      <div class="icon-desc">3D 홀로그램 구체<br/>3D holographic sphere</div>
+      <div class="size-variants">
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="orb4s" cx="35%" cy="35%" r="60%">
+                <stop offset="0%" stop-color="rgba(0,255,204,0.5)"/>
+                <stop offset="50%" stop-color="rgba(0,212,170,0.2)"/>
+                <stop offset="100%" stop-color="transparent"/>
+              </radialGradient>
+            </defs>
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="280" fill="url(#orb4s)" stroke="rgba(0,212,170,0.5)" stroke-width="6"/>
+            <circle cx="512" cy="512" r="40" fill="#00ffcc"/>
+          </svg>
+          <span class="size-label">60px</span>
+        </div>
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="orb4m" cx="35%" cy="35%" r="60%">
+                <stop offset="0%" stop-color="rgba(0,255,204,0.6)"/>
+                <stop offset="100%" stop-color="rgba(0,212,170,0.1)"/>
+              </radialGradient>
+            </defs>
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="320" fill="url(#orb4m)" stroke="rgba(0,212,170,0.5)" stroke-width="8"/>
+          </svg>
+          <span class="size-label">40px</span>
+        </div>
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="orb4xs" cx="35%" cy="35%" r="60%">
+                <stop offset="0%" stop-color="#00ffcc"/>
+                <stop offset="100%" stop-color="#00d4aa"/>
+              </radialGradient>
+            </defs>
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="360" fill="url(#orb4xs)"/>
+          </svg>
+          <span class="size-label">20px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Icon 5: Minimal Pulse -->
+    <div class="icon-card">
+      <div class="icon-preview">
+        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="bg5" cx="50%" cy="50%" r="70%">
+              <stop offset="0%" stop-color="#0a1a15"/>
+              <stop offset="100%" stop-color="#000000"/>
+            </radialGradient>
+            <filter id="glow5" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="30" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <rect width="1024" height="1024" fill="url(#bg5)"/>
+          <!-- Pulse rings -->
+          <circle cx="512" cy="512" r="360" fill="none" stroke="rgba(0,212,170,0.05)" stroke-width="2"/>
+          <circle cx="512" cy="512" r="300" fill="none" stroke="rgba(0,212,170,0.1)" stroke-width="2"/>
+          <circle cx="512" cy="512" r="240" fill="none" stroke="rgba(0,212,170,0.15)" stroke-width="3"/>
+          <circle cx="512" cy="512" r="180" fill="none" stroke="rgba(0,212,170,0.25)" stroke-width="4"/>
+          <!-- Core pulse -->
+          <circle cx="512" cy="512" r="100" fill="rgba(0,212,170,0.15)"/>
+          <circle cx="512" cy="512" r="60" fill="rgba(0,212,170,0.3)"/>
+          <circle cx="512" cy="512" r="36" fill="#00d4aa" filter="url(#glow5)"/>
+          <circle cx="512" cy="512" r="20" fill="#00ffcc"/>
+        </svg>
+      </div>
+      <div class="icon-name">MINIMAL PULSE</div>
+      <div class="icon-desc">미니멀 펄스<br/>Minimal heartbeat</div>
+      <div class="size-variants">
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="300" fill="none" stroke="rgba(0,212,170,0.15)" stroke-width="4"/>
+            <circle cx="512" cy="512" r="200" fill="none" stroke="rgba(0,212,170,0.25)" stroke-width="6"/>
+            <circle cx="512" cy="512" r="80" fill="rgba(0,212,170,0.3)"/>
+            <circle cx="512" cy="512" r="40" fill="#00ffcc"/>
+          </svg>
+          <span class="size-label">60px</span>
+        </div>
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="280" fill="none" stroke="rgba(0,212,170,0.2)" stroke-width="8"/>
+            <circle cx="512" cy="512" r="120" fill="rgba(0,212,170,0.3)"/>
+            <circle cx="512" cy="512" r="60" fill="#00ffcc"/>
+          </svg>
+          <span class="size-label">40px</span>
+        </div>
+        <div class="size-variant">
+          <svg viewBox="0 0 1024 1024" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" fill="#000"/>
+            <circle cx="512" cy="512" r="300" fill="rgba(0,212,170,0.3)"/>
+            <circle cx="512" cy="512" r="150" fill="#00ffcc"/>
+          </svg>
+          <span class="size-label">20px</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendation -->
+  <div class="recommendation">
+    <div class="recommendation-label">RECOMMENDED FOR APP STORE</div>
+    <div class="recommendation-value">MINIMAL PULSE or GLOWING RING</div>
+  </div>
+
+  <!-- Spec Table -->
+  <div class="spec-table">
+    <h2>ICON SPECIFICATIONS</h2>
+    <div class="spec-row">
+      <span class="spec-label">Base Size</span>
+      <span class="spec-value">1024 × 1024 px</span>
+    </div>
+    <div class="spec-row">
+      <span class="spec-label">Format</span>
+      <span class="spec-value">SVG (scalable)</span>
+    </div>
+    <div class="spec-row">
+      <span class="spec-label">Background</span>
+      <span class="spec-value">#000000 (pure black)</span>
+    </div>
+    <div class="spec-row">
+      <span class="spec-label">Primary Color</span>
+      <span class="spec-value">#00d4aa (teal)</span>
+    </div>
+    <div class="spec-row">
+      <span class="spec-label">Accent Color</span>
+      <span class="spec-value">#00ffcc (bright teal)</span>
+    </div>
+    <div class="spec-row">
+      <span class="spec-label">Corner Radius (iOS)</span>
+      <span class="spec-value">~22.37% (auto-masked)</span>
+    </div>
+    <div class="spec-row">
+      <span class="spec-label">Corner Radius (Android)</span>
+      <span class="spec-value">Adaptive icon support</span>
+    </div>
+  </div>
+
+  <div class="download-section">
+    <a class="download-btn" onclick="alert('Right-click on any icon preview → Save Image As → PNG/SVG')">EXPORT INSTRUCTIONS</a>
+  </div>
+</body>
+</html>
+
+
+
+
+
+
+

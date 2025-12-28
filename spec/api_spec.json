@@ -1,0 +1,111 @@
+{
+  "version": "autus.api.v1",
+  "lock": true,
+  "base_url": "http://localhost:8001",
+  "endpoints": {
+    "GET /state": {
+      "description": "현재 물리 상태 및 그래프 데이터 조회",
+      "params": {
+        "session_id": {"type": "string", "required": true}
+      },
+      "response": {
+        "session_id": "string",
+        "t_ms": "integer",
+        "state_hash": "string (16자)",
+        "measure": "Measure",
+        "forecast": "Forecast",
+        "graph": "Graph",
+        "ui": "UI",
+        "draft": "Draft",
+        "replay": "Replay"
+      }
+    },
+    "POST /draft/update": {
+      "description": "SIM 모드에서 Draft 값 임시 업데이트",
+      "body": {
+        "session_id": {"type": "string", "required": true},
+        "t_ms": {"type": "integer", "required": true},
+        "page": {"type": "integer", "enum": [1, 2, 3], "required": true},
+        "patch": {
+          "description": "페이지별 패치 데이터",
+          "page1": {"mass_mod": "float [-0.5, 0.5]", "volume_override": "float [0.01, 1.0]", "horizon": "Horizon"},
+          "page2": {"sigma_delta": "float [-0.5, 0.5]", "ops": "NodeOp[]"},
+          "page3": {"allocations": {"N": "float", "NE": "float", "...": "float"}}
+        }
+      },
+      "response": {
+        "ok": "boolean",
+        "session_id": "string",
+        "page": "integer",
+        "updated_fields": "string[]"
+      }
+    },
+    "POST /commit": {
+      "description": "Draft를 LIVE 상태로 확정 전이",
+      "body": {
+        "session_id": {"type": "string", "required": true},
+        "t_ms": {"type": "integer", "required": true}
+      },
+      "response": {
+        "ok": "boolean",
+        "session_id": "string",
+        "state_hash": "string",
+        "marker_id": "string",
+        "processing_steps": "string[]"
+      },
+      "pipeline_order": [
+        "STAGE 1: Page 3 (Mandala Transform)",
+        "STAGE 2: Page 1 (Mass/Volume)",
+        "STAGE 3: Page 2 (NodeOps)",
+        "STAGE 4: Kernel Recalc (Density/Stability)",
+        "STAGE 5: Forecast Update",
+        "STAGE 6: Finalize Marker"
+      ]
+    },
+    "POST /replay/marker": {
+      "description": "불변의 Replay Marker 생성",
+      "body": {
+        "session_id": {"type": "string", "required": true},
+        "state_hash": {"type": "string", "required": true}
+      },
+      "response": {
+        "marker": {
+          "marker_id": "string",
+          "t_ms": "integer",
+          "state_hash": "string",
+          "chain_hash": "string"
+        }
+      }
+    }
+  },
+  "node_operations": {
+    "NODE_CREATE": {
+      "fields": ["op_id", "type", "t_ms", "node_id", "mass", "sigma"],
+      "constraints": {"mass": [0.01, 1.0], "sigma": [0.0, 1.0]}
+    },
+    "NODE_DELETE": {
+      "fields": ["op_id", "type", "t_ms", "node_id"],
+      "constraints": {"node_id": "!= SELF"}
+    },
+    "NODE_MASS_SCALE": {
+      "fields": ["op_id", "type", "t_ms", "node_id", "scale"],
+      "constraints": {"scale": [0.1, 10.0]}
+    },
+    "EDGE_WEIGHT_SET": {
+      "fields": ["op_id", "type", "t_ms", "a", "b", "weight"],
+      "constraints": {"weight": [0.0, 1.0]}
+    }
+  },
+  "validation_limits": {
+    "max_ops_per_commit": 200,
+    "mass_mod_range": [-0.5, 0.5],
+    "volume_range": [0.01, 1.0],
+    "sigma_delta_range": [-0.5, 0.5],
+    "allocation_sum": 1.0
+  }
+}
+
+
+
+
+

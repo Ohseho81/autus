@@ -1,0 +1,171 @@
+# AUTUS Kernel Service
+
+**결정론적 물리 엔진 - 독립 서비스**
+
+```
+Port: 8001
+Version: 1.0.0
+Status: LOCKED
+```
+
+---
+
+## Quick Start
+
+```bash
+cd kernel_service
+pip install -e .[dev]
+uvicorn app.main:app --reload --port 8001
+pytest -q
+```
+
+---
+
+## Architecture
+
+```
+╔═══════════════════════════════════════════════════════════════╗
+║                    AUTUS KERNEL SERVICE                       ║
+║                        (Port 8001)                            ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                               ║
+║  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐       ║
+║  │  Registry   │───▶│   Kernel    │───▶│   Chain     │       ║
+║  │  (68 M)     │    │ (Step/Lvl2) │    │  (Log)      │       ║
+║  └─────────────┘    └─────────────┘    └─────────────┘       ║
+║         │                  │                  │               ║
+║         ▼                  ▼                  ▼               ║
+║  ┌─────────────────────────────────────────────────┐         ║
+║  │                    Replay                        │         ║
+║  │              (Determinism Verify)                │         ║
+║  └─────────────────────────────────────────────────┘         ║
+║                          │                                    ║
+║                          ▼                                    ║
+║  ┌─────────────────────────────────────────────────┐         ║
+║  │                   Validator                      │         ║
+║  │            (Constitutional Enforcement)          │         ║
+║  └─────────────────────────────────────────────────┘         ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+```
+
+---
+
+## API Endpoints
+
+### Health
+```
+GET /health
+```
+
+### Kernel
+```
+POST /kernel/step      # Execute one step
+POST /kernel/reset     # Reset state
+GET  /kernel/state     # Get current state
+POST /kernel/forecast  # Forecast (no state change)
+```
+
+### Log (Chain)
+```
+POST /log/append       # Append to chain
+GET  /log/entries      # Get entries
+GET  /log/verify       # Verify integrity
+GET  /log/export       # Export chain
+```
+
+### Replay
+```
+POST /replay/sequence  # Replay motion sequence
+POST /replay/verify    # Verify determinism
+GET  /replay/from-chain # Replay from log
+```
+
+### LLM (Validator-wrapped)
+```
+POST /llm/estimate     # Validate LLM output
+```
+
+### Gate (Level 3)
+```
+POST /gate/consent     # Consent gate
+```
+
+---
+
+## Core Principle
+
+```
+사람은 '세계가 어떻게 작동하는지'를 고정하고
+LLM은 '그 세계 안에서 어디로 가볼지'를 탐색한다.
+
+Human defines HOW. LLM explores WHERE.
+```
+
+---
+
+## Determinism Rules
+
+1. **No External Calls** - 외부 호출 금지
+2. **No Random** - 난수 금지  
+3. **No Time Dependency** - 시간 의존 금지
+4. **Same Input = Same Output** - 동일 입력 = 동일 출력
+
+---
+
+## Success Criteria
+
+✅ Determinism Test 통과  
+✅ Replay Consistency Test 통과  
+✅ Immutable Log Chain 무결성  
+
+---
+
+## Files
+
+```
+kernel_service/
+├── app/
+│   ├── __init__.py
+│   ├── kernel.py      # Deterministic engine
+│   ├── chain.py       # Hash chain log
+│   ├── replay.py      # Replay engine
+│   ├── validator.py   # Constitutional enforcer
+│   └── main.py        # FastAPI endpoints
+├── data/
+│   └── motion_registry.json  # 68 motions
+├── tests/
+│   └── test_determinism.py
+├── pyproject.toml
+└── README.md
+```
+
+---
+
+## Integration with AUTUS
+
+AUTUS (Port 8000) calls Kernel (Port 8001):
+
+```python
+# In AUTUS
+import httpx
+
+async def emit_motion(motion_id: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/kernel/step",
+            json={"motion_id": motion_id}
+        )
+        return response.json()
+```
+
+---
+
+**Version: 1.0.0 🔒**
+
+
+
+
+
+
+

@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>AUTUS</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    :root {
+      --teal: #00d4aa;
+      --teal-dim: rgba(0, 212, 170, 0.2);
+      --teal-glow: rgba(0, 212, 170, 0.5);
+      --teal-bright: #00ffcc;
+      --blue: #00b4d8;
+      --red: #ff3b5c;
+      --red-dim: rgba(255, 59, 92, 0.15);
+      --red-glow: rgba(255, 59, 92, 0.4);
+      --bg: #000000;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: #fff;
+      font-family: 'Inter', -apple-system, sans-serif;
+      touch-action: none;
+    }
+
+    /* ============================================
+       SCREEN CONTAINER
+    ============================================ */
+
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.8s ease;
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Progress dots */
+    .progress {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .progress-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      transition: all 0.4s ease;
+    }
+
+    .progress-dot.active {
+      background: var(--teal);
+      box-shadow: 0 0 10px var(--teal);
+    }
+
+    .progress-dot.done {
+      background: rgba(0, 212, 170, 0.4);
+    }
+
+    /* Timer bar */
+    .timer-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: var(--teal);
+      width: 0%;
+      transition: width 0.1s linear;
+      z-index: 100;
+    }
+
+    /* ============================================
+       SCREEN 1: EXTERNAL FLOW
+       "결정은 이미 외부에서 만들어지고 있다"
+    ============================================ */
+
+    .screen-1 {
+      background: radial-gradient(ellipse at center, rgba(0,212,170,0.03) 0%, transparent 70%);
+    }
+
+    .external-map {
+      position: relative;
+      width: 320px;
+      height: 320px;
+    }
+
+    .external-map canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Delta indicator - shows change WITHOUT user action */
+    .delta-indicator {
+      position: absolute;
+      bottom: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    .delta-label {
+      font-size: 7px;
+      letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.2);
+      margin-bottom: 6px;
+    }
+
+    .delta-value {
+      font-size: 28px;
+      font-weight: 300;
+      color: var(--red);
+      text-shadow: 0 0 20px var(--red-dim);
+      animation: pulse-red 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-red {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+    .delta-sub {
+      font-size: 8px;
+      color: rgba(255, 255, 255, 0.15);
+      margin-top: 4px;
+      letter-spacing: 0.1em;
+    }
+
+    /* Loop already spinning (no user action) */
+    .auto-loop {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+    }
+
+    .auto-loop-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid var(--teal);
+      animation: spin 3s linear infinite;
+      box-shadow: 0 0 20px var(--teal-dim);
+    }
+
+    .auto-loop-core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 12px;
+      height: 12px;
+      background: var(--teal);
+      border-radius: 50%;
+      box-shadow: 0 0 15px var(--teal);
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================================
+       SCREEN 2: COST OF ACTION
+       "모든 행동에는 물리적 대가가 있다"
+    ============================================ */
+
+    .screen-2 {
+      background: radial-gradient(ellipse at center, rgba(0,180,216,0.03) 0%, transparent 70%);
+    }
+
+    .action-demo {
+      position: relative;
+      width: 300px;
+      height: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    /* Bottleneck visualization */
+    .bottleneck-viz {
+      position: relative;
+      width: 200px;
+      height: 140px;
+    }
+
+    .bottleneck-viz canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Action button */
+    .action-btn {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 2px solid var(--teal);
+      background: radial-gradient(ellipse at 30% 30%, rgba(0,212,170,0.15) 0%, transparent 70%);
+      color: var(--teal);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      cursor: pointer;
+      outline: none;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .action-btn::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 212, 170, 0.2);
+      animation: btn-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes btn-pulse {
+      0%, 100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(1.1); opacity: 0.1; }
+    }
+
+    .action-btn:active {
+      transform: scale(0.95);
+      background: radial-gradient(ellipse at 30% 30%, rgba(0,212,170,0.3) 0%, transparent 70%);
+    }
+
+    .action-btn.fired {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    /* Risk indicator (appears after action) */
+    .risk-indicator {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .risk-indicator.show {
+      opacity: 1;
+    }
+
+    .risk-label {
+      font-size: 7px;
+      letter-spacing: 0.12em;
+      color: rgba(255, 59, 92, 0.5);
+      margin-bottom: 4px;
+    }
+
+    .risk-value {
+      font-size: 32px;
+      font-weight: 300;
+      color: var(--red);
+      text-shadow: 0 0 25px var(--red-glow);
+      animation: risk-shake 0.3s ease-in-out;
+    }
+
+    @keyframes risk-shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-4px); }
+      40% { transform: translateX(4px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .risk-sub {
+      font-size: 8px;
+      color: rgba(255, 255, 255, 0.15);
+      margin-top: 4px;
+    }
+
+    /* Contagion wave overlay */
+    .contagion-wave {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .contagion-wave.active {
+      opacity: 1;
+      animation: contagion-flash 0.8s ease-out;
+    }
+
+    @keyframes contagion-flash {
+      0% { background: rgba(255, 59, 92, 0.15); }
+      100% { background: transparent; }
+    }
+
+    /* ============================================
+       SCREEN 3: NO JUDGMENT
+       "시스템은 절대 판단하지 않는다"
+       ⚠️ Only show ΔS (deviation), never "loss"
+    ============================================ */
+
+    .screen-3 {
+      transition: background 0.5s ease;
+    }
+
+    .screen-3.deviation-mode {
+      background: radial-gradient(ellipse at center, rgba(255,59,92,0.08) 0%, transparent 70%);
+    }
+
+    .deviation-demo {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+    }
+
+    /* Big ΔS number (NOT "loss") */
+    .deviation-display {
+      text-align: center;
+    }
+
+    .deviation-main {
+      font-size: 64px;
+      font-weight: 300;
+      color: var(--red);
+      text-shadow: 0 0 40px var(--red-glow);
+      transition: all 0.2s ease;
+    }
+
+    .deviation-main.shake {
+      animation: deviation-shake 0.15s linear infinite;
+    }
+
+    @keyframes deviation-shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
+
+    .deviation-unit {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: rgba(255, 255, 255, 0.2);
+      margin-top: 8px;
+    }
+
+    /* Stress wave */
+    .stress-wave-container {
+      width: 100%;
+      height: 80px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      background: rgba(255, 59, 92, 0.03);
+    }
+
+    .stress-wave-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* NO text - only physics */
+    .no-judgment-notice {
+      display: none; /* Hidden - no text judgment */
+    }
+
+    /* Screen shake effect */
+    .screen-3.shaking {
+      animation: screen-shake 0.4s ease;
+    }
+
+    @keyframes screen-shake {
+      0%, 100% { transform: translateX(0) translateY(0); }
+      10% { transform: translateX(-5px) translateY(-2px); }
+      30% { transform: translateX(5px) translateY(2px); }
+      50% { transform: translateX(-5px) translateY(-2px); }
+      70% { transform: translateX(5px) translateY(2px); }
+      90% { transform: translateX(-5px) translateY(-2px); }
+    }
+
+    /* Red pulse overlay */
+    .red-pulse-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, rgba(255,59,92,0.1) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .red-pulse-overlay.active {
+      animation: red-pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes red-pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+
+    /* ============================================
+       SCREEN 4: START
+    ============================================ */
+
+    .screen-4 {
+      background: radial-gradient(ellipse at center, rgba(0,212,170,0.05) 0%, transparent 70%);
+    }
+
+    .start-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .start-logo {
+      width: 120px;
+      height: 120px;
+      position: relative;
+    }
+
+    .start-logo-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid var(--teal);
+      animation: spin 4s linear infinite;
+      box-shadow: 0 0 30px var(--teal-dim);
+    }
+
+    .start-logo-core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      background: var(--teal);
+      border-radius: 50%;
+      box-shadow: 0 0 25px var(--teal);
+    }
+
+    .start-btn {
+      padding: 16px 48px;
+      border-radius: 40px;
+      border: 1px solid var(--teal);
+      background: radial-gradient(ellipse at 30% 30%, rgba(0,212,170,0.1) 0%, transparent 70%);
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.3em;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .start-btn:hover {
+      background: radial-gradient(ellipse at 30% 30%, rgba(0,212,170,0.2) 0%, transparent 70%);
+      box-shadow: 0 0 30px var(--teal-dim);
+    }
+
+    /* Skip button */
+    .skip-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      color: rgba(255, 255, 255, 0.25);
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      z-index: 100;
+      transition: all 0.2s ease;
+    }
+
+    .skip-btn:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Timer bar -->
+  <div class="timer-bar" id="timerBar"></div>
+
+  <!-- Skip button -->
+  <button class="skip-btn" onclick="skipToStart()">SKIP</button>
+
+  <!-- Progress dots -->
+  <div class="progress">
+    <div class="progress-dot active" id="dot1"></div>
+    <div class="progress-dot" id="dot2"></div>
+    <div class="progress-dot" id="dot3"></div>
+  </div>
+
+  <!-- ============================================
+       SCREEN 1: EXTERNAL FLOW
+       Fact: 결정은 이미 외부에서 만들어지고 있다
+  ============================================ -->
+  <div class="screen screen-1 active" id="screen1">
+    <div class="external-map">
+      <canvas id="externalMapCanvas"></canvas>
+      <!-- Loop already spinning - user did nothing -->
+      <div class="auto-loop">
+        <div class="auto-loop-ring"></div>
+        <div class="auto-loop-core"></div>
+      </div>
+    </div>
+    <div class="delta-indicator">
+      <div class="delta-label">STATE CHANGING</div>
+      <div class="delta-value" id="externalDelta">ΔS 0.12</div>
+      <div class="delta-sub">WITHOUT YOUR INPUT</div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       SCREEN 2: COST OF ACTION
+       Fact: 모든 행동에는 물리적 대가가 있다
+  ============================================ -->
+  <div class="screen screen-2" id="screen2">
+    <div class="action-demo">
+      <div class="bottleneck-viz">
+        <canvas id="bottleneckCanvas"></canvas>
+      </div>
+      <button class="action-btn" id="actionBtn">INJECT</button>
+      <div class="risk-indicator" id="riskIndicator">
+        <div class="risk-label">NEW RISK</div>
+        <div class="risk-value">+12%</div>
+        <div class="risk-sub">SECONDARY EFFECT</div>
+      </div>
+    </div>
+    <div class="contagion-wave" id="contagionWave"></div>
+  </div>
+
+  <!-- ============================================
+       SCREEN 3: NO JUDGMENT
+       Fact: 시스템은 절대 판단하지 않는다
+       ⚠️ Show ΔS (deviation), not "loss"
+  ============================================ -->
+  <div class="screen screen-3" id="screen3">
+    <div class="deviation-demo">
+      <div class="deviation-display">
+        <div class="deviation-main" id="deviationMain">ΔS 0.00</div>
+        <div class="deviation-unit">STATE DIVERGENCE</div>
+      </div>
+      <div class="stress-wave-container">
+        <canvas class="stress-wave-canvas" id="stressCanvas"></canvas>
+      </div>
+    </div>
+    <div class="red-pulse-overlay" id="redPulse"></div>
+  </div>
+
+  <!-- ============================================
+       SCREEN 4: START
+  ============================================ -->
+  <div class="screen screen-4" id="screen4">
+    <div class="start-content">
+      <div class="start-logo">
+        <div class="start-logo-ring"></div>
+        <div class="start-logo-core"></div>
+      </div>
+      <button class="start-btn" onclick="startApp()">BEGIN</button>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * AUTUS Onboarding - Physical Experience
+     * Definition v1.0 Final Lock
+     * "Show, don't tell" - No text explanations
+     * 
+     * ⚠️ SEMANTIC NEUTRALITY:
+     * - No "loss", only "deviation" (ΔS)
+     * - No "goal", only "reference"
+     * - Numbers only, no judgment
+     * 
+     * 3 Facts conveyed through physics:
+     * 1. State changes are already occurring externally
+     * 2. Every action has a physical cost (CU)
+     * 3. The system never judges - physics only
+     */
+
+    const $ = id => document.getElementById(id);
+    
+    const state = {
+      currentScreen: 1,
+      screenDuration: 10000, // 10 seconds per screen
+      timer: null,
+      timerStart: 0,
+      screen2Fired: false,
+      deviationValue: 0,  // ΔS (state deviation), NOT "loss"
+    };
+
+    // ============================================
+    // Screen 1: External Flow
+    // ============================================
+
+    function initScreen1() {
+      const canvas = $('externalMapCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 640;
+      canvas.height = 640;
+
+      const nodes = [];
+      const cx = 320, cy = 320;
+
+      // Create external nodes (money/time flowing WITHOUT user action)
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const r = 100 + Math.random() * 50;
+        nodes.push({
+          x: cx + Math.cos(angle) * r,
+          y: cy + Math.sin(angle) * r,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          size: 8 + Math.random() * 8,
+          type: Math.random() > 0.5 ? 'money' : 'time',
+        });
+      }
+
+      // Particles flowing between nodes
+      const particles = [];
+      for (let i = 0; i < 30; i++) {
+        particles.push({
+          x: cx,
+          y: cy,
+          targetNode: Math.floor(Math.random() * nodes.length),
+          progress: Math.random(),
+          speed: 0.005 + Math.random() * 0.01,
+          outward: Math.random() > 0.5,
+        });
+      }
+
+      let externalDelta = 0.12;  // ΔS value (not currency)
+
+      function draw() {
+        if (state.currentScreen !== 1) return;
+        
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+        ctx.fillRect(0, 0, 640, 640);
+
+        // Draw connections
+        nodes.forEach((node, i) => {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(node.x, node.y);
+          ctx.strokeStyle = node.type === 'money' ? 'rgba(0, 212, 170, 0.15)' : 'rgba(0, 180, 216, 0.15)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+
+        // Draw nodes
+        nodes.forEach(node => {
+          // Move nodes slightly (external activity)
+          node.x += node.vx;
+          node.y += node.vy;
+          if (node.x < 200 || node.x > 440) node.vx *= -1;
+          if (node.y < 200 || node.y > 440) node.vy *= -1;
+
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.size, 0, Math.PI * 2);
+          ctx.fillStyle = node.type === 'money' ? 'rgba(0, 212, 170, 0.5)' : 'rgba(0, 180, 216, 0.5)';
+          ctx.fill();
+        });
+
+        // Draw particles (flow happening WITHOUT user)
+        particles.forEach(p => {
+          const target = nodes[p.targetNode];
+          const fromX = p.outward ? cx : target.x;
+          const fromY = p.outward ? cy : target.y;
+          const toX = p.outward ? target.x : cx;
+          const toY = p.outward ? target.y : cy;
+
+          p.progress += p.speed;
+          if (p.progress > 1) {
+            p.progress = 0;
+            p.targetNode = Math.floor(Math.random() * nodes.length);
+            p.outward = !p.outward;
+          }
+
+          const x = fromX + (toX - fromX) * p.progress;
+          const y = fromY + (toY - fromY) * p.progress;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = p.outward ? 'rgba(255, 59, 92, 0.6)' : 'rgba(0, 212, 170, 0.6)';
+          ctx.fill();
+        });
+
+        // Update ΔS (changing WITHOUT user action - semantic neutral)
+        externalDelta += (Math.random() - 0.6) * 0.005;
+        externalDelta = Math.max(0, Math.min(1, externalDelta));
+        $('externalDelta').textContent = 'ΔS ' + externalDelta.toFixed(2);
+
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    }
+
+    // ============================================
+    // Screen 2: Cost of Action
+    // ============================================
+
+    function initScreen2() {
+      const canvas = $('bottleneckCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 400;
+      canvas.height = 280;
+
+      let bottleneckWidth = 20; // Narrow bottleneck
+      let particles = [];
+      let riskLevel = 0;
+
+      // Create particles stuck at bottleneck
+      for (let i = 0; i < 40; i++) {
+        particles.push({
+          x: 50 + Math.random() * 100,
+          y: 70 + Math.random() * 140,
+          vx: 1 + Math.random() * 0.5,
+          vy: 0,
+          stuck: true,
+        });
+      }
+
+      function draw() {
+        if (state.currentScreen !== 2) return;
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, 400, 280);
+
+        // Draw bottleneck shape
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(180, 0);
+        ctx.lineTo(180, 140 - bottleneckWidth);
+        ctx.lineTo(220, 140 - bottleneckWidth);
+        ctx.lineTo(220, 0);
+        ctx.lineTo(400, 0);
+        ctx.lineTo(400, 280);
+        ctx.lineTo(220, 280);
+        ctx.lineTo(220, 140 + bottleneckWidth);
+        ctx.lineTo(180, 140 + bottleneckWidth);
+        ctx.lineTo(180, 280);
+        ctx.lineTo(0, 280);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw bottleneck lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(180, 140 - bottleneckWidth);
+        ctx.lineTo(220, 140 - bottleneckWidth);
+        ctx.moveTo(180, 140 + bottleneckWidth);
+        ctx.lineTo(220, 140 + bottleneckWidth);
+        ctx.stroke();
+
+        // Draw particles
+        particles.forEach(p => {
+          const bottleneckX = 180;
+          
+          if (state.screen2Fired && bottleneckWidth > 50) {
+            // After action: particles flow through
+            p.stuck = false;
+            p.vx = 2 + Math.random();
+            p.vy = (Math.random() - 0.5) * 2;
+          }
+
+          if (p.stuck) {
+            // Stuck at bottleneck
+            if (p.x > bottleneckX - 30) {
+              p.x = bottleneckX - 30 - Math.random() * 50;
+            }
+            p.x += p.vx * 0.3;
+            p.y += (Math.random() - 0.5) * 2;
+            if (p.y < 70) p.y = 70;
+            if (p.y > 210) p.y = 210;
+          } else {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x > 420) {
+              p.x = 50;
+              p.y = 70 + Math.random() * 140;
+            }
+          }
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = p.stuck ? 'rgba(0, 180, 216, 0.6)' : 'rgba(0, 212, 170, 0.6)';
+          ctx.fill();
+        });
+
+        // Animate bottleneck opening after action
+        if (state.screen2Fired && bottleneckWidth < 60) {
+          bottleneckWidth += 2;
+        }
+
+        // Show risk indicator after bottleneck opens
+        if (state.screen2Fired && bottleneckWidth > 50 && riskLevel < 12) {
+          riskLevel += 0.5;
+          if (riskLevel >= 12) {
+            $('riskIndicator').classList.add('show');
+            $('contagionWave').classList.add('active');
+            setTimeout(() => $('contagionWave').classList.remove('active'), 800);
+          }
+        }
+
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+
+      // Action button
+      $('actionBtn').addEventListener('click', () => {
+        if (!state.screen2Fired) {
+          state.screen2Fired = true;
+          $('actionBtn').classList.add('fired');
+          $('actionBtn').textContent = 'FIRED';
+        }
+      });
+    }
+
+    // ============================================
+    // Screen 3: No Judgment
+    // ⚠️ Show ΔS (deviation), NOT "loss"
+    // ============================================
+
+    function initScreen3() {
+      const canvas = $('stressCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth * 2;
+      canvas.height = canvas.offsetHeight * 2;
+      ctx.scale(2, 2);
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+
+      state.deviationValue = 0;  // ΔS (state deviation), NOT "loss"
+      let shakeTriggered = false;
+
+      function draw() {
+        if (state.currentScreen !== 3) return;
+
+        // Increase ΔS over time (state diverging from reference)
+        if (state.deviationValue < 0.85) {
+          state.deviationValue += Math.random() * 0.015;
+        }
+
+        const isHighDeviation = state.deviationValue > 0.5;
+
+        // Update ΔS display (semantic neutral - just numbers)
+        $('deviationMain').textContent = 'ΔS ' + state.deviationValue.toFixed(2);
+        $('deviationMain').classList.toggle('shake', isHighDeviation);
+
+        // Update screen state
+        $('screen3').classList.toggle('deviation-mode', state.deviationValue > 0.1);
+        $('redPulse').classList.toggle('active', isHighDeviation);
+
+        // Trigger shake at high deviation (physics effect, no judgment)
+        if (isHighDeviation && !shakeTriggered) {
+          shakeTriggered = true;
+          $('screen3').classList.add('shaking');
+          setTimeout(() => $('screen3').classList.remove('shaking'), 400);
+        }
+
+        // Draw state wave (physics visualization)
+        const t = Date.now() * 0.002;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, w, h);
+
+        // Wave amplitude based on ΔS magnitude
+        const amplitude = 10 + (state.deviationValue / 0.85) * 25;
+
+        ctx.beginPath();
+        ctx.moveTo(0, h / 2);
+        for (let x = 0; x < w; x++) {
+          const y = h / 2 + Math.sin(x * 0.03 + t) * amplitude + Math.sin(x * 0.01 + t * 0.7) * (amplitude * 0.5);
+          ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = `rgba(255, 59, 92, ${0.3 + (state.deviationValue / 0.85) * 0.5})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // NO TEXT - system shows physics only, no judgment
+
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    }
+
+    // ============================================
+    // Screen Transitions
+    // ============================================
+
+    function updateTimerBar() {
+      const elapsed = Date.now() - state.timerStart;
+      const progress = Math.min(elapsed / state.screenDuration * 100, 100);
+      $('timerBar').style.width = progress + '%';
+    }
+
+    function goToScreen(num) {
+      // Update screens
+      for (let i = 1; i <= 4; i++) {
+        $('screen' + i).classList.toggle('active', i === num);
+      }
+
+      // Update dots
+      for (let i = 1; i <= 3; i++) {
+        const dot = $('dot' + i);
+        dot.classList.toggle('active', i === num && num <= 3);
+        dot.classList.toggle('done', i < num);
+      }
+
+      state.currentScreen = num;
+
+      // Init screen content
+      if (num === 1) initScreen1();
+      if (num === 2) initScreen2();
+      if (num === 3) initScreen3();
+
+      // Auto-advance for screens 1-3
+      if (num <= 3) {
+        state.timerStart = Date.now();
+        clearInterval(state.timer);
+        state.timer = setInterval(updateTimerBar, 50);
+        
+        setTimeout(() => {
+          clearInterval(state.timer);
+          $('timerBar').style.width = '0%';
+          goToScreen(num + 1);
+        }, state.screenDuration);
+      } else {
+        // Final screen
+        clearInterval(state.timer);
+        $('timerBar').style.width = '0%';
+        document.querySelector('.progress').style.display = 'none';
+        document.querySelector('.skip-btn').style.display = 'none';
+      }
+    }
+
+    function skipToStart() {
+      clearInterval(state.timer);
+      goToScreen(4);
+    }
+
+    function startApp() {
+      // Navigate to main app
+      window.location.href = 'index.html';
+    }
+
+    // ============================================
+    // Init
+    // ============================================
+
+    goToScreen(1);
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+

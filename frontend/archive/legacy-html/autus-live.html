@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS — LIVE INTERFACE</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --cyan: #00f0ff;
+            --cyan-dim: rgba(0, 240, 255, 0.4);
+            --bg: #050608;
+            --warning: #ff8800;
+            --danger: #ff4444;
+            --success: #00ff88;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--cyan);
+            font-family: 'SF Pro Display', -apple-system, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+        }
+        
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .connection-status.connected {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        
+        .connection-status.disconnected {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+        
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .connected .status-dot { background: var(--success); }
+        .disconnected .status-dot { background: var(--danger); }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Page Navigation */
+        .page-nav {
+            position: fixed;
+            top: 50%;
+            right: 16px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        .page-btn {
+            width: 48px; height: 48px;
+            border: 2px solid var(--cyan-dim);
+            border-radius: 12px;
+            background: rgba(5, 6, 8, 0.9);
+            color: var(--cyan-dim);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .page-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+        .page-btn.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 16px rgba(0, 240, 255, 0.2);
+        }
+        
+        /* Mode Badge */
+        .mode-badge {
+            position: fixed;
+            top: 12px;
+            right: 80px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            z-index: 100;
+            transition: all 0.3s;
+        }
+        
+        .mode-badge.sim {
+            background: rgba(255, 136, 0, 0.1);
+            border: 1px dashed var(--warning);
+            color: var(--warning);
+        }
+        
+        .mode-badge.live {
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+        }
+        
+        /* HUD Panel */
+        .hud-panel {
+            position: fixed;
+            top: 50px;
+            left: 16px;
+            background: rgba(5, 6, 8, 0.95);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 12px;
+            padding: 14px 18px;
+            z-index: 100;
+            min-width: 160px;
+            font-family: 'SF Mono', monospace;
+        }
+        
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+        
+        .hud-label { color: rgba(0, 240, 255, 0.5); }
+        .hud-value { font-weight: 600; }
+        .hud-value.warning { color: var(--warning); }
+        .hud-value.danger { color: var(--danger); }
+        
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 80px;
+            left: 16px;
+            background: rgba(5, 6, 8, 0.95);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            z-index: 100;
+            min-width: 260px;
+        }
+        
+        .control-group {
+            margin-bottom: 14px;
+        }
+        
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .control-label {
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: rgba(0, 240, 255, 0.6);
+        }
+        
+        .control-value {
+            font-size: 11px;
+            font-family: 'SF Mono', monospace;
+        }
+        
+        .slider {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 4px;
+            background: rgba(0, 240, 255, 0.2);
+            border-radius: 2px;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px; height: 14px;
+            background: var(--cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--cyan);
+        }
+        
+        /* Commit Button */
+        .commit-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 16px;
+            padding: 14px 32px;
+            border: 2px solid var(--cyan);
+            border-radius: 25px;
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--cyan);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.2s;
+        }
+        
+        .commit-btn:hover:not(:disabled) {
+            background: rgba(0, 240, 255, 0.2);
+            transform: scale(1.02);
+        }
+        
+        .commit-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+        
+        .commit-btn.ready {
+            animation: glow 2s infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 8px rgba(0, 240, 255, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.6); }
+        }
+        
+        /* Block Reason */
+        .block-reason {
+            position: fixed;
+            bottom: 70px;
+            right: 16px;
+            font-size: 10px;
+            color: var(--warning);
+            letter-spacing: 1px;
+            z-index: 100;
+        }
+        
+        /* Page Title */
+        .page-title {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: rgba(0, 240, 255, 0.4);
+            z-index: 100;
+        }
+        
+        /* Mandala Slots (Page 3) */
+        .mandala-slots {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            display: none;
+        }
+        
+        .mandala-slots.visible { display: block; }
+        
+        .slot-btn {
+            position: absolute;
+            width: 60px; height: 60px;
+            border: 1px solid var(--cyan-dim);
+            border-radius: 50%;
+            background: rgba(5, 6, 8, 0.8);
+            color: var(--cyan);
+            font-size: 10px;
+            text-align: center;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .slot-btn:hover {
+            border-color: var(--cyan);
+            background: rgba(0, 240, 255, 0.1);
+            transform: scale(1.1);
+        }
+        
+        .slot-name { font-weight: 600; margin-bottom: 2px; }
+        .slot-value { font-size: 9px; opacity: 0.7; }
+        
+        /* Labels */
+        .label {
+            position: fixed;
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: rgba(0, 240, 255, 0.4);
+            z-index: 40;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <!-- Connection Status -->
+    <div class="connection-status disconnected" id="connection-status">
+        <div class="status-dot"></div>
+        <span id="connection-text">CONNECTING...</span>
+    </div>
+    
+    <!-- Mode Badge -->
+    <div class="mode-badge sim" id="mode-badge">SIM</div>
+    
+    <!-- Page Navigation -->
+    <div class="page-nav">
+        <button class="page-btn active" data-page="1">1</button>
+        <button class="page-btn" data-page="2">2</button>
+        <button class="page-btn" data-page="3">3</button>
+    </div>
+    
+    <!-- HUD Panel -->
+    <div class="hud-panel">
+        <div class="hud-row">
+            <span class="hud-label">DENSITY</span>
+            <span class="hud-value" id="hud-density">—</span>
+        </div>
+        <div class="hud-row">
+            <span class="hud-label">STABILITY</span>
+            <span class="hud-value" id="hud-stability">—</span>
+        </div>
+        <div class="hud-row">
+            <span class="hud-label">SIGMA (σ)</span>
+            <span class="hud-value" id="hud-sigma">—</span>
+        </div>
+        <div class="hud-row">
+            <span class="hud-label">ENERGY</span>
+            <span class="hud-value" id="hud-energy">—</span>
+        </div>
+        <div class="hud-row">
+            <span class="hud-label">P_OUTCOME</span>
+            <span class="hud-value" id="hud-p-outcome">—</span>
+        </div>
+    </div>
+    
+    <!-- Controls (Page-specific) -->
+    <div class="controls" id="controls">
+        <!-- Page 1 -->
+        <div id="ctrl-page1">
+            <div class="control-group">
+                <div class="control-header">
+                    <span class="control-label">MASS MODIFIER</span>
+                    <span class="control-value" id="val-mass">0.00</span>
+                </div>
+                <input type="range" class="slider" id="slider-mass" min="-50" max="50" value="0">
+            </div>
+            <div class="control-group">
+                <div class="control-header">
+                    <span class="control-label">VOLUME</span>
+                    <span class="control-value" id="val-volume">0.50</span>
+                </div>
+                <input type="range" class="slider" id="slider-volume" min="1" max="100" value="50">
+            </div>
+            <div class="control-group">
+                <div class="control-header">
+                    <span class="control-label">HORIZON</span>
+                </div>
+                <select id="select-horizon" style="width:100%; padding:8px; background:rgba(0,240,255,0.05); border:1px solid var(--cyan-dim); color:var(--cyan); border-radius:4px;">
+                    <option value="H1">H1 (1시간)</option>
+                    <option value="D1" selected>D1 (1일)</option>
+                    <option value="D7">D7 (1주)</option>
+                    <option value="D30">D30 (1달)</option>
+                    <option value="D180">D180 (6개월)</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Page 2 -->
+        <div id="ctrl-page2" style="display:none;">
+            <div class="control-group">
+                <div class="control-header">
+                    <span class="control-label">SIGMA DELTA</span>
+                    <span class="control-value" id="val-sigma">0.00</span>
+                </div>
+                <input type="range" class="slider" id="slider-sigma" min="-50" max="50" value="0">
+            </div>
+            <div class="control-group">
+                <div class="control-header">
+                    <span class="control-label">FLOW FILTER</span>
+                    <span class="control-value" id="val-flow">0.00</span>
+                </div>
+                <input type="range" class="slider" id="slider-flow" min="0" max="100" value="0">
+            </div>
+        </div>
+        
+        <!-- Page 3 -->
+        <div id="ctrl-page3" style="display:none;">
+            <div style="text-align:center; font-size:10px; color:var(--cyan-dim); letter-spacing:1px;">
+                CLICK MANDALA SLOTS TO INVEST
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mandala Slots (Page 3 overlay) -->
+    <div class="mandala-slots" id="mandala-slots">
+        <button class="slot-btn" id="slot-N" style="top:15%; left:50%; transform:translateX(-50%);">
+            <span class="slot-name">N</span>
+            <span class="slot-value">12.5%</span>
+        </button>
+        <button class="slot-btn" id="slot-NE" style="top:22%; right:22%;">
+            <span class="slot-name">NE</span>
+            <span class="slot-value">12.5%</span>
+        </button>
+        <button class="slot-btn" id="slot-E" style="top:50%; right:12%; transform:translateY(-50%);">
+            <span class="slot-name">E</span>
+            <span class="slot-value">12.5%</span>
+        </button>
+        <button class="slot-btn" id="slot-SE" style="bottom:22%; right:22%;">
+            <span class="slot-name">SE</span>
+            <span class="slot-value">12.5%</span>
+        </button>
+        <button class="slot-btn" id="slot-S" style="bottom:15%; left:50%; transform:translateX(-50%);">
+            <span class="slot-name">S</span>
+            <span class="slot-value">12.5%</span>
+        </button>
+        <button class="slot-btn" id="slot-SW" style="bottom:22%; left:22%;">
+            <span class="slot-name">SW</span>
+            <span class="slot-value">12.5%</span>
+        </button>
+        <button class="slot-btn" id="slot-W" style="top:50%; left:12%; transform:translateY(-50%);">
+            <span class="slot-name">W</span>
+            <span class="slot-value">12.5%</span>
+        </button>
+        <button class="slot-btn" id="slot-NW" style="top:22%; left:22%;">
+            <span class="slot-name">NW</span>
+            <span class="slot-value">12.5%</span>
+        </button>
+    </div>
+    
+    <!-- Commit Button -->
+    <button class="commit-btn" id="commit-btn" disabled>COMMIT</button>
+    <div class="block-reason" id="block-reason"></div>
+    
+    <!-- Page Title -->
+    <div class="page-title" id="page-title">AUTUS / PAGE 1 — GOAL CALIBRATION</div>
+    
+    <!-- Labels -->
+    <div class="label" id="label-core" style="top:38%; left:50%; transform:translateX(-50%);">Self Core</div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="module">
+        // ================================================================
+        // AUTUS ENGINE (Inline for standalone)
+        // ================================================================
+        
+        const API_BASE = 'http://localhost:8001';
+        
+        const Engine = {
+            state: null,
+            sessionId: 'autus_live_' + Date.now(),
+            subscribers: [],
+            connected: false,
+            
+            subscribe(cb) {
+                this.subscribers.push(cb);
+            },
+            
+            notify() {
+                this.subscribers.forEach(cb => cb(this.state));
+            },
+            
+            async fetchState() {
+                try {
+                    const res = await fetch(`${API_BASE}/state?session_id=${this.sessionId}`);
+                    if (!res.ok) throw new Error('API Error');
+                    this.state = await res.json();
+                    this.connected = true;
+                    this.notify();
+                    return this.state;
+                } catch (e) {
+                    this.connected = false;
+                    console.error('[Engine] fetchState failed:', e);
+                    throw e;
+                }
+            },
+            
+            async updateDraft(page, patch) {
+                const res = await fetch(`${API_BASE}/draft/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: this.sessionId,
+                        t_ms: Date.now(),
+                        page,
+                        patch
+                    })
+                });
+                const data = await res.json();
+                this.state = data.state;
+                this.notify();
+                return data;
+            },
+            
+            async commit() {
+                const res = await fetch(`${API_BASE}/commit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: this.sessionId,
+                        t_ms: Date.now()
+                    })
+                });
+                const data = await res.json();
+                await this.fetchState();
+                return data;
+            },
+            
+            canCommit() {
+                if (!this.state) return false;
+                const mode = this.state.ui?.mode;
+                const sigma = this.state.measure?.sigma || 0;
+                if (mode === 'LIVE') return false;
+                if (sigma > 0.7) return false;
+                return true;
+            },
+            
+            getBlockReason() {
+                if (!this.state) return 'NO_CONNECTION';
+                const mode = this.state.ui?.mode;
+                const sigma = this.state.measure?.sigma || 0;
+                if (mode === 'LIVE') return 'ALREADY_LIVE';
+                if (sigma > 0.7) return 'σ > 0.7 (TOO HIGH)';
+                if (sigma > 0.5) return 'σ > 0.5 (UNSTABLE)';
+                return null;
+            }
+        };
+        
+        // ================================================================
+        // THREE.JS SETUP
+        // ================================================================
+        
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x050608, 1);
+        container.appendChild(renderer.domElement);
+        
+        const CYAN = 0x00f0ff;
+        
+        // Core Layer
+        const coreGroup = new THREE.Group();
+        const coreMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(1.2, 64, 64),
+            new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.25 })
+        );
+        const innerMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(1.0, 64, 64),
+            new THREE.MeshBasicMaterial({ color: 0x88ffff, transparent: true, opacity: 0.4 })
+        );
+        const rimMesh = new THREE.Mesh(
+            new THREE.RingGeometry(1.18, 1.22, 128),
+            new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.9, side: THREE.DoubleSide })
+        );
+        const volumeRing = new THREE.Mesh(
+            new THREE.RingGeometry(2.0, 2.03, 128),
+            new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+        );
+        coreGroup.add(coreMesh, innerMesh, rimMesh, volumeRing);
+        scene.add(coreGroup);
+        
+        // Graph Layer
+        const graphGroup = new THREE.Group();
+        for (let i = 1; i <= 5; i++) {
+            const ring = new THREE.Mesh(
+                new THREE.RingGeometry(i * 0.5 - 0.01, i * 0.5 + 0.01, 128),
+                new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.1, side: THREE.DoubleSide })
+            );
+            graphGroup.add(ring);
+        }
+        const selfNode = new THREE.Mesh(
+            new THREE.SphereGeometry(0.3, 32, 32),
+            new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.4 })
+        );
+        graphGroup.add(selfNode);
+        
+        const graphNodes = [];
+        const nodePositions = [
+            { angle: 0.5, r: 1.2 }, { angle: 1.2, r: 1.8 }, { angle: 2.1, r: 1.4 },
+            { angle: 3.0, r: 2.0 }, { angle: 4.0, r: 1.6 }, { angle: 5.0, r: 1.3 }
+        ];
+        nodePositions.forEach(p => {
+            const node = new THREE.Mesh(
+                new THREE.SphereGeometry(0.1, 16, 16),
+                new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.5 })
+            );
+            node.position.set(Math.cos(p.angle) * p.r, Math.sin(p.angle) * p.r, 0);
+            graphGroup.add(node);
+            graphNodes.push(node);
+            
+            const edge = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), node.position]),
+                new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.2 })
+            );
+            graphGroup.add(edge);
+        });
+        scene.add(graphGroup);
+        graphGroup.visible = false;
+        
+        // Mandala Layer
+        const mandalaGroup = new THREE.Group();
+        const innerR = 0.7, outerR = 2.0;
+        const redSlots = [0, 1, 3, 5, 7];
+        for (let i = 0; i < 8; i++) {
+            const a1 = (i / 8) * Math.PI * 2 - Math.PI / 2 - Math.PI / 8;
+            const a2 = ((i + 1) / 8) * Math.PI * 2 - Math.PI / 2 - Math.PI / 8;
+            const shape = new THREE.Shape();
+            for (let j = 0; j <= 16; j++) {
+                const a = a1 + (a2 - a1) * (j / 16);
+                j === 0 ? shape.moveTo(Math.cos(a) * outerR, Math.sin(a) * outerR) : shape.lineTo(Math.cos(a) * outerR, Math.sin(a) * outerR);
+            }
+            for (let j = 16; j >= 0; j--) {
+                const a = a1 + (a2 - a1) * (j / 16);
+                shape.lineTo(Math.cos(a) * innerR, Math.sin(a) * innerR);
+            }
+            shape.closePath();
+            const seg = new THREE.Mesh(
+                new THREE.ShapeGeometry(shape),
+                new THREE.MeshBasicMaterial({ color: redSlots.includes(i) ? 0x401030 : 0x002025, transparent: true, opacity: 0.6, side: THREE.DoubleSide })
+            );
+            mandalaGroup.add(seg);
+        }
+        const mandalaCore = new THREE.Mesh(
+            new THREE.SphereGeometry(0.5, 32, 32),
+            new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.2 })
+        );
+        mandalaGroup.add(mandalaCore);
+        scene.add(mandalaGroup);
+        mandalaGroup.visible = false;
+        
+        // Particles
+        const particleCount = 1000;
+        const particlePositions = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount * 3; i += 3) {
+            particlePositions[i] = (Math.random() - 0.5) * 12;
+            particlePositions[i + 1] = (Math.random() - 0.5) * 10;
+            particlePositions[i + 2] = (Math.random() - 0.5) * 6;
+        }
+        const particleGeom = new THREE.BufferGeometry();
+        particleGeom.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        const particles = new THREE.Points(particleGeom, new THREE.PointsMaterial({
+            color: CYAN, size: 0.02, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending
+        }));
+        scene.add(particles);
+        
+        // ================================================================
+        // UI STATE
+        // ================================================================
+        
+        let currentPage = 1;
+        const allocations = { N: 0.125, NE: 0.125, E: 0.125, SE: 0.125, S: 0.125, SW: 0.125, W: 0.125, NW: 0.125 };
+        
+        // ================================================================
+        // UI UPDATE
+        // ================================================================
+        
+        function updateUI() {
+            const state = Engine.state;
+            if (!state) return;
+            
+            // Connection
+            const connEl = document.getElementById('connection-status');
+            const connText = document.getElementById('connection-text');
+            connEl.className = 'connection-status ' + (Engine.connected ? 'connected' : 'disconnected');
+            connText.textContent = Engine.connected ? 'CONNECTED' : 'DISCONNECTED';
+            
+            // Mode
+            const mode = state.ui?.mode || 'SIM';
+            const modeEl = document.getElementById('mode-badge');
+            modeEl.textContent = mode;
+            modeEl.className = 'mode-badge ' + mode.toLowerCase();
+            
+            // HUD
+            const m = state.measure || {};
+            document.getElementById('hud-density').textContent = (m.density ?? 0).toFixed(2);
+            document.getElementById('hud-stability').textContent = (m.stability ?? 0).toFixed(2);
+            document.getElementById('hud-energy').textContent = (m.E ?? 0).toFixed(2);
+            document.getElementById('hud-p-outcome').textContent = Math.round((state.forecast?.P_outcome || 0) * 100) + '%';
+            
+            const sigmaEl = document.getElementById('hud-sigma');
+            const sigma = m.sigma ?? 0;
+            sigmaEl.textContent = sigma.toFixed(2);
+            sigmaEl.className = 'hud-value' + (sigma > 0.7 ? ' danger' : sigma > 0.5 ? ' warning' : '');
+            
+            // Commit Button
+            const commitBtn = document.getElementById('commit-btn');
+            const blockEl = document.getElementById('block-reason');
+            const canCommit = Engine.canCommit();
+            commitBtn.disabled = !canCommit;
+            commitBtn.classList.toggle('ready', canCommit);
+            
+            const blockReason = Engine.getBlockReason();
+            blockEl.textContent = blockReason || '';
+            
+            // Visual updates based on state
+            updateVisuals(state);
+        }
+        
+        function updateVisuals(state) {
+            const m = state.measure || {};
+            
+            // Core brightness based on density
+            const density = m.density ?? 0.5;
+            coreMesh.material.opacity = 0.15 + density * 0.3;
+            innerMesh.material.opacity = 0.3 + density * 0.3;
+            
+            // Rim style based on mode
+            const isSim = (state.ui?.mode === 'SIM');
+            rimMesh.material.opacity = isSim ? 0.5 : 0.9;
+        }
+        
+        function updateSlotDisplay() {
+            ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'].forEach(slot => {
+                const el = document.querySelector(`#slot-${slot} .slot-value`);
+                if (el) el.textContent = Math.round(allocations[slot] * 100) + '%';
+            });
+        }
+        
+        // ================================================================
+        // PAGE SWITCHING
+        // ================================================================
+        
+        function setPage(page) {
+            currentPage = page;
+            
+            // Visibility
+            coreGroup.visible = (page === 1);
+            graphGroup.visible = (page === 2);
+            mandalaGroup.visible = (page === 3);
+            
+            // Controls
+            document.getElementById('ctrl-page1').style.display = page === 1 ? 'block' : 'none';
+            document.getElementById('ctrl-page2').style.display = page === 2 ? 'block' : 'none';
+            document.getElementById('ctrl-page3').style.display = page === 3 ? 'block' : 'none';
+            document.getElementById('mandala-slots').classList.toggle('visible', page === 3);
+            
+            // Labels
+            document.getElementById('label-core').style.display = page === 1 ? 'block' : 'none';
+            
+            // Camera
+            switch (page) {
+                case 1: camera.position.set(0, 0, 5); break;
+                case 2: camera.position.set(0, 1, 6); break;
+                case 3: camera.position.set(0, 0, 4); break;
+            }
+            camera.lookAt(0, 0, 0);
+            
+            // Tabs
+            document.querySelectorAll('.page-btn').forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.page) === page);
+            });
+            
+            // Title
+            const titles = {
+                1: 'AUTUS / PAGE 1 — GOAL CALIBRATION',
+                2: 'AUTUS / PAGE 2 — ROUTE / TOPOLOGY',
+                3: 'AUTUS / PAGE 3 — MANDALA INVESTMENT'
+            };
+            document.getElementById('page-title').textContent = titles[page];
+        }
+        
+        // ================================================================
+        // EVENT HANDLERS
+        // ================================================================
+        
+        // Page tabs
+        document.querySelectorAll('.page-btn').forEach(btn => {
+            btn.addEventListener('click', () => setPage(parseInt(btn.dataset.page)));
+        });
+        
+        // Commit button
+        document.getElementById('commit-btn').addEventListener('click', async () => {
+            if (!Engine.canCommit()) return;
+            try {
+                await Engine.commit();
+                console.log('[COMMIT] Success');
+            } catch (e) {
+                console.error('[COMMIT] Failed:', e);
+            }
+        });
+        
+        // Page 1 sliders
+        document.getElementById('slider-mass').addEventListener('input', async (e) => {
+            const val = e.target.value / 100;
+            document.getElementById('val-mass').textContent = val.toFixed(2);
+            await Engine.updateDraft(1, { mass_mod: val });
+        });
+        
+        document.getElementById('slider-volume').addEventListener('input', async (e) => {
+            const val = e.target.value / 100;
+            document.getElementById('val-volume').textContent = val.toFixed(2);
+            await Engine.updateDraft(1, { volume_override: val });
+        });
+        
+        document.getElementById('select-horizon').addEventListener('change', async (e) => {
+            await Engine.updateDraft(1, { horizon: e.target.value });
+        });
+        
+        // Page 2 sliders
+        document.getElementById('slider-sigma').addEventListener('input', async (e) => {
+            const val = e.target.value / 100;
+            document.getElementById('val-sigma').textContent = val.toFixed(2);
+            await Engine.updateDraft(2, { sigma_delta: val });
+        });
+        
+        document.getElementById('slider-flow').addEventListener('input', async (e) => {
+            const val = e.target.value / 100;
+            document.getElementById('val-flow').textContent = val.toFixed(2);
+        });
+        
+        // Mandala slots
+        ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'].forEach(slot => {
+            document.getElementById(`slot-${slot}`).addEventListener('click', async () => {
+                allocations[slot] += 0.1;
+                // Normalize
+                const total = Object.values(allocations).reduce((a, b) => a + b, 0);
+                Object.keys(allocations).forEach(k => allocations[k] /= total);
+                updateSlotDisplay();
+                await Engine.updateDraft(3, { allocations });
+            });
+        });
+        
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '1' && e.key <= '3') setPage(parseInt(e.key));
+            if (e.key === 'Enter' && Engine.canCommit()) Engine.commit();
+        });
+        
+        // ================================================================
+        // ANIMATION
+        // ================================================================
+        
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+            
+            // Core pulse
+            if (coreGroup.visible) {
+                const pulse = 1 + Math.sin(time * 2) * 0.015;
+                coreMesh.scale.set(pulse, pulse, pulse);
+                innerMesh.scale.set(pulse * 0.98, pulse * 0.98, pulse * 0.98);
+                coreMesh.rotation.y += 0.002;
+            }
+            
+            // Graph nodes
+            if (graphGroup.visible) {
+                graphNodes.forEach((n, i) => {
+                    const s = 1 + Math.sin(time * 3 + i) * 0.03;
+                    n.scale.set(s, s, s);
+                });
+            }
+            
+            // Mandala core
+            if (mandalaGroup.visible) {
+                const p = 1 + Math.sin(time * 2) * 0.02;
+                mandalaCore.scale.set(p, p, p);
+            }
+            
+            particles.rotation.y += 0.0003;
+            
+            renderer.render(scene, camera);
+        }
+        
+        // ================================================================
+        // INITIALIZATION
+        // ================================================================
+        
+        async function init() {
+            Engine.subscribe(updateUI);
+            
+            try {
+                await Engine.fetchState();
+                console.log('[AUTUS] Initial state loaded');
+            } catch (e) {
+                console.warn('[AUTUS] Initial fetch failed, retrying...');
+            }
+            
+            // Polling
+            setInterval(async () => {
+                try {
+                    await Engine.fetchState();
+                } catch (e) {}
+            }, 2000);
+            
+            setPage(1);
+            animate();
+        }
+        
+        init();
+    </script>
+</body>
+</html>
+
