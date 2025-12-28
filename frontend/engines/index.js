@@ -270,6 +270,24 @@ export {
 } from './EntropyCalculator.js';
 
 // ================================================================
+// UNIFIED SYSTEM ENGINE (v3.0)
+// ================================================================
+
+// 20. 통합 시스템 엔진
+export {
+    UnifiedSystemEngine,
+    UnifiedNode,
+    QuantumState,
+    Entanglement,
+    UncertaintyPrinciple,
+    UnifiedPhysicsFormulas,
+    SYSTEM_CONSTANTS,
+    CLUSTER_TYPES,
+    ORBIT_TYPES,
+    testUnifiedSystemEngine
+} from './UnifiedSystemEngine.js';
+
+// ================================================================
 // ENGINE REGISTRY
 // ================================================================
 
@@ -429,6 +447,15 @@ export const EngineRegistry = {
             description: 'Boltzmann/Shannon 엔트로피, 돈 생산 효율, 무질서도 정량화',
             icon: '🧮',
             status: 'READY'
+        },
+        // Unified System Engine v3.0
+        unifiedSystem: {
+            id: 'unifiedSystem',
+            name: '통합 시스템 엔진',
+            nameEn: 'Unified System Engine',
+            description: '양자 영감 변수, 얽힘 전파, 불확실성 원리, 자동 최적화',
+            icon: '⚛️',
+            status: 'READY'
         }
     },
     
@@ -492,6 +519,9 @@ export const AutusEngines = {
         const { NetworkEffectEngine } = await import('./NetworkEffectEngine.js');
         const { MultiOrbitStrategyEngine } = await import('./MultiOrbitStrategy.js');
         const { AutusEntropyCalculator } = await import('./EntropyCalculator.js');
+        
+        // Unified System Engine v3.0
+        const { UnifiedSystemEngine } = await import('./UnifiedSystemEngine.js');
         
         this.instances = {
             // 8대 코어 엔진
