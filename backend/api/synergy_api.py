@@ -564,3 +564,4 @@ def invalidate_cache():
     
     if _engine:
         _engine._ppr_cache.clear()
+
