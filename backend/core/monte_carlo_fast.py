@@ -575,3 +575,5 @@ if __name__ == "__main__":
     print(f"   Monte Carlo: {elapsed_mc:.2f}ms")
     print(f"   Speedup: {elapsed_mc/elapsed:.1f}x faster")
 
+
+

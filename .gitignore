@@ -9,6 +9,13 @@ __pycache__/
 _archive/
 **/archive/
 
+# Legacy backends (consolidated to backend/)
+app/
+kernel/
+core/
+kernel_service/
+autus_local/
+
 # Environment
 .env
 .env.local
