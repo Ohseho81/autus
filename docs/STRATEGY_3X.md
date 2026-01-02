@@ -723,3 +723,4 @@ V = V₀ × [(1+C)(1+L)(1+O)] × [√(n²_final / n²_initial)] × [(1+S)^months
 
 
 
+

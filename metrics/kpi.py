@@ -1313,3 +1313,4 @@ def generate_weekly_summary(kpi: Dict, team: Dict, roles: List[Dict]) -> str:
 
 
 
+

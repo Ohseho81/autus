@@ -2163,3 +2163,4 @@ def generate_executive_summary(kpi: Dict[str, Any], best_team: Dict[str, Any]) -
 
 
 
+
