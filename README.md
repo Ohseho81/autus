@@ -1,63 +1,38 @@
-# AUTUS — 결정론적 물리 엔진 시스템
+# 🏛️ AUTUS
 
-> "목표를 바꾸지 않고 나를 변형시킨다"
+> **인간관계의 물리학** - 관계의 ROI를 측정 가능하게 만든다
 
 ---
 
-## 🔒 프로젝트 구조 (LOCKED)
+## 📐 아키텍처 (레이 달리오 + 스티브 잡스)
 
 ```
 autus/
+├── principles/          # 🧠 원칙 (변경 드묾)
+│   ├── CONSTITUTION.md  # 시스템 헌법
+│   ├── FORMULAS.md      # 핵심 공식
+│   └── DECISIONS.md     # 의사결정 로그
 │
-├── 📁 kernel_service/        # FastAPI 백엔드 (포트 8001)
-│   ├── app/
-│   │   ├── main.py           # API 엔드포인트
-│   │   ├── autus_state.py    # 상태 계약 (State Contract)
-│   │   ├── commit_pipeline.py # Commit Pipeline (Page 3→1→2)
-│   │   ├── validators.py     # 입력 검증
-│   │   └── mandala_transform.py
-│   ├── config/
-│   │   └── draft_limits.json
-│   └── tests/
-│       ├── test_state_pipeline.py
-│       ├── test_node_ops.py
-│       └── test_api_integration.py
+├── machine/             # ⚙️ 기계 (실행 코드)
+│   ├── core/            # 핵심 비즈니스 로직
+│   │   ├── config.py    # 모든 설정
+│   │   ├── physics.py   # 물리 엔진 (SQ, Synergy)
+│   │   └── roles.py     # 역할 엔진
+│   ├── api/             # FastAPI 서버
+│   │   └── main.py      # 단일 진입점
+│   └── web/             # 프론트엔드
 │
-├── 📁 frontend/              # Three.js UI
-│   ├── autus-live.html       # ⭐ 메인 통합 인터페이스
-│   ├── autus-page1.html      # Page 1: Goal Calibration
-│   ├── autus-page2.html      # Page 2: Route / Topology
-│   ├── autus-page3.html      # Page 3: Mandala Investment
-│   ├── test.html             # 렌더 테스트
-│   ├── js/
-│   │   ├── api/
-│   │   │   └── AutusEngine.js  # API 통신 엔진
-│   │   └── core/
-│   │       ├── CoreLayer.js    # A-1: 구형 Mesh + 글로우
-│   │       ├── GraphLayer.js   # A-2: NodeInstances + EdgeLines
-│   │       ├── FlowLayer.js    # A-3: Points 파티클
-│   │       ├── StateUniform.js # A-4: State → Uniform
-│   │       ├── DeterminismSampler.js # A-5: 결정론적 샘플링
-│   │       └── AutusRenderer.js
-│   └── ts/                   # TypeScript 정본 모듈
-│       ├── core/
-│       ├── uniforms/
-│       ├── time/
-│       └── types/
+├── metrics/             # 📊 측정 (피드백)
+│   └── kpi.py           # KPI 추적
 │
-├── 📁 spec/                  # 설계 문서 (LOCKED)
-│   ├── SYSTEM_DEFINITION_LOCK.md
-│   ├── PHILOSOPHY_LOCK.md
-│   ├── tokens.autus.json     # 디자인 토큰
-│   ├── state_contract.json   # 상태 계약
-│   ├── api_spec.json         # API 명세
-│   └── ethics_security.json  # 윤리/보안 규칙
+├── autus_pipeline/      # 🔬 데이터 파이프라인
+│   └── src/             # v1.3 FINAL
 │
-├── 📁 kernel/                # 물리 엔진 코어
-├── 📁 core/                  # 핵심 로직
-├── 📁 config/                # 설정
-├── 📁 docs/                  # 문서
-└── 📁 _archive/              # 레거시 파일
+├── tests/               # ✅ 테스트
+│
+└── data/                # 📁 데이터 (gitignore)
+    ├── input/
+    └── output/
 ```
 
 ---
@@ -65,68 +40,103 @@ autus/
 ## 🚀 빠른 시작
 
 ```bash
-# 1. 백엔드 서버 시작
-cd kernel_service
-pip install -r requirements.txt
-uvicorn app.main:app --port 8001 --reload
+# 1. 의존성 설치
+make install
 
-# 2. 프론트엔드 실행
-open frontend/autus-live.html
+# 2. API 서버 실행
+make run
+
+# 3. 파이프라인 실행
+make pipeline
+
+# 4. 테스트
+make test
 ```
 
 ---
 
-## 📡 API 엔드포인트
+## 📜 핵심 원칙
 
-| Endpoint | Method | 설명 |
-|----------|--------|------|
-| `/state` | GET | 현재 물리 상태 조회 |
-| `/draft/update` | POST | Draft 수정 (SIM 모드) |
-| `/commit` | POST | Draft → LIVE 확정 |
-| `/replay/marker` | POST | Hash Chain 마커 생성 |
+### 1. 측정 가능성
+> "측정할 수 없으면 관리할 수 없다"
 
----
+### 2. 물리 법칙 준수
+> "인간관계도 물리 법칙을 따른다"
 
-## 🔧 Commit Pipeline (LOCKED)
+### 3. 데이터 기반 의사결정
+> "직관이 아닌 데이터로 결정한다"
 
-```
-STAGE 1: Page 3 (Mandala Transform) → 자원 배분
-STAGE 2: Page 1 (Mass/Volume)       → 역량/목표
-STAGE 3: Page 2 (NodeOps)           → 관계 조작
-STAGE 4: Kernel Recalc              → Density, Stability
-STAGE 5: Forecast Update            → P_outcome
-STAGE 6: Finalize Marker            → Hash Chain
-```
+### 4. 극단적 투명성
+> "진실이 불편해도 진실을 본다"
+
+### 5. 단순함
+> "복잡함은 버그의 온상이다"
 
 ---
 
-## 🎨 3페이지 구조
+## 📐 핵심 공식
 
-| Page | 이름 | 기능 |
+```python
+# SQ (Synergy Quotient)
+SQ = (Mint - Burn) / Time × Synergy_Factor
+
+# Entropy
+Entropy = Burn / Mint
+# < 15%: 건강 | 15-25%: 주의 | > 25%: 위험
+
+# Team Score
+TeamScore = Σ(SQ) + γ×(PairBonus + 0.6×GroupBonus) - Penalty
+```
+
+---
+
+## 🎯 KPI 목표
+
+| 지표 | 목표 | 현재 |
 |------|------|------|
-| **1** | Goal Calibration | 자기 역량 조정 (Mass, Volume, Horizon) |
-| **2** | Route / Topology | 관계 조작 (NodeOps, Flow Filter) |
-| **3** | Mandala Investment | 자원 배분 (8슬롯 Allocation) |
+| 엔트로피 | < 15% | - |
+| 역할 커버리지 | 100% | - |
+| 시너지 평균 | > 0 | - |
 
 ---
 
-## ⚠️ Commit Gate 규칙
+## 📚 문서
 
-- `σ (Sigma) > 0.7` → COMMIT 불가
-- `Mode = LIVE` → COMMIT 불가
-- Page 3에서 투자 조정으로 물리량 변경 필요
+- [시스템 헌법](principles/CONSTITUTION.md)
+- [핵심 공식](principles/FORMULAS.md)
+- [의사결정 로그](principles/DECISIONS.md)
+- [API 문서](http://localhost:8000/docs)
 
 ---
 
-## 🔒 핵심 원칙
+## 🔧 개발
 
-1. **Physics Only** — 판단/추천 없음, 물리량만 표시
-2. **Determinism** — 동일 입력 → 동일 출력
-3. **User Decides** — 시스템은 결과만 보여줌
-4. **Local Only** — 모든 데이터는 사용자 소유
+```bash
+# 개발 서버
+make dev
+
+# 린트
+make lint
+
+# 포맷
+make format
+```
 
 ---
 
 ## 📄 라이선스
 
-AUTUS v1.0 — LOCKED
+MIT License
+
+---
+
+*"좋은 원칙은 좋은 결과를 만든다" - Ray Dalio*
+*"단순함이 궁극의 정교함이다" - Steve Jobs*
+
+*"단순함이 궁극의 정교함이다" - Steve Jobs*
+
+*"단순함이 궁극의 정교함이다" - Steve Jobs*
+
+*"단순함이 궁극의 정교함이다" - Steve Jobs*
+
+*"단순함이 궁극의 정교함이다" - Steve Jobs*

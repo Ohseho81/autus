@@ -1,0 +1,295 @@
+# AUTUS-PRIME Railway Configuration
+# https://railway.app
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables (set in Railway dashboard)
+# DATABASE_URL - Railway automatically provisions PostgreSQL
+# AUTUS_MASTER_KEY - Set manually
+# JWT_SECRET - Set manually
+
+
+
+
+
+
+
+
+
+
+# AUTUS-PRIME Railway Configuration
+# https://railway.app
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables (set in Railway dashboard)
+# DATABASE_URL - Railway automatically provisions PostgreSQL
+# AUTUS_MASTER_KEY - Set manually
+# JWT_SECRET - Set manually
+
+
+
+
+
+
+
+
+
+
+# AUTUS-PRIME Railway Configuration
+# https://railway.app
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables (set in Railway dashboard)
+# DATABASE_URL - Railway automatically provisions PostgreSQL
+# AUTUS_MASTER_KEY - Set manually
+# JWT_SECRET - Set manually
+
+
+
+
+
+
+
+
+
+
+# AUTUS-PRIME Railway Configuration
+# https://railway.app
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables (set in Railway dashboard)
+# DATABASE_URL - Railway automatically provisions PostgreSQL
+# AUTUS_MASTER_KEY - Set manually
+# JWT_SECRET - Set manually
+
+
+
+
+
+
+
+
+
+
+# AUTUS-PRIME Railway Configuration
+# https://railway.app
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables (set in Railway dashboard)
+# DATABASE_URL - Railway automatically provisions PostgreSQL
+# AUTUS_MASTER_KEY - Set manually
+# JWT_SECRET - Set manually
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# AUTUS-PRIME Railway Configuration
+# https://railway.app
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables (set in Railway dashboard)
+# DATABASE_URL - Railway automatically provisions PostgreSQL
+# AUTUS_MASTER_KEY - Set manually
+# JWT_SECRET - Set manually
+
+
+
+
+
+
+
+
+
+
+# AUTUS-PRIME Railway Configuration
+# https://railway.app
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables (set in Railway dashboard)
+# DATABASE_URL - Railway automatically provisions PostgreSQL
+# AUTUS_MASTER_KEY - Set manually
+# JWT_SECRET - Set manually
+
+
+
+
+
+
+
+
+
+
+# AUTUS-PRIME Railway Configuration
+# https://railway.app
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables (set in Railway dashboard)
+# DATABASE_URL - Railway automatically provisions PostgreSQL
+# AUTUS_MASTER_KEY - Set manually
+# JWT_SECRET - Set manually
+
+
+
+
+
+
+
+
+
+
+# AUTUS-PRIME Railway Configuration
+# https://railway.app
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables (set in Railway dashboard)
+# DATABASE_URL - Railway automatically provisions PostgreSQL
+# AUTUS_MASTER_KEY - Set manually
+# JWT_SECRET - Set manually
+
+
+
+
+
+
+
+
+
+
+# AUTUS-PRIME Railway Configuration
+# https://railway.app
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables (set in Railway dashboard)
+# DATABASE_URL - Railway automatically provisions PostgreSQL
+# AUTUS_MASTER_KEY - Set manually
+# JWT_SECRET - Set manually
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,271 @@
+{
+  "name": "AUTUS Parasitic 자동 동기화",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 1 }]
+        }
+      },
+      "id": "schedule",
+      "name": "1시간마다 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.AUTUS_API_URL }}/parasitic/status"
+      },
+      "id": "get_status",
+      "name": "Parasitic 상태 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// PARASITIC 단계 커넥터 필터링\nconst data = $input.item.json;\nconst connectors = Object.entries(data.connectors || {});\n\nconst parasiticConnectors = connectors.filter(\n  ([id, c]) => c.stage === 'parasitic' && c.sync_count < 10\n);\n\nif (parasiticConnectors.length === 0) {\n  return [{ json: { action: 'skip', reason: '동기화 대상 없음' } }];\n}\n\n// 각 커넥터에 대해 아이템 생성\nreturn parasiticConnectors.map(([id, c]) => ({\n  json: {\n    connector_id: id,\n    saas_type: c.type,\n    sync_count: c.sync_count,\n    action: 'sync'\n  }\n}));"
+      },
+      "id": "filter_connectors",
+      "name": "동기화 대상 필터",
+      "type": "n8n-nodes-base.function",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.action }}",
+              "value2": "sync"
+            }
+          ]
+        }
+      },
+      "id": "need_sync",
+      "name": "동기화 필요?",
+      "type": "n8n-nodes-base.if",
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AUTUS_API_URL }}/parasitic/sync/{{ $json.connector_id }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ timestamp: new Date().toISOString() }) }}"
+      },
+      "id": "sync_data",
+      "name": "데이터 동기화",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "value2": "ready_for_absorption"
+            }
+          ]
+        }
+      },
+      "id": "ready_absorb",
+      "name": "흡수 준비?",
+      "type": "n8n-nodes-base.if",
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: '🦠 *Parasitic 흡수 준비 완료*\\n커넥터: ' + $json.connector_id + '\\n동기화 횟수: 10회 이상\\n다음 단계: `/parasitic/absorb/' + $json.connector_id + '`' }) }}"
+      },
+      "id": "notify_ready",
+      "name": "Slack 알림",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1450, 100]
+    },
+    {
+      "parameters": {
+        "functionCode": "console.log('Sync completed:', $json);\nreturn [$input.item];"
+      },
+      "id": "log_sync",
+      "name": "로그",
+      "type": "n8n-nodes-base.function",
+      "position": [1450, 300]
+    }
+  ],
+  "connections": {
+    "1시간마다 실행": {
+      "main": [[{ "node": "Parasitic 상태 조회", "type": "main", "index": 0 }]]
+    },
+    "Parasitic 상태 조회": {
+      "main": [[{ "node": "동기화 대상 필터", "type": "main", "index": 0 }]]
+    },
+    "동기화 대상 필터": {
+      "main": [[{ "node": "동기화 필요?", "type": "main", "index": 0 }]]
+    },
+    "동기화 필요?": {
+      "main": [
+        [{ "node": "데이터 동기화", "type": "main", "index": 0 }],
+        [{ "node": "로그", "type": "main", "index": 0 }]
+      ]
+    },
+    "데이터 동기화": {
+      "main": [[{ "node": "흡수 준비?", "type": "main", "index": 0 }]]
+    },
+    "흡수 준비?": {
+      "main": [
+        [{ "node": "Slack 알림", "type": "main", "index": 0 }],
+        [{ "node": "로그", "type": "main", "index": 0 }]
+      ]
+    },
+    "Slack 알림": {
+      "main": [[{ "node": "로그", "type": "main", "index": 0 }]]
+    }
+  }
+}
+
+
+{
+  "name": "AUTUS Parasitic 자동 동기화",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 1 }]
+        }
+      },
+      "id": "schedule",
+      "name": "1시간마다 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.AUTUS_API_URL }}/parasitic/status"
+      },
+      "id": "get_status",
+      "name": "Parasitic 상태 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// PARASITIC 단계 커넥터 필터링\nconst data = $input.item.json;\nconst connectors = Object.entries(data.connectors || {});\n\nconst parasiticConnectors = connectors.filter(\n  ([id, c]) => c.stage === 'parasitic' && c.sync_count < 10\n);\n\nif (parasiticConnectors.length === 0) {\n  return [{ json: { action: 'skip', reason: '동기화 대상 없음' } }];\n}\n\n// 각 커넥터에 대해 아이템 생성\nreturn parasiticConnectors.map(([id, c]) => ({\n  json: {\n    connector_id: id,\n    saas_type: c.type,\n    sync_count: c.sync_count,\n    action: 'sync'\n  }\n}));"
+      },
+      "id": "filter_connectors",
+      "name": "동기화 대상 필터",
+      "type": "n8n-nodes-base.function",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.action }}",
+              "value2": "sync"
+            }
+          ]
+        }
+      },
+      "id": "need_sync",
+      "name": "동기화 필요?",
+      "type": "n8n-nodes-base.if",
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AUTUS_API_URL }}/parasitic/sync/{{ $json.connector_id }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ timestamp: new Date().toISOString() }) }}"
+      },
+      "id": "sync_data",
+      "name": "데이터 동기화",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "value2": "ready_for_absorption"
+            }
+          ]
+        }
+      },
+      "id": "ready_absorb",
+      "name": "흡수 준비?",
+      "type": "n8n-nodes-base.if",
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: '🦠 *Parasitic 흡수 준비 완료*\\n커넥터: ' + $json.connector_id + '\\n동기화 횟수: 10회 이상\\n다음 단계: `/parasitic/absorb/' + $json.connector_id + '`' }) }}"
+      },
+      "id": "notify_ready",
+      "name": "Slack 알림",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1450, 100]
+    },
+    {
+      "parameters": {
+        "functionCode": "console.log('Sync completed:', $json);\nreturn [$input.item];"
+      },
+      "id": "log_sync",
+      "name": "로그",
+      "type": "n8n-nodes-base.function",
+      "position": [1450, 300]
+    }
+  ],
+  "connections": {
+    "1시간마다 실행": {
+      "main": [[{ "node": "Parasitic 상태 조회", "type": "main", "index": 0 }]]
+    },
+    "Parasitic 상태 조회": {
+      "main": [[{ "node": "동기화 대상 필터", "type": "main", "index": 0 }]]
+    },
+    "동기화 대상 필터": {
+      "main": [[{ "node": "동기화 필요?", "type": "main", "index": 0 }]]
+    },
+    "동기화 필요?": {
+      "main": [
+        [{ "node": "데이터 동기화", "type": "main", "index": 0 }],
+        [{ "node": "로그", "type": "main", "index": 0 }]
+      ]
+    },
+    "데이터 동기화": {
+      "main": [[{ "node": "흡수 준비?", "type": "main", "index": 0 }]]
+    },
+    "흡수 준비?": {
+      "main": [
+        [{ "node": "Slack 알림", "type": "main", "index": 0 }],
+        [{ "node": "로그", "type": "main", "index": 0 }]
+      ]
+    },
+    "Slack 알림": {
+      "main": [[{ "node": "로그", "type": "main", "index": 0 }]]
+    }
+  }
+}
+
+
+
+
+
+
+

@@ -1,0 +1,1075 @@
+{
+  "G-10Y-001": {
+    "id": "G-10Y-001",
+    "name": "10년 순수익 목표",
+    "horizon": "10Y",
+    "metric": "net_krw",
+    "target_value": 70000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2035-12-31",
+    "parent_id": null,
+    "children_ids": ["G-3Y-001"],
+    "progress": 0.01,
+    "status": "BEHIND"
+  },
+  "G-3Y-001": {
+    "id": "G-3Y-001",
+    "name": "3년 순수익 목표",
+    "horizon": "3Y",
+    "metric": "net_krw",
+    "target_value": 7000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2027-12-31",
+    "parent_id": "G-10Y-001",
+    "children_ids": ["G-1Y-001"],
+    "progress": 0.10,
+    "status": "BEHIND"
+  },
+  "G-1Y-001": {
+    "id": "G-1Y-001",
+    "name": "1년 순수익 목표",
+    "horizon": "1Y",
+    "metric": "net_krw",
+    "target_value": 2100000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": "G-3Y-001",
+    "children_ids": ["G-Q-001"],
+    "progress": 0.33,
+    "status": "AT_RISK"
+  },
+  "G-Q-001": {
+    "id": "G-Q-001",
+    "name": "분기 순수익 목표 (Q1)",
+    "horizon": "Q",
+    "metric": "net_krw",
+    "target_value": 850000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-1Y-001",
+    "children_ids": [],
+    "progress": 0.83,
+    "status": "ON_TRACK"
+  },
+  "G-1Y-ENT": {
+    "id": "G-1Y-ENT",
+    "name": "연간 Entropy 목표",
+    "horizon": "1Y",
+    "metric": "entropy_ratio",
+    "target_value": 0.20,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.90,
+    "status": "ON_TRACK"
+  },
+  "G-Q-IMPACT": {
+    "id": "G-Q-IMPACT",
+    "name": "분기 Impact 목표",
+    "horizon": "Q",
+    "metric": "impact_score",
+    "target_value": 0.35,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.51,
+    "status": "AT_RISK"
+  },
+  "G-Q-REINVEST": {
+    "id": "G-Q-REINVEST",
+    "name": "분기 재투자율 목표",
+    "horizon": "Q",
+    "metric": "reinvestment_ratio",
+    "target_value": 0.10,
+    "current_value": 0.0175,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-Q-IMPACT",
+    "children_ids": [],
+    "progress": 0.175,
+    "status": "BEHIND"
+  }
+}
+
+
+
+
+
+{
+  "G-10Y-001": {
+    "id": "G-10Y-001",
+    "name": "10년 순수익 목표",
+    "horizon": "10Y",
+    "metric": "net_krw",
+    "target_value": 70000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2035-12-31",
+    "parent_id": null,
+    "children_ids": ["G-3Y-001"],
+    "progress": 0.01,
+    "status": "BEHIND"
+  },
+  "G-3Y-001": {
+    "id": "G-3Y-001",
+    "name": "3년 순수익 목표",
+    "horizon": "3Y",
+    "metric": "net_krw",
+    "target_value": 7000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2027-12-31",
+    "parent_id": "G-10Y-001",
+    "children_ids": ["G-1Y-001"],
+    "progress": 0.10,
+    "status": "BEHIND"
+  },
+  "G-1Y-001": {
+    "id": "G-1Y-001",
+    "name": "1년 순수익 목표",
+    "horizon": "1Y",
+    "metric": "net_krw",
+    "target_value": 2100000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": "G-3Y-001",
+    "children_ids": ["G-Q-001"],
+    "progress": 0.33,
+    "status": "AT_RISK"
+  },
+  "G-Q-001": {
+    "id": "G-Q-001",
+    "name": "분기 순수익 목표 (Q1)",
+    "horizon": "Q",
+    "metric": "net_krw",
+    "target_value": 850000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-1Y-001",
+    "children_ids": [],
+    "progress": 0.83,
+    "status": "ON_TRACK"
+  },
+  "G-1Y-ENT": {
+    "id": "G-1Y-ENT",
+    "name": "연간 Entropy 목표",
+    "horizon": "1Y",
+    "metric": "entropy_ratio",
+    "target_value": 0.20,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.90,
+    "status": "ON_TRACK"
+  },
+  "G-Q-IMPACT": {
+    "id": "G-Q-IMPACT",
+    "name": "분기 Impact 목표",
+    "horizon": "Q",
+    "metric": "impact_score",
+    "target_value": 0.35,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.51,
+    "status": "AT_RISK"
+  },
+  "G-Q-REINVEST": {
+    "id": "G-Q-REINVEST",
+    "name": "분기 재투자율 목표",
+    "horizon": "Q",
+    "metric": "reinvestment_ratio",
+    "target_value": 0.10,
+    "current_value": 0.0175,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-Q-IMPACT",
+    "children_ids": [],
+    "progress": 0.175,
+    "status": "BEHIND"
+  }
+}
+
+
+
+
+
+{
+  "G-10Y-001": {
+    "id": "G-10Y-001",
+    "name": "10년 순수익 목표",
+    "horizon": "10Y",
+    "metric": "net_krw",
+    "target_value": 70000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2035-12-31",
+    "parent_id": null,
+    "children_ids": ["G-3Y-001"],
+    "progress": 0.01,
+    "status": "BEHIND"
+  },
+  "G-3Y-001": {
+    "id": "G-3Y-001",
+    "name": "3년 순수익 목표",
+    "horizon": "3Y",
+    "metric": "net_krw",
+    "target_value": 7000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2027-12-31",
+    "parent_id": "G-10Y-001",
+    "children_ids": ["G-1Y-001"],
+    "progress": 0.10,
+    "status": "BEHIND"
+  },
+  "G-1Y-001": {
+    "id": "G-1Y-001",
+    "name": "1년 순수익 목표",
+    "horizon": "1Y",
+    "metric": "net_krw",
+    "target_value": 2100000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": "G-3Y-001",
+    "children_ids": ["G-Q-001"],
+    "progress": 0.33,
+    "status": "AT_RISK"
+  },
+  "G-Q-001": {
+    "id": "G-Q-001",
+    "name": "분기 순수익 목표 (Q1)",
+    "horizon": "Q",
+    "metric": "net_krw",
+    "target_value": 850000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-1Y-001",
+    "children_ids": [],
+    "progress": 0.83,
+    "status": "ON_TRACK"
+  },
+  "G-1Y-ENT": {
+    "id": "G-1Y-ENT",
+    "name": "연간 Entropy 목표",
+    "horizon": "1Y",
+    "metric": "entropy_ratio",
+    "target_value": 0.20,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.90,
+    "status": "ON_TRACK"
+  },
+  "G-Q-IMPACT": {
+    "id": "G-Q-IMPACT",
+    "name": "분기 Impact 목표",
+    "horizon": "Q",
+    "metric": "impact_score",
+    "target_value": 0.35,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.51,
+    "status": "AT_RISK"
+  },
+  "G-Q-REINVEST": {
+    "id": "G-Q-REINVEST",
+    "name": "분기 재투자율 목표",
+    "horizon": "Q",
+    "metric": "reinvestment_ratio",
+    "target_value": 0.10,
+    "current_value": 0.0175,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-Q-IMPACT",
+    "children_ids": [],
+    "progress": 0.175,
+    "status": "BEHIND"
+  }
+}
+
+
+
+
+
+{
+  "G-10Y-001": {
+    "id": "G-10Y-001",
+    "name": "10년 순수익 목표",
+    "horizon": "10Y",
+    "metric": "net_krw",
+    "target_value": 70000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2035-12-31",
+    "parent_id": null,
+    "children_ids": ["G-3Y-001"],
+    "progress": 0.01,
+    "status": "BEHIND"
+  },
+  "G-3Y-001": {
+    "id": "G-3Y-001",
+    "name": "3년 순수익 목표",
+    "horizon": "3Y",
+    "metric": "net_krw",
+    "target_value": 7000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2027-12-31",
+    "parent_id": "G-10Y-001",
+    "children_ids": ["G-1Y-001"],
+    "progress": 0.10,
+    "status": "BEHIND"
+  },
+  "G-1Y-001": {
+    "id": "G-1Y-001",
+    "name": "1년 순수익 목표",
+    "horizon": "1Y",
+    "metric": "net_krw",
+    "target_value": 2100000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": "G-3Y-001",
+    "children_ids": ["G-Q-001"],
+    "progress": 0.33,
+    "status": "AT_RISK"
+  },
+  "G-Q-001": {
+    "id": "G-Q-001",
+    "name": "분기 순수익 목표 (Q1)",
+    "horizon": "Q",
+    "metric": "net_krw",
+    "target_value": 850000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-1Y-001",
+    "children_ids": [],
+    "progress": 0.83,
+    "status": "ON_TRACK"
+  },
+  "G-1Y-ENT": {
+    "id": "G-1Y-ENT",
+    "name": "연간 Entropy 목표",
+    "horizon": "1Y",
+    "metric": "entropy_ratio",
+    "target_value": 0.20,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.90,
+    "status": "ON_TRACK"
+  },
+  "G-Q-IMPACT": {
+    "id": "G-Q-IMPACT",
+    "name": "분기 Impact 목표",
+    "horizon": "Q",
+    "metric": "impact_score",
+    "target_value": 0.35,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.51,
+    "status": "AT_RISK"
+  },
+  "G-Q-REINVEST": {
+    "id": "G-Q-REINVEST",
+    "name": "분기 재투자율 목표",
+    "horizon": "Q",
+    "metric": "reinvestment_ratio",
+    "target_value": 0.10,
+    "current_value": 0.0175,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-Q-IMPACT",
+    "children_ids": [],
+    "progress": 0.175,
+    "status": "BEHIND"
+  }
+}
+
+
+
+
+
+{
+  "G-10Y-001": {
+    "id": "G-10Y-001",
+    "name": "10년 순수익 목표",
+    "horizon": "10Y",
+    "metric": "net_krw",
+    "target_value": 70000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2035-12-31",
+    "parent_id": null,
+    "children_ids": ["G-3Y-001"],
+    "progress": 0.01,
+    "status": "BEHIND"
+  },
+  "G-3Y-001": {
+    "id": "G-3Y-001",
+    "name": "3년 순수익 목표",
+    "horizon": "3Y",
+    "metric": "net_krw",
+    "target_value": 7000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2027-12-31",
+    "parent_id": "G-10Y-001",
+    "children_ids": ["G-1Y-001"],
+    "progress": 0.10,
+    "status": "BEHIND"
+  },
+  "G-1Y-001": {
+    "id": "G-1Y-001",
+    "name": "1년 순수익 목표",
+    "horizon": "1Y",
+    "metric": "net_krw",
+    "target_value": 2100000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": "G-3Y-001",
+    "children_ids": ["G-Q-001"],
+    "progress": 0.33,
+    "status": "AT_RISK"
+  },
+  "G-Q-001": {
+    "id": "G-Q-001",
+    "name": "분기 순수익 목표 (Q1)",
+    "horizon": "Q",
+    "metric": "net_krw",
+    "target_value": 850000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-1Y-001",
+    "children_ids": [],
+    "progress": 0.83,
+    "status": "ON_TRACK"
+  },
+  "G-1Y-ENT": {
+    "id": "G-1Y-ENT",
+    "name": "연간 Entropy 목표",
+    "horizon": "1Y",
+    "metric": "entropy_ratio",
+    "target_value": 0.20,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.90,
+    "status": "ON_TRACK"
+  },
+  "G-Q-IMPACT": {
+    "id": "G-Q-IMPACT",
+    "name": "분기 Impact 목표",
+    "horizon": "Q",
+    "metric": "impact_score",
+    "target_value": 0.35,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.51,
+    "status": "AT_RISK"
+  },
+  "G-Q-REINVEST": {
+    "id": "G-Q-REINVEST",
+    "name": "분기 재투자율 목표",
+    "horizon": "Q",
+    "metric": "reinvestment_ratio",
+    "target_value": 0.10,
+    "current_value": 0.0175,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-Q-IMPACT",
+    "children_ids": [],
+    "progress": 0.175,
+    "status": "BEHIND"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{
+  "G-10Y-001": {
+    "id": "G-10Y-001",
+    "name": "10년 순수익 목표",
+    "horizon": "10Y",
+    "metric": "net_krw",
+    "target_value": 70000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2035-12-31",
+    "parent_id": null,
+    "children_ids": ["G-3Y-001"],
+    "progress": 0.01,
+    "status": "BEHIND"
+  },
+  "G-3Y-001": {
+    "id": "G-3Y-001",
+    "name": "3년 순수익 목표",
+    "horizon": "3Y",
+    "metric": "net_krw",
+    "target_value": 7000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2027-12-31",
+    "parent_id": "G-10Y-001",
+    "children_ids": ["G-1Y-001"],
+    "progress": 0.10,
+    "status": "BEHIND"
+  },
+  "G-1Y-001": {
+    "id": "G-1Y-001",
+    "name": "1년 순수익 목표",
+    "horizon": "1Y",
+    "metric": "net_krw",
+    "target_value": 2100000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": "G-3Y-001",
+    "children_ids": ["G-Q-001"],
+    "progress": 0.33,
+    "status": "AT_RISK"
+  },
+  "G-Q-001": {
+    "id": "G-Q-001",
+    "name": "분기 순수익 목표 (Q1)",
+    "horizon": "Q",
+    "metric": "net_krw",
+    "target_value": 850000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-1Y-001",
+    "children_ids": [],
+    "progress": 0.83,
+    "status": "ON_TRACK"
+  },
+  "G-1Y-ENT": {
+    "id": "G-1Y-ENT",
+    "name": "연간 Entropy 목표",
+    "horizon": "1Y",
+    "metric": "entropy_ratio",
+    "target_value": 0.20,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.90,
+    "status": "ON_TRACK"
+  },
+  "G-Q-IMPACT": {
+    "id": "G-Q-IMPACT",
+    "name": "분기 Impact 목표",
+    "horizon": "Q",
+    "metric": "impact_score",
+    "target_value": 0.35,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.51,
+    "status": "AT_RISK"
+  },
+  "G-Q-REINVEST": {
+    "id": "G-Q-REINVEST",
+    "name": "분기 재투자율 목표",
+    "horizon": "Q",
+    "metric": "reinvestment_ratio",
+    "target_value": 0.10,
+    "current_value": 0.0175,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-Q-IMPACT",
+    "children_ids": [],
+    "progress": 0.175,
+    "status": "BEHIND"
+  }
+}
+
+
+
+
+
+{
+  "G-10Y-001": {
+    "id": "G-10Y-001",
+    "name": "10년 순수익 목표",
+    "horizon": "10Y",
+    "metric": "net_krw",
+    "target_value": 70000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2035-12-31",
+    "parent_id": null,
+    "children_ids": ["G-3Y-001"],
+    "progress": 0.01,
+    "status": "BEHIND"
+  },
+  "G-3Y-001": {
+    "id": "G-3Y-001",
+    "name": "3년 순수익 목표",
+    "horizon": "3Y",
+    "metric": "net_krw",
+    "target_value": 7000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2027-12-31",
+    "parent_id": "G-10Y-001",
+    "children_ids": ["G-1Y-001"],
+    "progress": 0.10,
+    "status": "BEHIND"
+  },
+  "G-1Y-001": {
+    "id": "G-1Y-001",
+    "name": "1년 순수익 목표",
+    "horizon": "1Y",
+    "metric": "net_krw",
+    "target_value": 2100000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": "G-3Y-001",
+    "children_ids": ["G-Q-001"],
+    "progress": 0.33,
+    "status": "AT_RISK"
+  },
+  "G-Q-001": {
+    "id": "G-Q-001",
+    "name": "분기 순수익 목표 (Q1)",
+    "horizon": "Q",
+    "metric": "net_krw",
+    "target_value": 850000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-1Y-001",
+    "children_ids": [],
+    "progress": 0.83,
+    "status": "ON_TRACK"
+  },
+  "G-1Y-ENT": {
+    "id": "G-1Y-ENT",
+    "name": "연간 Entropy 목표",
+    "horizon": "1Y",
+    "metric": "entropy_ratio",
+    "target_value": 0.20,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.90,
+    "status": "ON_TRACK"
+  },
+  "G-Q-IMPACT": {
+    "id": "G-Q-IMPACT",
+    "name": "분기 Impact 목표",
+    "horizon": "Q",
+    "metric": "impact_score",
+    "target_value": 0.35,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.51,
+    "status": "AT_RISK"
+  },
+  "G-Q-REINVEST": {
+    "id": "G-Q-REINVEST",
+    "name": "분기 재투자율 목표",
+    "horizon": "Q",
+    "metric": "reinvestment_ratio",
+    "target_value": 0.10,
+    "current_value": 0.0175,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-Q-IMPACT",
+    "children_ids": [],
+    "progress": 0.175,
+    "status": "BEHIND"
+  }
+}
+
+
+
+
+
+{
+  "G-10Y-001": {
+    "id": "G-10Y-001",
+    "name": "10년 순수익 목표",
+    "horizon": "10Y",
+    "metric": "net_krw",
+    "target_value": 70000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2035-12-31",
+    "parent_id": null,
+    "children_ids": ["G-3Y-001"],
+    "progress": 0.01,
+    "status": "BEHIND"
+  },
+  "G-3Y-001": {
+    "id": "G-3Y-001",
+    "name": "3년 순수익 목표",
+    "horizon": "3Y",
+    "metric": "net_krw",
+    "target_value": 7000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2027-12-31",
+    "parent_id": "G-10Y-001",
+    "children_ids": ["G-1Y-001"],
+    "progress": 0.10,
+    "status": "BEHIND"
+  },
+  "G-1Y-001": {
+    "id": "G-1Y-001",
+    "name": "1년 순수익 목표",
+    "horizon": "1Y",
+    "metric": "net_krw",
+    "target_value": 2100000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": "G-3Y-001",
+    "children_ids": ["G-Q-001"],
+    "progress": 0.33,
+    "status": "AT_RISK"
+  },
+  "G-Q-001": {
+    "id": "G-Q-001",
+    "name": "분기 순수익 목표 (Q1)",
+    "horizon": "Q",
+    "metric": "net_krw",
+    "target_value": 850000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-1Y-001",
+    "children_ids": [],
+    "progress": 0.83,
+    "status": "ON_TRACK"
+  },
+  "G-1Y-ENT": {
+    "id": "G-1Y-ENT",
+    "name": "연간 Entropy 목표",
+    "horizon": "1Y",
+    "metric": "entropy_ratio",
+    "target_value": 0.20,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.90,
+    "status": "ON_TRACK"
+  },
+  "G-Q-IMPACT": {
+    "id": "G-Q-IMPACT",
+    "name": "분기 Impact 목표",
+    "horizon": "Q",
+    "metric": "impact_score",
+    "target_value": 0.35,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.51,
+    "status": "AT_RISK"
+  },
+  "G-Q-REINVEST": {
+    "id": "G-Q-REINVEST",
+    "name": "분기 재투자율 목표",
+    "horizon": "Q",
+    "metric": "reinvestment_ratio",
+    "target_value": 0.10,
+    "current_value": 0.0175,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-Q-IMPACT",
+    "children_ids": [],
+    "progress": 0.175,
+    "status": "BEHIND"
+  }
+}
+
+
+
+
+
+{
+  "G-10Y-001": {
+    "id": "G-10Y-001",
+    "name": "10년 순수익 목표",
+    "horizon": "10Y",
+    "metric": "net_krw",
+    "target_value": 70000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2035-12-31",
+    "parent_id": null,
+    "children_ids": ["G-3Y-001"],
+    "progress": 0.01,
+    "status": "BEHIND"
+  },
+  "G-3Y-001": {
+    "id": "G-3Y-001",
+    "name": "3년 순수익 목표",
+    "horizon": "3Y",
+    "metric": "net_krw",
+    "target_value": 7000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2027-12-31",
+    "parent_id": "G-10Y-001",
+    "children_ids": ["G-1Y-001"],
+    "progress": 0.10,
+    "status": "BEHIND"
+  },
+  "G-1Y-001": {
+    "id": "G-1Y-001",
+    "name": "1년 순수익 목표",
+    "horizon": "1Y",
+    "metric": "net_krw",
+    "target_value": 2100000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": "G-3Y-001",
+    "children_ids": ["G-Q-001"],
+    "progress": 0.33,
+    "status": "AT_RISK"
+  },
+  "G-Q-001": {
+    "id": "G-Q-001",
+    "name": "분기 순수익 목표 (Q1)",
+    "horizon": "Q",
+    "metric": "net_krw",
+    "target_value": 850000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-1Y-001",
+    "children_ids": [],
+    "progress": 0.83,
+    "status": "ON_TRACK"
+  },
+  "G-1Y-ENT": {
+    "id": "G-1Y-ENT",
+    "name": "연간 Entropy 목표",
+    "horizon": "1Y",
+    "metric": "entropy_ratio",
+    "target_value": 0.20,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.90,
+    "status": "ON_TRACK"
+  },
+  "G-Q-IMPACT": {
+    "id": "G-Q-IMPACT",
+    "name": "분기 Impact 목표",
+    "horizon": "Q",
+    "metric": "impact_score",
+    "target_value": 0.35,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.51,
+    "status": "AT_RISK"
+  },
+  "G-Q-REINVEST": {
+    "id": "G-Q-REINVEST",
+    "name": "분기 재투자율 목표",
+    "horizon": "Q",
+    "metric": "reinvestment_ratio",
+    "target_value": 0.10,
+    "current_value": 0.0175,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-Q-IMPACT",
+    "children_ids": [],
+    "progress": 0.175,
+    "status": "BEHIND"
+  }
+}
+
+
+
+
+
+{
+  "G-10Y-001": {
+    "id": "G-10Y-001",
+    "name": "10년 순수익 목표",
+    "horizon": "10Y",
+    "metric": "net_krw",
+    "target_value": 70000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2035-12-31",
+    "parent_id": null,
+    "children_ids": ["G-3Y-001"],
+    "progress": 0.01,
+    "status": "BEHIND"
+  },
+  "G-3Y-001": {
+    "id": "G-3Y-001",
+    "name": "3년 순수익 목표",
+    "horizon": "3Y",
+    "metric": "net_krw",
+    "target_value": 7000000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2027-12-31",
+    "parent_id": "G-10Y-001",
+    "children_ids": ["G-1Y-001"],
+    "progress": 0.10,
+    "status": "BEHIND"
+  },
+  "G-1Y-001": {
+    "id": "G-1Y-001",
+    "name": "1년 순수익 목표",
+    "horizon": "1Y",
+    "metric": "net_krw",
+    "target_value": 2100000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": "G-3Y-001",
+    "children_ids": ["G-Q-001"],
+    "progress": 0.33,
+    "status": "AT_RISK"
+  },
+  "G-Q-001": {
+    "id": "G-Q-001",
+    "name": "분기 순수익 목표 (Q1)",
+    "horizon": "Q",
+    "metric": "net_krw",
+    "target_value": 850000000,
+    "current_value": 701920000,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-1Y-001",
+    "children_ids": [],
+    "progress": 0.83,
+    "status": "ON_TRACK"
+  },
+  "G-1Y-ENT": {
+    "id": "G-1Y-ENT",
+    "name": "연간 Entropy 목표",
+    "horizon": "1Y",
+    "metric": "entropy_ratio",
+    "target_value": 0.20,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.90,
+    "status": "ON_TRACK"
+  },
+  "G-Q-IMPACT": {
+    "id": "G-Q-IMPACT",
+    "name": "분기 Impact 목표",
+    "horizon": "Q",
+    "metric": "impact_score",
+    "target_value": 0.35,
+    "current_value": 0.18,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": null,
+    "children_ids": [],
+    "progress": 0.51,
+    "status": "AT_RISK"
+  },
+  "G-Q-REINVEST": {
+    "id": "G-Q-REINVEST",
+    "name": "분기 재투자율 목표",
+    "horizon": "Q",
+    "metric": "reinvestment_ratio",
+    "target_value": 0.10,
+    "current_value": 0.0175,
+    "start_date": "2025-01-01",
+    "end_date": "2025-03-31",
+    "parent_id": "G-Q-IMPACT",
+    "children_ids": [],
+    "progress": 0.175,
+    "status": "BEHIND"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

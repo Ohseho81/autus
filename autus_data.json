@@ -1,0 +1,143 @@
+{
+  "customers": {
+    "USR001": {
+      "user_id": "USR001",
+      "name": "김철수",
+      "phone": "010-1234-5678",
+      "station_id": "STORE-001",
+      "m_score": 85.0,
+      "t_score": 20.0,
+      "s_score": 70.0,
+      "rank": "ORBIT",
+      "created_at": "2025-12-29T20:45:22.733246",
+      "visit_count": 1,
+      "total_spent": 0
+    },
+    "TEST001": {
+      "user_id": "TEST001",
+      "name": "테스트고객",
+      "phone": "010-1234-5678",
+      "station_id": "STORE-001",
+      "m_score": 80.0,
+      "t_score": 20.0,
+      "s_score": 60.0,
+      "rank": "ORBIT",
+      "created_at": "2025-12-29T21:47:11.224779",
+      "visit_count": 0,
+      "total_spent": 0
+    },
+    "VIP001": {
+      "user_id": "VIP001",
+      "name": "VIP고객",
+      "phone": "010-9999-9999",
+      "station_id": "STORE-001",
+      "m_score": 90.0,
+      "t_score": 10.0,
+      "s_score": 80.0,
+      "rank": "ORBIT",
+      "created_at": "2025-12-29T21:47:11.227544",
+      "visit_count": 0,
+      "total_spent": 0
+    },
+    "RISK001": {
+      "user_id": "RISK001",
+      "name": "주의고객",
+      "phone": "010-0000-0000",
+      "station_id": "STORE-001",
+      "m_score": 30.0,
+      "t_score": 80.0,
+      "s_score": 20.0,
+      "rank": "BLACKHOLE",
+      "created_at": "2025-12-29T21:47:11.180636",
+      "visit_count": 0,
+      "total_spent": 0
+    }
+  },
+  "relationships": [
+    {
+      "source_id": "TEST001",
+      "target_id": "VIP001",
+      "rel_type": "FRIEND",
+      "strength": 1.0,
+      "created_at": "2025-12-29T21:47:11.231205"
+    }
+  ],
+  "entry_logs": [
+    {
+      "user_id": "USR001",
+      "name": "김철수",
+      "rank": "ORBIT",
+      "station_id": "STORE-001",
+      "confidence": 1.0,
+      "timestamp": "2025-12-29T20:46:08.538240"
+    },
+    {
+      "user_id": "GATE001",
+      "name": "방문자",
+      "rank": "NORMAL",
+      "station_id": "STORE-001",
+      "confidence": 1.0,
+      "timestamp": "2025-12-29T21:47:11.307830"
+    },
+    {
+      "user_id": "VIPGATE001",
+      "name": "VIP방문자",
+      "rank": "ORBIT",
+      "station_id": "STORE-001",
+      "confidence": 1.0,
+      "timestamp": "2025-12-29T21:47:11.311406"
+    }
+  ],
+  "consent_logs": [
+    {
+      "consent_id": "91C76ACC1193057C",
+      "name": "동의자",
+      "phone": "010-1111-2222",
+      "station_id": "STORE-001",
+      "agreed_items": {
+        "개인정보수집": true,
+        "마케팅활용": false
+      },
+      "timestamp": "2025-12-29T21:47:11.318895",
+      "legal_hash": "2d516a3db7dc9d0c503f24f850b985a03790b871a277a0f01cf2439ba0073cc5"
+    },
+    {
+      "consent_id": "4863EC3D02607E9D",
+      "name": "확인자",
+      "phone": "010-3333-4444",
+      "station_id": "STORE-001",
+      "agreed_items": {
+        "개인정보수집": true
+      },
+      "timestamp": "2025-12-29T21:47:11.324993",
+      "legal_hash": "64e1b7998ffe5758e14ba9f498082c5d997f8772d5f9ac5e3633c9351a66accd"
+    }
+  ],
+  "players": {
+    "EMP001": {
+      "employee_id": "EMP001",
+      "name": "John",
+      "level": 1,
+      "xp": 20,
+      "gold": 1000,
+      "completed_quests": [
+        "d1_2025-12-29"
+      ],
+      "inventory": [],
+      "created_at": "2025-12-29T20:45:53.449779"
+    },
+    "EMP002": {
+      "employee_id": "EMP002",
+      "name": "QuestPlayer",
+      "level": 1,
+      "xp": 20,
+      "gold": 1000,
+      "completed_quests": [
+        "d1_2025-12-29"
+      ],
+      "inventory": [],
+      "created_at": "2025-12-29T21:47:11.299668"
+    }
+  },
+  "hunters": {}
+}

@@ -1,323 +1,433 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-AUTUS Deployment Script
-========================
-
-24/7 무인 자율 가동 배포 스크립트
+╔═══════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                           ║
+║                          AUTUS-PRIME: Genesis Deployment Script                           ║
+║                          시스템 가동 스크립트                                              ║
+║                                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════════════════════╝
 
 Usage:
-    python deploy.py              # 전체 시스템 시작
-    python deploy.py --backend    # 백엔드만 시작
-    python deploy.py --eternal    # 영원의 엔진만 시작
-    python deploy.py --status     # 시스템 상태 확인
-
-Environment:
-    AUTUS_MODE=SOVEREIGN
-    AUTUS_PORT=8000
-
-Version: 1.0.0
+    python deploy.py              # 전체 시스템 기동
+    python deploy.py --build      # 이미지 재빌드 후 기동
+    python deploy.py --stop       # 시스템 중지
+    python deploy.py --logs       # 로그 확인
+    python deploy.py --status     # 상태 확인
 """
 
-import subprocess
 import os
 import sys
+import subprocess
 import time
-import signal
 import argparse
-from datetime import datetime
-from typing import List, Optional
+from pathlib import Path
 
 
-# ================================================================
-# CONFIGURATION
-# ================================================================
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# 색상 출력
+# ═══════════════════════════════════════════════════════════════════════════════════════════
 
-class DeployConfig:
-    """배포 설정"""
-    
-    # 서버 설정
-    BACKEND_HOST = "0.0.0.0"
-    BACKEND_PORT = int(os.getenv("AUTUS_PORT", "8000"))
-    
-    # 프로세스 설정
-    PROCESS_CHECK_INTERVAL = 5  # seconds
-    MAX_RESTART_ATTEMPTS = 3
-    
-    # 로그 설정
-    LOG_DIR = "logs"
-    
-    # 모드
-    MODE = os.getenv("AUTUS_MODE", "SOVEREIGN")
+class Colors:
+    AMBER = '\033[33m'
+    GREEN = '\033[32m'
+    RED = '\033[31m'
+    BLUE = '\033[34m'
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
 
 
-# ================================================================
-# PROCESS MANAGER
-# ================================================================
+def print_amber(text):
+    print(f"{Colors.AMBER}{text}{Colors.RESET}")
 
-class ProcessManager:
-    """프로세스 관리자"""
-    
-    def __init__(self):
-        self.processes: dict = {}
-        self.running = False
-        
-        # 시그널 핸들러
-        signal.signal(signal.SIGINT, self._signal_handler)
-        signal.signal(signal.SIGTERM, self._signal_handler)
-    
-    def _signal_handler(self, signum, frame):
-        """시그널 핸들러"""
-        print(f"\n🛑 Received signal {signum}, initiating graceful shutdown...")
-        self.stop_all()
-    
-    def start_process(
-        self,
-        name: str,
-        command: List[str],
-        log_file: Optional[str] = None
-    ) -> bool:
-        """프로세스 시작"""
+
+def print_green(text):
+    print(f"{Colors.GREEN}{text}{Colors.RESET}")
+
+
+def print_red(text):
+    print(f"{Colors.RED}{text}{Colors.RESET}")
+
+
+def print_header():
+    print(f"""
+{Colors.AMBER}╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║     █████╗ ██╗   ██╗████████╗██╗   ██╗███████╗    ██████╗ ██████╗ ██╗███╗   ███║
+║    ██╔══██╗██║   ██║╚══██╔══╝██║   ██║██╔════╝    ██╔══██╗██╔══██╗██║████╗ ████║
+║    ███████║██║   ██║   ██║   ██║   ██║███████╗    ██████╔╝██████╔╝██║██╔████╔██║
+║    ██╔══██║██║   ██║   ██║   ██║   ██║╚════██║    ██╔═══╝ ██╔══██╗██║██║╚██╔╝██║
+║    ██║  ██║╚██████╔╝   ██║   ╚██████╔╝███████║    ██║     ██║  ██║██║██║ ╚═╝ ██║
+║    ╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝ ╚══════╝    ╚═╝     ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝
+║                                                                               ║
+║                           GENESIS DEPLOYMENT SCRIPT                            ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝{Colors.RESET}
+""")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# 환경 점검
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+def check_docker():
+    """Docker 설치 및 실행 상태 확인"""
+    try:
+        result = subprocess.run(
+            ["docker", "--version"], 
+            capture_output=True, 
+            text=True, 
+            check=True
+        )
+        print_green(f"  ✓ Docker: {result.stdout.strip()}")
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print_red("  ✗ Docker가 설치되지 않았거나 실행 중이지 않습니다.")
+        print_red("    → Docker Desktop을 설치하고 실행해주세요.")
+        return False
+
+
+def check_docker_compose():
+    """Docker Compose 확인"""
+    try:
+        result = subprocess.run(
+            ["docker", "compose", "version"], 
+            capture_output=True, 
+            text=True, 
+            check=True
+        )
+        print_green(f"  ✓ Docker Compose: {result.stdout.strip()}")
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
         try:
-            # 로그 파일 설정
-            if log_file:
-                os.makedirs(DeployConfig.LOG_DIR, exist_ok=True)
-                log_path = os.path.join(DeployConfig.LOG_DIR, log_file)
-                log_handle = open(log_path, 'a')
-            else:
-                log_handle = subprocess.DEVNULL
-            
-            # 프로세스 시작
-            process = subprocess.Popen(
-                command,
-                stdout=log_handle if log_file else subprocess.DEVNULL,
-                stderr=subprocess.STDOUT,
-                preexec_fn=os.setsid if os.name != 'nt' else None,
+            result = subprocess.run(
+                ["docker-compose", "--version"], 
+                capture_output=True, 
+                text=True, 
+                check=True
             )
-            
-            self.processes[name] = {
-                "process": process,
-                "command": command,
-                "log_file": log_file,
-                "started_at": datetime.now(),
-                "restart_count": 0,
-            }
-            
-            print(f"✅ Started {name} (PID: {process.pid})")
+            print_green(f"  ✓ Docker Compose: {result.stdout.strip()}")
             return True
-            
-        except Exception as e:
-            print(f"❌ Failed to start {name}: {e}")
+        except:
+            print_red("  ✗ Docker Compose를 찾을 수 없습니다.")
             return False
     
-    def stop_process(self, name: str) -> bool:
-        """프로세스 중지"""
-        if name not in self.processes:
-            return False
-        
-        proc_info = self.processes[name]
-        process = proc_info["process"]
-        
-        try:
-            if os.name != 'nt':
-                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-            else:
-                process.terminate()
-            
-            process.wait(timeout=10)
-            print(f"🛑 Stopped {name}")
-            
-        except subprocess.TimeoutExpired:
-            process.kill()
-            print(f"⚠️ Force killed {name}")
-        except Exception as e:
-            print(f"❌ Error stopping {name}: {e}")
-        
-        del self.processes[name]
+
+def check_env_file():
+    """환경 변수 파일 확인/생성"""
+    env_file = Path(".env")
+    env_example = Path(".env.example")
+    
+    if env_file.exists():
+        print_green("  ✓ .env 파일 존재")
         return True
     
-    def stop_all(self):
-        """모든 프로세스 중지"""
-        self.running = False
-        
-        for name in list(self.processes.keys()):
-            self.stop_process(name)
+    if env_example.exists():
+        print_amber("  ⚠ .env 파일이 없습니다. 기본 설정으로 생성합니다.")
+        with open(env_example, 'r') as src:
+            content = src.read()
+        with open(env_file, 'w') as dst:
+            dst.write(content)
+        print_green("  ✓ .env 파일 생성 완료")
+        return True
     
-    def check_health(self) -> dict:
-        """헬스 체크"""
-        status = {}
-        
-        for name, info in self.processes.items():
-            process = info["process"]
-            is_running = process.poll() is None
-            
-            status[name] = {
-                "running": is_running,
-                "pid": process.pid if is_running else None,
-                "uptime": str(datetime.now() - info["started_at"]) if is_running else "N/A",
-                "restart_count": info["restart_count"],
-            }
-        
-        return status
+    print_amber("  ⚠ .env 파일을 기본 설정으로 생성합니다.")
+    default_env = """
+DB_USER=autus_admin
+DB_PASSWORD=autus_secret_2024
+DB_NAME=autus_prime
+MASTER_KEY=autus_sovereign_v1
+JWT_SECRET=autus-jwt-secret-key
+ENV=development
+VITE_API_URL=http://localhost:8000
+""".strip()
     
-    def restart_process(self, name: str) -> bool:
-        """프로세스 재시작"""
-        if name not in self.processes:
-            return False
-        
-        info = self.processes[name]
-        
-        if info["restart_count"] >= DeployConfig.MAX_RESTART_ATTEMPTS:
-            print(f"❌ Max restart attempts reached for {name}")
-            return False
-        
-        self.stop_process(name)
-        time.sleep(2)
-        
-        success = self.start_process(
-            name,
-            info["command"],
-            info["log_file"],
-        )
-        
-        if success:
-            self.processes[name]["restart_count"] = info["restart_count"] + 1
-        
-        return success
+    with open(env_file, 'w') as f:
+        f.write(default_env)
     
-    def monitor(self):
-        """프로세스 모니터링 루프"""
-        self.running = True
-        
-        print("\n📡 Monitoring processes (Press Ctrl+C to stop)...\n")
-        
-        while self.running:
-            for name, info in list(self.processes.items()):
-                process = info["process"]
-                
-                if process.poll() is not None:
-                    print(f"⚠️ Process {name} died, attempting restart...")
-                    self.restart_process(name)
-            
-            time.sleep(DeployConfig.PROCESS_CHECK_INTERVAL)
+    print_green("  ✓ .env 파일 생성 완료")
+    return True
 
 
-# ================================================================
-# DEPLOYMENT FUNCTIONS
-# ================================================================
-
-def launch_backend(pm: ProcessManager):
-    """백엔드 서버 시작"""
-    print("\n🔧 Starting Backend Server...")
+def check_environment():
+    """전체 환경 점검"""
+    print_amber("\n[1/4] 환경 점검 중...")
     
-    pm.start_process(
-        "backend",
-        [
-            sys.executable, "-m", "uvicorn", "backend.main:app",
-            "--host", DeployConfig.BACKEND_HOST,
-            "--port", str(DeployConfig.BACKEND_PORT),
-            "--reload",
-        ],
-        "backend.log",
-    )
-
-
-def launch_eternal_engine(pm: ProcessManager):
-    """영원의 엔진 시작"""
-    print("\n🚀 Starting Eternal Engine...")
+    checks = [
+        ("Docker", check_docker),
+        ("Docker Compose", check_docker_compose),
+        ("Environment", check_env_file),
+    ]
     
-    pm.start_process(
-        "eternal_engine",
-        [sys.executable, "-m", "backend.core.eternal_engine"],
-        "eternal_engine.log",
-    )
-
-
-def print_status(pm: ProcessManager):
-    """상태 출력"""
-    print("\n" + "=" * 60)
-    print("AUTUS SYSTEM STATUS")
-    print("=" * 60)
+    all_passed = True
+    for name, check_func in checks:
+        if not check_func():
+            all_passed = False
     
-    status = pm.check_health()
+    return all_passed
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# 배포 명령
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+def get_compose_cmd():
+    """Docker Compose 명령어 반환"""
+    try:
+        subprocess.run(["docker", "compose", "version"], capture_output=True, check=True)
+        return ["docker", "compose"]
+    except:
+        return ["docker-compose"]
+
+
+def build_images():
+    """Docker 이미지 빌드"""
+    print_amber("\n[2/4] 컨테이너 이미지 빌드 중...")
     
-    if not status:
-        print("\n⚠️ No processes running")
-        return
+    cmd = get_compose_cmd() + ["build"]
+    result = subprocess.run(cmd)
     
-    for name, info in status.items():
-        icon = "✅" if info["running"] else "❌"
-        print(f"\n{icon} {name.upper()}")
-        print(f"   PID: {info['pid']}")
-        print(f"   Uptime: {info['uptime']}")
-        print(f"   Restarts: {info['restart_count']}")
+    if result.returncode == 0:
+        print_green("  ✓ 이미지 빌드 완료")
+        return True
+    else:
+        print_red("  ✗ 이미지 빌드 실패")
+        return False
+
+
+def start_services():
+    """서비스 시작"""
+    print_amber("\n[3/4] 서비스 기동 중 (Genesis)...")
     
-    print("\n" + "=" * 60)
+    cmd = get_compose_cmd() + ["up", "-d"]
+    result = subprocess.run(cmd)
+    
+    if result.returncode == 0:
+        print_green("  ✓ 서비스 기동 완료")
+        return True
+    else:
+        print_red("  ✗ 서비스 기동 실패")
+        return False
 
 
-def print_banner():
-    """배너 출력"""
-    banner = """
-    ╔═══════════════════════════════════════════════════════════╗
-    ║                                                           ║
-    ║     █████╗ ██╗   ██╗████████╗██╗   ██╗███████╗           ║
-    ║    ██╔══██╗██║   ██║╚══██╔══╝██║   ██║██╔════╝           ║
-    ║    ███████║██║   ██║   ██║   ██║   ██║███████╗           ║
-    ║    ██╔══██║██║   ██║   ██║   ██║   ██║╚════██║           ║
-    ║    ██║  ██║╚██████╔╝   ██║   ╚██████╔╝███████║           ║
-    ║    ╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝ ╚══════╝           ║
-    ║                                                           ║
-    ║          24/7 ZERO-TOUCH SOVEREIGN SYSTEM                ║
-    ║                                                           ║
-    ╚═══════════════════════════════════════════════════════════╝
-    """
-    print(banner)
+def stop_services():
+    """서비스 중지"""
+    print_amber("\n서비스 중지 중...")
+    
+    cmd = get_compose_cmd() + ["down"]
+    result = subprocess.run(cmd)
+    
+    if result.returncode == 0:
+        print_green("  ✓ 서비스 중지 완료")
+    else:
+        print_red("  ✗ 서비스 중지 실패")
 
 
-# ================================================================
-# MAIN
-# ================================================================
+def show_logs():
+    """로그 표시"""
+    cmd = get_compose_cmd() + ["logs", "-f", "--tail=100"]
+    subprocess.run(cmd)
+
+
+def show_status():
+    """서비스 상태 표시"""
+    print_amber("\n서비스 상태:")
+    cmd = get_compose_cmd() + ["ps"]
+    subprocess.run(cmd)
+
+
+def health_check():
+    """헬스 체크"""
+    print_amber("\n[4/4] 시스템 상태 확인 중...")
+    
+    print("  ⏳ DB 초기화 대기 중... (5초)")
+    time.sleep(5)
+    
+    try:
+        import urllib.request
+        response = urllib.request.urlopen("http://localhost:8000/health", timeout=10)
+        if response.status == 200:
+            print_green("  ✓ Backend: ONLINE")
+        else:
+            print_amber("  ⚠ Backend: DEGRADED")
+    except Exception as e:
+        print_amber(f"  ⚠ Backend: 응답 대기 중... ({e})")
+    
+    try:
+        import urllib.request
+        response = urllib.request.urlopen("http://localhost:3000", timeout=10)
+        if response.status == 200:
+            print_green("  ✓ Frontend: ONLINE")
+        else:
+            print_amber("  ⚠ Frontend: DEGRADED")
+    except Exception as e:
+        print_amber(f"  ⚠ Frontend: 응답 대기 중... ({e})")
+
+
+def print_success_message():
+    """성공 메시지 출력"""
+    print(f"""
+{Colors.GREEN}
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║                         >>> SYSTEM ONLINE <<<                                 ║
+║                                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║   🖥  Dashboard:   http://localhost:3000                                      ║
+║   🔌 API Server:  http://localhost:8000                                       ║
+║   📚 API Docs:    http://localhost:8000/docs                                  ║
+║                                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║   Commands:                                                                   ║
+║   • python deploy.py --logs    로그 확인                                      ║
+║   • python deploy.py --stop    서비스 중지                                    ║
+║   • python deploy.py --status  상태 확인                                      ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+{Colors.RESET}""")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# 메인
+# ═══════════════════════════════════════════════════════════════════════════════════════════
 
 def main():
-    parser = argparse.ArgumentParser(description="AUTUS Deployment Script")
-    parser.add_argument("--backend", action="store_true", help="Start backend only")
-    parser.add_argument("--eternal", action="store_true", help="Start eternal engine only")
-    parser.add_argument("--status", action="store_true", help="Show system status")
-    parser.add_argument("--no-monitor", action="store_true", help="Don't monitor processes")
+    parser = argparse.ArgumentParser(description="AUTUS-PRIME Deployment Script")
+    parser.add_argument("--build", action="store_true", help="Force rebuild images")
+    parser.add_argument("--stop", action="store_true", help="Stop all services")
+    parser.add_argument("--logs", action="store_true", help="Show logs")
+    parser.add_argument("--status", action="store_true", help="Show service status")
     
     args = parser.parse_args()
     
-    print_banner()
+    print_header()
     
-    pm = ProcessManager()
-    
-    if args.status:
-        print_status(pm)
+    if args.stop:
+        stop_services()
         return
     
-    print(f"\n🌐 Mode: {DeployConfig.MODE}")
-    print(f"📡 Backend: http://localhost:{DeployConfig.BACKEND_PORT}")
+    if args.logs:
+        show_logs()
+        return
     
-    # 선택적 시작
-    if args.backend:
-        launch_backend(pm)
-    elif args.eternal:
-        launch_eternal_engine(pm)
-    else:
-        # 전체 시스템 시작
-        print("\n🚀 Launching Full System...")
-        launch_backend(pm)
-        time.sleep(3)
-        launch_eternal_engine(pm)
+    if args.status:
+        show_status()
+        return
     
-    print("\n" + "=" * 60)
-    print("✅ AUTUS SYSTEM DEPLOYED SUCCESSFULLY")
-    print("=" * 60)
+    if not check_environment():
+        print_red("\n❌ 환경 점검 실패. 위 오류를 해결 후 다시 시도해주세요.")
+        sys.exit(1)
     
-    print(f"\n🔗 API Docs: http://localhost:{DeployConfig.BACKEND_PORT}/docs")
+    if args.build:
+        if not build_images():
+            sys.exit(1)
     
-    # 모니터링
-    if not args.no_monitor:
-        pm.monitor()
+    if not start_services():
+        sys.exit(1)
+    
+    health_check()
+    print_success_message()
+
+
+if __name__ == "__main__":
+    main()
+
+    
+    if not start_services():
+        sys.exit(1)
+    
+    health_check()
+    print_success_message()
+
+
+if __name__ == "__main__":
+    main()
+
+    
+    if not start_services():
+        sys.exit(1)
+    
+    health_check()
+    print_success_message()
+
+
+if __name__ == "__main__":
+    main()
+
+    
+    if not start_services():
+        sys.exit(1)
+    
+    health_check()
+    print_success_message()
+
+
+if __name__ == "__main__":
+    main()
+
+    
+    if not start_services():
+        sys.exit(1)
+    
+    health_check()
+    print_success_message()
+
+
+if __name__ == "__main__":
+    main()
+
+    
+    if not start_services():
+        sys.exit(1)
+    
+    health_check()
+    print_success_message()
+
+
+if __name__ == "__main__":
+    main()
+
+    
+    if not start_services():
+        sys.exit(1)
+    
+    health_check()
+    print_success_message()
+
+
+if __name__ == "__main__":
+    main()
+
+    
+    if not start_services():
+        sys.exit(1)
+    
+    health_check()
+    print_success_message()
+
+
+if __name__ == "__main__":
+    main()
+
+    
+    if not start_services():
+        sys.exit(1)
+    
+    health_check()
+    print_success_message()
+
+
+if __name__ == "__main__":
+    main()
+
+    
+    if not start_services():
+        sys.exit(1)
+    
+    health_check()
+    print_success_message()
 
 
 if __name__ == "__main__":

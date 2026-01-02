@@ -1,0 +1,2265 @@
+{
+  "name": "AUTUS Physics Map - Data Collection Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physics-map-data",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (데이터 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "physics-map-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics 수식 계산\n// V = D - T + S\n\nconst data = $input.all()[0].json;\n\n// 직접 돈 (D)\nconst directMoney = (data.inflow || 0) - (data.outflow || 0);\n\n// 시간 비용 (T)\nconst hourlyValue = data.hourlyValue || 50000;  // 시간당 가치 (기본 5만원)\nconst timeCost = (data.timeHours || 0) * hourlyValue;\n\n// 시너지 계산 (S = k × (N1 × N2) / d² × (1+r)^t)\nconst k = 0.000001;  // 시너지 계수\nconst n1 = data.value || 0;\nconst n2 = data.partnerValue || 0;\nconst distance = data.distance || 1;  // 관계 거리\nconst rate = data.growthRate || 0.05;  // 성장률\nconst time = data.relationMonths || 12;  // 관계 개월\nconst synergy = k * (n1 * n2) / Math.pow(distance, 2) * Math.pow(1 + rate, time / 12);\n\n// 총 가치 (V)\nconst totalValue = directMoney - timeCost + synergy;\n\n// 12개월 예측 (F = P × (1+g)^t)\nconst growthRate = data.growthRate || 0.1;\nconst forecast12m = totalValue * Math.pow(1 + growthRate, 1);\n\n// 병목 감지\nconst isBottleneck = data.outflow > data.inflow * 0.3;\n\nreturn {\n  json: {\n    id: data.id || 'unknown',\n    name: data.name || '미정',\n    role: data.role || 'PERSON',\n    location: data.location || '미정',\n    lat: data.lat || 0,\n    lon: data.lon || 0,\n    \n    // 원본 데이터\n    inflow: data.inflow || 0,\n    outflow: data.outflow || 0,\n    timeHours: data.timeHours || 0,\n    \n    // Physics 계산 결과\n    directMoney,\n    timeCost,\n    synergy: Math.round(synergy),\n    totalValue: Math.round(totalValue),\n    forecast12m: Math.round(forecast12m),\n    \n    // 상태\n    status: isBottleneck ? 'bottleneck' : 'optimal',\n    isBottleneck,\n    \n    // 메타데이터\n    calculatedAt: new Date().toISOString(),\n    formula: 'V = D - T + S'\n  }\n};"
+      },
+      "id": "physics-calculation",
+      "name": "Physics 수식 계산",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isBottleneck }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bottleneck-check",
+      "name": "병목 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "databaseId": "={{ $env.NOTION_DATABASE_ID }}",
+        "title": "={{ $json.name }} ({{ $json.id }})",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Person ID",
+              "richTextValue": "={{ $json.id }}"
+            },
+            {
+              "key": "Name",
+              "title": "={{ $json.name }}"
+            },
+            {
+              "key": "Role",
+              "selectValue": "={{ $json.role }}"
+            },
+            {
+              "key": "Location",
+              "richTextValue": "={{ $json.location }}"
+            },
+            {
+              "key": "Total Value",
+              "numberValue": "={{ $json.totalValue }}"
+            },
+            {
+              "key": "Inflow",
+              "numberValue": "={{ $json.inflow }}"
+            },
+            {
+              "key": "Outflow",
+              "numberValue": "={{ $json.outflow }}"
+            },
+            {
+              "key": "Synergy",
+              "numberValue": "={{ $json.synergy }}"
+            },
+            {
+              "key": "Forecast 12M",
+              "numberValue": "={{ $json.forecast12m }}"
+            },
+            {
+              "key": "Status",
+              "selectValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "id": "notion-save",
+      "name": "Notion DB 저장",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [800, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credentials",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL }}",
+        "text": "⚠️ *돈 병목 감지!*\n\n*{{ $json.name }}* ({{ $json.id }})\n📍 {{ $json.location }}\n\n💰 유입: ₩{{ $json.inflow.toLocaleString() }}\n🔴 유출: ₩{{ $json.outflow.toLocaleString() }}\n📊 유출비율: {{ Math.round($json.outflow / $json.inflow * 100) }}%\n\n💡 *제안*: 유출 비용 절감 또는 유입 경로 다각화 필요",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack 병목 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-credentials",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "응답 반환",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (데이터 수신)": {
+      "main": [
+        [
+          {
+            "node": "Physics 수식 계산",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Physics 수식 계산": {
+      "main": [
+        [
+          {
+            "node": "병목 체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "병목 체크": {
+      "main": [
+        [
+          {
+            "node": "Slack 병목 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion DB 저장": {
+      "main": [
+        [
+          {
+            "node": "응답 반환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack 병목 알림": {
+      "main": [
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "autus-tag",
+      "name": "AUTUS"
+    },
+    {
+      "id": "physics-tag",
+      "name": "Physics Map"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-30T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
+
+
+
+
+
+{
+  "name": "AUTUS Physics Map - Data Collection Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physics-map-data",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (데이터 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "physics-map-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics 수식 계산\n// V = D - T + S\n\nconst data = $input.all()[0].json;\n\n// 직접 돈 (D)\nconst directMoney = (data.inflow || 0) - (data.outflow || 0);\n\n// 시간 비용 (T)\nconst hourlyValue = data.hourlyValue || 50000;  // 시간당 가치 (기본 5만원)\nconst timeCost = (data.timeHours || 0) * hourlyValue;\n\n// 시너지 계산 (S = k × (N1 × N2) / d² × (1+r)^t)\nconst k = 0.000001;  // 시너지 계수\nconst n1 = data.value || 0;\nconst n2 = data.partnerValue || 0;\nconst distance = data.distance || 1;  // 관계 거리\nconst rate = data.growthRate || 0.05;  // 성장률\nconst time = data.relationMonths || 12;  // 관계 개월\nconst synergy = k * (n1 * n2) / Math.pow(distance, 2) * Math.pow(1 + rate, time / 12);\n\n// 총 가치 (V)\nconst totalValue = directMoney - timeCost + synergy;\n\n// 12개월 예측 (F = P × (1+g)^t)\nconst growthRate = data.growthRate || 0.1;\nconst forecast12m = totalValue * Math.pow(1 + growthRate, 1);\n\n// 병목 감지\nconst isBottleneck = data.outflow > data.inflow * 0.3;\n\nreturn {\n  json: {\n    id: data.id || 'unknown',\n    name: data.name || '미정',\n    role: data.role || 'PERSON',\n    location: data.location || '미정',\n    lat: data.lat || 0,\n    lon: data.lon || 0,\n    \n    // 원본 데이터\n    inflow: data.inflow || 0,\n    outflow: data.outflow || 0,\n    timeHours: data.timeHours || 0,\n    \n    // Physics 계산 결과\n    directMoney,\n    timeCost,\n    synergy: Math.round(synergy),\n    totalValue: Math.round(totalValue),\n    forecast12m: Math.round(forecast12m),\n    \n    // 상태\n    status: isBottleneck ? 'bottleneck' : 'optimal',\n    isBottleneck,\n    \n    // 메타데이터\n    calculatedAt: new Date().toISOString(),\n    formula: 'V = D - T + S'\n  }\n};"
+      },
+      "id": "physics-calculation",
+      "name": "Physics 수식 계산",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isBottleneck }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bottleneck-check",
+      "name": "병목 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "databaseId": "={{ $env.NOTION_DATABASE_ID }}",
+        "title": "={{ $json.name }} ({{ $json.id }})",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Person ID",
+              "richTextValue": "={{ $json.id }}"
+            },
+            {
+              "key": "Name",
+              "title": "={{ $json.name }}"
+            },
+            {
+              "key": "Role",
+              "selectValue": "={{ $json.role }}"
+            },
+            {
+              "key": "Location",
+              "richTextValue": "={{ $json.location }}"
+            },
+            {
+              "key": "Total Value",
+              "numberValue": "={{ $json.totalValue }}"
+            },
+            {
+              "key": "Inflow",
+              "numberValue": "={{ $json.inflow }}"
+            },
+            {
+              "key": "Outflow",
+              "numberValue": "={{ $json.outflow }}"
+            },
+            {
+              "key": "Synergy",
+              "numberValue": "={{ $json.synergy }}"
+            },
+            {
+              "key": "Forecast 12M",
+              "numberValue": "={{ $json.forecast12m }}"
+            },
+            {
+              "key": "Status",
+              "selectValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "id": "notion-save",
+      "name": "Notion DB 저장",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [800, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credentials",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL }}",
+        "text": "⚠️ *돈 병목 감지!*\n\n*{{ $json.name }}* ({{ $json.id }})\n📍 {{ $json.location }}\n\n💰 유입: ₩{{ $json.inflow.toLocaleString() }}\n🔴 유출: ₩{{ $json.outflow.toLocaleString() }}\n📊 유출비율: {{ Math.round($json.outflow / $json.inflow * 100) }}%\n\n💡 *제안*: 유출 비용 절감 또는 유입 경로 다각화 필요",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack 병목 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-credentials",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "응답 반환",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (데이터 수신)": {
+      "main": [
+        [
+          {
+            "node": "Physics 수식 계산",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Physics 수식 계산": {
+      "main": [
+        [
+          {
+            "node": "병목 체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "병목 체크": {
+      "main": [
+        [
+          {
+            "node": "Slack 병목 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion DB 저장": {
+      "main": [
+        [
+          {
+            "node": "응답 반환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack 병목 알림": {
+      "main": [
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "autus-tag",
+      "name": "AUTUS"
+    },
+    {
+      "id": "physics-tag",
+      "name": "Physics Map"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-30T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
+
+
+
+
+
+{
+  "name": "AUTUS Physics Map - Data Collection Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physics-map-data",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (데이터 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "physics-map-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics 수식 계산\n// V = D - T + S\n\nconst data = $input.all()[0].json;\n\n// 직접 돈 (D)\nconst directMoney = (data.inflow || 0) - (data.outflow || 0);\n\n// 시간 비용 (T)\nconst hourlyValue = data.hourlyValue || 50000;  // 시간당 가치 (기본 5만원)\nconst timeCost = (data.timeHours || 0) * hourlyValue;\n\n// 시너지 계산 (S = k × (N1 × N2) / d² × (1+r)^t)\nconst k = 0.000001;  // 시너지 계수\nconst n1 = data.value || 0;\nconst n2 = data.partnerValue || 0;\nconst distance = data.distance || 1;  // 관계 거리\nconst rate = data.growthRate || 0.05;  // 성장률\nconst time = data.relationMonths || 12;  // 관계 개월\nconst synergy = k * (n1 * n2) / Math.pow(distance, 2) * Math.pow(1 + rate, time / 12);\n\n// 총 가치 (V)\nconst totalValue = directMoney - timeCost + synergy;\n\n// 12개월 예측 (F = P × (1+g)^t)\nconst growthRate = data.growthRate || 0.1;\nconst forecast12m = totalValue * Math.pow(1 + growthRate, 1);\n\n// 병목 감지\nconst isBottleneck = data.outflow > data.inflow * 0.3;\n\nreturn {\n  json: {\n    id: data.id || 'unknown',\n    name: data.name || '미정',\n    role: data.role || 'PERSON',\n    location: data.location || '미정',\n    lat: data.lat || 0,\n    lon: data.lon || 0,\n    \n    // 원본 데이터\n    inflow: data.inflow || 0,\n    outflow: data.outflow || 0,\n    timeHours: data.timeHours || 0,\n    \n    // Physics 계산 결과\n    directMoney,\n    timeCost,\n    synergy: Math.round(synergy),\n    totalValue: Math.round(totalValue),\n    forecast12m: Math.round(forecast12m),\n    \n    // 상태\n    status: isBottleneck ? 'bottleneck' : 'optimal',\n    isBottleneck,\n    \n    // 메타데이터\n    calculatedAt: new Date().toISOString(),\n    formula: 'V = D - T + S'\n  }\n};"
+      },
+      "id": "physics-calculation",
+      "name": "Physics 수식 계산",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isBottleneck }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bottleneck-check",
+      "name": "병목 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "databaseId": "={{ $env.NOTION_DATABASE_ID }}",
+        "title": "={{ $json.name }} ({{ $json.id }})",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Person ID",
+              "richTextValue": "={{ $json.id }}"
+            },
+            {
+              "key": "Name",
+              "title": "={{ $json.name }}"
+            },
+            {
+              "key": "Role",
+              "selectValue": "={{ $json.role }}"
+            },
+            {
+              "key": "Location",
+              "richTextValue": "={{ $json.location }}"
+            },
+            {
+              "key": "Total Value",
+              "numberValue": "={{ $json.totalValue }}"
+            },
+            {
+              "key": "Inflow",
+              "numberValue": "={{ $json.inflow }}"
+            },
+            {
+              "key": "Outflow",
+              "numberValue": "={{ $json.outflow }}"
+            },
+            {
+              "key": "Synergy",
+              "numberValue": "={{ $json.synergy }}"
+            },
+            {
+              "key": "Forecast 12M",
+              "numberValue": "={{ $json.forecast12m }}"
+            },
+            {
+              "key": "Status",
+              "selectValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "id": "notion-save",
+      "name": "Notion DB 저장",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [800, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credentials",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL }}",
+        "text": "⚠️ *돈 병목 감지!*\n\n*{{ $json.name }}* ({{ $json.id }})\n📍 {{ $json.location }}\n\n💰 유입: ₩{{ $json.inflow.toLocaleString() }}\n🔴 유출: ₩{{ $json.outflow.toLocaleString() }}\n📊 유출비율: {{ Math.round($json.outflow / $json.inflow * 100) }}%\n\n💡 *제안*: 유출 비용 절감 또는 유입 경로 다각화 필요",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack 병목 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-credentials",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "응답 반환",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (데이터 수신)": {
+      "main": [
+        [
+          {
+            "node": "Physics 수식 계산",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Physics 수식 계산": {
+      "main": [
+        [
+          {
+            "node": "병목 체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "병목 체크": {
+      "main": [
+        [
+          {
+            "node": "Slack 병목 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion DB 저장": {
+      "main": [
+        [
+          {
+            "node": "응답 반환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack 병목 알림": {
+      "main": [
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "autus-tag",
+      "name": "AUTUS"
+    },
+    {
+      "id": "physics-tag",
+      "name": "Physics Map"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-30T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
+
+
+
+
+
+{
+  "name": "AUTUS Physics Map - Data Collection Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physics-map-data",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (데이터 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "physics-map-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics 수식 계산\n// V = D - T + S\n\nconst data = $input.all()[0].json;\n\n// 직접 돈 (D)\nconst directMoney = (data.inflow || 0) - (data.outflow || 0);\n\n// 시간 비용 (T)\nconst hourlyValue = data.hourlyValue || 50000;  // 시간당 가치 (기본 5만원)\nconst timeCost = (data.timeHours || 0) * hourlyValue;\n\n// 시너지 계산 (S = k × (N1 × N2) / d² × (1+r)^t)\nconst k = 0.000001;  // 시너지 계수\nconst n1 = data.value || 0;\nconst n2 = data.partnerValue || 0;\nconst distance = data.distance || 1;  // 관계 거리\nconst rate = data.growthRate || 0.05;  // 성장률\nconst time = data.relationMonths || 12;  // 관계 개월\nconst synergy = k * (n1 * n2) / Math.pow(distance, 2) * Math.pow(1 + rate, time / 12);\n\n// 총 가치 (V)\nconst totalValue = directMoney - timeCost + synergy;\n\n// 12개월 예측 (F = P × (1+g)^t)\nconst growthRate = data.growthRate || 0.1;\nconst forecast12m = totalValue * Math.pow(1 + growthRate, 1);\n\n// 병목 감지\nconst isBottleneck = data.outflow > data.inflow * 0.3;\n\nreturn {\n  json: {\n    id: data.id || 'unknown',\n    name: data.name || '미정',\n    role: data.role || 'PERSON',\n    location: data.location || '미정',\n    lat: data.lat || 0,\n    lon: data.lon || 0,\n    \n    // 원본 데이터\n    inflow: data.inflow || 0,\n    outflow: data.outflow || 0,\n    timeHours: data.timeHours || 0,\n    \n    // Physics 계산 결과\n    directMoney,\n    timeCost,\n    synergy: Math.round(synergy),\n    totalValue: Math.round(totalValue),\n    forecast12m: Math.round(forecast12m),\n    \n    // 상태\n    status: isBottleneck ? 'bottleneck' : 'optimal',\n    isBottleneck,\n    \n    // 메타데이터\n    calculatedAt: new Date().toISOString(),\n    formula: 'V = D - T + S'\n  }\n};"
+      },
+      "id": "physics-calculation",
+      "name": "Physics 수식 계산",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isBottleneck }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bottleneck-check",
+      "name": "병목 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "databaseId": "={{ $env.NOTION_DATABASE_ID }}",
+        "title": "={{ $json.name }} ({{ $json.id }})",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Person ID",
+              "richTextValue": "={{ $json.id }}"
+            },
+            {
+              "key": "Name",
+              "title": "={{ $json.name }}"
+            },
+            {
+              "key": "Role",
+              "selectValue": "={{ $json.role }}"
+            },
+            {
+              "key": "Location",
+              "richTextValue": "={{ $json.location }}"
+            },
+            {
+              "key": "Total Value",
+              "numberValue": "={{ $json.totalValue }}"
+            },
+            {
+              "key": "Inflow",
+              "numberValue": "={{ $json.inflow }}"
+            },
+            {
+              "key": "Outflow",
+              "numberValue": "={{ $json.outflow }}"
+            },
+            {
+              "key": "Synergy",
+              "numberValue": "={{ $json.synergy }}"
+            },
+            {
+              "key": "Forecast 12M",
+              "numberValue": "={{ $json.forecast12m }}"
+            },
+            {
+              "key": "Status",
+              "selectValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "id": "notion-save",
+      "name": "Notion DB 저장",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [800, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credentials",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL }}",
+        "text": "⚠️ *돈 병목 감지!*\n\n*{{ $json.name }}* ({{ $json.id }})\n📍 {{ $json.location }}\n\n💰 유입: ₩{{ $json.inflow.toLocaleString() }}\n🔴 유출: ₩{{ $json.outflow.toLocaleString() }}\n📊 유출비율: {{ Math.round($json.outflow / $json.inflow * 100) }}%\n\n💡 *제안*: 유출 비용 절감 또는 유입 경로 다각화 필요",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack 병목 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-credentials",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "응답 반환",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (데이터 수신)": {
+      "main": [
+        [
+          {
+            "node": "Physics 수식 계산",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Physics 수식 계산": {
+      "main": [
+        [
+          {
+            "node": "병목 체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "병목 체크": {
+      "main": [
+        [
+          {
+            "node": "Slack 병목 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion DB 저장": {
+      "main": [
+        [
+          {
+            "node": "응답 반환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack 병목 알림": {
+      "main": [
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "autus-tag",
+      "name": "AUTUS"
+    },
+    {
+      "id": "physics-tag",
+      "name": "Physics Map"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-30T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
+
+
+
+
+
+{
+  "name": "AUTUS Physics Map - Data Collection Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physics-map-data",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (데이터 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "physics-map-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics 수식 계산\n// V = D - T + S\n\nconst data = $input.all()[0].json;\n\n// 직접 돈 (D)\nconst directMoney = (data.inflow || 0) - (data.outflow || 0);\n\n// 시간 비용 (T)\nconst hourlyValue = data.hourlyValue || 50000;  // 시간당 가치 (기본 5만원)\nconst timeCost = (data.timeHours || 0) * hourlyValue;\n\n// 시너지 계산 (S = k × (N1 × N2) / d² × (1+r)^t)\nconst k = 0.000001;  // 시너지 계수\nconst n1 = data.value || 0;\nconst n2 = data.partnerValue || 0;\nconst distance = data.distance || 1;  // 관계 거리\nconst rate = data.growthRate || 0.05;  // 성장률\nconst time = data.relationMonths || 12;  // 관계 개월\nconst synergy = k * (n1 * n2) / Math.pow(distance, 2) * Math.pow(1 + rate, time / 12);\n\n// 총 가치 (V)\nconst totalValue = directMoney - timeCost + synergy;\n\n// 12개월 예측 (F = P × (1+g)^t)\nconst growthRate = data.growthRate || 0.1;\nconst forecast12m = totalValue * Math.pow(1 + growthRate, 1);\n\n// 병목 감지\nconst isBottleneck = data.outflow > data.inflow * 0.3;\n\nreturn {\n  json: {\n    id: data.id || 'unknown',\n    name: data.name || '미정',\n    role: data.role || 'PERSON',\n    location: data.location || '미정',\n    lat: data.lat || 0,\n    lon: data.lon || 0,\n    \n    // 원본 데이터\n    inflow: data.inflow || 0,\n    outflow: data.outflow || 0,\n    timeHours: data.timeHours || 0,\n    \n    // Physics 계산 결과\n    directMoney,\n    timeCost,\n    synergy: Math.round(synergy),\n    totalValue: Math.round(totalValue),\n    forecast12m: Math.round(forecast12m),\n    \n    // 상태\n    status: isBottleneck ? 'bottleneck' : 'optimal',\n    isBottleneck,\n    \n    // 메타데이터\n    calculatedAt: new Date().toISOString(),\n    formula: 'V = D - T + S'\n  }\n};"
+      },
+      "id": "physics-calculation",
+      "name": "Physics 수식 계산",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isBottleneck }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bottleneck-check",
+      "name": "병목 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "databaseId": "={{ $env.NOTION_DATABASE_ID }}",
+        "title": "={{ $json.name }} ({{ $json.id }})",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Person ID",
+              "richTextValue": "={{ $json.id }}"
+            },
+            {
+              "key": "Name",
+              "title": "={{ $json.name }}"
+            },
+            {
+              "key": "Role",
+              "selectValue": "={{ $json.role }}"
+            },
+            {
+              "key": "Location",
+              "richTextValue": "={{ $json.location }}"
+            },
+            {
+              "key": "Total Value",
+              "numberValue": "={{ $json.totalValue }}"
+            },
+            {
+              "key": "Inflow",
+              "numberValue": "={{ $json.inflow }}"
+            },
+            {
+              "key": "Outflow",
+              "numberValue": "={{ $json.outflow }}"
+            },
+            {
+              "key": "Synergy",
+              "numberValue": "={{ $json.synergy }}"
+            },
+            {
+              "key": "Forecast 12M",
+              "numberValue": "={{ $json.forecast12m }}"
+            },
+            {
+              "key": "Status",
+              "selectValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "id": "notion-save",
+      "name": "Notion DB 저장",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [800, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credentials",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL }}",
+        "text": "⚠️ *돈 병목 감지!*\n\n*{{ $json.name }}* ({{ $json.id }})\n📍 {{ $json.location }}\n\n💰 유입: ₩{{ $json.inflow.toLocaleString() }}\n🔴 유출: ₩{{ $json.outflow.toLocaleString() }}\n📊 유출비율: {{ Math.round($json.outflow / $json.inflow * 100) }}%\n\n💡 *제안*: 유출 비용 절감 또는 유입 경로 다각화 필요",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack 병목 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-credentials",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "응답 반환",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (데이터 수신)": {
+      "main": [
+        [
+          {
+            "node": "Physics 수식 계산",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Physics 수식 계산": {
+      "main": [
+        [
+          {
+            "node": "병목 체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "병목 체크": {
+      "main": [
+        [
+          {
+            "node": "Slack 병목 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion DB 저장": {
+      "main": [
+        [
+          {
+            "node": "응답 반환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack 병목 알림": {
+      "main": [
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "autus-tag",
+      "name": "AUTUS"
+    },
+    {
+      "id": "physics-tag",
+      "name": "Physics Map"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-30T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{
+  "name": "AUTUS Physics Map - Data Collection Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physics-map-data",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (데이터 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "physics-map-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics 수식 계산\n// V = D - T + S\n\nconst data = $input.all()[0].json;\n\n// 직접 돈 (D)\nconst directMoney = (data.inflow || 0) - (data.outflow || 0);\n\n// 시간 비용 (T)\nconst hourlyValue = data.hourlyValue || 50000;  // 시간당 가치 (기본 5만원)\nconst timeCost = (data.timeHours || 0) * hourlyValue;\n\n// 시너지 계산 (S = k × (N1 × N2) / d² × (1+r)^t)\nconst k = 0.000001;  // 시너지 계수\nconst n1 = data.value || 0;\nconst n2 = data.partnerValue || 0;\nconst distance = data.distance || 1;  // 관계 거리\nconst rate = data.growthRate || 0.05;  // 성장률\nconst time = data.relationMonths || 12;  // 관계 개월\nconst synergy = k * (n1 * n2) / Math.pow(distance, 2) * Math.pow(1 + rate, time / 12);\n\n// 총 가치 (V)\nconst totalValue = directMoney - timeCost + synergy;\n\n// 12개월 예측 (F = P × (1+g)^t)\nconst growthRate = data.growthRate || 0.1;\nconst forecast12m = totalValue * Math.pow(1 + growthRate, 1);\n\n// 병목 감지\nconst isBottleneck = data.outflow > data.inflow * 0.3;\n\nreturn {\n  json: {\n    id: data.id || 'unknown',\n    name: data.name || '미정',\n    role: data.role || 'PERSON',\n    location: data.location || '미정',\n    lat: data.lat || 0,\n    lon: data.lon || 0,\n    \n    // 원본 데이터\n    inflow: data.inflow || 0,\n    outflow: data.outflow || 0,\n    timeHours: data.timeHours || 0,\n    \n    // Physics 계산 결과\n    directMoney,\n    timeCost,\n    synergy: Math.round(synergy),\n    totalValue: Math.round(totalValue),\n    forecast12m: Math.round(forecast12m),\n    \n    // 상태\n    status: isBottleneck ? 'bottleneck' : 'optimal',\n    isBottleneck,\n    \n    // 메타데이터\n    calculatedAt: new Date().toISOString(),\n    formula: 'V = D - T + S'\n  }\n};"
+      },
+      "id": "physics-calculation",
+      "name": "Physics 수식 계산",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isBottleneck }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bottleneck-check",
+      "name": "병목 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "databaseId": "={{ $env.NOTION_DATABASE_ID }}",
+        "title": "={{ $json.name }} ({{ $json.id }})",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Person ID",
+              "richTextValue": "={{ $json.id }}"
+            },
+            {
+              "key": "Name",
+              "title": "={{ $json.name }}"
+            },
+            {
+              "key": "Role",
+              "selectValue": "={{ $json.role }}"
+            },
+            {
+              "key": "Location",
+              "richTextValue": "={{ $json.location }}"
+            },
+            {
+              "key": "Total Value",
+              "numberValue": "={{ $json.totalValue }}"
+            },
+            {
+              "key": "Inflow",
+              "numberValue": "={{ $json.inflow }}"
+            },
+            {
+              "key": "Outflow",
+              "numberValue": "={{ $json.outflow }}"
+            },
+            {
+              "key": "Synergy",
+              "numberValue": "={{ $json.synergy }}"
+            },
+            {
+              "key": "Forecast 12M",
+              "numberValue": "={{ $json.forecast12m }}"
+            },
+            {
+              "key": "Status",
+              "selectValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "id": "notion-save",
+      "name": "Notion DB 저장",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [800, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credentials",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL }}",
+        "text": "⚠️ *돈 병목 감지!*\n\n*{{ $json.name }}* ({{ $json.id }})\n📍 {{ $json.location }}\n\n💰 유입: ₩{{ $json.inflow.toLocaleString() }}\n🔴 유출: ₩{{ $json.outflow.toLocaleString() }}\n📊 유출비율: {{ Math.round($json.outflow / $json.inflow * 100) }}%\n\n💡 *제안*: 유출 비용 절감 또는 유입 경로 다각화 필요",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack 병목 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-credentials",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "응답 반환",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (데이터 수신)": {
+      "main": [
+        [
+          {
+            "node": "Physics 수식 계산",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Physics 수식 계산": {
+      "main": [
+        [
+          {
+            "node": "병목 체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "병목 체크": {
+      "main": [
+        [
+          {
+            "node": "Slack 병목 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion DB 저장": {
+      "main": [
+        [
+          {
+            "node": "응답 반환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack 병목 알림": {
+      "main": [
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "autus-tag",
+      "name": "AUTUS"
+    },
+    {
+      "id": "physics-tag",
+      "name": "Physics Map"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-30T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
+
+
+
+
+
+{
+  "name": "AUTUS Physics Map - Data Collection Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physics-map-data",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (데이터 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "physics-map-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics 수식 계산\n// V = D - T + S\n\nconst data = $input.all()[0].json;\n\n// 직접 돈 (D)\nconst directMoney = (data.inflow || 0) - (data.outflow || 0);\n\n// 시간 비용 (T)\nconst hourlyValue = data.hourlyValue || 50000;  // 시간당 가치 (기본 5만원)\nconst timeCost = (data.timeHours || 0) * hourlyValue;\n\n// 시너지 계산 (S = k × (N1 × N2) / d² × (1+r)^t)\nconst k = 0.000001;  // 시너지 계수\nconst n1 = data.value || 0;\nconst n2 = data.partnerValue || 0;\nconst distance = data.distance || 1;  // 관계 거리\nconst rate = data.growthRate || 0.05;  // 성장률\nconst time = data.relationMonths || 12;  // 관계 개월\nconst synergy = k * (n1 * n2) / Math.pow(distance, 2) * Math.pow(1 + rate, time / 12);\n\n// 총 가치 (V)\nconst totalValue = directMoney - timeCost + synergy;\n\n// 12개월 예측 (F = P × (1+g)^t)\nconst growthRate = data.growthRate || 0.1;\nconst forecast12m = totalValue * Math.pow(1 + growthRate, 1);\n\n// 병목 감지\nconst isBottleneck = data.outflow > data.inflow * 0.3;\n\nreturn {\n  json: {\n    id: data.id || 'unknown',\n    name: data.name || '미정',\n    role: data.role || 'PERSON',\n    location: data.location || '미정',\n    lat: data.lat || 0,\n    lon: data.lon || 0,\n    \n    // 원본 데이터\n    inflow: data.inflow || 0,\n    outflow: data.outflow || 0,\n    timeHours: data.timeHours || 0,\n    \n    // Physics 계산 결과\n    directMoney,\n    timeCost,\n    synergy: Math.round(synergy),\n    totalValue: Math.round(totalValue),\n    forecast12m: Math.round(forecast12m),\n    \n    // 상태\n    status: isBottleneck ? 'bottleneck' : 'optimal',\n    isBottleneck,\n    \n    // 메타데이터\n    calculatedAt: new Date().toISOString(),\n    formula: 'V = D - T + S'\n  }\n};"
+      },
+      "id": "physics-calculation",
+      "name": "Physics 수식 계산",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isBottleneck }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bottleneck-check",
+      "name": "병목 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "databaseId": "={{ $env.NOTION_DATABASE_ID }}",
+        "title": "={{ $json.name }} ({{ $json.id }})",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Person ID",
+              "richTextValue": "={{ $json.id }}"
+            },
+            {
+              "key": "Name",
+              "title": "={{ $json.name }}"
+            },
+            {
+              "key": "Role",
+              "selectValue": "={{ $json.role }}"
+            },
+            {
+              "key": "Location",
+              "richTextValue": "={{ $json.location }}"
+            },
+            {
+              "key": "Total Value",
+              "numberValue": "={{ $json.totalValue }}"
+            },
+            {
+              "key": "Inflow",
+              "numberValue": "={{ $json.inflow }}"
+            },
+            {
+              "key": "Outflow",
+              "numberValue": "={{ $json.outflow }}"
+            },
+            {
+              "key": "Synergy",
+              "numberValue": "={{ $json.synergy }}"
+            },
+            {
+              "key": "Forecast 12M",
+              "numberValue": "={{ $json.forecast12m }}"
+            },
+            {
+              "key": "Status",
+              "selectValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "id": "notion-save",
+      "name": "Notion DB 저장",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [800, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credentials",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL }}",
+        "text": "⚠️ *돈 병목 감지!*\n\n*{{ $json.name }}* ({{ $json.id }})\n📍 {{ $json.location }}\n\n💰 유입: ₩{{ $json.inflow.toLocaleString() }}\n🔴 유출: ₩{{ $json.outflow.toLocaleString() }}\n📊 유출비율: {{ Math.round($json.outflow / $json.inflow * 100) }}%\n\n💡 *제안*: 유출 비용 절감 또는 유입 경로 다각화 필요",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack 병목 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-credentials",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "응답 반환",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (데이터 수신)": {
+      "main": [
+        [
+          {
+            "node": "Physics 수식 계산",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Physics 수식 계산": {
+      "main": [
+        [
+          {
+            "node": "병목 체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "병목 체크": {
+      "main": [
+        [
+          {
+            "node": "Slack 병목 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion DB 저장": {
+      "main": [
+        [
+          {
+            "node": "응답 반환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack 병목 알림": {
+      "main": [
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "autus-tag",
+      "name": "AUTUS"
+    },
+    {
+      "id": "physics-tag",
+      "name": "Physics Map"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-30T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
+
+
+
+
+
+{
+  "name": "AUTUS Physics Map - Data Collection Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physics-map-data",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (데이터 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "physics-map-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics 수식 계산\n// V = D - T + S\n\nconst data = $input.all()[0].json;\n\n// 직접 돈 (D)\nconst directMoney = (data.inflow || 0) - (data.outflow || 0);\n\n// 시간 비용 (T)\nconst hourlyValue = data.hourlyValue || 50000;  // 시간당 가치 (기본 5만원)\nconst timeCost = (data.timeHours || 0) * hourlyValue;\n\n// 시너지 계산 (S = k × (N1 × N2) / d² × (1+r)^t)\nconst k = 0.000001;  // 시너지 계수\nconst n1 = data.value || 0;\nconst n2 = data.partnerValue || 0;\nconst distance = data.distance || 1;  // 관계 거리\nconst rate = data.growthRate || 0.05;  // 성장률\nconst time = data.relationMonths || 12;  // 관계 개월\nconst synergy = k * (n1 * n2) / Math.pow(distance, 2) * Math.pow(1 + rate, time / 12);\n\n// 총 가치 (V)\nconst totalValue = directMoney - timeCost + synergy;\n\n// 12개월 예측 (F = P × (1+g)^t)\nconst growthRate = data.growthRate || 0.1;\nconst forecast12m = totalValue * Math.pow(1 + growthRate, 1);\n\n// 병목 감지\nconst isBottleneck = data.outflow > data.inflow * 0.3;\n\nreturn {\n  json: {\n    id: data.id || 'unknown',\n    name: data.name || '미정',\n    role: data.role || 'PERSON',\n    location: data.location || '미정',\n    lat: data.lat || 0,\n    lon: data.lon || 0,\n    \n    // 원본 데이터\n    inflow: data.inflow || 0,\n    outflow: data.outflow || 0,\n    timeHours: data.timeHours || 0,\n    \n    // Physics 계산 결과\n    directMoney,\n    timeCost,\n    synergy: Math.round(synergy),\n    totalValue: Math.round(totalValue),\n    forecast12m: Math.round(forecast12m),\n    \n    // 상태\n    status: isBottleneck ? 'bottleneck' : 'optimal',\n    isBottleneck,\n    \n    // 메타데이터\n    calculatedAt: new Date().toISOString(),\n    formula: 'V = D - T + S'\n  }\n};"
+      },
+      "id": "physics-calculation",
+      "name": "Physics 수식 계산",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isBottleneck }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bottleneck-check",
+      "name": "병목 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "databaseId": "={{ $env.NOTION_DATABASE_ID }}",
+        "title": "={{ $json.name }} ({{ $json.id }})",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Person ID",
+              "richTextValue": "={{ $json.id }}"
+            },
+            {
+              "key": "Name",
+              "title": "={{ $json.name }}"
+            },
+            {
+              "key": "Role",
+              "selectValue": "={{ $json.role }}"
+            },
+            {
+              "key": "Location",
+              "richTextValue": "={{ $json.location }}"
+            },
+            {
+              "key": "Total Value",
+              "numberValue": "={{ $json.totalValue }}"
+            },
+            {
+              "key": "Inflow",
+              "numberValue": "={{ $json.inflow }}"
+            },
+            {
+              "key": "Outflow",
+              "numberValue": "={{ $json.outflow }}"
+            },
+            {
+              "key": "Synergy",
+              "numberValue": "={{ $json.synergy }}"
+            },
+            {
+              "key": "Forecast 12M",
+              "numberValue": "={{ $json.forecast12m }}"
+            },
+            {
+              "key": "Status",
+              "selectValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "id": "notion-save",
+      "name": "Notion DB 저장",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [800, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credentials",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL }}",
+        "text": "⚠️ *돈 병목 감지!*\n\n*{{ $json.name }}* ({{ $json.id }})\n📍 {{ $json.location }}\n\n💰 유입: ₩{{ $json.inflow.toLocaleString() }}\n🔴 유출: ₩{{ $json.outflow.toLocaleString() }}\n📊 유출비율: {{ Math.round($json.outflow / $json.inflow * 100) }}%\n\n💡 *제안*: 유출 비용 절감 또는 유입 경로 다각화 필요",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack 병목 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-credentials",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "응답 반환",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (데이터 수신)": {
+      "main": [
+        [
+          {
+            "node": "Physics 수식 계산",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Physics 수식 계산": {
+      "main": [
+        [
+          {
+            "node": "병목 체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "병목 체크": {
+      "main": [
+        [
+          {
+            "node": "Slack 병목 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion DB 저장": {
+      "main": [
+        [
+          {
+            "node": "응답 반환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack 병목 알림": {
+      "main": [
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "autus-tag",
+      "name": "AUTUS"
+    },
+    {
+      "id": "physics-tag",
+      "name": "Physics Map"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-30T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
+
+
+
+
+
+{
+  "name": "AUTUS Physics Map - Data Collection Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physics-map-data",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (데이터 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "physics-map-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics 수식 계산\n// V = D - T + S\n\nconst data = $input.all()[0].json;\n\n// 직접 돈 (D)\nconst directMoney = (data.inflow || 0) - (data.outflow || 0);\n\n// 시간 비용 (T)\nconst hourlyValue = data.hourlyValue || 50000;  // 시간당 가치 (기본 5만원)\nconst timeCost = (data.timeHours || 0) * hourlyValue;\n\n// 시너지 계산 (S = k × (N1 × N2) / d² × (1+r)^t)\nconst k = 0.000001;  // 시너지 계수\nconst n1 = data.value || 0;\nconst n2 = data.partnerValue || 0;\nconst distance = data.distance || 1;  // 관계 거리\nconst rate = data.growthRate || 0.05;  // 성장률\nconst time = data.relationMonths || 12;  // 관계 개월\nconst synergy = k * (n1 * n2) / Math.pow(distance, 2) * Math.pow(1 + rate, time / 12);\n\n// 총 가치 (V)\nconst totalValue = directMoney - timeCost + synergy;\n\n// 12개월 예측 (F = P × (1+g)^t)\nconst growthRate = data.growthRate || 0.1;\nconst forecast12m = totalValue * Math.pow(1 + growthRate, 1);\n\n// 병목 감지\nconst isBottleneck = data.outflow > data.inflow * 0.3;\n\nreturn {\n  json: {\n    id: data.id || 'unknown',\n    name: data.name || '미정',\n    role: data.role || 'PERSON',\n    location: data.location || '미정',\n    lat: data.lat || 0,\n    lon: data.lon || 0,\n    \n    // 원본 데이터\n    inflow: data.inflow || 0,\n    outflow: data.outflow || 0,\n    timeHours: data.timeHours || 0,\n    \n    // Physics 계산 결과\n    directMoney,\n    timeCost,\n    synergy: Math.round(synergy),\n    totalValue: Math.round(totalValue),\n    forecast12m: Math.round(forecast12m),\n    \n    // 상태\n    status: isBottleneck ? 'bottleneck' : 'optimal',\n    isBottleneck,\n    \n    // 메타데이터\n    calculatedAt: new Date().toISOString(),\n    formula: 'V = D - T + S'\n  }\n};"
+      },
+      "id": "physics-calculation",
+      "name": "Physics 수식 계산",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isBottleneck }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bottleneck-check",
+      "name": "병목 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "databaseId": "={{ $env.NOTION_DATABASE_ID }}",
+        "title": "={{ $json.name }} ({{ $json.id }})",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Person ID",
+              "richTextValue": "={{ $json.id }}"
+            },
+            {
+              "key": "Name",
+              "title": "={{ $json.name }}"
+            },
+            {
+              "key": "Role",
+              "selectValue": "={{ $json.role }}"
+            },
+            {
+              "key": "Location",
+              "richTextValue": "={{ $json.location }}"
+            },
+            {
+              "key": "Total Value",
+              "numberValue": "={{ $json.totalValue }}"
+            },
+            {
+              "key": "Inflow",
+              "numberValue": "={{ $json.inflow }}"
+            },
+            {
+              "key": "Outflow",
+              "numberValue": "={{ $json.outflow }}"
+            },
+            {
+              "key": "Synergy",
+              "numberValue": "={{ $json.synergy }}"
+            },
+            {
+              "key": "Forecast 12M",
+              "numberValue": "={{ $json.forecast12m }}"
+            },
+            {
+              "key": "Status",
+              "selectValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "id": "notion-save",
+      "name": "Notion DB 저장",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [800, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credentials",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL }}",
+        "text": "⚠️ *돈 병목 감지!*\n\n*{{ $json.name }}* ({{ $json.id }})\n📍 {{ $json.location }}\n\n💰 유입: ₩{{ $json.inflow.toLocaleString() }}\n🔴 유출: ₩{{ $json.outflow.toLocaleString() }}\n📊 유출비율: {{ Math.round($json.outflow / $json.inflow * 100) }}%\n\n💡 *제안*: 유출 비용 절감 또는 유입 경로 다각화 필요",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack 병목 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-credentials",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "응답 반환",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (데이터 수신)": {
+      "main": [
+        [
+          {
+            "node": "Physics 수식 계산",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Physics 수식 계산": {
+      "main": [
+        [
+          {
+            "node": "병목 체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "병목 체크": {
+      "main": [
+        [
+          {
+            "node": "Slack 병목 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion DB 저장": {
+      "main": [
+        [
+          {
+            "node": "응답 반환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack 병목 알림": {
+      "main": [
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "autus-tag",
+      "name": "AUTUS"
+    },
+    {
+      "id": "physics-tag",
+      "name": "Physics Map"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-30T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
+
+
+
+
+
+{
+  "name": "AUTUS Physics Map - Data Collection Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physics-map-data",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (데이터 수신)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "physics-map-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics 수식 계산\n// V = D - T + S\n\nconst data = $input.all()[0].json;\n\n// 직접 돈 (D)\nconst directMoney = (data.inflow || 0) - (data.outflow || 0);\n\n// 시간 비용 (T)\nconst hourlyValue = data.hourlyValue || 50000;  // 시간당 가치 (기본 5만원)\nconst timeCost = (data.timeHours || 0) * hourlyValue;\n\n// 시너지 계산 (S = k × (N1 × N2) / d² × (1+r)^t)\nconst k = 0.000001;  // 시너지 계수\nconst n1 = data.value || 0;\nconst n2 = data.partnerValue || 0;\nconst distance = data.distance || 1;  // 관계 거리\nconst rate = data.growthRate || 0.05;  // 성장률\nconst time = data.relationMonths || 12;  // 관계 개월\nconst synergy = k * (n1 * n2) / Math.pow(distance, 2) * Math.pow(1 + rate, time / 12);\n\n// 총 가치 (V)\nconst totalValue = directMoney - timeCost + synergy;\n\n// 12개월 예측 (F = P × (1+g)^t)\nconst growthRate = data.growthRate || 0.1;\nconst forecast12m = totalValue * Math.pow(1 + growthRate, 1);\n\n// 병목 감지\nconst isBottleneck = data.outflow > data.inflow * 0.3;\n\nreturn {\n  json: {\n    id: data.id || 'unknown',\n    name: data.name || '미정',\n    role: data.role || 'PERSON',\n    location: data.location || '미정',\n    lat: data.lat || 0,\n    lon: data.lon || 0,\n    \n    // 원본 데이터\n    inflow: data.inflow || 0,\n    outflow: data.outflow || 0,\n    timeHours: data.timeHours || 0,\n    \n    // Physics 계산 결과\n    directMoney,\n    timeCost,\n    synergy: Math.round(synergy),\n    totalValue: Math.round(totalValue),\n    forecast12m: Math.round(forecast12m),\n    \n    // 상태\n    status: isBottleneck ? 'bottleneck' : 'optimal',\n    isBottleneck,\n    \n    // 메타데이터\n    calculatedAt: new Date().toISOString(),\n    formula: 'V = D - T + S'\n  }\n};"
+      },
+      "id": "physics-calculation",
+      "name": "Physics 수식 계산",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isBottleneck }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bottleneck-check",
+      "name": "병목 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "databaseId": "={{ $env.NOTION_DATABASE_ID }}",
+        "title": "={{ $json.name }} ({{ $json.id }})",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Person ID",
+              "richTextValue": "={{ $json.id }}"
+            },
+            {
+              "key": "Name",
+              "title": "={{ $json.name }}"
+            },
+            {
+              "key": "Role",
+              "selectValue": "={{ $json.role }}"
+            },
+            {
+              "key": "Location",
+              "richTextValue": "={{ $json.location }}"
+            },
+            {
+              "key": "Total Value",
+              "numberValue": "={{ $json.totalValue }}"
+            },
+            {
+              "key": "Inflow",
+              "numberValue": "={{ $json.inflow }}"
+            },
+            {
+              "key": "Outflow",
+              "numberValue": "={{ $json.outflow }}"
+            },
+            {
+              "key": "Synergy",
+              "numberValue": "={{ $json.synergy }}"
+            },
+            {
+              "key": "Forecast 12M",
+              "numberValue": "={{ $json.forecast12m }}"
+            },
+            {
+              "key": "Status",
+              "selectValue": "={{ $json.status }}"
+            }
+          ]
+        }
+      },
+      "id": "notion-save",
+      "name": "Notion DB 저장",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [800, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credentials",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "={{ $env.SLACK_CHANNEL }}",
+        "text": "⚠️ *돈 병목 감지!*\n\n*{{ $json.name }}* ({{ $json.id }})\n📍 {{ $json.location }}\n\n💰 유입: ₩{{ $json.inflow.toLocaleString() }}\n🔴 유출: ₩{{ $json.outflow.toLocaleString() }}\n📊 유출비율: {{ Math.round($json.outflow / $json.inflow * 100) }}%\n\n💡 *제안*: 유출 비용 절감 또는 유입 경로 다각화 필요",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack 병목 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-credentials",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "응답 반환",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (데이터 수신)": {
+      "main": [
+        [
+          {
+            "node": "Physics 수식 계산",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Physics 수식 계산": {
+      "main": [
+        [
+          {
+            "node": "병목 체크",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "병목 체크": {
+      "main": [
+        [
+          {
+            "node": "Slack 병목 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion DB 저장": {
+      "main": [
+        [
+          {
+            "node": "응답 반환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack 병목 알림": {
+      "main": [
+        [
+          {
+            "node": "Notion DB 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "autus-tag",
+      "name": "AUTUS"
+    },
+    {
+      "id": "physics-tag",
+      "name": "Physics Map"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-30T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

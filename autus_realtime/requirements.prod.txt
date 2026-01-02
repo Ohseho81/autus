@@ -1,0 +1,325 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS REALTIME - PRODUCTION DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.3
+
+# Data Processing
+pandas==2.2.3
+numpy==2.2.0
+python-dateutil==2.9.0
+
+# HTTP Client (for Slack, Claude API)
+httpx==0.28.1
+
+# Database (optional for production)
+# asyncpg==0.30.0
+# sqlalchemy[asyncio]==2.0.36
+
+# Redis (optional for caching)
+# redis==5.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring
+# sentry-sdk[fastapi]==2.19.2
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS REALTIME - PRODUCTION DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.3
+
+# Data Processing
+pandas==2.2.3
+numpy==2.2.0
+python-dateutil==2.9.0
+
+# HTTP Client (for Slack, Claude API)
+httpx==0.28.1
+
+# Database (optional for production)
+# asyncpg==0.30.0
+# sqlalchemy[asyncio]==2.0.36
+
+# Redis (optional for caching)
+# redis==5.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring
+# sentry-sdk[fastapi]==2.19.2
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS REALTIME - PRODUCTION DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.3
+
+# Data Processing
+pandas==2.2.3
+numpy==2.2.0
+python-dateutil==2.9.0
+
+# HTTP Client (for Slack, Claude API)
+httpx==0.28.1
+
+# Database (optional for production)
+# asyncpg==0.30.0
+# sqlalchemy[asyncio]==2.0.36
+
+# Redis (optional for caching)
+# redis==5.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring
+# sentry-sdk[fastapi]==2.19.2
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS REALTIME - PRODUCTION DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.3
+
+# Data Processing
+pandas==2.2.3
+numpy==2.2.0
+python-dateutil==2.9.0
+
+# HTTP Client (for Slack, Claude API)
+httpx==0.28.1
+
+# Database (optional for production)
+# asyncpg==0.30.0
+# sqlalchemy[asyncio]==2.0.36
+
+# Redis (optional for caching)
+# redis==5.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring
+# sentry-sdk[fastapi]==2.19.2
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS REALTIME - PRODUCTION DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.3
+
+# Data Processing
+pandas==2.2.3
+numpy==2.2.0
+python-dateutil==2.9.0
+
+# HTTP Client (for Slack, Claude API)
+httpx==0.28.1
+
+# Database (optional for production)
+# asyncpg==0.30.0
+# sqlalchemy[asyncio]==2.0.36
+
+# Redis (optional for caching)
+# redis==5.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring
+# sentry-sdk[fastapi]==2.19.2
+
+
+
+
+
+
+
+
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS REALTIME - PRODUCTION DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.3
+
+# Data Processing
+pandas==2.2.3
+numpy==2.2.0
+python-dateutil==2.9.0
+
+# HTTP Client (for Slack, Claude API)
+httpx==0.28.1
+
+# Database (optional for production)
+# asyncpg==0.30.0
+# sqlalchemy[asyncio]==2.0.36
+
+# Redis (optional for caching)
+# redis==5.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring
+# sentry-sdk[fastapi]==2.19.2
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS REALTIME - PRODUCTION DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.3
+
+# Data Processing
+pandas==2.2.3
+numpy==2.2.0
+python-dateutil==2.9.0
+
+# HTTP Client (for Slack, Claude API)
+httpx==0.28.1
+
+# Database (optional for production)
+# asyncpg==0.30.0
+# sqlalchemy[asyncio]==2.0.36
+
+# Redis (optional for caching)
+# redis==5.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring
+# sentry-sdk[fastapi]==2.19.2
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS REALTIME - PRODUCTION DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.3
+
+# Data Processing
+pandas==2.2.3
+numpy==2.2.0
+python-dateutil==2.9.0
+
+# HTTP Client (for Slack, Claude API)
+httpx==0.28.1
+
+# Database (optional for production)
+# asyncpg==0.30.0
+# sqlalchemy[asyncio]==2.0.36
+
+# Redis (optional for caching)
+# redis==5.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring
+# sentry-sdk[fastapi]==2.19.2
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS REALTIME - PRODUCTION DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.3
+
+# Data Processing
+pandas==2.2.3
+numpy==2.2.0
+python-dateutil==2.9.0
+
+# HTTP Client (for Slack, Claude API)
+httpx==0.28.1
+
+# Database (optional for production)
+# asyncpg==0.30.0
+# sqlalchemy[asyncio]==2.0.36
+
+# Redis (optional for caching)
+# redis==5.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring
+# sentry-sdk[fastapi]==2.19.2
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS REALTIME - PRODUCTION DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.3
+
+# Data Processing
+pandas==2.2.3
+numpy==2.2.0
+python-dateutil==2.9.0
+
+# HTTP Client (for Slack, Claude API)
+httpx==0.28.1
+
+# Database (optional for production)
+# asyncpg==0.30.0
+# sqlalchemy[asyncio]==2.0.36
+
+# Redis (optional for caching)
+# redis==5.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring
+# sentry-sdk[fastapi]==2.19.2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

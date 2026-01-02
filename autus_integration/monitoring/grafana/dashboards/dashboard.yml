@@ -1,0 +1,20 @@
+apiVersion: 1
+
+providers:
+  - name: 'AUTUS'
+    orgId: 1
+    folder: 'AUTUS'
+    folderUid: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+
+
+
+
+
+
+

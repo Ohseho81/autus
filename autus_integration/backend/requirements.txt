@@ -1,0 +1,87 @@
+# AUTUS Integration API Dependencies
+
+# Web Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.18
+
+# Database
+neo4j==5.27.0
+asyncpg==0.30.0
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.10
+
+# HTTP Client
+httpx==0.28.1
+aiohttp==3.11.11
+
+# CrewAI
+crewai==0.95.0
+langchain==0.3.14
+langchain-openai==0.2.14
+langchain-anthropic==0.3.1
+
+# Validation
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# Security
+python-jose[cryptography]==3.3.0
+stripe==11.4.1
+
+# Utils
+python-dotenv==1.0.1
+orjson==3.10.13
+
+# Cache
+redis==5.2.1
+
+# Metrics
+prometheus-client==0.21.1
+
+# AUTUS Integration API Dependencies
+
+# Web Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.18
+
+# Database
+neo4j==5.27.0
+asyncpg==0.30.0
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.10
+
+# HTTP Client
+httpx==0.28.1
+aiohttp==3.11.11
+
+# CrewAI
+crewai==0.95.0
+langchain==0.3.14
+langchain-openai==0.2.14
+langchain-anthropic==0.3.1
+
+# Validation
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# Security
+python-jose[cryptography]==3.3.0
+stripe==11.4.1
+
+# Utils
+python-dotenv==1.0.1
+orjson==3.10.13
+
+# Cache
+redis==5.2.1
+
+# Metrics
+prometheus-client==0.21.1
+
+
+
+
+
+

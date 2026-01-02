@@ -1,0 +1,20 @@
+# AUTUS Bridge Client Dependencies
+# Windows에서 설치: pip install -r requirements.txt
+
+# 화면 캡처
+pyautogui>=0.9.54
+Pillow>=9.0.0
+
+# OCR (Tesseract 바인딩)
+pytesseract>=0.3.10
+
+# HTTP 통신
+requests>=2.28.0
+
+# GUI (내장 tkinter 사용, 추가 설치 불필요)
+
+# 실행 파일 빌드 (선택)
+pyinstaller>=5.0.0
+
+# 추가 유틸리티
+python-dotenv>=1.0.0

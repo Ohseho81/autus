@@ -1,157 +1,197 @@
-# AUTUS 3.0 개발 원칙 (Master Intelligence Guide)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🏛️ AUTUS - Cursor AI 개발 가이드
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# 이 파일은 Cursor AI가 AUTUS 프로젝트를 효율적으로 개발하도록 안내합니다.
+#
+# ═══════════════════════════════════════════════════════════════════════════════
 
-## 🎯 목적
-사용자의 선입견을 파괴하고 '최적의 경로'를 강제하는 **의사결정 OS**.
-단순한 앱이 아닌 **'인간 증강 OS (Human Augmentation OS)'**로 설계.
-**GPT Atlas처럼 모든 활동의 출발 게이트(Gate)** 역할.
+## 🎯 프로젝트 개요
 
-## 🔐 데이터 주권 원칙 (Data Sovereignty - 최상위 법칙)
+AUTUS는 **Money Physics 엔진** 기반의 통합 비즈니스 자동화 플랫폼입니다.
 
-### 절대 원칙
+### 핵심 철학
+- **Zero Meaning**: 데이터는 의미 없는 숫자(node_id, value, timestamp)로 변환
+- **Money Physics**: 돈의 흐름을 물리 법칙으로 모델링
+- **5-Tier System**: T1(허브) → T2(커넥터) → T3(액티브) → T4(일반) → Ghost(비활성)
+- **관찰자 모드**: 개입 없이 자연 흐름 관찰
+
+### 공식
 ```
-1. RAW DATA는 사용 즉시 폐기된다 (저장 금지)
-2. 가공 결과(벡터)만 사용자 클라우드에 저장
-3. AUTUS는 Δ수식만 수신 (원본 복원 불가능)
-```
-
-### 데이터 생명주기
-```
-[INPUT] → [BUFFER <100ms] → [DISTILLER] → [VECTOR] → [USER CLOUD]
-              │                  │
-              ▼                  ▼
-         🔥 즉시 폐기      🔥 즉시 폐기
-         (Raw Data)      (중간 처리물)
-```
-
-### 3가지 입력 소스
-| 입력 | 수집 대상 | 가공 결과 | AUTUS 수신 |
-|------|----------|----------|-----------|
-| 🎙️ MIC | 음성/환경음 | mood, focus, keywords | Δmood, Δfocus |
-| 📷 CAM | 표정/자세 | fatigue, tension, gaze | Δfatigue, Δtension |
-| 🖥️ SCREEN | 앱/탭/입력 | task_type, switch_rate | Δtask, Δswitch |
-
-### AUTUS가 수신하는 것
-- Twin State 벡터 변화량 (ΔEnergy, ΔFlow, ΔRisk)
-- 9축 지표 변화량 (ΔOUT, ΔQUA, ΔTIM, ΔFRI, ΔSTA, ΔCOH, ΔREC, ΔTRA, ΔSHK)
-- Forecast 델타 (Δt, Δ%)
-- Action 선택 로그 (throttle/detour/brake/pause)
-
-### AUTUS가 절대 수신하지 않는 것
-- ✗ 음성 원본/녹음
-- ✗ 영상 원본/사진
-- ✗ 화면 캡처/스크린샷
-- ✗ 개인 식별 정보 (PII)
-- ✗ Raw 텍스트/대화 내용
-
-## 🌌 Life Physics - 삶의 물리학 (핵심 철학)
-
-### 근본 명제
-```
-인간의 삶 = 상태 공간(State Space)에서의 궤적(Trajectory)
-결정 = 힘(Force) → 궤적 변경
-시간 = 비가역적 축 → 되돌릴 수 없음
+V = (M - T) × (1 + s)^t
+SQ = (Mint - Burn) / Time × Synergy_Factor
 ```
 
-### 상태 벡터 (State Vector)
-```
-        ┌─ Energy (자원: 시간, 돈, 건강, 관계)
-S(t) = ─┼─ Flow (흐름: 진행 속도, 생산성)
-        └─ Risk (리스크: 불확실성, 손실 확률)
-```
+## 📁 프로젝트 구조
 
-### 삶의 근본 방정식
-```
-dS/dt = F(intention) - R(friction) - λ·H(entropy)
-
-S = 상태 벡터 [Energy, Flow, Risk]
-F = 의도에 따른 힘 벡터
-R = 외부 저항 (마찰)
-H = 엔트로피 (시간에 따른 자연 붕괴)
-λ = 붕괴 상수
-
-∴ 상태 유지: F > R + λH
-∴ 성장: F >> R + λH
-```
-
-### 4대 물리 법칙 → 삶의 법칙
-| 물리 법칙 | 삶의 해석 |
-|----------|----------|
-| 에너지 보존 | 자원은 사라지지 않고 변환됨 |
-| 엔트로피 증가 | 방치하면 모든 것은 무질서해짐 |
-| F = ma | 결과 = 노력 / 저항 |
-| 작용-반작용 | 모든 선택에는 대가가 있음 |
-
-### AUTUS의 유일한 질문
-```
-"이 힘(Action)으로 저 상태(Goal)에 도달할 수 있는가?"
-
-Yes → "Proceed, ETA: X days"
-No  → "Insufficient. Required: +Y force OR reduce resistance by Z"
-```
-
-### 필수 로그: Decision Trinity
-```
-① BEFORE (State₀) - 결정 전 상태 벡터
-② ACTION (Force)  - 선택한 힘 벡터
-③ AFTER (State₁)  - 결정 후 상태 + Δ + ε(예측오차)
-```
-
-## 🧠 핵심 로직
-1. Raw Data는 **즉시 가공 후 폐기** (저장 안 함)
-2. 오직 **'7대 노이즈 지표'**만 추출하여 의사결정에 활용
-3. 분석 결과는 HUD 스타일 JSON으로 반환
-4. 사용자 데이터는 사용자 클라우드에만 존재
-5. **모든 결정은 물리량(벡터)으로만 기록** (감정/의견 배제)
-
-## 📊 7대 노이즈 지표 (Seven Noise Indicators)
-
-| # | 코드 | 지표명 | 설명 | 위험 임계값 |
-|---|------|--------|------|-------------|
-| 1 | BIAS | 선입견 | 과거 패턴에 대한 과도한 의존 | > 0.7 |
-| 2 | SCARCITY | 조사부족 | 의사결정을 위한 데이터 부족 | > 0.6 |
-| 3 | STAGNATION | 실행지연 | 결정 후 실행까지의 지연 시간 | > 72h |
-| 4 | ATTACHMENT | 감정매몰 | 비합리적 감정적 집착 | > 0.5 |
-| 5 | FRICTION | 자원간섭 | 자원 배분의 비효율성 | > 0.4 |
-| 6 | HORIZON | 맥락근시 | 단기 시야로 인한 장기 손실 | > 0.6 |
-| 7 | PARADOX | 정보마비 | 과잉 정보로 인한 결정 불능 | > 0.5 |
-
-## 🖥️ UI 철학
-- 테슬라 FSD를 넘어서는 **HUD 스타일**
-- 텍스트 최소화
-- **손실 속도(Loss Velocity)** 중심 표시: ₩/초 단위
-- **MVA(최소 유효 행동)** 우선 제안
-- **PNR(Point of No Return)** 마커 표시
-
-## 📁 파일 구조
 ```
 autus/
-├── .cursorrules              # 이 파일 (Master Intelligence Guide)
-├── autos_run.py              # 파이프라인 실행기
-├── autos_analyze.py          # AI 분석 엔진
-├── autus_core/
-│   ├── local_distiller.py    # 🔥 Raw→Vector 즉시 가공/폐기
-│   ├── loss_function.py      # 물리 손실 함수
-│   └── packs/                # 실행 모듈 (해외인력/절세/B2B)
-├── frontend/
-│   ├── autus-life-fsd.html   # 🎯 메인 UI (Life FSD)
-│   └── autus-metro-live.html # Metro 노선도 UI
-├── backend/
-│   ├── server_db.py          # FastAPI + WebSocket + DB
-│   └── database.py           # SQLite/Postgres 추상화
-├── user_cloud/               # 사용자 벡터 저장소 (로컬)
-├── data/raw_finance/         # 재무 데이터
-└── output/                   # 분석 결과
+├── autus-unified/           # 🎯 메인 프로젝트 (여기서 개발)
+│   ├── backend/             # FastAPI 백엔드
+│   │   ├── main.py          # API 진입점
+│   │   ├── auth/            # JWT + API Key 인증
+│   │   ├── webhooks/        # Stripe/Shopify/토스
+│   │   ├── autosync/        # 30+ SaaS 자동 감지
+│   │   ├── crewai/          # AI 분석
+│   │   ├── parasitic/       # SaaS 흡수/대체
+│   │   ├── physics/         # 물리 엔진 (핵심!)
+│   │   ├── integrations/    # Zero Meaning, 메타데이터
+│   │   └── websocket/       # 실시간 통신
+│   ├── frontend/            # Physics Map HTML
+│   │   ├── physics-map-unified.html      # D3.js 2D
+│   │   ├── physics-map-satellite.html    # Leaflet 위성
+│   │   └── physics-map-globe-5tier.html  # Three.js 3D 지구본
+│   ├── tests/               # pytest 테스트
+│   └── docker-compose.yml   # 컨테이너 설정
+│
+├── _legacy/                 # 레거시 (참고용)
+├── autus_pipeline/          # 데이터 파이프라인
+├── docs/                    # 문서
+└── Makefile                 # 개발 명령어
+```
+
+## 🚀 빠른 시작 명령어
+
+```bash
+# 의존성 설치
+make install
+
+# 백엔드 서버 실행
+make dev
+
+# 프론트엔드 서버 실행 (별도 터미널)
+make frontend
+
+# 테스트 실행
+make test
+
+# 코드 포맷팅
+make fix
 ```
 
 ## 🔧 개발 규칙
-1. 모든 클래스는 7-Layer 아키텍처에 매핑
-2. EdgePolicy (NORMAL, ALTERNATE, LOOP) 준수
-3. Decision Ledger에 모든 의사결정 기록
-4. Mock 모드와 Live 모드 분리
-5. 한글/영어 혼용 가능, 핵심 지표는 영문 코드 사용
 
-## 🚨 금지 사항
-- Raw Data를 분석 결과에 직접 노출 금지
-- 7대 지표 외 추가 노이즈 생성 금지
-- 사용자 감정을 고려한 '완곡한' 표현 금지 (팩폭 원칙)
-- 실행 없는 분석 결과 제공 금지 (MVA 필수 포함)
+### 1. Python 코드 스타일
+- Ruff 사용 (린트 + 포맷)
+- 타입 힌트 필수
+- Pydantic 모델 사용
+- async/await 패턴
+
+### 2. API 설계
+```python
+# 라우터 패턴
+from fastapi import APIRouter
+router = APIRouter(prefix="/module", tags=["Module"])
+
+@router.post("/action")
+async def action(request: RequestModel) -> ResponseModel:
+    pass
+```
+
+### 3. 응답 형식
+```python
+{
+    "success": True,
+    "data": {...},
+    "message": "설명"
+}
+```
+
+### 4. 에러 처리
+```python
+from fastapi import HTTPException
+raise HTTPException(status_code=400, detail="에러 메시지")
+```
+
+## 🎨 Frontend 규칙
+
+### Physics Map 파일 구조
+- `physics-map-unified.html`: D3.js 기반, CUT/LINK, 메타데이터
+- `physics-map-satellite.html`: Leaflet + 위성, 한국 지도
+- `physics-map-globe-5tier.html`: Three.js 3D 지구본
+
+### 5-Tier 색상
+```javascript
+const TIERS = {
+    T1: { color: '#FFD700', name: '허브' },      // 금색
+    T2: { color: '#00AAFF', name: '커넥터' },    // 파랑
+    T3: { color: '#00CC66', name: '액티브' },    // 초록
+    T4: { color: '#888888', name: '일반' },      // 회색
+    Ghost: { color: '#333333', name: '비활성' }  // 진회색
+};
+```
+
+## ⚠️ 금지 사항
+
+1. **Raw Data 저장 금지** - 변환된 벡터만 저장
+2. **PII 수집 금지** - 개인 식별 정보 제외
+3. **복잡한 추상화 금지** - 단순함 유지
+4. **미사용 코드 금지** - 데드 코드 삭제
+
+## 📊 주요 API 엔드포인트
+
+### 인증
+- `POST /auth/login` → JWT 토큰
+- `POST /auth/api-key` → API 키 생성
+
+### Physics
+- `GET /physics/state` → 현재 상태
+- `POST /physics/update` → 노드 업데이트
+- `WebSocket /ws/physics-map` → 실시간
+
+### AutoSync
+- `POST /autosync/detect` → SaaS 자동 감지
+- `POST /autosync/transform` → Zero Meaning 변환
+
+### Metadata
+- `POST /metadata/set` → 메타데이터 설정
+- `GET /metadata/get/{node_id}` → 조회
+
+## 🧪 테스트 가이드
+
+```bash
+# 전체 테스트
+make test
+
+# 특정 파일
+pytest tests/test_api.py -v
+
+# 커버리지
+make test-cov
+```
+
+## 🐳 Docker 사용
+
+```bash
+make docker-up    # 시작
+make docker-down  # 종료
+make docker-logs  # 로그
+```
+
+## 💡 Cursor AI 힌트
+
+### 파일 생성 시
+- `autus-unified/backend/` 내에 생성
+- `__init__.py` 포함
+- 타입 힌트 필수
+
+### 코드 수정 시
+- 기존 패턴 따르기
+- `main.py`에 라우터 등록
+- 테스트 추가
+
+### 프론트엔드 수정 시
+- 기존 CSS 변수 사용
+- 5-Tier 색상 준수
+- 한글 UI 유지
+
+## 📚 참고 문서
+
+- API 문서: http://localhost:8000/docs
+- Physics 공식: docs/PHYSICS_EQUATIONS.md
+- 아키텍처: docs/ARCHITECTURE.md
+
+---
+
+*"측정할 수 없으면 관리할 수 없다" - 피터 드러커*
+*"단순함이 궁극의 정교함이다" - 스티브 잡스*

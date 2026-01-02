@@ -1,0 +1,50 @@
+# AUTUS TRINITY Ultimate - Docker Compose
+# =========================================
+# 사용법: docker compose -f docker-compose.ultimate.yml up -d
+
+version: '3.8'
+
+services:
+  autus-ultimate:
+    build:
+      context: .
+      dockerfile: Dockerfile.ultimate
+    container_name: autus-trinity-ultimate
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - SECRET_KEY=${SECRET_KEY:-autus-secret-change-me}
+      - LATEST_CLIENT_VERSION=3.2.0
+      - UPDATE_URL=${UPDATE_URL:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.autus.rule=Host(`autus.example.com`)"
+
+  # Redis (선택사항 - 세션/캐싱용)
+  redis:
+    image: redis:7-alpine
+    container_name: autus-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+volumes:
+  redis_data:
+
+networks:
+  default:
+    name: autus-network
+
+
+

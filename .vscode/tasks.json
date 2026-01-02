@@ -1,150 +1,168 @@
 {
+  // ═══════════════════════════════════════════════════════════════
+  // 🔧 AUTUS - 태스크 설정
+  // ═══════════════════════════════════════════════════════════════
   "version": "2.0.0",
   "tasks": [
+    // ─────────────────────────────────────────────────────────────
+    // 🚀 서버 실행
+    // ─────────────────────────────────────────────────────────────
     {
-      "label": "🎯 [M1] 성능 대시보드 - 실시간 추적",
+      "label": "🚀 Start Backend API",
       "type": "shell",
-      "command": "python3",
-      "args": ["performance_dashboard.py", "--dashboard", "--duration=600"],
+      "command": "cd ${workspaceFolder}/autus-unified/backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+      "group": "build",
       "presentation": {
         "reveal": "always",
         "panel": "new",
-        "focus": true,
-        "clear": true
+        "focus": true
       },
-      "runOptions": {
-        "runOn": "folderOpen"
-      }
+      "problemMatcher": [],
+      "isBackground": true
     },
     {
-      "label": "💾 [T2] 캐시 검증 - 80% 목표 확인",
+      "label": "🌐 Start Frontend Server",
       "type": "shell",
-      "command": "python3",
-      "args": ["performance_dashboard.py", "--cache"],
+      "command": "cd ${workspaceFolder}/autus-unified/frontend && python3 -m http.server 3000",
+      "group": "build",
       "presentation": {
         "reveal": "always",
-        "panel": "new",
-        "focus": true,
-        "clear": true
-      }
-    },
-    {
-      "label": "⚡ [D1] 프로파일링 - 병목 특정",
-      "type": "shell",
-      "command": "python3",
-      "args": ["performance_dashboard.py", "--profile"],
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true,
-        "clear": true
-      }
-    },
-    {
-      "label": "🔵 [M1+T2+D1] 전체 성능 분석",
-      "type": "shell",
-      "command": "python3",
-      "args": ["performance_dashboard.py", "--all"],
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true,
-        "clear": true
-      }
-    },
-    {
-      "label": "📊 실시간 대시보드 (Refresh: 30초)",
-      "type": "shell",
-      "command": "bash",
-      "args": ["-c", "while true; do clear; curl -s http://localhost:8000/monitoring/performance/dashboard | jq '.'; sleep 30; done"],
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": false,
-        "clear": false
+        "panel": "new"
       },
-      "isBackground": true,
-      "problemMatcher": {
-        "pattern": {
-          "regexp": "^.*$",
-          "file": 1,
-          "location": 2,
-          "message": 3
-        },
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": "^.*",
-          "endsPattern": "^.*"
-        }
-      }
+      "problemMatcher": [],
+      "isBackground": true
     },
     {
-      "label": "🔍 캐시 상태 모니터링",
+      "label": "🔥 Start Full Stack",
+      "dependsOn": [
+        "🚀 Start Backend API",
+        "🌐 Start Frontend Server"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    
+    // ─────────────────────────────────────────────────────────────
+    // 🧪 테스트
+    // ─────────────────────────────────────────────────────────────
+    {
+      "label": "🧪 Run All Tests",
       "type": "shell",
-      "command": "bash",
-      "args": ["-c", "while true; do clear; echo '=== 캐시 통계 ===' && date && curl -s http://localhost:8000/cache/stats | jq '.' && echo '' && sleep 10; done"],
+      "command": "cd ${workspaceFolder}/autus-unified && python -m pytest tests/ -v --tb=short",
+      "group": "test",
       "presentation": {
         "reveal": "always",
-        "panel": "new",
-        "focus": false
+        "panel": "shared"
       },
-      "isBackground": true,
-      "problemMatcher": {
-        "pattern": {
-          "regexp": "^.*$"
-        },
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": "^.*",
-          "endsPattern": "^.*"
-        }
-      }
+      "problemMatcher": []
     },
     {
-      "label": "📈 요청 추적 모니터링",
+      "label": "🧪 Run Tests with Coverage",
       "type": "shell",
-      "command": "bash",
-      "args": ["-c", "while true; do clear; echo '=== 요청 추적 ===' && date && curl -s http://localhost:8000/monitoring/requests/summary | jq '.' && echo '' && sleep 10; done"],
+      "command": "cd ${workspaceFolder}/autus-unified && python -m pytest tests/ -v --cov=backend --cov-report=html",
+      "group": "test",
       "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": false
+        "reveal": "always"
       },
-      "isBackground": true,
-      "problemMatcher": {
-        "pattern": {
-          "regexp": "^.*$"
-        },
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": "^.*",
-          "endsPattern": "^.*"
-        }
-      }
+      "problemMatcher": []
+    },
+    
+    // ─────────────────────────────────────────────────────────────
+    // 📦 의존성 관리
+    // ─────────────────────────────────────────────────────────────
+    {
+      "label": "📦 Install Dependencies",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/autus-unified && pip install -r backend/requirements.txt",
+      "group": "build",
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
     },
     {
-      "label": "🧪 부하 테스트 (100 요청)",
+      "label": "📦 Create Virtual Environment",
       "type": "shell",
-      "command": "bash",
-      "args": ["-c", "python3 -c \"import asyncio, httpx, time, statistics\\n\\nasync def benchmark():\\n    times = []\\n    async with httpx.AsyncClient() as client:\\n        for i in range(100):\\n            start = time.time()\\n            try:\\n                r = await client.get('http://localhost:8000/devices')\\n                times.append((time.time() - start) * 1000)\\n            except:\\n                pass\\n    times.sort()\\n    print(f'P50: {statistics.median(times):.2f}ms')\\n    print(f'P95: {times[int(len(times)*0.95)]:.2f}ms')\\n    print(f'P99: {times[int(len(times)*0.99)]:.2f}ms')\\n    print(f'Min: {min(times):.2f}ms, Max: {max(times):.2f}ms')\\n\\nasyncio.run(benchmark())\""],
+      "command": "cd ${workspaceFolder}/autus-unified && python3 -m venv venv && source venv/bin/activate && pip install -r backend/requirements.txt",
+      "group": "build",
+      "problemMatcher": []
+    },
+    
+    // ─────────────────────────────────────────────────────────────
+    // 🔍 코드 품질
+    // ─────────────────────────────────────────────────────────────
+    {
+      "label": "🔍 Lint (Ruff)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/autus-unified && ruff check backend/",
+      "group": "test",
       "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "focus": true,
-        "clear": true
-      }
+        "reveal": "always"
+      },
+      "problemMatcher": []
     },
     {
-      "label": "🚀 서버 시작 + 성능 분석",
+      "label": "🔧 Format (Ruff)",
       "type": "shell",
-      "command": "bash",
-      "args": ["-c", "echo '서버 시작 중...' && python3 main.py &>/dev/null & sleep 3 && python3 performance_dashboard.py --all"],
+      "command": "cd ${workspaceFolder}/autus-unified && ruff format backend/",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "🔧 Fix All (Ruff)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/autus-unified && ruff check --fix backend/ && ruff format backend/",
+      "group": "build",
+      "problemMatcher": []
+    },
+    
+    // ─────────────────────────────────────────────────────────────
+    // 🐳 Docker
+    // ─────────────────────────────────────────────────────────────
+    {
+      "label": "🐳 Docker Compose Up",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/autus-unified && docker-compose up -d",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "🐳 Docker Compose Down",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/autus-unified && docker-compose down",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "🐳 Docker Build",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/autus-unified && docker-compose build",
+      "group": "build",
+      "problemMatcher": []
+    },
+    
+    // ─────────────────────────────────────────────────────────────
+    // 🔄 Git
+    // ─────────────────────────────────────────────────────────────
+    {
+      "label": "📊 Git Status",
+      "type": "shell",
+      "command": "git status",
       "presentation": {
         "reveal": "always",
-        "panel": "new",
-        "focus": true,
-        "clear": true
-      }
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    
+    // ─────────────────────────────────────────────────────────────
+    // 🧹 정리
+    // ─────────────────────────────────────────────────────────────
+    {
+      "label": "🧹 Clean Pycache",
+      "type": "shell",
+      "command": "find ${workspaceFolder} -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null; find ${workspaceFolder} -type f -name '*.pyc' -delete 2>/dev/null; echo '✅ Cleaned!'",
+      "problemMatcher": []
     }
   ]
 }

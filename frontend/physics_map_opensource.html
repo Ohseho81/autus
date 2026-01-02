@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아우투스 Physics Map - 오픈소스 버전</title>
+  <script src="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.js"></script>
+  <link href="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/@cosmograph/cosmos"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body { 
+      margin: 0; 
+      background: #000; 
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    #map { 
+      position: absolute; 
+      top: 0; 
+      bottom: 0; 
+      width: 100%; 
+    }
+    
+    canvas { 
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      pointer-events: none; 
+    }
+    
+    /* Control Panel */
+    .control-panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(10, 10, 15, 0.95);
+      border: 1px solid #1e1e2e;
+      border-radius: 16px;
+      padding: 20px;
+      z-index: 1000;
+      min-width: 280px;
+    }
+    
+    .panel-title {
+      color: #00d4aa;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .kpi-item {
+      background: rgba(0, 212, 170, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    
+    .kpi-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #00d4aa;
+    }
+    
+    .kpi-label {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 3px;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .btn-cut {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+      color: white;
+    }
+    
+    .btn-link {
+      background: linear-gradient(135deg, #00d4aa, #00b894);
+      color: white;
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+    
+    /* Node Info */
+    .node-info {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(10, 10, 15, 0.95);
+      border: 1px solid #1e1e2e;
+      border-radius: 16px;
+      padding: 20px;
+      z-index: 1000;
+      min-width: 250px;
+      display: none;
+    }
+    
+    .node-info.visible {
+      display: block;
+    }
+    
+    .node-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    
+    .node-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #1e1e2e;
+    }
+    
+    .node-stat:last-child {
+      border-bottom: none;
+    }
+    
+    .stat-label {
+      color: #888;
+    }
+    
+    .stat-value {
+      color: #00d4aa;
+      font-weight: 600;
+    }
+    
+    /* Legend */
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(10, 10, 15, 0.9);
+      border-radius: 12px;
+      padding: 15px;
+      z-index: 1000;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: #888;
+      font-size: 0.85rem;
+    }
+    
+    .legend-color {
+      width: 20px;
+      height: 4px;
+      border-radius: 2px;
+    }
+    
+    .legend-color.positive { background: #00ff88; }
+    .legend-color.negative { background: #ff0066; }
+    .legend-color.prediction { 
+      background: repeating-linear-gradient(
+        90deg, #ffff00, #ffff00 8px, transparent 8px, transparent 16px
+      ); 
+    }
+    
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(0, 212, 170, 0.95);
+      color: #000;
+      padding: 15px 30px;
+      border-radius: 30px;
+      font-weight: 600;
+      z-index: 2000;
+      transition: transform 0.3s;
+    }
+    
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    
+    /* Token Notice */
+    .token-notice {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 10, 15, 0.98);
+      border: 2px solid #ff6b6b;
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      z-index: 3000;
+      max-width: 500px;
+    }
+    
+    .token-notice h2 {
+      color: #ff6b6b;
+      margin-bottom: 15px;
+    }
+    
+    .token-notice p {
+      color: #888;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    
+    .token-notice input {
+      width: 100%;
+      padding: 15px;
+      background: #1e1e2e;
+      border: 1px solid #333;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 15px;
+    }
+    
+    .token-notice button {
+      padding: 15px 40px;
+      background: linear-gradient(135deg, #00d4aa, #00b894);
+      border: none;
+      border-radius: 30px;
+      color: #000;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    .token-notice a {
+      color: #00d4aa;
+    }
+  </style>
+</head>
+<body>
+  <!-- Token Notice (shown if no token) -->
+  <div class="token-notice" id="tokenNotice">
+    <h2>🗺️ Mapbox 토큰 필요</h2>
+    <p>
+      이 데모는 Mapbox를 사용합니다.<br>
+      무료 토큰을 발급받아 입력하세요.<br>
+      <a href="https://mapbox.com" target="_blank">https://mapbox.com</a>에서 가입 후 발급 가능
+    </p>
+    <input type="text" id="tokenInput" placeholder="pk.eyJ1Ijo... (Mapbox Access Token)">
+    <button onclick="setToken()">시작하기</button>
+  </div>
+
+  <div id="map"></div>
+  
+  <!-- Control Panel -->
+  <div class="control-panel">
+    <div class="panel-title">
+      <span>🌍</span>
+      <span>AUTUS Physics Map</span>
+    </div>
+    
+    <div class="kpi-grid">
+      <div class="kpi-item">
+        <div class="kpi-value" id="totalValue">₩122M</div>
+        <div class="kpi-label">총 가치</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value" id="nodeCount">5</div>
+        <div class="kpi-label">노드 수</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value" id="flowCount">5</div>
+        <div class="kpi-label">흐름 수</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value" id="synergy">+15%</div>
+        <div class="kpi-label">시너지</div>
+      </div>
+    </div>
+    
+    <div class="action-buttons">
+      <button class="action-btn btn-cut" onclick="executeCut()">✂️ CUT</button>
+      <button class="action-btn btn-link" onclick="executeLink()">🔗 LINK</button>
+    </div>
+  </div>
+  
+  <!-- Node Info Panel -->
+  <div class="node-info" id="nodeInfo">
+    <div class="node-name" id="nodeName">선택된 노드</div>
+    <div class="node-stat">
+      <span class="stat-label">현재 가치</span>
+      <span class="stat-value" id="nodeValue">-</span>
+    </div>
+    <div class="node-stat">
+      <span class="stat-label">연결 수</span>
+      <span class="stat-value" id="nodeConnections">-</span>
+    </div>
+    <div class="node-stat">
+      <span class="stat-label">순 흐름</span>
+      <span class="stat-value" id="nodeFlow">-</span>
+    </div>
+  </div>
+  
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color positive"></div>
+      <span>양(+) 흐름</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color negative"></div>
+      <span>음(-) 흐름</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color prediction"></div>
+      <span>예측 흐름</span>
+    </div>
+  </div>
+  
+  <!-- Toast -->
+  <div class="toast" id="toast">메시지</div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DATA - 실제 데이터 (옥수동 기준)
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    const data = {
+      nodes: [
+        { id: "node_1", value: 56000000, lat: 37.5415, lon: 127.0155 },
+        { id: "node_2", value: 25000000, lat: 37.5416, lon: 127.0156 },
+        { id: "node_3", value: 23000000, lat: 37.5414, lon: 127.0154 },
+        { id: "node_4", value: 11000000, lat: 37.5417, lon: 127.0157 },
+        { id: "node_5", value: 7000000, lat: 37.5413, lon: 127.0153 }
+      ],
+      links: [
+        { source: "node_1", target: "node_2", value: 15000000 },
+        { source: "node_2", target: "node_3", value: 12000000 },
+        { source: "node_3", target: "node_4", value: 8000000 },
+        { source: "node_3", target: "node_5", value: 6000000 },
+        { source: "node_1", target: "node_5", value: 20000000, type: "prediction" }
+      ]
+    };
+    
+    let map, cosmograph, canvas;
+    let selectedNode = null;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TOKEN HANDLING
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function setToken() {
+      const token = document.getElementById('tokenInput').value.trim();
+      if (!token || !token.startsWith('pk.')) {
+        alert('유효한 Mapbox 토큰을 입력하세요 (pk.로 시작)');
+        return;
+      }
+      
+      localStorage.setItem('mapbox_token', token);
+      document.getElementById('tokenNotice').style.display = 'none';
+      initMap(token);
+    }
+    
+    function checkToken() {
+      const savedToken = localStorage.getItem('mapbox_token');
+      if (savedToken) {
+        document.getElementById('tokenNotice').style.display = 'none';
+        initMap(savedToken);
+      }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MAP INITIALIZATION
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function initMap(token) {
+      mapboxgl.accessToken = token;
+      
+      map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/satellite-v9',
+        center: [127.0155, 37.5415],
+        zoom: 16
+      });
+      
+      // Add navigation controls
+      map.addControl(new mapboxgl.NavigationControl());
+      
+      // Create canvas overlay for Cosmograph
+      canvas = document.createElement('canvas');
+      canvas.style.position = 'absolute';
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.pointerEvents = 'none';
+      document.getElementById('map').appendChild(canvas);
+      
+      // Initialize Cosmograph
+      try {
+        cosmograph = new CosmosGraph(canvas, {
+          nodeSize: d => Math.sqrt(d.value) / 8,
+          linkWidth: l => l.value / 10000000,
+          linkColor: l => l.value > 0 ? '#00ff88' : '#ff0066',
+          linkDash: l => l.type === 'prediction' ? [12, 8] : null,
+          particles: {
+            count: 6000,
+            trailLength: 80,
+            glow: true,
+            sparkOnEnd: true,
+            color: '#ffff00'
+          },
+          backgroundColor: 'transparent'
+        });
+      } catch (e) {
+        console.log('Cosmograph not available, using fallback');
+        initFallbackVisualization();
+      }
+      
+      map.on('load', () => {
+        updateNodes();
+        updateKPIs();
+        showToast('🗺️ Physics Map 로드 완료!');
+      });
+      
+      map.on('move', () => updateNodes());
+      map.on('zoom', () => updateNodes());
+      
+      // Click handling
+      map.on('click', (e) => {
+        const clickedNode = findNearestNode(e.lngLat);
+        if (clickedNode) {
+          selectNode(clickedNode);
+        }
+      });
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FALLBACK VISUALIZATION (Canvas 2D)
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function initFallbackVisualization() {
+      const ctx = canvas.getContext('2d');
+      
+      function draw() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw links
+        data.links.forEach(link => {
+          const source = data.nodes.find(n => n.id === link.source);
+          const target = data.nodes.find(n => n.id === link.target);
+          if (!source || !target) return;
+          
+          ctx.beginPath();
+          ctx.moveTo(source.x, source.y);
+          ctx.lineTo(target.x, target.y);
+          ctx.strokeStyle = link.type === 'prediction' ? '#ffff00' : '#00ff88';
+          ctx.lineWidth = link.value / 5000000;
+          
+          if (link.type === 'prediction') {
+            ctx.setLineDash([12, 8]);
+          } else {
+            ctx.setLineDash([]);
+          }
+          
+          ctx.stroke();
+        });
+        
+        // Draw nodes
+        data.nodes.forEach(node => {
+          const radius = Math.sqrt(node.value) / 200;
+          
+          // Glow effect
+          const gradient = ctx.createRadialGradient(
+            node.x, node.y, 0,
+            node.x, node.y, radius * 2
+          );
+          gradient.addColorStop(0, 'rgba(0, 212, 170, 0.8)');
+          gradient.addColorStop(1, 'rgba(0, 212, 170, 0)');
+          
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, radius * 2, 0, Math.PI * 2);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+          
+          // Node circle
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+          ctx.fillStyle = selectedNode === node.id ? '#ffff00' : '#00d4aa';
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        });
+        
+        requestAnimationFrame(draw);
+      }
+      
+      draw();
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NODE UPDATES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function updateNodes() {
+      if (!map) return;
+      
+      data.nodes.forEach(node => {
+        const point = map.project([node.lon, node.lat]);
+        node.x = point.x;
+        node.y = point.y;
+      });
+      
+      if (cosmograph) {
+        cosmograph.setData(data);
+        cosmograph.start();
+      }
+    }
+    
+    function findNearestNode(lngLat) {
+      let nearest = null;
+      let minDist = Infinity;
+      
+      data.nodes.forEach(node => {
+        const point = map.project([node.lon, node.lat]);
+        const clickPoint = map.project([lngLat.lng, lngLat.lat]);
+        const dist = Math.hypot(point.x - clickPoint.x, point.y - clickPoint.y);
+        
+        if (dist < 50 && dist < minDist) {
+          minDist = dist;
+          nearest = node;
+        }
+      });
+      
+      return nearest;
+    }
+    
+    function selectNode(node) {
+      selectedNode = node.id;
+      
+      const nodeInfo = document.getElementById('nodeInfo');
+      nodeInfo.classList.add('visible');
+      
+      document.getElementById('nodeName').textContent = node.id;
+      document.getElementById('nodeValue').textContent = formatMoney(node.value);
+      
+      // Count connections
+      const connections = data.links.filter(
+        l => l.source === node.id || l.target === node.id
+      ).length;
+      document.getElementById('nodeConnections').textContent = connections;
+      
+      // Calculate net flow
+      let netFlow = 0;
+      data.links.forEach(link => {
+        if (link.source === node.id) netFlow -= link.value;
+        if (link.target === node.id) netFlow += link.value;
+      });
+      document.getElementById('nodeFlow').textContent = formatMoney(netFlow);
+      
+      showToast(`선택: ${node.id}`);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONS
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function executeCut() {
+      if (!selectedNode) {
+        showToast('노드를 먼저 선택하세요');
+        return;
+      }
+      
+      // Remove links connected to selected node
+      data.links = data.links.filter(
+        l => l.source !== selectedNode && l.target !== selectedNode
+      );
+      
+      showToast(`✂️ CUT: ${selectedNode} 연결 제거`);
+      updateNodes();
+      updateKPIs();
+    }
+    
+    function executeLink() {
+      if (!selectedNode) {
+        showToast('노드를 먼저 선택하세요');
+        return;
+      }
+      
+      // Find another random node to link
+      const otherNodes = data.nodes.filter(n => n.id !== selectedNode);
+      const target = otherNodes[Math.floor(Math.random() * otherNodes.length)];
+      
+      // Create new link
+      data.links.push({
+        source: selectedNode,
+        target: target.id,
+        value: 5000000,
+        type: 'prediction'
+      });
+      
+      showToast(`🔗 LINK: ${selectedNode} → ${target.id}`);
+      updateNodes();
+      updateKPIs();
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // KPI & UTILITIES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function updateKPIs() {
+      const totalValue = data.nodes.reduce((sum, n) => sum + n.value, 0);
+      document.getElementById('totalValue').textContent = formatMoney(totalValue);
+      document.getElementById('nodeCount').textContent = data.nodes.length;
+      document.getElementById('flowCount').textContent = data.links.length;
+      
+      // Calculate synergy (simplified)
+      const synergy = (data.links.length / data.nodes.length) * 10;
+      document.getElementById('synergy').textContent = `+${synergy.toFixed(0)}%`;
+    }
+    
+    function formatMoney(value) {
+      if (Math.abs(value) >= 1000000000) {
+        return '₩' + (value / 1000000000).toFixed(1) + 'B';
+      }
+      if (Math.abs(value) >= 1000000) {
+        return '₩' + (value / 1000000).toFixed(0) + 'M';
+      }
+      if (Math.abs(value) >= 1000) {
+        return '₩' + (value / 1000).toFixed(0) + 'K';
+      }
+      return '₩' + value;
+    }
+    
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      checkToken();
+      console.log('🌍 AUTUS Physics Map (오픈소스 버전) 로드');
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'c' && selectedNode) executeCut();
+      if (e.key === 'l' && selectedNode) executeLink();
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아우투스 Physics Map - 오픈소스 버전</title>
+  <script src="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.js"></script>
+  <link href="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/@cosmograph/cosmos"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body { 
+      margin: 0; 
+      background: #000; 
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    #map { 
+      position: absolute; 
+      top: 0; 
+      bottom: 0; 
+      width: 100%; 
+    }
+    
+    canvas { 
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      pointer-events: none; 
+    }
+    
+    /* Control Panel */
+    .control-panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(10, 10, 15, 0.95);
+      border: 1px solid #1e1e2e;
+      border-radius: 16px;
+      padding: 20px;
+      z-index: 1000;
+      min-width: 280px;
+    }
+    
+    .panel-title {
+      color: #00d4aa;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .kpi-item {
+      background: rgba(0, 212, 170, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    
+    .kpi-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #00d4aa;
+    }
+    
+    .kpi-label {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 3px;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .btn-cut {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+      color: white;
+    }
+    
+    .btn-link {
+      background: linear-gradient(135deg, #00d4aa, #00b894);
+      color: white;
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+    
+    /* Node Info */
+    .node-info {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(10, 10, 15, 0.95);
+      border: 1px solid #1e1e2e;
+      border-radius: 16px;
+      padding: 20px;
+      z-index: 1000;
+      min-width: 250px;
+      display: none;
+    }
+    
+    .node-info.visible {
+      display: block;
+    }
+    
+    .node-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    
+    .node-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #1e1e2e;
+    }
+    
+    .node-stat:last-child {
+      border-bottom: none;
+    }
+    
+    .stat-label {
+      color: #888;
+    }
+    
+    .stat-value {
+      color: #00d4aa;
+      font-weight: 600;
+    }
+    
+    /* Legend */
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(10, 10, 15, 0.9);
+      border-radius: 12px;
+      padding: 15px;
+      z-index: 1000;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: #888;
+      font-size: 0.85rem;
+    }
+    
+    .legend-color {
+      width: 20px;
+      height: 4px;
+      border-radius: 2px;
+    }
+    
+    .legend-color.positive { background: #00ff88; }
+    .legend-color.negative { background: #ff0066; }
+    .legend-color.prediction { 
+      background: repeating-linear-gradient(
+        90deg, #ffff00, #ffff00 8px, transparent 8px, transparent 16px
+      ); 
+    }
+    
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(0, 212, 170, 0.95);
+      color: #000;
+      padding: 15px 30px;
+      border-radius: 30px;
+      font-weight: 600;
+      z-index: 2000;
+      transition: transform 0.3s;
+    }
+    
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    
+    /* Token Notice */
+    .token-notice {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 10, 15, 0.98);
+      border: 2px solid #ff6b6b;
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      z-index: 3000;
+      max-width: 500px;
+    }
+    
+    .token-notice h2 {
+      color: #ff6b6b;
+      margin-bottom: 15px;
+    }
+    
+    .token-notice p {
+      color: #888;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    
+    .token-notice input {
+      width: 100%;
+      padding: 15px;
+      background: #1e1e2e;
+      border: 1px solid #333;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 15px;
+    }
+    
+    .token-notice button {
+      padding: 15px 40px;
+      background: linear-gradient(135deg, #00d4aa, #00b894);
+      border: none;
+      border-radius: 30px;
+      color: #000;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    .token-notice a {
+      color: #00d4aa;
+    }
+  </style>
+</head>
+<body>
+  <!-- Token Notice (shown if no token) -->
+  <div class="token-notice" id="tokenNotice">
+    <h2>🗺️ Mapbox 토큰 필요</h2>
+    <p>
+      이 데모는 Mapbox를 사용합니다.<br>
+      무료 토큰을 발급받아 입력하세요.<br>
+      <a href="https://mapbox.com" target="_blank">https://mapbox.com</a>에서 가입 후 발급 가능
+    </p>
+    <input type="text" id="tokenInput" placeholder="pk.eyJ1Ijo... (Mapbox Access Token)">
+    <button onclick="setToken()">시작하기</button>
+  </div>
+
+  <div id="map"></div>
+  
+  <!-- Control Panel -->
+  <div class="control-panel">
+    <div class="panel-title">
+      <span>🌍</span>
+      <span>AUTUS Physics Map</span>
+    </div>
+    
+    <div class="kpi-grid">
+      <div class="kpi-item">
+        <div class="kpi-value" id="totalValue">₩122M</div>
+        <div class="kpi-label">총 가치</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value" id="nodeCount">5</div>
+        <div class="kpi-label">노드 수</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value" id="flowCount">5</div>
+        <div class="kpi-label">흐름 수</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value" id="synergy">+15%</div>
+        <div class="kpi-label">시너지</div>
+      </div>
+    </div>
+    
+    <div class="action-buttons">
+      <button class="action-btn btn-cut" onclick="executeCut()">✂️ CUT</button>
+      <button class="action-btn btn-link" onclick="executeLink()">🔗 LINK</button>
+    </div>
+  </div>
+  
+  <!-- Node Info Panel -->
+  <div class="node-info" id="nodeInfo">
+    <div class="node-name" id="nodeName">선택된 노드</div>
+    <div class="node-stat">
+      <span class="stat-label">현재 가치</span>
+      <span class="stat-value" id="nodeValue">-</span>
+    </div>
+    <div class="node-stat">
+      <span class="stat-label">연결 수</span>
+      <span class="stat-value" id="nodeConnections">-</span>
+    </div>
+    <div class="node-stat">
+      <span class="stat-label">순 흐름</span>
+      <span class="stat-value" id="nodeFlow">-</span>
+    </div>
+  </div>
+  
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color positive"></div>
+      <span>양(+) 흐름</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color negative"></div>
+      <span>음(-) 흐름</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color prediction"></div>
+      <span>예측 흐름</span>
+    </div>
+  </div>
+  
+  <!-- Toast -->
+  <div class="toast" id="toast">메시지</div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DATA - 실제 데이터 (옥수동 기준)
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    const data = {
+      nodes: [
+        { id: "node_1", value: 56000000, lat: 37.5415, lon: 127.0155 },
+        { id: "node_2", value: 25000000, lat: 37.5416, lon: 127.0156 },
+        { id: "node_3", value: 23000000, lat: 37.5414, lon: 127.0154 },
+        { id: "node_4", value: 11000000, lat: 37.5417, lon: 127.0157 },
+        { id: "node_5", value: 7000000, lat: 37.5413, lon: 127.0153 }
+      ],
+      links: [
+        { source: "node_1", target: "node_2", value: 15000000 },
+        { source: "node_2", target: "node_3", value: 12000000 },
+        { source: "node_3", target: "node_4", value: 8000000 },
+        { source: "node_3", target: "node_5", value: 6000000 },
+        { source: "node_1", target: "node_5", value: 20000000, type: "prediction" }
+      ]
+    };
+    
+    let map, cosmograph, canvas;
+    let selectedNode = null;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TOKEN HANDLING
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function setToken() {
+      const token = document.getElementById('tokenInput').value.trim();
+      if (!token || !token.startsWith('pk.')) {
+        alert('유효한 Mapbox 토큰을 입력하세요 (pk.로 시작)');
+        return;
+      }
+      
+      localStorage.setItem('mapbox_token', token);
+      document.getElementById('tokenNotice').style.display = 'none';
+      initMap(token);
+    }
+    
+    function checkToken() {
+      const savedToken = localStorage.getItem('mapbox_token');
+      if (savedToken) {
+        document.getElementById('tokenNotice').style.display = 'none';
+        initMap(savedToken);
+      }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MAP INITIALIZATION
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function initMap(token) {
+      mapboxgl.accessToken = token;
+      
+      map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/satellite-v9',
+        center: [127.0155, 37.5415],
+        zoom: 16
+      });
+      
+      // Add navigation controls
+      map.addControl(new mapboxgl.NavigationControl());
+      
+      // Create canvas overlay for Cosmograph
+      canvas = document.createElement('canvas');
+      canvas.style.position = 'absolute';
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.pointerEvents = 'none';
+      document.getElementById('map').appendChild(canvas);
+      
+      // Initialize Cosmograph
+      try {
+        cosmograph = new CosmosGraph(canvas, {
+          nodeSize: d => Math.sqrt(d.value) / 8,
+          linkWidth: l => l.value / 10000000,
+          linkColor: l => l.value > 0 ? '#00ff88' : '#ff0066',
+          linkDash: l => l.type === 'prediction' ? [12, 8] : null,
+          particles: {
+            count: 6000,
+            trailLength: 80,
+            glow: true,
+            sparkOnEnd: true,
+            color: '#ffff00'
+          },
+          backgroundColor: 'transparent'
+        });
+      } catch (e) {
+        console.log('Cosmograph not available, using fallback');
+        initFallbackVisualization();
+      }
+      
+      map.on('load', () => {
+        updateNodes();
+        updateKPIs();
+        showToast('🗺️ Physics Map 로드 완료!');
+      });
+      
+      map.on('move', () => updateNodes());
+      map.on('zoom', () => updateNodes());
+      
+      // Click handling
+      map.on('click', (e) => {
+        const clickedNode = findNearestNode(e.lngLat);
+        if (clickedNode) {
+          selectNode(clickedNode);
+        }
+      });
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FALLBACK VISUALIZATION (Canvas 2D)
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function initFallbackVisualization() {
+      const ctx = canvas.getContext('2d');
+      
+      function draw() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw links
+        data.links.forEach(link => {
+          const source = data.nodes.find(n => n.id === link.source);
+          const target = data.nodes.find(n => n.id === link.target);
+          if (!source || !target) return;
+          
+          ctx.beginPath();
+          ctx.moveTo(source.x, source.y);
+          ctx.lineTo(target.x, target.y);
+          ctx.strokeStyle = link.type === 'prediction' ? '#ffff00' : '#00ff88';
+          ctx.lineWidth = link.value / 5000000;
+          
+          if (link.type === 'prediction') {
+            ctx.setLineDash([12, 8]);
+          } else {
+            ctx.setLineDash([]);
+          }
+          
+          ctx.stroke();
+        });
+        
+        // Draw nodes
+        data.nodes.forEach(node => {
+          const radius = Math.sqrt(node.value) / 200;
+          
+          // Glow effect
+          const gradient = ctx.createRadialGradient(
+            node.x, node.y, 0,
+            node.x, node.y, radius * 2
+          );
+          gradient.addColorStop(0, 'rgba(0, 212, 170, 0.8)');
+          gradient.addColorStop(1, 'rgba(0, 212, 170, 0)');
+          
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, radius * 2, 0, Math.PI * 2);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+          
+          // Node circle
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+          ctx.fillStyle = selectedNode === node.id ? '#ffff00' : '#00d4aa';
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        });
+        
+        requestAnimationFrame(draw);
+      }
+      
+      draw();
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NODE UPDATES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function updateNodes() {
+      if (!map) return;
+      
+      data.nodes.forEach(node => {
+        const point = map.project([node.lon, node.lat]);
+        node.x = point.x;
+        node.y = point.y;
+      });
+      
+      if (cosmograph) {
+        cosmograph.setData(data);
+        cosmograph.start();
+      }
+    }
+    
+    function findNearestNode(lngLat) {
+      let nearest = null;
+      let minDist = Infinity;
+      
+      data.nodes.forEach(node => {
+        const point = map.project([node.lon, node.lat]);
+        const clickPoint = map.project([lngLat.lng, lngLat.lat]);
+        const dist = Math.hypot(point.x - clickPoint.x, point.y - clickPoint.y);
+        
+        if (dist < 50 && dist < minDist) {
+          minDist = dist;
+          nearest = node;
+        }
+      });
+      
+      return nearest;
+    }
+    
+    function selectNode(node) {
+      selectedNode = node.id;
+      
+      const nodeInfo = document.getElementById('nodeInfo');
+      nodeInfo.classList.add('visible');
+      
+      document.getElementById('nodeName').textContent = node.id;
+      document.getElementById('nodeValue').textContent = formatMoney(node.value);
+      
+      // Count connections
+      const connections = data.links.filter(
+        l => l.source === node.id || l.target === node.id
+      ).length;
+      document.getElementById('nodeConnections').textContent = connections;
+      
+      // Calculate net flow
+      let netFlow = 0;
+      data.links.forEach(link => {
+        if (link.source === node.id) netFlow -= link.value;
+        if (link.target === node.id) netFlow += link.value;
+      });
+      document.getElementById('nodeFlow').textContent = formatMoney(netFlow);
+      
+      showToast(`선택: ${node.id}`);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONS
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function executeCut() {
+      if (!selectedNode) {
+        showToast('노드를 먼저 선택하세요');
+        return;
+      }
+      
+      // Remove links connected to selected node
+      data.links = data.links.filter(
+        l => l.source !== selectedNode && l.target !== selectedNode
+      );
+      
+      showToast(`✂️ CUT: ${selectedNode} 연결 제거`);
+      updateNodes();
+      updateKPIs();
+    }
+    
+    function executeLink() {
+      if (!selectedNode) {
+        showToast('노드를 먼저 선택하세요');
+        return;
+      }
+      
+      // Find another random node to link
+      const otherNodes = data.nodes.filter(n => n.id !== selectedNode);
+      const target = otherNodes[Math.floor(Math.random() * otherNodes.length)];
+      
+      // Create new link
+      data.links.push({
+        source: selectedNode,
+        target: target.id,
+        value: 5000000,
+        type: 'prediction'
+      });
+      
+      showToast(`🔗 LINK: ${selectedNode} → ${target.id}`);
+      updateNodes();
+      updateKPIs();
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // KPI & UTILITIES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function updateKPIs() {
+      const totalValue = data.nodes.reduce((sum, n) => sum + n.value, 0);
+      document.getElementById('totalValue').textContent = formatMoney(totalValue);
+      document.getElementById('nodeCount').textContent = data.nodes.length;
+      document.getElementById('flowCount').textContent = data.links.length;
+      
+      // Calculate synergy (simplified)
+      const synergy = (data.links.length / data.nodes.length) * 10;
+      document.getElementById('synergy').textContent = `+${synergy.toFixed(0)}%`;
+    }
+    
+    function formatMoney(value) {
+      if (Math.abs(value) >= 1000000000) {
+        return '₩' + (value / 1000000000).toFixed(1) + 'B';
+      }
+      if (Math.abs(value) >= 1000000) {
+        return '₩' + (value / 1000000).toFixed(0) + 'M';
+      }
+      if (Math.abs(value) >= 1000) {
+        return '₩' + (value / 1000).toFixed(0) + 'K';
+      }
+      return '₩' + value;
+    }
+    
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      checkToken();
+      console.log('🌍 AUTUS Physics Map (오픈소스 버전) 로드');
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'c' && selectedNode) executeCut();
+      if (e.key === 'l' && selectedNode) executeLink();
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,715 @@
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║  🔗 AUTUS Physics Map - 환경 변수 설정                                        ║
+# ║                                                                               ║
+# ║  이 파일을 .env로 복사한 후 실제 값을 입력하세요:                              ║
+# ║  cp env-template.txt .env                                                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Google Sheets API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://console.cloud.google.com 접속
+# 2. APIs & Services → Credentials → Service Account 생성
+# 3. JSON 키 다운로드 → credentials.json으로 저장
+
+GOOGLE_CREDENTIALS_PATH=./credentials.json
+GOOGLE_SPREADSHEET_ID=your-spreadsheet-id-here
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Make (Integromat) Webhook
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://make.com 접속
+# 2. Create a new scenario
+# 3. Webhooks → Custom webhook 추가
+# 4. URL 복사
+
+MAKE_WEBHOOK_URL=https://hook.us1.make.com/your-webhook-id
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. OpenAI API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://platform.openai.com 접속
+# 2. API Keys → Create new secret key
+# 3. 키 복사
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. 카카오톡 알림톡 (Solapi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://solapi.com 가입
+# 2. 카카오 채널 연동
+# 3. API 키 발급
+
+ALIMTALK_API_KEY=your-solapi-api-key
+ALIMTALK_API_SECRET=your-solapi-api-secret
+ALIMTALK_SENDER_KEY=your-sender-profile-key
+
+# 기본 수신 전화번호 (테스트용)
+DEFAULT_PHONE_NUMBER=01012345678
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 5. 기타 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 로깅 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 대시보드 URL (알림톡 버튼용)
+DASHBOARD_URL=https://autus.app/dashboard
+
+
+
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║  🔗 AUTUS Physics Map - 환경 변수 설정                                        ║
+# ║                                                                               ║
+# ║  이 파일을 .env로 복사한 후 실제 값을 입력하세요:                              ║
+# ║  cp env-template.txt .env                                                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Google Sheets API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://console.cloud.google.com 접속
+# 2. APIs & Services → Credentials → Service Account 생성
+# 3. JSON 키 다운로드 → credentials.json으로 저장
+
+GOOGLE_CREDENTIALS_PATH=./credentials.json
+GOOGLE_SPREADSHEET_ID=your-spreadsheet-id-here
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Make (Integromat) Webhook
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://make.com 접속
+# 2. Create a new scenario
+# 3. Webhooks → Custom webhook 추가
+# 4. URL 복사
+
+MAKE_WEBHOOK_URL=https://hook.us1.make.com/your-webhook-id
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. OpenAI API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://platform.openai.com 접속
+# 2. API Keys → Create new secret key
+# 3. 키 복사
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. 카카오톡 알림톡 (Solapi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://solapi.com 가입
+# 2. 카카오 채널 연동
+# 3. API 키 발급
+
+ALIMTALK_API_KEY=your-solapi-api-key
+ALIMTALK_API_SECRET=your-solapi-api-secret
+ALIMTALK_SENDER_KEY=your-sender-profile-key
+
+# 기본 수신 전화번호 (테스트용)
+DEFAULT_PHONE_NUMBER=01012345678
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 5. 기타 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 로깅 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 대시보드 URL (알림톡 버튼용)
+DASHBOARD_URL=https://autus.app/dashboard
+
+
+
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║  🔗 AUTUS Physics Map - 환경 변수 설정                                        ║
+# ║                                                                               ║
+# ║  이 파일을 .env로 복사한 후 실제 값을 입력하세요:                              ║
+# ║  cp env-template.txt .env                                                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Google Sheets API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://console.cloud.google.com 접속
+# 2. APIs & Services → Credentials → Service Account 생성
+# 3. JSON 키 다운로드 → credentials.json으로 저장
+
+GOOGLE_CREDENTIALS_PATH=./credentials.json
+GOOGLE_SPREADSHEET_ID=your-spreadsheet-id-here
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Make (Integromat) Webhook
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://make.com 접속
+# 2. Create a new scenario
+# 3. Webhooks → Custom webhook 추가
+# 4. URL 복사
+
+MAKE_WEBHOOK_URL=https://hook.us1.make.com/your-webhook-id
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. OpenAI API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://platform.openai.com 접속
+# 2. API Keys → Create new secret key
+# 3. 키 복사
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. 카카오톡 알림톡 (Solapi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://solapi.com 가입
+# 2. 카카오 채널 연동
+# 3. API 키 발급
+
+ALIMTALK_API_KEY=your-solapi-api-key
+ALIMTALK_API_SECRET=your-solapi-api-secret
+ALIMTALK_SENDER_KEY=your-sender-profile-key
+
+# 기본 수신 전화번호 (테스트용)
+DEFAULT_PHONE_NUMBER=01012345678
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 5. 기타 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 로깅 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 대시보드 URL (알림톡 버튼용)
+DASHBOARD_URL=https://autus.app/dashboard
+
+
+
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║  🔗 AUTUS Physics Map - 환경 변수 설정                                        ║
+# ║                                                                               ║
+# ║  이 파일을 .env로 복사한 후 실제 값을 입력하세요:                              ║
+# ║  cp env-template.txt .env                                                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Google Sheets API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://console.cloud.google.com 접속
+# 2. APIs & Services → Credentials → Service Account 생성
+# 3. JSON 키 다운로드 → credentials.json으로 저장
+
+GOOGLE_CREDENTIALS_PATH=./credentials.json
+GOOGLE_SPREADSHEET_ID=your-spreadsheet-id-here
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Make (Integromat) Webhook
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://make.com 접속
+# 2. Create a new scenario
+# 3. Webhooks → Custom webhook 추가
+# 4. URL 복사
+
+MAKE_WEBHOOK_URL=https://hook.us1.make.com/your-webhook-id
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. OpenAI API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://platform.openai.com 접속
+# 2. API Keys → Create new secret key
+# 3. 키 복사
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. 카카오톡 알림톡 (Solapi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://solapi.com 가입
+# 2. 카카오 채널 연동
+# 3. API 키 발급
+
+ALIMTALK_API_KEY=your-solapi-api-key
+ALIMTALK_API_SECRET=your-solapi-api-secret
+ALIMTALK_SENDER_KEY=your-sender-profile-key
+
+# 기본 수신 전화번호 (테스트용)
+DEFAULT_PHONE_NUMBER=01012345678
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 5. 기타 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 로깅 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 대시보드 URL (알림톡 버튼용)
+DASHBOARD_URL=https://autus.app/dashboard
+
+
+
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║  🔗 AUTUS Physics Map - 환경 변수 설정                                        ║
+# ║                                                                               ║
+# ║  이 파일을 .env로 복사한 후 실제 값을 입력하세요:                              ║
+# ║  cp env-template.txt .env                                                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Google Sheets API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://console.cloud.google.com 접속
+# 2. APIs & Services → Credentials → Service Account 생성
+# 3. JSON 키 다운로드 → credentials.json으로 저장
+
+GOOGLE_CREDENTIALS_PATH=./credentials.json
+GOOGLE_SPREADSHEET_ID=your-spreadsheet-id-here
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Make (Integromat) Webhook
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://make.com 접속
+# 2. Create a new scenario
+# 3. Webhooks → Custom webhook 추가
+# 4. URL 복사
+
+MAKE_WEBHOOK_URL=https://hook.us1.make.com/your-webhook-id
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. OpenAI API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://platform.openai.com 접속
+# 2. API Keys → Create new secret key
+# 3. 키 복사
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. 카카오톡 알림톡 (Solapi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://solapi.com 가입
+# 2. 카카오 채널 연동
+# 3. API 키 발급
+
+ALIMTALK_API_KEY=your-solapi-api-key
+ALIMTALK_API_SECRET=your-solapi-api-secret
+ALIMTALK_SENDER_KEY=your-sender-profile-key
+
+# 기본 수신 전화번호 (테스트용)
+DEFAULT_PHONE_NUMBER=01012345678
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 5. 기타 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 로깅 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 대시보드 URL (알림톡 버튼용)
+DASHBOARD_URL=https://autus.app/dashboard
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║  🔗 AUTUS Physics Map - 환경 변수 설정                                        ║
+# ║                                                                               ║
+# ║  이 파일을 .env로 복사한 후 실제 값을 입력하세요:                              ║
+# ║  cp env-template.txt .env                                                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Google Sheets API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://console.cloud.google.com 접속
+# 2. APIs & Services → Credentials → Service Account 생성
+# 3. JSON 키 다운로드 → credentials.json으로 저장
+
+GOOGLE_CREDENTIALS_PATH=./credentials.json
+GOOGLE_SPREADSHEET_ID=your-spreadsheet-id-here
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Make (Integromat) Webhook
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://make.com 접속
+# 2. Create a new scenario
+# 3. Webhooks → Custom webhook 추가
+# 4. URL 복사
+
+MAKE_WEBHOOK_URL=https://hook.us1.make.com/your-webhook-id
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. OpenAI API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://platform.openai.com 접속
+# 2. API Keys → Create new secret key
+# 3. 키 복사
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. 카카오톡 알림톡 (Solapi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://solapi.com 가입
+# 2. 카카오 채널 연동
+# 3. API 키 발급
+
+ALIMTALK_API_KEY=your-solapi-api-key
+ALIMTALK_API_SECRET=your-solapi-api-secret
+ALIMTALK_SENDER_KEY=your-sender-profile-key
+
+# 기본 수신 전화번호 (테스트용)
+DEFAULT_PHONE_NUMBER=01012345678
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 5. 기타 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 로깅 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 대시보드 URL (알림톡 버튼용)
+DASHBOARD_URL=https://autus.app/dashboard
+
+
+
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║  🔗 AUTUS Physics Map - 환경 변수 설정                                        ║
+# ║                                                                               ║
+# ║  이 파일을 .env로 복사한 후 실제 값을 입력하세요:                              ║
+# ║  cp env-template.txt .env                                                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Google Sheets API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://console.cloud.google.com 접속
+# 2. APIs & Services → Credentials → Service Account 생성
+# 3. JSON 키 다운로드 → credentials.json으로 저장
+
+GOOGLE_CREDENTIALS_PATH=./credentials.json
+GOOGLE_SPREADSHEET_ID=your-spreadsheet-id-here
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Make (Integromat) Webhook
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://make.com 접속
+# 2. Create a new scenario
+# 3. Webhooks → Custom webhook 추가
+# 4. URL 복사
+
+MAKE_WEBHOOK_URL=https://hook.us1.make.com/your-webhook-id
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. OpenAI API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://platform.openai.com 접속
+# 2. API Keys → Create new secret key
+# 3. 키 복사
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. 카카오톡 알림톡 (Solapi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://solapi.com 가입
+# 2. 카카오 채널 연동
+# 3. API 키 발급
+
+ALIMTALK_API_KEY=your-solapi-api-key
+ALIMTALK_API_SECRET=your-solapi-api-secret
+ALIMTALK_SENDER_KEY=your-sender-profile-key
+
+# 기본 수신 전화번호 (테스트용)
+DEFAULT_PHONE_NUMBER=01012345678
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 5. 기타 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 로깅 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 대시보드 URL (알림톡 버튼용)
+DASHBOARD_URL=https://autus.app/dashboard
+
+
+
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║  🔗 AUTUS Physics Map - 환경 변수 설정                                        ║
+# ║                                                                               ║
+# ║  이 파일을 .env로 복사한 후 실제 값을 입력하세요:                              ║
+# ║  cp env-template.txt .env                                                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Google Sheets API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://console.cloud.google.com 접속
+# 2. APIs & Services → Credentials → Service Account 생성
+# 3. JSON 키 다운로드 → credentials.json으로 저장
+
+GOOGLE_CREDENTIALS_PATH=./credentials.json
+GOOGLE_SPREADSHEET_ID=your-spreadsheet-id-here
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Make (Integromat) Webhook
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://make.com 접속
+# 2. Create a new scenario
+# 3. Webhooks → Custom webhook 추가
+# 4. URL 복사
+
+MAKE_WEBHOOK_URL=https://hook.us1.make.com/your-webhook-id
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. OpenAI API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://platform.openai.com 접속
+# 2. API Keys → Create new secret key
+# 3. 키 복사
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. 카카오톡 알림톡 (Solapi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://solapi.com 가입
+# 2. 카카오 채널 연동
+# 3. API 키 발급
+
+ALIMTALK_API_KEY=your-solapi-api-key
+ALIMTALK_API_SECRET=your-solapi-api-secret
+ALIMTALK_SENDER_KEY=your-sender-profile-key
+
+# 기본 수신 전화번호 (테스트용)
+DEFAULT_PHONE_NUMBER=01012345678
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 5. 기타 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 로깅 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 대시보드 URL (알림톡 버튼용)
+DASHBOARD_URL=https://autus.app/dashboard
+
+
+
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║  🔗 AUTUS Physics Map - 환경 변수 설정                                        ║
+# ║                                                                               ║
+# ║  이 파일을 .env로 복사한 후 실제 값을 입력하세요:                              ║
+# ║  cp env-template.txt .env                                                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Google Sheets API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://console.cloud.google.com 접속
+# 2. APIs & Services → Credentials → Service Account 생성
+# 3. JSON 키 다운로드 → credentials.json으로 저장
+
+GOOGLE_CREDENTIALS_PATH=./credentials.json
+GOOGLE_SPREADSHEET_ID=your-spreadsheet-id-here
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Make (Integromat) Webhook
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://make.com 접속
+# 2. Create a new scenario
+# 3. Webhooks → Custom webhook 추가
+# 4. URL 복사
+
+MAKE_WEBHOOK_URL=https://hook.us1.make.com/your-webhook-id
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. OpenAI API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://platform.openai.com 접속
+# 2. API Keys → Create new secret key
+# 3. 키 복사
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. 카카오톡 알림톡 (Solapi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://solapi.com 가입
+# 2. 카카오 채널 연동
+# 3. API 키 발급
+
+ALIMTALK_API_KEY=your-solapi-api-key
+ALIMTALK_API_SECRET=your-solapi-api-secret
+ALIMTALK_SENDER_KEY=your-sender-profile-key
+
+# 기본 수신 전화번호 (테스트용)
+DEFAULT_PHONE_NUMBER=01012345678
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 5. 기타 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 로깅 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 대시보드 URL (알림톡 버튼용)
+DASHBOARD_URL=https://autus.app/dashboard
+
+
+
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║  🔗 AUTUS Physics Map - 환경 변수 설정                                        ║
+# ║                                                                               ║
+# ║  이 파일을 .env로 복사한 후 실제 값을 입력하세요:                              ║
+# ║  cp env-template.txt .env                                                     ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. Google Sheets API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://console.cloud.google.com 접속
+# 2. APIs & Services → Credentials → Service Account 생성
+# 3. JSON 키 다운로드 → credentials.json으로 저장
+
+GOOGLE_CREDENTIALS_PATH=./credentials.json
+GOOGLE_SPREADSHEET_ID=your-spreadsheet-id-here
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 2. Make (Integromat) Webhook
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://make.com 접속
+# 2. Create a new scenario
+# 3. Webhooks → Custom webhook 추가
+# 4. URL 복사
+
+MAKE_WEBHOOK_URL=https://hook.us1.make.com/your-webhook-id
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 3. OpenAI API
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://platform.openai.com 접속
+# 2. API Keys → Create new secret key
+# 3. 키 복사
+
+OPENAI_API_KEY=sk-your-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 4. 카카오톡 알림톡 (Solapi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# 설정 방법:
+# 1. https://solapi.com 가입
+# 2. 카카오 채널 연동
+# 3. API 키 발급
+
+ALIMTALK_API_KEY=your-solapi-api-key
+ALIMTALK_API_SECRET=your-solapi-api-secret
+ALIMTALK_SENDER_KEY=your-sender-profile-key
+
+# 기본 수신 전화번호 (테스트용)
+DEFAULT_PHONE_NUMBER=01012345678
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 5. 기타 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 로깅 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 대시보드 URL (알림톡 버튼용)
+DASHBOARD_URL=https://autus.app/dashboard
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

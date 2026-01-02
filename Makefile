@@ -1,105 +1,207 @@
-# AUTUS Makefile
-# ===============
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🏛️ AUTUS - Makefile
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# 사용법: make [command]
+# 전체 명령어: make help
+#
+# ═══════════════════════════════════════════════════════════════════════════════
 
-.PHONY: help dev prod test lint clean docker-up docker-down
+.PHONY: help install dev test lint format clean docker-up docker-down frontend all
 
-# Default
+# 기본 변수
+PYTHON := python3
+PIP := pip
+PROJECT_DIR := autus-unified
+BACKEND_DIR := $(PROJECT_DIR)/backend
+FRONTEND_DIR := $(PROJECT_DIR)/frontend
+VENV_DIR := $(PROJECT_DIR)/venv
+VENV_PYTHON := $(VENV_DIR)/bin/python
+VENV_PIP := $(VENV_DIR)/bin/pip
+
+# 색상 정의
+CYAN := \033[0;36m
+GREEN := \033[0;32m
+YELLOW := \033[0;33m
+RED := \033[0;31m
+NC := \033[0m
+
+# ───────────────────────────────────────────────────────────────────────────────
+# 📚 도움말
+# ───────────────────────────────────────────────────────────────────────────────
+
 help:
-	@echo "AUTUS - Autonomous Twin Universal System"
 	@echo ""
-	@echo "Commands:"
-	@echo "  make dev          - Start development server"
-	@echo "  make prod         - Start production server"
-	@echo "  make test         - Run tests"
-	@echo "  make lint         - Run linter"
-	@echo "  make clean        - Clean cache files"
-	@echo "  make docker-up    - Start Docker containers"
-	@echo "  make docker-down  - Stop Docker containers"
-	@echo "  make docker-build - Build Docker images"
-	@echo "  make docker-logs  - View container logs"
-	@echo "  make db-migrate   - Run database migrations"
-	@echo "  make install      - Install dependencies"
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(CYAN)  🏛️  AUTUS - 개발 명령어$(NC)"
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "$(GREEN)🚀 시작$(NC)"
+	@echo "   make install    - 의존성 설치 (가상환경 포함)"
+	@echo "   make dev        - 개발 서버 실행 (Backend)"
+	@echo "   make frontend   - 프론트엔드 서버 실행"
+	@echo "   make all        - Backend + Frontend 동시 실행"
+	@echo ""
+	@echo "$(GREEN)🧪 테스트$(NC)"
+	@echo "   make test       - 전체 테스트 실행"
+	@echo "   make test-cov   - 커버리지 포함 테스트"
+	@echo ""
+	@echo "$(GREEN)🔍 코드 품질$(NC)"
+	@echo "   make lint       - 린트 검사 (Ruff)"
+	@echo "   make format     - 코드 포맷팅 (Ruff)"
+	@echo "   make fix        - 린트 + 포맷 자동 수정"
+	@echo ""
+	@echo "$(GREEN)🐳 Docker$(NC)"
+	@echo "   make docker-up   - Docker Compose 실행"
+	@echo "   make docker-down - Docker Compose 종료"
+	@echo "   make docker-build - Docker 이미지 빌드"
+	@echo ""
+	@echo "$(GREEN)🧹 정리$(NC)"
+	@echo "   make clean      - 캐시 파일 정리"
+	@echo ""
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
 
-# Development
+# ───────────────────────────────────────────────────────────────────────────────
+# 📦 설치
+# ───────────────────────────────────────────────────────────────────────────────
+
+install:
+	@echo "$(CYAN)📦 가상환경 생성 및 의존성 설치...$(NC)"
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		$(PYTHON) -m venv $(VENV_DIR); \
+		echo "$(GREEN)✅ 가상환경 생성 완료$(NC)"; \
+	fi
+	@$(VENV_PIP) install --upgrade pip
+	@$(VENV_PIP) install -r $(BACKEND_DIR)/requirements.txt
+	@$(VENV_PIP) install ruff pytest pytest-cov httpx pytest-asyncio
+	@echo "$(GREEN)✅ 설치 완료!$(NC)"
+	@echo ""
+	@echo "$(YELLOW)💡 가상환경 활성화: source $(VENV_DIR)/bin/activate$(NC)"
+
+# ───────────────────────────────────────────────────────────────────────────────
+# 🚀 개발 서버
+# ───────────────────────────────────────────────────────────────────────────────
+
 dev:
-	uvicorn backend.main:app --reload --port 8000
+	@echo "$(CYAN)🚀 Backend API 서버 시작...$(NC)"
+	@echo "$(GREEN)   📍 http://localhost:8000$(NC)"
+	@echo "$(GREEN)   📚 http://localhost:8000/docs$(NC)"
+	@echo ""
+	@cd $(BACKEND_DIR) && $(VENV_PYTHON) -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
-# Production
-prod:
-	uvicorn backend.main:app --host 0.0.0.0 --port 8000 --workers 4
+frontend:
+	@echo "$(CYAN)🌐 Frontend 서버 시작...$(NC)"
+	@echo "$(GREEN)   📍 http://localhost:3000$(NC)"
+	@echo "$(GREEN)   🌐 Physics Map: http://localhost:3000/physics-map-unified.html$(NC)"
+	@echo "$(GREEN)   🌍 Globe: http://localhost:3000/physics-map-globe-5tier.html$(NC)"
+	@echo "$(GREEN)   🛰️ Satellite: http://localhost:3000/physics-map-satellite.html$(NC)"
+	@echo ""
+	@cd $(FRONTEND_DIR) && $(PYTHON) -m http.server 3000
 
-# Testing
+# 백그라운드에서 두 서버 동시 실행
+all:
+	@echo "$(CYAN)🔥 Full Stack 시작...$(NC)"
+	@echo ""
+	@echo "$(GREEN)🚀 Backend: http://localhost:8000$(NC)"
+	@echo "$(GREEN)🌐 Frontend: http://localhost:3000$(NC)"
+	@echo ""
+	@echo "$(YELLOW)💡 종료: Ctrl+C$(NC)"
+	@echo ""
+	@(cd $(BACKEND_DIR) && $(VENV_PYTHON) -m uvicorn main:app --reload --host 0.0.0.0 --port 8000 &) && \
+	 (cd $(FRONTEND_DIR) && $(PYTHON) -m http.server 3000)
+
+# ───────────────────────────────────────────────────────────────────────────────
+# 🧪 테스트
+# ───────────────────────────────────────────────────────────────────────────────
+
 test:
-	pytest tests/ -v --cov=backend --cov-report=term-missing
+	@echo "$(CYAN)🧪 테스트 실행...$(NC)"
+	@cd $(PROJECT_DIR) && $(VENV_PYTHON) -m pytest tests/ -v --tb=short
 
-test-fast:
-	pytest tests/ -v -x --tb=short
+test-cov:
+	@echo "$(CYAN)🧪 커버리지 테스트 실행...$(NC)"
+	@cd $(PROJECT_DIR) && $(VENV_PYTHON) -m pytest tests/ -v --cov=backend --cov-report=html --cov-report=term
 
-# Linting
+# ───────────────────────────────────────────────────────────────────────────────
+# 🔍 코드 품질
+# ───────────────────────────────────────────────────────────────────────────────
+
 lint:
-	ruff check backend/
-	ruff format backend/ --check
+	@echo "$(CYAN)🔍 린트 검사...$(NC)"
+	@$(VENV_PYTHON) -m ruff check $(BACKEND_DIR)/
 
 format:
-	ruff format backend/
+	@echo "$(CYAN)🎨 코드 포맷팅...$(NC)"
+	@$(VENV_PYTHON) -m ruff format $(BACKEND_DIR)/
+	@echo "$(GREEN)✅ 포맷팅 완료$(NC)"
 
-# Clean
-clean:
-	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.pyc" -delete 2>/dev/null || true
-	rm -rf htmlcov/ .coverage 2>/dev/null || true
+fix:
+	@echo "$(CYAN)🔧 린트 + 포맷 자동 수정...$(NC)"
+	@$(VENV_PYTHON) -m ruff check --fix $(BACKEND_DIR)/
+	@$(VENV_PYTHON) -m ruff format $(BACKEND_DIR)/
+	@echo "$(GREEN)✅ 수정 완료$(NC)"
 
-# Docker
+# ───────────────────────────────────────────────────────────────────────────────
+# 🐳 Docker
+# ───────────────────────────────────────────────────────────────────────────────
+
 docker-up:
-	docker-compose up -d
-
-docker-up-dev:
-	docker-compose --profile development up -d
-
-docker-up-prod:
-	docker-compose --profile production up -d
+	@echo "$(CYAN)🐳 Docker Compose 시작...$(NC)"
+	@cd $(PROJECT_DIR) && docker-compose up -d
+	@echo "$(GREEN)✅ 컨테이너 실행 중$(NC)"
 
 docker-down:
-	docker-compose down
+	@echo "$(CYAN)🐳 Docker Compose 종료...$(NC)"
+	@cd $(PROJECT_DIR) && docker-compose down
+	@echo "$(GREEN)✅ 컨테이너 종료$(NC)"
 
 docker-build:
-	docker-compose build --no-cache
+	@echo "$(CYAN)🐳 Docker 이미지 빌드...$(NC)"
+	@cd $(PROJECT_DIR) && docker-compose build
+	@echo "$(GREEN)✅ 빌드 완료$(NC)"
 
 docker-logs:
-	docker-compose logs -f
+	@cd $(PROJECT_DIR) && docker-compose logs -f
 
-docker-ps:
-	docker-compose ps
+# ───────────────────────────────────────────────────────────────────────────────
+# 🧹 정리
+# ───────────────────────────────────────────────────────────────────────────────
 
-# Database
-db-migrate:
-	alembic upgrade head
+clean:
+	@echo "$(CYAN)🧹 캐시 정리...$(NC)"
+	@find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+	@find . -type f -name '*.pyc' -delete 2>/dev/null || true
+	@find . -type d -name '.pytest_cache' -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name '.mypy_cache' -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name '.ruff_cache' -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name '*.egg-info' -exec rm -rf {} + 2>/dev/null || true
+	@echo "$(GREEN)✅ 정리 완료$(NC)"
 
-db-rollback:
-	alembic downgrade -1
+# ───────────────────────────────────────────────────────────────────────────────
+# 📊 유틸리티
+# ───────────────────────────────────────────────────────────────────────────────
 
-db-create-migration:
-	@read -p "Migration name: " name; \
-	alembic revision --autogenerate -m "$$name"
+status:
+	@echo "$(CYAN)📊 프로젝트 상태$(NC)"
+	@echo ""
+	@echo "Git Status:"
+	@git status --short
+	@echo ""
+	@echo "Python Version:"
+	@$(PYTHON) --version
+	@echo ""
+	@echo "Running Servers:"
+	@lsof -i :8000 2>/dev/null || echo "  Backend (8000): Not running"
+	@lsof -i :3000 2>/dev/null || echo "  Frontend (3000): Not running"
 
-# Install
-install:
-	pip install -r requirements.txt
+# 브라우저에서 열기
+open:
+	@open http://localhost:8000/docs
+	@open http://localhost:3000/physics-map-unified.html
 
-install-dev:
-	pip install -r requirements.txt
-	pip install ruff pytest-watch
+open-globe:
+	@open http://localhost:3000/physics-map-globe-5tier.html
 
-# Environment
-env-setup:
-	cp .env.example .env
-	@echo "Please edit .env file with your settings"
-
-# Quick Start
-quickstart: install env-setup docker-up
-	@echo "AUTUS is starting..."
-	@sleep 5
-	@echo "API: http://localhost:8000"
-	@echo "Docs: http://localhost:8000/docs"
+open-satellite:
+	@open http://localhost:3000/physics-map-satellite.html

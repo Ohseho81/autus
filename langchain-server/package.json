@@ -1,0 +1,235 @@
+{
+  "name": "autus-langchain-server",
+  "version": "1.0.0",
+  "description": "AUTUS Physics Map - LangChain AI Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0"
+  }
+}
+
+{
+  "name": "autus-langchain-server",
+  "version": "1.0.0",
+  "description": "AUTUS Physics Map - LangChain AI Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0"
+  }
+}
+
+{
+  "name": "autus-langchain-server",
+  "version": "1.0.0",
+  "description": "AUTUS Physics Map - LangChain AI Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0"
+  }
+}
+
+{
+  "name": "autus-langchain-server",
+  "version": "1.0.0",
+  "description": "AUTUS Physics Map - LangChain AI Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0"
+  }
+}
+
+{
+  "name": "autus-langchain-server",
+  "version": "1.0.0",
+  "description": "AUTUS Physics Map - LangChain AI Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+{
+  "name": "autus-langchain-server",
+  "version": "1.0.0",
+  "description": "AUTUS Physics Map - LangChain AI Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0"
+  }
+}
+
+{
+  "name": "autus-langchain-server",
+  "version": "1.0.0",
+  "description": "AUTUS Physics Map - LangChain AI Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0"
+  }
+}
+
+{
+  "name": "autus-langchain-server",
+  "version": "1.0.0",
+  "description": "AUTUS Physics Map - LangChain AI Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0"
+  }
+}
+
+{
+  "name": "autus-langchain-server",
+  "version": "1.0.0",
+  "description": "AUTUS Physics Map - LangChain AI Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0"
+  }
+}
+
+{
+  "name": "autus-langchain-server",
+  "version": "1.0.0",
+  "description": "AUTUS Physics Map - LangChain AI Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@langchain/openai": "^0.3.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "langchain": "^0.3.0"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
