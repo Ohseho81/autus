@@ -210,6 +210,12 @@ try:
 except ImportError:
     universe_api = None
 
+# Distribution API (v2.0.0)
+try:
+    from api import distribution_api
+except ImportError:
+    distribution_api = None
+
 # Core Routers
 _include_router_safe(app, audit_api, "audit_api")
 _include_router_safe(app, autus_api, "autus_api")
@@ -240,6 +246,9 @@ _include_router_safe(app, pipeline_api, "pipeline_api")
 
 # v3.0.0 Universe Router (Living Universe)
 _include_router_safe(app, universe_api, "universe_api")
+
+# v2.0.0 Distribution Router (144K Masters → 8B Distribution)
+_include_router_safe(app, distribution_api, "distribution_api")
 
 
 # ============================================================

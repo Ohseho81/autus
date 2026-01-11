@@ -66,3 +66,6 @@ pipeline_api = _safe_import("pipeline_api")
 
 # v3.0.0 Universe API (Living Universe)
 universe_api = _safe_import("universe_api")
+
+# v2.0.0 Distribution API (144K Masters → 8B Distribution)
+distribution_api = _safe_import("distribution_api")
