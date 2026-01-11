@@ -197,6 +197,13 @@ try:
 except ImportError:
     sovereign_api = None
 
+# Injection & Pipeline API (v2.2.0)
+try:
+    from api import injection_api, pipeline_api
+except ImportError:
+    injection_api = None
+    pipeline_api = None
+
 # Core Routers
 _include_router_safe(app, audit_api, "audit_api")
 _include_router_safe(app, autus_api, "autus_api")
@@ -220,6 +227,10 @@ _include_router_safe(app, unified_api, "unified_api")
 _include_router_safe(app, viewport_api, "viewport_api")
 _include_router_safe(app, reliance_api, "reliance_api")
 _include_router_safe(app, collection_api, "collection_api")
+
+# v2.2.0 Sovereign Routers (Injection & Pipeline)
+_include_router_safe(app, injection_api, "injection_api")
+_include_router_safe(app, pipeline_api, "pipeline_api")
 
 
 # ============================================================
