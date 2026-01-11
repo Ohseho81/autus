@@ -204,6 +204,12 @@ except ImportError:
     injection_api = None
     pipeline_api = None
 
+# Universe API (v3.0.0)
+try:
+    from api import universe_api
+except ImportError:
+    universe_api = None
+
 # Core Routers
 _include_router_safe(app, audit_api, "audit_api")
 _include_router_safe(app, autus_api, "autus_api")
@@ -231,6 +237,9 @@ _include_router_safe(app, collection_api, "collection_api")
 # v2.2.0 Sovereign Routers (Injection & Pipeline)
 _include_router_safe(app, injection_api, "injection_api")
 _include_router_safe(app, pipeline_api, "pipeline_api")
+
+# v3.0.0 Universe Router (Living Universe)
+_include_router_safe(app, universe_api, "universe_api")
 
 
 # ============================================================

@@ -63,3 +63,6 @@ collection_api = _safe_import("collection_api")
 # v2.2.0 Sovereign APIs (Injection & Pipeline)
 injection_api = _safe_import("injection_api")
 pipeline_api = _safe_import("pipeline_api")
+
+# v3.0.0 Universe API (Living Universe)
+universe_api = _safe_import("universe_api")
