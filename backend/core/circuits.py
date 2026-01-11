@@ -750,6 +750,87 @@ def filter_noise(data: bytes) -> Dict:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# 레거시 호환성 (기존 코드와 호환)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 기존 LAYERS 정의 (6개 물리 레이어)
+LAYERS = {
+    "BIO": {"id": "BIO", "name": "생체", "nodes": ["n01", "n02", "n03", "n04", "n05", "n06"]},
+    "CAPITAL": {"id": "CAPITAL", "name": "자본", "nodes": ["n07", "n08", "n09", "n10", "n11", "n12"]},
+    "COGNITION": {"id": "COGNITION", "name": "인지", "nodes": ["n13", "n14", "n15", "n16", "n17", "n18"]},
+    "RELATION": {"id": "RELATION", "name": "관계", "nodes": ["n19", "n20", "n21", "n22", "n23", "n24"]},
+    "ENVIRONMENT": {"id": "ENVIRONMENT", "name": "환경", "nodes": ["n25", "n26", "n27", "n28", "n29", "n30"]},
+    "LEGACY": {"id": "LEGACY", "name": "유산", "nodes": ["n31", "n32", "n33", "n34", "n35", "n36"]},
+}
+
+# 기존 CIRCUITS 정의 (12개 회로)
+CIRCUITS = {
+    "C01_HEALTH": {"id": "C01", "name": "건강", "nodes": ["n01", "n02", "n03"]},
+    "C02_FITNESS": {"id": "C02", "name": "체력", "nodes": ["n04", "n05", "n06"]},
+    "C03_INCOME": {"id": "C03", "name": "수입", "nodes": ["n07", "n08", "n09"]},
+    "C04_WEALTH": {"id": "C04", "name": "자산", "nodes": ["n10", "n11", "n12"]},
+    "C05_LEARNING": {"id": "C05", "name": "학습", "nodes": ["n13", "n14", "n15"]},
+    "C06_MASTERY": {"id": "C06", "name": "숙련", "nodes": ["n16", "n17", "n18"]},
+    "C07_FAMILY": {"id": "C07", "name": "가족", "nodes": ["n19", "n20", "n21"]},
+    "C08_NETWORK": {"id": "C08", "name": "네트워크", "nodes": ["n22", "n23", "n24"]},
+    "C09_DWELLING": {"id": "C09", "name": "거주", "nodes": ["n25", "n26", "n27"]},
+    "C10_WORKPLACE": {"id": "C10", "name": "직장", "nodes": ["n28", "n29", "n30"]},
+    "C11_PURPOSE": {"id": "C11", "name": "목적", "nodes": ["n31", "n32", "n33"]},
+    "C12_IMPACT": {"id": "C12", "name": "영향", "nodes": ["n34", "n35", "n36"]},
+}
+
+CIRCUIT_IDS = list(CIRCUITS.keys())
+
+# 기존 INFLUENCE_MATRIX (노드 간 영향 관계)
+INFLUENCE_MATRIX = {
+    # BIO -> CAPITAL (건강이 좋으면 수입 증가)
+    "n01": ["n07", "n13"],  # 체력 -> 월수입, 학습시간
+    "n02": ["n01", "n03"],  # 면역력 -> 체력, 수면
+    "n03": ["n01", "n17"],  # 수면 -> 체력, 창의력
+    # CAPITAL -> ENVIRONMENT
+    "n07": ["n10", "n25"],  # 월수입 -> 자산, 주거
+    "n10": ["n25", "n27"],  # 자산 -> 주거, 안전
+    # COGNITION -> LEGACY
+    "n16": ["n35", "n36"],  # 전문기술 -> 멘토링, 지식전수
+    "n17": ["n18", "n31"],  # 창의력 -> 문제해결, 인생목표
+    # RELATION -> CAPITAL
+    "n23": ["n08", "n11"],  # 네트워크 -> 부수입, 투자수익
+    # LEGACY -> BIO
+    "n31": ["n01", "n33"],  # 인생목표 -> 체력, 영성
+}
+
+
+def get_outgoing_influences(node_id: str) -> List[str]:
+    """노드에서 나가는 영향 관계 조회"""
+    return INFLUENCE_MATRIX.get(node_id, [])
+
+
+def get_incoming_influences(node_id: str) -> List[str]:
+    """노드로 들어오는 영향 관계 조회"""
+    incoming = []
+    for source, targets in INFLUENCE_MATRIX.items():
+        if node_id in targets:
+            incoming.append(source)
+    return incoming
+
+
+def get_circuit_nodes(circuit_id: str) -> List[str]:
+    """회로의 노드 목록 조회"""
+    circuit = CIRCUITS.get(circuit_id)
+    if circuit:
+        return circuit.get("nodes", [])
+    return []
+
+
+def get_layer_nodes(layer_id: str) -> List[str]:
+    """레이어의 노드 목록 조회"""
+    layer = LAYERS.get(layer_id)
+    if layer:
+        return layer.get("nodes", [])
+    return []
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # 내보내기
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -767,8 +848,18 @@ __all__ = [
     # Constants
     "FRACTAL_RATIO",
     "ENTROPY_THRESHOLDS",
+    # Legacy Constants
+    "LAYERS",
+    "CIRCUITS",
+    "CIRCUIT_IDS",
+    "INFLUENCE_MATRIX",
     # Functions
     "get_protection_circuit",
     "request_node_access",
     "filter_noise",
+    # Legacy Functions
+    "get_outgoing_influences",
+    "get_incoming_influences",
+    "get_circuit_nodes",
+    "get_layer_nodes",
 ]
