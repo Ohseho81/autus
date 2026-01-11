@@ -1,0 +1,709 @@
+{
+  "_meta": {
+    "name": "AUTUS Sovereign Causal Matrix",
+    "version": "1.0.0",
+    "description": "72×72 인과 행렬 - 노드 간 영향 관계",
+    "immutable": true,
+    "sparsity": "97.5% (127 connections / 5184 possible)",
+    "last_learned": "2026-01-09T21:28:01.116714",
+    "learned_updates": 21
+  },
+  "connections": [
+    {
+      "from": "n01",
+      "to": "n02",
+      "coefficient": 0.2244,
+      "name": "cash_to_assets",
+      "learned": true
+    },
+    {
+      "from": "n01",
+      "to": "n06",
+      "coefficient": 0.1468,
+      "name": "cash_to_expense",
+      "learned": true
+    },
+    {
+      "from": "n01",
+      "to": "n12",
+      "coefficient": 0.2794,
+      "name": "cash_to_reserves",
+      "learned": true
+    },
+    {
+      "from": "n01",
+      "to": "n32",
+      "coefficient": 0.15,
+      "name": "cash_to_stability"
+    },
+    {
+      "from": "n01",
+      "to": "n60",
+      "coefficient": -0.2472,
+      "name": "cash_to_risk",
+      "learned": true
+    },
+    {
+      "from": "n02",
+      "to": "n01",
+      "coefficient": 0.218,
+      "name": "assets_to_cash",
+      "learned": true
+    },
+    {
+      "from": "n02",
+      "to": "n04",
+      "coefficient": 0.6073,
+      "name": "assets_to_equity",
+      "learned": true
+    },
+    {
+      "from": "n03",
+      "to": "n01",
+      "coefficient": 0.2546,
+      "name": "liabilities_to_cash",
+      "learned": true
+    },
+    {
+      "from": "n03",
+      "to": "n04",
+      "coefficient": -0.2408,
+      "name": "liabilities_to_equity",
+      "learned": true
+    },
+    {
+      "from": "n03",
+      "to": "n60",
+      "coefficient": 0.4416,
+      "name": "liabilities_to_risk",
+      "learned": true
+    },
+    {
+      "from": "n05",
+      "to": "n01",
+      "coefficient": 0.7854,
+      "name": "revenue_to_cash",
+      "learned": true
+    },
+    {
+      "from": "n05",
+      "to": "n07",
+      "coefficient": 0.6257,
+      "name": "revenue_to_profit",
+      "learned": true
+    },
+    {
+      "from": "n05",
+      "to": "n17",
+      "coefficient": 0.3,
+      "name": "revenue_to_growth"
+    },
+    {
+      "from": "n06",
+      "to": "n01",
+      "coefficient": -0.3421,
+      "name": "expense_to_cash",
+      "learned": true
+    },
+    {
+      "from": "n06",
+      "to": "n07",
+      "coefficient": -0.2163,
+      "name": "expense_to_profit",
+      "learned": true
+    },
+    {
+      "from": "n07",
+      "to": "n01",
+      "coefficient": 0.5357,
+      "name": "profit_to_cash",
+      "learned": true
+    },
+    {
+      "from": "n07",
+      "to": "n04",
+      "coefficient": 0.4034,
+      "name": "profit_to_equity",
+      "learned": true
+    },
+    {
+      "from": "n07",
+      "to": "n12",
+      "coefficient": 0.3315,
+      "name": "profit_to_reserves",
+      "learned": true
+    },
+    {
+      "from": "n09",
+      "to": "n05",
+      "coefficient": 0.7,
+      "name": "customers_to_revenue"
+    },
+    {
+      "from": "n09",
+      "to": "n14",
+      "coefficient": 0.5,
+      "name": "customers_to_transactions"
+    },
+    {
+      "from": "n09",
+      "to": "n16",
+      "coefficient": 0.15,
+      "name": "customers_to_referrals"
+    },
+    {
+      "from": "n09",
+      "to": "n40",
+      "coefficient": 0.1,
+      "name": "customers_to_network"
+    },
+    {
+      "from": "n10",
+      "to": "n06",
+      "coefficient": 0.7172,
+      "name": "employees_to_expense",
+      "learned": true
+    },
+    {
+      "from": "n10",
+      "to": "n11",
+      "coefficient": 0.4,
+      "name": "employees_to_capacity"
+    },
+    {
+      "from": "n10",
+      "to": "n15",
+      "coefficient": 0.5,
+      "name": "employees_to_throughput"
+    },
+    {
+      "from": "n10",
+      "to": "n70",
+      "coefficient": -0.2,
+      "name": "employees_to_dependency"
+    },
+    {
+      "from": "n11",
+      "to": "n09",
+      "coefficient": 0.3,
+      "name": "capacity_to_customers"
+    },
+    {
+      "from": "n11",
+      "to": "n59",
+      "coefficient": -0.4,
+      "name": "capacity_to_constraint"
+    },
+    {
+      "from": "n16",
+      "to": "n21",
+      "coefficient": 0.5,
+      "name": "referrals_to_acquisition"
+    },
+    {
+      "from": "n16",
+      "to": "n57",
+      "coefficient": -0.3,
+      "name": "referrals_to_cac"
+    },
+    {
+      "from": "n17",
+      "to": "n09",
+      "coefficient": 0.2,
+      "name": "growth_to_customers"
+    },
+    {
+      "from": "n17",
+      "to": "n37",
+      "coefficient": 0.4,
+      "name": "growth_to_momentum"
+    },
+    {
+      "from": "n17",
+      "to": "n41",
+      "coefficient": 0.3,
+      "name": "growth_to_acceleration"
+    },
+    {
+      "from": "n18",
+      "to": "n09",
+      "coefficient": -0.8,
+      "name": "churn_to_customers"
+    },
+    {
+      "from": "n18",
+      "to": "n05",
+      "coefficient": -0.6,
+      "name": "churn_to_revenue"
+    },
+    {
+      "from": "n18",
+      "to": "n33",
+      "coefficient": -0.5,
+      "name": "churn_to_loyalty"
+    },
+    {
+      "from": "n21",
+      "to": "n09",
+      "coefficient": 0.6,
+      "name": "acquisition_to_customers"
+    },
+    {
+      "from": "n21",
+      "to": "n17",
+      "coefficient": 0.4,
+      "name": "acquisition_to_growth"
+    },
+    {
+      "from": "n22",
+      "to": "n09",
+      "coefficient": 0.3,
+      "name": "conversion_to_customers"
+    },
+    {
+      "from": "n22",
+      "to": "n05",
+      "coefficient": 0.4,
+      "name": "conversion_to_revenue"
+    },
+    {
+      "from": "n24",
+      "to": "n05",
+      "coefficient": 0.3,
+      "name": "pipeline_to_revenue"
+    },
+    {
+      "from": "n24",
+      "to": "n32",
+      "coefficient": 0.2,
+      "name": "pipeline_to_stability"
+    },
+    {
+      "from": "n25",
+      "to": "n21",
+      "coefficient": 0.2,
+      "name": "brand_to_acquisition"
+    },
+    {
+      "from": "n25",
+      "to": "n33",
+      "coefficient": 0.3,
+      "name": "brand_to_loyalty"
+    },
+    {
+      "from": "n25",
+      "to": "n63",
+      "coefficient": 0.5,
+      "name": "brand_to_attraction"
+    },
+    {
+      "from": "n26",
+      "to": "n05",
+      "coefficient": 0.4,
+      "name": "marketshare_to_revenue"
+    },
+    {
+      "from": "n26",
+      "to": "n49",
+      "coefficient": -0.3,
+      "name": "marketshare_to_competition"
+    },
+    {
+      "from": "n27",
+      "to": "n21",
+      "coefficient": 0.25,
+      "name": "reputation_to_acquisition"
+    },
+    {
+      "from": "n27",
+      "to": "n33",
+      "coefficient": 0.35,
+      "name": "reputation_to_loyalty"
+    },
+    {
+      "from": "n27",
+      "to": "n34",
+      "coefficient": 0.2,
+      "name": "reputation_to_retention"
+    },
+    {
+      "from": "n28",
+      "to": "n05",
+      "coefficient": 0.5,
+      "name": "contracts_to_revenue"
+    },
+    {
+      "from": "n28",
+      "to": "n32",
+      "coefficient": 0.4,
+      "name": "contracts_to_stability"
+    },
+    {
+      "from": "n28",
+      "to": "n70",
+      "coefficient": 0.3,
+      "name": "contracts_to_dependency"
+    },
+    {
+      "from": "n32",
+      "to": "n33",
+      "coefficient": 0.3,
+      "name": "stability_to_loyalty"
+    },
+    {
+      "from": "n32",
+      "to": "n60",
+      "coefficient": -0.4,
+      "name": "stability_to_risk"
+    },
+    {
+      "from": "n33",
+      "to": "n18",
+      "coefficient": -0.6,
+      "name": "loyalty_to_churn"
+    },
+    {
+      "from": "n33",
+      "to": "n16",
+      "coefficient": 0.4,
+      "name": "loyalty_to_referrals"
+    },
+    {
+      "from": "n33",
+      "to": "n34",
+      "coefficient": 0.3,
+      "name": "loyalty_to_retention"
+    },
+    {
+      "from": "n33",
+      "to": "n05",
+      "coefficient": 0.2,
+      "name": "loyalty_to_revenue"
+    },
+    {
+      "from": "n34",
+      "to": "n10",
+      "coefficient": 0.3,
+      "name": "retention_to_employees"
+    },
+    {
+      "from": "n34",
+      "to": "n35",
+      "coefficient": 0.4,
+      "name": "retention_to_consistency"
+    },
+    {
+      "from": "n34",
+      "to": "n70",
+      "coefficient": 0.2,
+      "name": "retention_to_dependency"
+    },
+    {
+      "from": "n36",
+      "to": "n32",
+      "coefficient": 0.5,
+      "name": "resilience_to_stability"
+    },
+    {
+      "from": "n36",
+      "to": "n60",
+      "coefficient": -0.504,
+      "name": "resilience_to_risk",
+      "learned": true
+    },
+    {
+      "from": "n37",
+      "to": "n17",
+      "coefficient": 0.3,
+      "name": "momentum_to_growth"
+    },
+    {
+      "from": "n37",
+      "to": "n41",
+      "coefficient": 0.5,
+      "name": "momentum_to_acceleration"
+    },
+    {
+      "from": "n37",
+      "to": "n63",
+      "coefficient": 0.25,
+      "name": "momentum_to_attraction"
+    },
+    {
+      "from": "n39",
+      "to": "n17",
+      "coefficient": 0.3,
+      "name": "innovation_to_growth"
+    },
+    {
+      "from": "n39",
+      "to": "n63",
+      "coefficient": 0.4,
+      "name": "innovation_to_attraction"
+    },
+    {
+      "from": "n39",
+      "to": "n72",
+      "coefficient": 0.5,
+      "name": "innovation_to_potential"
+    },
+    {
+      "from": "n40",
+      "to": "n09",
+      "coefficient": 0.3,
+      "name": "network_to_customers"
+    },
+    {
+      "from": "n40",
+      "to": "n21",
+      "coefficient": 0.4,
+      "name": "network_to_acquisition"
+    },
+    {
+      "from": "n40",
+      "to": "n55",
+      "coefficient": 0.5,
+      "name": "network_to_barriers"
+    },
+    {
+      "from": "n41",
+      "to": "n17",
+      "coefficient": 0.6,
+      "name": "acceleration_to_growth"
+    },
+    {
+      "from": "n41",
+      "to": "n37",
+      "coefficient": 0.4,
+      "name": "acceleration_to_momentum"
+    },
+    {
+      "from": "n42",
+      "to": "n39",
+      "coefficient": 0.3,
+      "name": "learning_to_innovation"
+    },
+    {
+      "from": "n42",
+      "to": "n54",
+      "coefficient": -0.2,
+      "name": "learning_to_inefficiency"
+    },
+    {
+      "from": "n44",
+      "to": "n60",
+      "coefficient": 0.5,
+      "name": "volatility_to_risk"
+    },
+    {
+      "from": "n44",
+      "to": "n32",
+      "coefficient": -0.4,
+      "name": "volatility_to_stability"
+    },
+    {
+      "from": "n49",
+      "to": "n18",
+      "coefficient": 0.4,
+      "name": "competition_to_churn"
+    },
+    {
+      "from": "n49",
+      "to": "n33",
+      "coefficient": -0.3,
+      "name": "competition_to_loyalty"
+    },
+    {
+      "from": "n49",
+      "to": "n05",
+      "coefficient": -0.2,
+      "name": "competition_to_revenue"
+    },
+    {
+      "from": "n49",
+      "to": "n57",
+      "coefficient": 0.3,
+      "name": "competition_to_cac"
+    },
+    {
+      "from": "n50",
+      "to": "n06",
+      "coefficient": 0.2,
+      "name": "regulation_to_expense"
+    },
+    {
+      "from": "n50",
+      "to": "n55",
+      "coefficient": 0.4,
+      "name": "regulation_to_barriers"
+    },
+    {
+      "from": "n50",
+      "to": "n60",
+      "coefficient": 0.3,
+      "name": "regulation_to_risk"
+    },
+    {
+      "from": "n52",
+      "to": "n33",
+      "coefficient": -0.3,
+      "name": "conflict_to_loyalty"
+    },
+    {
+      "from": "n52",
+      "to": "n34",
+      "coefficient": -0.4,
+      "name": "conflict_to_retention"
+    },
+    {
+      "from": "n52",
+      "to": "n35",
+      "coefficient": -0.5,
+      "name": "conflict_to_consistency"
+    },
+    {
+      "from": "n54",
+      "to": "n06",
+      "coefficient": 0.3,
+      "name": "inefficiency_to_expense"
+    },
+    {
+      "from": "n54",
+      "to": "n07",
+      "coefficient": -0.25,
+      "name": "inefficiency_to_profit"
+    },
+    {
+      "from": "n55",
+      "to": "n21",
+      "coefficient": 0.3,
+      "name": "barriers_to_acquisition"
+    },
+    {
+      "from": "n55",
+      "to": "n49",
+      "coefficient": -0.4,
+      "name": "barriers_to_competition"
+    },
+    {
+      "from": "n57",
+      "to": "n21",
+      "coefficient": 0.5,
+      "name": "cac_to_acquisition"
+    },
+    {
+      "from": "n57",
+      "to": "n06",
+      "coefficient": 0.6,
+      "name": "cac_to_expense"
+    },
+    {
+      "from": "n60",
+      "to": "n01",
+      "coefficient": -0.3165,
+      "name": "risk_to_cash",
+      "learned": true
+    },
+    {
+      "from": "n60",
+      "to": "n32",
+      "coefficient": -0.5,
+      "name": "risk_to_stability"
+    },
+    {
+      "from": "n60",
+      "to": "n33",
+      "coefficient": -0.2,
+      "name": "risk_to_loyalty"
+    },
+    {
+      "from": "n61",
+      "to": "n05",
+      "coefficient": 0.5,
+      "name": "demand_to_revenue"
+    },
+    {
+      "from": "n61",
+      "to": "n09",
+      "coefficient": 0.4,
+      "name": "demand_to_customers"
+    },
+    {
+      "from": "n63",
+      "to": "n21",
+      "coefficient": 0.4,
+      "name": "attraction_to_acquisition"
+    },
+    {
+      "from": "n63",
+      "to": "n34",
+      "coefficient": 0.3,
+      "name": "attraction_to_retention"
+    },
+    {
+      "from": "n64",
+      "to": "n26",
+      "coefficient": 0.3,
+      "name": "influence_to_marketshare"
+    },
+    {
+      "from": "n64",
+      "to": "n28",
+      "coefficient": 0.4,
+      "name": "influence_to_contracts"
+    },
+    {
+      "from": "n67",
+      "to": "n64",
+      "coefficient": 0.4,
+      "name": "center_to_influence"
+    },
+    {
+      "from": "n67",
+      "to": "n70",
+      "coefficient": 0.3,
+      "name": "center_to_dependency"
+    },
+    {
+      "from": "n70",
+      "to": "n33",
+      "coefficient": -0.3,
+      "name": "dependency_to_loyalty"
+    },
+    {
+      "from": "n70",
+      "to": "n60",
+      "coefficient": 0.5,
+      "name": "dependency_to_risk"
+    },
+    {
+      "from": "n70",
+      "to": "n36",
+      "coefficient": -0.4,
+      "name": "dependency_to_resilience"
+    },
+    {
+      "from": "n72",
+      "to": "n17",
+      "coefficient": 0.2425,
+      "name": "potential_to_growth",
+      "learned": true
+    },
+    {
+      "from": "n72",
+      "to": "n63",
+      "coefficient": 0.4,
+      "name": "potential_to_attraction"
+    },
+    {
+      "from": "n72",
+      "to": "n37",
+      "coefficient": 0.1512,
+      "name": "potential_to_momentum",
+      "learned": true
+    }
+  ],
+  "connection_count": 112,
+  "matrix_size": 5184,
+  "sparsity_ratio": 0.978
+}

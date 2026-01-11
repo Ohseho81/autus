@@ -1,37 +1,49 @@
+# ═══════════════════════════════════════════════════════════════
+# AUTUS .gitignore
+# ═══════════════════════════════════════════════════════════════
+
 # Python
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments (전역)
 **/.venv/
 **/venv/
+.venv/
+venv/
 
-# Archive (legacy code)
+# Archive (legacy code - 로컬 보관용)
 _archive/
-**/archive/
-
-# Legacy backends (consolidated to backend/)
-app/
-kernel/
-core/
-kernel_service/
-autus_local/
+_legacy/
 
 # Environment
 .env
 .env.local
+.env.*.local
+!.env.sample
+!.env.example
 
 # Database
 *.db
 *.sqlite
+*.sqlite3
 
-# Coverage
+# Coverage & Testing
 .coverage
 htmlcov/
 .pytest_cache/
+test-results/
+playwright-report/
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
@@ -41,12 +53,26 @@ Thumbs.db
 *.log
 *.tmp
 *.bak
-*.zip
+logs/
 
-# Credentials (never commit)
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# Node.js (전역)
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Credentials (절대 커밋하지 말 것)
 credentials.json
 *.pem
 *.key
-node_modules/
-test-results/
-playwright-report/
+secrets/
+
+# Large files
+*.zip
+*.tar.gz
+*.rar

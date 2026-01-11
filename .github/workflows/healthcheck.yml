@@ -1,0 +1,222 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🏥 AUTUS - 헬스체크 & 모니터링
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# 정기적으로 서비스 상태 확인 및 알림
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: Health Check
+
+on:
+  schedule:
+    # 매 30분마다
+    - cron: '*/30 * * * *'
+  
+  workflow_dispatch:
+
+env:
+  API_URL: ${{ vars.API_URL || 'https://api.autus.app' }}
+  FRONTEND_URL: ${{ vars.FRONTEND_URL || 'https://autus.app' }}
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # API 헬스체크
+  # ═══════════════════════════════════════════════════════════════════════════
+  api-health:
+    name: API Health Check
+    runs-on: ubuntu-latest
+    
+    outputs:
+      status: ${{ steps.check.outputs.status }}
+      response_time: ${{ steps.check.outputs.response_time }}
+    
+    steps:
+      - name: 🏥 Check API Health
+        id: check
+        run: |
+          START=$(date +%s%N)
+          
+          # API 헬스체크 엔드포인트 호출
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            "${{ env.API_URL }}/health" || echo "000")
+          
+          END=$(date +%s%N)
+          RESPONSE_TIME=$(( (END - START) / 1000000 ))
+          
+          echo "response_time=${RESPONSE_TIME}ms" >> $GITHUB_OUTPUT
+          
+          if [[ "$HTTP_CODE" == "200" ]]; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ API 정상 (${RESPONSE_TIME}ms)"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ API 이상 (HTTP $HTTP_CODE)"
+          fi
+
+      - name: 📊 Check API Docs
+        run: |
+          curl -sf "${{ env.API_URL }}/docs" > /dev/null && \
+            echo "✅ API Docs 접근 가능" || \
+            echo "⚠️ API Docs 접근 불가"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Frontend 헬스체크
+  # ═══════════════════════════════════════════════════════════════════════════
+  frontend-health:
+    name: Frontend Health Check
+    runs-on: ubuntu-latest
+    
+    outputs:
+      status: ${{ steps.check.outputs.status }}
+    
+    steps:
+      - name: 🌐 Check Frontend
+        id: check
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            "${{ env.FRONTEND_URL }}" || echo "000")
+          
+          if [[ "$HTTP_CODE" == "200" ]]; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ Frontend 정상"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ Frontend 이상 (HTTP $HTTP_CODE)"
+          fi
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Database 헬스체크 (Supabase)
+  # ═══════════════════════════════════════════════════════════════════════════
+  database-health:
+    name: Database Health Check
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SUPABASE_URL }}
+    
+    outputs:
+      status: ${{ steps.check.outputs.status }}
+    
+    steps:
+      - name: 🗄️ Check Database
+        id: check
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/" || echo "000")
+          
+          if [[ "$HTTP_CODE" == "200" ]] || [[ "$HTTP_CODE" == "401" ]]; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ Database 연결 가능"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ Database 연결 불가"
+          fi
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 결과 알림
+  # ═══════════════════════════════════════════════════════════════════════════
+  notify:
+    name: Send Notification
+    needs: [api-health, frontend-health]
+    runs-on: ubuntu-latest
+    if: |
+      always() && 
+      (needs.api-health.outputs.status == 'unhealthy' || 
+       needs.frontend-health.outputs.status == 'unhealthy')
+    
+    steps:
+      - name: 🚨 Alert - Service Down
+        if: ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "🚨 AUTUS 서비스 이상 감지!",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🚨 서비스 이상 감지"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*API*\n${{ needs.api-health.outputs.status == 'healthy' && '✅ 정상' || '❌ 이상' }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Frontend*\n${{ needs.frontend-health.outputs.status == 'healthy' && '✅ 정상' || '❌ 이상' }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*응답 시간*\n${{ needs.api-health.outputs.response_time }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*시간*\n$(date)"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "GitHub Actions 확인"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: 📧 Discord Alert
+        if: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: failure
+          title: "🚨 AUTUS 서비스 이상"
+          description: |
+            API: ${{ needs.api-health.outputs.status }}
+            Frontend: ${{ needs.frontend-health.outputs.status }}
+          color: 0xff0000
+          username: "AUTUS Monitor"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 상태 리포트 (정상 시)
+  # ═══════════════════════════════════════════════════════════════════════════
+  status-report:
+    name: Status Report
+    needs: [api-health, frontend-health]
+    runs-on: ubuntu-latest
+    if: |
+      always() && 
+      needs.api-health.outputs.status == 'healthy' && 
+      needs.frontend-health.outputs.status == 'healthy'
+    
+    steps:
+      - name: ✅ All Services Healthy
+        run: |
+          echo "═══════════════════════════════════════════════════════════"
+          echo "  ✅ AUTUS 서비스 상태: 정상"
+          echo "═══════════════════════════════════════════════════════════"
+          echo ""
+          echo "  API: ${{ needs.api-health.outputs.status }}"
+          echo "  API 응답시간: ${{ needs.api-health.outputs.response_time }}"
+          echo "  Frontend: ${{ needs.frontend-health.outputs.status }}"
+          echo ""
+          echo "═══════════════════════════════════════════════════════════"

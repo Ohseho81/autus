@@ -1,136 +1,87 @@
-name: Deploy AUTUS to GitHub Pages
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🚀 AUTUS - GitHub Pages 자동 배포
+# ═══════════════════════════════════════════════════════════════════════════════
+# 
+# main 브랜치 push 시 자동으로 GitHub Pages에 배포
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
-  workflow_dispatch:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:  # 수동 실행 가능
 
+# GitHub Pages 권한
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# 동시 배포 방지
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
 
 jobs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 빌드
+  # ═══════════════════════════════════════════════════════════════════════════
   build:
+    name: Build Frontend
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout
+      - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Build static site
-        run: |
-          mkdir -p _site
-          # Copy frontend files
-          cp -r frontend/* _site/
-          # Copy docs
-          cp README.md _site/
-          cp FEATURES.md _site/
-          # Copy autus_realtime frontend if exists
-          if [ -d "autus_realtime/frontend" ]; then
-            mkdir -p _site/autus_realtime/frontend
-            cp -r autus_realtime/frontend/* _site/autus_realtime/frontend/
-          fi
+      - name: 📥 Install Dependencies
+        working-directory: frontend
+        run: npm ci
 
-      - name: Upload artifact
+      - name: 🔨 Build
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://api.autus.app' }}
+
+      - name: 📤 Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '_site'
+          path: frontend/dist
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 배포
+  # ═══════════════════════════════════════════════════════════════════════════
   deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
+
     steps:
-      - name: Deploy to GitHub Pages
+      - name: 🚀 Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-
-
-
-
-
-
-
-
-
-name: Deploy AUTUS to GitHub Pages
-
-on:
-  push:
-    branches: ["main"]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Build static site
+      - name: 📢 Notify Success
+        if: success()
         run: |
-          mkdir -p _site
-          # Copy frontend files
-          cp -r frontend/* _site/
-          # Copy docs
-          cp README.md _site/
-          cp FEATURES.md _site/
-          # Copy autus_realtime frontend if exists
-          if [ -d "autus_realtime/frontend" ]; then
-            mkdir -p _site/autus_realtime/frontend
-            cp -r autus_realtime/frontend/* _site/autus_realtime/frontend/
-          fi
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '_site'
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+          echo "✅ 배포 완료: ${{ steps.deployment.outputs.page_url }}"

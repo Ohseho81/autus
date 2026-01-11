@@ -1,0 +1,176 @@
+[
+  {
+    "coordinate": "n01.m01.w01.t13",
+    "index": 12,
+    "value": 5000000.0,
+    "timestamp": "2026-01-09T21:40:22.367922",
+    "user_id": "u001_test",
+    "source": "auto",
+    "decomposed": {
+      "node": [
+        "L1",
+        "P01"
+      ],
+      "motion": [
+        "L1",
+        "P01"
+      ],
+      "work": [
+        "L1",
+        "P01"
+      ],
+      "time": [
+        "L2",
+        "P01"
+      ]
+    },
+    "metadata": {
+      "original_field": "cash"
+    }
+  },
+  {
+    "coordinate": "n05.m01.w01.t13",
+    "index": 1493004,
+    "value": 100000.0,
+    "timestamp": "2026-01-09T21:40:22.367922",
+    "user_id": "u001_test",
+    "source": "auto",
+    "decomposed": {
+      "node": [
+        "L1",
+        "P05"
+      ],
+      "motion": [
+        "L1",
+        "P01"
+      ],
+      "work": [
+        "L1",
+        "P01"
+      ],
+      "time": [
+        "L2",
+        "P01"
+      ]
+    },
+    "metadata": {
+      "original_field": "revenue"
+    }
+  },
+  {
+    "coordinate": "n06.m02.w01.t13",
+    "index": 1871436,
+    "value": -50000.0,
+    "timestamp": "2026-01-09T21:40:22.367922",
+    "user_id": "u001_test",
+    "source": "auto",
+    "decomposed": {
+      "node": [
+        "L1",
+        "P06"
+      ],
+      "motion": [
+        "L1",
+        "P02"
+      ],
+      "work": [
+        "L1",
+        "P01"
+      ],
+      "time": [
+        "L2",
+        "P01"
+      ]
+    },
+    "metadata": {
+      "original_field": "expense"
+    }
+  },
+  {
+    "coordinate": "n09.m01.w01.t13",
+    "index": 2985996,
+    "value": 3.0,
+    "timestamp": "2026-01-09T21:40:22.367922",
+    "user_id": "u001_test",
+    "source": "auto",
+    "decomposed": {
+      "node": [
+        "L1",
+        "P09"
+      ],
+      "motion": [
+        "L1",
+        "P01"
+      ],
+      "work": [
+        "L1",
+        "P01"
+      ],
+      "time": [
+        "L2",
+        "P01"
+      ]
+    },
+    "metadata": {
+      "original_field": "customers"
+    }
+  },
+  {
+    "coordinate": "n37.m01.w01.t13",
+    "index": 13436940,
+    "value": 7.0,
+    "timestamp": "2026-01-09T21:40:22.367922",
+    "user_id": "u001_test",
+    "source": "auto",
+    "decomposed": {
+      "node": [
+        "L4",
+        "P01"
+      ],
+      "motion": [
+        "L1",
+        "P01"
+      ],
+      "work": [
+        "L1",
+        "P01"
+      ],
+      "time": [
+        "L2",
+        "P01"
+      ]
+    },
+    "metadata": {
+      "original_field": "momentum"
+    }
+  },
+  {
+    "coordinate": "n60.m01.w01.t13",
+    "index": 22021644,
+    "value": 4.0,
+    "timestamp": "2026-01-09T21:40:22.367922",
+    "user_id": "u001_test",
+    "source": "auto",
+    "decomposed": {
+      "node": [
+        "L5",
+        "P12"
+      ],
+      "motion": [
+        "L1",
+        "P01"
+      ],
+      "work": [
+        "L1",
+        "P01"
+      ],
+      "time": [
+        "L2",
+        "P01"
+      ]
+    },
+    "metadata": {
+      "original_field": "risk"
+    }
+  }
+]

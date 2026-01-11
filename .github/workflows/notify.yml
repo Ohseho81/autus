@@ -1,0 +1,108 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# 📢 AUTUS - Slack/Discord 알림
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# CI/CD 결과를 Slack 또는 Discord로 알림
+#
+# 필요한 Secrets:
+# - SLACK_WEBHOOK_URL (선택)
+# - DISCORD_WEBHOOK_URL (선택)
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: Notifications
+
+on:
+  workflow_run:
+    workflows: ["CI", "Deploy to GitHub Pages"]
+    types: [completed]
+  
+  # 직접 호출 가능
+  workflow_call:
+    inputs:
+      status:
+        required: true
+        type: string
+      message:
+        required: true
+        type: string
+
+jobs:
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    
+    steps:
+      # ─────────────────────────────────────────────────────────────────────────
+      # Slack 알림
+      # ─────────────────────────────────────────────────────────────────────────
+      - name: 📢 Slack Notification
+        if: ${{ vars.SLACK_ENABLED == 'true' && secrets.SLACK_WEBHOOK_URL }}
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ github.event.workflow_run.conclusion == 'success' && '✅' || '❌' }} AUTUS CI/CD"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Workflow:*\n${{ github.event.workflow_run.name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Status:*\n${{ github.event.workflow_run.conclusion }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ github.event.workflow_run.head_branch }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.event.workflow_run.head_sha }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Run"
+                      },
+                      "url": "${{ github.event.workflow_run.html_url }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      # ─────────────────────────────────────────────────────────────────────────
+      # Discord 알림
+      # ─────────────────────────────────────────────────────────────────────────
+      - name: 📢 Discord Notification
+        if: ${{ vars.DISCORD_ENABLED == 'true' && secrets.DISCORD_WEBHOOK_URL }}
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: ${{ github.event.workflow_run.conclusion }}
+          title: "AUTUS CI/CD"
+          description: |
+            Workflow: ${{ github.event.workflow_run.name }}
+            Branch: ${{ github.event.workflow_run.head_branch }}
+          color: ${{ github.event.workflow_run.conclusion == 'success' && '0x00ff00' || '0xff0000' }}
+          url: ${{ github.event.workflow_run.html_url }}
+          username: "AUTUS Bot"

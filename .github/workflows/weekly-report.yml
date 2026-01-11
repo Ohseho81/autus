@@ -1,0 +1,57 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# 📊 AUTUS Trinity - 주간 리포트 자동 생성
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: Weekly Trinity Report
+
+on:
+  schedule:
+    # 매주 월요일 오전 9시 (KST) = UTC 00:00
+    - cron: '0 0 * * 1'
+  
+  workflow_dispatch:
+
+jobs:
+  generate-report:
+    name: Generate Weekly Report
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 📊 Generate Report
+        run: |
+          python scripts/trinity_report.py --output reports/weekly_$(date +%Y%m%d).md --format md
+          python scripts/trinity_report.py --output reports/weekly_$(date +%Y%m%d).html --format html
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      - name: 📤 Upload Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-report-${{ github.run_number }}
+          path: reports/
+
+      - name: 📢 Send to Slack
+        if: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python scripts/trinity_report.py --slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      - name: 📝 Commit Report
+        run: |
+          mkdir -p reports
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add reports/
+          git diff --staged --quiet || git commit -m "📊 Weekly Report - $(date +%Y-%m-%d)"
+          git push || true

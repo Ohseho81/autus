@@ -1,0 +1,42 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# AUTUS .cursorignore - Cursor 인덱싱 제외 파일
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Node modules & Python cache
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Git
+.git/
+
+# Build & Dist
+dist/
+build/
+*.egg-info/
+
+# Large data files
+*.zip
+*.tar.gz
+*.log
+
+# Reports & Output
+reports/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Large generated files
+autus_pipeline/data/output/*.json
+autus_realtime/logs/

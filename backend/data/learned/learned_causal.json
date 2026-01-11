@@ -1,0 +1,1986 @@
+{
+  "_meta": {
+    "name": "AUTUS Learned Causal Matrix",
+    "version": "1.0.0",
+    "description": "재무제표 데이터에서 학습된 인과 행렬",
+    "learned_from": "Financial Statements",
+    "significance_level": 0.05,
+    "min_samples": 10
+  },
+  "connections": [
+    {
+      "from": "n04",
+      "to": "n12",
+      "coefficient": 1.0,
+      "name": "n04_to_n12",
+      "description": "n04 → n12",
+      "confidence": 1.0,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n05",
+      "coefficient": 0.9973,
+      "name": "n10_to_n05",
+      "description": "n10 → n05",
+      "confidence": 0.9947,
+      "sample_count": 433
+    },
+    {
+      "from": "n05",
+      "to": "n10",
+      "coefficient": 0.9973,
+      "name": "n05_to_n10",
+      "description": "n05 → n10",
+      "confidence": 0.9947,
+      "sample_count": 433
+    },
+    {
+      "from": "n12",
+      "to": "n04",
+      "coefficient": 0.9932,
+      "name": "n12_to_n04",
+      "description": "n12 → n04",
+      "confidence": 0.9865,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n06",
+      "coefficient": 0.9907,
+      "name": "n10_to_n06",
+      "description": "n10 → n06",
+      "confidence": 0.9814,
+      "sample_count": 433
+    },
+    {
+      "from": "n05",
+      "to": "n06",
+      "coefficient": 0.9907,
+      "name": "n05_to_n06",
+      "description": "n05 → n06",
+      "confidence": 0.9814,
+      "sample_count": 433
+    },
+    {
+      "from": "n06",
+      "to": "n10",
+      "coefficient": 0.9894,
+      "name": "n06_to_n10",
+      "description": "n06 → n10",
+      "confidence": 0.9788,
+      "sample_count": 433
+    },
+    {
+      "from": "n06",
+      "to": "n05",
+      "coefficient": 0.9894,
+      "name": "n06_to_n05",
+      "description": "n06 → n05",
+      "confidence": 0.9788,
+      "sample_count": 433
+    },
+    {
+      "from": "n03",
+      "to": "n56",
+      "coefficient": 0.9686,
+      "name": "n03_to_n56",
+      "description": "n03 → n56",
+      "confidence": 0.9382,
+      "sample_count": 204
+    },
+    {
+      "from": "n56",
+      "to": "n03",
+      "coefficient": 0.9686,
+      "name": "n56_to_n03",
+      "description": "n56 → n03",
+      "confidence": 0.9382,
+      "sample_count": 204
+    },
+    {
+      "from": "n05",
+      "to": "n02",
+      "coefficient": 0.9526,
+      "name": "n05_to_n02",
+      "description": "n05 → n02",
+      "confidence": 0.9075,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n02",
+      "coefficient": 0.9526,
+      "name": "n10_to_n02",
+      "description": "n10 → n02",
+      "confidence": 0.9075,
+      "sample_count": 433
+    },
+    {
+      "from": "n02",
+      "to": "n05",
+      "coefficient": 0.9495,
+      "name": "n02_to_n05",
+      "description": "n02 → n05",
+      "confidence": 0.9016,
+      "sample_count": 433
+    },
+    {
+      "from": "n02",
+      "to": "n10",
+      "coefficient": 0.9495,
+      "name": "n02_to_n10",
+      "description": "n02 → n10",
+      "confidence": 0.9016,
+      "sample_count": 433
+    },
+    {
+      "from": "n06",
+      "to": "n02",
+      "coefficient": 0.9474,
+      "name": "n06_to_n02",
+      "description": "n06 → n02",
+      "confidence": 0.8975,
+      "sample_count": 433
+    },
+    {
+      "from": "n02",
+      "to": "n06",
+      "coefficient": 0.943,
+      "name": "n02_to_n06",
+      "description": "n02 → n06",
+      "confidence": 0.8893,
+      "sample_count": 433
+    },
+    {
+      "from": "n02",
+      "to": "n08",
+      "coefficient": 0.9089,
+      "name": "n02_to_n08",
+      "description": "n02 → n08",
+      "confidence": 0.826,
+      "sample_count": 433
+    },
+    {
+      "from": "n08",
+      "to": "n02",
+      "coefficient": 0.9078,
+      "name": "n08_to_n02",
+      "description": "n08 → n02",
+      "confidence": 0.8241,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n04",
+      "coefficient": 0.9071,
+      "name": "n10_to_n04",
+      "description": "n10 → n04",
+      "confidence": 0.8229,
+      "sample_count": 433
+    },
+    {
+      "from": "n05",
+      "to": "n04",
+      "coefficient": 0.9071,
+      "name": "n05_to_n04",
+      "description": "n05 → n04",
+      "confidence": 0.8229,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n12",
+      "coefficient": 0.8961,
+      "name": "n10_to_n12",
+      "description": "n10 → n12",
+      "confidence": 0.803,
+      "sample_count": 433
+    },
+    {
+      "from": "n05",
+      "to": "n12",
+      "coefficient": 0.8961,
+      "name": "n05_to_n12",
+      "description": "n05 → n12",
+      "confidence": 0.803,
+      "sample_count": 433
+    },
+    {
+      "from": "n06",
+      "to": "n04",
+      "coefficient": 0.8934,
+      "name": "n06_to_n04",
+      "description": "n06 → n04",
+      "confidence": 0.7981,
+      "sample_count": 433
+    },
+    {
+      "from": "n04",
+      "to": "n10",
+      "coefficient": 0.8911,
+      "name": "n04_to_n10",
+      "description": "n04 → n10",
+      "confidence": 0.7941,
+      "sample_count": 433
+    },
+    {
+      "from": "n04",
+      "to": "n05",
+      "coefficient": 0.8911,
+      "name": "n04_to_n05",
+      "description": "n04 → n05",
+      "confidence": 0.7941,
+      "sample_count": 433
+    },
+    {
+      "from": "n04",
+      "to": "n01",
+      "coefficient": 0.8886,
+      "name": "n04_to_n01",
+      "description": "n04 → n01",
+      "confidence": 0.7896,
+      "sample_count": 423
+    },
+    {
+      "from": "n04",
+      "to": "n06",
+      "coefficient": 0.8862,
+      "name": "n04_to_n06",
+      "description": "n04 → n06",
+      "confidence": 0.7854,
+      "sample_count": 433
+    },
+    {
+      "from": "n01",
+      "to": "n12",
+      "coefficient": 0.8846,
+      "name": "n01_to_n12",
+      "description": "n01 → n12",
+      "confidence": 0.7825,
+      "sample_count": 422
+    },
+    {
+      "from": "n06",
+      "to": "n12",
+      "coefficient": 0.8822,
+      "name": "n06_to_n12",
+      "description": "n06 → n12",
+      "confidence": 0.7783,
+      "sample_count": 433
+    },
+    {
+      "from": "n12",
+      "to": "n01",
+      "coefficient": 0.8806,
+      "name": "n12_to_n01",
+      "description": "n12 → n01",
+      "confidence": 0.7755,
+      "sample_count": 423
+    },
+    {
+      "from": "n12",
+      "to": "n10",
+      "coefficient": 0.8781,
+      "name": "n12_to_n10",
+      "description": "n12 → n10",
+      "confidence": 0.7711,
+      "sample_count": 433
+    },
+    {
+      "from": "n12",
+      "to": "n05",
+      "coefficient": 0.8781,
+      "name": "n12_to_n05",
+      "description": "n12 → n05",
+      "confidence": 0.771,
+      "sample_count": 433
+    },
+    {
+      "from": "n01",
+      "to": "n04",
+      "coefficient": 0.877,
+      "name": "n01_to_n04",
+      "description": "n01 → n04",
+      "confidence": 0.7691,
+      "sample_count": 422
+    },
+    {
+      "from": "n12",
+      "to": "n06",
+      "coefficient": 0.8736,
+      "name": "n12_to_n06",
+      "description": "n12 → n06",
+      "confidence": 0.7632,
+      "sample_count": 433
+    },
+    {
+      "from": "n05",
+      "to": "n08",
+      "coefficient": 0.8639,
+      "name": "n05_to_n08",
+      "description": "n05 → n08",
+      "confidence": 0.7463,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n08",
+      "coefficient": 0.8639,
+      "name": "n10_to_n08",
+      "description": "n10 → n08",
+      "confidence": 0.7463,
+      "sample_count": 433
+    },
+    {
+      "from": "n08",
+      "to": "n05",
+      "coefficient": 0.8607,
+      "name": "n08_to_n05",
+      "description": "n08 → n05",
+      "confidence": 0.7409,
+      "sample_count": 433
+    },
+    {
+      "from": "n08",
+      "to": "n10",
+      "coefficient": 0.8607,
+      "name": "n08_to_n10",
+      "description": "n08 → n10",
+      "confidence": 0.7409,
+      "sample_count": 433
+    },
+    {
+      "from": "n02",
+      "to": "n04",
+      "coefficient": 0.8577,
+      "name": "n02_to_n04",
+      "description": "n02 → n04",
+      "confidence": 0.7357,
+      "sample_count": 433
+    },
+    {
+      "from": "n06",
+      "to": "n08",
+      "coefficient": 0.8577,
+      "name": "n06_to_n08",
+      "description": "n06 → n08",
+      "confidence": 0.7357,
+      "sample_count": 433
+    },
+    {
+      "from": "n08",
+      "to": "n06",
+      "coefficient": 0.8528,
+      "name": "n08_to_n06",
+      "description": "n08 → n06",
+      "confidence": 0.7272,
+      "sample_count": 433
+    },
+    {
+      "from": "n02",
+      "to": "n12",
+      "coefficient": 0.8468,
+      "name": "n02_to_n12",
+      "description": "n02 → n12",
+      "confidence": 0.717,
+      "sample_count": 433
+    },
+    {
+      "from": "n04",
+      "to": "n02",
+      "coefficient": 0.845,
+      "name": "n04_to_n02",
+      "description": "n04 → n02",
+      "confidence": 0.7141,
+      "sample_count": 433
+    },
+    {
+      "from": "n12",
+      "to": "n02",
+      "coefficient": 0.8335,
+      "name": "n12_to_n02",
+      "description": "n12 → n02",
+      "confidence": 0.6948,
+      "sample_count": 433
+    },
+    {
+      "from": "n08",
+      "to": "n04",
+      "coefficient": 0.77,
+      "name": "n08_to_n04",
+      "description": "n08 → n04",
+      "confidence": 0.5928,
+      "sample_count": 433
+    },
+    {
+      "from": "n60",
+      "to": "n36",
+      "coefficient": -0.7662,
+      "name": "n60_to_n36",
+      "description": "n60 → n36",
+      "confidence": 0.5871,
+      "sample_count": 433
+    },
+    {
+      "from": "n08",
+      "to": "n12",
+      "coefficient": 0.7585,
+      "name": "n08_to_n12",
+      "description": "n08 → n12",
+      "confidence": 0.5753,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n01",
+      "coefficient": 0.7514,
+      "name": "n10_to_n01",
+      "description": "n10 → n01",
+      "confidence": 0.5646,
+      "sample_count": 423
+    },
+    {
+      "from": "n05",
+      "to": "n01",
+      "coefficient": 0.7514,
+      "name": "n05_to_n01",
+      "description": "n05 → n01",
+      "confidence": 0.5645,
+      "sample_count": 423
+    },
+    {
+      "from": "n36",
+      "to": "n60",
+      "coefficient": -0.7467,
+      "name": "n36_to_n60",
+      "description": "n36 → n60",
+      "confidence": 0.5576,
+      "sample_count": 433
+    },
+    {
+      "from": "n04",
+      "to": "n08",
+      "coefficient": 0.7452,
+      "name": "n04_to_n08",
+      "description": "n04 → n08",
+      "confidence": 0.5553,
+      "sample_count": 433
+    },
+    {
+      "from": "n12",
+      "to": "n08",
+      "coefficient": 0.7322,
+      "name": "n12_to_n08",
+      "description": "n12 → n08",
+      "confidence": 0.5362,
+      "sample_count": 433
+    },
+    {
+      "from": "n06",
+      "to": "n01",
+      "coefficient": 0.7263,
+      "name": "n06_to_n01",
+      "description": "n06 → n01",
+      "confidence": 0.5276,
+      "sample_count": 423
+    },
+    {
+      "from": "n01",
+      "to": "n10",
+      "coefficient": 0.7254,
+      "name": "n01_to_n10",
+      "description": "n01 → n10",
+      "confidence": 0.5261,
+      "sample_count": 422
+    },
+    {
+      "from": "n01",
+      "to": "n05",
+      "coefficient": 0.7253,
+      "name": "n01_to_n05",
+      "description": "n01 → n05",
+      "confidence": 0.5261,
+      "sample_count": 422
+    },
+    {
+      "from": "n01",
+      "to": "n06",
+      "coefficient": 0.7226,
+      "name": "n01_to_n06",
+      "description": "n01 → n06",
+      "confidence": 0.5222,
+      "sample_count": 422
+    },
+    {
+      "from": "n05",
+      "to": "n07",
+      "coefficient": 0.6858,
+      "name": "n05_to_n07",
+      "description": "n05 → n07",
+      "confidence": 0.4703,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n07",
+      "coefficient": 0.6858,
+      "name": "n10_to_n07",
+      "description": "n10 → n07",
+      "confidence": 0.4703,
+      "sample_count": 433
+    },
+    {
+      "from": "n06",
+      "to": "n07",
+      "coefficient": 0.679,
+      "name": "n06_to_n07",
+      "description": "n06 → n07",
+      "confidence": 0.4611,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n05",
+      "coefficient": 0.6679,
+      "name": "n07_to_n05",
+      "description": "n07 → n05",
+      "confidence": 0.4461,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n10",
+      "coefficient": 0.6679,
+      "name": "n07_to_n10",
+      "description": "n07 → n10",
+      "confidence": 0.4461,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n06",
+      "coefficient": 0.6608,
+      "name": "n07_to_n06",
+      "description": "n07 → n06",
+      "confidence": 0.4366,
+      "sample_count": 433
+    },
+    {
+      "from": "n03",
+      "to": "n02",
+      "coefficient": 0.6585,
+      "name": "n03_to_n02",
+      "description": "n03 → n02",
+      "confidence": 0.4336,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n02",
+      "coefficient": 0.6585,
+      "name": "n56_to_n02",
+      "description": "n56 → n02",
+      "confidence": 0.4336,
+      "sample_count": 235
+    },
+    {
+      "from": "n02",
+      "to": "n01",
+      "coefficient": 0.6567,
+      "name": "n02_to_n01",
+      "description": "n02 → n01",
+      "confidence": 0.4313,
+      "sample_count": 423
+    },
+    {
+      "from": "n02",
+      "to": "n03",
+      "coefficient": 0.6564,
+      "name": "n02_to_n03",
+      "description": "n02 → n03",
+      "confidence": 0.4308,
+      "sample_count": 205
+    },
+    {
+      "from": "n02",
+      "to": "n56",
+      "coefficient": 0.6564,
+      "name": "n02_to_n56",
+      "description": "n02 → n56",
+      "confidence": 0.4308,
+      "sample_count": 205
+    },
+    {
+      "from": "n02",
+      "to": "n07",
+      "coefficient": 0.6543,
+      "name": "n02_to_n07",
+      "description": "n02 → n07",
+      "confidence": 0.4281,
+      "sample_count": 433
+    },
+    {
+      "from": "n08",
+      "to": "n03",
+      "coefficient": 0.6497,
+      "name": "n08_to_n03",
+      "description": "n08 → n03",
+      "confidence": 0.4221,
+      "sample_count": 205
+    },
+    {
+      "from": "n08",
+      "to": "n56",
+      "coefficient": 0.6497,
+      "name": "n08_to_n56",
+      "description": "n08 → n56",
+      "confidence": 0.4221,
+      "sample_count": 205
+    },
+    {
+      "from": "n03",
+      "to": "n08",
+      "coefficient": 0.6457,
+      "name": "n03_to_n08",
+      "description": "n03 → n08",
+      "confidence": 0.4169,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n08",
+      "coefficient": 0.6457,
+      "name": "n56_to_n08",
+      "description": "n56 → n08",
+      "confidence": 0.4169,
+      "sample_count": 235
+    },
+    {
+      "from": "n07",
+      "to": "n04",
+      "coefficient": 0.6446,
+      "name": "n07_to_n04",
+      "description": "n07 → n04",
+      "confidence": 0.4156,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n12",
+      "coefficient": 0.6382,
+      "name": "n07_to_n12",
+      "description": "n07 → n12",
+      "confidence": 0.4074,
+      "sample_count": 433
+    },
+    {
+      "from": "n01",
+      "to": "n02",
+      "coefficient": 0.6314,
+      "name": "n01_to_n02",
+      "description": "n01 → n02",
+      "confidence": 0.3987,
+      "sample_count": 422
+    },
+    {
+      "from": "n06",
+      "to": "n03",
+      "coefficient": 0.6259,
+      "name": "n06_to_n03",
+      "description": "n06 → n03",
+      "confidence": 0.3917,
+      "sample_count": 205
+    },
+    {
+      "from": "n06",
+      "to": "n56",
+      "coefficient": 0.6259,
+      "name": "n06_to_n56",
+      "description": "n06 → n56",
+      "confidence": 0.3917,
+      "sample_count": 205
+    },
+    {
+      "from": "n07",
+      "to": "n02",
+      "coefficient": 0.625,
+      "name": "n07_to_n02",
+      "description": "n07 → n02",
+      "confidence": 0.3906,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n01",
+      "coefficient": 0.6191,
+      "name": "n07_to_n01",
+      "description": "n07 → n01",
+      "confidence": 0.3832,
+      "sample_count": 423
+    },
+    {
+      "from": "n03",
+      "to": "n06",
+      "coefficient": 0.6126,
+      "name": "n03_to_n06",
+      "description": "n03 → n06",
+      "confidence": 0.3753,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n06",
+      "coefficient": 0.6126,
+      "name": "n56_to_n06",
+      "description": "n56 → n06",
+      "confidence": 0.3753,
+      "sample_count": 235
+    },
+    {
+      "from": "n03",
+      "to": "n05",
+      "coefficient": 0.6104,
+      "name": "n03_to_n05",
+      "description": "n03 → n05",
+      "confidence": 0.3726,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n05",
+      "coefficient": 0.6104,
+      "name": "n56_to_n05",
+      "description": "n56 → n05",
+      "confidence": 0.3726,
+      "sample_count": 235
+    },
+    {
+      "from": "n03",
+      "to": "n10",
+      "coefficient": 0.6104,
+      "name": "n03_to_n10",
+      "description": "n03 → n10",
+      "confidence": 0.3726,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n10",
+      "coefficient": 0.6104,
+      "name": "n56_to_n10",
+      "description": "n56 → n10",
+      "confidence": 0.3726,
+      "sample_count": 235
+    },
+    {
+      "from": "n05",
+      "to": "n03",
+      "coefficient": 0.6084,
+      "name": "n05_to_n03",
+      "description": "n05 → n03",
+      "confidence": 0.3701,
+      "sample_count": 205
+    },
+    {
+      "from": "n05",
+      "to": "n56",
+      "coefficient": 0.6084,
+      "name": "n05_to_n56",
+      "description": "n05 → n56",
+      "confidence": 0.3701,
+      "sample_count": 205
+    },
+    {
+      "from": "n10",
+      "to": "n03",
+      "coefficient": 0.6083,
+      "name": "n10_to_n03",
+      "description": "n10 → n03",
+      "confidence": 0.3701,
+      "sample_count": 205
+    },
+    {
+      "from": "n10",
+      "to": "n56",
+      "coefficient": 0.6083,
+      "name": "n10_to_n56",
+      "description": "n10 → n56",
+      "confidence": 0.3701,
+      "sample_count": 205
+    },
+    {
+      "from": "n01",
+      "to": "n36",
+      "coefficient": 0.606,
+      "name": "n01_to_n36",
+      "description": "n01 → n36",
+      "confidence": 0.3673,
+      "sample_count": 422
+    },
+    {
+      "from": "n04",
+      "to": "n07",
+      "coefficient": 0.6044,
+      "name": "n04_to_n07",
+      "description": "n04 → n07",
+      "confidence": 0.3653,
+      "sample_count": 433
+    },
+    {
+      "from": "n08",
+      "to": "n07",
+      "coefficient": 0.6034,
+      "name": "n08_to_n07",
+      "description": "n08 → n07",
+      "confidence": 0.3641,
+      "sample_count": 433
+    },
+    {
+      "from": "n12",
+      "to": "n07",
+      "coefficient": 0.5935,
+      "name": "n12_to_n07",
+      "description": "n12 → n07",
+      "confidence": 0.3522,
+      "sample_count": 433
+    },
+    {
+      "from": "n36",
+      "to": "n03",
+      "coefficient": -0.5933,
+      "name": "n36_to_n03",
+      "description": "n36 → n03",
+      "confidence": 0.352,
+      "sample_count": 205
+    },
+    {
+      "from": "n36",
+      "to": "n56",
+      "coefficient": -0.5933,
+      "name": "n36_to_n56",
+      "description": "n36 → n56",
+      "confidence": 0.352,
+      "sample_count": 205
+    },
+    {
+      "from": "n36",
+      "to": "n01",
+      "coefficient": 0.5856,
+      "name": "n36_to_n01",
+      "description": "n36 → n01",
+      "confidence": 0.3429,
+      "sample_count": 423
+    },
+    {
+      "from": "n08",
+      "to": "n01",
+      "coefficient": 0.5831,
+      "name": "n08_to_n01",
+      "description": "n08 → n01",
+      "confidence": 0.34,
+      "sample_count": 423
+    },
+    {
+      "from": "n07",
+      "to": "n08",
+      "coefficient": 0.5781,
+      "name": "n07_to_n08",
+      "description": "n07 → n08",
+      "confidence": 0.3342,
+      "sample_count": 433
+    },
+    {
+      "from": "n60",
+      "to": "n03",
+      "coefficient": 0.5605,
+      "name": "n60_to_n03",
+      "description": "n60 → n03",
+      "confidence": 0.3142,
+      "sample_count": 205
+    },
+    {
+      "from": "n60",
+      "to": "n56",
+      "coefficient": 0.5605,
+      "name": "n60_to_n56",
+      "description": "n60 → n56",
+      "confidence": 0.3142,
+      "sample_count": 205
+    },
+    {
+      "from": "n03",
+      "to": "n36",
+      "coefficient": -0.5495,
+      "name": "n03_to_n36",
+      "description": "n03 → n36",
+      "confidence": 0.3019,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n36",
+      "coefficient": -0.5495,
+      "name": "n56_to_n36",
+      "description": "n56 → n36",
+      "confidence": 0.3019,
+      "sample_count": 235
+    },
+    {
+      "from": "n03",
+      "to": "n60",
+      "coefficient": 0.5388,
+      "name": "n03_to_n60",
+      "description": "n03 → n60",
+      "confidence": 0.2903,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n60",
+      "coefficient": 0.5388,
+      "name": "n56_to_n60",
+      "description": "n56 → n60",
+      "confidence": 0.2903,
+      "sample_count": 235
+    },
+    {
+      "from": "n01",
+      "to": "n08",
+      "coefficient": 0.5372,
+      "name": "n01_to_n08",
+      "description": "n01 → n08",
+      "confidence": 0.2886,
+      "sample_count": 422
+    },
+    {
+      "from": "n12",
+      "to": "n36",
+      "coefficient": 0.5257,
+      "name": "n12_to_n36",
+      "description": "n12 → n36",
+      "confidence": 0.2763,
+      "sample_count": 433
+    },
+    {
+      "from": "n04",
+      "to": "n36",
+      "coefficient": 0.5151,
+      "name": "n04_to_n36",
+      "description": "n04 → n36",
+      "confidence": 0.2653,
+      "sample_count": 433
+    },
+    {
+      "from": "n36",
+      "to": "n12",
+      "coefficient": 0.5138,
+      "name": "n36_to_n12",
+      "description": "n36 → n12",
+      "confidence": 0.264,
+      "sample_count": 433
+    },
+    {
+      "from": "n36",
+      "to": "n04",
+      "coefficient": 0.4931,
+      "name": "n36_to_n04",
+      "description": "n36 → n04",
+      "confidence": 0.2431,
+      "sample_count": 433
+    },
+    {
+      "from": "n01",
+      "to": "n07",
+      "coefficient": 0.4829,
+      "name": "n01_to_n07",
+      "description": "n01 → n07",
+      "confidence": 0.2332,
+      "sample_count": 422
+    },
+    {
+      "from": "n13",
+      "to": "n01",
+      "coefficient": 0.4374,
+      "name": "n13_to_n01",
+      "description": "n13 → n01",
+      "confidence": 0.1913,
+      "sample_count": 423
+    },
+    {
+      "from": "n60",
+      "to": "n72",
+      "coefficient": 0.419,
+      "name": "n60_to_n72",
+      "description": "n60 → n72",
+      "confidence": 0.1756,
+      "sample_count": 433
+    },
+    {
+      "from": "n36",
+      "to": "n72",
+      "coefficient": -0.4037,
+      "name": "n36_to_n72",
+      "description": "n36 → n72",
+      "confidence": 0.1629,
+      "sample_count": 433
+    },
+    {
+      "from": "n03",
+      "to": "n07",
+      "coefficient": 0.3904,
+      "name": "n03_to_n07",
+      "description": "n03 → n07",
+      "confidence": 0.1524,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n07",
+      "coefficient": 0.3904,
+      "name": "n56_to_n07",
+      "description": "n56 → n07",
+      "confidence": 0.1524,
+      "sample_count": 235
+    },
+    {
+      "from": "n20",
+      "to": "n36",
+      "coefficient": 0.3759,
+      "name": "n20_to_n36",
+      "description": "n20 → n36",
+      "confidence": 0.1413,
+      "sample_count": 433
+    },
+    {
+      "from": "n03",
+      "to": "n04",
+      "coefficient": 0.3641,
+      "name": "n03_to_n04",
+      "description": "n03 → n04",
+      "confidence": 0.1326,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n04",
+      "coefficient": 0.3641,
+      "name": "n56_to_n04",
+      "description": "n56 → n04",
+      "confidence": 0.1326,
+      "sample_count": 235
+    },
+    {
+      "from": "n01",
+      "to": "n60",
+      "coefficient": -0.3572,
+      "name": "n01_to_n60",
+      "description": "n01 → n60",
+      "confidence": 0.1276,
+      "sample_count": 422
+    },
+    {
+      "from": "n60",
+      "to": "n01",
+      "coefficient": -0.3549,
+      "name": "n60_to_n01",
+      "description": "n60 → n01",
+      "confidence": 0.126,
+      "sample_count": 423
+    },
+    {
+      "from": "n60",
+      "to": "n12",
+      "coefficient": -0.353,
+      "name": "n60_to_n12",
+      "description": "n60 → n12",
+      "confidence": 0.1246,
+      "sample_count": 433
+    },
+    {
+      "from": "n04",
+      "to": "n03",
+      "coefficient": 0.352,
+      "name": "n04_to_n03",
+      "description": "n04 → n03",
+      "confidence": 0.1239,
+      "sample_count": 205
+    },
+    {
+      "from": "n04",
+      "to": "n56",
+      "coefficient": 0.352,
+      "name": "n04_to_n56",
+      "description": "n04 → n56",
+      "confidence": 0.1239,
+      "sample_count": 205
+    },
+    {
+      "from": "n36",
+      "to": "n20",
+      "coefficient": 0.348,
+      "name": "n36_to_n20",
+      "description": "n36 → n20",
+      "confidence": 0.1211,
+      "sample_count": 433
+    },
+    {
+      "from": "n12",
+      "to": "n03",
+      "coefficient": 0.3463,
+      "name": "n12_to_n03",
+      "description": "n12 → n03",
+      "confidence": 0.1199,
+      "sample_count": 205
+    },
+    {
+      "from": "n12",
+      "to": "n56",
+      "coefficient": 0.3463,
+      "name": "n12_to_n56",
+      "description": "n12 → n56",
+      "confidence": 0.1199,
+      "sample_count": 205
+    },
+    {
+      "from": "n03",
+      "to": "n12",
+      "coefficient": 0.3432,
+      "name": "n03_to_n12",
+      "description": "n03 → n12",
+      "confidence": 0.1178,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n12",
+      "coefficient": 0.3432,
+      "name": "n56_to_n12",
+      "description": "n56 → n12",
+      "confidence": 0.1178,
+      "sample_count": 235
+    },
+    {
+      "from": "n12",
+      "to": "n60",
+      "coefficient": -0.3431,
+      "name": "n12_to_n60",
+      "description": "n12 → n60",
+      "confidence": 0.1177,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n04",
+      "coefficient": 0.3401,
+      "name": "n13_to_n04",
+      "description": "n13 → n04",
+      "confidence": 0.1157,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n12",
+      "coefficient": 0.3382,
+      "name": "n13_to_n12",
+      "description": "n13 → n12",
+      "confidence": 0.1144,
+      "sample_count": 433
+    },
+    {
+      "from": "n04",
+      "to": "n60",
+      "coefficient": -0.3374,
+      "name": "n04_to_n60",
+      "description": "n04 → n60",
+      "confidence": 0.1138,
+      "sample_count": 433
+    },
+    {
+      "from": "n60",
+      "to": "n04",
+      "coefficient": -0.3361,
+      "name": "n60_to_n04",
+      "description": "n60 → n04",
+      "confidence": 0.113,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n37",
+      "coefficient": -0.316,
+      "name": "n13_to_n37",
+      "description": "n13 → n37",
+      "confidence": 0.0999,
+      "sample_count": 433
+    },
+    {
+      "from": "n72",
+      "to": "n37",
+      "coefficient": -0.3128,
+      "name": "n72_to_n37",
+      "description": "n72 → n37",
+      "confidence": 0.0978,
+      "sample_count": 433
+    },
+    {
+      "from": "n58",
+      "to": "n37",
+      "coefficient": 0.3083,
+      "name": "n58_to_n37",
+      "description": "n58 → n37",
+      "confidence": 0.0951,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n05",
+      "coefficient": 0.3042,
+      "name": "n13_to_n05",
+      "description": "n13 → n05",
+      "confidence": 0.0925,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n10",
+      "coefficient": 0.3041,
+      "name": "n13_to_n10",
+      "description": "n13 → n10",
+      "confidence": 0.0925,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n06",
+      "coefficient": 0.2966,
+      "name": "n13_to_n06",
+      "description": "n13 → n06",
+      "confidence": 0.088,
+      "sample_count": 433
+    },
+    {
+      "from": "n05",
+      "to": "n13",
+      "coefficient": 0.2905,
+      "name": "n05_to_n13",
+      "description": "n05 → n13",
+      "confidence": 0.0844,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n13",
+      "coefficient": 0.2905,
+      "name": "n10_to_n13",
+      "description": "n10 → n13",
+      "confidence": 0.0844,
+      "sample_count": 433
+    },
+    {
+      "from": "n06",
+      "to": "n13",
+      "coefficient": 0.28,
+      "name": "n06_to_n13",
+      "description": "n06 → n13",
+      "confidence": 0.0784,
+      "sample_count": 433
+    },
+    {
+      "from": "n04",
+      "to": "n13",
+      "coefficient": 0.2719,
+      "name": "n04_to_n13",
+      "description": "n04 → n13",
+      "confidence": 0.0739,
+      "sample_count": 433
+    },
+    {
+      "from": "n02",
+      "to": "n13",
+      "coefficient": 0.2692,
+      "name": "n02_to_n13",
+      "description": "n02 → n13",
+      "confidence": 0.0725,
+      "sample_count": 433
+    },
+    {
+      "from": "n08",
+      "to": "n13",
+      "coefficient": 0.2683,
+      "name": "n08_to_n13",
+      "description": "n08 → n13",
+      "confidence": 0.072,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n02",
+      "coefficient": 0.2656,
+      "name": "n13_to_n02",
+      "description": "n13 → n02",
+      "confidence": 0.0705,
+      "sample_count": 433
+    },
+    {
+      "from": "n12",
+      "to": "n13",
+      "coefficient": 0.2631,
+      "name": "n12_to_n13",
+      "description": "n12 → n13",
+      "confidence": 0.0692,
+      "sample_count": 433
+    },
+    {
+      "from": "n72",
+      "to": "n36",
+      "coefficient": -0.2619,
+      "name": "n72_to_n36",
+      "description": "n72 → n36",
+      "confidence": 0.0686,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n13",
+      "coefficient": 0.2511,
+      "name": "n07_to_n13",
+      "description": "n07 → n13",
+      "confidence": 0.063,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n03",
+      "coefficient": 0.2384,
+      "name": "n07_to_n03",
+      "description": "n07 → n03",
+      "confidence": 0.0568,
+      "sample_count": 205
+    },
+    {
+      "from": "n07",
+      "to": "n56",
+      "coefficient": 0.2384,
+      "name": "n07_to_n56",
+      "description": "n07 → n56",
+      "confidence": 0.0568,
+      "sample_count": 205
+    },
+    {
+      "from": "n20",
+      "to": "n60",
+      "coefficient": -0.2359,
+      "name": "n20_to_n60",
+      "description": "n20 → n60",
+      "confidence": 0.0556,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n07",
+      "coefficient": 0.2351,
+      "name": "n13_to_n07",
+      "description": "n13 → n07",
+      "confidence": 0.0553,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n08",
+      "coefficient": 0.2344,
+      "name": "n13_to_n08",
+      "description": "n13 → n08",
+      "confidence": 0.0549,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n37",
+      "coefficient": -0.2292,
+      "name": "n07_to_n37",
+      "description": "n07 → n37",
+      "confidence": 0.0525,
+      "sample_count": 433
+    },
+    {
+      "from": "n20",
+      "to": "n01",
+      "coefficient": 0.2217,
+      "name": "n20_to_n01",
+      "description": "n20 → n01",
+      "confidence": 0.0492,
+      "sample_count": 423
+    },
+    {
+      "from": "n17",
+      "to": "n20",
+      "coefficient": 0.2198,
+      "name": "n17_to_n20",
+      "description": "n17 → n20",
+      "confidence": 0.0483,
+      "sample_count": 433
+    },
+    {
+      "from": "n72",
+      "to": "n60",
+      "coefficient": 0.2191,
+      "name": "n72_to_n60",
+      "description": "n72 → n60",
+      "confidence": 0.048,
+      "sample_count": 433
+    },
+    {
+      "from": "n20",
+      "to": "n06",
+      "coefficient": 0.2179,
+      "name": "n20_to_n06",
+      "description": "n20 → n06",
+      "confidence": 0.0475,
+      "sample_count": 433
+    },
+    {
+      "from": "n20",
+      "to": "n03",
+      "coefficient": -0.2172,
+      "name": "n20_to_n03",
+      "description": "n20 → n03",
+      "confidence": 0.0471,
+      "sample_count": 205
+    },
+    {
+      "from": "n20",
+      "to": "n56",
+      "coefficient": -0.2172,
+      "name": "n20_to_n56",
+      "description": "n20 → n56",
+      "confidence": 0.0471,
+      "sample_count": 205
+    },
+    {
+      "from": "n01",
+      "to": "n20",
+      "coefficient": 0.2169,
+      "name": "n01_to_n20",
+      "description": "n01 → n20",
+      "confidence": 0.0471,
+      "sample_count": 422
+    },
+    {
+      "from": "n54",
+      "to": "n37",
+      "coefficient": 0.2162,
+      "name": "n54_to_n37",
+      "description": "n54 → n37",
+      "confidence": 0.0468,
+      "sample_count": 433
+    },
+    {
+      "from": "n20",
+      "to": "n10",
+      "coefficient": 0.2156,
+      "name": "n20_to_n10",
+      "description": "n20 → n10",
+      "confidence": 0.0465,
+      "sample_count": 433
+    },
+    {
+      "from": "n20",
+      "to": "n05",
+      "coefficient": 0.2156,
+      "name": "n20_to_n05",
+      "description": "n20 → n05",
+      "confidence": 0.0465,
+      "sample_count": 433
+    },
+    {
+      "from": "n60",
+      "to": "n20",
+      "coefficient": -0.2117,
+      "name": "n60_to_n20",
+      "description": "n60 → n20",
+      "confidence": 0.0448,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n20",
+      "coefficient": 0.211,
+      "name": "n10_to_n20",
+      "description": "n10 → n20",
+      "confidence": 0.0445,
+      "sample_count": 433
+    },
+    {
+      "from": "n05",
+      "to": "n20",
+      "coefficient": 0.211,
+      "name": "n05_to_n20",
+      "description": "n05 → n20",
+      "confidence": 0.0445,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n36",
+      "coefficient": 0.2108,
+      "name": "n07_to_n36",
+      "description": "n07 → n36",
+      "confidence": 0.0444,
+      "sample_count": 433
+    },
+    {
+      "from": "n06",
+      "to": "n20",
+      "coefficient": 0.2085,
+      "name": "n06_to_n20",
+      "description": "n06 → n20",
+      "confidence": 0.0435,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n36",
+      "coefficient": 0.208,
+      "name": "n10_to_n36",
+      "description": "n10 → n36",
+      "confidence": 0.0433,
+      "sample_count": 433
+    },
+    {
+      "from": "n05",
+      "to": "n36",
+      "coefficient": 0.208,
+      "name": "n05_to_n36",
+      "description": "n05 → n36",
+      "confidence": 0.0433,
+      "sample_count": 433
+    },
+    {
+      "from": "n01",
+      "to": "n13",
+      "coefficient": 0.2075,
+      "name": "n01_to_n13",
+      "description": "n01 → n13",
+      "confidence": 0.0431,
+      "sample_count": 422
+    },
+    {
+      "from": "n06",
+      "to": "n36",
+      "coefficient": 0.1943,
+      "name": "n06_to_n36",
+      "description": "n06 → n36",
+      "confidence": 0.0378,
+      "sample_count": 433
+    },
+    {
+      "from": "n36",
+      "to": "n06",
+      "coefficient": 0.1942,
+      "name": "n36_to_n06",
+      "description": "n36 → n06",
+      "confidence": 0.0377,
+      "sample_count": 433
+    },
+    {
+      "from": "n36",
+      "to": "n10",
+      "coefficient": 0.1911,
+      "name": "n36_to_n10",
+      "description": "n36 → n10",
+      "confidence": 0.0365,
+      "sample_count": 433
+    },
+    {
+      "from": "n36",
+      "to": "n05",
+      "coefficient": 0.191,
+      "name": "n36_to_n05",
+      "description": "n36 → n05",
+      "confidence": 0.0365,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n36",
+      "coefficient": 0.1886,
+      "name": "n13_to_n36",
+      "description": "n13 → n36",
+      "confidence": 0.0356,
+      "sample_count": 433
+    },
+    {
+      "from": "n17",
+      "to": "n72",
+      "coefficient": 0.1885,
+      "name": "n17_to_n72",
+      "description": "n17 → n72",
+      "confidence": 0.0355,
+      "sample_count": 433
+    },
+    {
+      "from": "n03",
+      "to": "n20",
+      "coefficient": -0.1848,
+      "name": "n03_to_n20",
+      "description": "n03 → n20",
+      "confidence": 0.034,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n20",
+      "coefficient": -0.1848,
+      "name": "n56_to_n20",
+      "description": "n56 → n20",
+      "confidence": 0.034,
+      "sample_count": 235
+    },
+    {
+      "from": "n01",
+      "to": "n72",
+      "coefficient": -0.1803,
+      "name": "n01_to_n72",
+      "description": "n01 → n72",
+      "confidence": 0.0325,
+      "sample_count": 422
+    },
+    {
+      "from": "n03",
+      "to": "n72",
+      "coefficient": 0.1777,
+      "name": "n03_to_n72",
+      "description": "n03 → n72",
+      "confidence": 0.0314,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n72",
+      "coefficient": 0.1777,
+      "name": "n56_to_n72",
+      "description": "n56 → n72",
+      "confidence": 0.0314,
+      "sample_count": 235
+    },
+    {
+      "from": "n17",
+      "to": "n36",
+      "coefficient": -0.1643,
+      "name": "n17_to_n36",
+      "description": "n17 → n36",
+      "confidence": 0.027,
+      "sample_count": 433
+    },
+    {
+      "from": "n20",
+      "to": "n04",
+      "coefficient": 0.1608,
+      "name": "n20_to_n04",
+      "description": "n20 → n04",
+      "confidence": 0.0258,
+      "sample_count": 433
+    },
+    {
+      "from": "n20",
+      "to": "n12",
+      "coefficient": 0.1584,
+      "name": "n20_to_n12",
+      "description": "n20 → n12",
+      "confidence": 0.0251,
+      "sample_count": 433
+    },
+    {
+      "from": "n60",
+      "to": "n17",
+      "coefficient": 0.1551,
+      "name": "n60_to_n17",
+      "description": "n60 → n17",
+      "confidence": 0.024,
+      "sample_count": 433
+    },
+    {
+      "from": "n04",
+      "to": "n20",
+      "coefficient": 0.152,
+      "name": "n04_to_n20",
+      "description": "n04 → n20",
+      "confidence": 0.0231,
+      "sample_count": 433
+    },
+    {
+      "from": "n12",
+      "to": "n72",
+      "coefficient": -0.1517,
+      "name": "n12_to_n72",
+      "description": "n12 → n72",
+      "confidence": 0.023,
+      "sample_count": 433
+    },
+    {
+      "from": "n60",
+      "to": "n37",
+      "coefficient": 0.1496,
+      "name": "n60_to_n37",
+      "description": "n60 → n37",
+      "confidence": 0.0223,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n60",
+      "coefficient": -0.1496,
+      "name": "n07_to_n60",
+      "description": "n07 → n60",
+      "confidence": 0.0223,
+      "sample_count": 433
+    },
+    {
+      "from": "n03",
+      "to": "n01",
+      "coefficient": 0.1487,
+      "name": "n03_to_n01",
+      "description": "n03 → n01",
+      "confidence": 0.0216,
+      "sample_count": 225
+    },
+    {
+      "from": "n56",
+      "to": "n01",
+      "coefficient": 0.1487,
+      "name": "n56_to_n01",
+      "description": "n56 → n01",
+      "confidence": 0.0216,
+      "sample_count": 225
+    },
+    {
+      "from": "n36",
+      "to": "n17",
+      "coefficient": -0.1469,
+      "name": "n36_to_n17",
+      "description": "n36 → n17",
+      "confidence": 0.0215,
+      "sample_count": 433
+    },
+    {
+      "from": "n12",
+      "to": "n20",
+      "coefficient": 0.1465,
+      "name": "n12_to_n20",
+      "description": "n12 → n20",
+      "confidence": 0.0214,
+      "sample_count": 433
+    },
+    {
+      "from": "n13",
+      "to": "n60",
+      "coefficient": -0.1461,
+      "name": "n13_to_n60",
+      "description": "n13 → n60",
+      "confidence": 0.0213,
+      "sample_count": 433
+    },
+    {
+      "from": "n07",
+      "to": "n20",
+      "coefficient": 0.1453,
+      "name": "n07_to_n20",
+      "description": "n07 → n20",
+      "confidence": 0.0211,
+      "sample_count": 433
+    },
+    {
+      "from": "n58",
+      "to": "n01",
+      "coefficient": -0.1446,
+      "name": "n58_to_n01",
+      "description": "n58 → n01",
+      "confidence": 0.0208,
+      "sample_count": 423
+    },
+    {
+      "from": "n04",
+      "to": "n72",
+      "coefficient": -0.1445,
+      "name": "n04_to_n72",
+      "description": "n04 → n72",
+      "confidence": 0.0208,
+      "sample_count": 433
+    },
+    {
+      "from": "n20",
+      "to": "n17",
+      "coefficient": 0.1403,
+      "name": "n20_to_n17",
+      "description": "n20 → n17",
+      "confidence": 0.0196,
+      "sample_count": 433
+    },
+    {
+      "from": "n03",
+      "to": "n37",
+      "coefficient": 0.1277,
+      "name": "n03_to_n37",
+      "description": "n03 → n37",
+      "confidence": 0.0155,
+      "sample_count": 235
+    },
+    {
+      "from": "n56",
+      "to": "n37",
+      "coefficient": 0.1277,
+      "name": "n56_to_n37",
+      "description": "n56 → n37",
+      "confidence": 0.0155,
+      "sample_count": 235
+    },
+    {
+      "from": "n20",
+      "to": "n07",
+      "coefficient": 0.1252,
+      "name": "n20_to_n07",
+      "description": "n20 → n07",
+      "confidence": 0.0155,
+      "sample_count": 433
+    },
+    {
+      "from": "n37",
+      "to": "n72",
+      "coefficient": 0.1212,
+      "name": "n37_to_n72",
+      "description": "n37 → n72",
+      "confidence": 0.0145,
+      "sample_count": 433
+    },
+    {
+      "from": "n36",
+      "to": "n37",
+      "coefficient": -0.1208,
+      "name": "n36_to_n37",
+      "description": "n36 → n37",
+      "confidence": 0.0144,
+      "sample_count": 433
+    },
+    {
+      "from": "n58",
+      "to": "n60",
+      "coefficient": 0.1203,
+      "name": "n58_to_n60",
+      "description": "n58 → n60",
+      "confidence": 0.0143,
+      "sample_count": 433
+    },
+    {
+      "from": "n17",
+      "to": "n13",
+      "coefficient": 0.1135,
+      "name": "n17_to_n13",
+      "description": "n17 → n13",
+      "confidence": 0.0126,
+      "sample_count": 433
+    },
+    {
+      "from": "n72",
+      "to": "n17",
+      "coefficient": 0.1084,
+      "name": "n72_to_n17",
+      "description": "n72 → n17",
+      "confidence": 0.0115,
+      "sample_count": 433
+    },
+    {
+      "from": "n36",
+      "to": "n07",
+      "coefficient": 0.1038,
+      "name": "n36_to_n07",
+      "description": "n36 → n07",
+      "confidence": 0.0104,
+      "sample_count": 433
+    },
+    {
+      "from": "n32",
+      "to": "n54",
+      "coefficient": -0.1035,
+      "name": "n32_to_n54",
+      "description": "n32 → n54",
+      "confidence": 0.0104,
+      "sample_count": 433
+    },
+    {
+      "from": "n17",
+      "to": "n07",
+      "coefficient": 0.1023,
+      "name": "n17_to_n07",
+      "description": "n17 → n07",
+      "confidence": 0.0101,
+      "sample_count": 433
+    },
+    {
+      "from": "n32",
+      "to": "n17",
+      "coefficient": 0.1023,
+      "name": "n32_to_n17",
+      "description": "n32 → n17",
+      "confidence": 0.0101,
+      "sample_count": 433
+    },
+    {
+      "from": "n72",
+      "to": "n12",
+      "coefficient": -0.1007,
+      "name": "n72_to_n12",
+      "description": "n72 → n12",
+      "confidence": 0.0098,
+      "sample_count": 433
+    },
+    {
+      "from": "n10",
+      "to": "n60",
+      "coefficient": -0.0991,
+      "name": "n10_to_n60",
+      "description": "n10 → n60",
+      "confidence": 0.0094,
+      "sample_count": 433
+    },
+    {
+      "from": "n05",
+      "to": "n60",
+      "coefficient": -0.0991,
+      "name": "n05_to_n60",
+      "description": "n05 → n60",
+      "confidence": 0.0094,
+      "sample_count": 433
+    },
+    {
+      "from": "n17",
+      "to": "n05",
+      "coefficient": 0.0983,
+      "name": "n17_to_n05",
+      "description": "n17 → n05",
+      "confidence": 0.0093,
+      "sample_count": 433
+    },
+    {
+      "from": "n17",
+      "to": "n10",
+      "coefficient": 0.0983,
+      "name": "n17_to_n10",
+      "description": "n17 → n10",
+      "confidence": 0.0093,
+      "sample_count": 433
+    },
+    {
+      "from": "n60",
+      "to": "n06",
+      "coefficient": -0.0952,
+      "name": "n60_to_n06",
+      "description": "n60 → n06",
+      "confidence": 0.0086,
+      "sample_count": 433
+    }
+  ],
+  "connection_count": 219,
+  "matrix_size": 5184,
+  "sparsity_ratio": 0.9578
+}

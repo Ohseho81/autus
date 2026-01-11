@@ -1,6 +1,27 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS Railway 배포 설정
+# https://docs.railway.app/reference/config-as-code
+# ═══════════════════════════════════════════════════════════════════════════════
+
 [build]
 builder = "nixpacks"
+watchPatterns = ["backend/**", "frontend/**"]
+
+[build.nixpacksPlan]
+providers = ["python"]
+
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["python311", "gcc"]
+
+[build.nixpacksPlan.phases.install]
+cmds = ["cd backend && pip install -r requirements.txt"]
 
 [deploy]
-startCommand = "gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000}"
-numReplicas = 2
+startCommand = "cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+numReplicas = 1# 환경 변수 (Railway 대시보드에서 설정)
+# AUTUS_ENV=production
+# AUTUS_SECRET_KEY=xxx (Railway에서 자동 생성 권장)

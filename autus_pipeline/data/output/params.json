@@ -1,7 +1,0 @@
-{
-  "alpha": 0.12000000000000001,
-  "lambda": 0.5,
-  "gamma": 0.2,
-  "reason": "ALPHA_UP|LAMBDA_UP|GAMMA_HOLD|NORMAL",
-  "_prev_coin_velocity": 764602.4878307544
-}

@@ -1,0 +1,193 @@
+{
+  "version": "2.1",
+  "name": "AUTUS - Operating System of Reality",
+  "purpose": "개인/조직의 붕괴를 방지하는 물리 기반 모니터링 시스템",
+  
+  "philosophy": {
+    "core": "존재 유지 기계 (Existence Maintenance Machine)",
+    "principles": [
+      "물리 법칙 기반 (Laplacian Life-Physics)",
+      "Top-1 집중 (Single Focus)",
+      "3단계 개입 (Trinary Response)",
+      "침묵 우선 (Silence First)"
+    ]
+  },
+  
+  "data_model": {
+    "nodes": {
+      "total": 36,
+      "L1_financial": {
+        "icon": "💰",
+        "name": "재무",
+        "nodes": [
+          {"id": "n01", "name": "현금", "icon": "💵", "unit": "원"},
+          {"id": "n02", "name": "수입", "icon": "📈", "unit": "원/월"},
+          {"id": "n03", "name": "지출", "icon": "📉", "unit": "원/월"},
+          {"id": "n04", "name": "부채", "icon": "💳", "unit": "원"},
+          {"id": "n05", "name": "런웨이", "icon": "⏱️", "unit": "주"},
+          {"id": "n06", "name": "예비비", "icon": "🛡️", "unit": "원"},
+          {"id": "n07", "name": "미수금", "icon": "📄", "unit": "원"},
+          {"id": "n08", "name": "마진", "icon": "💹", "unit": "%"}
+        ]
+      },
+      "L2_biometric": {
+        "icon": "❤️",
+        "name": "생체",
+        "nodes": [
+          {"id": "n09", "name": "수면", "icon": "😴", "unit": "시간"},
+          {"id": "n10", "name": "HRV", "icon": "💓", "unit": "ms"},
+          {"id": "n11", "name": "활동량", "icon": "🏃", "unit": "분/일"},
+          {"id": "n12", "name": "연속작업", "icon": "⌨️", "unit": "시간"},
+          {"id": "n13", "name": "휴식간격", "icon": "☕", "unit": "시간"},
+          {"id": "n14", "name": "병가", "icon": "🏥", "unit": "일/월"}
+        ]
+      },
+      "L3_operations": {
+        "icon": "⚙️",
+        "name": "운영",
+        "nodes": [
+          {"id": "n15", "name": "마감", "icon": "📅", "unit": "일"},
+          {"id": "n16", "name": "지연", "icon": "⏰", "unit": "건"},
+          {"id": "n17", "name": "가동률", "icon": "⚡", "unit": "%"},
+          {"id": "n18", "name": "태스크", "icon": "📋", "unit": "건"},
+          {"id": "n19", "name": "오류율", "icon": "🐛", "unit": "%"},
+          {"id": "n20", "name": "처리속도", "icon": "🚀", "unit": "건/일"},
+          {"id": "n21", "name": "재고", "icon": "📦", "unit": "일분"},
+          {"id": "n22", "name": "의존도", "icon": "🔗", "unit": "%"}
+        ]
+      },
+      "L4_customer": {
+        "icon": "👥",
+        "name": "고객",
+        "nodes": [
+          {"id": "n23", "name": "고객수", "icon": "👤", "unit": "명"},
+          {"id": "n24", "name": "이탈률", "icon": "🚪", "unit": "%/월"},
+          {"id": "n25", "name": "NPS", "icon": "⭐", "unit": "점"},
+          {"id": "n26", "name": "반복구매", "icon": "🔄", "unit": "%"},
+          {"id": "n27", "name": "CAC", "icon": "💰", "unit": "원"},
+          {"id": "n28", "name": "LTV", "icon": "💎", "unit": "원"},
+          {"id": "n29", "name": "리드", "icon": "📥", "unit": "건/주"}
+        ]
+      },
+      "L5_external": {
+        "icon": "🌍",
+        "name": "외부",
+        "nodes": [
+          {"id": "n30", "name": "직원", "icon": "👥", "unit": "명"},
+          {"id": "n31", "name": "이직률", "icon": "🚶", "unit": "%/년"},
+          {"id": "n32", "name": "경쟁자", "icon": "🎯", "unit": "개"},
+          {"id": "n33", "name": "시장성장", "icon": "📊", "unit": "%/년"},
+          {"id": "n34", "name": "환율", "icon": "💱", "unit": "%"},
+          {"id": "n35", "name": "금리", "icon": "🏦", "unit": "%"},
+          {"id": "n36", "name": "규제", "icon": "📜", "unit": "건"}
+        ]
+      }
+    },
+    
+    "circuits": [
+      {
+        "id": "survival",
+        "name": "생존 회로",
+        "icon": "🛡️",
+        "flow": ["n03", "n01", "n05"],
+        "desc": "지출 → 현금 → 런웨이"
+      },
+      {
+        "id": "fatigue",
+        "name": "피로 회로",
+        "icon": "😵",
+        "flow": ["n18", "n09", "n10", "n16"],
+        "desc": "태스크 → 수면 → HRV → 지연"
+      },
+      {
+        "id": "repeat",
+        "name": "반복자본 회로",
+        "icon": "🔄",
+        "flow": ["n26", "n02", "n01"],
+        "desc": "반복구매 → 수입 → 현금"
+      },
+      {
+        "id": "people",
+        "name": "인력 회로",
+        "icon": "👥",
+        "flow": ["n31", "n17", "n20"],
+        "desc": "이직률 → 가동률 → 처리속도"
+      },
+      {
+        "id": "growth",
+        "name": "성장 회로",
+        "icon": "📈",
+        "flow": ["n29", "n23", "n02"],
+        "desc": "리드 → 고객수 → 수입"
+      }
+    ],
+    
+    "states": {
+      "IGNORABLE": {"pressure": "<0.3", "color": "#00d46a", "icon": "🟢"},
+      "PRESSURING": {"pressure": "0.3-0.7", "color": "#ffa500", "icon": "🟡"},
+      "IRREVERSIBLE": {"pressure": "≥0.7", "color": "#ff3b3b", "icon": "🔴"}
+    }
+  },
+  
+  "algorithms": {
+    "pressure_calculation": "pressure = (value - ideal) / (danger - ideal), clamped to [0,1]",
+    "state_determination": "if p≥0.7 → IRREVERSIBLE, elif p≥0.3 → PRESSURING, else → IGNORABLE",
+    "top1_extraction": "max(active_nodes, key=pressure)",
+    "equilibrium": "mean(pressure for node in active_nodes)",
+    "stability": "1 - (danger_count / active_count)",
+    "circuit_value": "mean(pressure for node in circuit.nodes)"
+  },
+  
+  "ui": {
+    "navigation": [
+      {"id": "home", "icon": "🏠", "name": "Home", "desc": "Top-1 카드 + 빠른 상태"},
+      {"id": "mission", "icon": "📋", "name": "Mission", "desc": "미션 관리"},
+      {"id": "trinity", "icon": "△", "name": "Trinity", "desc": "36노드 시각화"},
+      {"id": "setup", "icon": "⚙️", "name": "Setup", "desc": "데이터 연결 + 설정"},
+      {"id": "me", "icon": "👤", "name": "Me", "desc": "정체성/목표/가치/경계"}
+    ],
+    "theme": {
+      "bg": "#0a0a0a",
+      "accent": "#00d46a",
+      "danger": "#ff3b3b",
+      "warning": "#ffa500"
+    }
+  },
+  
+  "mission_types": {
+    "자동화": {"icon": "🤖", "desc": "AI가 직접 실행"},
+    "외주": {"icon": "👥", "desc": "외부 리소스에 위임"},
+    "지시": {"icon": "📋", "desc": "팀원에게 명령"}
+  },
+  
+  "data_connectors": {
+    "core": [
+      {"id": "bank", "name": "오픈뱅킹", "nodes": ["n01", "n02", "n03", "n04"]},
+      {"id": "health", "name": "Apple Health", "nodes": ["n09", "n10", "n11"]},
+      {"id": "calendar", "name": "Google Calendar", "nodes": ["n15", "n18"]}
+    ],
+    "extended": ["Notion", "Slack", "GitHub", "Figma", "Linear"]
+  },
+  
+  "settings": {
+    "goal": "string (예: 12개월 내 PMF 달성)",
+    "identity": {
+      "type": ["창업자", "프리랜서", "직장인", "학생"],
+      "stage": ["초기", "성장기", "안정기", "전환기"],
+      "industry": ["테크", "금융", "헬스케어", "교육"]
+    },
+    "values": ["생존", "성장", "건강", "가족", "자유"],
+    "boundaries": {
+      "never": ["파산", "건강 붕괴"],
+      "limits": ["부채 5천만 이하", "수면 5시간 이상", "런웨이 4주 이상"]
+    },
+    "daily_limit": "integer (1-10, 일 최대 알림)",
+    "auto_level": "integer (0-4, 자동화 수준)"
+  },
+  
+  "tech_stack": {
+    "mobile": ["React Native", "Expo", "TypeScript", "Zustand"],
+    "backend": ["FastAPI", "Python", "SQLite"],
+    "web": ["React", "Vite", "Tailwind CSS"]
+  }
+}

@@ -1,0 +1,461 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AUTUS Physics Map - Global Styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* 기본 배경 */
+  --autus-bg: #1e293b;        /* slate-800 */
+  --autus-panel: #334155;     /* slate-700 */
+  --autus-border: #475569;    /* slate-600 */
+  
+  /* 액센트 */
+  --autus-cyan: #06B6D4;      /* cyan-500 - 주요 액션 */
+  --autus-gold: #F59E0B;      /* amber-500 */
+  --autus-red: #EF4444;       /* red-500 */
+  
+  /* 상태 색상 (트래픽 라이트) */
+  --color-excellent: #10B981;  /* 에메랄드 - 80%+ */
+  --color-good: #34D399;       /* 라이트 에메랄드 - 60~80% */
+  --color-warning: #FBBF24;    /* 앰버 - 40~60% */
+  --color-danger: #F97316;     /* 오렌지 - 20~40% */
+  --color-critical: #EF4444;   /* 레드 - 20% 미만 */
+  
+  /* M2C 효율성 색상 */
+  --color-m2c-excellent: #10B981;  /* 2.0x+ */
+  --color-m2c-good: #06B6D4;       /* 1.5~2.0x */
+  --color-m2c-average: #F59E0B;    /* 1.0~1.5x */
+  --color-m2c-poor: #EF4444;       /* 1.0x 미만 */
+  
+  /* 도메인 색상 */
+  --color-domain-survive: #3B82F6;  /* 파랑 */
+  --color-domain-grow: #10B981;     /* 초록 */
+  --color-domain-connect: #8B5CF6;  /* 보라 */
+  
+  /* 불확실성 레벨 */
+  --color-confirmed: #10B981;
+  --color-estimate: #FBBF24;
+  --color-range: #64748b;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--autus-bg);
+  color: #fff;
+  overflow: hidden;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Scrollbar Styles
+   ───────────────────────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Map Container
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.map-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Panel Styles
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.panel {
+  background: rgba(30, 41, 59, 0.95);  /* 더 밝은 slate 색상 */
+  border: 1px solid rgba(100, 116, 139, 0.4);  /* 밝은 테두리 */
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.panel-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--autus-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-content {
+  padding: 16px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Badge Styles
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.badge-gold {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+}
+
+.badge-silver {
+  background: rgba(192, 192, 192, 0.2);
+  color: #c0c0c0;
+}
+
+.badge-bronze {
+  background: rgba(205, 127, 50, 0.2);
+  color: #cd7f32;
+}
+
+.badge-blue {
+  background: rgba(65, 105, 225, 0.2);
+  color: #4169e1;
+}
+
+.badge-gray {
+  background: rgba(128, 128, 128, 0.2);
+  color: #808080;
+}
+
+.badge-cyan {
+  background: rgba(0, 204, 255, 0.2);
+  color: var(--autus-cyan);
+}
+
+.badge-red {
+  background: rgba(255, 100, 100, 0.2);
+  color: var(--autus-red);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Animation Keyframes
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px currentColor);
+  }
+  50% {
+    filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 20px currentColor);
+  }
+}
+
+@keyframes flow-dash {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Utility Classes
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.text-glow-cyan {
+  text-shadow: 0 0 10px var(--autus-cyan);
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 10px var(--autus-gold);
+}
+
+.border-glow-cyan {
+  box-shadow: 0 0 10px var(--autus-cyan);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Loading Spinner
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 204, 255, 0.2);
+  border-top-color: var(--autus-cyan);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   📱 Mobile Responsive Styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 모바일 기본 설정 */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 터치 최적화 */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 헤더 모바일 */
+  .mobile-header {
+    padding: 8px 12px;
+  }
+
+  /* 사이드 패널 모바일 */
+  .mobile-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 60vh;
+    border-radius: 16px 16px 0 0;
+    z-index: 100;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+  }
+
+  .mobile-panel.open {
+    transform: translateY(0);
+  }
+
+  /* 지도 컨트롤 모바일 위치 */
+  .map-controls-mobile {
+    position: fixed;
+    bottom: 80px;
+    right: 12px;
+    z-index: 50;
+  }
+
+  /* 줌 버튼 크기 증가 */
+  .zoom-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  /* 하단 네비게이션 */
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: rgba(10, 10, 15, 0.98);
+    border-top: 1px solid var(--autus-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 8px;
+    z-index: 200;
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #666;
+    font-size: 10px;
+    gap: 4px;
+    transition: all 0.2s;
+  }
+
+  .mobile-nav-item.active {
+    color: var(--autus-cyan);
+    background: rgba(0, 204, 255, 0.1);
+  }
+
+  .mobile-nav-item svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* 카드 그리드 모바일 */
+  .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* 통계 카드 모바일 */
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-card .text-2xl, .stat-card .text-xl {
+    font-size: 1.25rem;
+  }
+
+  /* 패널 너비 */
+  aside {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* 맵 전체 화면 */
+  .map-container {
+    height: calc(100vh - 64px); /* 하단 네비 공간 확보 */
+  }
+}
+
+/* 태블릿 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  aside {
+    width: 280px !important;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* 작은 모바일 */
+@media (max-width: 375px) {
+  .text-lg {
+    font-size: 1rem;
+  }
+
+  .text-xl {
+    font-size: 1.125rem;
+  }
+
+  .p-4 {
+    padding: 12px;
+  }
+
+  .gap-4 {
+    gap: 8px;
+  }
+}
+
+/* 가로 모드 모바일 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .mobile-bottom-nav {
+    height: 48px;
+  }
+
+  .mobile-nav-item {
+    flex-direction: row;
+    font-size: 11px;
+  }
+
+  .map-container {
+    height: calc(100vh - 48px);
+  }
+}
+
+/* 다크 모드 미디어 쿼리 (시스템 설정 따름) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* 터치 디바이스 호버 효과 제거 */
+@media (hover: none) {
+  button:hover, a:hover {
+    background-color: inherit;
+  }
+
+  .hover\:bg-gray-800:hover {
+    background-color: transparent;
+  }
+}
+
+/* 접근성 - 모션 감소 선호 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-pulse, .animate-spin, .animate-ping {
+    animation: none;
+  }
+}
+
+/* Safe Area (노치 디바이스) */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .mobile-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-panel {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+

@@ -1,0 +1,75 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🗄️ AUTUS - 자동 백업 스케줄러
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# 일일/주간 자동 백업
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: Scheduled Backup
+
+on:
+  schedule:
+    # 매일 오전 3시 (UTC) = 한국 시간 낮 12시
+    - cron: '0 3 * * *'
+    # 매주 일요일 오전 4시 (UTC) = 한국 시간 오후 1시
+    - cron: '0 4 * * 0'
+  
+  workflow_dispatch:
+    inputs:
+      backup_type:
+        description: '백업 유형'
+        required: true
+        default: 'daily'
+        type: choice
+        options:
+          - daily
+          - weekly
+          - full
+
+jobs:
+  backup:
+    name: Run Backup
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Determine Backup Type
+        id: backup-type
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "type=${{ github.event.inputs.backup_type }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.schedule }}" == "0 4 * * 0" ]]; then
+            echo "type=weekly" >> $GITHUB_OUTPUT
+          else
+            echo "type=daily" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🗄️ Run Backup Script
+        run: |
+          chmod +x scripts/backup.sh
+          ./scripts/backup.sh ${{ steps.backup-type.outputs.type }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      - name: 📤 Upload Backup Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ steps.backup-type.outputs.type }}-${{ github.run_number }}
+          path: backups/
+          retention-days: 30
+
+      - name: ☁️ Upload to S3 (Optional)
+        if: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl private --follow-symlinks
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          SOURCE_DIR: 'backups/'
+          DEST_DIR: 'autus-backups/'

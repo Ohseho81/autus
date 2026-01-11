@@ -1,0 +1,203 @@
+{
+  "_meta": {
+    "name": "AUTUS Sovereign Priors",
+    "version": "1.0.0",
+    "description": "도메인별 기본 Prior 파라미터",
+    "immutable": true,
+    "note": "산업 벤치마크 기반 초기값"
+  },
+
+  "priors": {
+    "t01": {
+      "type_id": "t01",
+      "type_name": "Academy",
+      "type_name_ko": "학원",
+      "parameters": {
+        "base_churn": 0.03,
+        "loyalty_decay": 0.02,
+        "base_new_rate": 0.05,
+        "referral_rate": 0.02,
+        "loyalty_churn_effect": 2.0,
+        "competition_churn_effect": 1.0,
+        "dependency_loyalty_effect": 0.01,
+        "fee_rate": 0.025,
+        "natural_concentration": 0.005
+      },
+      "benchmarks": {
+        "avg_revenue_per_customer": 400000,
+        "avg_churn_rate": 0.03,
+        "avg_margin": 0.20,
+        "avg_teacher_salary": 4000000,
+        "avg_loyalty": 0.75,
+        "avg_dependency": 0.35
+      }
+    },
+
+    "t03": {
+      "type_id": "t03",
+      "type_name": "Restaurant",
+      "type_name_ko": "식당",
+      "parameters": {
+        "base_churn": 0.15,
+        "loyalty_decay": 0.05,
+        "base_new_rate": 0.10,
+        "referral_rate": 0.03,
+        "review_effect": 0.15,
+        "turnover_rate": 0.08,
+        "food_cost_ratio": 0.35,
+        "labor_cost_ratio": 0.30
+      },
+      "benchmarks": {
+        "avg_ticket": 15000,
+        "avg_daily_customers": 100,
+        "avg_margin": 0.10,
+        "avg_review_score": 4.2,
+        "avg_table_turnover": 2.5
+      }
+    },
+
+    "t04": {
+      "type_id": "t04",
+      "type_name": "Consulting",
+      "type_name_ko": "컨설팅",
+      "parameters": {
+        "base_churn": 0.08,
+        "loyalty_decay": 0.03,
+        "base_new_rate": 0.06,
+        "referral_rate": 0.10,
+        "utilization_target": 0.70,
+        "rate_increase_effect": -0.02
+      },
+      "benchmarks": {
+        "avg_project_value": 50000000,
+        "avg_utilization": 0.65,
+        "avg_margin": 0.30,
+        "avg_project_duration_months": 3
+      }
+    },
+
+    "t19": {
+      "type_id": "t19",
+      "type_name": "Ecommerce",
+      "type_name_ko": "이커머스",
+      "parameters": {
+        "base_churn": 0.08,
+        "conversion_rate": 0.02,
+        "cart_abandonment": 0.70,
+        "repeat_purchase_rate": 0.25,
+        "cac_payback_months": 6,
+        "ltv_cac_target": 3.0
+      },
+      "benchmarks": {
+        "avg_order_value": 50000,
+        "avg_conversion": 0.025,
+        "avg_cac": 20000,
+        "avg_ltv": 150000
+      }
+    },
+
+    "t40": {
+      "type_id": "t40",
+      "type_name": "ProfessionalSaaS",
+      "type_name_ko": "전문SaaS",
+      "parameters": {
+        "monthly_churn": 0.03,
+        "expansion_rate": 0.02,
+        "contraction_rate": 0.01,
+        "viral_coefficient": 0.1,
+        "cac_payback_months": 12,
+        "ltv_cac_target": 3.0
+      },
+      "benchmarks": {
+        "avg_arpu": 100000,
+        "avg_churn": 0.03,
+        "avg_nrr": 1.05,
+        "avg_ltv_cac": 3.0
+      }
+    },
+
+    "t44": {
+      "type_id": "t44",
+      "type_name": "EnterpriseSaaS",
+      "type_name_ko": "엔터프라이즈SaaS",
+      "parameters": {
+        "monthly_churn": 0.02,
+        "expansion_rate": 0.03,
+        "contraction_rate": 0.005,
+        "viral_coefficient": 0.05,
+        "cac_payback_months": 18,
+        "ltv_cac_target": 4.0
+      },
+      "benchmarks": {
+        "avg_arpu": 1000000,
+        "avg_churn": 0.02,
+        "avg_nrr": 1.15,
+        "avg_ltv_cac": 4.0
+      }
+    },
+
+    "t64": {
+      "type_id": "t64",
+      "type_name": "Freelancer",
+      "type_name_ko": "프리랜서",
+      "parameters": {
+        "base_churn": 0.05,
+        "pipeline_decay": 0.10,
+        "utilization_target": 0.70,
+        "referral_rate": 0.05,
+        "rate_increase_effect": -0.02,
+        "reputation_effect": 0.10
+      },
+      "benchmarks": {
+        "avg_project_value": 5000000,
+        "avg_utilization": 0.65,
+        "avg_rate_increase": 0.05
+      }
+    },
+
+    "t67": {
+      "type_id": "t67",
+      "type_name": "Consumer",
+      "type_name_ko": "소비자",
+      "parameters": {
+        "savings_rate_target": 0.20,
+        "investment_return": 0.05,
+        "inflation_rate": 0.03,
+        "emergency_fund_months": 6
+      },
+      "benchmarks": {
+        "avg_savings_rate": 0.15,
+        "avg_debt_ratio": 0.30
+      }
+    },
+
+    "t71": {
+      "type_id": "t71",
+      "type_name": "Investor",
+      "type_name_ko": "투자자",
+      "parameters": {
+        "expected_return": 0.08,
+        "risk_tolerance": 0.15,
+        "rebalance_frequency_months": 12,
+        "diversification_target": 0.30
+      },
+      "benchmarks": {
+        "avg_portfolio_return": 0.07,
+        "avg_volatility": 0.15
+      }
+    },
+
+    "_default": {
+      "type_id": "_default",
+      "type_name": "Default",
+      "type_name_ko": "기본",
+      "parameters": {
+        "base_churn": 0.05,
+        "loyalty_decay": 0.02,
+        "base_new_rate": 0.05,
+        "referral_rate": 0.02
+      },
+      "benchmarks": {}
+    }
+  }
+}

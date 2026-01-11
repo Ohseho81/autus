@@ -1,68 +1,37 @@
 # AUTUS Backend Dockerfile
+# Python 3.11 기반 FastAPI 서버
+
 FROM python:3.11-slim
 
-# Set working directory
-WORKDIR /app
+# 환경 변수
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# 시스템 의존성
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first (for caching)
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Expose port
-EXPOSE 8000
-
-# Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-
-
-
-
-
-# AUTUS Backend Dockerfile
-FROM python:3.11-slim
-
-# Set working directory
+# 작업 디렉토리
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first (for caching)
+# 의존성 설치
 COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
+# 소스 코드 복사
 COPY . .
 
-# Expose port
+# 포트 노출
 EXPOSE 8000
 
-# Run the application
+# 헬스체크
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# 실행
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-
-
-
-
-
-
-
-
-
-
-

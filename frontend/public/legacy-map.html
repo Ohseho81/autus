@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS Physics Map - Global 350</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0f;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+            background: #0a0a0f;
+            /* ⚡ GPU 가속 활성화 */
+            will-change: transform;
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+        /* ⚡ Leaflet 성능 최적화 CSS */
+        .leaflet-container {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ⚡⚡⚡ 극한 성능 CSS */
+        .leaflet-tile {
+            will-change: transform;
+            image-rendering: optimizeSpeed;
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
+        }
+
+        .leaflet-zoom-anim .leaflet-zoom-animated {
+            transition: none !important;
+            /* 줌 애니메이션 완전 제거 */
+        }
+
+        .leaflet-pan-anim .leaflet-tile,
+        .leaflet-zoom-anim .leaflet-zoom-animated {
+            will-change: transform;
+            transition: none !important;
+        }
+
+        .leaflet-marker-icon {
+            will-change: transform;
+            transition: none !important;
+        }
+
+        /* 🌟 T0 노드 glow 효과 */
+        .t0-glow {
+            filter: drop-shadow(0 0 8px #FFD700) drop-shadow(0 0 16px #FFD700);
+        }
+
+        .fast-tiles {
+            image-rendering: optimizeSpeed;
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+        /* 모든 Leaflet 요소 트랜지션 제거 (모션 라인 제외) */
+        .leaflet-container * {
+            transition: none !important;
+        }
+
+        /* 버튼만 미세한 트랜지션 유지 */
+        .btn,
+        .filter-btn {
+            transition: background-color 0.05s, color 0.05s !important;
+            will-change: background-color, color;
+        }
+
+        /* 🌊 모션 흐름 애니메이션 */
+        @keyframes flowAnimation {
+            0% {
+                stroke-dashoffset: 24;
+            }
+
+            100% {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes flowAnimationReverse {
+            0% {
+                stroke-dashoffset: 0;
+            }
+
+            100% {
+                stroke-dashoffset: 24;
+            }
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 2px currentColor);
+            }
+
+            50% {
+                filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 0 10px currentColor);
+            }
+        }
+
+        /* 모션 라인 애니메이션 클래스 */
+        .motion-flow {
+            stroke-dasharray: 12 12 !important;
+            animation: flowAnimation 0.8s linear infinite !important;
+        }
+
+        .motion-flow-fast {
+            stroke-dasharray: 8 8 !important;
+            animation: flowAnimation 0.4s linear infinite !important;
+        }
+
+        .motion-flow-slow {
+            stroke-dasharray: 16 8 !important;
+            animation: flowAnimation 1.2s linear infinite !important;
+        }
+
+        /* 대규모 흐름 ($100B+) - 빠른 흐름 + 글로우 */
+        .motion-mega {
+            stroke-dasharray: 6 6 !important;
+            animation: flowAnimation 0.3s linear infinite, pulseGlow 2s ease-in-out infinite !important;
+        }
+
+        /* 입자 효과 (추가 레이어) */
+        @keyframes particleMove {
+            0% {
+                offset-distance: 0%;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                offset-distance: 100%;
+                opacity: 0;
+            }
+        }
+
+        .motion-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* 레전드 내 애니메이션 */
+        .legend-flow-mega {
+            animation: flowAnimation 0.3s linear infinite;
+        }
+
+        .legend-flow-fast {
+            animation: flowAnimation 0.4s linear infinite;
+        }
+
+        .legend-flow {
+            animation: flowAnimation 0.8s linear infinite;
+        }
+
+        .legend-flow-slow {
+            animation: flowAnimation 1.2s linear infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes particlePulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 1;
+            }
+        }
+
+        .flow-particle {
+            pointer-events: none;
+        }
+
+        /* Leaflet SVG path에 애니메이션 적용 */
+        .leaflet-overlay-pane svg path.motion-flow {
+            stroke-dasharray: 12 12;
+            animation: flowAnimation 0.8s linear infinite;
+        }
+
+        .leaflet-overlay-pane svg path.motion-flow-fast {
+            stroke-dasharray: 8 8;
+            animation: flowAnimation 0.4s linear infinite;
+        }
+
+        .leaflet-overlay-pane svg path.motion-flow-slow {
+            stroke-dasharray: 16 8;
+            animation: flowAnimation 1.2s linear infinite;
+        }
+
+        .leaflet-overlay-pane svg path.motion-mega {
+            stroke-dasharray: 6 6;
+            animation: flowAnimation 0.3s linear infinite, pulseGlow 2s ease-in-out infinite;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 10px 20px;
+            background: rgba(10, 10, 15, 0.95);
+            border-bottom: 1px solid #222;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #00ccff;
+        }
+
+        .logo-sub {
+            font-size: 9px;
+            color: #555;
+            letter-spacing: 2px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00ccff;
+        }
+
+        .stat-label {
+            font-size: 9px;
+            color: #666;
+        }
+
+        .search-box {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        .search-input {
+            width: 300px;
+            padding: 10px 15px;
+            background: rgba(20, 20, 30, 0.95);
+            border: 1px solid #333;
+            border-radius: 20px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #00ccff;
+        }
+
+        .search-input::placeholder {
+            color: #555;
+        }
+
+        .filters {
+            position: fixed;
+            top: 60px;
+            left: 15px;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 1000;
+            color: #fff;
+            width: 170px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        .filter-title {
+            font-size: 10px;
+            color: #666;
+            letter-spacing: 1px;
+            margin: 8px 0 5px;
+        }
+
+        .filter-btn {
+            display: inline-block;
+            padding: 3px 6px;
+            margin: 2px;
+            background: #1a1a25;
+            border: 1px solid #333;
+            border-radius: 3px;
+            color: #888;
+            font-size: 9px;
+            cursor: pointer;
+        }
+
+        .filter-btn:hover {
+            border-color: #00ccff;
+            color: #fff;
+        }
+
+        .filter-btn.active {
+            background: #00ccff;
+            color: #000;
+            border-color: #00ccff;
+        }
+
+        .legend {
+            position: fixed;
+            bottom: 80px;
+            left: 15px;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 1000;
+            color: #fff;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 4px 0;
+            font-size: 10px;
+        }
+
+        .legend-dot {
+            border-radius: 50%;
+        }
+
+        .zoom-box {
+            position: fixed;
+            top: 60px;
+            right: 15px;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 1000;
+            color: #fff;
+            text-align: center;
+        }
+
+        .zoom-level {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ccff;
+        }
+
+        .zoom-label {
+            font-size: 9px;
+            color: #666;
+        }
+
+        .detail-panel {
+            position: fixed;
+            top: 60px;
+            right: 15px;
+            width: 300px;
+            max-height: calc(100vh - 100px);
+            background: rgba(10, 10, 15, 0.98);
+            border: 1px solid #222;
+            border-radius: 8px;
+            z-index: 1001;
+            color: #fff;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .detail-panel.show {
+            display: block;
+        }
+
+        .detail-header {
+            padding: 12px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .detail-close {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .detail-flag {
+            font-size: 32px;
+        }
+
+        .detail-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .detail-title {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .detail-tier {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .detail-section {
+            padding: 12px;
+            border-bottom: 1px solid #222;
+        }
+
+        .detail-section-title {
+            font-size: 9px;
+            color: #666;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+            font-size: 11px;
+        }
+
+        .detail-label {
+            color: #888;
+        }
+
+        .detail-value {
+            font-weight: 500;
+        }
+
+        .detail-value.highlight {
+            color: #00ff88;
+            font-size: 18px;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 1000;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90%;
+        }
+
+        .btn {
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid #333;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        .btn:hover {
+            background: #00ccff;
+            color: #000;
+        }
+
+        .btn.active {
+            background: #00ccff;
+            color: #000;
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: rgba(15, 15, 20, 0.98);
+            color: #fff;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .leaflet-popup-tip {
+            background: rgba(15, 15, 20, 0.98);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <div class="logo">AUTUS <span>Physics Map</span></div>
+            <div class="logo-sub">GLOBAL 350 · REAL VALUE</div>
+        </div>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="totalValue">$0</div>
+                <div class="stat-label">TOTAL RV</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="visibleCount">0</div>
+                <div class="stat-label">VISIBLE</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="totalCount">350</div>
+                <div class="stat-label">NODES</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="motionCount">0</div>
+                <div class="stat-label">MOTIONS</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="search-box">
+        <input type="text" class="search-input" id="searchInput"
+            placeholder="🔍 Search node (name, country, sector...)">
+    </div>
+
+    <div class="filters">
+        <div class="filter-title">TIER</div>
+        <button class="filter-btn active" data-filter="tier" data-value="all">All</button>
+        <button class="filter-btn" data-filter="tier" data-value="T0">T0 (12)</button>
+        <button class="filter-btn" data-filter="tier" data-value="T1">T1 (144)</button>
+        <button class="filter-btn" data-filter="tier" data-value="T2">T2</button>
+        <button class="filter-btn" data-filter="tier" data-value="T3">T3</button>
+
+        <div class="filter-title">SECTOR</div>
+        <button class="filter-btn active" data-filter="sector" data-value="all">All</button>
+        <button class="filter-btn" data-filter="sector" data-value="government">Govt</button>
+        <button class="filter-btn" data-filter="sector" data-value="central_bank">CB</button>
+        <button class="filter-btn" data-filter="sector" data-value="finance">Finance</button>
+        <button class="filter-btn" data-filter="sector" data-value="tech">Tech</button>
+        <button class="filter-btn" data-filter="sector" data-value="energy">Energy</button>
+        <button class="filter-btn" data-filter="sector" data-value="industry">Industry</button>
+        <button class="filter-btn" data-filter="sector" data-value="consumer">Consumer</button>
+        <button class="filter-btn" data-filter="sector" data-value="media">Media</button>
+        <button class="filter-btn" data-filter="sector" data-value="royal">Royal</button>
+
+        <div class="filter-title">REGION</div>
+        <button class="filter-btn active" data-filter="region" data-value="all">All</button>
+        <button class="filter-btn" data-filter="region" data-value="na">N.America</button>
+        <button class="filter-btn" data-filter="region" data-value="eu">Europe</button>
+        <button class="filter-btn" data-filter="region" data-value="asia">Asia</button>
+        <button class="filter-btn" data-filter="region" data-value="mena">MENA</button>
+        <button class="filter-btn" data-filter="region" data-value="latam">LatAm</button>
+        <button class="filter-btn" data-filter="region" data-value="africa">Africa</button>
+    </div>
+
+    <div class="legend">
+        <div style="font-size:9px;color:#666;margin-bottom:6px;letter-spacing:1px;">12진법 TIER</div>
+        <div class="legend-item">
+            <div class="legend-dot" style="width:18px;height:18px;background:#FFD700;box-shadow:0 0 8px #FFD700;"></div>
+            T0 (12개)
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="width:12px;height:12px;background:#00AAFF;"></div>T1 (144개)
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="width:8px;height:8px;background:#00CC66;"></div>T2 (1,728개)
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="width:5px;height:5px;background:#666;"></div>T3 (나머지)
+        </div>
+
+        <div
+            style="font-size:9px;color:#666;margin:10px 0 6px;letter-spacing:1px;border-top:1px solid #333;padding-top:8px;">
+            MOTION FLOW</div>
+        <div class="legend-item">
+            <svg width="24" height="6" style="overflow:visible;">
+                <line x1="0" y1="3" x2="24" y2="3" stroke="#FFD700" stroke-width="4" stroke-dasharray="6 6"
+                    class="legend-flow-mega" />
+            </svg>
+            $100B+ (⚡빠름)
+        </div>
+        <div class="legend-item">
+            <svg width="24" height="5" style="overflow:visible;">
+                <line x1="0" y1="2.5" x2="24" y2="2.5" stroke="#FF6464" stroke-width="3" stroke-dasharray="8 8"
+                    class="legend-flow-fast" />
+            </svg>
+            $10B+ (빠름)
+        </div>
+        <div class="legend-item">
+            <svg width="24" height="4" style="overflow:visible;">
+                <line x1="0" y1="2" x2="24" y2="2" stroke="#FFA500" stroke-width="2" stroke-dasharray="12 12"
+                    class="legend-flow" />
+            </svg>
+            $1B+ (보통)
+        </div>
+        <div class="legend-item">
+            <svg width="24" height="3" style="overflow:visible;">
+                <line x1="0" y1="1.5" x2="24" y2="1.5" stroke="#00CCFF" stroke-width="1.5" stroke-dasharray="16 8"
+                    class="legend-flow-slow" />
+            </svg>
+            $100M+ (느림)
+        </div>
+        <div class="legend-item" style="margin-top:6px;color:#888;">
+            <span style="font-size:12px;">▶</span> 화살표 = 흐름 방향
+        </div>
+        <div class="legend-item" style="color:#555;font-size:9px;">
+            <span style="animation: pulse 1s infinite;">●</span> 점선 = 실시간 흐름
+        </div>
+    </div>
+
+    <div class="zoom-box" id="zoomBox">
+        <div class="zoom-level" id="zoomLevel">3</div>
+        <div class="zoom-label" id="zoomLabel">World</div>
+    </div>
+
+    <div class="detail-panel" id="detailPanel">
+        <div class="detail-header">
+            <div>
+                <div class="detail-flag" id="detailFlag">🌍</div>
+                <div class="detail-name" id="detailName">-</div>
+                <div class="detail-title" id="detailTitle">-</div>
+                <div class="detail-tier" id="detailTier">T1</div>
+            </div>
+            <button class="detail-close" onclick="closeDetail()">×</button>
+        </div>
+        <div class="detail-section">
+            <div class="detail-section-title">REAL VALUE</div>
+            <div class="detail-row">
+                <span class="detail-label">Real Value</span>
+                <span class="detail-value highlight" id="detailRV">$0</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Net Assets</span>
+                <span class="detail-value" id="detailNA">$0</span>
+            </div>
+        </div>
+        <div class="detail-section">
+            <div class="detail-section-title">INFO</div>
+            <div class="detail-row">
+                <span class="detail-label">Sector</span>
+                <span class="detail-value" id="detailSector">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Region</span>
+                <span class="detail-value" id="detailRegion">-</span>
+            </div>
+            <div id="detailDesc" style="margin-top:8px;font-size:11px;color:#aaa;"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn active" id="btnMotion">Motion</button>
+        <button class="btn" id="btnLabels">Labels</button>
+        <button class="btn" onclick="goTo(38.9,-77,4)">🇺🇸 USA</button>
+        <button class="btn" onclick="goTo(51.5,-0.1,5)">🇬🇧 UK</button>
+        <button class="btn" onclick="goTo(48.8,2.3,5)">🇫🇷 EU</button>
+        <button class="btn" onclick="goTo(39.9,116,4)">🇨🇳 China</button>
+        <button class="btn" onclick="goTo(35.6,139.7,5)">🇯🇵 Japan</button>
+        <button class="btn" onclick="goTo(28.6,77.2,5)">🇮🇳 India</button>
+        <button class="btn" onclick="goTo(24.7,46.7,5)">🇸🇦 MENA</button>
+        <button class="btn" onclick="goTo(20,0,2)">🌍 World</button>
+    </div>
+
+    <div id="map"></div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // CONFIG
+        // ═══════════════════════════════════════════════════════════════
+
+        // 🔢 12진법 티어 시스템: T0(12) → T1(144) → T2(1728)
+        const TIERS = {
+            T0: { color: '#FFD700', size: 22, minZoom: 1, glow: true },   // 금색 - 12개
+            T1: { color: '#00AAFF', size: 14, minZoom: 2, glow: false },  // 파랑 - 144개
+            T2: { color: '#00CC66', size: 9, minZoom: 4, glow: false },   // 초록 - 1728개
+            T3: { color: '#666666', size: 6, minZoom: 6, glow: false }    // 회색 - 나머지
+        };
+
+        const state = {
+            nodes: [],
+            motions: [],
+            markers: {},
+            showMotion: true,
+            showLabels: false,
+            filters: { tier: 'all', sector: 'all', region: 'all' },
+            selectedNode: null,
+            // ⚡ 성능 최적화 플래그
+            isRendering: false,
+            lastZoom: 3,
+            nodeIndex: {},        // ID → Node 빠른 조회용
+            visibleCache: null,   // 보이는 노드 캐시
+            cacheZoom: null       // 캐시된 줌 레벨
+        };
+
+        // ═══════════════════════════════════════════════════════════════
+        // UTILS
+        // ═══════════════════════════════════════════════════════════════
+
+        function formatValue(v) {
+            if (v >= 1e12) return '$' + (v / 1e12).toFixed(1) + 'T';
+            if (v >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B';
+            if (v >= 1e6) return '$' + (v / 1e6).toFixed(0) + 'M';
+            return '$' + Math.round(v).toLocaleString();
+        }
+
+        // 🔢 12진법 티어 계산: T0(12) → T1(144) → T2(1728)
+        function calcTier(rv, rank = 999) {
+            // rank 기반 (순위로 정확한 12진법 적용)
+            if (rank <= 12) return 'T0';      // 상위 12개
+            if (rank <= 156) return 'T1';     // 12 + 144 = 156
+            if (rank <= 1884) return 'T2';    // 156 + 1728 = 1884
+            return 'T3';
+        }
+
+        // rv 기반 대체 (rank 없을 때)
+        function calcTierByRV(rv) {
+            if (rv >= 1e12) return 'T0';      // $1T+ (조 달러)
+            if (rv >= 50e9) return 'T1';      // $50B+ (500억+)
+            if (rv >= 1e9) return 'T2';       // $1B+ (10억+)
+            return 'T3';
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // GLOBAL 350 DATA
+        // ═══════════════════════════════════════════════════════════════
+
+        function loadNodes() {
+            const raw = [
+                // ═══════════════════════════════════════════════════════════════
+                // TIER 1: SOVEREIGN POWER ($500B+ Real Value) - 15 nodes
+                // ═══════════════════════════════════════════════════════════════
+
+                // Superpowers
+                { id: 'xi', name: 'Xi Jinping', title: 'President of China', sector: 'government', flag: '🇨🇳', lat: 39.9042, lng: 116.4074, region: 'asia', rv: 20e12, na: 1e9, desc: 'GDP $18T, 1.4B population, nuclear, BRI' },
+                { id: 'trump', name: 'Donald Trump', title: 'President of USA', sector: 'government', flag: '🇺🇸', lat: 38.8977, lng: -77.0365, region: 'na', rv: 8e12, na: 2.5e9, desc: 'GDP $28T, military #1, reserve currency' },
+                { id: 'putin', name: 'Vladimir Putin', title: 'President of Russia', sector: 'government', flag: '🇷🇺', lat: 55.7558, lng: 37.6173, region: 'eu', rv: 3e12, na: 200e9, desc: 'Nuclear #1, energy, largest territory' },
+
+                // Major Powers
+                { id: 'modi', name: 'Narendra Modi', title: 'PM of India', sector: 'government', flag: '🇮🇳', lat: 28.6139, lng: 77.2090, region: 'asia', rv: 800e9, na: 0.1e9, desc: 'GDP $3.7T, 1.4B population, nuclear' },
+                { id: 'starmer', name: 'Keir Starmer', title: 'PM of UK', sector: 'government', flag: '🇬🇧', lat: 51.5074, lng: -0.1278, region: 'eu', rv: 600e9, na: 0.01e9, desc: 'GDP $3.1T, nuclear, financial center' },
+
+                // Oil Royals
+                { id: 'mbs', name: 'Mohammed bin Salman', title: 'Crown Prince Saudi', sector: 'royal', flag: '🇸🇦', lat: 24.7136, lng: 46.6753, region: 'mena', rv: 700e9, na: 20e9, desc: 'Oil reserves, PIF $700B, OPEC leader' },
+                { id: 'mbz', name: 'Mohammed bin Zayed', title: 'President UAE', sector: 'royal', flag: '🇦🇪', lat: 24.4539, lng: 54.3773, region: 'mena', rv: 600e9, na: 30e9, desc: 'ADIA $900B, Dubai hub, diversified' },
+
+                // Dictators with Nukes
+                { id: 'kim', name: 'Kim Jong Un', title: 'Supreme Leader DPRK', sector: 'government', flag: '🇰🇵', lat: 39.0392, lng: 125.7625, region: 'asia', rv: 500e9, na: 5e9, desc: 'Nuclear 40+, total control, threat value' },
+
+                // Central Banks
+                { id: 'powell', name: 'Jerome Powell', title: 'Fed Chairman', sector: 'central_bank', flag: '🇺🇸', lat: 38.8927, lng: -77.0455, region: 'na', rv: 2e12, na: 55e6, desc: '$8.9T balance sheet, interest rates' },
+                { id: 'yi_gang', name: 'Pan Gongsheng', title: 'PBOC Governor', sector: 'central_bank', flag: '🇨🇳', lat: 39.9042, lng: 116.3974, region: 'asia', rv: 1.5e12, na: 0, desc: '$5.5T reserves, yuan control' },
+                { id: 'lagarde', name: 'Christine Lagarde', title: 'ECB President', sector: 'central_bank', flag: '🇪🇺', lat: 50.1109, lng: 8.6821, region: 'eu', rv: 800e9, na: 0.01e9, desc: '€4.8T balance sheet, eurozone rates' },
+                { id: 'ueda', name: 'Kazuo Ueda', title: 'BOJ Governor', sector: 'central_bank', flag: '🇯🇵', lat: 35.6762, lng: 139.7669, region: 'asia', rv: 700e9, na: 0, desc: '¥750T balance sheet, YCC' },
+                { id: 'bailey', name: 'Andrew Bailey', title: 'BOE Governor', sector: 'central_bank', flag: '🇬🇧', lat: 51.5144, lng: -0.0887, region: 'eu', rv: 500e9, na: 0, desc: '£1T balance sheet, sterling rates' },
+
+                // Asset Managers
+                { id: 'fink', name: 'Larry Fink', title: 'BlackRock CEO', sector: 'finance', flag: '🇺🇸', lat: 40.7589, lng: -73.9769, region: 'na', rv: 500e9, na: 1e9, desc: '$10T AUM, index funds, ESG power' },
+                { id: 'buckley', name: 'Tim Buckley', title: 'Vanguard CEO', sector: 'finance', flag: '🇺🇸', lat: 40.0379, lng: -75.5261, region: 'na', rv: 400e9, na: 0.1e9, desc: '$8T AUM, passive investing pioneer' },
+
+                // ═══════════════════════════════════════════════════════════════
+                // TIER 2: CONNECTORS ($10B-500B) - 85 nodes
+                // ═══════════════════════════════════════════════════════════════
+
+                // G20 Leaders
+                { id: 'macron', name: 'Emmanuel Macron', title: 'President France', sector: 'government', flag: '🇫🇷', lat: 48.8566, lng: 2.3522, region: 'eu', rv: 400e9, na: 0.01e9, desc: 'GDP $2.9T, nuclear, UN Security Council' },
+                { id: 'scholz', name: 'Olaf Scholz', title: 'Chancellor Germany', sector: 'government', flag: '🇩🇪', lat: 52.5200, lng: 13.4050, region: 'eu', rv: 350e9, na: 0.01e9, desc: 'GDP $4.2T, EU largest economy' },
+                { id: 'kishida', name: 'Shigeru Ishiba', title: 'PM Japan', sector: 'government', flag: '🇯🇵', lat: 35.6762, lng: 139.6503, region: 'asia', rv: 300e9, na: 0.01e9, desc: 'GDP $4.2T, US alliance, tech' },
+                { id: 'meloni', name: 'Giorgia Meloni', title: 'PM Italy', sector: 'government', flag: '🇮🇹', lat: 41.9028, lng: 12.4964, region: 'eu', rv: 200e9, na: 0.01e9, desc: 'GDP $2.1T, G7 member' },
+                { id: 'trudeau', name: 'Justin Trudeau', title: 'PM Canada', sector: 'government', flag: '🇨🇦', lat: 45.4215, lng: -75.6972, region: 'na', rv: 180e9, na: 0.01e9, desc: 'GDP $2.1T, resources, G7' },
+                { id: 'albanese', name: 'Anthony Albanese', title: 'PM Australia', sector: 'government', flag: '🇦🇺', lat: -35.2809, lng: 149.1300, region: 'asia', rv: 150e9, na: 0.01e9, desc: 'GDP $1.7T, resources, Five Eyes' },
+                { id: 'lula', name: 'Lula da Silva', title: 'President Brazil', sector: 'government', flag: '🇧🇷', lat: -15.7942, lng: -47.8822, region: 'latam', rv: 150e9, na: 0.01e9, desc: 'GDP $2T, BRICS, resources' },
+                { id: 'amlo', name: 'Claudia Sheinbaum', title: 'President Mexico', sector: 'government', flag: '🇲🇽', lat: 19.4326, lng: -99.1332, region: 'latam', rv: 120e9, na: 0.01e9, desc: 'GDP $1.5T, USMCA, manufacturing' },
+                { id: 'erdogan', name: 'Recep Erdogan', title: 'President Turkey', sector: 'government', flag: '🇹🇷', lat: 39.9334, lng: 32.8597, region: 'mena', rv: 100e9, na: 0.01e9, desc: 'GDP $1T, NATO, strategic location' },
+                { id: 'ramaphosa', name: 'Cyril Ramaphosa', title: 'President S.Africa', sector: 'government', flag: '🇿🇦', lat: -25.7461, lng: 28.1881, region: 'africa', rv: 80e9, na: 0.5e9, desc: 'GDP $400B, BRICS, minerals' },
+                { id: 'yoon', name: 'Yoon Suk-yeol', title: 'President S.Korea', sector: 'government', flag: '🇰🇷', lat: 37.5665, lng: 126.9780, region: 'asia', rv: 150e9, na: 0.01e9, desc: 'GDP $1.7T, tech, semiconductors' },
+                { id: 'jokowi', name: 'Prabowo Subianto', title: 'President Indonesia', sector: 'government', flag: '🇮🇩', lat: -6.1751, lng: 106.8650, region: 'asia', rv: 100e9, na: 0.01e9, desc: 'GDP $1.4T, 270M population, resources' },
+                { id: 'milei', name: 'Javier Milei', title: 'President Argentina', sector: 'government', flag: '🇦🇷', lat: -34.6037, lng: -58.3816, region: 'latam', rv: 50e9, na: 0.01e9, desc: 'GDP $640B, reform agenda' },
+
+                // Key Non-G20 Leaders
+                { id: 'netanyahu', name: 'Benjamin Netanyahu', title: 'PM Israel', sector: 'government', flag: '🇮🇱', lat: 31.7683, lng: 35.2137, region: 'mena', rv: 100e9, na: 0.01e9, desc: 'Nuclear, US ally, tech hub' },
+                { id: 'khamenei', name: 'Ali Khamenei', title: 'Supreme Leader Iran', sector: 'government', flag: '🇮🇷', lat: 35.6892, lng: 51.3890, region: 'mena', rv: 80e9, na: 100e9, desc: 'Oil, nuclear program, regional influence' },
+                { id: 'zelensky', name: 'Volodymyr Zelensky', title: 'President Ukraine', sector: 'government', flag: '🇺🇦', lat: 50.4501, lng: 30.5234, region: 'eu', rv: 50e9, na: 0.01e9, desc: 'War economy, Western support' },
+                { id: 'orban', name: 'Viktor Orbán', title: 'PM Hungary', sector: 'government', flag: '🇭🇺', lat: 47.4979, lng: 19.0402, region: 'eu', rv: 30e9, na: 0.01e9, desc: 'EU disruptor, Russia ties' },
+                { id: 'tusk', name: 'Donald Tusk', title: 'PM Poland', sector: 'government', flag: '🇵🇱', lat: 52.2297, lng: 21.0122, region: 'eu', rv: 50e9, na: 0.01e9, desc: 'GDP $700B, NATO frontline' },
+                { id: 'rutte', name: 'Mark Rutte', title: 'NATO Secretary', sector: 'government', flag: '🇳🇱', lat: 50.8503, lng: 4.3517, region: 'eu', rv: 100e9, na: 0.01e9, desc: 'NATO leadership, defense alliance' },
+                { id: 'marcos', name: 'Bongbong Marcos', title: 'President Philippines', sector: 'government', flag: '🇵🇭', lat: 14.5995, lng: 120.9842, region: 'asia', rv: 40e9, na: 0.5e9, desc: 'GDP $400B, US ally, South China Sea' },
+                { id: 'sisi', name: 'Abdel Fattah el-Sisi', title: 'President Egypt', sector: 'government', flag: '🇪🇬', lat: 30.0444, lng: 31.2357, region: 'mena', rv: 40e9, na: 0.01e9, desc: 'Suez Canal, 100M population' },
+
+                // More Royals
+                { id: 'tamim', name: 'Sheikh Tamim', title: 'Emir of Qatar', sector: 'royal', flag: '🇶🇦', lat: 25.2854, lng: 51.5310, region: 'mena', rv: 400e9, na: 5e9, desc: 'QIA $500B, LNG, Al Jazeera' },
+                { id: 'sabah', name: 'Sheikh Mishal', title: 'Emir of Kuwait', sector: 'royal', flag: '🇰🇼', lat: 29.3759, lng: 47.9774, region: 'mena', rv: 200e9, na: 2e9, desc: 'KIA $800B, oil reserves' },
+                { id: 'hamad', name: 'King Hamad', title: 'King of Bahrain', sector: 'royal', flag: '🇧🇭', lat: 26.0667, lng: 50.5577, region: 'mena', rv: 50e9, na: 1e9, desc: 'Financial hub, US naval base' },
+                { id: 'charles', name: 'King Charles III', title: 'King of UK', sector: 'royal', flag: '🇬🇧', lat: 51.5014, lng: -0.1419, region: 'eu', rv: 30e9, na: 2e9, desc: 'Commonwealth, soft power' },
+                { id: 'felipe', name: 'King Felipe VI', title: 'King of Spain', sector: 'royal', flag: '🇪🇸', lat: 40.4168, lng: -3.7038, region: 'eu', rv: 20e9, na: 0.5e9, desc: 'Constitutional monarch, tourism' },
+                { id: 'willem', name: 'King Willem-Alexander', title: 'King of Netherlands', sector: 'royal', flag: '🇳🇱', lat: 52.3676, lng: 4.9041, region: 'eu', rv: 20e9, na: 0.3e9, desc: 'Trade hub, Shell heritage' },
+                { id: 'carl_xvi', name: 'King Carl XVI Gustaf', title: 'King of Sweden', sector: 'royal', flag: '🇸🇪', lat: 59.3293, lng: 18.0686, region: 'eu', rv: 15e9, na: 0.1e9, desc: 'Nobel, neutrality legacy' },
+                { id: 'hassanal', name: 'Sultan Hassanal', title: 'Sultan of Brunei', sector: 'royal', flag: '🇧🇳', lat: 4.9031, lng: 114.9398, region: 'asia', rv: 100e9, na: 30e9, desc: 'Oil wealth, absolute monarchy' },
+                { id: 'vajiralongkorn', name: 'King Vajiralongkorn', title: 'King of Thailand', sector: 'royal', flag: '🇹🇭', lat: 13.7563, lng: 100.5018, region: 'asia', rv: 80e9, na: 40e9, desc: 'Crown Property Bureau, tourism' },
+
+                // Big Bank CEOs
+                { id: 'dimon', name: 'Jamie Dimon', title: 'JPMorgan CEO', sector: 'finance', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 200e9, na: 1.5e9, desc: '$4T assets, largest US bank' },
+                { id: 'moynihan', name: 'Brian Moynihan', title: 'Bank of America CEO', sector: 'finance', flag: '🇺🇸', lat: 35.2271, lng: -80.8431, region: 'na', rv: 150e9, na: 0.1e9, desc: '$3.3T assets' },
+                { id: 'solomon', name: 'David Solomon', title: 'Goldman Sachs CEO', sector: 'finance', flag: '🇺🇸', lat: 40.7144, lng: -74.0070, region: 'na', rv: 100e9, na: 0.5e9, desc: '$1.6T assets, investment banking' },
+                { id: 'gorman', name: 'Ted Pick', title: 'Morgan Stanley CEO', sector: 'finance', flag: '🇺🇸', lat: 40.7618, lng: -73.9707, region: 'na', rv: 80e9, na: 0.1e9, desc: '$1.2T assets, wealth management' },
+                { id: 'scharf', name: 'Charlie Scharf', title: 'Wells Fargo CEO', sector: 'finance', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 70e9, na: 0.1e9, desc: '$1.9T assets, retail banking' },
+                { id: 'fraser', name: 'Jane Fraser', title: 'Citigroup CEO', sector: 'finance', flag: '🇺🇸', lat: 40.7202, lng: -74.0064, region: 'na', rv: 80e9, na: 0.1e9, desc: '$2.4T assets, global reach' },
+                { id: 'hsbc_ceo', name: 'Georges Elhedery', title: 'HSBC CEO', sector: 'finance', flag: '🇬🇧', lat: 51.5134, lng: -0.0893, region: 'eu', rv: 100e9, na: 0.1e9, desc: '$3T assets, Asia focus' },
+                { id: 'barclays_ceo', name: 'C.S. Venkatakrishnan', title: 'Barclays CEO', sector: 'finance', flag: '🇬🇧', lat: 51.5128, lng: -0.0845, region: 'eu', rv: 50e9, na: 0.1e9, desc: '$1.8T assets' },
+                { id: 'ubs_ceo', name: 'Sergio Ermotti', title: 'UBS CEO', sector: 'finance', flag: '🇨🇭', lat: 47.3769, lng: 8.5417, region: 'eu', rv: 100e9, na: 0.1e9, desc: '$5.7T assets after Credit Suisse' },
+                { id: 'bnp_ceo', name: 'Jean-Laurent Bonnafé', title: 'BNP Paribas CEO', sector: 'finance', flag: '🇫🇷', lat: 48.8737, lng: 2.3318, region: 'eu', rv: 70e9, na: 0.1e9, desc: '€2.6T assets, eurozone largest' },
+                { id: 'santander_ceo', name: 'Héctor Grisi', title: 'Santander CEO', sector: 'finance', flag: '🇪🇸', lat: 40.4460, lng: -3.6925, region: 'eu', rv: 50e9, na: 0.1e9, desc: '€1.8T assets, LatAm presence' },
+                { id: 'deutsche_ceo', name: 'Christian Sewing', title: 'Deutsche Bank CEO', sector: 'finance', flag: '🇩🇪', lat: 50.1109, lng: 8.6821, region: 'eu', rv: 40e9, na: 0.1e9, desc: '€1.3T assets' },
+                { id: 'icbc_ceo', name: 'Liao Lin', title: 'ICBC Chairman', sector: 'finance', flag: '🇨🇳', lat: 39.9042, lng: 116.4074, region: 'asia', rv: 200e9, na: 0.01e9, desc: '$6T assets, world largest bank' },
+                { id: 'ccb_ceo', name: 'Zhang Jinliang', title: 'CCB Chairman', sector: 'finance', flag: '🇨🇳', lat: 39.9042, lng: 116.4174, region: 'asia', rv: 180e9, na: 0.01e9, desc: '$5T assets' },
+                { id: 'boc_ceo', name: 'Ge Haijiao', title: 'Bank of China Chairman', sector: 'finance', flag: '🇨🇳', lat: 39.9042, lng: 116.4274, region: 'asia', rv: 150e9, na: 0.01e9, desc: '$4T assets' },
+                { id: 'mufg_ceo', name: 'Hironori Kamezawa', title: 'MUFG CEO', sector: 'finance', flag: '🇯🇵', lat: 35.6812, lng: 139.7671, region: 'asia', rv: 100e9, na: 0.1e9, desc: '$3.1T assets, Japan largest' },
+                { id: 'mizuho_ceo', name: 'Masahiro Kihara', title: 'Mizuho CEO', sector: 'finance', flag: '🇯🇵', lat: 35.6695, lng: 139.7614, region: 'asia', rv: 70e9, na: 0.1e9, desc: '$2.1T assets' },
+
+                // Hedge Fund & PE
+                { id: 'dalio', name: 'Ray Dalio', title: 'Bridgewater Founder', sector: 'finance', flag: '🇺🇸', lat: 41.0534, lng: -73.5387, region: 'na', rv: 80e9, na: 15e9, desc: '$150B AUM, macro investing' },
+                { id: 'griffin', name: 'Ken Griffin', title: 'Citadel CEO', sector: 'finance', flag: '🇺🇸', lat: 25.7617, lng: -80.1918, region: 'na', rv: 100e9, na: 35e9, desc: '$65B AUM, market maker' },
+                { id: 'simons', name: 'Jim Simons Estate', title: 'Renaissance', sector: 'finance', flag: '🇺🇸', lat: 40.8568, lng: -72.8856, region: 'na', rv: 60e9, na: 30e9, desc: 'Quant pioneer, Medallion fund' },
+                { id: 'ackman', name: 'Bill Ackman', title: 'Pershing Square', sector: 'finance', flag: '🇺🇸', lat: 40.7589, lng: -73.9851, region: 'na', rv: 30e9, na: 10e9, desc: 'Activist investor' },
+                { id: 'icahn', name: 'Carl Icahn', title: 'Icahn Enterprises', sector: 'finance', flag: '🇺🇸', lat: 40.7831, lng: -73.9712, region: 'na', rv: 20e9, na: 6e9, desc: 'Corporate raider legend' },
+                { id: 'schwarzman', name: 'Steve Schwarzman', title: 'Blackstone CEO', sector: 'finance', flag: '🇺🇸', lat: 40.7614, lng: -73.9776, region: 'na', rv: 150e9, na: 40e9, desc: '$1T AUM, PE king' },
+                { id: 'kravis', name: 'Henry Kravis', title: 'KKR Co-Founder', sector: 'finance', flag: '🇺🇸', lat: 40.7614, lng: -73.9776, region: 'na', rv: 80e9, na: 10e9, desc: '$500B AUM, LBO pioneer' },
+                { id: 'rubenstein', name: 'David Rubenstein', title: 'Carlyle Co-Founder', sector: 'finance', flag: '🇺🇸', lat: 38.9072, lng: -77.0369, region: 'na', rv: 60e9, na: 5e9, desc: '$400B AUM, DC connections' },
+                { id: 'apollo_ceo', name: 'Marc Rowan', title: 'Apollo CEO', sector: 'finance', flag: '🇺🇸', lat: 40.7614, lng: -73.9676, region: 'na', rv: 80e9, na: 5e9, desc: '$650B AUM' },
+                { id: 'tpg_ceo', name: 'Jon Winkelried', title: 'TPG CEO', sector: 'finance', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 40e9, na: 0.5e9, desc: '$220B AUM' },
+
+                // Sovereign Wealth Funds
+                { id: 'gpfg_ceo', name: 'Nicolai Tangen', title: 'Norway Fund CEO', sector: 'finance', flag: '🇳🇴', lat: 59.9139, lng: 10.7522, region: 'eu', rv: 300e9, na: 0, desc: '$1.4T AUM, world largest SWF' },
+                { id: 'cic_ceo', name: 'Peng Chun', title: 'CIC Chairman', sector: 'finance', flag: '🇨🇳', lat: 39.9042, lng: 116.4374, region: 'asia', rv: 250e9, na: 0, desc: '$1.3T AUM, China sovereign' },
+                { id: 'gic_ceo', name: 'Lim Chow Kiat', title: 'GIC CEO', sector: 'finance', flag: '🇸🇬', lat: 1.2903, lng: 103.8515, region: 'asia', rv: 200e9, na: 0, desc: '$800B AUM, Singapore' },
+                { id: 'temasek_ceo', name: 'Dilhan Pillay', title: 'Temasek CEO', sector: 'finance', flag: '🇸🇬', lat: 1.2766, lng: 103.8455, region: 'asia', rv: 150e9, na: 0, desc: '$380B AUM, strategic investor' },
+                { id: 'adia_ceo', name: 'Sheikh Hamed', title: 'ADIA MD', sector: 'finance', flag: '🇦🇪', lat: 24.4870, lng: 54.3556, region: 'mena', rv: 200e9, na: 0, desc: '$900B AUM, Abu Dhabi' },
+                { id: 'pif_ceo', name: 'Yasir Al-Rumayyan', title: 'PIF Governor', sector: 'finance', flag: '🇸🇦', lat: 24.7136, lng: 46.6853, region: 'mena', rv: 150e9, na: 1e9, desc: '$700B AUM, Vision 2030' },
+                { id: 'nps_ceo', name: 'Kim Tae-hyun', title: 'NPS CIO', sector: 'finance', flag: '🇰🇷', lat: 37.5665, lng: 126.9780, region: 'asia', rv: 120e9, na: 0, desc: '$800B AUM, Korea pension' },
+                { id: 'gpif_ceo', name: 'Masataka Miyazono', title: 'GPIF President', sector: 'finance', flag: '🇯🇵', lat: 35.6762, lng: 139.6503, region: 'asia', rv: 120e9, na: 0, desc: '$1.5T AUM, Japan pension' },
+
+                // Big Tech Founders/CEOs
+                { id: 'elon', name: 'Elon Musk', title: 'Tesla/SpaceX CEO', sector: 'tech', flag: '🇺🇸', lat: 30.2672, lng: -97.7431, region: 'na', rv: 50e9, na: 250e9, desc: 'Tesla, SpaceX, X, DOGE, low liquidity' },
+                { id: 'bezos', name: 'Jeff Bezos', title: 'Amazon Founder', sector: 'tech', flag: '🇺🇸', lat: 47.6062, lng: -122.3321, region: 'na', rv: 40e9, na: 180e9, desc: 'Amazon, Blue Origin, WaPo' },
+                { id: 'zuck', name: 'Mark Zuckerberg', title: 'Meta CEO', sector: 'tech', flag: '🇺🇸', lat: 37.4848, lng: -122.1484, region: 'na', rv: 30e9, na: 140e9, desc: '3B users, dual-class control' },
+                { id: 'gates', name: 'Bill Gates', title: 'Microsoft Founder', sector: 'tech', flag: '🇺🇸', lat: 47.6101, lng: -122.2015, region: 'na', rv: 80e9, na: 110e9, desc: 'Foundation, diversified, liquid' },
+                { id: 'page', name: 'Larry Page', title: 'Google Co-Founder', sector: 'tech', flag: '🇺🇸', lat: 37.4220, lng: -122.0841, region: 'na', rv: 40e9, na: 100e9, desc: 'Alphabet voting control' },
+                { id: 'brin', name: 'Sergey Brin', title: 'Google Co-Founder', sector: 'tech', flag: '🇺🇸', lat: 37.4220, lng: -122.0741, region: 'na', rv: 40e9, na: 95e9, desc: 'Alphabet, secretive' },
+                { id: 'ellison', name: 'Larry Ellison', title: 'Oracle Founder', sector: 'tech', flag: '🇺🇸', lat: 37.5294, lng: -122.2661, region: 'na', rv: 60e9, na: 150e9, desc: 'Oracle, cloud, real estate' },
+                { id: 'ballmer', name: 'Steve Ballmer', title: 'Ex-Microsoft CEO', sector: 'tech', flag: '🇺🇸', lat: 34.0522, lng: -118.2437, region: 'na', rv: 80e9, na: 120e9, desc: 'Liquid, diversified, Clippers' },
+
+                // ═══════════════════════════════════════════════════════════════
+                // TIER 3: ACTIVE ($1B-10B) - 150 nodes  
+                // ═══════════════════════════════════════════════════════════════
+
+                // Tech CEOs
+                { id: 'nadella', name: 'Satya Nadella', title: 'Microsoft CEO', sector: 'tech', flag: '🇺🇸', lat: 47.6396, lng: -122.1283, region: 'na', rv: 8e9, na: 1e9, desc: 'MSFT $3T, Azure, AI' },
+                { id: 'cook', name: 'Tim Cook', title: 'Apple CEO', sector: 'tech', flag: '🇺🇸', lat: 37.3349, lng: -122.0090, region: 'na', rv: 8e9, na: 2e9, desc: 'Apple $3T, supply chain master' },
+                { id: 'pichai', name: 'Sundar Pichai', title: 'Google CEO', sector: 'tech', flag: '🇺🇸', lat: 37.4220, lng: -122.0841, region: 'na', rv: 7e9, na: 1.5e9, desc: 'Alphabet $2T, search, YouTube' },
+                { id: 'jassy', name: 'Andy Jassy', title: 'Amazon CEO', sector: 'tech', flag: '🇺🇸', lat: 47.6062, lng: -122.3321, region: 'na', rv: 6e9, na: 0.5e9, desc: 'Amazon $2T, AWS' },
+                { id: 'huang', name: 'Jensen Huang', title: 'NVIDIA CEO', sector: 'tech', flag: '🇺🇸', lat: 37.3861, lng: -122.0839, region: 'na', rv: 9e9, na: 90e9, desc: 'NVIDIA $2T, AI chips king' },
+                { id: 'altman', name: 'Sam Altman', title: 'OpenAI CEO', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 8e9, na: 2e9, desc: 'ChatGPT, AGI race, MS backing' },
+                { id: 'su', name: 'Lisa Su', title: 'AMD CEO', sector: 'tech', flag: '🇺🇸', lat: 37.4030, lng: -121.9500, region: 'na', rv: 5e9, na: 1e9, desc: 'AMD turnaround, AI chips' },
+                { id: 'gelsinger', name: 'Pat Gelsinger', title: 'Intel CEO', sector: 'tech', flag: '🇺🇸', lat: 37.3875, lng: -122.0575, region: 'na', rv: 4e9, na: 0.1e9, desc: 'Intel turnaround attempt' },
+                { id: 'hock', name: 'Hock Tan', title: 'Broadcom CEO', sector: 'tech', flag: '🇺🇸', lat: 37.4161, lng: -122.0950, region: 'na', rv: 6e9, na: 4e9, desc: 'Broadcom $500B, M&A master' },
+                { id: 'cc_wei', name: 'C.C. Wei', title: 'TSMC CEO', sector: 'tech', flag: '🇹🇼', lat: 24.7818, lng: 120.9966, region: 'asia', rv: 8e9, na: 1e9, desc: 'TSMC $600B, chip foundry monopoly' },
+                { id: 'morris_chang', name: 'Morris Chang', title: 'TSMC Founder', sector: 'tech', flag: '🇹🇼', lat: 25.0330, lng: 121.5654, region: 'asia', rv: 6e9, na: 3e9, desc: 'TSMC founder, industry legend' },
+                { id: 'kwon_sk', name: 'Kwon Jun-mo', title: 'SK Hynix CEO', sector: 'tech', flag: '🇰🇷', lat: 37.2795, lng: 127.0434, region: 'asia', rv: 5e9, na: 0.1e9, desc: 'SK Hynix, HBM leader' },
+                { id: 'lee_samsung_semi', name: 'Kyung Kye-hyun', title: 'Samsung Semi CEO', sector: 'tech', flag: '🇰🇷', lat: 37.2405, lng: 127.0783, region: 'asia', rv: 4e9, na: 0.1e9, desc: 'Samsung Foundry, DRAM' },
+                { id: 'dorsey', name: 'Jack Dorsey', title: 'Block CEO', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 4e9, na: 5e9, desc: 'Block, Twitter founder, Bitcoin' },
+                { id: 'hastings', name: 'Reed Hastings', title: 'Netflix Co-Founder', sector: 'tech', flag: '🇺🇸', lat: 37.2614, lng: -121.9481, region: 'na', rv: 4e9, na: 5e9, desc: 'Netflix pioneer, streaming' },
+                { id: 'sarandos', name: 'Ted Sarandos', title: 'Netflix Co-CEO', sector: 'tech', flag: '🇺🇸', lat: 34.0522, lng: -118.2437, region: 'na', rv: 3e9, na: 1e9, desc: 'Netflix content, Hollywood' },
+                { id: 'kalanick', name: 'Travis Kalanick', title: 'Uber Founder', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 3e9, na: 3e9, desc: 'Uber founder, CloudKitchens' },
+                { id: 'khosrowshahi', name: 'Dara Khosrowshahi', title: 'Uber CEO', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 2e9, na: 0.5e9, desc: 'Uber $150B, ride-share' },
+                { id: 'chesky', name: 'Brian Chesky', title: 'Airbnb CEO', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 4e9, na: 10e9, desc: 'Airbnb $100B' },
+                { id: 'houston', name: 'Drew Houston', title: 'Dropbox CEO', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 2e9, na: 3e9, desc: 'Dropbox $10B' },
+                { id: 'benioff', name: 'Marc Benioff', title: 'Salesforce CEO', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 4e9, na: 8e9, desc: 'Salesforce $300B, CRM' },
+                { id: 'durov', name: 'Pavel Durov', title: 'Telegram CEO', sector: 'tech', flag: '🇦🇪', lat: 25.2048, lng: 55.2708, region: 'mena', rv: 5e9, na: 15e9, desc: 'Telegram 900M users, crypto' },
+                { id: 'spiegel', name: 'Evan Spiegel', title: 'Snap CEO', sector: 'tech', flag: '🇺🇸', lat: 34.0211, lng: -118.3965, region: 'na', rv: 2e9, na: 3e9, desc: 'Snapchat, AR' },
+                { id: 'systrom', name: 'Kevin Systrom', title: 'Instagram Founder', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 2e9, na: 2e9, desc: 'Instagram creator, investor' },
+                { id: 'hoffman', name: 'Reid Hoffman', title: 'LinkedIn Founder', sector: 'tech', flag: '🇺🇸', lat: 37.4419, lng: -122.1430, region: 'na', rv: 4e9, na: 2.5e9, desc: 'LinkedIn, Greylock, AI investor' },
+                { id: 'thiel', name: 'Peter Thiel', title: 'Palantir/Founders Fund', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 9e9, na: 10e9, desc: 'PayPal mafia, Palantir, kingmaker' },
+                { id: 'levinson', name: 'Arthur Levinson', title: 'Apple Chairman', sector: 'tech', flag: '🇺🇸', lat: 37.4846, lng: -122.2261, region: 'na', rv: 3e9, na: 2e9, desc: 'Apple board, Genentech' },
+
+                // Chinese Tech
+                { id: 'ma_jack', name: 'Jack Ma', title: 'Alibaba Founder', sector: 'tech', flag: '🇨🇳', lat: 30.2741, lng: 120.1551, region: 'asia', rv: 6e9, na: 25e9, desc: 'Alibaba, Ant, diminished' },
+                { id: 'ma_pony', name: 'Pony Ma', title: 'Tencent CEO', sector: 'tech', flag: '🇨🇳', lat: 22.5431, lng: 114.0579, region: 'asia', rv: 8e9, na: 35e9, desc: 'WeChat, gaming, $400B mcap' },
+                { id: 'zhang_yiming', name: 'Zhang Yiming', title: 'ByteDance Founder', sector: 'tech', flag: '🇨🇳', lat: 39.9042, lng: 116.4074, region: 'asia', rv: 7e9, na: 50e9, desc: 'TikTok, ByteDance $300B' },
+                { id: 'liu_qiangdong', name: 'Richard Liu', title: 'JD.com Founder', sector: 'tech', flag: '🇨🇳', lat: 39.9042, lng: 116.4074, region: 'asia', rv: 5e9, na: 15e9, desc: 'JD.com, e-commerce' },
+                { id: 'wang_xing', name: 'Wang Xing', title: 'Meituan CEO', sector: 'tech', flag: '🇨🇳', lat: 39.9042, lng: 116.4074, region: 'asia', rv: 4e9, na: 10e9, desc: 'Meituan, food delivery' },
+                { id: 'lei_jun', name: 'Lei Jun', title: 'Xiaomi CEO', sector: 'tech', flag: '🇨🇳', lat: 39.9042, lng: 116.4074, region: 'asia', rv: 5e9, na: 20e9, desc: 'Xiaomi, smartphones, EVs' },
+                { id: 'ren_zhengfei', name: 'Ren Zhengfei', title: 'Huawei Founder', sector: 'tech', flag: '🇨🇳', lat: 22.5431, lng: 114.0579, region: 'asia', rv: 5e9, na: 2e9, desc: 'Huawei, 5G, US sanctions' },
+                { id: 'william_ding', name: 'William Ding', title: 'NetEase CEO', sector: 'tech', flag: '🇨🇳', lat: 30.2741, lng: 120.1551, region: 'asia', rv: 4e9, na: 20e9, desc: 'NetEase, gaming' },
+                { id: 'robin_li', name: 'Robin Li', title: 'Baidu CEO', sector: 'tech', flag: '🇨🇳', lat: 39.9042, lng: 116.4074, region: 'asia', rv: 4e9, na: 10e9, desc: 'Baidu, AI, search' },
+                { id: 'colin_huang', name: 'Colin Huang', title: 'PDD Founder', sector: 'tech', flag: '🇨🇳', lat: 31.2304, lng: 121.4737, region: 'asia', rv: 6e9, na: 50e9, desc: 'Pinduoduo, Temu, fast-growing' },
+
+                // Japanese/Korean Tech
+                { id: 'son', name: 'Masayoshi Son', title: 'SoftBank CEO', sector: 'tech', flag: '🇯🇵', lat: 35.6762, lng: 139.6503, region: 'asia', rv: 8e9, na: 30e9, desc: 'SoftBank, Vision Fund, ARM' },
+                { id: 'mikitani', name: 'Hiroshi Mikitani', title: 'Rakuten CEO', sector: 'tech', flag: '🇯🇵', lat: 35.6312, lng: 139.7354, region: 'asia', rv: 3e9, na: 5e9, desc: 'Rakuten ecosystem, mobile' },
+                { id: 'yanai', name: 'Tadashi Yanai', title: 'Uniqlo Founder', sector: 'consumer', flag: '🇯🇵', lat: 34.0036, lng: 131.4913, region: 'asia', rv: 6e9, na: 30e9, desc: 'Fast Retailing $90B' },
+                { id: 'lee_samsung', name: 'Lee Jae-yong', title: 'Samsung Chairman', sector: 'tech', flag: '🇰🇷', lat: 37.5665, lng: 126.9780, region: 'asia', rv: 6e9, na: 10e9, desc: 'Samsung $300B, cross-shareholdings' },
+                { id: 'chung_hyundai', name: 'Chung Eui-sun', title: 'Hyundai Chairman', sector: 'industry', flag: '🇰🇷', lat: 37.5283, lng: 127.0370, region: 'asia', rv: 5e9, na: 5e9, desc: 'Hyundai/Kia, robotics, EVs' },
+                { id: 'shin_sk', name: 'Chey Tae-won', title: 'SK Chairman', sector: 'industry', flag: '🇰🇷', lat: 37.5759, lng: 126.9771, region: 'asia', rv: 4e9, na: 3e9, desc: 'SK conglomerate, chips, energy' },
+                { id: 'koo_lg', name: 'Koo Kwang-mo', title: 'LG Chairman', sector: 'industry', flag: '🇰🇷', lat: 37.5326, lng: 126.9264, region: 'asia', rv: 3e9, na: 2e9, desc: 'LG conglomerate, batteries' },
+                { id: 'kim_hanwha', name: 'Kim Seung-youn', title: 'Hanwha Chairman', sector: 'industry', flag: '🇰🇷', lat: 37.5665, lng: 126.9780, region: 'asia', rv: 3e9, na: 2e9, desc: 'Hanwha, defense, solar' },
+
+                // European Tech/Business
+                { id: 'arnault', name: 'Bernard Arnault', title: 'LVMH Chairman', sector: 'consumer', flag: '🇫🇷', lat: 48.8566, lng: 2.3522, region: 'eu', rv: 9e9, na: 180e9, desc: 'LVMH $400B, luxury empire' },
+                { id: 'pinault', name: 'François Pinault', title: 'Kering Founder', sector: 'consumer', flag: '🇫🇷', lat: 48.8738, lng: 2.3064, region: 'eu', rv: 5e9, na: 40e9, desc: 'Kering, Gucci, art collector' },
+                { id: 'ortega', name: 'Amancio Ortega', title: 'Zara Founder', sector: 'consumer', flag: '🇪🇸', lat: 43.3623, lng: -8.4115, region: 'eu', rv: 7e9, na: 80e9, desc: 'Inditex $130B, real estate' },
+                { id: 'bettencourt', name: 'Françoise Bettencourt', title: "L'Oréal Heiress", sector: 'consumer', flag: '🇫🇷', lat: 48.8738, lng: 2.3464, region: 'eu', rv: 5e9, na: 80e9, desc: "L'Oréal $230B mcap" },
+                { id: 'kamprad_family', name: 'Kamprad Family', title: 'IKEA Heirs', sector: 'consumer', flag: '🇸🇪', lat: 55.6050, lng: 13.0038, region: 'eu', rv: 4e9, na: 60e9, desc: 'IKEA, complex structures' },
+                { id: 'del_vecchio', name: 'Del Vecchio Family', title: 'Luxottica Heirs', sector: 'consumer', flag: '🇮🇹', lat: 45.4642, lng: 9.1900, region: 'eu', rv: 4e9, na: 30e9, desc: 'EssilorLuxottica $90B' },
+                { id: 'ferrero', name: 'Ferrero Family', title: 'Nutella/Ferrero', sector: 'consumer', flag: '🇮🇹', lat: 44.6958, lng: 8.0353, region: 'eu', rv: 4e9, na: 40e9, desc: 'Ferrero $50B private' },
+                { id: 'wertheimer', name: 'Wertheimer Brothers', title: 'Chanel Owners', sector: 'consumer', flag: '🇫🇷', lat: 48.8566, lng: 2.3522, region: 'eu', rv: 5e9, na: 90e9, desc: 'Chanel $100B private' },
+                { id: 'hermes', name: 'Hermès Family', title: 'Hermès Owners', sector: 'consumer', flag: '🇫🇷', lat: 48.8566, lng: 2.3522, region: 'eu', rv: 4e9, na: 80e9, desc: 'Hermès $200B, protected' },
+                { id: 'porsche_piech', name: 'Porsche-Piëch Family', title: 'VW/Porsche Owners', sector: 'industry', flag: '🇩🇪', lat: 48.7758, lng: 9.1829, region: 'eu', rv: 5e9, na: 40e9, desc: 'VW Group control, Porsche SE' },
+                { id: 'quandt', name: 'Quandt Family', title: 'BMW Owners', sector: 'industry', flag: '🇩🇪', lat: 48.1351, lng: 11.5820, region: 'eu', rv: 5e9, na: 40e9, desc: 'BMW 47% stake' },
+                { id: 'agnelli', name: 'Agnelli Family', title: 'Stellantis/Ferrari', sector: 'industry', flag: '🇮🇹', lat: 45.0703, lng: 7.6869, region: 'eu', rv: 4e9, na: 30e9, desc: 'Exor, Stellantis, Ferrari' },
+
+                // Energy
+                { id: 'woods', name: 'Darren Woods', title: 'ExxonMobil CEO', sector: 'energy', flag: '🇺🇸', lat: 32.8140, lng: -96.9489, region: 'na', rv: 5e9, na: 0.1e9, desc: 'Exxon $500B, oil major' },
+                { id: 'wirth', name: 'Mike Wirth', title: 'Chevron CEO', sector: 'energy', flag: '🇺🇸', lat: 37.7621, lng: -122.2380, region: 'na', rv: 4e9, na: 0.1e9, desc: 'Chevron $300B, oil' },
+                { id: 'pouyanne', name: 'Patrick Pouyanné', title: 'TotalEnergies CEO', sector: 'energy', flag: '🇫🇷', lat: 48.8742, lng: 2.2780, region: 'eu', rv: 4e9, na: 0.05e9, desc: 'Total $160B, diversifying' },
+                { id: 'looney', name: 'Murray Auchincloss', title: 'BP CEO', sector: 'energy', flag: '🇬🇧', lat: 51.5144, lng: -0.0971, region: 'eu', rv: 3e9, na: 0.05e9, desc: 'BP $100B, transition' },
+                { id: 'shell_ceo', name: 'Wael Sawan', title: 'Shell CEO', sector: 'energy', flag: '🇬🇧', lat: 51.5014, lng: -0.1419, region: 'eu', rv: 4e9, na: 0.05e9, desc: 'Shell $200B' },
+                { id: 'aramco_ceo', name: 'Amin H. Nasser', title: 'Aramco CEO', sector: 'energy', flag: '🇸🇦', lat: 26.2795, lng: 50.2083, region: 'mena', rv: 6e9, na: 0.01e9, desc: 'Aramco $2T, world largest company' },
+                { id: 'sechin', name: 'Igor Sechin', title: 'Rosneft CEO', sector: 'energy', flag: '🇷🇺', lat: 55.7558, lng: 37.6173, region: 'eu', rv: 5e9, na: 0.5e9, desc: 'Rosneft, Putin ally, sanctioned' },
+                { id: 'miller', name: 'Alexei Miller', title: 'Gazprom CEO', sector: 'energy', flag: '🇷🇺', lat: 59.9311, lng: 30.3609, region: 'eu', rv: 5e9, na: 0.3e9, desc: 'Gazprom, gas, sanctioned' },
+                { id: 'adnoc_ceo', name: 'Sultan Al Jaber', title: 'ADNOC CEO', sector: 'energy', flag: '🇦🇪', lat: 24.4539, lng: 54.3773, region: 'mena', rv: 5e9, na: 0.5e9, desc: 'ADNOC, COP28 president' },
+                { id: 'qahtani', name: 'Abdulaziz bin Salman', title: 'Saudi Energy Minister', sector: 'energy', flag: '🇸🇦', lat: 24.7136, lng: 46.6753, region: 'mena', rv: 4e9, na: 0.5e9, desc: 'OPEC+ architect' },
+
+                // Finance - VCs
+                { id: 'moritz', name: 'Michael Moritz', title: 'Sequoia Partner', sector: 'finance', flag: '🇺🇸', lat: 37.4419, lng: -122.1430, region: 'na', rv: 5e9, na: 7e9, desc: 'Sequoia legend, Google early' },
+                { id: 'horowitz', name: 'Ben Horowitz', title: 'a16z Co-Founder', sector: 'finance', flag: '🇺🇸', lat: 37.4419, lng: -122.1430, region: 'na', rv: 4e9, na: 1e9, desc: 'a16z $35B AUM, crypto' },
+                { id: 'andreessen', name: 'Marc Andreessen', title: 'a16z Co-Founder', sector: 'finance', flag: '🇺🇸', lat: 37.4419, lng: -122.1430, region: 'na', rv: 5e9, na: 2e9, desc: 'a16z, Netscape, boards' },
+                { id: 'conway', name: 'Ron Conway', title: 'SV Angel Founder', sector: 'finance', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 3e9, na: 1e9, desc: 'Super angel, 700+ investments' },
+                { id: 'draper', name: 'Tim Draper', title: 'DFJ Founder', sector: 'finance', flag: '🇺🇸', lat: 37.4419, lng: -122.1430, region: 'na', rv: 3e9, na: 2e9, desc: 'DFJ, Bitcoin bull' },
+                { id: 'khosla', name: 'Vinod Khosla', title: 'Khosla Ventures', sector: 'finance', flag: '🇺🇸', lat: 37.4419, lng: -122.1430, region: 'na', rv: 4e9, na: 5e9, desc: 'Khosla Ventures, Sun co-founder' },
+                { id: 'doerr', name: 'John Doerr', title: 'Kleiner Perkins', sector: 'finance', flag: '🇺🇸', lat: 37.4419, lng: -122.1430, region: 'na', rv: 5e9, na: 12e9, desc: 'KPCB legend, Google board' },
+
+                // Indian Business
+                { id: 'ambani', name: 'Mukesh Ambani', title: 'Reliance Chairman', sector: 'industry', flag: '🇮🇳', lat: 19.0760, lng: 72.8777, region: 'asia', rv: 9e9, na: 100e9, desc: 'Reliance $200B, diversified' },
+                { id: 'adani', name: 'Gautam Adani', title: 'Adani Chairman', sector: 'industry', flag: '🇮🇳', lat: 23.0225, lng: 72.5714, region: 'asia', rv: 6e9, na: 70e9, desc: 'Adani Group, ports, energy' },
+                { id: 'tata', name: 'N. Chandrasekaran', title: 'Tata Sons Chairman', sector: 'industry', flag: '🇮🇳', lat: 19.0760, lng: 72.8777, region: 'asia', rv: 5e9, na: 0.1e9, desc: 'Tata conglomerate $400B' },
+                { id: 'mittal', name: 'Lakshmi Mittal', title: 'ArcelorMittal', sector: 'industry', flag: '🇮🇳', lat: 51.5074, lng: -0.1278, region: 'eu', rv: 4e9, na: 15e9, desc: 'Steel king, London based' },
+                { id: 'premji', name: 'Azim Premji', title: 'Wipro Founder', sector: 'tech', flag: '🇮🇳', lat: 12.9716, lng: 77.5946, region: 'asia', rv: 4e9, na: 8e9, desc: 'Wipro, IT services, philanthropy' },
+                { id: 'shiv_nadar', name: 'Shiv Nadar', title: 'HCL Founder', sector: 'tech', flag: '🇮🇳', lat: 28.5720, lng: 77.3211, region: 'asia', rv: 4e9, na: 30e9, desc: 'HCL Tech, education' },
+                { id: 'birla', name: 'Kumar Mangalam Birla', title: 'Aditya Birla Chairman', sector: 'industry', flag: '🇮🇳', lat: 19.0760, lng: 72.8777, region: 'asia', rv: 4e9, na: 10e9, desc: 'ABG conglomerate' },
+                { id: 'jindal', name: 'Sajjan Jindal', title: 'JSW Chairman', sector: 'industry', flag: '🇮🇳', lat: 19.0760, lng: 72.8777, region: 'asia', rv: 3e9, na: 15e9, desc: 'JSW Steel, infrastructure' },
+
+                // Middle East
+                { id: 'al_nahyan', name: 'Tahnoun bin Zayed', title: 'UAE National Security', sector: 'government', flag: '🇦🇪', lat: 24.4539, lng: 54.3773, region: 'mena', rv: 6e9, na: 1e9, desc: 'UAE power broker, tech investor' },
+                { id: 'al_thani', name: 'Sheikh Jassim', title: 'Qatar PM', sector: 'royal', flag: '🇶🇦', lat: 25.2854, lng: 51.5310, region: 'mena', rv: 5e9, na: 1e9, desc: 'Qatar operations' },
+                { id: 'mansour', name: 'Sheikh Mansour', title: 'UAE Deputy PM', sector: 'royal', flag: '🇦🇪', lat: 24.4539, lng: 54.3773, region: 'mena', rv: 5e9, na: 20e9, desc: 'Man City, investments' },
+                { id: 'alabbar', name: 'Mohamed Alabbar', title: 'Emaar Chairman', sector: 'industry', flag: '🇦🇪', lat: 25.1972, lng: 55.2744, region: 'mena', rv: 3e9, na: 5e9, desc: 'Emaar, Burj Khalifa, retail' },
+                { id: 'alwaleed', name: 'Prince Alwaleed', title: 'Kingdom Holdings', sector: 'finance', flag: '🇸🇦', lat: 24.7136, lng: 46.6753, region: 'mena', rv: 4e9, na: 15e9, desc: 'Kingdom Holdings, diminished' },
+
+                // Media
+                { id: 'murdoch', name: 'Rupert Murdoch', title: 'News Corp Founder', sector: 'media', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 5e9, na: 20e9, desc: 'Fox, News Corp, media empire' },
+                { id: 'murdoch_lachlan', name: 'Lachlan Murdoch', title: 'Fox Corp CEO', sector: 'media', flag: '🇺🇸', lat: 34.0522, lng: -118.2437, region: 'na', rv: 4e9, na: 5e9, desc: 'Fox Corp, succession' },
+                { id: 'iger', name: 'Bob Iger', title: 'Disney CEO', sector: 'media', flag: '🇺🇸', lat: 34.0522, lng: -118.2437, region: 'na', rv: 3e9, na: 1e9, desc: 'Disney $180B, streaming wars' },
+                { id: 'zaslav', name: 'David Zaslav', title: 'Warner Discovery CEO', sector: 'media', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 2e9, na: 0.5e9, desc: 'Warner Bros Discovery' },
+                { id: 'malone', name: 'John Malone', title: 'Liberty Media', sector: 'media', flag: '🇺🇸', lat: 39.5501, lng: -105.7821, region: 'na', rv: 4e9, na: 10e9, desc: 'Cable king, F1, structures' },
+                { id: 'redstone', name: 'Shari Redstone', title: 'Paramount Chair', sector: 'media', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 2e9, na: 3e9, desc: 'Paramount, CBS' },
+                { id: 'newhouse', name: 'Newhouse Family', title: 'Condé Nast', sector: 'media', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 3e9, na: 15e9, desc: 'Condé Nast, Reddit stake' },
+                { id: 'sulzberger', name: 'A.G. Sulzberger', title: 'NYT Publisher', sector: 'media', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 2e9, na: 0.5e9, desc: 'New York Times, journalism' },
+
+                // Sports/Entertainment
+                { id: 'dana', name: 'Dana White', title: 'UFC CEO', sector: 'media', flag: '🇺🇸', lat: 36.1699, lng: -115.1398, region: 'na', rv: 2e9, na: 0.5e9, desc: 'UFC, MMA, Trump ally' },
+                { id: 'silver', name: 'Adam Silver', title: 'NBA Commissioner', sector: 'media', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 2e9, na: 0.1e9, desc: 'NBA $100B valuation' },
+                { id: 'goodell', name: 'Roger Goodell', title: 'NFL Commissioner', sector: 'media', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 3e9, na: 0.2e9, desc: 'NFL $200B valuation' },
+                { id: 'kroenke', name: 'Stan Kroenke', title: 'Kroenke Sports', sector: 'media', flag: '🇺🇸', lat: 34.0141, lng: -118.2879, region: 'na', rv: 4e9, na: 12e9, desc: 'Rams, Arsenal, Nuggets' },
+                { id: 'glazer', name: 'Glazer Family', title: 'Man Utd Owners', sector: 'media', flag: '🇺🇸', lat: 27.9506, lng: -82.4572, region: 'na', rv: 3e9, na: 5e9, desc: 'Man United, Buccaneers' },
+                { id: 'fenway', name: 'John Henry', title: 'FSG Owner', sector: 'media', flag: '🇺🇸', lat: 42.3601, lng: -71.0589, region: 'na', rv: 4e9, na: 4e9, desc: 'Red Sox, Liverpool, trading' },
+
+                // ═══════════════════════════════════════════════════════════════
+                // TIER 4: REGIONAL ($100M - $1B) - 100 nodes
+                // ═══════════════════════════════════════════════════════════════
+
+                // Politicians
+                { id: 'pence', name: 'Mike Pence', title: 'Former VP', sector: 'government', flag: '🇺🇸', lat: 39.7684, lng: -86.1581, region: 'na', rv: 0.5e9, na: 0.01e9, desc: 'Former VP, 2024 candidate' },
+                { id: 'desantis', name: 'Ron DeSantis', title: 'Florida Governor', sector: 'government', flag: '🇺🇸', lat: 30.4383, lng: -84.2807, region: 'na', rv: 0.8e9, na: 0.01e9, desc: 'Florida, 2024 candidate' },
+                { id: 'newsom', name: 'Gavin Newsom', title: 'California Governor', sector: 'government', flag: '🇺🇸', lat: 38.5816, lng: -121.4944, region: 'na', rv: 0.8e9, na: 0.01e9, desc: 'California $4T GDP' },
+                { id: 'abbott', name: 'Greg Abbott', title: 'Texas Governor', sector: 'government', flag: '🇺🇸', lat: 30.2747, lng: -97.7404, region: 'na', rv: 0.6e9, na: 0.01e9, desc: 'Texas $2T GDP' },
+                { id: 'sunak', name: 'Rishi Sunak', title: 'Former UK PM', sector: 'government', flag: '🇬🇧', lat: 51.5074, lng: -0.1278, region: 'eu', rv: 0.5e9, na: 0.8e9, desc: 'Former PM, wealthy' },
+                { id: 'johnson', name: 'Boris Johnson', title: 'Former UK PM', sector: 'government', flag: '🇬🇧', lat: 51.5074, lng: -0.1278, region: 'eu', rv: 0.3e9, na: 0.01e9, desc: 'Former PM, media' },
+                { id: 'le_pen', name: 'Marine Le Pen', title: 'RN Leader', sector: 'government', flag: '🇫🇷', lat: 48.8566, lng: 2.3522, region: 'eu', rv: 0.4e9, na: 0.01e9, desc: 'French far-right' },
+                { id: 'afd', name: 'Alice Weidel', title: 'AfD Leader', sector: 'government', flag: '🇩🇪', lat: 52.5200, lng: 13.4050, region: 'eu', rv: 0.3e9, na: 0.01e9, desc: 'German far-right rising' },
+                { id: 'boric', name: 'Gabriel Boric', title: 'Chile President', sector: 'government', flag: '🇨🇱', lat: -33.4489, lng: -70.6693, region: 'latam', rv: 0.3e9, na: 0.01e9, desc: 'Chile, young left' },
+                { id: 'petro', name: 'Gustavo Petro', title: 'Colombia President', sector: 'government', flag: '🇨🇴', lat: 4.7110, lng: -74.0721, region: 'latam', rv: 0.3e9, na: 0.01e9, desc: 'Colombia, first left' },
+
+                // Tech Rising
+                { id: 'agarwal', name: 'Parag Agrawal', title: 'Ex-Twitter CEO', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 0.5e9, na: 0.1e9, desc: 'Fired by Musk, payout' },
+                { id: 'armstrong', name: 'Brian Armstrong', title: 'Coinbase CEO', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 0.8e9, na: 5e9, desc: 'Coinbase, crypto exchange' },
+                { id: 'zhao', name: 'Changpeng Zhao', title: 'Binance Founder', sector: 'tech', flag: '🇦🇪', lat: 25.2048, lng: 55.2708, region: 'mena', rv: 0.7e9, na: 30e9, desc: 'Binance, legal issues' },
+                { id: 'bankman', name: 'SBF', title: 'FTX Founder', sector: 'tech', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 0, na: 0, desc: 'FTX fraud, prison' },
+                { id: 'buterin', name: 'Vitalik Buterin', title: 'Ethereum Founder', sector: 'tech', flag: '🇨🇦', lat: 43.6532, lng: -79.3832, region: 'na', rv: 0.8e9, na: 1e9, desc: 'Ethereum, crypto, unique' },
+                { id: 'wood', name: 'Cathie Wood', title: 'ARK CEO', sector: 'finance', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 0.5e9, na: 0.2e9, desc: 'ARK Invest, innovation' },
+                { id: 'ramaswamy', name: 'Vivek Ramaswamy', title: 'Entrepreneur', sector: 'tech', flag: '🇺🇸', lat: 39.1031, lng: -84.5120, region: 'na', rv: 0.6e9, na: 0.5e9, desc: 'Roivant, politics, DOGE' },
+
+                // FinTech
+                { id: 'lee_toss', name: 'Lee Seung-gun', title: 'Toss CEO', sector: 'tech', flag: '🇰🇷', lat: 37.5045, lng: 127.0247, region: 'asia', rv: 0.8e9, na: 0.5e9, desc: 'Toss $5B, Korea fintech #1' },
+                { id: 'stripe', name: 'Collison Brothers', title: 'Stripe Founders', sector: 'tech', flag: '🇮🇪', lat: 37.7749, lng: -122.4194, region: 'na', rv: 0.9e9, na: 10e9, desc: 'Stripe $50B, payments' },
+                { id: 'adyen', name: 'Pieter van der Does', title: 'Adyen CEO', sector: 'tech', flag: '🇳🇱', lat: 52.3676, lng: 4.9041, region: 'eu', rv: 0.6e9, na: 2e9, desc: 'Adyen €30B payments' },
+                { id: 'klarna', name: 'Sebastian Siemiatkowski', title: 'Klarna CEO', sector: 'tech', flag: '🇸🇪', lat: 59.3293, lng: 18.0686, region: 'eu', rv: 0.5e9, na: 1e9, desc: 'Klarna, BNPL' },
+                { id: 'revolut', name: 'Nik Storonsky', title: 'Revolut CEO', sector: 'tech', flag: '🇬🇧', lat: 51.5074, lng: -0.1278, region: 'eu', rv: 0.6e9, na: 2e9, desc: 'Revolut $45B neobank' },
+                { id: 'nubank', name: 'David Vélez', title: 'Nubank CEO', sector: 'tech', flag: '🇧🇷', lat: -23.5505, lng: -46.6333, region: 'latam', rv: 0.7e9, na: 5e9, desc: 'Nubank $30B, LatAm' },
+
+                // Korean Business
+                { id: 'kim_kakao', name: 'Kim Beom-su', title: 'Kakao Founder', sector: 'tech', flag: '🇰🇷', lat: 37.4027, lng: 127.1025, region: 'asia', rv: 0.6e9, na: 5e9, desc: 'Kakao, legal issues' },
+                { id: 'lee_naver', name: 'Lee Hae-jin', title: 'Naver Founder', sector: 'tech', flag: '🇰🇷', lat: 37.3595, lng: 127.1052, region: 'asia', rv: 0.7e9, na: 5e9, desc: 'Naver, LINE, AI' },
+                { id: 'bang_hybe', name: 'Bang Si-hyuk', title: 'HYBE Founder', sector: 'media', flag: '🇰🇷', lat: 37.5238, lng: 127.0411, region: 'asia', rv: 0.8e9, na: 3e9, desc: 'BTS, K-pop empire' },
+                { id: 'kim_coupang', name: 'Bom Kim', title: 'Coupang CEO', sector: 'tech', flag: '🇰🇷', lat: 37.5665, lng: 126.9780, region: 'asia', rv: 0.7e9, na: 3e9, desc: 'Coupang $30B, e-commerce' },
+                { id: 'shin_lotte', name: 'Shin Dong-bin', title: 'Lotte Chairman', sector: 'consumer', flag: '🇰🇷', lat: 37.5133, lng: 127.1001, region: 'asia', rv: 0.6e9, na: 2e9, desc: 'Lotte conglomerate' },
+                { id: 'cho_hanjin', name: 'Cho Won-tae', title: 'Hanjin Chairman', sector: 'industry', flag: '🇰🇷', lat: 37.5585, lng: 126.7955, region: 'asia', rv: 0.5e9, na: 1e9, desc: 'Korean Air, logistics' },
+                { id: 'hyun_hyosung', name: 'Cho Hyun-joon', title: 'Hyosung Chairman', sector: 'industry', flag: '🇰🇷', lat: 37.5665, lng: 126.9780, region: 'asia', rv: 0.5e9, na: 2e9, desc: 'Hyosung, hydrogen' },
+
+                // Japanese Business
+                { id: 'toyota_ceo', name: 'Koji Sato', title: 'Toyota CEO', sector: 'industry', flag: '🇯🇵', lat: 35.0844, lng: 137.1540, region: 'asia', rv: 0.8e9, na: 0.1e9, desc: 'Toyota $250B, #1 auto' },
+                { id: 'honda_ceo', name: 'Toshihiro Mibe', title: 'Honda CEO', sector: 'industry', flag: '🇯🇵', lat: 35.7020, lng: 139.7753, region: 'asia', rv: 0.5e9, na: 0.1e9, desc: 'Honda $50B' },
+                { id: 'sony_ceo', name: 'Hiroki Totoki', title: 'Sony CEO', sector: 'tech', flag: '🇯🇵', lat: 35.6210, lng: 139.7410, region: 'asia', rv: 0.6e9, na: 0.1e9, desc: 'Sony $100B, gaming, media' },
+                { id: 'takeda_ceo', name: 'Christophe Weber', title: 'Takeda CEO', sector: 'industry', flag: '🇯🇵', lat: 34.6937, lng: 135.5023, region: 'asia', rv: 0.4e9, na: 0.1e9, desc: 'Takeda pharma $50B' },
+
+                // Pharma/Biotech
+                { id: 'bourla', name: 'Albert Bourla', title: 'Pfizer CEO', sector: 'industry', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 0.7e9, na: 0.1e9, desc: 'Pfizer, COVID vaccine' },
+                { id: 'bancel', name: 'Stéphane Bancel', title: 'Moderna CEO', sector: 'industry', flag: '🇺🇸', lat: 42.3601, lng: -71.0589, region: 'na', rv: 0.8e9, na: 5e9, desc: 'Moderna, mRNA pioneer' },
+                { id: 'sahin', name: 'Uğur Şahin', title: 'BioNTech CEO', sector: 'industry', flag: '🇩🇪', lat: 49.9929, lng: 8.2473, region: 'eu', rv: 0.7e9, na: 5e9, desc: 'BioNTech, mRNA' },
+                { id: 'vas', name: 'Vas Narasimhan', title: 'Novartis CEO', sector: 'industry', flag: '🇨🇭', lat: 47.5596, lng: 7.5886, region: 'eu', rv: 0.5e9, na: 0.1e9, desc: 'Novartis $200B' },
+                { id: 'ricks', name: 'David Ricks', title: 'Eli Lilly CEO', sector: 'industry', flag: '🇺🇸', lat: 39.7684, lng: -86.1581, region: 'na', rv: 0.6e9, na: 0.1e9, desc: 'Eli Lilly $700B, Ozempic rival' },
+
+                // Aerospace/Defense
+                { id: 'calhoun', name: 'Kelly Ortberg', title: 'Boeing CEO', sector: 'industry', flag: '🇺🇸', lat: 41.8781, lng: -87.6298, region: 'na', rv: 0.6e9, na: 0.1e9, desc: 'Boeing crisis management' },
+                { id: 'hayes', name: 'Greg Hayes', title: 'RTX CEO', sector: 'industry', flag: '🇺🇸', lat: 41.7658, lng: -72.6734, region: 'na', rv: 0.5e9, na: 0.1e9, desc: 'Raytheon defense' },
+                { id: 'taiclet', name: 'Jim Taiclet', title: 'Lockheed CEO', sector: 'industry', flag: '🇺🇸', lat: 38.9072, lng: -77.0369, region: 'na', rv: 0.6e9, na: 0.1e9, desc: 'Lockheed $120B, F-35' },
+                { id: 'kahl', name: 'Armin Papperger', title: 'Rheinmetall CEO', sector: 'industry', flag: '🇩🇪', lat: 51.2277, lng: 6.7735, region: 'eu', rv: 0.5e9, na: 0.1e9, desc: 'Rheinmetall, Europe defense' },
+                { id: 'airbus', name: 'Guillaume Faury', title: 'Airbus CEO', sector: 'industry', flag: '🇫🇷', lat: 43.6047, lng: 1.4442, region: 'eu', rv: 0.5e9, na: 0.1e9, desc: 'Airbus $100B, Boeing rival' },
+
+                // Religious/NGO
+                { id: 'pope', name: 'Pope Francis', title: 'Catholic Church', sector: 'media', flag: '🇻🇦', lat: 41.9029, lng: 12.4534, region: 'eu', rv: 0.8e9, na: 0, desc: '1.4B Catholics, moral authority' },
+                { id: 'dalai', name: 'Dalai Lama', title: 'Tibetan Buddhism', sector: 'media', flag: '🇮🇳', lat: 32.2190, lng: 76.3234, region: 'asia', rv: 0.3e9, na: 0, desc: 'Spiritual leader, soft power' },
+                { id: 'al_azhar', name: 'Sheikh Al-Tayeb', title: 'Grand Imam Al-Azhar', sector: 'media', flag: '🇪🇬', lat: 30.0444, lng: 31.2357, region: 'mena', rv: 0.4e9, na: 0, desc: 'Sunni Islam authority' },
+                { id: 'sistani', name: 'Ali al-Sistani', title: 'Shia Marja', sector: 'media', flag: '🇮🇶', lat: 32.0167, lng: 44.4009, region: 'mena', rv: 0.4e9, na: 0, desc: 'Iraq Shia authority' },
+
+                // More Tech
+                { id: 'demis', name: 'Demis Hassabis', title: 'DeepMind CEO', sector: 'tech', flag: '🇬🇧', lat: 51.5334, lng: -0.1291, region: 'eu', rv: 0.8e9, na: 0.5e9, desc: 'DeepMind, AlphaFold, AI' },
+                { id: 'dario', name: 'Dario Amodei', title: 'Anthropic CEO', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 0.8e9, na: 0.5e9, desc: 'Anthropic, Claude, AI safety' },
+                { id: 'sutskever', name: 'Ilya Sutskever', title: 'SSI Founder', sector: 'tech', flag: '🇺🇸', lat: 37.7749, lng: -122.4194, region: 'na', rv: 0.7e9, na: 0.3e9, desc: 'OpenAI co-founder, SSI' },
+                { id: 'lecun', name: 'Yann LeCun', title: 'Meta AI Chief', sector: 'tech', flag: '🇺🇸', lat: 40.7128, lng: -74.0060, region: 'na', rv: 0.4e9, na: 0.05e9, desc: 'AI pioneer, Meta, open source' },
+                { id: 'karpathy', name: 'Andrej Karpathy', title: 'AI Researcher', sector: 'tech', flag: '🇺🇸', lat: 37.3861, lng: -122.0839, region: 'na', rv: 0.5e9, na: 0.1e9, desc: 'Tesla AI, OpenAI, educator' },
+
+                // Latin America
+                { id: 'slim', name: 'Carlos Slim', title: 'América Móvil', sector: 'industry', flag: '🇲🇽', lat: 19.4326, lng: -99.1332, region: 'latam', rv: 0.9e9, na: 90e9, desc: 'Mexico richest, telecom' },
+                { id: 'guzman', name: 'Alejandro Bulgheroni', title: 'Bridas CEO', sector: 'energy', flag: '🇦🇷', lat: -34.6037, lng: -58.3816, region: 'latam', rv: 0.5e9, na: 5e9, desc: 'Argentina energy' },
+                { id: 'lemann', name: '3G Capital Founders', title: '3G Capital', sector: 'finance', flag: '🇧🇷', lat: -22.9068, lng: -43.1729, region: 'latam', rv: 0.8e9, na: 10e9, desc: 'AB InBev, Kraft, PE' },
+                { id: 'safra', name: 'Safra Family', title: 'Safra Bank', sector: 'finance', flag: '🇧🇷', lat: -23.5505, lng: -46.6333, region: 'latam', rv: 0.7e9, na: 20e9, desc: 'Banking dynasty' },
+
+                // More additions for diversity
+                { id: 'dangote', name: 'Aliko Dangote', title: 'Dangote Group', sector: 'industry', flag: '🇳🇬', lat: 6.5244, lng: 3.3792, region: 'africa', rv: 0.7e9, na: 15e9, desc: 'Africa richest, cement, refinery' },
+                { id: 'rupert', name: 'Johann Rupert', title: 'Richemont Chairman', sector: 'consumer', flag: '🇿🇦', lat: -33.9249, lng: 18.4241, region: 'africa', rv: 0.6e9, na: 10e9, desc: 'Cartier, luxury, S.Africa' },
+                { id: 'sawiris', name: 'Nassef Sawiris', title: 'OCI Chairman', sector: 'industry', flag: '🇪🇬', lat: 30.0444, lng: 31.2357, region: 'mena', rv: 0.6e9, na: 8e9, desc: 'Egypt richest, Adidas stake' },
+                { id: 'masiyiwa', name: 'Strive Masiyiwa', title: 'Econet Founder', sector: 'tech', flag: '🇿🇼', lat: -17.8252, lng: 31.0335, region: 'africa', rv: 0.5e9, na: 2e9, desc: 'Econet, Africa telecom' },
+                { id: 'mo_ibrahim', name: 'Mo Ibrahim', title: 'Celtel Founder', sector: 'tech', flag: '🇬🇧', lat: 51.5074, lng: -0.1278, region: 'eu', rv: 0.5e9, na: 1e9, desc: 'Africa telecom, governance prize' },
+            ];
+
+            // Add tier
+            // rv 기준으로 정렬 후 rank 부여
+            const sorted = [...raw].sort((a, b) => b.rv - a.rv);
+            const rankMap = {};
+            sorted.forEach((n, i) => { rankMap[n.id] = i + 1; });
+
+            return raw.map(n => ({
+                ...n,
+                rank: rankMap[n.id],
+                tier: calcTier(n.rv, rankMap[n.id])
+            }));
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // MOTIONS
+        // ═══════════════════════════════════════════════════════════════
+
+        function loadMotions() {
+            return [
+                // ═══════════════════════════════════════════════════════════════
+                // 초강대국 관계 (Superpower Relations)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'xi', target: 'putin', amount: 100e9 },
+                { source: 'xi', target: 'kim', amount: 20e9 },
+                { source: 'xi', target: 'modi', amount: 30e9 },
+                { source: 'trump', target: 'mbs', amount: 50e9 },
+                { source: 'trump', target: 'netanyahu', amount: 30e9 },
+                { source: 'trump', target: 'powell', amount: 8e12 },
+                { source: 'trump', target: 'elon', amount: 10e9 },
+                { source: 'putin', target: 'xi', amount: 80e9 },
+                { source: 'putin', target: 'khamenei', amount: 20e9 },
+                { source: 'putin', target: 'kim', amount: 5e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 중앙은행 네트워크 (Central Bank Network)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'powell', target: 'lagarde', amount: 500e9 },
+                { source: 'powell', target: 'ueda', amount: 300e9 },
+                { source: 'powell', target: 'bailey', amount: 200e9 },
+                { source: 'yi_gang', target: 'xi', amount: 5e12 },
+                { source: 'lagarde', target: 'macron', amount: 100e9 },
+                { source: 'lagarde', target: 'scholz', amount: 100e9 },
+                { source: 'ueda', target: 'kishida', amount: 200e9 },
+                { source: 'bailey', target: 'starmer', amount: 50e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 자산운용/금융 (Asset Management & Finance)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'fink', target: 'dimon', amount: 100e9 },
+                { source: 'fink', target: 'powell', amount: 50e9 },
+                { source: 'schwarzman', target: 'fink', amount: 50e9 },
+                { source: 'schwarzman', target: 'trump', amount: 10e9 },
+                { source: 'gpfg_ceo', target: 'fink', amount: 100e9 },
+                { source: 'gpfg_ceo', target: 'buckley', amount: 80e9 },
+                { source: 'pif_ceo', target: 'schwarzman', amount: 50e9 },
+                { source: 'pif_ceo', target: 'fink', amount: 40e9 },
+                { source: 'gic_ceo', target: 'fink', amount: 30e9 },
+                { source: 'gic_ceo', target: 'schwarzman', amount: 20e9 },
+                { source: 'temasek_ceo', target: 'fink', amount: 25e9 },
+                { source: 'adia_ceo', target: 'fink', amount: 60e9 },
+                { source: 'cic_ceo', target: 'fink', amount: 50e9 },
+                { source: 'gpif_ceo', target: 'fink', amount: 40e9 },
+                { source: 'nps_ceo', target: 'fink', amount: 30e9 },
+                { source: 'dalio', target: 'powell', amount: 20e9 },
+                { source: 'griffin', target: 'powell', amount: 15e9 },
+                { source: 'dimon', target: 'powell', amount: 80e9 },
+                { source: 'solomon', target: 'dimon', amount: 30e9 },
+                { source: 'fraser', target: 'dimon', amount: 25e9 },
+                { source: 'kravis', target: 'schwarzman', amount: 20e9 },
+                { source: 'apollo_ceo', target: 'schwarzman', amount: 25e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 테크 투자 (Tech Investments)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'thiel', target: 'altman', amount: 1e9 },
+                { source: 'nadella', target: 'altman', amount: 13e9 },
+                { source: 'son', target: 'altman', amount: 10e9 },
+                { source: 'huang', target: 'altman', amount: 5e9 },
+                { source: 'gates', target: 'altman', amount: 5e9 },
+                { source: 'thiel', target: 'elon', amount: 2e9 },
+                { source: 'andreessen', target: 'altman', amount: 2e9 },
+                { source: 'horowitz', target: 'altman', amount: 1.5e9 },
+                { source: 'doerr', target: 'altman', amount: 1e9 },
+                { source: 'khosla', target: 'altman', amount: 0.5e9 },
+                { source: 'moritz', target: 'huang', amount: 1e9 },
+                { source: 'son', target: 'huang', amount: 5e9 },
+                { source: 'son', target: 'elon', amount: 3e9 },
+                { source: 'bezos', target: 'altman', amount: 2e9 },
+                { source: 'gates', target: 'nadella', amount: 10e9 },
+                { source: 'ballmer', target: 'nadella', amount: 5e9 },
+                { source: 'page', target: 'pichai', amount: 20e9 },
+                { source: 'brin', target: 'pichai', amount: 18e9 },
+                { source: 'ellison', target: 'elon', amount: 1e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 중국 테크 (Chinese Tech)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'ma_pony', target: 'xi', amount: 10e9 },
+                { source: 'zhang_yiming', target: 'xi', amount: 5e9 },
+                { source: 'ma_jack', target: 'xi', amount: 8e9 },
+                { source: 'liu_qiangdong', target: 'xi', amount: 3e9 },
+                { source: 'lei_jun', target: 'xi', amount: 2e9 },
+                { source: 'ren_zhengfei', target: 'xi', amount: 5e9 },
+                { source: 'robin_li', target: 'xi', amount: 2e9 },
+                { source: 'colin_huang', target: 'xi', amount: 4e9 },
+                { source: 'wang_xing', target: 'xi', amount: 2e9 },
+                { source: 'ma_pony', target: 'ma_jack', amount: 5e9 },
+                { source: 'zhang_yiming', target: 'ma_pony', amount: 3e9 },
+                { source: 'cic_ceo', target: 'ma_pony', amount: 10e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 오일머니/중동 (Oil Money / Middle East)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'mbs', target: 'pif_ceo', amount: 100e9 },
+                { source: 'mbz', target: 'adia_ceo', amount: 50e9 },
+                { source: 'tamim', target: 'al_thani', amount: 30e9 },
+                { source: 'mbs', target: 'trump', amount: 20e9 },
+                { source: 'mbs', target: 'elon', amount: 3e9 },
+                { source: 'mbz', target: 'trump', amount: 15e9 },
+                { source: 'pif_ceo', target: 'son', amount: 45e9 },
+                { source: 'pif_ceo', target: 'elon', amount: 3.5e9 },
+                { source: 'adia_ceo', target: 'fink', amount: 30e9 },
+                { source: 'tamim', target: 'elon', amount: 2e9 },
+                { source: 'sabah', target: 'fink', amount: 20e9 },
+                { source: 'mansour', target: 'fink', amount: 10e9 },
+                { source: 'alwaleed', target: 'elon', amount: 2e9 },
+                { source: 'al_nahyan', target: 'altman', amount: 1e9 },
+                { source: 'aramco_ceo', target: 'mbs', amount: 50e9 },
+                { source: 'adnoc_ceo', target: 'mbz', amount: 30e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 유럽 (Europe)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'arnault', target: 'macron', amount: 5e9 },
+                { source: 'porsche_piech', target: 'scholz', amount: 3e9 },
+                { source: 'quandt', target: 'scholz', amount: 2e9 },
+                { source: 'ortega', target: 'felipe', amount: 1e9 },
+                { source: 'ferrero', target: 'meloni', amount: 0.5e9 },
+                { source: 'agnelli', target: 'meloni', amount: 1e9 },
+                { source: 'charles', target: 'starmer', amount: 0.5e9 },
+                { source: 'gpfg_ceo', target: 'rutte', amount: 10e9 },
+                { source: 'ubs_ceo', target: 'lagarde', amount: 20e9 },
+                { source: 'hsbc_ceo', target: 'bailey', amount: 15e9 },
+                { source: 'bnp_ceo', target: 'lagarde', amount: 18e9 },
+                { source: 'deutsche_ceo', target: 'lagarde', amount: 12e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 한국 재벌 (Korean Chaebols)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'lee_samsung', target: 'yoon', amount: 5e9 },
+                { source: 'chung_hyundai', target: 'yoon', amount: 3e9 },
+                { source: 'shin_sk', target: 'yoon', amount: 2e9 },
+                { source: 'koo_lg', target: 'yoon', amount: 1.5e9 },
+                { source: 'lee_samsung', target: 'huang', amount: 5e9 },
+                { source: 'kwon_sk', target: 'huang', amount: 3e9 },
+                { source: 'lee_samsung', target: 'cook', amount: 10e9 },
+                { source: 'nps_ceo', target: 'lee_samsung', amount: 20e9 },
+                { source: 'nps_ceo', target: 'chung_hyundai', amount: 10e9 },
+                { source: 'kim_kakao', target: 'yoon', amount: 0.5e9 },
+                { source: 'lee_naver', target: 'yoon', amount: 0.5e9 },
+                { source: 'bang_hybe', target: 'lee_samsung', amount: 0.3e9 },
+                { source: 'kim_coupang', target: 'son', amount: 3e9 },
+                { source: 'lee_toss', target: 'son', amount: 0.5e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 일본 기업 (Japanese Business)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'son', target: 'kishida', amount: 5e9 },
+                { source: 'yanai', target: 'kishida', amount: 2e9 },
+                { source: 'toyota_ceo', target: 'kishida', amount: 3e9 },
+                { source: 'son', target: 'alibaba', amount: 20e9 },
+                { source: 'gpif_ceo', target: 'son', amount: 15e9 },
+                { source: 'mufg_ceo', target: 'ueda', amount: 30e9 },
+                { source: 'mizuho_ceo', target: 'ueda', amount: 20e9 },
+                { source: 'mikitani', target: 'son', amount: 2e9 },
+                { source: 'cc_wei', target: 'son', amount: 5e9 },
+                { source: 'sony_ceo', target: 'kishida', amount: 1e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 인도 재벌 (Indian Business)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'ambani', target: 'modi', amount: 10e9 },
+                { source: 'adani', target: 'modi', amount: 8e9 },
+                { source: 'tata', target: 'modi', amount: 5e9 },
+                { source: 'birla', target: 'modi', amount: 3e9 },
+                { source: 'premji', target: 'modi', amount: 2e9 },
+                { source: 'ambani', target: 'zuck', amount: 5.7e9 },
+                { source: 'ambani', target: 'gates', amount: 2e9 },
+                { source: 'pif_ceo', target: 'ambani', amount: 3e9 },
+                { source: 'adia_ceo', target: 'ambani', amount: 2e9 },
+                { source: 'temasek_ceo', target: 'ambani', amount: 1.5e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 대만/반도체 (Taiwan / Semiconductors)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'cc_wei', target: 'huang', amount: 20e9 },
+                { source: 'cc_wei', target: 'cook', amount: 15e9 },
+                { source: 'cc_wei', target: 'su', amount: 8e9 },
+                { source: 'cc_wei', target: 'nadella', amount: 5e9 },
+                { source: 'morris_chang', target: 'cc_wei', amount: 10e9 },
+                { source: 'lee_samsung_semi', target: 'cc_wei', amount: 3e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 미디어/스포츠 (Media / Sports)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'murdoch', target: 'trump', amount: 2e9 },
+                { source: 'murdoch_lachlan', target: 'trump', amount: 1e9 },
+                { source: 'iger', target: 'cook', amount: 3e9 },
+                { source: 'malone', target: 'murdoch', amount: 2e9 },
+                { source: 'mansour', target: 'silver', amount: 1e9 },
+                { source: 'kroenke', target: 'goodell', amount: 0.5e9 },
+                { source: 'fenway', target: 'silver', amount: 0.3e9 },
+                { source: 'glazer', target: 'goodell', amount: 0.4e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // AI 경쟁 (AI Race)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'altman', target: 'nadella', amount: 10e9 },
+                { source: 'dario', target: 'bezos', amount: 4e9 },
+                { source: 'dario', target: 'gates', amount: 1e9 },
+                { source: 'demis', target: 'pichai', amount: 5e9 },
+                { source: 'lecun', target: 'zuck', amount: 2e9 },
+                { source: 'sutskever', target: 'altman', amount: 1e9 },
+                { source: 'karpathy', target: 'elon', amount: 0.5e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 에너지 (Energy)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'woods', target: 'trump', amount: 5e9 },
+                { source: 'wirth', target: 'trump', amount: 4e9 },
+                { source: 'sechin', target: 'putin', amount: 20e9 },
+                { source: 'miller', target: 'putin', amount: 15e9 },
+                { source: 'shell_ceo', target: 'starmer', amount: 3e9 },
+                { source: 'pouyanne', target: 'macron', amount: 2e9 },
+                { source: 'looney', target: 'starmer', amount: 2e9 },
+                { source: 'qahtani', target: 'mbs', amount: 10e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 라틴아메리카 (Latin America)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'slim', target: 'amlo', amount: 5e9 },
+                { source: 'lemann', target: 'lula', amount: 2e9 },
+                { source: 'safra', target: 'lula', amount: 1e9 },
+                { source: 'nubank', target: 'lula', amount: 0.5e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 아프리카 (Africa)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'dangote', target: 'ramaphosa', amount: 1e9 },
+                { source: 'rupert', target: 'ramaphosa', amount: 0.5e9 },
+                { source: 'masiyiwa', target: 'ramaphosa', amount: 0.3e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 크립토 (Crypto)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'armstrong', target: 'trump', amount: 0.5e9 },
+                { source: 'zhao', target: 'mbz', amount: 1e9 },
+                { source: 'buterin', target: 'thiel', amount: 0.3e9 },
+                { source: 'dorsey', target: 'elon', amount: 0.5e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // VC 투자 흐름 (VC Investment Flows)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'andreessen', target: 'chesky', amount: 0.5e9 },
+                { source: 'andreessen', target: 'zuck', amount: 1e9 },
+                { source: 'horowitz', target: 'armstrong', amount: 0.3e9 },
+                { source: 'moritz', target: 'stripe', amount: 0.5e9 },
+                { source: 'doerr', target: 'bezos', amount: 0.5e9 },
+                { source: 'khosla', target: 'altman', amount: 0.3e9 },
+                { source: 'conway', target: 'dorsey', amount: 0.2e9 },
+                { source: 'draper', target: 'elon', amount: 0.3e9 },
+                { source: 'thiel', target: 'zuck', amount: 0.5e9 },
+                { source: 'hoffman', target: 'altman', amount: 0.4e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 🚀 자동 생성: T0-T0 완전 연결 (초강대국 네트워크)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'xi', target: 'trump', amount: 126e9 },
+                { source: 'xi', target: 'powell', amount: 63e9 },
+                { source: 'trump', target: 'putin', amount: 49e9 },
+                { source: 'xi', target: 'lagarde', amount: 40e9 },
+                { source: 'xi', target: 'mbs', amount: 37e9 },
+                { source: 'xi', target: 'ueda', amount: 37e9 },
+                { source: 'xi', target: 'starmer', amount: 35e9 },
+                { source: 'xi', target: 'mbz', amount: 35e9 },
+                { source: 'trump', target: 'yi_gang', amount: 35e9 },
+                { source: 'trump', target: 'modi', amount: 25e9 },
+                { source: 'trump', target: 'lagarde', amount: 25e9 },
+                { source: 'putin', target: 'powell', amount: 24e9 },
+                { source: 'trump', target: 'ueda', amount: 24e9 },
+                { source: 'trump', target: 'starmer', amount: 22e9 },
+                { source: 'putin', target: 'yi_gang', amount: 21e9 },
+                { source: 'trump', target: 'kim', amount: 20e9 },
+                { source: 'powell', target: 'yi_gang', amount: 17e9 },
+                { source: 'putin', target: 'modi', amount: 15e9 },
+                { source: 'putin', target: 'lagarde', amount: 15e9 },
+                { source: 'putin', target: 'mbs', amount: 14e9 },
+                { source: 'putin', target: 'ueda', amount: 14e9 },
+                { source: 'putin', target: 'starmer', amount: 13e9 },
+                { source: 'putin', target: 'mbz', amount: 13e9 },
+                { source: 'powell', target: 'modi', amount: 13e9 },
+                { source: 'powell', target: 'mbs', amount: 12e9 },
+                { source: 'powell', target: 'starmer', amount: 11e9 },
+                { source: 'powell', target: 'mbz', amount: 11e9 },
+                { source: 'yi_gang', target: 'modi', amount: 11e9 },
+                { source: 'yi_gang', target: 'lagarde', amount: 11e9 },
+                { source: 'yi_gang', target: 'mbs', amount: 10e9 },
+                { source: 'yi_gang', target: 'ueda', amount: 10e9 },
+                { source: 'powell', target: 'kim', amount: 10e9 },
+                { source: 'yi_gang', target: 'starmer', amount: 9e9 },
+                { source: 'yi_gang', target: 'mbz', amount: 9e9 },
+                { source: 'yi_gang', target: 'kim', amount: 9e9 },
+                { source: 'modi', target: 'lagarde', amount: 8e9 },
+                { source: 'modi', target: 'mbs', amount: 7e9 },
+                { source: 'modi', target: 'ueda', amount: 7e9 },
+                { source: 'lagarde', target: 'mbs', amount: 7e9 },
+                { source: 'lagarde', target: 'ueda', amount: 7e9 },
+                { source: 'mbs', target: 'ueda', amount: 7e9 },
+                { source: 'modi', target: 'starmer', amount: 7e9 },
+                { source: 'modi', target: 'mbz', amount: 7e9 },
+                { source: 'lagarde', target: 'starmer', amount: 7e9 },
+                { source: 'lagarde', target: 'mbz', amount: 7e9 },
+                { source: 'mbs', target: 'starmer', amount: 6e9 },
+                { source: 'mbs', target: 'mbz', amount: 6e9 },
+                { source: 'ueda', target: 'starmer', amount: 6e9 },
+                { source: 'ueda', target: 'mbz', amount: 6e9 },
+                { source: 'modi', target: 'kim', amount: 6e9 },
+                { source: 'lagarde', target: 'kim', amount: 6e9 },
+                { source: 'starmer', target: 'mbz', amount: 6e9 },
+                { source: 'mbs', target: 'kim', amount: 6e9 },
+                { source: 'ueda', target: 'kim', amount: 6e9 },
+                { source: 'starmer', target: 'kim', amount: 5e9 },
+                { source: 'mbz', target: 'kim', amount: 5e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 🚀 자동 생성: T1 금융 네트워크 (자산운용사/은행)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'fink', target: 'buckley', amount: 8e9 },
+                { source: 'buckley', target: 'gpfg_ceo', amount: 5e9 },
+                { source: 'gpfg_ceo', target: 'cic_ceo', amount: 5e9 },
+                { source: 'buckley', target: 'dimon', amount: 4e9 },
+                { source: 'buckley', target: 'icbc_ceo', amount: 4e9 },
+                { source: 'gpfg_ceo', target: 'dimon', amount: 4e9 },
+                { source: 'gpfg_ceo', target: 'icbc_ceo', amount: 4e9 },
+                { source: 'gpfg_ceo', target: 'gic_ceo', amount: 4e9 },
+                { source: 'cic_ceo', target: 'dimon', amount: 4e9 },
+                { source: 'cic_ceo', target: 'icbc_ceo', amount: 4e9 },
+                { source: 'cic_ceo', target: 'gic_ceo', amount: 4e9 },
+                { source: 'cic_ceo', target: 'adia_ceo', amount: 4e9 },
+                { source: 'dimon', target: 'icbc_ceo', amount: 4e9 },
+                { source: 'dimon', target: 'gic_ceo', amount: 4e9 },
+                { source: 'dimon', target: 'adia_ceo', amount: 4e9 },
+                { source: 'icbc_ceo', target: 'gic_ceo', amount: 4e9 },
+                { source: 'icbc_ceo', target: 'adia_ceo', amount: 4e9 },
+                { source: 'gic_ceo', target: 'adia_ceo', amount: 4e9 },
+                { source: 'dimon', target: 'ccb_ceo', amount: 4e9 },
+                { source: 'icbc_ceo', target: 'ccb_ceo', amount: 4e9 },
+                { source: 'gic_ceo', target: 'ccb_ceo', amount: 4e9 },
+                { source: 'adia_ceo', target: 'ccb_ceo', amount: 4e9 },
+                { source: 'icbc_ceo', target: 'moynihan', amount: 3e9 },
+                { source: 'gic_ceo', target: 'moynihan', amount: 3e9 },
+                { source: 'gic_ceo', target: 'boc_ceo', amount: 3e9 },
+                { source: 'adia_ceo', target: 'moynihan', amount: 3e9 },
+                { source: 'adia_ceo', target: 'boc_ceo', amount: 3e9 },
+                { source: 'adia_ceo', target: 'schwarzman', amount: 3e9 },
+                { source: 'ccb_ceo', target: 'moynihan', amount: 3e9 },
+                { source: 'ccb_ceo', target: 'boc_ceo', amount: 3e9 },
+                { source: 'ccb_ceo', target: 'schwarzman', amount: 3e9 },
+                { source: 'ccb_ceo', target: 'temasek_ceo', amount: 3e9 },
+                { source: 'moynihan', target: 'boc_ceo', amount: 3e9 },
+                { source: 'moynihan', target: 'schwarzman', amount: 3e9 },
+                { source: 'moynihan', target: 'temasek_ceo', amount: 3e9 },
+                { source: 'moynihan', target: 'pif_ceo', amount: 3e9 },
+                { source: 'boc_ceo', target: 'schwarzman', amount: 3e9 },
+                { source: 'boc_ceo', target: 'temasek_ceo', amount: 3e9 },
+                { source: 'boc_ceo', target: 'pif_ceo', amount: 3e9 },
+                { source: 'schwarzman', target: 'temasek_ceo', amount: 3e9 },
+                { source: 'temasek_ceo', target: 'pif_ceo', amount: 3e9 },
+                { source: 'boc_ceo', target: 'nps_ceo', amount: 2e9 },
+                { source: 'schwarzman', target: 'nps_ceo', amount: 2e9 },
+                { source: 'schwarzman', target: 'gpif_ceo', amount: 2e9 },
+                { source: 'temasek_ceo', target: 'nps_ceo', amount: 2e9 },
+                { source: 'temasek_ceo', target: 'gpif_ceo', amount: 2e9 },
+                { source: 'pif_ceo', target: 'nps_ceo', amount: 2e9 },
+                { source: 'pif_ceo', target: 'gpif_ceo', amount: 2e9 },
+                { source: 'nps_ceo', target: 'gpif_ceo', amount: 2e9 },
+                { source: 'temasek_ceo', target: 'solomon', amount: 2e9 },
+                { source: 'pif_ceo', target: 'solomon', amount: 2e9 },
+                { source: 'pif_ceo', target: 'hsbc_ceo', amount: 2e9 },
+                { source: 'nps_ceo', target: 'solomon', amount: 2e9 },
+                { source: 'nps_ceo', target: 'hsbc_ceo', amount: 2e9 },
+                { source: 'nps_ceo', target: 'ubs_ceo', amount: 2e9 },
+                { source: 'gpif_ceo', target: 'solomon', amount: 2e9 },
+                { source: 'gpif_ceo', target: 'hsbc_ceo', amount: 2e9 },
+                { source: 'gpif_ceo', target: 'ubs_ceo', amount: 2e9 },
+                { source: 'gpif_ceo', target: 'mufg_ceo', amount: 2e9 },
+                { source: 'solomon', target: 'hsbc_ceo', amount: 2e9 },
+                { source: 'solomon', target: 'ubs_ceo', amount: 2e9 },
+                { source: 'solomon', target: 'mufg_ceo', amount: 2e9 },
+                { source: 'solomon', target: 'griffin', amount: 2e9 },
+                { source: 'hsbc_ceo', target: 'ubs_ceo', amount: 2e9 },
+                { source: 'hsbc_ceo', target: 'mufg_ceo', amount: 2e9 },
+                { source: 'hsbc_ceo', target: 'griffin', amount: 2e9 },
+                { source: 'ubs_ceo', target: 'mufg_ceo', amount: 2e9 },
+                { source: 'ubs_ceo', target: 'griffin', amount: 2e9 },
+                { source: 'mufg_ceo', target: 'griffin', amount: 2e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 🚀 자동 생성: G20 정상 네트워크
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'macron', target: 'scholz', amount: 7e9 },
+                { source: 'macron', target: 'kishida', amount: 6e9 },
+                { source: 'scholz', target: 'kishida', amount: 6e9 },
+                { source: 'macron', target: 'meloni', amount: 4e9 },
+                { source: 'scholz', target: 'meloni', amount: 4e9 },
+                { source: 'kishida', target: 'meloni', amount: 4e9 },
+                { source: 'macron', target: 'trudeau', amount: 4e9 },
+                { source: 'scholz', target: 'trudeau', amount: 4e9 },
+                { source: 'kishida', target: 'trudeau', amount: 4e9 },
+                { source: 'meloni', target: 'trudeau', amount: 4e9 },
+                { source: 'scholz', target: 'albanese', amount: 3e9 },
+                { source: 'kishida', target: 'albanese', amount: 3e9 },
+                { source: 'kishida', target: 'lula', amount: 3e9 },
+                { source: 'meloni', target: 'albanese', amount: 3e9 },
+                { source: 'meloni', target: 'lula', amount: 3e9 },
+                { source: 'meloni', target: 'yoon', amount: 3e9 },
+                { source: 'trudeau', target: 'albanese', amount: 3e9 },
+                { source: 'trudeau', target: 'lula', amount: 3e9 },
+                { source: 'trudeau', target: 'yoon', amount: 3e9 },
+                { source: 'albanese', target: 'lula', amount: 3e9 },
+                { source: 'albanese', target: 'yoon', amount: 3e9 },
+                { source: 'lula', target: 'yoon', amount: 3e9 },
+                { source: 'trudeau', target: 'amlo', amount: 2e9 },
+                { source: 'albanese', target: 'amlo', amount: 2e9 },
+                { source: 'lula', target: 'amlo', amount: 2e9 },
+                { source: 'yoon', target: 'amlo', amount: 2e9 },
+                { source: 'albanese', target: 'erdogan', amount: 2e9 },
+                { source: 'lula', target: 'erdogan', amount: 2e9 },
+                { source: 'lula', target: 'jokowi', amount: 2e9 },
+                { source: 'yoon', target: 'erdogan', amount: 2e9 },
+                { source: 'yoon', target: 'jokowi', amount: 2e9 },
+                { source: 'yoon', target: 'netanyahu', amount: 2e9 },
+                { source: 'amlo', target: 'erdogan', amount: 2e9 },
+                { source: 'amlo', target: 'jokowi', amount: 2e9 },
+                { source: 'amlo', target: 'netanyahu', amount: 2e9 },
+                { source: 'amlo', target: 'rutte', amount: 2e9 },
+                { source: 'erdogan', target: 'jokowi', amount: 2e9 },
+                { source: 'erdogan', target: 'netanyahu', amount: 2e9 },
+                { source: 'erdogan', target: 'rutte', amount: 2e9 },
+                { source: 'jokowi', target: 'netanyahu', amount: 2e9 },
+                { source: 'jokowi', target: 'rutte', amount: 2e9 },
+                { source: 'netanyahu', target: 'rutte', amount: 2e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 🚀 자동 생성: 중동 왕실/SWF 네트워크
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'tamim', target: 'sabah', amount: 4e9 },
+                { source: 'mbs', target: 'tamim', amount: 2e9 },
+                { source: 'mbz', target: 'tamim', amount: 2e9 },
+                { source: 'tamim', target: 'hassanal', amount: 2e9 },
+                { source: 'sabah', target: 'hassanal', amount: 2e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 🚀 자동 생성: T0-T1 연결 (정부-기업)
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'xi', target: 'fink', amount: 2e9 },
+                { source: 'trump', target: 'fink', amount: 2e9 },
+                { source: 'putin', target: 'bailey', amount: 2e9 },
+                { source: 'putin', target: 'fink', amount: 2e9 },
+                { source: 'yi_gang', target: 'fink', amount: 2e9 },
+                { source: 'modi', target: 'fink', amount: 2e9 },
+                { source: 'lagarde', target: 'bailey', amount: 2e9 },
+                { source: 'lagarde', target: 'fink', amount: 2e9 },
+                { source: 'ueda', target: 'fink', amount: 2e9 },
+                { source: 'starmer', target: 'fink', amount: 2e9 },
+                { source: 'kim', target: 'fink', amount: 2e9 },
+                { source: 'xi', target: 'buckley', amount: 2e9 },
+                { source: 'trump', target: 'buckley', amount: 2e9 },
+                { source: 'putin', target: 'buckley', amount: 2e9 },
+                { source: 'putin', target: 'macron', amount: 2e9 },
+                { source: 'powell', target: 'buckley', amount: 2e9 },
+                { source: 'yi_gang', target: 'buckley', amount: 2e9 },
+                { source: 'modi', target: 'buckley', amount: 2e9 },
+                { source: 'lagarde', target: 'buckley', amount: 2e9 },
+                { source: 'ueda', target: 'buckley', amount: 2e9 },
+                { source: 'starmer', target: 'buckley', amount: 2e9 },
+                { source: 'starmer', target: 'macron', amount: 2e9 },
+                { source: 'kim', target: 'buckley', amount: 2e9 },
+                { source: 'bailey', target: 'macron', amount: 4e9 },
+                { source: 'bailey', target: 'scholz', amount: 4e9 },
+                { source: 'macron', target: 'gpfg_ceo', amount: 3e9 },
+                { source: 'scholz', target: 'gpfg_ceo', amount: 3e9 },
+                { source: 'kishida', target: 'cic_ceo', amount: 2e9 },
+
+                // ═══════════════════════════════════════════════════════════════
+                // 🚀 자동 생성: 기술 회사 간 연결
+                // ═══════════════════════════════════════════════════════════════
+                { source: 'cook', target: 'nadella', amount: 5e9 },
+                { source: 'cook', target: 'pichai', amount: 4e9 },
+                { source: 'cook', target: 'zuck', amount: 3e9 },
+                { source: 'nadella', target: 'pichai', amount: 4e9 },
+                { source: 'nadella', target: 'zuck', amount: 3e9 },
+                { source: 'pichai', target: 'zuck', amount: 3e9 },
+                { source: 'bezos', target: 'cook', amount: 3e9 },
+                { source: 'bezos', target: 'nadella', amount: 4e9 },
+                { source: 'bezos', target: 'pichai', amount: 3e9 },
+                { source: 'huang', target: 'cook', amount: 8e9 },
+                { source: 'huang', target: 'nadella', amount: 10e9 },
+                { source: 'huang', target: 'pichai', amount: 8e9 },
+                { source: 'huang', target: 'bezos', amount: 6e9 },
+                { source: 'su', target: 'nadella', amount: 3e9 },
+                { source: 'su', target: 'pichai', amount: 2e9 },
+                { source: 'su', target: 'cook', amount: 2e9 },
+            ];
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // MAP INIT
+        // ═══════════════════════════════════════════════════════════════
+
+        const map = L.map('map', {
+            center: [20, 0],
+            zoom: 3,
+            minZoom: 2,
+            maxZoom: 18,
+            zoomControl: false,
+            attributionControl: false,
+            // ⚡⚡⚡ 극한 성능 최적화
+            preferCanvas: true,
+            renderer: L.canvas({ padding: 0.3, tolerance: 5 }),
+            zoomAnimation: false,         // ⚡ 줌 애니메이션 완전 비활성화
+            zoomAnimationThreshold: 99,   // 임계값 최대화
+            fadeAnimation: false,
+            markerZoomAnimation: false,
+            updateWhenZooming: false,
+            updateWhenIdle: false,        // ⚡ 유휴 대기 없이 즉시 업데이트
+            wheelPxPerZoomLevel: 40,      // ⚡ 휠 감도 1.5배 증가
+            wheelDebounceTime: 10,        // ⚡ 디바운스 10ms로 감소
+            keyboard: true,
+            keyboardPanDelta: 200,        // ⚡ 키보드 이동 속도 더 증가
+            inertia: false,               // ⚡ 관성 비활성화 (즉시 정지)
+            easeLinearity: 1.0,           // ⚡ 완전 직선 이동
+            tap: true,
+            tapTolerance: 20,
+            bounceAtZoomLimits: false,
+            zoomSnap: 0.5,                // ⚡ 줌 스냅 줄임 (더 정밀한 줌)
+            zoomDelta: 1,                 // ⚡ 줌 델타 증가 (한번에 더 많이 줌)
+            doubleClickZoom: 'center'     // ⚡ 더블클릭 줌 중앙 기준
+        });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            // ⚡⚡⚡ 극한 타일 로딩 최적화
+            updateWhenIdle: false,          // 즉시 타일 로드
+            updateWhenZooming: false,
+            keepBuffer: 8,                  // ⚡ 버퍼 더 증가 (프리로딩)
+            tileSize: 256,
+            zoomOffset: 0,
+            crossOrigin: 'anonymous',
+            className: 'fast-tiles',
+            detectRetina: false,            // ⚡ 레티나 감지 비활성화 (속도 향상)
+            fadeAnimation: false            // ⚡ 타일 페이드 비활성화
+        }).addTo(map);
+
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        const motionLayer = L.layerGroup().addTo(map);
+        const nodeLayer = L.layerGroup().addTo(map);
+
+        // ═══════════════════════════════════════════════════════════════
+        // RENDER
+        // ═══════════════════════════════════════════════════════════════
+
+        function shouldShow(node) {
+            const f = state.filters;
+            if (f.tier !== 'all' && node.tier !== f.tier) return false;
+            if (f.sector !== 'all' && node.sector !== f.sector) return false;
+            if (f.region !== 'all' && node.region !== f.region) return false;
+
+            const zoom = map.getZoom();
+            const tier = TIERS[node.tier];
+            return zoom >= tier.minZoom;
+        }
+
+        function renderNodes() {
+            if (state.isRendering) return;
+            state.isRendering = true;
+
+            nodeLayer.clearLayers();
+            state.markers = {};
+
+            // ⚡ 배치 처리를 위한 배열
+            const markersToAdd = [];
+            const labelsToAdd = [];
+            let count = 0;
+
+            // ⚡ 현재 뷰포트 범위 가져오기 (범위 밖 노드 스킵)
+            const bounds = map.getBounds().pad(0.1); // 10% 패딩
+
+            state.nodes.forEach(node => {
+                if (!shouldShow(node)) return;
+
+                // ⚡ 뷰포트 밖이면 스킵 (성능 최적화)
+                if (!bounds.contains([node.lat, node.lng])) return;
+
+                count++;
+
+                const tier = TIERS[node.tier];
+                const isT0 = node.tier === 'T0';
+                const marker = L.circleMarker([node.lat, node.lng], {
+                    radius: tier.size / 2,
+                    fillColor: tier.color,
+                    color: isT0 ? '#FFD700' : '#fff',
+                    weight: isT0 ? 3 : 1,
+                    opacity: 1,
+                    fillOpacity: isT0 ? 1 : 0.85,
+                    className: isT0 ? 't0-glow' : '',
+                    bubblingMouseEvents: false  // ⚡ 이벤트 버블링 비활성화
+                });
+
+                marker.on('click', () => showDetail(node));
+                marker.nodeData = node;
+                markersToAdd.push(marker);
+                state.markers[node.id] = marker;
+
+                if (state.showLabels) {
+                    labelsToAdd.push(L.marker([node.lat, node.lng], {
+                        icon: L.divIcon({
+                            className: '',
+                            html: `<div style="background:rgba(0,0,0,0.7);padding:1px 4px;border-radius:2px;font-size:8px;color:#fff;white-space:nowrap;">${node.flag} ${node.name}</div>`,
+                            iconSize: [80, 15],
+                            iconAnchor: [40, -5]
+                        }),
+                        interactive: false  // ⚡ 라벨 인터랙션 비활성화
+                    }));
+                }
+            });
+
+            // ⚡ 배치 추가 (개별 추가보다 훨씬 빠름)
+            L.layerGroup(markersToAdd).addTo(nodeLayer);
+            if (labelsToAdd.length > 0) {
+                L.layerGroup(labelsToAdd).addTo(nodeLayer);
+            }
+
+            document.getElementById('visibleCount').textContent = count;
+            state.isRendering = false;
+        }
+
+        // 🚀🚀🚀 Leaflet Polyline 기반 모션 렌더링 (완전 동기화!)
+        let motionLayerGroup = null;
+
+        // 🎯 금액 포맷
+        function formatAmount(amount) {
+            if (amount >= 1e12) return '$' + (amount / 1e12).toFixed(1) + 'T';
+            if (amount >= 1e9) return '$' + (amount / 1e9).toFixed(1) + 'B';
+            if (amount >= 1e6) return '$' + (amount / 1e6).toFixed(0) + 'M';
+            return '$' + (amount / 1e3).toFixed(0) + 'K';
+        }
+
+        // 🎯 금액에 따른 색상
+        function getAmountColor(amount) {
+            if (amount >= 100e9) return '#FFD700';   // 금색 - $100B+
+            if (amount >= 10e9) return '#FF6464';    // 빨강 - $10B+
+            if (amount >= 1e9) return '#FFA500';     // 주황 - $1B+
+            if (amount >= 100e6) return '#00CCFF';   // 파랑 - $100M+
+            return '#64C864';                         // 초록 - 기타
+        }
+
+        // 🎯 곡선 좌표 생성 (베지어 → 다중 점)
+        function getCurveLatLngs(src, tgt, segments = 12) {
+            const srcLat = src.lat, srcLng = src.lng;
+            const tgtLat = tgt.lat, tgtLng = tgt.lng;
+
+            const dx = tgtLng - srcLng;
+            const dy = tgtLat - srcLat;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const curve = Math.min(0.12, dist * 0.04);
+
+            const midLat = (srcLat + tgtLat) / 2 + dx * curve;
+            const midLng = (srcLng + tgtLng) / 2 - dy * curve;
+
+            const points = [];
+            for (let i = 0; i <= segments; i++) {
+                const t = i / segments;
+                const lat = (1 - t) * (1 - t) * srcLat + 2 * (1 - t) * t * midLat + t * t * tgtLat;
+                const lng = (1 - t) * (1 - t) * srcLng + 2 * (1 - t) * t * midLng + t * t * tgtLng;
+                points.push([lat, lng]);
+            }
+            return points;
+        }
+
+        function renderMotions() {
+            // 기존 레이어 제거
+            if (motionLayerGroup) {
+                map.removeLayer(motionLayerGroup);
+                motionLayerGroup = null;
+            }
+
+            if (!state.showMotion) {
+                document.getElementById('motionCount').textContent = '0';
+                return;
+            }
+
+            const zoom = map.getZoom();
+            const bounds = map.getBounds().pad(0.1);
+            const layers = [];
+            let drawnCount = 0;
+
+            const maxMotions = zoom >= 6 ? 500 : zoom >= 4 ? 200 : 100;
+
+            // 모션 정렬 (금액 큰 것 나중에)
+            const sortedMotions = [...state.motions].sort((a, b) => a.amount - b.amount);
+
+            sortedMotions.forEach(m => {
+                if (drawnCount >= maxMotions) return;
+
+                const src = state.nodeIndex[m.source];
+                const tgt = state.nodeIndex[m.target];
+                if (!src || !tgt) return;
+
+                const srcIn = bounds.contains([src.lat, src.lng]);
+                const tgtIn = bounds.contains([tgt.lat, tgt.lng]);
+                if (!srcIn && !tgtIn) return;
+
+                const minTier = zoom >= 6 ? 'T3' : zoom >= 4 ? 'T2' : 'T1';
+                const tierOrder = { T0: 0, T1: 1, T2: 2, T3: 3 };
+                if (tierOrder[src.tier] > tierOrder[minTier] && tierOrder[tgt.tier] > tierOrder[minTier]) return;
+
+                const curvePoints = getCurveLatLngs(src, tgt);
+                const logAmount = Math.log10(Math.max(m.amount, 1e6));
+                const weight = Math.max(1, Math.min(6, (logAmount - 6) * 1.2));
+                const color = getAmountColor(m.amount);
+
+                // 🌊 금액에 따른 애니메이션 클래스 결정
+                let flowClass = 'motion-flow';
+                if (m.amount >= 100e9) {
+                    flowClass = 'motion-mega';      // $100B+ 메가 흐름
+                } else if (m.amount >= 10e9) {
+                    flowClass = 'motion-flow-fast'; // $10B+ 빠른 흐름
+                } else if (m.amount < 1e9) {
+                    flowClass = 'motion-flow-slow'; // $1B 미만 느린 흐름
+                }
+
+                // 🚀 Leaflet Polyline (맵과 완전 동기화!)
+                const line = L.polyline(curvePoints, {
+                    color: color,
+                    weight: weight,
+                    opacity: 0.75,
+                    smoothFactor: 1,
+                    interactive: false,
+                    className: flowClass  // 🌊 애니메이션 클래스 추가
+                });
+                layers.push(line);
+
+                // 🎯 화살표 마커 (줌 3+)
+                if (zoom >= 3) {
+                    const endIdx = curvePoints.length - 1;
+                    const arrowPos = curvePoints[Math.floor(endIdx * 0.88)];
+                    const endPos = curvePoints[endIdx];
+                    const prevPos = curvePoints[endIdx - 1];
+
+                    const angle = Math.atan2(endPos[0] - prevPos[0], endPos[1] - prevPos[1]) * 180 / Math.PI;
+                    const arrowSize = Math.max(6, Math.min(12, weight * 2));
+
+                    const arrow = L.marker(arrowPos, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: `<div style="width:0;height:0;border-left:${arrowSize * 0.5}px solid transparent;border-right:${arrowSize * 0.5}px solid transparent;border-bottom:${arrowSize}px solid ${color};transform:rotate(${-angle}deg);opacity:0.9;filter:drop-shadow(0 0 2px ${color});"></div>`,
+                            iconSize: [arrowSize, arrowSize],
+                            iconAnchor: [arrowSize / 2, arrowSize / 2]
+                        }),
+                        interactive: false
+                    });
+                    layers.push(arrow);
+                }
+
+                // 🌟 입자 효과 (대규모 흐름, $10B+, 줌 4+)
+                if (zoom >= 4 && m.amount >= 10e9) {
+                    const particleCount = m.amount >= 100e9 ? 3 : 2;
+                    const duration = m.amount >= 100e9 ? 2 : 3;
+
+                    for (let p = 0; p < particleCount; p++) {
+                        // 경로 상 여러 지점에 입자 배치
+                        const delay = (p / particleCount) * duration;
+                        const particleIdx = Math.floor(curvePoints.length * 0.3 + (curvePoints.length * 0.5 * p / particleCount));
+                        const particlePos = curvePoints[Math.min(particleIdx, curvePoints.length - 1)];
+
+                        const particle = L.marker(particlePos, {
+                            icon: L.divIcon({
+                                className: '',
+                                html: `<div class="flow-particle" style="
+                                    width: ${weight + 2}px;
+                                    height: ${weight + 2}px;
+                                    background: ${color};
+                                    border-radius: 50%;
+                                    box-shadow: 0 0 ${weight * 2}px ${color}, 0 0 ${weight * 4}px ${color};
+                                    animation: particlePulse ${duration / particleCount}s ease-in-out ${delay}s infinite;
+                                "></div>`,
+                                iconSize: [weight + 2, weight + 2],
+                                iconAnchor: [(weight + 2) / 2, (weight + 2) / 2]
+                            }),
+                            interactive: false
+                        });
+                        layers.push(particle);
+                    }
+                }
+
+                drawnCount++;
+            });
+
+            // 🚀 LayerGroup으로 한번에 추가 (성능 최적화)
+            motionLayerGroup = L.layerGroup(layers).addTo(map);
+            document.getElementById('motionCount').textContent = drawnCount;
+        }
+
+        function render() {
+            renderNodes();
+            renderMotions();
+            document.getElementById('zoomLevel').textContent = map.getZoom();
+            document.getElementById('zoomLabel').textContent =
+                map.getZoom() >= 7 ? 'Detail' : map.getZoom() >= 5 ? 'Country' : map.getZoom() >= 3 ? 'Region' : 'World';
+        }
+
+        function showDetail(node) {
+            const tier = TIERS[node.tier];
+            document.getElementById('detailFlag').textContent = node.flag;
+            document.getElementById('detailName').textContent = node.name;
+            document.getElementById('detailTitle').textContent = node.title;
+            document.getElementById('detailTier').textContent = node.tier;
+            document.getElementById('detailTier').style.background = tier.color;
+            document.getElementById('detailTier').style.color = '#000';
+            document.getElementById('detailRV').textContent = formatValue(node.rv);
+            document.getElementById('detailNA').textContent = formatValue(node.na);
+            document.getElementById('detailSector').textContent = node.sector;
+            document.getElementById('detailRegion').textContent = node.region;
+            document.getElementById('detailDesc').textContent = node.desc || '';
+
+            document.getElementById('zoomBox').style.display = 'none';
+            document.getElementById('detailPanel').classList.add('show');
+        }
+
+        function closeDetail() {
+            document.getElementById('detailPanel').classList.remove('show');
+            document.getElementById('zoomBox').style.display = 'block';
+        }
+
+        // ⚡⚡⚡ 초고속 이동 함수
+        function goTo(lat, lng, zoom) {
+            // 즉시 이동 (애니메이션 없음)
+            map.setView([lat, lng], zoom, {
+                animate: false,
+                duration: 0
+            });
+        }
+
+        // 부드러운 이동이 필요할 때 사용
+        function goToSmooth(lat, lng, zoom) {
+            map.flyTo([lat, lng], zoom, {
+                duration: 0.15,             // ⚡ 0.15초 (기존 0.3초)
+                easeLinearity: 1.0,         // 완전 직선 이동
+                noMoveStart: true
+            });
+        }
+
+        // ⚡ 디바운스된 렌더링 (과도한 호출 방지)
+        let renderTimeout = null;
+        function debouncedRender() {
+            cancelAnimationFrame(renderTimeout);
+            renderTimeout = requestAnimationFrame(render);
+        }
+
+        // Events - 🚀 Leaflet overlayPane 완전 동기화
+        // Canvas가 overlayPane에 있어서 맵과 함께 자동 이동됨!
+
+        map.on('zoomend', debouncedRender);  // 줌 완료 시 새로 그리기
+        map.on('moveend', debouncedRender);  // 이동 완료 시 새 영역 그리기
+
+        // ⚡ Canvas 크기/위치 업데이트는 initMotionCanvas에서 처리됨
+        // layerPoint 사용으로 Canvas가 맵과 완벽 동기화!
+
+        // ⚡ 이벤트 위임 패턴 사용 (더 빠름)
+        document.querySelector('.filters').addEventListener('click', e => {
+            const btn = e.target.closest('.filter-btn');
+            if (!btn) return;
+
+            const f = btn.dataset.filter;
+            const v = btn.dataset.value;
+
+            // 이미 선택된 버튼이면 무시
+            if (btn.classList.contains('active')) return;
+
+            document.querySelectorAll(`.filter-btn[data-filter="${f}"]`).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.filters[f] = v;
+            closeDetail();
+            debouncedRender();
+        });
+
+        document.getElementById('btnMotion').addEventListener('click', e => {
+            state.showMotion = !state.showMotion;
+            e.target.classList.toggle('active', state.showMotion);
+            debouncedRender();
+        });
+
+        document.getElementById('btnLabels').addEventListener('click', e => {
+            state.showLabels = !state.showLabels;
+            e.target.classList.toggle('active', state.showLabels);
+            debouncedRender();
+        });
+
+        // ⚡ 검색 디바운싱 + 빠른 이동
+        let searchTimeout = null;
+        document.getElementById('searchInput').addEventListener('input', e => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const q = e.target.value.toLowerCase();
+                if (q.length < 2) return;
+                const found = state.nodes.find(n =>
+                    n.name.toLowerCase().includes(q) ||
+                    n.title.toLowerCase().includes(q) ||
+                    n.id.includes(q)
+                );
+                if (found) {
+                    // ⚡⚡⚡ 즉시 이동
+                    map.setView([found.lat, found.lng], 6, { animate: false });
+                    showDetail(found);  // 바로 디테일 표시
+                }
+            }, 50);  // ⚡ 50ms 디바운스로 감소
+        });
+
+        // ═══════════════════════════════════════════════════════════════
+        // API 연동 - 실시간 데이터 로드
+        // ═══════════════════════════════════════════════════════════════
+
+        const API_BASE = 'http://localhost:8000';  // 백엔드 주소
+
+        async function loadRealtimeMotions() {
+            try {
+                const res = await fetch(`${API_BASE}/api/motion/realtime?limit=1000`);
+                if (!res.ok) throw new Error('API not available');
+
+                const data = await res.json();
+
+                if (data.motions && data.motions.length > 0) {
+                    // API 데이터를 내부 형식으로 변환
+                    const apiMotions = data.motions.map(m => ({
+                        source: m.source,
+                        target: m.target,
+                        amount: m.amount,
+                        type: m.type,
+                        data_source: m.data_source
+                    }));
+
+                    // 기존 모션에 API 모션 추가
+                    state.motions = [...state.motions, ...apiMotions];
+                    console.log(`✅ API에서 ${apiMotions.length}개 모션 로드됨`);
+
+                    // 중복 제거
+                    const seen = new Set();
+                    state.motions = state.motions.filter(m => {
+                        const key = `${m.source}-${m.target}`;
+                        if (seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    });
+
+                    document.getElementById('motionCount').textContent = state.motions.length;
+                    debouncedRender();
+                }
+            } catch (e) {
+                console.log('📡 API 미연결 - 정적 데이터 사용');
+            }
+        }
+
+        async function fetchPipelineStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/api/motion/pipeline/status`);
+                if (!res.ok) return null;
+                return await res.json();
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function runPipeline(mode = 'quick') {
+            try {
+                const res = await fetch(`${API_BASE}/api/motion/pipeline/run?mode=${mode}`, {
+                    method: 'POST'
+                });
+                if (res.ok) {
+                    console.log('🚀 파이프라인 시작됨');
+                    // 5초 후 데이터 새로고침
+                    setTimeout(loadRealtimeMotions, 5000);
+                }
+            } catch (e) {
+                console.log('파이프라인 실행 실패:', e);
+            }
+        }
+
+        // ⚡ 최적화된 초기화
+        state.nodes = loadNodes();
+        state.motions = loadMotions();
+
+        // ⚡ 노드 인덱스 구축 (O(1) 조회용)
+        state.nodes.forEach(n => { state.nodeIndex[n.id] = n; });
+
+        // ⚡ 통계 미리 계산
+        const stats = {
+            total: state.nodes.length,
+            totalRV: state.nodes.reduce((s, n) => s + n.rv, 0),
+            byTier: { T1: 0, T2: 0, T3: 0, T4: 0 }
+        };
+        state.nodes.forEach(n => stats.byTier[n.tier]++);
+
+        document.getElementById('totalValue').textContent = formatValue(stats.totalRV);
+        document.getElementById('totalCount').textContent = stats.total;
+        document.getElementById('motionCount').textContent = state.motions.length;
+
+        // ⚡ 초기 렌더링
+        render();
+
+        // 🌐 API 실시간 데이터 로드 시도
+        loadRealtimeMotions();
+
+        // ⚡ 키보드 단축키 (빠른 조작)
+        document.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT') return;
+
+            switch (e.key) {
+                case '1': goTo(38.9, -77, 4); break;      // USA
+                case '2': goTo(51.5, -0.1, 5); break;     // UK
+                case '3': goTo(48.8, 2.3, 5); break;      // EU
+                case '4': goTo(39.9, 116, 4); break;      // China
+                case '5': goTo(35.6, 139.7, 5); break;    // Japan
+                case '6': goTo(28.6, 77.2, 5); break;     // India
+                case '7': goTo(24.7, 46.7, 5); break;     // MENA
+                case '0': case 'w': goTo(20, 0, 2); break; // World
+                case 'm':
+                    state.showMotion = !state.showMotion;
+                    document.getElementById('btnMotion').classList.toggle('active', state.showMotion);
+                    debouncedRender();
+                    break;
+                case 'l':
+                    state.showLabels = !state.showLabels;
+                    document.getElementById('btnLabels').classList.toggle('active', state.showLabels);
+                    debouncedRender();
+                    break;
+                case 'Escape': closeDetail(); break;
+                case '/': case 's':
+                    e.preventDefault();
+                    document.getElementById('searchInput').focus();
+                    break;
+            }
+        });
+
+        console.log('✅ Global 350 Physics Map loaded - TURBO MODE ⚡');
+        console.log('📊 Nodes:', stats.total);
+        console.log('📊 T1:', stats.byTier.T1, '| T2:', stats.byTier.T2, '| T3:', stats.byTier.T3, '| T4:', stats.byTier.T4);
+        console.log('⌨️ 단축키: 1-7=지역, 0/W=월드, M=모션, L=라벨, S=검색, ESC=닫기');
+    </script>
+</body>
+
+</html>

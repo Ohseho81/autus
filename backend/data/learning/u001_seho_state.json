@@ -1,0 +1,22 @@
+{
+  "current": {
+    "cash": 5000000,
+    "expense": 1000000,
+    "momentum": 4,
+    "risk": 7,
+    "runway_months": 5.0
+  },
+  "history": [
+    {
+      "timestamp": "2026-01-10T09:23:46.991798",
+      "state": {
+        "cash": 5000000,
+        "expense": 1000000,
+        "momentum": 4,
+        "risk": 7,
+        "runway_months": 5.0
+      }
+    }
+  ],
+  "updated_at": "2026-01-10T09:23:46.991907"
+}

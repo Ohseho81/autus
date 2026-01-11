@@ -1,0 +1,928 @@
+# AUTUS Log Patterns v0.1.1
+# ============================================
+#
+# 이것이 AUTUS의 "문법(Grammar)"이다.
+# 사용자 행동 로그 → 노드 값 변화로 변환하는 규칙
+#
+# v0.1.1 Changes:
+# - 키워드 정교화 (일반적 단어 제거)
+# - "완료", "done" 등 단독 사용 제거
+#
+# Constitution 준수:
+# - 패턴만 정의, 실제 데이터 없음
+# - 해석 규칙만 소유, 해석 결과는 로컬에 저장
+
+version: "0.1.1"
+pattern_count: 100
+
+# ===========================================
+# 패턴 매칭 설정
+# ===========================================
+matching:
+  method: "keyword_category"
+  case_sensitive: false
+  multiple_match: "all"
+  conflict_resolution: "latest_wins"
+
+# ===========================================
+# HEALTH 패턴 (20개)
+# ===========================================
+health_patterns:
+  - id: "H001"
+    name: "exercise_session"
+    keywords: ["운동", "헬스", "gym", "workout", "exercise", "fitness", "트레이닝"]
+    category: "fitness_app"
+    node: "HEALTH"
+    delta: +0.02
+    confidence_boost: 0.01
+    cooldown_hours: 4
+    
+  - id: "H002"
+    name: "running"
+    keywords: ["러닝", "달리기", "run", "jogging", "마라톤", "조깅"]
+    node: "HEALTH"
+    delta: +0.025
+    confidence_boost: 0.01
+    
+  - id: "H003"
+    name: "yoga_meditation"
+    keywords: ["요가", "명상", "yoga", "meditation", "마음챙김", "스트레칭"]
+    node: "HEALTH"
+    delta: +0.02
+    affects:
+      - node: "CAREER"
+        delta: +0.005
+        
+  - id: "H004"
+    name: "good_sleep"
+    keywords: ["숙면", "잘 잤", "good sleep", "8시간", "푹 잤"]
+    node: "HEALTH"
+    delta: +0.015
+    
+  - id: "H005"
+    name: "poor_sleep"
+    keywords: ["불면", "못 잤", "insomnia", "피곤", "수면 부족"]
+    node: "HEALTH"
+    delta: -0.02
+    
+  - id: "H006"
+    name: "healthy_meal"
+    keywords: ["샐러드", "건강식", "채소", "과일", "healthy", "다이어트"]
+    node: "HEALTH"
+    delta: +0.01
+    
+  - id: "H007"
+    name: "unhealthy_meal"
+    keywords: ["야식", "패스트푸드", "폭식", "과음", "배달음식"]
+    node: "HEALTH"
+    delta: -0.015
+    
+  - id: "H008"
+    name: "health_checkup"
+    keywords: ["건강검진", "검진", "checkup", "병원 예방", "정기 검진"]
+    node: "HEALTH"
+    delta: +0.03
+    confidence_boost: 0.05
+    
+  - id: "H009"
+    name: "sick_day"
+    keywords: ["아파서", "병가", "sick", "몸살", "감기", "열나"]
+    node: "HEALTH"
+    delta: -0.03
+    affects:
+      - node: "CAREER"
+        delta: -0.01
+        
+  - id: "H010"
+    name: "mental_health_care"
+    keywords: ["상담", "therapy", "심리", "counseling", "정신건강"]
+    node: "HEALTH"
+    delta: +0.025
+    confidence_boost: 0.02
+    
+  - id: "H011"
+    name: "swimming"
+    keywords: ["수영", "swimming", "물놀이", "수영장"]
+    node: "HEALTH"
+    delta: +0.02
+    
+  - id: "H012"
+    name: "hiking"
+    keywords: ["등산", "hiking", "산행", "트레킹"]
+    node: "HEALTH"
+    delta: +0.025
+    affects:
+      - node: "FAMILY"
+        delta: +0.01
+        
+  - id: "H013"
+    name: "cycling"
+    keywords: ["자전거", "cycling", "라이딩", "따릉이"]
+    node: "HEALTH"
+    delta: +0.02
+    
+  - id: "H014"
+    name: "dental_checkup"
+    keywords: ["치과", "dental", "치아", "스케일링"]
+    node: "HEALTH"
+    delta: +0.015
+    
+  - id: "H015"
+    name: "vitamin_supplement"
+    keywords: ["비타민", "vitamin", "영양제", "supplement"]
+    node: "HEALTH"
+    delta: +0.005
+    
+  - id: "H016"
+    name: "stretching"
+    keywords: ["스트레칭", "stretching", "근육 풀기"]
+    node: "HEALTH"
+    delta: +0.01
+    
+  - id: "H017"
+    name: "water_intake"
+    keywords: ["물 마셨", "water", "수분 섭취"]
+    node: "HEALTH"
+    delta: +0.005
+    
+  - id: "H018"
+    name: "quit_smoking"
+    keywords: ["금연", "담배 끊", "no smoking"]
+    node: "HEALTH"
+    delta: +0.03
+    
+  - id: "H019"
+    name: "weight_goal"
+    keywords: ["체중 감량", "다이어트 성공", "목표 체중"]
+    node: "HEALTH"
+    delta: +0.025
+    
+  - id: "H020"
+    name: "sports"
+    keywords: ["축구", "농구", "테니스", "배드민턴", "골프"]
+    node: "HEALTH"
+    delta: +0.02
+    affects:
+      - node: "SOCIAL"
+        delta: +0.01
+
+# ===========================================
+# WEALTH 패턴 (15개)
+# ===========================================
+wealth_patterns:
+  - id: "W001"
+    name: "salary_received"
+    keywords: ["급여", "월급", "salary", "입금", "페이"]
+    category: "bank_transaction"
+    node: "WEALTH"
+    delta: +0.03
+    confidence_boost: 0.03
+    
+  - id: "W002"
+    name: "bonus_received"
+    keywords: ["보너스", "성과급", "bonus", "인센티브"]
+    node: "WEALTH"
+    delta: +0.05
+    affects:
+      - node: "CAREER"
+        delta: +0.02
+        
+  - id: "W003"
+    name: "side_income"
+    keywords: ["부수입", "side hustle", "프리랜서", "외주", "부업"]
+    node: "WEALTH"
+    delta: +0.02
+    
+  - id: "W004"
+    name: "large_expense"
+    keywords: ["큰 지출", "목돈", "large purchase", "고가 구매"]
+    node: "WEALTH"
+    delta: -0.03
+    
+  - id: "W005"
+    name: "unnecessary_expense"
+    keywords: ["충동구매", "낭비", "impulse", "불필요한 지출"]
+    node: "WEALTH"
+    delta: -0.015
+    
+  - id: "W006"
+    name: "savings_deposit"
+    keywords: ["저축", "적금", "savings", "예금", "저금"]
+    node: "WEALTH"
+    delta: +0.02
+    affects:
+      - node: "SECURITY"
+        delta: +0.01
+        
+  - id: "W007"
+    name: "investment_made"
+    keywords: ["투자", "주식", "펀드", "investment", "ETF", "코인"]
+    node: "WEALTH"
+    delta: +0.015
+    
+  - id: "W008"
+    name: "debt_payment"
+    keywords: ["대출상환", "빚 갚", "debt payment", "원금 상환"]
+    node: "WEALTH"
+    delta: +0.02
+    affects:
+      - node: "SECURITY"
+        delta: +0.015
+        
+  - id: "W009"
+    name: "budget_review"
+    keywords: ["가계부", "예산", "budget", "지출 분석"]
+    node: "WEALTH"
+    delta: +0.01
+    confidence_boost: 0.01
+    
+  - id: "W010"
+    name: "tax_paid"
+    keywords: ["세금", "tax", "연말정산", "종합소득세"]
+    node: "WEALTH"
+    delta: -0.01
+    
+  - id: "W011"
+    name: "rent_paid"
+    keywords: ["월세", "rent", "관리비", "주거비"]
+    node: "WEALTH"
+    delta: -0.015
+    
+  - id: "W012"
+    name: "dividend_received"
+    keywords: ["배당", "dividend", "이자 수입"]
+    node: "WEALTH"
+    delta: +0.015
+    
+  - id: "W013"
+    name: "sale_income"
+    keywords: ["중고 판매", "당근", "번개장터", "물건 팔았"]
+    node: "WEALTH"
+    delta: +0.01
+    
+  - id: "W014"
+    name: "subscription_cancel"
+    keywords: ["구독 해지", "cancel subscription", "자동결제 해지"]
+    node: "WEALTH"
+    delta: +0.01
+    
+  - id: "W015"
+    name: "financial_goal"
+    keywords: ["재정 목표", "저축 목표", "financial goal"]
+    node: "WEALTH"
+    delta: +0.02
+    confidence_boost: 0.02
+
+# ===========================================
+# SECURITY 패턴 (10개)
+# ===========================================
+security_patterns:
+  - id: "S001"
+    name: "insurance_payment"
+    keywords: ["보험료", "보험 납부", "insurance", "보험 가입"]
+    node: "SECURITY"
+    delta: +0.01
+    confidence_boost: 0.02
+    
+  - id: "S002"
+    name: "emergency_fund_add"
+    keywords: ["비상금", "emergency fund", "예비비", "비상 자금"]
+    node: "SECURITY"
+    delta: +0.03
+    
+  - id: "S003"
+    name: "home_maintenance"
+    keywords: ["집 수리", "home repair", "인테리어", "수리비"]
+    node: "SECURITY"
+    delta: +0.015
+    
+  - id: "S004"
+    name: "security_incident"
+    keywords: ["도난", "사고", "theft", "accident", "분실"]
+    node: "SECURITY"
+    delta: -0.05
+    alert: true
+    
+  - id: "S005"
+    name: "backup_created"
+    keywords: ["백업", "backup", "데이터 저장"]
+    node: "SECURITY"
+    delta: +0.01
+    
+  - id: "S006"
+    name: "password_updated"
+    keywords: ["비밀번호 변경", "password change", "보안 업데이트"]
+    node: "SECURITY"
+    delta: +0.01
+    
+  - id: "S007"
+    name: "document_organized"
+    keywords: ["서류 정리", "문서 정리", "계약서"]
+    node: "SECURITY"
+    delta: +0.01
+    
+  - id: "S008"
+    name: "health_insurance"
+    keywords: ["건강보험", "실손보험", "health insurance"]
+    node: "SECURITY"
+    delta: +0.02
+    
+  - id: "S009"
+    name: "pension_contribution"
+    keywords: ["연금", "pension", "퇴직금", "노후 대비"]
+    node: "SECURITY"
+    delta: +0.02
+    
+  - id: "S010"
+    name: "safety_check"
+    keywords: ["안전 점검", "safety check", "소방 점검"]
+    node: "SECURITY"
+    delta: +0.01
+
+# ===========================================
+# CAREER 패턴 (20개) - v0.1.1 키워드 정교화
+# ===========================================
+career_patterns:
+  # 🔴 v0.1.1: "완료", "done" 단독 사용 제거 → 업무 맥락 키워드와 조합
+  - id: "C001"
+    name: "task_completed"
+    keywords: ["업무 완료", "작업 완료", "task done", "task finished", "일 끝냄", "업무 달성"]
+    category: "work_tool"
+    node: "CAREER"
+    delta: +0.015
+    
+  - id: "C002"
+    name: "project_milestone"
+    keywords: ["마일스톤", "milestone", "단계 완료", "릴리즈", "배포 완료", "sprint 완료"]
+    node: "CAREER"
+    delta: +0.03
+    
+  - id: "C003"
+    name: "deadline_met"
+    keywords: ["기한 준수", "on time", "제시간", "데드라인 완료", "일정 맞춤"]
+    node: "CAREER"
+    delta: +0.02
+    
+  - id: "C004"
+    name: "deadline_missed"
+    keywords: ["기한 초과", "지연", "delayed", "late delivery", "일정 지연"]
+    node: "CAREER"
+    delta: -0.025
+    
+  - id: "C005"
+    name: "positive_feedback"
+    keywords: ["칭찬", "좋은 피드백", "good job", "잘했", "훌륭하다"]
+    node: "CAREER"
+    delta: +0.025
+    confidence_boost: 0.01
+    
+  - id: "C006"
+    name: "promotion"
+    keywords: ["승진", "promotion", "진급", "직급 상승"]
+    node: "CAREER"
+    delta: +0.08
+    affects:
+      - node: "WEALTH"
+        delta: +0.03
+      - node: "LEGACY"
+        delta: +0.02
+        
+  - id: "C007"
+    name: "negative_feedback"
+    keywords: ["지적", "부정적 피드백", "개선 필요", "실수"]
+    node: "CAREER"
+    delta: -0.02
+    
+  - id: "C008"
+    name: "productive_day"
+    keywords: ["생산적", "productive", "집중", "몰입", "플로우"]
+    node: "CAREER"
+    delta: +0.02
+    
+  - id: "C009"
+    name: "overtime"
+    keywords: ["야근", "overtime", "초과근무", "밤샘"]
+    node: "CAREER"
+    delta: +0.01
+    affects:
+      - node: "HEALTH"
+        delta: -0.01
+      - node: "FAMILY"
+        delta: -0.01
+        
+  - id: "C010"
+    name: "work_from_home"
+    keywords: ["재택", "WFH", "remote work", "재택근무"]
+    node: "CAREER"
+    delta: +0.005
+    affects:
+      - node: "FAMILY"
+        delta: +0.01
+        
+  - id: "C011"
+    name: "meeting_productive"
+    keywords: ["좋은 회의", "productive meeting", "회의 결과"]
+    node: "CAREER"
+    delta: +0.01
+    
+  - id: "C012"
+    name: "meeting_wasteful"
+    keywords: ["쓸데없는 회의", "회의 낭비"]
+    node: "CAREER"
+    delta: -0.005
+    
+  - id: "C013"
+    name: "new_responsibility"
+    keywords: ["새 업무", "새 프로젝트 배정", "역할 확대"]
+    node: "CAREER"
+    delta: +0.02
+    
+  - id: "C014"
+    name: "salary_negotiation"
+    keywords: ["연봉 협상", "salary negotiation", "급여 인상"]
+    node: "CAREER"
+    delta: +0.03
+    affects:
+      - node: "WEALTH"
+        delta: +0.02
+        
+  - id: "C015"
+    name: "job_interview"
+    keywords: ["면접", "interview", "채용 면접"]
+    node: "CAREER"
+    delta: +0.02
+    confidence_boost: 0.02
+    
+  - id: "C016"
+    name: "work_award"
+    keywords: ["업무 표창", "work award", "우수사원"]
+    node: "CAREER"
+    delta: +0.05
+    affects:
+      - node: "LEGACY"
+        delta: +0.02
+        
+  - id: "C017"
+    name: "presentation_success"
+    keywords: ["발표 성공", "presentation", "프레젠테이션"]
+    node: "CAREER"
+    delta: +0.025
+    
+  - id: "C018"
+    name: "client_feedback"
+    keywords: ["클라이언트 피드백", "고객 만족", "client happy"]
+    node: "CAREER"
+    delta: +0.02
+    
+  - id: "C019"
+    name: "work_burnout"
+    keywords: ["번아웃", "burnout", "지침", "업무 스트레스"]
+    node: "CAREER"
+    delta: -0.02
+    affects:
+      - node: "HEALTH"
+        delta: -0.015
+        
+  - id: "C020"
+    name: "vacation_taken"
+    keywords: ["휴가", "vacation", "연차", "휴식"]
+    node: "CAREER"
+    delta: -0.005
+    affects:
+      - node: "HEALTH"
+        delta: +0.02
+      - node: "FAMILY"
+        delta: +0.015
+
+# ===========================================
+# LEARNING 패턴 (15개)
+# ===========================================
+learning_patterns:
+  - id: "L001"
+    name: "course_started"
+    keywords: ["강의 시작", "course", "수업 등록", "강좌 등록"]
+    category: "learning_app"
+    node: "LEARNING"
+    delta: +0.02
+    
+  - id: "L002"
+    name: "course_completed"
+    keywords: ["수료", "완강", "completed course", "이수", "강의 끝"]
+    node: "LEARNING"
+    delta: +0.05
+    confidence_boost: 0.03
+    affects:
+      - node: "CAREER"
+        delta: +0.015
+        
+  - id: "L003"
+    name: "certification_earned"
+    keywords: ["자격증", "certification", "합격", "취득", "시험 통과"]
+    node: "LEARNING"
+    delta: +0.08
+    affects:
+      - node: "CAREER"
+        delta: +0.03
+        
+  - id: "L004"
+    name: "book_reading"
+    keywords: ["독서", "책 읽", "reading", "book", "읽는 중"]
+    node: "LEARNING"
+    delta: +0.015
+    
+  - id: "L005"
+    name: "book_finished"
+    keywords: ["완독", "book finished", "다 읽", "책 끝"]
+    node: "LEARNING"
+    delta: +0.025
+    
+  - id: "L006"
+    name: "tutorial_watched"
+    keywords: ["튜토리얼", "tutorial", "유튜브 강의", "영상 학습"]
+    node: "LEARNING"
+    delta: +0.01
+    
+  - id: "L007"
+    name: "skill_practiced"
+    keywords: ["연습", "practice", "실습", "훈련"]
+    node: "LEARNING"
+    delta: +0.015
+    
+  - id: "L008"
+    name: "new_tool_learned"
+    keywords: ["새 도구", "new tool", "신기술", "새 스킬"]
+    node: "LEARNING"
+    delta: +0.02
+    affects:
+      - node: "CAREER"
+        delta: +0.01
+        
+  - id: "L009"
+    name: "language_study"
+    keywords: ["언어 공부", "영어 공부", "language", "외국어"]
+    node: "LEARNING"
+    delta: +0.015
+    
+  - id: "L010"
+    name: "podcast_listened"
+    keywords: ["팟캐스트", "podcast", "오디오북"]
+    node: "LEARNING"
+    delta: +0.01
+    
+  - id: "L011"
+    name: "workshop_attended"
+    keywords: ["워크샵", "workshop", "세미나 참석"]
+    node: "LEARNING"
+    delta: +0.025
+    affects:
+      - node: "SOCIAL"
+        delta: +0.01
+        
+  - id: "L012"
+    name: "note_taking"
+    keywords: ["노트 정리", "note", "메모", "정리"]
+    node: "LEARNING"
+    delta: +0.01
+    
+  - id: "L013"
+    name: "study_group"
+    keywords: ["스터디", "study group", "공부 모임"]
+    node: "LEARNING"
+    delta: +0.02
+    affects:
+      - node: "SOCIAL"
+        delta: +0.015
+        
+  - id: "L014"
+    name: "online_course"
+    keywords: ["온라인 강의", "MOOC", "인강", "e-learning"]
+    node: "LEARNING"
+    delta: +0.015
+    
+  - id: "L015"
+    name: "research_done"
+    keywords: ["리서치", "research", "조사", "분석"]
+    node: "LEARNING"
+    delta: +0.015
+
+# ===========================================
+# CREATION 패턴 (10개)
+# ===========================================
+creation_patterns:
+  - id: "CR001"
+    name: "content_created"
+    keywords: ["글 작성", "콘텐츠", "content", "포스팅", "블로그"]
+    node: "CREATION"
+    delta: +0.025
+    
+  - id: "CR002"
+    name: "project_started"
+    keywords: ["프로젝트 시작", "new project", "사이드 프로젝트"]
+    node: "CREATION"
+    delta: +0.02
+    
+  - id: "CR003"
+    name: "project_shipped"
+    keywords: ["출시", "shipped", "런칭", "배포", "릴리즈"]
+    node: "CREATION"
+    delta: +0.06
+    affects:
+      - node: "CAREER"
+        delta: +0.02
+      - node: "LEGACY"
+        delta: +0.02
+        
+  - id: "CR004"
+    name: "idea_logged"
+    keywords: ["아이디어", "idea", "영감", "inspiration"]
+    node: "CREATION"
+    delta: +0.01
+    
+  - id: "CR005"
+    name: "code_committed"
+    keywords: ["커밋", "commit", "push", "코드 작성"]
+    category: "github"
+    node: "CREATION"
+    delta: +0.015
+    
+  - id: "CR006"
+    name: "design_completed"
+    keywords: ["디자인 완료", "design", "UI 디자인", "그래픽"]
+    node: "CREATION"
+    delta: +0.02
+    
+  - id: "CR007"
+    name: "video_created"
+    keywords: ["영상 제작", "video", "유튜브 업로드"]
+    node: "CREATION"
+    delta: +0.025
+    
+  - id: "CR008"
+    name: "music_composed"
+    keywords: ["작곡", "music", "음악 만들", "노래 만들"]
+    node: "CREATION"
+    delta: +0.025
+    
+  - id: "CR009"
+    name: "art_created"
+    keywords: ["그림", "art", "그리기", "일러스트"]
+    node: "CREATION"
+    delta: +0.02
+    
+  - id: "CR010"
+    name: "open_source"
+    keywords: ["오픈소스", "open source", "기여", "contribution"]
+    node: "CREATION"
+    delta: +0.03
+    affects:
+      - node: "LEGACY"
+        delta: +0.02
+
+# ===========================================
+# FAMILY 패턴 (10개)
+# ===========================================
+family_patterns:
+  - id: "F001"
+    name: "family_meal"
+    keywords: ["가족 식사", "family dinner", "같이 밥", "가족과 저녁"]
+    node: "FAMILY"
+    delta: +0.025
+    
+  - id: "F002"
+    name: "family_call"
+    keywords: ["부모님 전화", "가족 통화", "family call", "안부 전화"]
+    node: "FAMILY"
+    delta: +0.02
+    
+  - id: "F003"
+    name: "family_event"
+    keywords: ["가족 행사", "생일", "기념일", "birthday", "결혼기념일"]
+    node: "FAMILY"
+    delta: +0.04
+    
+  - id: "F004"
+    name: "family_trip"
+    keywords: ["가족 여행", "family trip", "나들이", "가족 외출"]
+    node: "FAMILY"
+    delta: +0.05
+    affects:
+      - node: "HEALTH"
+        delta: +0.01
+        
+  - id: "F005"
+    name: "family_conflict"
+    keywords: ["가족 갈등", "다툼", "argument", "싸움"]
+    node: "FAMILY"
+    delta: -0.04
+    affects:
+      - node: "HEALTH"
+        delta: -0.015
+        
+  - id: "F006"
+    name: "parenting"
+    keywords: ["육아", "parenting", "아이와", "자녀와"]
+    node: "FAMILY"
+    delta: +0.025
+    
+  - id: "F007"
+    name: "family_support"
+    keywords: ["가족 지원", "family support", "도움"]
+    node: "FAMILY"
+    delta: +0.02
+    
+  - id: "F008"
+    name: "family_photo"
+    keywords: ["가족 사진", "family photo", "추억"]
+    node: "FAMILY"
+    delta: +0.015
+    
+  - id: "F009"
+    name: "home_cooking"
+    keywords: ["집밥", "home cooking", "요리", "가족 음식"]
+    node: "FAMILY"
+    delta: +0.015
+    affects:
+      - node: "HEALTH"
+        delta: +0.005
+        
+  - id: "F010"
+    name: "pet_care"
+    keywords: ["반려동물", "pet", "강아지", "고양이"]
+    node: "FAMILY"
+    delta: +0.015
+
+# ===========================================
+# SOCIAL 패턴 (10개)
+# ===========================================
+social_patterns:
+  - id: "SO001"
+    name: "friend_meetup"
+    keywords: ["친구 만남", "meet friend", "약속", "친구와"]
+    node: "SOCIAL"
+    delta: +0.025
+    
+  - id: "SO002"
+    name: "networking_event"
+    keywords: ["네트워킹", "networking", "모임", "행사 참석"]
+    node: "SOCIAL"
+    delta: +0.03
+    affects:
+      - node: "CAREER"
+        delta: +0.01
+        
+  - id: "SO003"
+    name: "community_activity"
+    keywords: ["커뮤니티", "community", "동호회", "동아리"]
+    node: "SOCIAL"
+    delta: +0.025
+    
+  - id: "SO004"
+    name: "volunteer_work"
+    keywords: ["봉사", "volunteer", "기부", "나눔"]
+    node: "SOCIAL"
+    delta: +0.03
+    affects:
+      - node: "LEGACY"
+        delta: +0.02
+        
+  - id: "SO005"
+    name: "social_media"
+    keywords: ["SNS", "social media", "인스타", "트위터"]
+    node: "SOCIAL"
+    delta: +0.005
+    
+  - id: "SO006"
+    name: "party_attended"
+    keywords: ["파티", "party", "축하", "모임"]
+    node: "SOCIAL"
+    delta: +0.02
+    
+  - id: "SO007"
+    name: "help_others"
+    keywords: ["도움 주기", "help others", "조언"]
+    node: "SOCIAL"
+    delta: +0.02
+    affects:
+      - node: "LEGACY"
+        delta: +0.01
+        
+  - id: "SO008"
+    name: "new_connection"
+    keywords: ["새 인연", "new connection", "새 친구"]
+    node: "SOCIAL"
+    delta: +0.025
+    
+  - id: "SO009"
+    name: "reunion"
+    keywords: ["동창회", "reunion", "재회", "오랜만에"]
+    node: "SOCIAL"
+    delta: +0.025
+    
+  - id: "SO010"
+    name: "social_conflict"
+    keywords: ["대인 갈등", "social conflict", "친구와 싸움"]
+    node: "SOCIAL"
+    delta: -0.025
+
+# ===========================================
+# LEGACY 패턴 (5개)
+# ===========================================
+legacy_patterns:
+  - id: "LG001"
+    name: "mentoring_session"
+    keywords: ["멘토링", "mentoring", "가르침", "coaching", "코칭"]
+    node: "LEGACY"
+    delta: +0.04
+    confidence_boost: 0.02
+    
+  - id: "LG002"
+    name: "public_speaking"
+    keywords: ["발표", "강연", "speaking", "세미나", "특강"]
+    node: "LEGACY"
+    delta: +0.05
+    affects:
+      - node: "CAREER"
+        delta: +0.02
+        
+  - id: "LG003"
+    name: "contribution_recognized"
+    keywords: ["감사 받음", "recognition", "표창", "인정받음"]
+    node: "LEGACY"
+    delta: +0.06
+    
+  - id: "LG004"
+    name: "legacy_project"
+    keywords: ["유산 프로젝트", "legacy", "오픈소스 기여"]
+    node: "LEGACY"
+    delta: +0.05
+    
+  - id: "LG005"
+    name: "writing_published"
+    keywords: ["글 발행", "published", "출판", "기고"]
+    node: "LEGACY"
+    delta: +0.04
+    affects:
+      - node: "CREATION"
+        delta: +0.02
+
+# ===========================================
+# 외부 요인 (Exogenous Factors)
+# ===========================================
+exogenous_factors:
+  global_events:
+    - id: "EX001"
+      name: "economic_downturn"
+      trigger: "external_signal"
+      affects:
+        - node: "WEALTH"
+          delta: -0.05
+        - node: "SECURITY"
+          delta: -0.03
+        - node: "CAREER"
+          delta: -0.02
+          
+    - id: "EX002"
+      name: "pandemic_wave"
+      trigger: "external_signal"
+      affects:
+        - node: "HEALTH"
+          delta: -0.03
+        - node: "SOCIAL"
+          delta: -0.05
+
+  temporal:
+    - id: "T001"
+      name: "holiday_season"
+      condition: "december"
+      affects:
+        - node: "FAMILY"
+          delta: +0.02
+        - node: "WEALTH"
+          delta: -0.01
+          
+    - id: "T002"
+      name: "new_year"
+      condition: "january_first_week"
+      affects:
+        - node: "LEARNING"
+          delta: +0.02
+        - node: "CREATION"
+          delta: +0.01
+
+# ===========================================
+# 패턴 적용 규칙
+# ===========================================
+application_rules:
+  deduplication:
+    same_pattern_cooldown_hours: 4
+    similar_pattern_cooldown_hours: 1
+    
+  daily_limits:
+    max_positive_delta: 0.15
+    max_negative_delta: -0.15
+    max_patterns_per_node: 10
+    
+  confidence_rules:
+    pattern_match_boost: 0.005
+    consistency_bonus: 0.01
+    recency_factor: true

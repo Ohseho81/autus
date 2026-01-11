@@ -1,0 +1,63 @@
+[
+  {
+    "started_at": "2026-01-09T21:27:30.573700",
+    "steps": {},
+    "status": "failed",
+    "error": "attempted relative import with no known parent package",
+    "finished_at": "2026-01-09T21:27:30.573995",
+    "duration_seconds": 0.000295
+  },
+  {
+    "started_at": "2026-01-09T21:27:44.975691",
+    "steps": {
+      "collect": {
+        "world_bank": {
+          "status": "success",
+          "indicators": 3
+        },
+        "dart": {
+          "status": "skipped",
+          "reason": "DART_API_KEY 없음"
+        },
+        "ecos": {
+          "status": "skipped",
+          "reason": "ECOS_API_KEY 없음"
+        },
+        "seoul": {
+          "status": "skipped",
+          "reason": "SEOUL_API_KEY 없음"
+        }
+      },
+      "map": {
+        "companies": 30,
+        "industries": [
+          "유통",
+          "서비스",
+          "IT",
+          "금융",
+          "제조"
+        ],
+        "total_records": 463
+      },
+      "learn": {
+        "causal_path": "/Users/oseho/Desktop/autus/autus-unified/data/learned/learned_causal.json",
+        "priors_path": "/Users/oseho/Desktop/autus/autus-unified/data/learned/learned_priors.json",
+        "causal_count": 219,
+        "industries": [
+          "금융",
+          "제조",
+          "서비스",
+          "IT",
+          "유통"
+        ]
+      },
+      "merge": {
+        "updated_connections": 21,
+        "backup_file": "/Users/oseho/Desktop/autus/autus-unified/sovereign/causal_backup_20260109.json"
+      }
+    },
+    "status": "success",
+    "finished_at": "2026-01-09T21:28:01.117358",
+    "duration_seconds": 16.141667
+  }
+]

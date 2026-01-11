@@ -1,7 +1,0 @@
-# AUTUS Physics Map Server - SehoOS EP10
-# Dependencies
-
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-pydantic>=2.5.0
-websockets>=12.0
