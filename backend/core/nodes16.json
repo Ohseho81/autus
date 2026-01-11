@@ -1,0 +1,766 @@
+{
+  "system_version": "2.1.0",
+  "total_nodes": 48,
+  "total_domains": 16,
+  "fractal_structure": "1:16:256",
+  "binary_optimized": true,
+  "philosophy": {
+    "principle": "16 = 2⁴, 컴퓨터와 인간의 최적 균형점",
+    "formula": "V = (M - T) × (1 + s)^t",
+    "zero_meaning": "데이터는 의미 없는 숫자(node_id, value, timestamp)로 변환",
+    "structure": "4 Meta × 4 Domains × 3 Nodes = 48 Strategic Nodes"
+  },
+  "meta_categories": [
+    {
+      "id": "MAT",
+      "name": "Material",
+      "name_kr": "물질",
+      "color": "#4CAF50",
+      "description": "물리적 자원과 환경을 다루는 영역",
+      "domains": ["CAP", "BIO", "SPA", "TEC"]
+    },
+    {
+      "id": "MEN",
+      "name": "Mental",
+      "name_kr": "정신",
+      "color": "#2196F3",
+      "description": "인지, 감정, 가치를 다루는 영역",
+      "domains": ["COG", "EMO", "ETH", "SPI"]
+    },
+    {
+      "id": "DYN",
+      "name": "Dynamic",
+      "name_kr": "동적",
+      "color": "#FF9800",
+      "description": "시간, 관계, 변화를 다루는 영역",
+      "domains": ["TEM", "SOC", "CRE", "COM"]
+    },
+    {
+      "id": "TRS",
+      "name": "Transcendent",
+      "name_kr": "초월",
+      "color": "#9C27B0",
+      "description": "성장, 리더십, 돌파를 다루는 영역",
+      "domains": ["STR", "RES", "TRN", "LED"]
+    }
+  ],
+  "domains": [
+    {
+      "id": "CAP",
+      "name": "Capital & Resource",
+      "name_kr": "자본과 자원",
+      "meta": "MAT",
+      "color": "#FFD700",
+      "physics_dimension": "gravitational",
+      "description": "자산의 흐름과 가치 보존",
+      "nodes": [
+        {
+          "id": "n01",
+          "global_id": 1,
+          "name": "Asset Archetype",
+          "name_kr": "자산의 본질",
+          "type": "archetype",
+          "description": "자산의 본질적 가치 정의",
+          "entropy_threshold": 0.144,
+          "veteran_keywords": ["가치", "자산", "본질", "투자", "수익"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n02",
+          "global_id": 2,
+          "name": "Flow Dynamics",
+          "name_kr": "흐름의 역학",
+          "type": "dynamics",
+          "description": "자금 및 자원 흐름 최적화",
+          "entropy_threshold": 0.12,
+          "veteran_keywords": ["현금흐름", "유동성", "순환", "배분"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n03",
+          "global_id": 3,
+          "name": "Risk Equilibrium",
+          "name_kr": "위험의 평형",
+          "type": "equilibrium",
+          "description": "자산 손실 방지 및 평형 유지",
+          "entropy_threshold": 0.15,
+          "veteran_keywords": ["리스크", "분산", "헤지", "방어"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "BIO",
+      "name": "Biology & Health",
+      "name_kr": "생명과 건강",
+      "meta": "MAT",
+      "color": "#4CAF50",
+      "physics_dimension": "quantum",
+      "description": "신체와 생명력의 흐름",
+      "nodes": [
+        {
+          "id": "n04",
+          "global_id": 4,
+          "name": "Vitality Archetype",
+          "name_kr": "활력의 본질",
+          "type": "archetype",
+          "description": "생체 에너지 및 활동성 제어",
+          "entropy_threshold": 0.12,
+          "veteran_keywords": ["활력", "에너지", "체력", "생명력"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n05",
+          "global_id": 5,
+          "name": "Healing Dynamics",
+          "name_kr": "치유의 역학",
+          "type": "dynamics",
+          "description": "회복 및 자기치유 메커니즘",
+          "entropy_threshold": 0.1,
+          "veteran_keywords": ["회복", "치유", "휴식", "재생"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n06",
+          "global_id": 6,
+          "name": "Body Equilibrium",
+          "name_kr": "신체의 평형",
+          "type": "equilibrium",
+          "description": "신체적 숙련도 및 균형",
+          "entropy_threshold": 0.11,
+          "veteran_keywords": ["균형", "건강", "항상성", "조화"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "SPA",
+      "name": "Space & Environment",
+      "name_kr": "공간과 환경",
+      "meta": "MAT",
+      "color": "#00BCD4",
+      "physics_dimension": "geometric",
+      "description": "공간과 환경의 활용",
+      "nodes": [
+        {
+          "id": "n07",
+          "global_id": 7,
+          "name": "Territory Archetype",
+          "name_kr": "영역의 본질",
+          "type": "archetype",
+          "description": "영역과 경계의 본질",
+          "entropy_threshold": 0.12,
+          "veteran_keywords": ["영역", "경계", "범위", "시장"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n08",
+          "global_id": 8,
+          "name": "Movement Dynamics",
+          "name_kr": "이동의 역학",
+          "type": "dynamics",
+          "description": "이동과 확장의 패턴",
+          "entropy_threshold": 0.13,
+          "veteran_keywords": ["이동", "확장", "진출", "배치"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n09",
+          "global_id": 9,
+          "name": "Position Equilibrium",
+          "name_kr": "위치의 평형",
+          "type": "equilibrium",
+          "description": "최적 위치의 균형점",
+          "entropy_threshold": 0.11,
+          "veteran_keywords": ["위치", "포지션", "자리", "점유"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "TEC",
+      "name": "Technology & Tools",
+      "name_kr": "기술과 도구",
+      "meta": "MAT",
+      "color": "#607D8B",
+      "physics_dimension": "mechanical",
+      "description": "기술과 도구의 활용 [신규]",
+      "nodes": [
+        {
+          "id": "n10",
+          "global_id": 10,
+          "name": "Tool Archetype",
+          "name_kr": "도구의 본질",
+          "type": "archetype",
+          "description": "도구와 기술의 본질적 가치",
+          "entropy_threshold": 0.1,
+          "veteran_keywords": ["도구", "기술", "시스템", "자동화"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n11",
+          "global_id": 11,
+          "name": "Innovation Dynamics",
+          "name_kr": "혁신의 역학",
+          "type": "dynamics",
+          "description": "기술 혁신과 진화의 패턴",
+          "entropy_threshold": 0.08,
+          "veteran_keywords": ["혁신", "개선", "효율", "최적화"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n12",
+          "global_id": 12,
+          "name": "Integration Equilibrium",
+          "name_kr": "통합의 평형",
+          "type": "equilibrium",
+          "description": "인간과 기술의 조화",
+          "entropy_threshold": 0.09,
+          "veteran_keywords": ["통합", "연동", "호환", "인터페이스"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "COG",
+      "name": "Cognition & Logic",
+      "name_kr": "인지와 논리",
+      "meta": "MEN",
+      "color": "#3F51B5",
+      "physics_dimension": "electromagnetic",
+      "description": "사고와 판단의 패턴",
+      "nodes": [
+        {
+          "id": "n13",
+          "global_id": 13,
+          "name": "Intuition Archetype",
+          "name_kr": "직관의 본질",
+          "type": "archetype",
+          "description": "베테랑의 직관적 패턴 추출",
+          "entropy_threshold": 0.1,
+          "veteran_keywords": ["직관", "감각", "예측", "통찰"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n14",
+          "global_id": 14,
+          "name": "Logic Dynamics",
+          "name_kr": "논리의 역학",
+          "type": "dynamics",
+          "description": "추론 및 인과관계 논리 구조",
+          "entropy_threshold": 0.08,
+          "veteran_keywords": ["논리", "분석", "인과", "체계"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n15",
+          "global_id": 15,
+          "name": "Mind Equilibrium",
+          "name_kr": "정신의 평형",
+          "type": "equilibrium",
+          "description": "의사결정 시 평온 상태 유지",
+          "entropy_threshold": 0.05,
+          "veteran_keywords": ["평정", "집중", "명상", "균형"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "EMO",
+      "name": "Emotion & Empathy",
+      "name_kr": "감정과 공감",
+      "meta": "MEN",
+      "color": "#E91E63",
+      "physics_dimension": "resonant",
+      "description": "감정과 공감의 흐름",
+      "nodes": [
+        {
+          "id": "n16",
+          "global_id": 16,
+          "name": "Empathy Archetype",
+          "name_kr": "공감의 본질",
+          "type": "archetype",
+          "description": "공감의 본질적 원천",
+          "entropy_threshold": 0.07,
+          "veteran_keywords": ["공감", "이해", "배려", "감정이입"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n17",
+          "global_id": 17,
+          "name": "Mood Dynamics",
+          "name_kr": "감정의 역학",
+          "type": "dynamics",
+          "description": "감정의 전이와 확산",
+          "entropy_threshold": 0.09,
+          "veteran_keywords": ["분위기", "무드", "톤", "에너지"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n18",
+          "global_id": 18,
+          "name": "Serenity Equilibrium",
+          "name_kr": "평온의 평형",
+          "type": "equilibrium",
+          "description": "감정적 안정의 균형점",
+          "entropy_threshold": 0.05,
+          "veteran_keywords": ["평온", "안정", "절제", "균형"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "ETH",
+      "name": "Ethics & Values",
+      "name_kr": "윤리와 가치",
+      "meta": "MEN",
+      "color": "#795548",
+      "physics_dimension": "moral",
+      "description": "가치와 원칙의 기준",
+      "nodes": [
+        {
+          "id": "n19",
+          "global_id": 19,
+          "name": "Integrity Archetype",
+          "name_kr": "진정성의 본질",
+          "type": "archetype",
+          "description": "진정성의 본질",
+          "entropy_threshold": 0.04,
+          "veteran_keywords": ["진정성", "정직", "원칙", "가치"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n20",
+          "global_id": 20,
+          "name": "Justice Dynamics",
+          "name_kr": "정의의 역학",
+          "type": "dynamics",
+          "description": "공정성의 적용과 실천",
+          "entropy_threshold": 0.06,
+          "veteran_keywords": ["공정", "정의", "형평", "책임"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n21",
+          "global_id": 21,
+          "name": "Conscience Equilibrium",
+          "name_kr": "양심의 평형",
+          "type": "equilibrium",
+          "description": "양심과 현실의 균형",
+          "entropy_threshold": 0.05,
+          "veteran_keywords": ["양심", "타협", "선택", "결단"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "SPI",
+      "name": "Spirituality & Meaning",
+      "name_kr": "영성과 의미",
+      "meta": "MEN",
+      "color": "#673AB7",
+      "physics_dimension": "metaphysical",
+      "description": "삶의 의미와 목적 [신규]",
+      "nodes": [
+        {
+          "id": "n22",
+          "global_id": 22,
+          "name": "Purpose Archetype",
+          "name_kr": "목적의 본질",
+          "type": "archetype",
+          "description": "삶의 목적과 의미",
+          "entropy_threshold": 0.03,
+          "veteran_keywords": ["목적", "의미", "사명", "소명"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n23",
+          "global_id": 23,
+          "name": "Faith Dynamics",
+          "name_kr": "믿음의 역학",
+          "type": "dynamics",
+          "description": "신념과 확신의 패턴",
+          "entropy_threshold": 0.04,
+          "veteran_keywords": ["믿음", "신념", "확신", "희망"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n24",
+          "global_id": 24,
+          "name": "Transcendence Equilibrium",
+          "name_kr": "초월의 평형",
+          "type": "equilibrium",
+          "description": "물질과 정신의 조화",
+          "entropy_threshold": 0.02,
+          "veteran_keywords": ["초월", "깨달음", "각성", "영적"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "TEM",
+      "name": "Temporal & Rhythm",
+      "name_kr": "시간과 리듬",
+      "meta": "DYN",
+      "color": "#9C27B0",
+      "physics_dimension": "relativistic",
+      "description": "시간과 타이밍의 활용",
+      "nodes": [
+        {
+          "id": "n25",
+          "global_id": 25,
+          "name": "Timing Archetype",
+          "name_kr": "타이밍의 본질",
+          "type": "archetype",
+          "description": "완벽한 타이밍의 본질",
+          "entropy_threshold": 0.08,
+          "veteran_keywords": ["타이밍", "시점", "기회", "순간"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n26",
+          "global_id": 26,
+          "name": "Rhythm Dynamics",
+          "name_kr": "리듬의 역학",
+          "type": "dynamics",
+          "description": "반복과 주기의 패턴",
+          "entropy_threshold": 0.1,
+          "veteran_keywords": ["리듬", "주기", "순환", "패턴"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n27",
+          "global_id": 27,
+          "name": "Duration Equilibrium",
+          "name_kr": "지속의 평형",
+          "type": "equilibrium",
+          "description": "인내와 속도의 균형",
+          "entropy_threshold": 0.11,
+          "veteran_keywords": ["인내", "지속", "끈기", "항상성"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "SOC",
+      "name": "Social & Network",
+      "name_kr": "관계와 네트워크",
+      "meta": "DYN",
+      "color": "#FF5722",
+      "physics_dimension": "thermodynamic",
+      "description": "관계와 네트워크의 흐름",
+      "nodes": [
+        {
+          "id": "n28",
+          "global_id": 28,
+          "name": "Network Archetype",
+          "name_kr": "네트워크의 본질",
+          "type": "archetype",
+          "description": "인간 관계의 본질적 구조",
+          "entropy_threshold": 0.13,
+          "veteran_keywords": ["관계", "연결", "네트워크", "신뢰"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n29",
+          "global_id": 29,
+          "name": "Influence Dynamics",
+          "name_kr": "영향의 역학",
+          "type": "dynamics",
+          "description": "영향력의 전파 및 확산",
+          "entropy_threshold": 0.14,
+          "veteran_keywords": ["영향", "전파", "확산", "설득"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n30",
+          "global_id": 30,
+          "name": "Trust Equilibrium",
+          "name_kr": "신뢰의 평형",
+          "type": "equilibrium",
+          "description": "신뢰와 협력의 균형점",
+          "entropy_threshold": 0.09,
+          "veteran_keywords": ["신뢰", "협력", "충성", "호혜"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "CRE",
+      "name": "Creative & Innovation",
+      "name_kr": "창조와 혁신",
+      "meta": "DYN",
+      "color": "#F44336",
+      "physics_dimension": "generative",
+      "description": "창조와 혁신의 원천",
+      "nodes": [
+        {
+          "id": "n31",
+          "global_id": 31,
+          "name": "Creation Archetype",
+          "name_kr": "창조의 본질",
+          "type": "archetype",
+          "description": "창조의 본질적 원천",
+          "entropy_threshold": 0.07,
+          "veteran_keywords": ["창조", "발명", "아이디어", "영감"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n32",
+          "global_id": 32,
+          "name": "Synthesis Dynamics",
+          "name_kr": "종합의 역학",
+          "type": "dynamics",
+          "description": "융합과 결합의 패턴",
+          "entropy_threshold": 0.09,
+          "veteran_keywords": ["융합", "결합", "조합", "시너지"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n33",
+          "global_id": 33,
+          "name": "Expression Equilibrium",
+          "name_kr": "표현의 평형",
+          "type": "equilibrium",
+          "description": "표현과 전달의 균형",
+          "entropy_threshold": 0.1,
+          "veteran_keywords": ["표현", "전달", "디자인", "스토리"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "COM",
+      "name": "Communication & Expression",
+      "name_kr": "소통과 표현",
+      "meta": "DYN",
+      "color": "#03A9F4",
+      "physics_dimension": "vibrational",
+      "description": "소통과 표현의 방법 [신규]",
+      "nodes": [
+        {
+          "id": "n34",
+          "global_id": 34,
+          "name": "Message Archetype",
+          "name_kr": "메시지의 본질",
+          "type": "archetype",
+          "description": "효과적 메시지의 본질",
+          "entropy_threshold": 0.08,
+          "veteran_keywords": ["메시지", "핵심", "본질", "요점"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n35",
+          "global_id": 35,
+          "name": "Channel Dynamics",
+          "name_kr": "채널의 역학",
+          "type": "dynamics",
+          "description": "소통 채널의 선택과 활용",
+          "entropy_threshold": 0.1,
+          "veteran_keywords": ["채널", "매체", "플랫폼", "전달"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n36",
+          "global_id": 36,
+          "name": "Dialogue Equilibrium",
+          "name_kr": "대화의 평형",
+          "type": "equilibrium",
+          "description": "말하기와 듣기의 균형",
+          "entropy_threshold": 0.09,
+          "veteran_keywords": ["대화", "경청", "피드백", "소통"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "STR",
+      "name": "Strategy & Vision",
+      "name_kr": "전략과 비전",
+      "meta": "TRS",
+      "color": "#2196F3",
+      "physics_dimension": "probabilistic",
+      "description": "전략과 계획의 수립",
+      "nodes": [
+        {
+          "id": "n37",
+          "global_id": 37,
+          "name": "Vision Archetype",
+          "name_kr": "비전의 본질",
+          "type": "archetype",
+          "description": "미래 비전의 본질",
+          "entropy_threshold": 0.06,
+          "veteran_keywords": ["비전", "목표", "방향", "미래"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n38",
+          "global_id": 38,
+          "name": "Planning Dynamics",
+          "name_kr": "계획의 역학",
+          "type": "dynamics",
+          "description": "계획과 실행의 연결",
+          "entropy_threshold": 0.08,
+          "veteran_keywords": ["계획", "실행", "단계", "로드맵"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n39",
+          "global_id": 39,
+          "name": "Adaptation Equilibrium",
+          "name_kr": "적응의 평형",
+          "type": "equilibrium",
+          "description": "계획과 적응의 균형",
+          "entropy_threshold": 0.1,
+          "veteran_keywords": ["적응", "유연", "조정", "피봇"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "RES",
+      "name": "Resilience & Adaptation",
+      "name_kr": "회복과 적응",
+      "meta": "TRS",
+      "color": "#FF9800",
+      "physics_dimension": "elastic",
+      "description": "역경 극복과 회복의 힘",
+      "nodes": [
+        {
+          "id": "n40",
+          "global_id": 40,
+          "name": "Endurance Archetype",
+          "name_kr": "인내의 본질",
+          "type": "archetype",
+          "description": "인내의 본질적 원천",
+          "entropy_threshold": 0.08,
+          "veteran_keywords": ["인내", "버팀", "끈기", "의지"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n41",
+          "global_id": 41,
+          "name": "Recovery Dynamics",
+          "name_kr": "회복의 역학",
+          "type": "dynamics",
+          "description": "실패 후 재기의 패턴",
+          "entropy_threshold": 0.1,
+          "veteran_keywords": ["회복", "재기", "부활", "반등"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n42",
+          "global_id": 42,
+          "name": "Stability Equilibrium",
+          "name_kr": "안정의 평형",
+          "type": "equilibrium",
+          "description": "변화 속 안정의 균형점",
+          "entropy_threshold": 0.09,
+          "veteran_keywords": ["안정", "항상성", "기반", "토대"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "TRN",
+      "name": "Growth & Breakthrough",
+      "name_kr": "성장과 돌파",
+      "meta": "TRS",
+      "color": "#8BC34A",
+      "physics_dimension": "transcendent",
+      "description": "한계 돌파와 성장",
+      "nodes": [
+        {
+          "id": "n43",
+          "global_id": 43,
+          "name": "Breakthrough Archetype",
+          "name_kr": "돌파의 본질",
+          "type": "archetype",
+          "description": "한계 돌파의 본질",
+          "entropy_threshold": 0.05,
+          "veteran_keywords": ["돌파", "한계", "극복", "도약"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n44",
+          "global_id": 44,
+          "name": "Growth Dynamics",
+          "name_kr": "성장의 역학",
+          "type": "dynamics",
+          "description": "성장과 진화의 패턴",
+          "entropy_threshold": 0.07,
+          "veteran_keywords": ["성장", "진화", "발전", "학습"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n45",
+          "global_id": 45,
+          "name": "Mastery Equilibrium",
+          "name_kr": "숙달의 평형",
+          "type": "equilibrium",
+          "description": "숙달과 완성의 균형점",
+          "entropy_threshold": 0.03,
+          "veteran_keywords": ["숙달", "완성", "달인", "대가"],
+          "master_capacity": 12000
+        }
+      ]
+    },
+    {
+      "id": "LED",
+      "name": "Leadership & Influence",
+      "name_kr": "리더십과 영향력",
+      "meta": "TRS",
+      "color": "#FFC107",
+      "physics_dimension": "gravitational_social",
+      "description": "리더십과 영향력 행사 [신규]",
+      "nodes": [
+        {
+          "id": "n46",
+          "global_id": 46,
+          "name": "Authority Archetype",
+          "name_kr": "권위의 본질",
+          "type": "archetype",
+          "description": "진정한 권위의 본질",
+          "entropy_threshold": 0.06,
+          "veteran_keywords": ["권위", "리더십", "지도", "통솔"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n47",
+          "global_id": 47,
+          "name": "Mobilization Dynamics",
+          "name_kr": "동원의 역학",
+          "type": "dynamics",
+          "description": "사람을 움직이는 패턴",
+          "entropy_threshold": 0.08,
+          "veteran_keywords": ["동원", "조직", "팀빌딩", "결집"],
+          "master_capacity": 12000
+        },
+        {
+          "id": "n48",
+          "global_id": 48,
+          "name": "Legacy Equilibrium",
+          "name_kr": "유산의 평형",
+          "type": "equilibrium",
+          "description": "권력과 봉사의 균형",
+          "entropy_threshold": 0.04,
+          "veteran_keywords": ["유산", "계승", "멘토링", "봉사"],
+          "master_capacity": 12000
+        }
+      ]
+    }
+  ],
+  "total_master_capacity": 576000,
+  "physics_laws": {
+    "energy_conservation": "노드 간 에너지 총합은 보존된다",
+    "entropy_filtering": "임계값 미만의 노이즈는 자동 삭제된다",
+    "resonance_amplification": "동일 메타 영역 노드들은 서로 공명하여 증폭된다",
+    "binary_propagation": "2^n 구조로 효율적 전파"
+  },
+  "metadata": {
+    "created": "2026-01-11",
+    "updated": "2026-01-11",
+    "author": "AUTUS System",
+    "version_note": "12 → 16 도메인 확장 (4개 신규: TEC, SPI, COM, LED)"
+  }
+}
