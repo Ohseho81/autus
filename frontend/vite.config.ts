@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, splitVendorChunkPlugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
@@ -17,9 +17,57 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
+// PWA 플러그인 (선택적)
+let pwaPlugin: any = null;
+try {
+  const { VitePWA } = require('vite-plugin-pwa');
+  pwaPlugin = VitePWA({
+    registerType: 'autoUpdate',
+    includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+    manifest: {
+      name: 'AUTUS - Money Physics Engine',
+      short_name: 'AUTUS',
+      description: '통합 비즈니스 자동화 플랫폼',
+      theme_color: '#1a1a2e',
+      background_color: '#0f0f23',
+      display: 'standalone',
+      icons: [
+        { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      ],
+    },
+    workbox: {
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/api\./i,
+          handler: 'NetworkFirst',
+          options: { cacheName: 'api-cache', networkTimeoutSeconds: 10 },
+        },
+      ],
+    },
+  });
+} catch (e) {
+  // PWA 플러그인 설치 안됨
+}
+
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      // Fast Refresh 최적화
+      fastRefresh: true,
+      // Babel 플러그인 (프로덕션용)
+      babel: process.env.NODE_ENV === 'production' ? {
+        plugins: [
+          ['@babel/plugin-transform-react-constant-elements'],
+          ['@babel/plugin-transform-react-inline-elements'],
+        ].filter(Boolean),
+      } : undefined,
+    }),
+    // Vendor Chunk 분리
+    splitVendorChunkPlugin(),
+    // PWA 지원
+    pwaPlugin,
     // Bundle 분석 (--mode analyze)
     process.env.NODE_ENV === 'analyze' && visualizer({
       open: true,
@@ -89,7 +137,43 @@ export default defineConfig({
   
   // 의존성 최적화
   optimizeDeps: {
-    include: ['react', 'react-dom', 'zustand'],
+    include: ['react', 'react-dom', 'zustand', 'framer-motion', 'axios'],
     exclude: ['@mapbox/node-pre-gyp'],
+  },
+  
+  // 프리뷰 서버 설정
+  preview: {
+    port: 4173,
+    strictPort: true,
+  },
+  
+  // 환경 변수 접두사
+  envPrefix: ['VITE_', 'AUTUS_'],
+  
+  // CSS 최적화
+  css: {
+    devSourcemap: true,
+    modules: {
+      localsConvention: 'camelCase',
+    },
+  },
+  
+  // esbuild 옵션
+  esbuild: {
+    // 프로덕션에서 console/debugger 제거
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+    // JSX 최적화
+    jsx: 'automatic',
+  },
+  
+  // 실험적 기능
+  experimental: {
+    // 렌더 최적화 빌드
+    renderBuiltUrl: (filename, { hostType }) => {
+      if (hostType === 'js') {
+        return { runtime: `window.__toCdnUrl(${JSON.stringify(filename)})` };
+      }
+      return filename;
+    },
   },
 });

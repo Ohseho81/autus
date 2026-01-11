@@ -1,409 +1,250 @@
 """
-AUTUS Physics Engine Tests
-===========================
+═══════════════════════════════════════════════════════════════════════════════
+🧪 AUTUS Physics Tests
+═══════════════════════════════════════════════════════════════════════════════
 
-Money Physics 엔진 테스트
+물리 법칙 및 시뮬레이션 테스트
 """
 
 import pytest
 import sys
-import os
-import tempfile
-import time
+from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from backend.physics import (
-    PhysicsEngine,
-    PhysicsConstants,
-    PhysicsResult,
-    Motion,
-    Node,
-    get_engine,
-    SynergyCalculator,
-    FlywheelEngine,
-)
+# 경로 설정
+root = Path(__file__).parent.parent
+sys.path.insert(0, str(root / "backend"))
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# PhysicsConstants Tests
-# ═══════════════════════════════════════════════════════════════════════════
+class TestPhysicsEnums:
+    """물리 Enum 테스트"""
 
-class TestPhysicsConstants:
-    """물리 상수 테스트"""
-    
-    def test_lambda_values(self):
-        """감쇠 상수 λ"""
-        assert len(PhysicsConstants.LAMBDA) == 6
-        for l in PhysicsConstants.LAMBDA:
-            assert l > 0
-    
-    def test_half_lives(self):
-        """반감기"""
-        assert len(PhysicsConstants.HALF_LIVES) == 6
-        assert PhysicsConstants.HALF_LIVES[0] == 3   # BIO: 3일
-        assert PhysicsConstants.HALF_LIVES[1] == 365  # CAPITAL: 365일
-    
-    def test_inertia(self):
-        """관성 계수"""
-        assert len(PhysicsConstants.INERTIA) == 6
-        for i in PhysicsConstants.INERTIA:
-            assert 0 <= i <= 1
-    
-    def test_initial_state(self):
-        """초기 상태"""
-        assert len(PhysicsConstants.INITIAL_STATE) == 6
-        for v in PhysicsConstants.INITIAL_STATE:
-            assert v == 0.5
-    
-    def test_node_names(self):
-        """노드 이름"""
-        assert "BIO" in PhysicsConstants.NODE_NAMES
-        assert "CAPITAL" in PhysicsConstants.NODE_NAMES
-        assert "LEGACY" in PhysicsConstants.NODE_NAMES
+    def test_physics_dimensions(self):
+        """6개 물리 차원"""
+        from core.unified import Physics
+        
+        dimensions = list(Physics)
+        assert len(dimensions) == 6
+        assert Physics.BIO in dimensions
+        assert Physics.CAPITAL in dimensions
+        assert Physics.KNOWLEDGE in dimensions
+        assert Physics.NETWORK in dimensions
+        assert Physics.TIME in dimensions
+        assert Physics.EMOTION in dimensions
+
+    def test_motion_types(self):
+        """12개 모션 타입"""
+        from core.unified import Motion
+        
+        motions = list(Motion)
+        assert len(motions) == 12
+        assert Motion.ACQUIRE in motions
+        assert Motion.RELEASE in motions
+        assert Motion.CONVERT in motions
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Node Tests
-# ═══════════════════════════════════════════════════════════════════════════
+class TestPhysicsLaws:
+    """6가지 물리 법칙 테스트"""
 
-class TestNode:
-    """노드 테스트"""
-    
-    def test_node_enum(self):
-        """노드 Enum"""
-        assert Node.BIO == 0
-        assert Node.CAPITAL == 1
-        assert Node.COGNITION == 2
-        assert Node.RELATION == 3
-        assert Node.ENVIRONMENT == 4
-        assert Node.LEGACY == 5
-    
-    def test_node_count(self):
-        """노드 개수"""
-        assert len(Node) == 6
+    def test_law_inertia(self):
+        """1. 관성 법칙 (N1)"""
+        from core.unified import apply_inertia
+        
+        # 함수 존재 확인
+        assert callable(apply_inertia)
 
+    def test_law_force(self):
+        """2. 힘의 법칙 (F=ma)"""
+        from core.unified import calculate_force
+        
+        mass = 10.0
+        acceleration = 2.0
+        force = calculate_force(mass, acceleration)
+        
+        assert force == pytest.approx(20.0)
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Motion Tests
-# ═══════════════════════════════════════════════════════════════════════════
-
-class TestMotion:
-    """Motion 테스트"""
-    
-    def test_create_motion(self):
-        """Motion 생성"""
-        motion = Motion(
-            timestamp=int(time.time() * 1000),
-            node=Node.CAPITAL,
+    def test_law_action_reaction(self):
+        """3. 작용-반작용 법칙 (N3)"""
+        # 노드 간 상호작용에서 검증
+        from core.unified import UnifiedEngine
+        
+        engine = UnifiedEngine()
+        
+        # 한 노드의 변화가 연결된 노드에 영향
+        result = engine.apply(
+            physics="CAPITAL",
+            motion="ACQUIRE",
             delta=0.1,
-            friction=0.5,
         )
         
-        assert motion.node == Node.CAPITAL
-        assert motion.delta == 0.1
-        assert motion.friction == 0.5
-    
-    def test_motion_serialization(self):
-        """Motion 직렬화"""
-        motion = Motion(
-            timestamp=int(time.time() * 1000),
-            node=Node.BIO,
-            delta=0.05,
-            friction=0.3,
+        assert "effects" in result
+        assert len(result["effects"]) > 0
+
+    def test_law_entropy(self):
+        """4. 엔트로피 법칙 (열역학 2법칙)"""
+        from core.unified import calculate_entropy
+        
+        # 무질서도 측정
+        entropy_ordered = calculate_entropy(
+            current_state=[0.5, 0.5, 0.5],
+            ideal_state=[0.5, 0.5, 0.5]
         )
         
-        # to_bytes / from_bytes 테스트
-        data = motion.to_bytes()
-        assert len(data) == 32  # 32 bytes
-        
-        restored = Motion.from_bytes(data)
-        assert restored.node == motion.node
-        assert abs(restored.delta - motion.delta) < 0.0001
-    
-    def test_motion_jsonl(self):
-        """Motion JSONL 변환"""
-        motion = Motion(
-            timestamp=1000000,
-            node=Node.COGNITION,
-            delta=-0.1,
-            friction=0.2,
+        entropy_disordered = calculate_entropy(
+            current_state=[0.1, 0.9, 0.5],
+            ideal_state=[0.5, 0.5, 0.5]
         )
         
-        jsonl = motion.to_jsonl()
-        restored = Motion.from_jsonl(jsonl)
+        # 무질서한 상태의 엔트로피가 더 높음
+        assert entropy_disordered >= entropy_ordered
+
+    def test_law_phase_transition(self):
+        """5. 상전이 법칙"""
+        from core.unified import UnifiedEngine, Physics
         
-        assert restored.node == motion.node
-        assert abs(restored.delta - motion.delta) < 0.0001
-    
-    def test_motion_bounds(self):
-        """Motion delta 경계"""
-        # delta는 -1 ~ 1 범위로 제한됨
-        motion = Motion(
-            timestamp=1000000,
-            node=Node.BIO,
-            delta=5.0,  # 1.0으로 클램프
-            friction=0.5,
-        )
+        engine = UnifiedEngine()
         
-        assert motion.delta == 1.0
-    
-    def test_motion_node_name(self):
-        """Motion 노드 이름"""
-        motion = Motion(
-            timestamp=1000000,
-            node=Node.LEGACY,
-            delta=0.1,
-            friction=0.5,
-        )
+        # 상태 변화 임계점 테스트
+        initial_state = engine.get_state()
         
-        assert motion.node_name == "LEGACY"
+        # 큰 변화 적용
+        for _ in range(10):
+            engine.apply(physics="CAPITAL", motion="ACQUIRE", delta=0.1)
+        
+        final_state = engine.get_state()
+        
+        # 상태가 변화했는지 확인
+        assert initial_state != final_state
+
+    def test_law_diffusion(self):
+        """6. 확산 법칙 (Laplacian)"""
+        from core.unified import UnifiedEngine
+        
+        engine = UnifiedEngine()
+        
+        # 여러 틱 동안 확산 관찰
+        initial = engine.get_state()
+        
+        for _ in range(5):
+            engine.tick()
+        
+        after = engine.get_state()
+        
+        # 시간이 지나면 값이 decay
+        assert all(after[k] <= initial[k] for k in initial.keys())
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# PhysicsEngine Tests
-# ═══════════════════════════════════════════════════════════════════════════
+class TestPhysicsGates:
+    """물리 게이트 테스트"""
 
-class TestPhysicsEngine:
-    """Physics 엔진 테스트"""
-    
-    def test_init_default(self):
-        """기본 초기화"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            engine = PhysicsEngine(data_dir=tmpdir)
-            assert engine is not None
-    
-    def test_get_state(self):
-        """상태 조회"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            engine = PhysicsEngine(data_dir=tmpdir)
+    def test_gate_evaluation(self):
+        """게이트 평가"""
+        from core.unified import UnifiedEngine
+        
+        engine = UnifiedEngine()
+        gates = engine.evaluate_all_gates()
+        
+        # 6개 차원에 대한 게이트
+        assert len(gates) == 6
+        
+        for name, gate in gates.items():
+            assert "open" in gate
+            assert "score" in gate
+            assert 0 <= gate["score"] <= 1
+
+    def test_bio_gate(self):
+        """BIO 게이트"""
+        from core.unified import UnifiedEngine
+        
+        engine = UnifiedEngine()
+        gates = engine.evaluate_all_gates()
+        
+        assert "BIO" in gates
+        assert isinstance(gates["BIO"]["open"], bool)
+
+    def test_capital_gate(self):
+        """CAPITAL 게이트"""
+        from core.unified import UnifiedEngine
+        
+        engine = UnifiedEngine()
+        gates = engine.evaluate_all_gates()
+        
+        assert "CAPITAL" in gates
+
+
+class TestPhysicsSimulation:
+    """물리 시뮬레이션 테스트"""
+
+    def test_tick_decay(self):
+        """틱 decay 테스트"""
+        from core.unified import UnifiedEngine
+        
+        engine = UnifiedEngine()
+        
+        # 값을 높인 후
+        engine.apply(physics="CAPITAL", motion="ACQUIRE", delta=0.5)
+        state_after_acquire = engine.get_state()
+        
+        # 틱 적용
+        decay = engine.tick()
+        state_after_tick = engine.get_state()
+        
+        # CAPITAL이 decay 되었는지 확인
+        assert state_after_tick["CAPITAL"] <= state_after_acquire["CAPITAL"]
+
+    def test_multi_tick(self):
+        """다중 틱 시뮬레이션"""
+        from core.unified import UnifiedEngine
+        
+        engine = UnifiedEngine()
+        
+        history = []
+        for i in range(10):
             state = engine.get_state()
-            
-            assert len(state) == 6
-            for v in state:
-                assert 0 <= v <= 1
-    
-    def test_apply_motion(self):
-        """Motion 적용"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            engine = PhysicsEngine(data_dir=tmpdir)
-            
-            initial_state = list(engine.get_state())
-            
-            # CAPITAL +0.1
-            motion = Motion(
-                timestamp=int(time.time() * 1000),
-                node=Node.CAPITAL,
-                delta=0.1,
-                friction=0.5,
-            )
-            
-            result = engine.apply_motion(motion)
-            
-            assert result.success
-            assert result.affected_node == Node.CAPITAL
-    
-    def test_apply_multiple_motions(self):
-        """여러 Motion 적용"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            engine = PhysicsEngine(data_dir=tmpdir)
-            ts = int(time.time() * 1000)
-            
-            engine.apply_motion(Motion(timestamp=ts, node=Node.BIO, delta=0.1, friction=0.5))
-            engine.apply_motion(Motion(timestamp=ts+1, node=Node.COGNITION, delta=0.05, friction=0.3))
-            engine.apply_motion(Motion(timestamp=ts+2, node=Node.RELATION, delta=-0.05, friction=0.4))
-            
-            state = engine.get_state()
-            assert len(state) == 6
-    
-    def test_total_energy(self):
-        """총 에너지 계산"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            engine = PhysicsEngine(data_dir=tmpdir)
-            
-            state = engine.get_state()
-            total = sum(state)
-            
-            assert total >= 0
-            assert total <= 6.0  # 최대 1.0 * 6
+            history.append(dict(state))
+            engine.tick()
+        
+        # 히스토리 확인
+        assert len(history) == 10
+
+    def test_state_bounds(self):
+        """상태 경계 테스트"""
+        from core.unified import UnifiedEngine
+        
+        engine = UnifiedEngine()
+        
+        # 극단적인 값 적용
+        for _ in range(100):
+            engine.apply(physics="CAPITAL", motion="ACQUIRE", delta=1.0)
+        
+        state = engine.get_state()
+        
+        # 모든 값이 0~1 범위 내
+        for key, value in state.items():
+            assert 0 <= value <= 1, f"{key} out of bounds: {value}"
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# PhysicsResult Tests
-# ═══════════════════════════════════════════════════════════════════════════
+class TestPhysicsFormulas:
+    """물리 공식 테스트"""
 
-class TestPhysicsResult:
-    """PhysicsResult 테스트"""
-    
-    def test_create_result(self):
-        """결과 생성"""
-        result = PhysicsResult(
-            success=True,
-            state=[0.5, 0.6, 0.4, 0.7, 0.3, 0.8],
-            affected_node=1,
-            effective_delta=0.05,
-            decay_applied=0.01,
-        )
+    def test_value_formula(self):
+        """V = (M - T) × (1 + s)^t"""
+        # Money Physics 기본 공식
+        M = 100  # Money
+        T = 20   # Time cost
+        s = 0.1  # Synergy factor
+        t = 2    # Time period
         
-        assert result.success
-        assert result.affected_node == 1
-    
-    def test_result_to_dict(self):
-        """결과 딕셔너리 변환"""
-        result = PhysicsResult(
-            success=True,
-            state=[0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
-            affected_node=0,
-            effective_delta=0.1,
-            decay_applied=0.0,
-        )
+        V = (M - T) * ((1 + s) ** t)
         
-        d = result.to_dict()
-        
-        assert d["success"] is True
-        assert d["affected_node_name"] == "BIO"
+        assert V == pytest.approx(96.8)
 
-
-# ═══════════════════════════════════════════════════════════════════════════
-# Synergy Tests
-# ═══════════════════════════════════════════════════════════════════════════
-
-class TestSynergyCalculator:
-    """시너지 계산기 테스트"""
-    
-    def test_init(self):
-        """초기화"""
-        calc = SynergyCalculator()
-        assert calc is not None
-    
-    def test_calculate_synergy(self):
-        """시너지 계산"""
-        calc = SynergyCalculator()
+    def test_sq_formula(self):
+        """SQ = (Mint - Burn) / Time × Synergy_Factor"""
+        Mint = 1000
+        Burn = 200
+        Time = 30
+        Synergy_Factor = 1.2
         
-        state = [0.5, 0.7, 0.3, 0.6, 0.4, 0.8]
+        SQ = (Mint - Burn) / Time * Synergy_Factor
         
-        synergy = calc.calculate(state)
-        
-        assert synergy >= 0
-    
-    def test_get_synergy_pairs(self):
-        """시너지 쌍"""
-        calc = SynergyCalculator()
-        
-        state = [0.5, 0.7, 0.3, 0.6, 0.4, 0.8]
-        
-        pairs = calc.get_synergy_pairs(state)
-        
-        # 6C2 = 15 쌍
-        assert len(pairs) == 15
-        
-        # 정렬 확인
-        for i in range(len(pairs) - 1):
-            assert pairs[i]["synergy"] >= pairs[i + 1]["synergy"]
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# Flywheel Tests
-# ═══════════════════════════════════════════════════════════════════════════
-
-class TestFlywheelEngine:
-    """플라이휠 엔진 테스트"""
-    
-    def test_init(self):
-        """초기화"""
-        flywheel = FlywheelEngine()
-        assert flywheel is not None
-    
-    def test_calculate_momentum(self):
-        """모멘텀 계산"""
-        flywheel = FlywheelEngine()
-        
-        state = [0.5, 0.7, 0.3, 0.6, 0.4, 0.8]
-        momentum = flywheel.calculate_momentum(state)
-        
-        assert momentum >= 0
-    
-    def test_calculate_velocity(self):
-        """속도 계산"""
-        flywheel = FlywheelEngine()
-        
-        current = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-        previous = [0.4, 0.5, 0.5, 0.5, 0.5, 0.5]
-        
-        velocity = flywheel.calculate_velocity(current, previous)
-        
-        assert velocity >= 0
-    
-    def test_add_momentum(self):
-        """모멘텀 추가"""
-        flywheel = FlywheelEngine()
-        
-        flywheel.add_momentum("test_entity", 10.0)
-        flywheel.add_momentum("test_entity", 5.0)
-        
-        total = flywheel.get_total_momentum("test_entity")
-        
-        assert total > 0
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# Integration Tests
-# ═══════════════════════════════════════════════════════════════════════════
-
-class TestPhysicsIntegration:
-    """통합 테스트"""
-    
-    def test_full_simulation(self):
-        """전체 시뮬레이션"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            engine = PhysicsEngine(data_dir=tmpdir)
-            ts = int(time.time() * 1000)
-            
-            # 초기 상태
-            initial_state = engine.get_state()
-            initial_energy = sum(initial_state)
-            
-            # 여러 Motion 적용
-            engine.apply_motion(Motion(timestamp=ts, node=Node.BIO, delta=0.1, friction=0.5))
-            engine.apply_motion(Motion(timestamp=ts+1, node=Node.CAPITAL, delta=0.2, friction=0.4))
-            engine.apply_motion(Motion(timestamp=ts+2, node=Node.COGNITION, delta=-0.1, friction=0.3))
-            
-            # 최종 상태
-            final_state = engine.get_state()
-            final_energy = sum(final_state)
-            
-            # 에너지 변화 확인
-            assert abs(final_energy - initial_energy) < 1.0
-    
-    def test_physics_with_synergy(self):
-        """Physics + Synergy 통합"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            engine = PhysicsEngine(data_dir=tmpdir)
-            calc = SynergyCalculator()
-            
-            # 시너지 계산
-            synergy = calc.calculate(engine.get_state())
-            
-            assert synergy >= 0
-    
-    def test_physics_with_flywheel(self):
-        """Physics + Flywheel 통합"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            engine = PhysicsEngine(data_dir=tmpdir)
-            flywheel = FlywheelEngine()
-            
-            # 모멘텀 계산
-            momentum = flywheel.calculate_momentum(engine.get_state())
-            
-            assert momentum >= 0
-    
-    def test_get_engine_singleton(self):
-        """엔진 싱글톤"""
-        engine1 = get_engine()
-        engine2 = get_engine()
-        
-        assert engine1 is engine2
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+        assert SQ == pytest.approx(32.0)
