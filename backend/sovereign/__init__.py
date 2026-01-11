@@ -1,78 +1,66 @@
-# ═══════════════════════════════════════════════════════════════════════════
-# AUTUS Sovereign Module - 삭제 기반 최적화
-# ═══════════════════════════════════════════════════════════════════════════
 """
-Sovereign: 삭제를 통한 자율적 최적화
+═══════════════════════════════════════════════════════════════════════════════
+🏛️ AUTUS Sovereign Module (주권 모듈)
+═══════════════════════════════════════════════════════════════════════════════
 
-핵심 철학:
-- "추가보다 삭제가 더 큰 가치를 창출한다"
-- "복잡성 제거가 효율의 핵심이다"
-- "관성을 측정하고 줄여라"
+데이터 주권을 보호하고, 베테랑의 노하우를 안전하게 관리하는 핵심 모듈
 
-Components:
-1. DeleteScanner - 삭제 대상 스캔
-2. InertiaCalculator - 관성 계산
-3. OptimizationEngine - 최적화 실행
+구성:
+- zkp.py: 영지식 증명 공명 엔진
+- poc.py: 기여 증명 알고리즘
+
+"가두지 않으면서도 훔쳐갈 수 없게"
+═══════════════════════════════════════════════════════════════════════════════
 """
 
-from .delete_scanner import (
-    DeleteScanner,
-    DeleteCategory,
-    DeleteTarget,
-    ScanResult,
-    get_scanner,
-    CATEGORY_PRIORITIES,
-    REPLACEMENT_TEMPLATES,
-    INDUSTRY_TEMPLATES,
+from .zkp import (
+    ZKResonanceEngine,
+    PedersenCommitment,
+    SchnorrProof,
+    Commitment,
+    ZKProof,
+    ResonanceProof,
+    ProofType,
+    get_zkp_engine,
+    register_knowledge,
+    compute_resonance,
 )
 
-from .inertia_calc import (
-    InertiaCalculator,
-    InertiaType,
-    InertiaSource,
-    InertiaReport,
-    INERTIA_FRICTION,
-)
-
-from .optimization import (
-    OptimizationEngine,
-    OptimizationStrategy,
-    OptimizationAction,
-    OptimizationPlan,
-    OptimizationResult,
-)
-
-from .clark_corndog import (
-    ClarkCorndogProtocol,
-    ClarkNode,
-    ClarkProtocolResult,
-    NodeStatus,
-    get_clark,
+from .poc import (
+    PoCEngine,
+    Contribution,
+    ContributorProfile,
+    RewardAllocation,
+    ContributionType,
+    POC_WEIGHTS,
+    LEVEL_MULTIPLIERS,
+    DOMAIN_SCARCITY,
+    get_poc_engine,
+    register_contribution,
 )
 
 
 __all__ = [
-    # Scanner
-    "DeleteScanner",
-    "DeleteCategory",
-    "DeleteTarget",
-    "ScanResult",
-    "get_scanner",
-    "CATEGORY_PRIORITIES",
-    "REPLACEMENT_TEMPLATES",
-    "INDUSTRY_TEMPLATES",
-    
-    # Inertia
-    "InertiaCalculator",
-    "InertiaType",
-    "InertiaSource",
-    "InertiaReport",
-    "INERTIA_FRICTION",
-    
-    # Optimization
-    "OptimizationEngine",
-    "OptimizationStrategy",
-    "OptimizationAction",
-    "OptimizationPlan",
-    "OptimizationResult",
+    # ZKP
+    "ZKResonanceEngine",
+    "PedersenCommitment",
+    "SchnorrProof",
+    "Commitment",
+    "ZKProof",
+    "ResonanceProof",
+    "ProofType",
+    "get_zkp_engine",
+    "register_knowledge",
+    "compute_resonance",
+    # PoC
+    "PoCEngine",
+    "Contribution",
+    "ContributorProfile",
+    "RewardAllocation",
+    "ContributionType",
+    "POC_WEIGHTS",
+    "LEVEL_MULTIPLIERS",
+    "DOMAIN_SCARCITY",
+    "get_poc_engine",
+    "register_contribution",
 ]
