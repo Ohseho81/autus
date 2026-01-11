@@ -56,13 +56,6 @@ export default defineConfig({
     react({
       // Fast Refresh 최적화
       fastRefresh: true,
-      // Babel 플러그인 (프로덕션용)
-      babel: process.env.NODE_ENV === 'production' ? {
-        plugins: [
-          ['@babel/plugin-transform-react-constant-elements'],
-          ['@babel/plugin-transform-react-inline-elements'],
-        ].filter(Boolean),
-      } : undefined,
     }),
     // Vendor Chunk 분리
     splitVendorChunkPlugin(),
@@ -166,14 +159,4 @@ export default defineConfig({
     jsx: 'automatic',
   },
   
-  // 실험적 기능
-  experimental: {
-    // 렌더 최적화 빌드
-    renderBuiltUrl: (filename, { hostType }) => {
-      if (hostType === 'js') {
-        return { runtime: `window.__toCdnUrl(${JSON.stringify(filename)})` };
-      }
-      return filename;
-    },
-  },
 });
