@@ -5,11 +5,9 @@
 /setup          /setup.html         200
 /integrations   /integrations.html  200
 /brief          /brief.html         200
-/sovereign      /sovereign.html     200
-/sovereign-v15  /sovereign-v15.html 200
-/sovereign-pwa  /sovereign-pwa/index.html 200
-/sovereign-pwa/* /sovereign-pwa/:splat 200
-/sovereign-live  /sovereign-live/index.html 200
+# Sovereign (통합 - sovereign-live가 메인)
+/sovereign      /sovereign-live/index.html 200
+/sovereign-live /sovereign-live/index.html 200
 /sovereign-live/* /sovereign-live/:splat 200
 /daily-os       /daily-os.html      200
 /team-view      /team-view.html     200
