@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#10b981">
+  <title>AUTUS — 업무 자동화</title>
+  <link rel="manifest" href="/sovereign-live/manifest.json">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --border: #262626;
+      --text: #fafafa;
+      --text-secondary: #a1a1aa;
+      --primary: #10b981;
+      --primary-light: rgba(16,185,129,0.1);
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --red: #ef4444;
+      --orange: #f59e0b;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .app {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 100px;
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .header .badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 12px;
+    }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .tab {
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    
+    .tab.active {
+      background: var(--primary);
+      color: #fff;
+    }
+    
+    .tab:hover:not(.active) {
+      background: var(--border);
+    }
+    
+    /* Section */
+    .section {
+      display: none;
+    }
+    
+    .section.active {
+      display: block;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Form */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    
+    .textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      line-height: 1.5;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      resize: vertical;
+      font-family: inherit;
+    }
+    
+    .textarea::placeholder {
+      color: var(--text-secondary);
+    }
+    
+    .textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    /* Buttons */
+    .btn {
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: #059669;
+    }
+    
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-blue {
+      background: var(--blue);
+      color: #fff;
+    }
+    
+    .btn-purple {
+      background: var(--purple);
+      color: #fff;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+    
+    /* Result */
+    .result {
+      margin-top: 20px;
+    }
+    
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .result-summary {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    
+    /* Task List */
+    .task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--surface);
+      border-radius: 8px;
+      border-left: 4px solid var(--border);
+    }
+    
+    .task-item.q1 { border-left-color: var(--red); background: rgba(239,68,68,0.05); }
+    .task-item.q2 { border-left-color: var(--primary); background: rgba(16,185,129,0.05); }
+    .task-item.q3 { border-left-color: var(--orange); background: rgba(245,158,11,0.05); }
+    .task-item.q4 { border-left-color: var(--text-secondary); }
+    
+    .task-index {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      min-width: 24px;
+    }
+    
+    .task-emoji {
+      font-size: 16px;
+    }
+    
+    .task-content {
+      flex: 1;
+      font-size: 15px;
+    }
+    
+    .task-quadrant {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--border);
+    }
+    
+    /* Decision List */
+    .decision-item {
+      padding: 12px;
+      background: var(--surface);
+      border-radius: 8px;
+      border-left: 4px solid var(--blue);
+      margin-bottom: 12px;
+    }
+    
+    .decision-content {
+      font-size: 15px;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    
+    .decision-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .meta-tag {
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: var(--bg);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    
+    /* Report */
+    .report-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border);
+    }
+    
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .report-date {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .report-hours {
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: var(--bg);
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    
+    .report-text {
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      color: var(--text-secondary);
+    }
+    
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      padding: 12px 16px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+    
+    .nav-link {
+      padding: 8px 20px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 8px;
+    }
+    
+    .nav-link:hover {
+      background: var(--border);
+    }
+    
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: var(--bg);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    
+    .toast.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>🤖 AUTUS 자동화</h1>
+      <span class="badge" id="status">MVP v0.1</span>
+    </header>
+    
+    <div class="tabs">
+      <button class="tab active" data-tab="prioritize">📋 우선순위</button>
+      <button class="tab" data-tab="meeting">📝 회의록</button>
+      <button class="tab" data-tab="report">📊 보고서</button>
+      <button class="tab" data-tab="stats">📈 통계</button>
+    </div>
+    
+    <!-- 우선순위 정렬 -->
+    <section id="prioritize" class="section active">
+      <div id="prioritize-input">
+        <div class="form-group">
+          <label class="form-label">할 일 목록 (줄바꿈으로 구분)</label>
+          <textarea id="tasks-input" class="textarea" rows="8" placeholder="프로젝트 제안서 작성 (오늘 마감)&#10;팀 미팅 준비&#10;클라이언트 이메일 답장 - 긴급&#10;점심 약속"></textarea>
+        </div>
+        <button class="btn btn-primary" id="btn-prioritize" style="width:100%">정렬하기</button>
+      </div>
+      
+      <div id="prioritize-result" class="result" style="display:none">
+        <div class="result-summary" id="priority-summary"></div>
+        <ul class="task-list" id="task-list"></ul>
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="btn-reset-priority">다시 입력</button>
+          <button class="btn btn-primary" id="btn-accept">Accept</button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 회의록 추출 -->
+    <section id="meeting" class="section">
+      <div id="meeting-input">
+        <div class="form-group">
+          <label class="form-label">회의 내용</label>
+          <textarea id="meeting-text" class="textarea" rows="10" placeholder="오늘 팀 회의에서 Q1 프로젝트 일정을 논의했습니다.&#10;김대리가 디자인 시안을 다음 주 수요일까지 완료하기로 했고,&#10;박팀장님이 클라이언트 미팅을 금요일로 확정했습니다."></textarea>
+        </div>
+        <button class="btn btn-blue" id="btn-extract" style="width:100%">결정 추출</button>
+      </div>
+      
+      <div id="meeting-result" class="result" style="display:none">
+        <div class="result-header">
+          <span id="meeting-summary">📋 핵심 결정 0건</span>
+        </div>
+        <div id="decision-list"></div>
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="btn-reset-meeting">다시 입력</button>
+          <button class="btn btn-secondary" id="btn-copy-decisions">복사</button>
+          <button class="btn btn-blue" id="btn-add-tasks">할 일에 추가</button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 보고서 생성 -->
+    <section id="report" class="section">
+      <div id="report-input">
+        <div class="form-group">
+          <label class="form-label">✅ 오늘 완료한 작업</label>
+          <textarea id="completed-input" class="textarea" rows="5" placeholder="프로젝트 제안서 초안 완성 (3h)&#10;클라이언트 피드백 반영&#10;팀 미팅 참석"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">📅 내일 계획 (선택)</label>
+          <textarea id="tomorrow-input" class="textarea" rows="3" placeholder="제안서 최종 검토&#10;디자인팀 협업 미팅"></textarea>
+        </div>
+        <button class="btn btn-purple" id="btn-generate" style="width:100%">보고서 생성</button>
+      </div>
+      
+      <div id="report-result" class="result" style="display:none">
+        <div class="report-card">
+          <div class="report-header">
+            <span class="report-date" id="report-date"></span>
+            <span class="report-hours" id="report-hours"></span>
+          </div>
+          <pre class="report-text" id="report-text"></pre>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="btn-reset-report">다시 작성</button>
+          <button class="btn btn-secondary" id="btn-copy-report">복사</button>
+          <button class="btn btn-purple" id="btn-email">이메일 전송</button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 통계 -->
+    <section id="stats" class="section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-tasks">0</div>
+          <div class="stat-label">총 할 일</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-completed">0</div>
+          <div class="stat-label">완료</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-ledger">0</div>
+          <div class="stat-label">결정 기록</div>
+        </div>
+      </div>
+      
+      <button class="btn btn-secondary" id="btn-export" style="width:100%;margin-bottom:12px">데이터 내보내기</button>
+      <button class="btn btn-secondary" id="btn-clear" style="width:100%;color:var(--red)">모든 데이터 삭제</button>
+    </section>
+  </div>
+  
+  <nav class="bottom-nav">
+    <a href="/sovereign-live" class="nav-link">← Sovereign</a>
+  </nav>
+  
+  <div class="toast" id="toast"></div>
+  
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════════
+    // AUTUS Automation MVP v0.1
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    const DB_NAME = 'autus_mvp';
+    const DB_VERSION = 1;
+    let db = null;
+    
+    // IndexedDB 초기화
+    async function initDB() {
+      if (db) return db;
+      
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          db = request.result;
+          resolve(db);
+        };
+        
+        request.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          
+          if (!database.objectStoreNames.contains('tasks')) {
+            const store = database.createObjectStore('tasks', { keyPath: 'id' });
+            store.createIndex('status', 'status');
+            store.createIndex('quadrant', 'quadrant');
+          }
+          
+          if (!database.objectStoreNames.contains('decisions')) {
+            const store = database.createObjectStore('decisions', { keyPath: 'id' });
+            store.createIndex('status', 'status');
+          }
+          
+          if (!database.objectStoreNames.contains('reports')) {
+            const store = database.createObjectStore('reports', { keyPath: 'id' });
+            store.createIndex('date', 'date');
+          }
+          
+          if (!database.objectStoreNames.contains('ledger')) {
+            const store = database.createObjectStore('ledger', { keyPath: 'id' });
+            store.createIndex('timestamp', 'timestamp');
+          }
+        };
+      });
+    }
+    
+    // Toast 표시
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 탭 전환
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+        
+        if (tab.dataset.tab === 'stats') loadStats();
+      });
+    });
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 우선순위 정렬
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    const URGENT_KW = ['오늘', '긴급', '즉시', 'ASAP', '마감', '내일', '급'];
+    const IMPORTANT_KW = ['중요', '필수', '프로젝트', '클라이언트', '발표', '제출', '팀장', '보고'];
+    
+    function prioritizeTasks(tasks) {
+      const QUADRANT_EMOJI = { Q1: '🔴', Q2: '🟢', Q3: '🟡', Q4: '⚪' };
+      
+      const analyzed = tasks.map((content, idx) => {
+        const lower = content.toLowerCase();
+        
+        let urgency = 0, importance = 0;
+        URGENT_KW.forEach(kw => { if (lower.includes(kw.toLowerCase())) urgency += 0.2; });
+        IMPORTANT_KW.forEach(kw => { if (lower.includes(kw.toLowerCase())) importance += 0.15; });
+        
+        urgency = Math.min(1, urgency);
+        importance = Math.min(1, importance);
+        
+        let quadrant = 'Q4';
+        if (urgency >= 0.5 && importance >= 0.5) quadrant = 'Q1';
+        else if (importance >= 0.5) quadrant = 'Q2';
+        else if (urgency >= 0.5) quadrant = 'Q3';
+        
+        const weight = { Q1: 1000, Q2: 100, Q3: 10, Q4: 1 };
+        const score = weight[quadrant] + urgency * 50 + importance * 30;
+        
+        return {
+          id: `task-${Date.now()}-${idx}`,
+          content,
+          quadrant,
+          emoji: QUADRANT_EMOJI[quadrant],
+          urgency_score: urgency,
+          importance_score: importance,
+          priority_score: score,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        };
+      });
+      
+      analyzed.sort((a, b) => b.priority_score - a.priority_score);
+      
+      const dist = { Q1: 0, Q2: 0, Q3: 0, Q4: 0 };
+      analyzed.forEach(t => dist[t.quadrant]++);
+      
+      return { prioritized: analyzed, distribution: dist };
+    }
+    
+    document.getElementById('btn-prioritize').addEventListener('click', () => {
+      const input = document.getElementById('tasks-input').value;
+      const tasks = input.split('\n').map(l => l.trim()).filter(l => l);
+      
+      if (tasks.length === 0) {
+        showToast('할 일을 입력해주세요');
+        return;
+      }
+      
+      const result = prioritizeTasks(tasks);
+      
+      // 요약
+      const summary = `총 ${result.prioritized.length}개 | 🔴 ${result.distribution.Q1} 🟢 ${result.distribution.Q2} 🟡 ${result.distribution.Q3} ⚪ ${result.distribution.Q4}`;
+      document.getElementById('priority-summary').textContent = summary;
+      
+      // 목록
+      const list = document.getElementById('task-list');
+      list.innerHTML = result.prioritized.map((t, i) => `
+        <li class="task-item ${t.quadrant.toLowerCase()}">
+          <span class="task-index">${i + 1}</span>
+          <span class="task-emoji">${t.emoji}</span>
+          <span class="task-content">${t.content}</span>
+          <span class="task-quadrant">${t.quadrant}</span>
+        </li>
+      `).join('');
+      
+      document.getElementById('prioritize-input').style.display = 'none';
+      document.getElementById('prioritize-result').style.display = 'block';
+      
+      // 저장
+      window._prioritizedTasks = result.prioritized;
+    });
+    
+    document.getElementById('btn-reset-priority').addEventListener('click', () => {
+      document.getElementById('prioritize-input').style.display = 'block';
+      document.getElementById('prioritize-result').style.display = 'none';
+    });
+    
+    document.getElementById('btn-accept').addEventListener('click', async () => {
+      if (!window._prioritizedTasks) return;
+      
+      const database = await initDB();
+      const tx = database.transaction('tasks', 'readwrite');
+      const store = tx.objectStore('tasks');
+      
+      window._prioritizedTasks.forEach(task => store.put(task));
+      
+      showToast(`${window._prioritizedTasks.length}개 할 일 저장됨`);
+      
+      document.getElementById('tasks-input').value = '';
+      document.getElementById('prioritize-input').style.display = 'block';
+      document.getElementById('prioritize-result').style.display = 'none';
+    });
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 회의록 추출
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function extractDecisions(text) {
+      const sentences = text.split(/[.。!?]\s*|\n+/).filter(s => s.trim());
+      const keywords = ['하기로', '확정', '결정', '합의', '완료', '진행', '담당'];
+      const assigneePattern = /([가-힣]{2,4})(님|씨|대리|과장|차장|부장|팀장)/;
+      
+      const decisions = [];
+      
+      sentences.forEach((sentence, idx) => {
+        if (!keywords.some(kw => sentence.includes(kw))) return;
+        
+        const match = sentence.match(assigneePattern);
+        const assignee = match ? match[1] : null;
+        
+        let deadline = null, deadlineText = '';
+        if (sentence.includes('내일')) {
+          const d = new Date();
+          d.setDate(d.getDate() + 1);
+          deadline = d.toISOString().split('T')[0];
+          deadlineText = '내일';
+        } else if (sentence.includes('다음 주') || sentence.includes('다음주')) {
+          const d = new Date();
+          d.setDate(d.getDate() + 7);
+          deadline = d.toISOString().split('T')[0];
+          deadlineText = '다음 주';
+        }
+        
+        decisions.push({
+          id: `dec-${Date.now()}-${idx}`,
+          content: sentence.trim(),
+          assignee,
+          deadline,
+          deadline_text: deadlineText,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        });
+      });
+      
+      return decisions.slice(0, 5);
+    }
+    
+    document.getElementById('btn-extract').addEventListener('click', () => {
+      const text = document.getElementById('meeting-text').value;
+      
+      if (text.trim().length < 10) {
+        showToast('회의 내용을 더 입력해주세요');
+        return;
+      }
+      
+      const decisions = extractDecisions(text);
+      
+      document.getElementById('meeting-summary').textContent = `📋 핵심 결정 ${decisions.length}건`;
+      
+      const list = document.getElementById('decision-list');
+      list.innerHTML = decisions.map((d, i) => `
+        <div class="decision-item">
+          <div class="decision-content">${i + 1}. ${d.content}</div>
+          <div class="decision-meta">
+            ${d.assignee ? `<span class="meta-tag">👤 ${d.assignee}</span>` : ''}
+            ${d.deadline ? `<span class="meta-tag">📅 ${d.deadline} (${d.deadline_text})</span>` : ''}
+          </div>
+        </div>
+      `).join('');
+      
+      document.getElementById('meeting-input').style.display = 'none';
+      document.getElementById('meeting-result').style.display = 'block';
+      
+      window._extractedDecisions = decisions;
+    });
+    
+    document.getElementById('btn-reset-meeting').addEventListener('click', () => {
+      document.getElementById('meeting-input').style.display = 'block';
+      document.getElementById('meeting-result').style.display = 'none';
+    });
+    
+    document.getElementById('btn-copy-decisions').addEventListener('click', () => {
+      if (!window._extractedDecisions) return;
+      const text = window._extractedDecisions.map((d, i) => {
+        let line = `${i + 1}. ${d.content}`;
+        if (d.assignee) line += ` (담당: ${d.assignee})`;
+        if (d.deadline_text) line += ` [${d.deadline_text}]`;
+        return line;
+      }).join('\n');
+      navigator.clipboard.writeText(text);
+      showToast('복사되었습니다');
+    });
+    
+    document.getElementById('btn-add-tasks').addEventListener('click', async () => {
+      if (!window._extractedDecisions) return;
+      
+      const database = await initDB();
+      const tx = database.transaction('decisions', 'readwrite');
+      const store = tx.objectStore('decisions');
+      
+      window._extractedDecisions.forEach(d => store.put(d));
+      
+      showToast(`${window._extractedDecisions.length}개 결정 저장됨`);
+      
+      document.getElementById('meeting-text').value = '';
+      document.getElementById('meeting-input').style.display = 'block';
+      document.getElementById('meeting-result').style.display = 'none';
+    });
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 보고서 생성
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function generateReport(completed, tomorrow) {
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+      
+      let totalHours = 0;
+      const tasks = completed.map((content, idx) => {
+        let hours = 1.0;
+        const match = content.match(/(\d+(?:\.\d+)?)\s*(시간|h|hr)/);
+        if (match) hours = parseFloat(match[1]);
+        else if (content.includes('미팅') || content.includes('회의')) hours = 1.0;
+        else if (content.includes('개발')) hours = 2.5;
+        
+        totalHours += hours;
+        
+        return { content, hours };
+      });
+      
+      let text = `📊 ${dateStr} 일일 보고서\n\n▸ 오늘 완료\n`;
+      tasks.forEach(t => {
+        text += `  • ${t.content} (${t.hours}h)\n`;
+      });
+      text += `\n  총 ${totalHours.toFixed(1)}시간 투자`;
+      
+      if (tomorrow.length > 0) {
+        text += '\n\n▸ 내일 계획\n';
+        tomorrow.forEach(item => {
+          text += `  • ${item}\n`;
+        });
+      }
+      
+      text += '\n\n▸ 이슈\n  • 없음';
+      
+      return {
+        id: `rpt-${Date.now()}`,
+        date: dateStr,
+        report_text: text,
+        total_hours: totalHours,
+        task_count: tasks.length,
+        created_at: new Date().toISOString()
+      };
+    }
+    
+    document.getElementById('btn-generate').addEventListener('click', () => {
+      const completed = document.getElementById('completed-input').value.split('\n').map(l => l.trim()).filter(l => l);
+      const tomorrow = document.getElementById('tomorrow-input').value.split('\n').map(l => l.trim()).filter(l => l);
+      
+      if (completed.length === 0) {
+        showToast('완료한 작업을 입력해주세요');
+        return;
+      }
+      
+      const report = generateReport(completed, tomorrow);
+      
+      document.getElementById('report-date').textContent = report.date;
+      document.getElementById('report-hours').textContent = `총 ${report.total_hours.toFixed(1)}시간`;
+      document.getElementById('report-text').textContent = report.report_text;
+      
+      document.getElementById('report-input').style.display = 'none';
+      document.getElementById('report-result').style.display = 'block';
+      
+      window._generatedReport = report;
+    });
+    
+    document.getElementById('btn-reset-report').addEventListener('click', () => {
+      document.getElementById('report-input').style.display = 'block';
+      document.getElementById('report-result').style.display = 'none';
+    });
+    
+    document.getElementById('btn-copy-report').addEventListener('click', () => {
+      if (!window._generatedReport) return;
+      navigator.clipboard.writeText(window._generatedReport.report_text);
+      showToast('보고서가 복사되었습니다');
+    });
+    
+    document.getElementById('btn-email').addEventListener('click', () => {
+      if (!window._generatedReport) return;
+      const subject = encodeURIComponent(`일일 보고서 - ${window._generatedReport.date}`);
+      const body = encodeURIComponent(window._generatedReport.report_text);
+      window.open(`mailto:?subject=${subject}&body=${body}`);
+    });
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 통계
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    async function loadStats() {
+      const database = await initDB();
+      
+      const tasksTx = database.transaction('tasks', 'readonly');
+      const tasksStore = tasksTx.objectStore('tasks');
+      const tasks = await new Promise(r => {
+        const req = tasksStore.getAll();
+        req.onsuccess = () => r(req.result);
+      });
+      
+      const ledgerTx = database.transaction('ledger', 'readonly');
+      const ledgerStore = ledgerTx.objectStore('ledger');
+      const ledgerCount = await new Promise(r => {
+        const req = ledgerStore.count();
+        req.onsuccess = () => r(req.result);
+      });
+      
+      document.getElementById('stat-tasks').textContent = tasks.length;
+      document.getElementById('stat-completed').textContent = tasks.filter(t => t.status === 'completed').length;
+      document.getElementById('stat-ledger').textContent = ledgerCount;
+    }
+    
+    document.getElementById('btn-export').addEventListener('click', async () => {
+      const database = await initDB();
+      
+      const data = {};
+      const stores = ['tasks', 'decisions', 'reports', 'ledger'];
+      
+      for (const name of stores) {
+        const tx = database.transaction(name, 'readonly');
+        const store = tx.objectStore(name);
+        data[name] = await new Promise(r => {
+          const req = store.getAll();
+          req.onsuccess = () => r(req.result);
+        });
+      }
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `autus-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      
+      showToast('데이터 내보내기 완료');
+    });
+    
+    document.getElementById('btn-clear').addEventListener('click', async () => {
+      if (!confirm('모든 데이터를 삭제하시겠습니까?')) return;
+      
+      const database = await initDB();
+      const stores = ['tasks', 'decisions', 'reports', 'ledger'];
+      
+      for (const name of stores) {
+        const tx = database.transaction(name, 'readwrite');
+        const store = tx.objectStore(name);
+        store.clear();
+      }
+      
+      showToast('모든 데이터가 삭제되었습니다');
+      loadStats();
+    });
+    
+    // 초기화
+    initDB().then(() => {
+      console.log('AUTUS MVP v0.1 initialized');
+    });
+  </script>
+</body>
+</html>

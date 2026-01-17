@@ -11,4 +11,5 @@
 /sovereign-live/* /sovereign-live/:splat 200
 /daily-os       /daily-os.html      200
 /team-view      /team-view.html     200
+/automation     /automation.html    200
 /*              /index.html         200
