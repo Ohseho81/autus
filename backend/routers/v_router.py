@@ -301,6 +301,130 @@ async def ai_predict(
         raise HTTPException(500, str(e))
 
 
+@router.post("/demon")
+async def summon_laplace_demon(
+    user_type: str = "balanced",
+    age: int = 30,
+    location_factor: float = 0.8,
+    growth_rate: float = 0.05,
+    core_12: int = 5,
+    extended_144: int = 20,
+    decisions: Optional[List[Dict[str, float]]] = None,
+    uncertainty: float = 0.15
+):
+    """
+    😈 라플라스 악마 소환
+    
+    모든 초기 조건을 기반으로 결정론적 미래 예측
+    
+    - 사용자 타입 (ambitious, cautious, collaborative, balanced, conservative)
+    - 상수 (나이, 위치)
+    - 지수 성장 (네트워크 효과)
+    - 1-12-144 네트워크 구조
+    """
+    try:
+        from physics.laplace_demon import summon_demon
+        
+        result = summon_demon(
+            user_type=user_type,
+            age=age,
+            location_factor=location_factor,
+            growth_rate=growth_rate,
+            core_12=core_12,
+            extended_144=extended_144,
+            decisions=decisions or [{"M": 100, "T": 40, "t": 12}],
+            uncertainty=uncertainty
+        )
+        
+        return {
+            "success": True,
+            "message": "😈 라플라스 악마가 미래를 예측했습니다",
+            "result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"라플라스 악마 소환 실패: {e}")
+        raise HTTPException(500, str(e))
+
+
+@router.post("/transformer/train")
+async def train_transformer(
+    model_type: str = "patchtst",
+    training_data: List[Dict[str, Any]] = None,
+    epochs: int = 100
+):
+    """
+    🤖 Transformer 모델 학습
+    
+    model_type: "vanilla" 또는 "patchtst" (SOTA)
+    """
+    try:
+        from physics.transformer_predictor import get_transformer_predictor
+        
+        predictor = get_transformer_predictor(model_type)
+        
+        if not training_data:
+            return {
+                "success": False,
+                "error": "training_data 필요 (형식: [{seq: [[M,T,s,nd],...], target: [[M,T,s,nd],...]}])"
+            }
+        
+        X = [d["seq"] for d in training_data]
+        y = [d["target"] for d in training_data]
+        
+        result = predictor.fit(X, y, epochs=epochs)
+        
+        return {
+            "success": True,
+            "message": f"🤖 {model_type.upper()} 모델 학습 완료",
+            "result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Transformer 학습 실패: {e}")
+        raise HTTPException(500, str(e))
+
+
+@router.post("/transformer/predict")
+async def transformer_predict(
+    model_type: str = "patchtst",
+    recent_sequence: List[List[float]] = None
+):
+    """
+    🤖 Transformer 기반 미래 V 예측
+    
+    recent_sequence: 최근 시퀀스 [[M, T, s, network_density], ...]
+    """
+    try:
+        from physics.transformer_predictor import get_transformer_predictor
+        
+        predictor = get_transformer_predictor(model_type)
+        
+        if not predictor.trained:
+            return {
+                "success": False,
+                "error": "모델 학습 필요 (/v/transformer/train 먼저 호출)"
+            }
+        
+        if not recent_sequence:
+            return {
+                "success": False,
+                "error": "recent_sequence 필요 (형식: [[M,T,s,nd], ...])"
+            }
+        
+        result = predictor.predict(recent_sequence)
+        
+        return {
+            "success": True,
+            "message": f"🤖 {model_type.upper()} 예측 완료",
+            "result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Transformer 예측 실패: {e}")
+        raise HTTPException(500, str(e))
+
+
 @router.get("/formula")
 async def get_formula():
     """
@@ -325,6 +449,12 @@ async def get_formula():
             },
             "constant_adj": "(1 - age/100) × location_factor",
             "network_boost": "s += growth_rate × network_density"
+        },
+        "models": {
+            "laplace_demon": "결정론적 예측 (모든 초기 조건 반영)",
+            "lstm": "시계열 패턴 학습",
+            "transformer": "Vanilla Transformer Encoder",
+            "patchtst": "Patch Time Series Transformer (SOTA)"
         },
         "examples": [
             {
