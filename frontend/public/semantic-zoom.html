@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS Semantic Zoom</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-dark: #0d1117;
+      --bg-panel: #161b22;
+      --bg-card: #1c2128;
+      --bg-input: #0d1117;
+      --border: rgba(48, 54, 61, 0.8);
+      --border-light: rgba(80, 100, 140, 0.3);
+      --text: #e6edf3;
+      --text-dim: #7d8590;
+      --text-muted: #484f58;
+      --cyan: #58a6ff;
+      --cyan-bright: #79c0ff;
+      --green: #3fb950;
+      --green-dim: rgba(63, 185, 80, 0.15);
+      --yellow: #d29922;
+      --yellow-dim: rgba(210, 153, 34, 0.15);
+      --orange: #db6d28;
+      --red: #f85149;
+      --purple: #a371f7;
+      --gold: #e3b341;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    /* ==========================================
+       MAIN LAYOUT
+       ========================================== */
+    
+    .app {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      height: 100vh;
+    }
+    
+    /* ==========================================
+       LEFT PANEL
+       ========================================== */
+    
+    .control-panel {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    
+    /* Header */
+    .panel-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #2d333b 0%, #1c2128 100%);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .panel-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    
+    /* Formula Bar */
+    .formula-bar {
+      padding: 14px 24px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    
+    .formula-bar .cyan { color: var(--cyan); }
+    .formula-bar .white { color: var(--text); }
+    
+    /* Sliders */
+    .sliders-section {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .slider-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    
+    .slider-icon.cyan { color: var(--cyan); border-color: rgba(88, 166, 255, 0.3); }
+    .slider-icon.green { color: var(--green); border-color: rgba(63, 185, 80, 0.3); }
+    .slider-icon.yellow { color: var(--yellow); border-color: rgba(210, 153, 34, 0.3); }
+    .slider-icon.orange { color: var(--orange); border-color: rgba(219, 109, 40, 0.3); }
+    
+    .slider-content {
+      flex: 1;
+    }
+    
+    .slider-label {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .slider-track {
+      position: relative;
+      height: 8px;
+      background: var(--bg-input);
+      border-radius: 4px;
+      overflow: visible;
+    }
+    
+    .slider-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.15s ease;
+    }
+    
+    .slider-fill.cyan { background: linear-gradient(90deg, var(--cyan), var(--cyan-bright)); }
+    .slider-fill.green { background: linear-gradient(90deg, #238636, var(--green)); }
+    .slider-fill.yellow { background: linear-gradient(90deg, #9e6a03, var(--yellow)); }
+    .slider-fill.orange { background: linear-gradient(90deg, #bd561d, var(--orange)); }
+    
+    .slider-thumb {
+      position: absolute;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      background: var(--text);
+      border: 3px solid var(--bg-panel);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      transition: left 0.15s ease;
+    }
+    
+    .slider-input {
+      position: absolute;
+      inset: -8px 0;
+      width: 100%;
+      height: calc(100% + 16px);
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    .slider-value {
+      width: 70px;
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    
+    /* Omega Display */
+    .omega-section {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .omega-card {
+      padding: 18px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .omega-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    
+    .omega-symbol {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, rgba(88, 166, 255, 0.15), rgba(88, 166, 255, 0.05));
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--cyan);
+    }
+    
+    .omega-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .omega-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .omega-label {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    .omega-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cyan);
+      padding: 8px 16px;
+      background: rgba(88, 166, 255, 0.1);
+      border-radius: 8px;
+    }
+    
+    /* K Level */
+    .k-card {
+      margin: 0 24px 16px;
+      padding: 14px 20px;
+      background: linear-gradient(90deg, var(--green-dim), transparent);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .k-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--green);
+    }
+    
+    .k-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    /* Status Cards */
+    .status-section {
+      padding: 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .status-card {
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .status-icon { font-size: 18px; }
+    
+    .status-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .status-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 6px;
+    }
+    
+    .status-value.off {
+      background: rgba(110, 118, 129, 0.2);
+      color: var(--text-dim);
+    }
+    
+    .status-value.on {
+      background: rgba(248, 81, 73, 0.2);
+      color: var(--red);
+    }
+    
+    /* Execute Row */
+    .execute-row {
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .execute-btn {
+      padding: 12px 28px;
+      background: linear-gradient(135deg, var(--green), #238636);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .execute-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(63, 185, 80, 0.4);
+    }
+    
+    .execute-btn:disabled {
+      background: #21262d;
+      color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    /* Console */
+    .console-section {
+      margin: 16px 24px;
+      padding: 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    
+    .console-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    
+    .console-dots {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .console-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    .console-dot.yellow { background: var(--yellow); }
+    .console-dot.green { background: var(--green); }
+    
+    .console-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+    
+    .console-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    
+    .console-bullet {
+      width: 6px;
+      height: 6px;
+      background: var(--cyan);
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    
+    /* Ritual */
+    .ritual-section {
+      margin: 16px 24px 24px;
+      padding: 16px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .ritual-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .ritual-icon { font-size: 18px; }
+    
+    .ritual-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--purple);
+    }
+    
+    .ritual-btns {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .ritual-btn {
+      padding: 8px 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .ritual-btn:hover {
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+    
+    /* ==========================================
+       RIGHT PANEL - VISUALIZATION
+       ========================================== */
+    
+    .viz-panel {
+      position: relative;
+      overflow: hidden;
+      background: #0a0d12;
+    }
+    
+    /* Header */
+    .viz-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: linear-gradient(180deg, rgba(13, 17, 23, 0.95) 0%, transparent 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 20;
+    }
+    
+    .viz-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    
+    .viz-play {
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+    
+    .viz-title span { color: var(--text-dim); font-weight: 400; }
+    
+    .viz-controls {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .viz-btn {
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .viz-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+    
+    /* Canvas */
+    #vizCanvas {
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Altitude Banner */
+    .altitude-banner {
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 24px;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      font-size: 13px;
+      color: var(--text-dim);
+      z-index: 15;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .altitude-banner.visible { opacity: 1; }
+    .altitude-banner span { color: var(--red); font-weight: 600; }
+    
+    /* Bottom Bar */
+    .viz-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: linear-gradient(0deg, rgba(13, 17, 23, 0.98) 50%, transparent 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 20;
+    }
+    
+    .bottom-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .bottom-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--yellow);
+      transition: all 0.3s;
+    }
+    
+    .bottom-indicator.locked {
+      background: var(--red);
+      animation: indicatorPulse 1.5s infinite;
+    }
+    
+    @keyframes indicatorPulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.5); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(248, 81, 73, 0); }
+    }
+    
+    .bottom-text {
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+    
+    .bottom-text span { color: var(--red); font-weight: 600; }
+    
+    .bottom-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .toggle-dots {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .toggle-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: all 0.3s;
+    }
+    
+    .toggle-dot.active { background: var(--green); }
+    
+    .toggle-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+    
+    .bottom-execute {
+      padding: 14px 36px;
+      background: linear-gradient(135deg, var(--green), #238636);
+      border: none;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .bottom-execute:hover {
+      box-shadow: 0 4px 20px rgba(63, 185, 80, 0.5);
+    }
+    
+    .bottom-execute:disabled {
+      background: #21262d;
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- LEFT PANEL -->
+    <aside class="control-panel">
+      <div class="panel-header">
+        <div class="logo-icon">🏛️</div>
+        <div class="panel-title">AUTUS Semantic Zoom Demo</div>
+      </div>
+      
+      <div class="formula-bar">
+        <span class="cyan">Ω</span> <span class="white">→</span> <span class="cyan">K</span> <span class="white">→ LOD / Altitude Lock / Ritual</span>
+      </div>
+      
+      <div class="sliders-section">
+        <div class="slider-row">
+          <div class="slider-icon cyan">Ω</div>
+          <div class="slider-content">
+            <div class="slider-label">Mass</div>
+            <div class="slider-track">
+              <div class="slider-fill cyan" id="massFill" style="width: 56%;"></div>
+              <div class="slider-thumb" id="massThumb" style="left: 56%;"></div>
+              <input type="range" class="slider-input" id="massInput" min="0" max="50" step="0.125" value="28.125">
+            </div>
+          </div>
+          <div class="slider-value" id="massValue">28.125</div>
+        </div>
+        
+        <div class="slider-row">
+          <div class="slider-icon green">👤</div>
+          <div class="slider-content">
+            <div class="slider-label">Impact</div>
+            <div class="slider-track">
+              <div class="slider-fill green" id="impactFill" style="width: 30%;"></div>
+              <div class="slider-thumb" id="impactThumb" style="left: 30%;"></div>
+              <input type="range" class="slider-input" id="impactInput" min="0" max="10" step="0.1" value="3.0">
+            </div>
+          </div>
+          <div class="slider-value" id="impactValue">3.0</div>
+        </div>
+        
+        <div class="slider-row">
+          <div class="slider-icon yellow">R</div>
+          <div class="slider-content">
+            <div class="slider-label">R</div>
+            <div class="slider-track">
+              <div class="slider-fill yellow" id="rFill" style="width: 75%;"></div>
+              <div class="slider-thumb" id="rThumb" style="left: 75%;"></div>
+              <input type="range" class="slider-input" id="rInput" min="0" max="10" step="0.1" value="7.5">
+            </div>
+          </div>
+          <div class="slider-value" id="rValue">7.5</div>
+        </div>
+        
+        <div class="slider-row">
+          <div class="slider-icon orange">T</div>
+          <div class="slider-content">
+            <div class="slider-label">Time</div>
+            <div class="slider-track">
+              <div class="slider-fill orange" id="timeFill" style="width: 20%;"></div>
+              <div class="slider-thumb" id="timeThumb" style="left: 20%;"></div>
+              <input type="range" class="slider-input" id="timeInput" min="0" max="10" step="0.5" value="2">
+            </div>
+          </div>
+          <div class="slider-value" id="timeValue">2</div>
+        </div>
+      </div>
+      
+      <div class="omega-section">
+        <div class="omega-card">
+          <div class="omega-left">
+            <div class="omega-symbol">Ω</div>
+            <div class="omega-info">
+              <div class="omega-value">Ω = <span id="omegaTotal">28.125</span></div>
+              <div class="omega-label">Total Energy</div>
+            </div>
+          </div>
+          <div class="omega-badge" id="omegaK">E K4</div>
+        </div>
+      </div>
+      
+      <div class="k-card">
+        <span class="k-badge">K</span>
+        <span class="k-value">K = <span id="kLevel">K4</span></span>
+      </div>
+      
+      <div class="status-section">
+        <div class="status-card">
+          <div class="status-left">
+            <span class="status-icon">🛡️</span>
+            <span class="status-label">Altitude Lock</span>
+          </div>
+          <span class="status-value off" id="lockStatus">OFF</span>
+        </div>
+        
+        <div class="execute-row">
+          <div class="status-left">
+            <span class="status-icon">💎</span>
+            <span class="status-label">Ritual : <span id="ritualStatus">NO</span></span>
+          </div>
+          <button class="execute-btn" id="executeBtn">Execute</button>
+        </div>
+      </div>
+      
+      <div class="console-section">
+        <div class="console-header">
+          <div class="console-dots">
+            <div class="console-dot yellow"></div>
+            <div class="console-dot green"></div>
+          </div>
+          <span class="console-title">Action Console</span>
+        </div>
+        <div class="console-line">
+          <div class="console-bullet"></div>
+          <span>K1~K5 : 실행 허용</span>
+        </div>
+        <div class="console-line">
+          <div class="console-bullet"></div>
+          <span>K6+ : Execute 차단. 승인/검토만 허용.</span>
+        </div>
+      </div>
+      
+      <div class="ritual-section">
+        <div class="ritual-left">
+          <span class="ritual-icon">🔮</span>
+          <span class="ritual-label">K10 Ritual</span>
+        </div>
+        <div class="ritual-btns">
+          <button class="ritual-btn">📋 Finalize</button>
+          <button class="ritual-btn">⚡ Enter Ritual</button>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- RIGHT PANEL -->
+    <main class="viz-panel">
+      <div class="viz-header">
+        <div class="viz-title">
+          <div class="viz-play">▶</div>
+          Observer Altitude — <strong id="vizK">K4</strong> <span>(Decision Simulation)</span>
+        </div>
+        <div class="viz-controls">
+          <button class="viz-btn">≡</button>
+          <button class="viz-btn">✕</button>
+        </div>
+      </div>
+      
+      <div class="altitude-banner" id="altitudeBanner">
+        Altitude Lock Engaged <span>(K&gt;6)</span>
+      </div>
+      
+      <canvas id="vizCanvas"></canvas>
+      
+      <div class="viz-bottom">
+        <div class="bottom-left">
+          <div class="bottom-indicator" id="bottomIndicator"></div>
+          <span class="bottom-text">Altitude Lock Engaged <span>(K&gt;6)</span></span>
+        </div>
+        <div class="bottom-center">
+          <div class="toggle-dots">
+            <div class="toggle-dot"></div>
+            <div class="toggle-dot active"></div>
+          </div>
+          <span class="toggle-label">NO</span>
+        </div>
+        <button class="bottom-execute" id="bottomExecute">Execute</button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ============================================
+    // AUTUS SEMANTIC ZOOM ENGINE
+    // ============================================
+    
+    const state = {
+      mass: 28.125,
+      impact: 3.0,
+      r: 7.5,
+      time: 2,
+      omega: 28.125,
+      k: 4,
+      locked: false,
+      animTime: 0
+    };
+    
+    // Node data matching reference image
+    const nodes = [
+      { id: 1, name: 'Logistics Excess', sub: '💰 Budget Δ+12%', k: 2, x: 0.28, y: 0.22, type: 'warning', icon: '⚠️' },
+      { id: 2, name: 'Risk Analysis', k: 4, x: 0.72, y: 0.15, type: 'dim', icon: '◇' },
+      { id: 3, name: 'Test Review', k: 2, x: 0.48, y: 0.35, type: 'normal', icon: '📋' },
+      { id: 4, name: 'Treaty Drafting', k: 5, x: 0.82, y: 0.38, type: 'dim', icon: '⊗' },
+      { id: 5, name: 'Q2 Product Launch\nRoadmap', k: 1, x: 0.55, y: 0.52, type: 'primary', icon: '💎', highlight: true },
+      { id: 6, name: 'Simulation Node', k: 2, x: 0.42, y: 0.68, type: 'secondary', icon: 'LHO' },
+      { id: 7, name: 'Fact Review', k: 3, x: 0.55, y: 0.82, type: 'locked', icon: '🔒' },
+      { id: 8, name: 'Compliance Review', k: 6, x: 0.88, y: 0.78, type: 'dim', icon: '◇' },
+      { id: 9, name: 'Tread In', k: 5, x: 0.85, y: 0.12, type: 'dim', icon: '○' }
+    ];
+    
+    const edges = [
+      [1, 3], [2, 3], [3, 5], [4, 5], [5, 6], [5, 7], [6, 7], [7, 8], [4, 8]
+    ];
+    
+    // Hexagon helper icons (side icons in reference)
+    const sideIcons = [
+      { x: 0.08, y: 0.35, icon: '◇' },
+      { x: 0.08, y: 0.48, icon: '⬡' },
+      { x: 0.08, y: 0.61, icon: '⎔' },
+      { x: 0.92, y: 0.48, icon: '⚙' },
+      { x: 0.92, y: 0.61, icon: '🔗' },
+      { x: 0.92, y: 0.74, icon: '◎' }
+    ];
+    
+    // ==========================================
+    // CANVAS
+    // ==========================================
+    
+    let canvas, ctx;
+    
+    function initCanvas() {
+      canvas = document.getElementById('vizCanvas');
+      ctx = canvas.getContext('2d');
+      
+      const resize = () => {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+        ctx.scale(dpr, dpr);
+      };
+      
+      resize();
+      window.addEventListener('resize', resize);
+    }
+    
+    function render() {
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      
+      ctx.save();
+      
+      // Background - space gradient
+      const bgGrad = ctx.createRadialGradient(w * 0.5, h * 0.5, 0, w * 0.5, h * 0.5, w * 0.8);
+      bgGrad.addColorStop(0, '#151a24');
+      bgGrad.addColorStop(0.4, '#0f1318');
+      bgGrad.addColorStop(1, '#0a0d12');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, w, h);
+      
+      // Nebula clouds
+      drawNebulae(w, h);
+      
+      // Stars
+      drawStars(w, h);
+      
+      // Bright stars (orange/yellow)
+      drawBrightStars(w, h);
+      
+      // Edges
+      drawEdges(w, h);
+      
+      // Side icons
+      drawSideIcons(w, h);
+      
+      // Nodes
+      drawNodes(w, h);
+      
+      ctx.restore();
+      
+      state.animTime += 0.016;
+      requestAnimationFrame(render);
+    }
+    
+    function drawNebulae(w, h) {
+      // Multiple nebula layers for depth
+      const nebulae = [
+        { x: 0.3, y: 0.4, r: 0.35, hue: 220, sat: 30, light: 15, alpha: 0.15 },
+        { x: 0.7, y: 0.3, r: 0.25, hue: 30, sat: 40, light: 20, alpha: 0.12 },
+        { x: 0.5, y: 0.7, r: 0.3, hue: 200, sat: 25, light: 18, alpha: 0.1 },
+        { x: 0.8, y: 0.6, r: 0.2, hue: 280, sat: 20, light: 15, alpha: 0.08 }
+      ];
+      
+      nebulae.forEach(n => {
+        const x = n.x * w;
+        const y = n.y * h;
+        const r = n.r * Math.min(w, h);
+        
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        grad.addColorStop(0, `hsla(${n.hue}, ${n.sat}%, ${n.light}%, ${n.alpha})`);
+        grad.addColorStop(0.5, `hsla(${n.hue}, ${n.sat - 10}%, ${n.light - 5}%, ${n.alpha * 0.5})`);
+        grad.addColorStop(1, 'transparent');
+        
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    
+    function drawStars(w, h) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      
+      for (let i = 0; i < 120; i++) {
+        const x = ((i * 137.5 + 50) % w);
+        const y = ((i * 89.3 + 30) % h);
+        const twinkle = Math.sin(state.animTime * 2 + i * 0.5) * 0.3 + 0.7;
+        const size = (0.5 + (i % 3) * 0.3) * twinkle;
+        
+        ctx.globalAlpha = 0.3 + twinkle * 0.4;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    
+    function drawBrightStars(w, h) {
+      const brightStars = [
+        { x: 0.42, y: 0.55, size: 4, color: '#ffb347' },
+        { x: 0.65, y: 0.28, size: 3, color: '#ffd700' },
+        { x: 0.25, y: 0.72, size: 2.5, color: '#ff9966' }
+      ];
+      
+      brightStars.forEach(star => {
+        const x = star.x * w;
+        const y = star.y * h;
+        const pulse = 1 + Math.sin(state.animTime * 3) * 0.2;
+        const size = star.size * pulse;
+        
+        // Glow
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, size * 8);
+        glow.addColorStop(0, star.color);
+        glow.addColorStop(0.3, `${star.color}66`);
+        glow.addColorStop(1, 'transparent');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 8, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Core
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    
+    function drawEdges(w, h) {
+      edges.forEach(([fromId, toId]) => {
+        const n1 = nodes.find(n => n.id === fromId);
+        const n2 = nodes.find(n => n.id === toId);
+        if (!n1 || !n2) return;
+        
+        const x1 = n1.x * w, y1 = n1.y * h;
+        const x2 = n2.x * w, y2 = n2.y * h;
+        
+        // Main line
+        ctx.strokeStyle = 'rgba(100, 140, 180, 0.25)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        // Animated pulse
+        const t = (state.animTime * 0.4 + fromId * 0.15) % 1;
+        const px = x1 + (x2 - x1) * t;
+        const py = y1 + (y2 - y1) * t;
+        
+        ctx.fillStyle = 'rgba(88, 166, 255, 0.8)';
+        ctx.beginPath();
+        ctx.arc(px, py, 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    
+    function drawSideIcons(w, h) {
+      sideIcons.forEach(icon => {
+        const x = icon.x * w;
+        const y = icon.y * h;
+        
+        // Hexagon background
+        ctx.fillStyle = 'rgba(30, 40, 55, 0.6)';
+        ctx.strokeStyle = 'rgba(80, 120, 160, 0.4)';
+        ctx.lineWidth = 1;
+        
+        drawHexagon(ctx, x, y, 18);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Icon
+        ctx.fillStyle = 'rgba(150, 180, 210, 0.7)';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(icon.icon, x, y);
+      });
+    }
+    
+    function drawHexagon(ctx, x, y, size) {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const angle = (i * 60 - 30) * Math.PI / 180;
+        const px = x + size * Math.cos(angle);
+        const py = y + size * Math.sin(angle);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+    }
+    
+    function drawNodes(w, h) {
+      nodes.forEach(node => {
+        const x = node.x * w;
+        const y = node.y * h;
+        const visible = node.k <= state.k + 1;
+        
+        if (node.type === 'dim' && !visible) return;
+        
+        const isDim = node.type === 'dim' || !visible;
+        const size = node.highlight ? 36 : 28;
+        
+        // Colors based on type
+        let bgColor = 'rgba(25, 35, 50, 0.85)';
+        let borderColor = 'rgba(80, 120, 160, 0.6)';
+        let iconBg = 'rgba(60, 100, 140, 0.4)';
+        let textColor = '#e6edf3';
+        
+        if (node.type === 'primary' || node.highlight) {
+          borderColor = 'rgba(88, 166, 255, 0.8)';
+          iconBg = 'rgba(88, 166, 255, 0.3)';
+        } else if (node.type === 'warning') {
+          iconBg = 'rgba(210, 153, 34, 0.4)';
+          borderColor = 'rgba(210, 153, 34, 0.5)';
+        } else if (node.type === 'locked') {
+          iconBg = 'rgba(88, 166, 255, 0.3)';
+          borderColor = 'rgba(88, 166, 255, 0.6)';
+        } else if (node.type === 'secondary') {
+          iconBg = 'rgba(227, 179, 65, 0.3)';
+          borderColor = 'rgba(227, 179, 65, 0.5)';
+        }
+        
+        if (isDim) {
+          bgColor = 'rgba(20, 25, 35, 0.5)';
+          borderColor = 'rgba(60, 70, 80, 0.3)';
+          textColor = 'rgba(150, 160, 170, 0.5)';
+          iconBg = 'rgba(50, 60, 70, 0.3)';
+        }
+        
+        // Highlight glow
+        if (node.highlight && !isDim) {
+          const glow = ctx.createRadialGradient(x, y, 0, x, y, size * 2.5);
+          glow.addColorStop(0, 'rgba(88, 166, 255, 0.25)');
+          glow.addColorStop(1, 'transparent');
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(x, y, size * 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        // Node body
+        ctx.fillStyle = bgColor;
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = isDim ? 1 : 1.5;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Icon background
+        ctx.fillStyle = iconBg;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Icon
+        ctx.fillStyle = textColor;
+        ctx.font = node.highlight ? '16px sans-serif' : '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(node.icon, x, y);
+        
+        // Label
+        if (!isDim || node.name) {
+          ctx.fillStyle = textColor;
+          ctx.font = '11px Inter';
+          const lines = node.name.split('\n');
+          lines.forEach((line, i) => {
+            ctx.fillText(line, x, y + size + 14 + i * 13);
+          });
+          
+          // K badge
+          const badgeY = y + size + 12 + lines.length * 13;
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+          ctx.beginPath();
+          roundRect(ctx, x - 14, badgeY, 28, 16, 4);
+          ctx.fill();
+          
+          ctx.fillStyle = '#58a6ff';
+          ctx.font = '10px JetBrains Mono';
+          ctx.fillText(`K${node.k}`, x, badgeY + 9);
+        }
+        
+        // Sub label (like Budget)
+        if (node.sub && !isDim) {
+          ctx.fillStyle = 'rgba(210, 153, 34, 0.9)';
+          ctx.font = '10px Inter';
+          ctx.fillText(node.sub, x, y - size - 12);
+        }
+      });
+    }
+    
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+    
+    // ==========================================
+    // STATE MANAGEMENT
+    // ==========================================
+    
+    function calculateK(omega) {
+      if (omega < 10) return 1;
+      if (omega < 20) return 2;
+      if (omega < 30) return 3;
+      if (omega < 40) return 4;
+      if (omega < 50) return 5;
+      if (omega < 60) return 6;
+      if (omega < 70) return 7;
+      if (omega < 80) return 8;
+      if (omega < 90) return 9;
+      return 10;
+    }
+    
+    function updateState() {
+      state.mass = parseFloat(document.getElementById('massInput').value);
+      state.impact = parseFloat(document.getElementById('impactInput').value);
+      state.r = parseFloat(document.getElementById('rInput').value);
+      state.time = parseFloat(document.getElementById('timeInput').value);
+      
+      state.omega = state.mass;
+      state.k = calculateK(state.omega);
+      state.locked = state.k > 6;
+      
+      updateUI();
+    }
+    
+    function updateUI() {
+      // Slider fills and thumbs
+      const massP = (state.mass / 50) * 100;
+      document.getElementById('massFill').style.width = massP + '%';
+      document.getElementById('massThumb').style.left = massP + '%';
+      document.getElementById('massValue').textContent = state.mass.toFixed(3);
+      
+      const impactP = (state.impact / 10) * 100;
+      document.getElementById('impactFill').style.width = impactP + '%';
+      document.getElementById('impactThumb').style.left = impactP + '%';
+      document.getElementById('impactValue').textContent = state.impact.toFixed(1);
+      
+      const rP = (state.r / 10) * 100;
+      document.getElementById('rFill').style.width = rP + '%';
+      document.getElementById('rThumb').style.left = rP + '%';
+      document.getElementById('rValue').textContent = state.r.toFixed(1);
+      
+      const timeP = (state.time / 10) * 100;
+      document.getElementById('timeFill').style.width = timeP + '%';
+      document.getElementById('timeThumb').style.left = timeP + '%';
+      document.getElementById('timeValue').textContent = state.time;
+      
+      // Omega & K
+      document.getElementById('omegaTotal').textContent = state.omega.toFixed(3);
+      document.getElementById('omegaK').textContent = `E K${state.k}`;
+      document.getElementById('kLevel').textContent = `K${state.k}`;
+      document.getElementById('vizK').textContent = `K${state.k}`;
+      
+      // Lock status
+      const lockStatus = document.getElementById('lockStatus');
+      const banner = document.getElementById('altitudeBanner');
+      const indicator = document.getElementById('bottomIndicator');
+      const execBtn = document.getElementById('executeBtn');
+      const bottomExec = document.getElementById('bottomExecute');
+      
+      if (state.locked) {
+        lockStatus.textContent = 'ON';
+        lockStatus.className = 'status-value on';
+        banner.classList.add('visible');
+        indicator.classList.add('locked');
+        execBtn.disabled = true;
+        bottomExec.disabled = true;
+      } else {
+        lockStatus.textContent = 'OFF';
+        lockStatus.className = 'status-value off';
+        banner.classList.remove('visible');
+        indicator.classList.remove('locked');
+        execBtn.disabled = false;
+        bottomExec.disabled = false;
+      }
+    }
+    
+    // ==========================================
+    // EVENTS
+    // ==========================================
+    
+    function initEvents() {
+      ['massInput', 'impactInput', 'rInput', 'timeInput'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateState);
+      });
+      
+      document.getElementById('executeBtn').addEventListener('click', execute);
+      document.getElementById('bottomExecute').addEventListener('click', execute);
+    }
+    
+    function execute() {
+      if (!state.locked) {
+        console.log('Execute:', { omega: state.omega, k: state.k });
+        // Visual feedback
+        const btn = document.getElementById('bottomExecute');
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => btn.style.transform = '', 150);
+      }
+    }
+    
+    // ==========================================
+    // INIT
+    // ==========================================
+    
+    function init() {
+      initCanvas();
+      initEvents();
+      updateState();
+      render();
+    }
+    
+    init();
+  </script>
+</body>
+</html>

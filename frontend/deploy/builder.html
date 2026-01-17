@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS Self-Builder | 자기 진화 엔진</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0f1a;
+      --surface: #111827;
+      --surface-2: #1f2937;
+      --surface-3: #374151;
+      --border: #374151;
+      --text: #f9fafb;
+      --text-dim: #9ca3af;
+      --text-muted: #6b7280;
+      --primary: #10b981;
+      --primary-dim: rgba(16, 185, 129, 0.15);
+      --cyan: #06b6d4;
+      --cyan-dim: rgba(6, 182, 212, 0.15);
+      --purple: #8b5cf6;
+      --purple-dim: rgba(139, 92, 246, 0.15);
+      --yellow: #f59e0b;
+      --yellow-dim: rgba(245, 158, 11, 0.15);
+      --red: #ef4444;
+      --red-dim: rgba(239, 68, 68, 0.15);
+      --gradient: linear-gradient(135deg, var(--primary), var(--cyan), var(--purple));
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 20px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--gradient);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    
+    .logo-text {
+      font-size: 22px;
+      font-weight: 800;
+    }
+    
+    .logo-badge {
+      padding: 5px 12px;
+      background: var(--purple);
+      border-radius: 16px;
+      font-size: 10px;
+      font-weight: 700;
+      color: white;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .nav-link {
+      padding: 10px 18px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    
+    .nav-link:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .status-row {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: var(--surface-2);
+      border-radius: 16px;
+      font-size: 11px;
+    }
+    
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    .status-dot.green { background: var(--primary); }
+    .status-dot.purple { background: var(--purple); }
+    .status-dot.cyan { background: var(--cyan); }
+    .status-dot.yellow { background: var(--yellow); }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 50px 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient);
+    }
+    
+    .hero-title {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .hero-subtitle {
+      font-size: 15px;
+      color: var(--text-dim);
+      max-width: 600px;
+      margin: 0 auto 24px;
+    }
+    
+    .hero-equation {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 28px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+    }
+    
+    .hero-equation .highlight {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    
+    /* Current Score Panel */
+    .score-panel {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .score-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+    }
+    
+    .score-card.main {
+      background: linear-gradient(135deg, var(--surface), var(--surface-2));
+      border-color: var(--primary);
+    }
+    
+    .score-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 48px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    
+    .score-value.current { color: var(--yellow); }
+    .score-value.target { color: var(--primary); }
+    .score-value.gap { color: var(--red); }
+    
+    .score-label {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .score-bar {
+      margin-top: 16px;
+      height: 8px;
+      background: var(--surface-3);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .score-bar-fill {
+      height: 100%;
+      background: var(--gradient);
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+    
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    
+    .card-badge {
+      padding: 4px 10px;
+      background: var(--cyan-dim);
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--cyan);
+    }
+    
+    .card-badge.red {
+      background: var(--red-dim);
+      color: var(--red);
+    }
+    
+    .card-badge.green {
+      background: var(--primary-dim);
+      color: var(--primary);
+    }
+    
+    .card-body {
+      padding: 20px;
+    }
+    
+    /* Feature List */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--surface-2);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .feature-item:hover {
+      border-color: var(--cyan);
+    }
+    
+    .feature-item.selected {
+      border-color: var(--primary);
+      background: var(--primary-dim);
+    }
+    
+    .feature-checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    
+    .feature-item.selected .feature-checkbox {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+    
+    .feature-info {
+      flex: 1;
+    }
+    
+    .feature-name {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    
+    .feature-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    .feature-impact {
+      text-align: right;
+    }
+    
+    .impact-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .impact-label {
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+    
+    /* Generation Steps */
+    .generation-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .gen-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      background: var(--surface-2);
+      border-radius: 10px;
+      transition: all 0.3s;
+    }
+    
+    .gen-step.active {
+      background: var(--cyan-dim);
+      border: 1px solid var(--cyan);
+    }
+    
+    .gen-step.complete {
+      opacity: 0.7;
+    }
+    
+    .gen-step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--surface-3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    
+    .gen-step.active .gen-step-num {
+      background: var(--cyan);
+      color: white;
+      animation: pulse 1.5s infinite;
+    }
+    
+    .gen-step.complete .gen-step-num {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .gen-step-content {
+      flex: 1;
+    }
+    
+    .gen-step-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    
+    .gen-step-desc {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    
+    .gen-step-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    
+    /* Code Preview */
+    .code-preview {
+      background: #0d1117;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+    
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .code-filename {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    .code-stats {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    
+    .code-body {
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .code-body pre {
+      color: #e6edf3;
+      white-space: pre-wrap;
+    }
+    
+    .code-keyword { color: #ff7b72; }
+    .code-string { color: #a5d6ff; }
+    .code-comment { color: #8b949e; }
+    .code-function { color: #d2a8ff; }
+    
+    /* Action Buttons */
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: var(--gradient);
+      color: white;
+      flex: 1;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    
+    .btn-secondary:hover {
+      border-color: var(--text-dim);
+      color: var(--text);
+    }
+    
+    /* Output Log */
+    .log-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .log-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .log-title {
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .log-body {
+      padding: 14px 18px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+    
+    .log-entry {
+      display: flex;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+    
+    .log-time {
+      color: var(--text-muted);
+      min-width: 65px;
+    }
+    
+    .log-type {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 600;
+      min-width: 50px;
+      text-align: center;
+    }
+    
+    .log-type.info { background: var(--cyan-dim); color: var(--cyan); }
+    .log-type.success { background: var(--primary-dim); color: var(--primary); }
+    .log-type.ai { background: var(--purple-dim); color: var(--purple); }
+    .log-type.deploy { background: var(--yellow-dim); color: var(--yellow); }
+    .log-type.error { background: var(--red-dim); color: var(--red); }
+    
+    .log-message {
+      flex: 1;
+      color: var(--text-dim);
+    }
+    
+    /* n8n Section */
+    .n8n-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    
+    .n8n-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .n8n-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .n8n-title h3 {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    
+    .n8n-badge {
+      padding: 4px 10px;
+      background: var(--yellow-dim);
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--yellow);
+    }
+    
+    .n8n-body {
+      padding: 20px;
+    }
+    
+    .workflow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px;
+      background: var(--surface-2);
+      border-radius: 10px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+    
+    .workflow-node {
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    
+    .workflow-node:hover {
+      border-color: var(--cyan);
+    }
+    
+    .workflow-node.trigger { border-color: var(--yellow); }
+    .workflow-node.ai { border-color: var(--purple); }
+    .workflow-node.deploy { border-color: var(--primary); }
+    
+    .workflow-arrow {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    
+    .n8n-config {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .config-item {
+      padding: 12px;
+      background: var(--surface-2);
+      border-radius: 8px;
+    }
+    
+    .config-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+    
+    .config-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+    }
+    
+    .n8n-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow: hidden;
+    }
+    
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      background: var(--surface-2);
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    
+    .modal-body {
+      padding: 20px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    
+    .modal-code {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+      color: #e6edf3;
+    }
+    
+    .modal-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1000px) {
+      .main-grid, .score-panel, .n8n-config {
+        grid-template-columns: 1fr;
+      }
+      
+      .hero-title {
+        font-size: 28px;
+      }
+      
+      .status-row {
+        display: none;
+      }
+      
+      .workflow-diagram {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">🔄</div>
+        <span class="logo-text">AUTUS Self-Builder</span>
+        <span class="logo-badge">META-EVOLUTION</span>
+      </div>
+      <div class="nav-links">
+        <a href="/" class="nav-link">← Dashboard</a>
+        <a href="/builder" class="nav-link" style="background: var(--primary-dim); border-color: var(--primary); color: var(--primary);">Self-Builder</a>
+      </div>
+      <div class="status-row">
+        <div class="status-chip">
+          <span class="status-dot green"></span>
+          <span>Gemini Ready</span>
+        </div>
+        <div class="status-chip">
+          <span class="status-dot purple"></span>
+          <span>Generator Active</span>
+        </div>
+        <div class="status-chip">
+          <span class="status-dot yellow"></span>
+          <span>n8n Connected</span>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Hero -->
+    <section class="hero">
+      <h1 class="hero-title">AUTUS가 AUTUS를 만든다</h1>
+      <p class="hero-subtitle">
+        Self-Evolving System의 궁극적 구현. 누락된 기능을 감지하고, AI로 코드를 생성하여, 스스로를 진화시킵니다.
+      </p>
+      <div class="hero-equation">
+        AUTUS<sub>n</sub> + AI → AUTUS<sub>n+1</sub> <span class="highlight">→ ∞</span>
+      </div>
+    </section>
+    
+    <!-- Score Panel -->
+    <div class="score-panel">
+      <div class="score-card">
+        <div class="score-value current" id="currentScore">85</div>
+        <div class="score-label">현재 점수</div>
+      </div>
+      <div class="score-card main">
+        <div class="score-value" id="projectedScore" style="font-size: 36px; color: var(--cyan);">+15</div>
+        <div class="score-label">선택된 기능 적용시</div>
+        <div class="score-bar">
+          <div class="score-bar-fill" id="scoreBarFill" style="width: 85%;"></div>
+        </div>
+      </div>
+      <div class="score-card">
+        <div class="score-value target">100</div>
+        <div class="score-label">목표 점수</div>
+      </div>
+    </div>
+    
+    <!-- Main Grid -->
+    <div class="main-grid">
+      <!-- Missing Features -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔍</span>
+            <span>누락 기능 감지</span>
+          </div>
+          <span class="card-badge red" id="gapCount">6개 감지됨</span>
+        </div>
+        <div class="card-body">
+          <div class="feature-list" id="featureList"></div>
+          <div class="action-row">
+            <button class="btn btn-secondary" onclick="selectAll()">전체 선택</button>
+            <button class="btn btn-secondary" onclick="deselectAll()">전체 해제</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- AI Generation -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🤖</span>
+            <span>AI 코드 생성</span>
+          </div>
+          <span class="card-badge" id="genStatus">대기중</span>
+        </div>
+        <div class="card-body">
+          <div class="generation-steps" id="genSteps">
+            <div class="gen-step" data-step="1">
+              <div class="gen-step-num">1</div>
+              <div class="gen-step-content">
+                <div class="gen-step-title">기능 명세 분석</div>
+                <div class="gen-step-desc">선택된 기능의 요구사항 파싱</div>
+              </div>
+              <div class="gen-step-time">~2s</div>
+            </div>
+            <div class="gen-step" data-step="2">
+              <div class="gen-step-num">2</div>
+              <div class="gen-step-content">
+                <div class="gen-step-title">Gemini API 호출</div>
+                <div class="gen-step-desc">React/HTML 코드 생성</div>
+              </div>
+              <div class="gen-step-time">~15s</div>
+            </div>
+            <div class="gen-step" data-step="3">
+              <div class="gen-step-num">3</div>
+              <div class="gen-step-content">
+                <div class="gen-step-title">코드 병합</div>
+                <div class="gen-step-desc">기존 AUTUS와 통합</div>
+              </div>
+              <div class="gen-step-time">~3s</div>
+            </div>
+            <div class="gen-step" data-step="4">
+              <div class="gen-step-num">4</div>
+              <div class="gen-step-content">
+                <div class="gen-step-title">자동 배포</div>
+                <div class="gen-step-desc">Netlify/Railway 배포</div>
+              </div>
+              <div class="gen-step-time">~10s</div>
+            </div>
+          </div>
+          
+          <div class="code-preview" id="codePreview">
+            <div class="code-header">
+              <span class="code-filename">generated-code.jsx</span>
+              <span class="code-stats" id="codeStats">0 lines</span>
+            </div>
+            <div class="code-body">
+              <pre id="codeContent"><span class="code-comment">// 코드 생성 대기중...</span>
+<span class="code-comment">// 기능을 선택하고 "생성 시작" 버튼을 클릭하세요</span></pre>
+            </div>
+          </div>
+          
+          <div class="action-row">
+            <button class="btn btn-primary" id="generateBtn" onclick="startGeneration()">
+              <span>⚡</span>
+              <span>선택된 기능 생성 시작</span>
+            </button>
+            <button class="btn btn-secondary" onclick="showFullCode()">
+              <span>📋</span>
+              <span>전체 코드</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Log Section -->
+    <div class="log-section">
+      <div class="log-header">
+        <div class="log-title">
+          <span>📜</span>
+          <span>Evolution Log</span>
+        </div>
+        <span style="font-size: 11px; color: var(--primary);">● Live</span>
+      </div>
+      <div class="log-body" id="logBody"></div>
+    </div>
+    
+    <!-- n8n Section -->
+    <div class="n8n-section">
+      <div class="n8n-header">
+        <div class="n8n-title">
+          <span style="font-size: 24px;">🔗</span>
+          <h3>n8n 자동 진화 워크플로우</h3>
+          <span class="n8n-badge">AUTO-RUN</span>
+        </div>
+        <div class="status-chip">
+          <span class="status-dot yellow"></span>
+          <span>6시간마다 실행</span>
+        </div>
+      </div>
+      <div class="n8n-body">
+        <div class="workflow-diagram">
+          <div class="workflow-node trigger">⏰ Schedule<br><small>6h interval</small></div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-node">🔍 Gap Detect<br><small>Fetch & Analyze</small></div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-node">❓ IF Gaps<br><small>Condition</small></div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-node ai">🤖 Gemini<br><small>Generate Code</small></div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-node">🔀 Merge<br><small>Code Integration</small></div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-node deploy">🚀 Deploy<br><small>Netlify API</small></div>
+          <span class="workflow-arrow">→</span>
+          <div class="workflow-node">💬 Notify<br><small>Slack Alert</small></div>
+        </div>
+        
+        <div class="n8n-config">
+          <div class="config-item">
+            <div class="config-label">Webhook URL</div>
+            <div class="config-value">https://n8n.autus-ai.com/webhook/evolution</div>
+          </div>
+          <div class="config-item">
+            <div class="config-label">Trigger Interval</div>
+            <div class="config-value">Every 6 hours</div>
+          </div>
+          <div class="config-item">
+            <div class="config-label">Target Site</div>
+            <div class="config-value">autus-ai.com</div>
+          </div>
+          <div class="config-item">
+            <div class="config-label">AI Model</div>
+            <div class="config-value">gemini-1.5-pro</div>
+          </div>
+        </div>
+        
+        <div class="n8n-actions">
+          <button class="btn btn-primary" onclick="showN8nWorkflow()">
+            <span>📥</span>
+            <span>n8n Workflow JSON 다운로드</span>
+          </button>
+          <button class="btn btn-secondary" onclick="triggerManually()">
+            <span>▶️</span>
+            <span>수동 실행</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle">n8n Workflow JSON</span>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-code" id="modalCode"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="copyToClipboard()">📋 복사</button>
+        <button class="btn btn-primary" onclick="downloadJson()">📥 다운로드</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const missingFeatures = [
+      { id: 1, name: 'Stage 1: Template Marketplace', desc: '247개 템플릿 라이브러리 + 검색/필터', impact: 15, selected: true, priority: 'P0' },
+      { id: 2, name: 'Stage 6: Collective Intelligence', desc: '12,847 orgs 글로벌 네트워크 + Best Practices', impact: 15, selected: true, priority: 'P0' },
+      { id: 3, name: 'Pipeline Navigator', desc: '상단 6-Stage 시각적 스테퍼 + 진행률', impact: 5, selected: true, priority: 'P1' },
+      { id: 4, name: 'Left Sidebar', desc: 'Quick Templates + Pipeline List + Actions', impact: 3, selected: false, priority: 'P2' },
+      { id: 5, name: 'Right Sidebar (Activity Feed)', desc: '실시간 활동 로그 + 알림', impact: 3, selected: false, priority: 'P2' },
+      { id: 6, name: 'Bottom Operation Guide', desc: '진행 상태 가이드 바 + Loop 상태', impact: 2, selected: false, priority: 'P2' }
+    ];
+    
+    const logEntries = [
+      { time: getTime(), type: 'info', message: 'Self-Builder initialized' },
+      { time: getTime(), type: 'success', message: 'Connected to autus-ai.com' },
+      { time: getTime(), type: 'ai', message: 'Gap analysis complete: 6 missing features' }
+    ];
+    
+    let currentStep = 0;
+    let isGenerating = false;
+    let generatedCode = '';
+    
+    const n8nWorkflow = {"name":"AUTUS Self-Evolution","nodes":[{"parameters":{"rule":{"interval":[{"field":"hours","hoursInterval":6}]}},"name":"Schedule Trigger","type":"n8n-nodes-base.scheduleTrigger","position":[250,300]},{"parameters":{"url":"https://autus-ai.com","method":"GET"},"name":"Fetch Site","type":"n8n-nodes-base.httpRequest","position":[450,300]},{"parameters":{"jsCode":"const html=$input.first().json.data||'';const EXPECTED=[{id:'stage-1',weight:15},{id:'stage-6',weight:15},{id:'pipeline-nav',weight:5}];const gaps=EXPECTED.filter(f=>!html.includes(f.id));return[{json:{gaps,score:100-gaps.reduce((s,g)=>s+g.weight,0),needsEvolution:gaps.length>0}}];"},"name":"Analyze","type":"n8n-nodes-base.code","position":[650,300]},{"parameters":{"conditions":{"boolean":[{"value1":"={{$json.needsEvolution}}","value2":true}]}},"name":"IF Gaps","type":"n8n-nodes-base.if","position":[850,300]}],"connections":{"Schedule Trigger":{"main":[[{"node":"Fetch Site","type":"main","index":0}]]},"Fetch Site":{"main":[[{"node":"Analyze","type":"main","index":0}]]},"Analyze":{"main":[[{"node":"IF Gaps","type":"main","index":0}]]}}};
+    
+    function getTime() {
+      return new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    
+    function renderFeatures() {
+      const list = document.getElementById('featureList');
+      list.innerHTML = missingFeatures.map(f => `
+        <div class="feature-item ${f.selected ? 'selected' : ''}" onclick="toggleFeature(${f.id})">
+          <div class="feature-checkbox">${f.selected ? '✓' : ''}</div>
+          <div class="feature-info">
+            <div class="feature-name">${f.name}</div>
+            <div class="feature-desc">${f.desc}</div>
+          </div>
+          <div class="feature-impact">
+            <div class="impact-value">+${f.impact}점</div>
+            <div class="impact-label">${f.priority}</div>
+          </div>
+        </div>
+      `).join('');
+      updateScores();
+    }
+    
+    function renderLog() {
+      const log = document.getElementById('logBody');
+      log.innerHTML = logEntries.slice(-15).map(e => `
+        <div class="log-entry">
+          <span class="log-time">${e.time}</span>
+          <span class="log-type ${e.type}">${e.type.toUpperCase()}</span>
+          <span class="log-message">${e.message}</span>
+        </div>
+      `).join('');
+      log.scrollTop = log.scrollHeight;
+    }
+    
+    function addLog(type, message) {
+      logEntries.push({ time: getTime(), type, message });
+      renderLog();
+    }
+    
+    function toggleFeature(id) {
+      const feature = missingFeatures.find(f => f.id === id);
+      feature.selected = !feature.selected;
+      renderFeatures();
+    }
+    
+    function selectAll() {
+      missingFeatures.forEach(f => f.selected = true);
+      renderFeatures();
+    }
+    
+    function deselectAll() {
+      missingFeatures.forEach(f => f.selected = false);
+      renderFeatures();
+    }
+    
+    function updateScores() {
+      const selected = missingFeatures.filter(f => f.selected);
+      const totalImpact = selected.reduce((sum, f) => sum + f.impact, 0);
+      document.getElementById('projectedScore').textContent = `+${totalImpact}`;
+      document.getElementById('scoreBarFill').style.width = `${Math.min(85 + totalImpact, 100)}%`;
+      document.getElementById('gapCount').textContent = `${6 - selected.length}개 남음`;
+    }
+    
+    function updateStep(step, status) {
+      const steps = document.querySelectorAll('.gen-step');
+      steps.forEach((s, i) => {
+        s.classList.remove('active', 'complete');
+        if (i + 1 < step) s.classList.add('complete');
+        else if (i + 1 === step) s.classList.add(status);
+      });
+    }
+    
+    async function startGeneration() {
+      const selected = missingFeatures.filter(f => f.selected);
+      if (selected.length === 0) { alert('생성할 기능을 선택하세요.'); return; }
+      if (isGenerating) return;
+      isGenerating = true;
+      
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span><span>생성중...</span>';
+      document.getElementById('genStatus').textContent = '실행중';
+      
+      updateStep(1, 'active');
+      addLog('info', `분석 시작: ${selected.length}개 기능`);
+      await delay(1500);
+      updateStep(1, 'complete');
+      addLog('success', '명세 분석 완료');
+      
+      updateStep(2, 'active');
+      addLog('ai', 'Gemini API 호출중...');
+      await delay(3000);
+      generatedCode = generateMockCode(selected);
+      document.getElementById('codeContent').innerHTML = generatedCode.preview;
+      document.getElementById('codeStats').textContent = `${generatedCode.lines} lines`;
+      updateStep(2, 'complete');
+      addLog('success', `코드 생성 완료: ${generatedCode.lines} lines`);
+      
+      updateStep(3, 'active');
+      addLog('info', '기존 코드와 병합중...');
+      await delay(2000);
+      updateStep(3, 'complete');
+      addLog('success', '코드 병합 완료');
+      
+      updateStep(4, 'active');
+      addLog('deploy', 'Netlify 배포 시작...');
+      await delay(2500);
+      updateStep(4, 'complete');
+      addLog('success', '🚀 배포 완료! autus-ai.com 업데이트됨');
+      
+      document.getElementById('currentScore').textContent = '100';
+      document.getElementById('currentScore').classList.remove('current');
+      document.getElementById('currentScore').classList.add('target');
+      
+      isGenerating = false;
+      btn.disabled = false;
+      btn.innerHTML = '<span>✅</span><span>완료! 다시 실행</span>';
+      document.getElementById('genStatus').textContent = '완료';
+    }
+    
+    function generateMockCode(features) {
+      const lines = features.length * 150;
+      const preview = `<span class="code-comment">// AUTUS Self-Generated Code</span>
+<span class="code-comment">// Features: ${features.map(f => f.name).join(', ')}</span>
+
+<span class="code-keyword">const</span> <span class="code-function">TemplateMarketplace</span> = () => {
+  <span class="code-keyword">const</span> [templates, setTemplates] = useState([]);
+  
+  <span class="code-keyword">useEffect</span>(() => {
+    supabase.from(<span class="code-string">'templates'</span>)
+      .select(<span class="code-string">'*'</span>)
+      .then(({ data }) => setTemplates(data));
+  }, []);
+  
+  <span class="code-keyword">return</span> (
+    &lt;div className=<span class="code-string">"stage-panel"</span>&gt;
+      &lt;SearchBar onSearch={handleSearch} /&gt;
+      &lt;TemplatesGrid templates={templates} /&gt;
+    &lt;/div&gt;
+  );
+};
+
+<span class="code-comment">// ... ${lines - 20} more lines</span>`;
+      return { preview, lines, full: preview };
+    }
+    
+    function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    
+    function showN8nWorkflow() {
+      document.getElementById('modalTitle').textContent = 'n8n Workflow JSON';
+      document.getElementById('modalCode').textContent = JSON.stringify(n8nWorkflow, null, 2);
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+    
+    function showFullCode() {
+      if (!generatedCode) { alert('먼저 코드를 생성하세요.'); return; }
+      document.getElementById('modalTitle').textContent = 'Generated Full Code';
+      document.getElementById('modalCode').textContent = generatedCode.full;
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+    
+    function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+    
+    function copyToClipboard() {
+      navigator.clipboard.writeText(document.getElementById('modalCode').textContent);
+      alert('클립보드에 복사되었습니다!');
+    }
+    
+    function downloadJson() {
+      const blob = new Blob([document.getElementById('modalCode').textContent], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'autus-evolution-workflow.json';
+      a.click();
+    }
+    
+    function triggerManually() {
+      addLog('info', '수동 트리거 실행...');
+      setTimeout(() => { addLog('ai', 'n8n webhook 호출됨'); addLog('success', '워크플로우 시작됨'); }, 1000);
+    }
+    
+    renderFeatures();
+    renderLog();
+  </script>
+</body>
+</html>

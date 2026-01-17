@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS Universe v3.0 - Production Ready</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#060810;--panel:#0c1018;--card:#141a26;--card-hover:#1a2234;
+      --border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);
+      --text:#f0f4f8;--text-secondary:#94a3b8;--dim:#64748b;
+      --cyan:#06b6d4;--green:#10b981;--yellow:#f59e0b;--orange:#f97316;--red:#ef4444;--purple:#8b5cf6;--blue:#3b82f6;
+      --glow-cyan:0 0 20px rgba(6,182,212,0.4);--glow-green:0 0 20px rgba(16,185,129,0.4);--glow-red:0 0 20px rgba(239,68,68,0.4);--glow-blue:0 0 20px rgba(59,130,246,0.4)
+    }
+    
+    body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+    
+    /* Layout */
+    .app{display:grid;grid-template-rows:56px 1fr 52px;grid-template-columns:200px 1fr 300px;height:100vh}
+    
+    /* Header */
+    .header{grid-column:1/-1;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:16px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--cyan),var(--blue));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .logo-text{font-size:18px;font-weight:700}
+    .logo-version{font-size:10px;color:var(--dim);background:var(--card);padding:2px 8px;border-radius:10px}
+    
+    /* Search Bar - NEW */
+    .search-container{flex:1;max-width:400px;position:relative}
+    .search-input{width:100%;padding:10px 16px 10px 40px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;transition:all 0.2s}
+    .search-input:focus{outline:none;border-color:var(--cyan);box-shadow:var(--glow-cyan)}
+    .search-input::placeholder{color:var(--dim)}
+    .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:14px}
+    
+    .header-center{display:flex;align-items:center;gap:12px}
+    .badge{padding:6px 12px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:11px;display:flex;align-items:center;gap:6px;transition:all 0.2s}
+    .badge:hover{border-color:var(--border-hover)}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(0.9)}}
+    .view-toggle{display:flex;background:var(--card);border-radius:8px;padding:3px}
+    .view-btn{padding:8px 16px;background:none;border:none;color:var(--dim);font-size:12px;font-weight:500;cursor:pointer;border-radius:6px;transition:all 0.2s}
+    .view-btn.active{background:var(--blue);color:white}
+    .view-btn:hover:not(.active){color:var(--text)}
+    
+    .header-right{display:flex;align-items:center;gap:16px}
+    .metrics{display:flex;gap:12px}
+    .metric{text-align:center;min-width:50px;padding:4px 8px;background:var(--card);border-radius:8px;cursor:pointer;transition:all 0.2s}
+    .metric:hover{background:var(--card-hover)}
+    .metric-value{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600}
+    .metric-label{font-size:9px;color:var(--dim);text-transform:uppercase}
+    .metric-trend{font-size:9px;margin-left:2px}
+    .metric-trend.up{color:var(--green)}
+    .metric-trend.down{color:var(--red)}
+    
+    /* Undo Button - NEW */
+    .undo-btn{padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--dim);font-size:12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px}
+    .undo-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+    .undo-btn:disabled{opacity:0.3;cursor:not-allowed}
+    
+    .users{display:flex}
+    .user-avatar{width:32px;height:32px;border-radius:50%;border:2px solid var(--bg);margin-left:-8px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.2s;cursor:pointer;position:relative}
+    .user-avatar:hover{transform:scale(1.15);z-index:10}
+    .user-avatar:first-child{margin-left:0}
+    .user-avatar.active::after{content:'';position:absolute;bottom:-2px;right:-2px;width:10px;height:10px;background:var(--green);border:2px solid var(--bg);border-radius:50%}
+    
+    /* Left Panel */
+    .nodes-panel{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+    .nodes-header{padding:12px;border-bottom:1px solid var(--border)}
+    .nodes-title{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+    
+    /* Filter Tabs - NEW */
+    .filter-tabs{display:flex;gap:4px}
+    .filter-tab{flex:1;padding:6px;background:var(--card);border:none;border-radius:6px;color:var(--dim);font-size:10px;cursor:pointer;transition:all 0.2s}
+    .filter-tab.active{background:var(--blue);color:white}
+    .filter-tab:hover:not(.active){color:var(--text)}
+    
+    .nodes-scroll{flex:1;overflow-y:auto;padding:10px;scrollbar-width:thin;scrollbar-color:var(--card) transparent}
+    .nodes-scroll::-webkit-scrollbar{width:4px}
+    .nodes-scroll::-webkit-scrollbar-thumb{background:var(--card);border-radius:2px}
+    .nodes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+    .node-item{aspect-ratio:1;background:var(--card);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;transition:all 0.15s;font-size:20px;position:relative}
+    .node-item:hover{border-color:var(--cyan);background:var(--card-hover);transform:translateY(-2px);box-shadow:var(--glow-cyan)}
+    .node-item:active{cursor:grabbing;transform:scale(0.95)}
+    .node-item span{font-size:8px;color:var(--dim);margin-top:3px}
+    .node-item.used::after{content:'✓';position:absolute;top:4px;right:4px;font-size:8px;color:var(--green)}
+    
+    /* Canvas */
+    .canvas-area{position:relative;background:radial-gradient(ellipse at 50% 30%,#0f1520 0%,var(--bg) 70%);overflow:hidden}
+    #tasksContainer{position:absolute;inset:0}
+    
+    /* Magnetic Preview Line - NEW */
+    .magnetic-preview{position:absolute;pointer-events:none;z-index:50}
+    .magnetic-line{stroke:var(--blue);stroke-width:2;stroke-dasharray:8 4;opacity:0.6;animation:dash 0.5s linear infinite}
+    @keyframes dash{to{stroke-dashoffset:-12}}
+    
+    /* Drop Zones - Improved */
+    .drop-zones{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:80px;z-index:50}
+    .drop-zone{width:100px;height:100px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all 0.3s;cursor:pointer;position:relative}
+    .drop-zone.merge{background:radial-gradient(circle,rgba(59,130,246,0.15),transparent 70%);border:2px dashed rgba(59,130,246,0.4)}
+    .drop-zone.eliminate{background:radial-gradient(circle,rgba(239,68,68,0.15),transparent 70%);border:2px dashed rgba(239,68,68,0.4)}
+    .drop-zone:hover,.drop-zone.active{transform:scale(1.2)}
+    .drop-zone.merge:hover,.drop-zone.merge.active{border-color:var(--blue);box-shadow:var(--glow-blue)}
+    .drop-zone.eliminate:hover,.drop-zone.eliminate.active{border-color:var(--red);box-shadow:var(--glow-red)}
+    .drop-zone .icon{font-size:28px;margin-bottom:4px}
+    .drop-zone .label{font-size:11px;font-weight:600}
+    .drop-zone .hint{font-size:9px;color:var(--dim);margin-top:2px}
+    
+    /* Eliminate Countdown - NEW */
+    .eliminate-countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(239,68,68,0.9);border-radius:50%;font-size:24px;font-weight:700;color:white;opacity:0;pointer-events:none;transition:opacity 0.2s}
+    .eliminate-countdown.active{opacity:1;pointer-events:auto}
+    
+    /* Tasks - Simplified */
+    .task{position:absolute;width:100px;padding:10px;background:var(--card);border:2px solid var(--border);border-radius:12px;cursor:grab;transition:all 0.2s;z-index:10;backdrop-filter:blur(8px)}
+    .task:hover{border-color:rgba(255,255,255,0.2)}
+    .task.dragging{cursor:grabbing;box-shadow:0 20px 50px rgba(0,0,0,0.5);transform:scale(1.08);z-index:100}
+    .task.magnetic{border-color:var(--blue);box-shadow:var(--glow-blue);animation:magneticPulse 0.8s ease-in-out infinite}
+    @keyframes magneticPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+    .task.merge-target{border-color:var(--cyan);box-shadow:0 0 30px rgba(6,182,212,0.5)}
+    
+    /* Task States by Color */
+    .task.state-low{border-color:var(--red);border-left-width:4px}
+    .task.state-mid{border-color:var(--yellow);border-left-width:4px}
+    .task.state-high{border-color:var(--green);border-left-width:4px}
+    .task.state-ready{border-color:var(--green);box-shadow:var(--glow-green);animation:readyPulse 2s infinite}
+    @keyframes readyPulse{0%,100%{box-shadow:var(--glow-green)}50%{box-shadow:0 0 30px rgba(16,185,129,0.6)}}
+    
+    .task-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+    .task-icon{font-size:18px}
+    .task-name{font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+    .task-progress{height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden}
+    .task-progress-bar{height:100%;border-radius:2px;transition:width 0.4s ease}
+    
+    /* Task Tooltip - NEW */
+    .task-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px;min-width:180px;opacity:0;visibility:hidden;transition:all 0.2s;z-index:200;pointer-events:none}
+    .task:hover .task-tooltip{opacity:1;visibility:visible}
+    .tooltip-row{display:flex;justify-content:space-between;font-size:10px;padding:3px 0;border-bottom:1px solid var(--border)}
+    .tooltip-row:last-child{border:none}
+    .tooltip-label{color:var(--dim)}
+    .tooltip-value{font-weight:600;font-family:'JetBrains Mono',monospace}
+    
+    /* Right Panel */
+    .right-panel{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column}
+    .panel-tabs{display:flex;border-bottom:1px solid var(--border)}
+    .panel-tab{flex:1;padding:12px;background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;transition:all 0.2s;border-bottom:2px solid transparent}
+    .panel-tab.active{color:var(--text);background:var(--card);border-bottom-color:var(--cyan)}
+    .panel-tab:hover:not(.active){color:var(--text)}
+    .panel-content{flex:1;overflow-y:auto;padding:12px;scrollbar-width:thin}
+    .panel-section{display:none}
+    .panel-section.active{display:block}
+    
+    /* AI Cards - Improved */
+    .ai-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;transition:all 0.2s}
+    .ai-card:hover{border-color:var(--border-hover);transform:translateY(-2px)}
+    .ai-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .ai-card-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px}
+    .ai-card-confidence{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 8px;border-radius:10px}
+    .ai-card-desc{font-size:11px;color:var(--text-secondary);margin-bottom:8px;line-height:1.5}
+    
+    /* AI Reason - NEW */
+    .ai-reason{background:var(--bg);border-radius:6px;padding:8px;margin-bottom:10px;font-size:10px;color:var(--dim);border-left:3px solid var(--purple)}
+    .ai-reason strong{color:var(--text);display:block;margin-bottom:4px}
+    
+    /* AI Preview - NEW */
+    .ai-preview{background:var(--bg);border-radius:6px;padding:8px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+    .ai-preview-icon{font-size:20px}
+    .ai-preview-info{flex:1}
+    .ai-preview-label{font-size:9px;color:var(--dim)}
+    .ai-preview-value{font-size:12px;font-weight:600;color:var(--green)}
+    
+    .ai-btn{width:100%;padding:10px;border:none;border-radius:8px;color:white;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:8px}
+    .ai-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+    .ai-btn:active{transform:translateY(0)}
+    .ai-btn.merge{background:linear-gradient(135deg,var(--blue),#2563eb)}
+    .ai-btn.eliminate{background:linear-gradient(135deg,var(--red),#dc2626)}
+    .ai-btn.optimize{background:linear-gradient(135deg,var(--green),#059669)}
+    
+    /* AI Feedback - NEW */
+    .ai-feedback{display:flex;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+    .feedback-btn{flex:1;padding:6px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:10px;color:var(--dim);cursor:pointer;transition:all 0.2s}
+    .feedback-btn:hover{border-color:var(--green);color:var(--green)}
+    .feedback-btn.negative:hover{border-color:var(--red);color:var(--red)}
+    
+    /* Footer */
+    .footer{grid-column:1/-1;background:var(--panel);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+    .footer-stats{display:flex;gap:24px}
+    .footer-stat{display:flex;align-items:center;gap:8px;font-size:12px}
+    .footer-stat .icon{font-size:16px}
+    .footer-stat .value{font-weight:600;font-family:'JetBrains Mono',monospace}
+    .footer-stat .label{color:var(--dim);font-size:10px}
+    .execute-btn{padding:10px 24px;background:linear-gradient(135deg,var(--green),#059669);border:none;border-radius:8px;color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.5px}
+    .execute-btn:hover{transform:translateY(-2px);box-shadow:var(--glow-green)}
+    .execute-btn:active{transform:translateY(0)}
+    
+    /* Toast - Improved */
+    .toast{position:fixed;top:76px;right:20px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-size:12px;display:flex;align-items:center;gap:10px;z-index:1000;animation:toastIn 0.3s ease;backdrop-filter:blur(10px);max-width:320px;box-shadow:0 10px 40px rgba(0,0,0,0.3)}
+    @keyframes toastIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+    .toast.success{border-color:var(--green)}
+    .toast.info{border-color:var(--blue)}
+    .toast.warning{border-color:var(--yellow)}
+    .toast.error{border-color:var(--red)}
+    .toast-icon{font-size:16px}
+    .toast-content{flex:1}
+    .toast-title{font-weight:600;margin-bottom:2px}
+    .toast-desc{font-size:10px;color:var(--dim)}
+    .toast-close{padding:4px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px}
+    .toast-close:hover{color:var(--text)}
+    
+    /* Undo Toast - NEW */
+    .toast-undo{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+    .toast-undo-btn{padding:6px 12px;background:var(--yellow);border:none;border-radius:4px;color:black;font-size:10px;font-weight:600;cursor:pointer}
+    .toast-undo-timer{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+    
+    /* 3D Container */
+    .three-container{position:absolute;inset:0;display:none}
+    .three-container.active{display:block}
+    
+    /* Connections */
+    .connections{position:absolute;inset:0;pointer-events:none;z-index:5}
+    
+    /* Responsive */
+    @media(max-width:1100px){.app{grid-template-columns:160px 1fr 260px}.search-container{max-width:250px}}
+    @media(max-width:800px){.app{grid-template-columns:1fr}.nodes-panel,.right-panel{display:none}.search-container{display:none}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">🏛️</div>
+        <span class="logo-text">AUTUS</span>
+        <span class="logo-version">v3.0</span>
+      </div>
+      
+      <!-- Search Bar - NEW -->
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search tasks, nodes, or type to filter...">
+      </div>
+      
+      <div class="header-center">
+        <div class="badge"><span id="taskCountBadge">3</span> Tasks</div>
+        <div class="badge"><div class="dot"></div><span>Synced</span></div>
+        <div class="view-toggle">
+          <button class="view-btn active" onclick="setView('2d')">2D Flow</button>
+          <button class="view-btn" onclick="setView('3d')">3D</button>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <div class="metrics">
+          <div class="metric" title="K-Index (고도)">
+            <div class="metric-value" style="color:var(--cyan)"><span id="metricK">4.2</span><span class="metric-trend up" id="kTrend">↑</span></div>
+            <div class="metric-label">K</div>
+          </div>
+          <div class="metric" title="I-Index (영향력)">
+            <div class="metric-value" style="color:var(--green)"><span id="metricI">0.85</span><span class="metric-trend up" id="iTrend">↑</span></div>
+            <div class="metric-label">I</div>
+          </div>
+          <div class="metric" title="r-Index (신뢰도)">
+            <div class="metric-value" style="color:var(--yellow)"><span id="metricR">0.92</span></div>
+            <div class="metric-label">r</div>
+          </div>
+        </div>
+        
+        <button class="undo-btn" id="undoBtn" disabled onclick="undo()">
+          <span>↶</span> Undo
+        </button>
+        
+        <div class="users" id="usersContainer"></div>
+      </div>
+    </header>
+    
+    <aside class="nodes-panel">
+      <div class="nodes-header">
+        <div class="nodes-title">Core Nodes</div>
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="all">All</button>
+          <button class="filter-tab" data-filter="work">Work</button>
+          <button class="filter-tab" data-filter="tech">Tech</button>
+        </div>
+      </div>
+      <div class="nodes-scroll">
+        <div class="nodes-grid" id="nodesGrid"></div>
+      </div>
+    </aside>
+    
+    <main class="canvas-area" id="canvasArea">
+      <svg class="connections" id="connections"></svg>
+      <svg class="magnetic-preview" id="magneticPreview"></svg>
+      <div id="tasksContainer"></div>
+      
+      <div class="drop-zones" id="dropZones">
+        <div class="drop-zone merge" id="mergeZone" data-zone="merge">
+          <div class="icon">🧲</div>
+          <div class="label" style="color:var(--blue)">MERGE</div>
+          <div class="hint">Drop 2+ tasks</div>
+        </div>
+        <div class="drop-zone eliminate" id="eliminateZone" data-zone="eliminate">
+          <div class="icon">🕳️</div>
+          <div class="label" style="color:var(--red)">ELIMINATE</div>
+          <div class="hint">3s to undo</div>
+          <div class="eliminate-countdown" id="elimCountdown">3</div>
+        </div>
+      </div>
+      
+      <div class="three-container" id="threeContainer"></div>
+    </main>
+    
+    <aside class="right-panel">
+      <div class="panel-tabs">
+        <button class="panel-tab active" data-panel="ai">🤖 AI</button>
+        <button class="panel-tab" data-panel="api">🔗 API</button>
+        <button class="panel-tab" data-panel="db">🗄️ DB</button>
+      </div>
+      <div class="panel-content">
+        <div class="panel-section active" id="panelAI">
+          <div class="ai-card" id="aiMergeCard">
+            <div class="ai-card-header">
+              <div class="ai-card-title">🧲 Merge Suggestion</div>
+              <div class="ai-card-confidence" style="background:rgba(59,130,246,0.2);color:var(--blue)">92%</div>
+            </div>
+            <div class="ai-reason">
+              <strong>Why this suggestion?</strong>
+              Task #1 and #2 share 87% similar keywords and 70% overlapping subtasks.
+            </div>
+            <div class="ai-preview">
+              <div class="ai-preview-icon">📈</div>
+              <div class="ai-preview-info">
+                <div class="ai-preview-label">Expected Result</div>
+                <div class="ai-preview-value">+15% Automation</div>
+              </div>
+            </div>
+            <button class="ai-btn merge" onclick="aiAction('merge')">
+              <span>🧲</span> Merge Now
+            </button>
+            <div class="ai-feedback">
+              <button class="feedback-btn" onclick="aiFeedback('merge','good')">👍 Helpful</button>
+              <button class="feedback-btn negative" onclick="aiFeedback('merge','bad')">👎 Not useful</button>
+            </div>
+          </div>
+          
+          <div class="ai-card" id="aiElimCard">
+            <div class="ai-card-header">
+              <div class="ai-card-title">🕳️ Ready to Eliminate</div>
+              <div class="ai-card-confidence" style="background:rgba(239,68,68,0.2);color:var(--red)">98%</div>
+            </div>
+            <div class="ai-reason">
+              <strong>Why this suggestion?</strong>
+              Task #3 reached 100% automation with 0 errors in last 50 executions.
+            </div>
+            <div class="ai-preview">
+              <div class="ai-preview-icon">📤</div>
+              <div class="ai-preview-info">
+                <div class="ai-preview-label">Action</div>
+                <div class="ai-preview-value">→ ERP Submit</div>
+              </div>
+            </div>
+            <button class="ai-btn eliminate" onclick="aiAction('eliminate')">
+              <span>🕳️</span> Eliminate
+            </button>
+            <div class="ai-feedback">
+              <button class="feedback-btn" onclick="aiFeedback('elim','good')">👍 Helpful</button>
+              <button class="feedback-btn negative" onclick="aiFeedback('elim','bad')">👎 Not useful</button>
+            </div>
+          </div>
+          
+          <div class="ai-card">
+            <div class="ai-card-header">
+              <div class="ai-card-title">⚡ Optimize All</div>
+              <div class="ai-card-confidence" style="background:rgba(16,185,129,0.2);color:var(--green)">+15%</div>
+            </div>
+            <div class="ai-card-desc">Reorder and optimize all tasks for better efficiency.</div>
+            <button class="ai-btn optimize" onclick="aiAction('optimize')">
+              <span>⚡</span> Optimize
+            </button>
+          </div>
+        </div>
+        
+        <div class="panel-section" id="panelAPI">
+          <div style="font-size:11px;color:var(--dim);margin-bottom:12px">External Integrations</div>
+          <div id="apiList"></div>
+        </div>
+        
+        <div class="panel-section" id="panelDB">
+          <div style="background:var(--bg);border-radius:8px;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--purple);margin-bottom:10px;line-height:1.6">
+            MATCH $t isa task,<br>&nbsp;&nbsp;has automation >= 0.9;<br>FETCH $t;
+          </div>
+          <button class="ai-btn" style="background:linear-gradient(135deg,var(--purple),#7c3aed);margin-bottom:12px" onclick="runQuery()">Run Query</button>
+          <div id="dbLogs" style="max-height:250px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </aside>
+    
+    <footer class="footer">
+      <div class="footer-stats">
+        <div class="footer-stat"><span class="icon">📋</span><span class="value" id="taskCount">0</span><span class="label">Tasks</span></div>
+        <div class="footer-stat"><span class="icon">🧲</span><span class="value" id="mergeCount">+0</span><span class="label">Merged</span></div>
+        <div class="footer-stat"><span class="icon">🕳️</span><span class="value" id="elimCount">+0</span><span class="label">Eliminated</span></div>
+      </div>
+      <button class="execute-btn" onclick="executeAll()">Execute All 90%+</button>
+    </footer>
+  </div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTUS Universe v3.0 - Production Ready
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const NODES=[
+  {id:1,icon:'🎯',name:'Goal',cat:'work'},{id:2,icon:'📦',name:'Inventory',cat:'work'},{id:3,icon:'📈',name:'Analytics',cat:'work'},
+  {id:4,icon:'🚚',name:'Logistics',cat:'work'},{id:5,icon:'🤝',name:'Partner',cat:'work'},{id:6,icon:'💬',name:'Comms',cat:'work'},
+  {id:7,icon:'💻',name:'IT',cat:'tech'},{id:8,icon:'💰',name:'Finance',cat:'work'},{id:9,icon:'👥',name:'HR',cat:'work'},
+  {id:10,icon:'🛡️',name:'Security',cat:'tech'},{id:11,icon:'📚',name:'Training',cat:'work'},{id:12,icon:'🔗',name:'Integration',cat:'tech'},
+  {id:13,icon:'⚖️',name:'Compliance',cat:'work'},{id:14,icon:'🔬',name:'R&D',cat:'tech'},{id:15,icon:'🏭',name:'Production',cat:'work'},
+  {id:16,icon:'📊',name:'Reports',cat:'work'},{id:17,icon:'🎧',name:'Support',cat:'work'},{id:18,icon:'📝',name:'Docs',cat:'work'},
+  {id:19,icon:'🔧',name:'Maintenance',cat:'tech'},{id:20,icon:'📱',name:'Mobile',cat:'tech'},{id:21,icon:'🌐',name:'Web',cat:'tech'},
+  {id:22,icon:'☁️',name:'Cloud',cat:'tech'},{id:23,icon:'🔒',name:'Auth',cat:'tech'},{id:24,icon:'📧',name:'Email',cat:'work'},
+  {id:25,icon:'📅',name:'Calendar',cat:'work'},{id:26,icon:'💳',name:'Payments',cat:'work'},{id:27,icon:'🛒',name:'Orders',cat:'work'},
+  {id:28,icon:'📦',name:'Shipping',cat:'work'},{id:29,icon:'🏷️',name:'Pricing',cat:'work'},{id:30,icon:'👔',name:'Sales',cat:'work'},
+  {id:31,icon:'📣',name:'Marketing',cat:'work'},{id:32,icon:'🎨',name:'Design',cat:'tech'},{id:33,icon:'⚙️',name:'Settings',cat:'tech'},
+  {id:34,icon:'📋',name:'Tasks',cat:'work'},{id:35,icon:'🔔',name:'Alerts',cat:'tech'},{id:36,icon:'📁',name:'Files',cat:'work'}
+];
+
+const USERS=[
+  {name:'You',color:'#ef4444',emoji:'👤',active:true},
+  {name:'AI Agent',color:'#22c55e',emoji:'🤖',active:true},
+  {name:'Sarah',color:'#3b82f6',emoji:'👩',active:false},
+  {name:'Mike',color:'#a855f7',emoji:'👨',active:true}
+];
+
+const APIS=[
+  {name:'Supabase',status:'online',latency:'23ms'},
+  {name:'n8n Workflow',status:'online',latency:'45ms'},
+  {name:'ERP System',status:'online',latency:'120ms'},
+  {name:'Slack',status:'online',latency:'67ms'},
+  {name:'Legacy CRM',status:'offline',latency:'-'}
+];
+
+const state={
+  tasks:[],taskId:0,mergeCount:0,elimCount:0,
+  k:4.2,i:0.85,r:0.92,
+  view:'2d',logs:[],
+  history:[],historyIndex:-1,
+  filter:'all',searchQuery:'',
+  pendingEliminate:null,
+  usedNodes:new Set()
+};
+
+const $=id=>document.getElementById(id);
+const $$=sel=>document.querySelectorAll(sel);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Initialize
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function init(){
+  renderNodes();
+  renderUsers();
+  renderAPIs();
+  setupEvents();
+  updateStats();
+  
+  setTimeout(()=>{
+    createTask(NODES[0],260,100);
+    createTask(NODES[7],400,160);
+    createTask(NODES[2],320,260);
+  },300);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Render Functions
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function renderNodes(){
+  const filtered=state.filter==='all'?NODES:NODES.filter(n=>n.cat===state.filter);
+  const searched=state.searchQuery?filtered.filter(n=>n.name.toLowerCase().includes(state.searchQuery.toLowerCase())):filtered;
+  
+  $('nodesGrid').innerHTML=searched.map(n=>`
+    <div class="node-item${state.usedNodes.has(n.id)?' used':''}" draggable="true" data-id="${n.id}" title="${n.name}">
+      ${n.icon}
+      <span>${n.name}</span>
+    </div>
+  `).join('');
+}
+
+function renderUsers(){
+  $('usersContainer').innerHTML=USERS.map(u=>`
+    <div class="user-avatar${u.active?' active':''}" style="background:${u.color}" title="${u.name} ${u.active?'(online)':'(away)'}">${u.emoji}</div>
+  `).join('');
+}
+
+function renderAPIs(){
+  $('apiList').innerHTML=APIS.map(a=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${a.status==='online'?'var(--green)':'var(--red)'};${a.status==='online'?'box-shadow:0 0 8px var(--green)':''}"></div>
+        <span style="font-size:12px;font-weight:500">${a.name}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:10px;color:var(--dim)">${a.latency}</span>
+        <button onclick="testAPI('${a.name}')" style="padding:4px 10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--dim);font-size:9px;cursor:pointer">Test</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTask(t){
+  const stateClass=t.automation>=90?'state-ready':t.automation>=60?'state-high':t.automation>=30?'state-mid':'state-low';
+  const color=t.automation>=90?'var(--green)':t.automation>=60?'var(--yellow)':'var(--blue)';
+  
+  const el=document.createElement('div');
+  el.className=`task ${stateClass}`;
+  el.id=`task-${t.id}`;
+  el.draggable=true;
+  el.dataset.id=t.id;
+  el.style.cssText=`left:${t.x}px;top:${t.y}px`;
+  el.innerHTML=`
+    <div class="task-tooltip">
+      <div class="tooltip-row"><span class="tooltip-label">Progress</span><span class="tooltip-value">${t.automation}%</span></div>
+      <div class="tooltip-row"><span class="tooltip-label">K-Index</span><span class="tooltip-value">K${t.k}</span></div>
+      <div class="tooltip-row"><span class="tooltip-label">Executions</span><span class="tooltip-value">${t.executions}</span></div>
+      <div class="tooltip-row"><span class="tooltip-label">Last Update</span><span class="tooltip-value">${t.lastUpdate}</span></div>
+    </div>
+    <div class="task-header">
+      <div class="task-icon">${t.icon}</div>
+      <div class="task-name">${t.name}</div>
+    </div>
+    <div class="task-progress"><div class="task-progress-bar" style="width:${t.automation}%;background:${color}"></div></div>
+  `;
+  
+  $('tasksContainer').appendChild(el);
+  setupTaskDrag(el,t);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Task Management
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function createTask(node,x,y){
+  const t={
+    id:++state.taskId,
+    nodeId:node.id,
+    icon:node.icon,
+    name:node.name,
+    automation:20+Math.floor(Math.random()*50),
+    x,y,
+    k:(1+Math.random()*4).toFixed(1),
+    executions:Math.floor(Math.random()*100),
+    lastUpdate:'Just now'
+  };
+  
+  state.tasks.push(t);
+  state.usedNodes.add(node.id);
+  renderTask(t);
+  renderNodes();
+  updateStats();
+  saveHistory('create',{task:t});
+  addLog('INSERT',`task:${t.id} (${node.name})`);
+  toast('Task Created',`${node.icon} ${node.name} added to canvas`,'success');
+  notifyOther('created a task');
+}
+
+function removeTask(id,animate=true){
+  const el=$(`task-${id}`);
+  if(el){
+    if(animate){
+      el.style.transform='scale(0)';
+      el.style.opacity='0';
+      setTimeout(()=>el.remove(),200);
+    }else{
+      el.remove();
+    }
+  }
+  const task=state.tasks.find(t=>t.id===id);
+  if(task)state.usedNodes.delete(task.nodeId);
+  state.tasks=state.tasks.filter(t=>t.id!==id);
+  renderNodes();
+}
+
+function updateTaskUI(t){
+  const el=$(`task-${t.id}`);
+  if(!el)return;
+  
+  const stateClass=t.automation>=90?'state-ready':t.automation>=60?'state-high':t.automation>=30?'state-mid':'state-low';
+  const color=t.automation>=90?'var(--green)':t.automation>=60?'var(--yellow)':'var(--blue)';
+  
+  el.className=`task ${stateClass}`;
+  el.querySelector('.task-name').textContent=t.name;
+  el.querySelector('.task-progress-bar').style.cssText=`width:${t.automation}%;background:${color}`;
+  
+  // Update tooltip
+  const tooltip=el.querySelector('.task-tooltip');
+  tooltip.innerHTML=`
+    <div class="tooltip-row"><span class="tooltip-label">Progress</span><span class="tooltip-value">${t.automation}%</span></div>
+    <div class="tooltip-row"><span class="tooltip-label">K-Index</span><span class="tooltip-value">K${t.k}</span></div>
+    <div class="tooltip-row"><span class="tooltip-label">Executions</span><span class="tooltip-value">${t.executions}</span></div>
+    <div class="tooltip-row"><span class="tooltip-label">Last Update</span><span class="tooltip-value">${t.lastUpdate}</span></div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Events
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function setupEvents(){
+  // Node drag
+  $('nodesGrid').addEventListener('dragstart',e=>{
+    if(!e.target.classList.contains('node-item'))return;
+    e.dataTransfer.setData('nodeId',e.target.dataset.id);
+    e.dataTransfer.setData('type','node');
+  });
+  
+  // Canvas
+  const canvas=$('canvasArea');
+  canvas.addEventListener('dragover',e=>e.preventDefault());
+  canvas.addEventListener('drop',e=>{
+    e.preventDefault();
+    if(e.dataTransfer.getData('type')==='node'){
+      const node=NODES.find(n=>n.id==e.dataTransfer.getData('nodeId'));
+      const rect=canvas.getBoundingClientRect();
+      createTask(node,e.clientX-rect.left-50,e.clientY-rect.top-40);
+    }
+  });
+  
+  // Drop zones
+  ['mergeZone','eliminateZone'].forEach(id=>{
+    const zone=$(id);
+    zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('active');});
+    zone.addEventListener('dragleave',()=>zone.classList.remove('active'));
+    zone.addEventListener('drop',e=>{
+      e.preventDefault();
+      zone.classList.remove('active');
+      const taskId=parseInt(e.dataTransfer.getData('taskId'));
+      if(taskId){id==='mergeZone'?handleMerge(taskId):handleEliminateWithUndo(taskId);}
+    });
+  });
+  
+  // Panel tabs
+  $$('.panel-tab').forEach(tab=>{
+    tab.onclick=()=>{
+      $$('.panel-tab').forEach(t=>t.classList.remove('active'));
+      $$('.panel-section').forEach(s=>s.classList.remove('active'));
+      tab.classList.add('active');
+      $(`panel${tab.dataset.panel.toUpperCase()}`).classList.add('active');
+    };
+  });
+  
+  // Filter tabs
+  $$('.filter-tab').forEach(tab=>{
+    tab.onclick=()=>{
+      $$('.filter-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      state.filter=tab.dataset.filter;
+      renderNodes();
+    };
+  });
+  
+  // Search
+  $('searchInput').addEventListener('input',e=>{
+    state.searchQuery=e.target.value;
+    renderNodes();
+    // Also filter tasks on canvas
+    state.tasks.forEach(t=>{
+      const el=$(`task-${t.id}`);
+      if(el){
+        const match=!state.searchQuery||t.name.toLowerCase().includes(state.searchQuery.toLowerCase());
+        el.style.opacity=match?'1':'0.3';
+      }
+    });
+  });
+  
+  // Keyboard shortcuts
+  document.addEventListener('keydown',e=>{
+    if(e.key==='z'&&(e.ctrlKey||e.metaKey)){e.preventDefault();undo();}
+  });
+}
+
+function setupTaskDrag(el,task){
+  let ox,oy;
+  
+  el.addEventListener('dragstart',e=>{
+    e.dataTransfer.setData('taskId',task.id);
+    e.dataTransfer.setData('type','task');
+    el.classList.add('dragging');
+    const rect=el.getBoundingClientRect();
+    ox=e.clientX-rect.left;
+    oy=e.clientY-rect.top;
+  });
+  
+  el.addEventListener('drag',e=>{
+    if(e.clientX===0)return;
+    checkMagneticPreview(task,e.clientX-ox,e.clientY-oy);
+  });
+  
+  el.addEventListener('dragend',e=>{
+    el.classList.remove('dragging');
+    clearMagneticPreview();
+    
+    const rect=$('canvasArea').getBoundingClientRect();
+    task.x=Math.max(0,Math.min(e.clientX-rect.left-ox,rect.width-105));
+    task.y=Math.max(0,Math.min(e.clientY-rect.top-oy,rect.height-80));
+    el.style.left=task.x+'px';
+    el.style.top=task.y+'px';
+    
+    checkMagneticMerge(task);
+    drawConnections();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Magnetic Merge - Enhanced
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function checkMagneticPreview(moved,x,y){
+  const preview=$('magneticPreview');
+  preview.innerHTML='';
+  
+  state.tasks.forEach(other=>{
+    if(other.id===moved.id)return;
+    const dx=(x+50)-(other.x+50);
+    const dy=(y+40)-(other.y+40);
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    
+    if(dist<100){
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',x+50);
+      line.setAttribute('y1',y+40);
+      line.setAttribute('x2',other.x+50);
+      line.setAttribute('y2',other.y+40);
+      line.setAttribute('class','magnetic-line');
+      preview.appendChild(line);
+      
+      $(`task-${other.id}`)?.classList.add('merge-target');
+    }else{
+      $(`task-${other.id}`)?.classList.remove('merge-target');
+    }
+  });
+}
+
+function clearMagneticPreview(){
+  $('magneticPreview').innerHTML='';
+  state.tasks.forEach(t=>$(`task-${t.id}`)?.classList.remove('merge-target'));
+}
+
+function checkMagneticMerge(moved){
+  state.tasks.forEach(other=>{
+    if(other.id===moved.id)return;
+    const dx=moved.x-other.x;
+    const dy=moved.y-other.y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    
+    const el1=$(`task-${moved.id}`);
+    const el2=$(`task-${other.id}`);
+    
+    if(dist<80){
+      el1?.classList.add('magnetic');
+      el2?.classList.add('magnetic');
+      
+      if(dist<35){
+        performMerge(moved,other);
+      }
+    }else{
+      el1?.classList.remove('magnetic');
+      el2?.classList.remove('magnetic');
+    }
+  });
+}
+
+function performMerge(t1,t2){
+  const oldT1={...t1};
+  const oldT2={...t2};
+  
+  t1.automation=Math.min(100,Math.max(t1.automation,t2.automation)+15);
+  t1.k=(parseFloat(t1.k)+0.1).toFixed(1);
+  t1.name=`${t1.name}+`;
+  t1.executions+=t2.executions;
+  t1.lastUpdate='Just now';
+  
+  removeTask(t2.id);
+  updateTaskUI(t1);
+  $(`task-${t1.id}`)?.classList.remove('magnetic');
+  
+  state.mergeCount++;
+  state.k=Math.min(10,state.k+0.1);
+  updateStats();
+  
+  saveHistory('merge',{task1:oldT1,task2:oldT2,result:t1});
+  addLog('MERGE',`task:${t1.id}+${t2.id} → ${t1.automation}%`);
+  toast('Tasks Merged',`Combined automation: ${t1.automation}%`,'info');
+  notifyOther('merged tasks');
+  
+  // Trigger n8n webhook simulation
+  setTimeout(()=>addLog('API','n8n webhook triggered'),500);
+}
+
+function handleMerge(taskId){
+  const ready=state.tasks.filter(t=>t.automation>=50);
+  if(ready.length>=2){
+    performMerge(ready[0],ready[1]);
+  }else{
+    toast('Cannot Merge','Need 2+ tasks with 50%+ automation','warning');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Eliminate with Undo - NEW
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function handleEliminateWithUndo(taskId){
+  const task=state.tasks.find(t=>t.id===taskId);
+  if(!task)return;
+  
+  // Show countdown
+  const countdown=$('elimCountdown');
+  countdown.classList.add('active');
+  let count=3;
+  countdown.textContent=count;
+  
+  state.pendingEliminate={task,taskId,interval:null};
+  
+  state.pendingEliminate.interval=setInterval(()=>{
+    count--;
+    countdown.textContent=count;
+    if(count<=0){
+      clearInterval(state.pendingEliminate.interval);
+      countdown.classList.remove('active');
+      executeEliminate(taskId);
+      state.pendingEliminate=null;
+    }
+  },1000);
+  
+  // Show undo toast
+  toastWithUndo('Eliminating Task',`${task.icon} ${task.name} will be removed`,()=>{
+    if(state.pendingEliminate){
+      clearInterval(state.pendingEliminate.interval);
+      countdown.classList.remove('active');
+      state.pendingEliminate=null;
+      toast('Cancelled','Elimination cancelled','success');
+    }
+  });
+}
+
+function executeEliminate(taskId){
+  const task=state.tasks.find(t=>t.id===taskId);
+  if(!task)return;
+  
+  const oldTask={...task};
+  removeTask(taskId);
+  
+  state.elimCount++;
+  state.i=Math.min(1,state.i+0.02);
+  updateStats();
+  
+  saveHistory('eliminate',{task:oldTask});
+  addLog('DELETE',`task:${taskId} → ERP submitted`);
+  toast('Task Eliminated',`${task.icon} ${task.name} sent to ERP`,'success');
+  notifyOther('eliminated a task');
+  
+  // Simulate backend actions
+  setTimeout(()=>addLog('API','Supabase log created'),300);
+  setTimeout(()=>addLog('API','Team notification sent'),600);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// History & Undo
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function saveHistory(action,data){
+  state.history=state.history.slice(0,state.historyIndex+1);
+  state.history.push({action,data,timestamp:Date.now()});
+  state.historyIndex=state.history.length-1;
+  $('undoBtn').disabled=false;
+}
+
+function undo(){
+  if(state.historyIndex<0)return;
+  
+  const entry=state.history[state.historyIndex];
+  state.historyIndex--;
+  
+  switch(entry.action){
+    case 'create':
+      removeTask(entry.data.task.id,false);
+      break;
+    case 'merge':
+      // Restore both tasks
+      removeTask(entry.data.result.id,false);
+      state.tasks.push(entry.data.task1);
+      state.tasks.push(entry.data.task2);
+      renderTask(entry.data.task1);
+      renderTask(entry.data.task2);
+      state.mergeCount--;
+      break;
+    case 'eliminate':
+      state.tasks.push(entry.data.task);
+      renderTask(entry.data.task);
+      state.elimCount--;
+      break;
+  }
+  
+  updateStats();
+  toast('Undone',`Reverted: ${entry.action}`,'info');
+  $('undoBtn').disabled=state.historyIndex<0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AI Actions - Enhanced
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function aiAction(type){
+  if(type==='merge'){
+    const ready=state.tasks.filter(t=>t.automation>=50);
+    if(ready.length>=2){
+      performMerge(ready[0],ready[1]);
+    }else{
+      toast('No Tasks','Need 2+ tasks with 50%+ automation','warning');
+    }
+  }else if(type==='eliminate'){
+    const task=state.tasks.find(t=>t.automation>=90);
+    if(task){
+      handleEliminateWithUndo(task.id);
+    }else{
+      toast('No Tasks','No tasks ready for elimination','warning');
+    }
+  }else if(type==='optimize'){
+    state.tasks.forEach(t=>{
+      t.automation=Math.min(100,t.automation+5);
+      t.lastUpdate='Just now';
+      updateTaskUI(t);
+    });
+    addLog('AI','Optimized all tasks +5%');
+    toast('Optimized','All tasks improved by +5%','success');
+    notifyOther('optimized all tasks');
+  }
+}
+
+function aiFeedback(type,rating){
+  addLog('AI',`Feedback: ${type} suggestion was ${rating}`);
+  toast('Thanks!','Your feedback helps improve AI','success');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Utilities
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function drawConnections(){
+  const svg=$('connections');
+  svg.innerHTML='';
+  if(state.tasks.length<2)return;
+  
+  for(let i=0;i<state.tasks.length-1;i++){
+    const t1=state.tasks[i],t2=state.tasks[i+1];
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',t1.x+50);line.setAttribute('y1',t1.y+40);
+    line.setAttribute('x2',t2.x+50);line.setAttribute('y2',t2.y+40);
+    line.setAttribute('stroke','rgba(6,182,212,0.2)');
+    line.setAttribute('stroke-width','1');
+    svg.appendChild(line);
+  }
+}
+
+function updateStats(){
+  $('taskCount').textContent=state.tasks.length;
+  $('taskCountBadge').textContent=state.tasks.length;
+  $('mergeCount').textContent='+'+state.mergeCount;
+  $('elimCount').textContent='+'+state.elimCount;
+  $('metricK').textContent=state.k.toFixed(1);
+  $('metricI').textContent=state.i.toFixed(2);
+  drawConnections();
+}
+
+function addLog(action,msg){
+  const time=new Date().toTimeString().slice(0,8);
+  state.logs.unshift({time,action,msg});
+  $('dbLogs').innerHTML=state.logs.slice(0,20).map(l=>`
+    <div style="font-size:10px;padding:6px 0;border-bottom:1px solid var(--border);display:flex;gap:8px">
+      <span style="color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:9px">${l.time}</span>
+      <span style="font-weight:600;color:${l.action==='INSERT'?'var(--green)':l.action==='DELETE'?'var(--red)':l.action==='MERGE'?'var(--blue)':l.action==='API'?'var(--yellow)':'var(--purple)'}">${l.action}</span>
+      <span style="flex:1">${l.msg}</span>
+    </div>
+  `).join('');
+}
+
+function toast(title,desc,type='info'){
+  const existing=document.querySelector('.toast');
+  if(existing)existing.remove();
+  
+  const icons={success:'✅',info:'ℹ️',warning:'⚠️',error:'❌'};
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`
+    <span class="toast-icon">${icons[type]}</span>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      <div class="toast-desc">${desc}</div>
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+  `;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+function toastWithUndo(title,desc,onUndo){
+  const existing=document.querySelector('.toast');
+  if(existing)existing.remove();
+  
+  const el=document.createElement('div');
+  el.className='toast warning';
+  el.innerHTML=`
+    <span class="toast-icon">⏳</span>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      <div class="toast-desc">${desc}</div>
+      <div class="toast-undo">
+        <button class="toast-undo-btn" id="undoToastBtn">Undo</button>
+        <span class="toast-undo-timer">3s</span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(el);
+  
+  $('undoToastBtn').onclick=()=>{
+    onUndo();
+    el.remove();
+  };
+  
+  setTimeout(()=>el.remove(),3500);
+}
+
+function notifyOther(action){
+  if(Math.random()>0.6){
+    const user=USERS.filter(u=>u.name!=='You')[Math.floor(Math.random()*3)];
+    setTimeout(()=>toast(`${user.emoji} ${user.name}`,action,'info'),1500+Math.random()*1500);
+  }
+}
+
+function testAPI(name){
+  addLog('API',`${name} ping: OK`);
+  toast('API Test',`${name} connection successful`,'success');
+}
+
+function runQuery(){
+  const count=state.tasks.filter(t=>t.automation>=90).length;
+  addLog('QUERY',`Found ${count} tasks with 90%+ automation`);
+  toast('Query Complete',`${count} results found`,'info');
+}
+
+function executeAll(){
+  const ready=state.tasks.filter(t=>t.automation>=90);
+  if(ready.length===0){
+    toast('No Tasks','No tasks with 90%+ automation','warning');
+    return;
+  }
+  ready.forEach(t=>handleEliminateWithUndo(t.id));
+}
+
+function setView(view){
+  state.view=view;
+  $$('.view-btn').forEach((btn,i)=>btn.classList.toggle('active',i===(view==='2d'?0:1)));
+  $('threeContainer').classList.toggle('active',view==='3d');
+  $('tasksContainer').style.display=view==='2d'?'block':'none';
+  $('dropZones').style.display=view==='2d'?'flex':'none';
+  if(view==='3d')init3D();
+}
+
+// 3D (simplified)
+let scene,camera,renderer,stars,nodes3d=[];
+function init3D(){
+  const c=$('threeContainer');
+  if(c.querySelector('canvas'))return;
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(75,c.clientWidth/c.clientHeight,0.1,1000);
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setSize(c.clientWidth,c.clientHeight);
+  c.appendChild(renderer.domElement);
+  
+  const geo=new THREE.BufferGeometry();
+  const pos=[];
+  for(let i=0;i<1200;i++)pos.push((Math.random()-0.5)*300,(Math.random()-0.5)*300,(Math.random()-0.5)*300);
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  stars=new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:0.4}));
+  scene.add(stars);
+  
+  NODES.slice(0,12).forEach((n,i)=>{
+    const sphere=new THREE.Mesh(new THREE.SphereGeometry(0.7,20,20),new THREE.MeshBasicMaterial({color:new THREE.Color().setHSL(i/12,0.6,0.5),wireframe:true}));
+    const a=(i/12)*Math.PI*2;
+    sphere.position.set(Math.cos(a)*10,(Math.random()-0.5)*6,Math.sin(a)*10);
+    scene.add(sphere);
+    nodes3d.push(sphere);
+  });
+  
+  camera.position.z=25;
+  animate3D();
+}
+
+function animate3D(){
+  if(state.view!=='3d')return;
+  requestAnimationFrame(animate3D);
+  stars.rotation.y+=0.0002;
+  nodes3d.forEach((n,i)=>{n.rotation.x+=0.008;n.rotation.y+=0.008;n.position.y=Math.sin(Date.now()*0.001+i)*1.2;});
+  camera.position.x=Math.sin(Date.now()*0.0002)*3;
+  camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,69 +1,17 @@
 /**
- * AUTUS Components
- * =================
- * 
- * UI 컴포넌트 모음
+ * AUTUS Components Export (Minimal)
  */
 
-// ============================================
-// Common
-// ============================================
-export { default as AlertFeed } from './Common/AlertFeed';
-export { default as FloatingInfo } from './Common/FloatingInfo';
-export { default as KPIWidget } from './Common/KPIWidget';
-export { default as LayerToggle } from './Common/LayerToggle';
-export { default as Skeleton } from './Common/Skeleton';
-
-// ============================================
-// Navigation
-// ============================================
-export { default as Breadcrumb } from './Navigation/Breadcrumb';
-export { default as DrilldownMap } from './Navigation/DrilldownMap';
-export { default as ScaleSwitcher } from './Navigation/ScaleSwitcher';
-export { default as ZoomNav } from './Navigation/ZoomNav';
-// MobileNav - TODO: implement
-
-// ============================================
-// Dashboard
-// ============================================
-export * from './Dashboard';
-export * from './SMB';
-// Kernel, Unified - TODO: implement
-
-// ============================================
-// Visualization
-// ============================================
-export * from './Cube';
-export * from './Edge';
-export * from './Hexagon';
-export * from './Matrix72';
-export * from './Ontology';
-export * from './Prediction';
-export * from './PressureMap';
-export * from './Sovereign';
-export * from './Transform';
-export * from './Trinity';
-// Map, PathFinder, Quantum, Visualizations - TODO: implement
-
-// ============================================
 // UI Components
-// ============================================
-export * from './UI';
+export * from './ui';
 
-// ============================================
-// Standalone
-// ============================================
-export { default as DataInputDashboard } from './DataInputDashboard';
-export { default as LaplacianSimulator } from './LaplacianSimulator';
-export { default as LearningLoopDemo } from './LearningLoopDemo';
-// ErrorBoundary - TODO: implement
+// New Components only
+export * from './BPMN';
+export * from './Canvas3D';
+export * from './Effects';
+export * from './Process';
+export * from './WorkFlow';
 
-// ============================================
-// Onboarding
-// ============================================
-export * from './Onboarding';
-
-// ============================================
-// Strategy
-// ============================================
-// StrategyDashboard - TODO: implement
+// Safe exports
+export { FSDNavigation } from './FSD';
+export { ThemeToggle } from './Theme';

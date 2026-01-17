@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTUS - 사용자 계수</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌌</text></svg>" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-deep: #030712;
+      --bg-surface: rgba(15, 23, 42, 0.7);
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --accent-indigo: #6366f1;
+      --accent-violet: #8b5cf6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #475569;
+    }
+    
+    html, body { height: 100%; overflow: hidden; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+    }
+    
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      background: rgba(3, 7, 18, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-glass);
+      z-index: 100;
+    }
+    
+    .header-left { display: flex; align-items: center; gap: 1rem; }
+    
+    .back-btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    
+    .back-btn:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text-primary);
+      border-color: var(--accent-indigo);
+    }
+    
+    .page-title {
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .nav-links { display: flex; gap: 0.5rem; }
+    
+    .nav-link {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+    
+    .nav-link:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+    
+    .nav-link.active {
+      background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet));
+      border-color: transparent;
+    }
+    
+    /* Main Layout */
+    .container {
+      display: flex;
+      height: 100vh;
+      padding-top: 56px;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-glass);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 0.5rem 0 0.25rem;
+    }
+    
+    .level-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .level-btn:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.15);
+    }
+    
+    .level-btn.active {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.1));
+      border-color: var(--accent-indigo);
+      color: var(--text-primary);
+    }
+    
+    .level-icon { font-size: 1.5rem; }
+    .level-name { font-weight: 500; font-size: 0.9rem; }
+    .level-count { font-size: 0.75rem; color: var(--text-muted); }
+    
+    .k-display {
+      margin-top: auto;
+      padding: 1.25rem;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 16px;
+      text-align: center;
+    }
+    
+    .k-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .k-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+    
+    /* Canvas Area */
+    .canvas-area {
+      flex: 1;
+      position: relative;
+      background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+    }
+    
+    #cosmosCanvas { width: 100%; height: 100%; }
+    
+    .zoom-indicator {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass);
+      border-radius: 20px;
+    }
+    
+    .zoom-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      transition: all 0.3s;
+    }
+    
+    .zoom-dot.active {
+      background: var(--accent-indigo);
+      box-shadow: 0 0 12px var(--accent-indigo);
+    }
+    
+    /* Detail Panel */
+    .detail-panel {
+      width: 280px;
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid var(--border-glass);
+      padding: 1.25rem;
+      overflow-y: auto;
+    }
+    
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .panel-icon {
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--accent-violet), var(--accent-indigo));
+      border-radius: 12px;
+      font-size: 1.5rem;
+    }
+    
+    .panel-title { font-size: 1.1rem; font-weight: 600; }
+    .panel-subtitle { font-size: 0.8rem; color: var(--text-muted); }
+    
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 0.75rem;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
+    
+    .node-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    
+    .node-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .node-item:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.15);
+    }
+    
+    .node-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .node-name { flex: 1; font-size: 0.85rem; }
+    .node-value { font-size: 0.75rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a href="/" class="back-btn">← 홈</a>
+      <span class="page-title">🌌 사용자 계수</span>
+    </div>
+    <nav class="nav-links">
+      <a href="/cosmos.html" class="nav-link active">🌌</a>
+      <a href="/flow.html" class="nav-link">💰</a>
+      <a href="/dashboard.html" class="nav-link">📊</a>
+      <a href="/solution.html" class="nav-link">⚡</a>
+      <a href="/tasks.html" class="nav-link">📋</a>
+      <a href="/automation.html" class="nav-link">🤖</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <div class="section-label">스케일 레벨</div>
+      
+      <button class="level-btn active" data-level="galaxy">
+        <span class="level-icon">🌌</span>
+        <div>
+          <div class="level-name">은하계</div>
+          <div class="level-count">전체 시스템</div>
+        </div>
+      </button>
+      
+      <button class="level-btn" data-level="solar">
+        <span class="level-icon">☀️</span>
+        <div>
+          <div class="level-name">태양계</div>
+          <div class="level-count">12개 도메인</div>
+        </div>
+      </button>
+      
+      <button class="level-btn" data-level="earth">
+        <span class="level-icon">🌍</span>
+        <div>
+          <div class="level-name">지구</div>
+          <div class="level-count">144개 노드</div>
+        </div>
+      </button>
+      
+      <button class="level-btn" data-level="city">
+        <span class="level-icon">🏙️</span>
+        <div>
+          <div class="level-name">도시</div>
+          <div class="level-count">개별 업무</div>
+        </div>
+      </button>
+      
+      <div class="k-display">
+        <div class="k-value">K = 7.2</div>
+        <div class="k-label">상호작용 상수</div>
+      </div>
+    </aside>
+    
+    <div class="canvas-area">
+      <canvas id="cosmosCanvas"></canvas>
+      <div class="zoom-indicator">
+        <div class="zoom-dot active" data-level="galaxy"></div>
+        <div class="zoom-dot" data-level="solar"></div>
+        <div class="zoom-dot" data-level="earth"></div>
+        <div class="zoom-dot" data-level="city"></div>
+      </div>
+    </div>
+    
+    <aside class="detail-panel">
+      <div class="panel-header">
+        <div class="panel-icon">🌌</div>
+        <div>
+          <div class="panel-title">은하계 뷰</div>
+          <div class="panel-subtitle">전체 시스템 개요</div>
+        </div>
+      </div>
+      
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">12</div>
+          <div class="stat-label">도메인</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">144</div>
+          <div class="stat-label">노드</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">87%</div>
+          <div class="stat-label">활성</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">0.42</div>
+          <div class="stat-label">ΔṠ</div>
+        </div>
+      </div>
+      
+      <div class="section-label">주요 도메인</div>
+      <div class="node-list" id="nodeList"></div>
+    </aside>
+  </div>
+
+  <script>
+    const DOMAINS = [
+      { id: 1, name: '재무/회계', color: '#f59e0b', nodes: 12 },
+      { id: 2, name: '인사/조직', color: '#10b981', nodes: 12 },
+      { id: 3, name: '영업/마케팅', color: '#3b82f6', nodes: 12 },
+      { id: 4, name: '생산/제조', color: '#8b5cf6', nodes: 12 },
+      { id: 5, name: '물류/유통', color: '#ec4899', nodes: 12 },
+      { id: 6, name: 'IT/시스템', color: '#06b6d4', nodes: 12 },
+    ];
+    
+    let currentLevel = 'galaxy';
+    const canvas = document.getElementById('cosmosCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    function resize() {
+      canvas.width = canvas.offsetWidth * devicePixelRatio;
+      canvas.height = canvas.offsetHeight * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    
+    document.getElementById('nodeList').innerHTML = DOMAINS.map(d => `
+      <div class="node-item">
+        <div class="node-dot" style="background: ${d.color}; box-shadow: 0 0 8px ${d.color}"></div>
+        <span class="node-name">${d.name}</span>
+        <span class="node-value">${d.nodes}</span>
+      </div>
+    `).join('');
+    
+    document.querySelectorAll('.level-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLevel = btn.dataset.level;
+        document.querySelectorAll('.zoom-dot').forEach(d => d.classList.remove('active'));
+        document.querySelector(`.zoom-dot[data-level="${currentLevel}"]`).classList.add('active');
+      });
+    });
+    
+    let time = 0;
+    
+    function draw() {
+      time++;
+      const w = canvas.offsetWidth, h = canvas.offsetHeight;
+      ctx.clearRect(0, 0, w, h);
+      
+      const cx = w / 2, cy = h / 2;
+      const maxR = Math.min(cx, cy) * 0.75;
+      
+      // Stars
+      for (let i = 0; i < 150; i++) {
+        const x = (Math.sin(i * 127.1) * 0.5 + 0.5) * w;
+        const y = (Math.cos(i * 311.7) * 0.5 + 0.5) * h;
+        const alpha = 0.2 + Math.sin(time * 0.02 + i) * 0.15;
+        ctx.beginPath();
+        ctx.arc(x, y, 1, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.fill();
+      }
+      
+      // Galaxy spiral
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(time * 0.0002);
+      
+      for (let arm = 0; arm < 4; arm++) {
+        ctx.save();
+        ctx.rotate((arm * Math.PI * 2) / 4);
+        for (let i = 0; i < 80; i++) {
+          const angle = i * 0.12;
+          const r = 20 + i * 2.5;
+          const x = Math.cos(angle) * r;
+          const y = Math.sin(angle) * r;
+          const alpha = 0.3 + Math.random() * 0.4;
+          ctx.beginPath();
+          ctx.arc(x, y, 1.5 + Math.random(), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(99, 102, 241, ${alpha})`;
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+      
+      // Center glow
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 50);
+      grad.addColorStop(0, 'rgba(139, 92, 246, 1)');
+      grad.addColorStop(0.4, 'rgba(99, 102, 241, 0.5)');
+      grad.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.arc(0, 0, 50, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      
+      ctx.restore();
+      
+      // Domain nodes
+      DOMAINS.forEach((d, i) => {
+        const angle = (i / DOMAINS.length) * Math.PI * 2 + time * 0.0003;
+        const x = cx + Math.cos(angle) * maxR * 0.6;
+        const y = cy + Math.sin(angle) * maxR * 0.6;
+        
+        // Glow
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, 20);
+        glow.addColorStop(0, d.color + '80');
+        glow.addColorStop(1, 'transparent');
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.fillStyle = glow;
+        ctx.fill();
+        
+        // Node
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = d.color;
+        ctx.fill();
+        
+        // Label
+        ctx.font = '11px Inter, sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.name, x, y + 25);
+      });
+      
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>

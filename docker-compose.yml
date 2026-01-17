@@ -1,140 +1,34 @@
-# AUTUS Docker Compose - 로컬 개발 환경
-# 
-# 사용법:
-#   docker-compose up -d       # 시작
-#   docker-compose down        # 종료
-#   docker-compose logs -f api # 로그 확인
+# AUTUS n8n Docker Compose
+# Generated: 2026-01-15
+# Run: docker-compose up -d
 
 version: '3.8'
 
 services:
-  # ═══════════════════════════════════════════════════════════════
-  # FastAPI Backend
-  # ═══════════════════════════════════════════════════════════════
-  api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: autus-api
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: autus-n8n
+    restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "5678:5678"
     environment:
-      - DATABASE_URL=postgresql://autus:autus@postgres:5432/autus
-      - NEO4J_URI=bolt://neo4j:7687
-      - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=autus123
-      - API_HOST=0.0.0.0
-      - API_PORT=8000
-    depends_on:
-      postgres:
-        condition: service_healthy
-      neo4j:
-        condition: service_healthy
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=autus2026
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Asia/Seoul
+      - TZ=Asia/Seoul
     volumes:
-      - ./backend:/app
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+      - n8n_data:/home/node/.n8n
+    networks:
+      - autus-network
 
-  # ═══════════════════════════════════════════════════════════════
-  # PostgreSQL - 관계형 DB
-  # ═══════════════════════════════════════════════════════════════
-  postgres:
-    image: postgres:15-alpine
-    container_name: autus-postgres
-    environment:
-      POSTGRES_USER: autus
-      POSTGRES_PASSWORD: autus
-      POSTGRES_DB: autus
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U autus"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ═══════════════════════════════════════════════════════════════
-  # Neo4j - 그래프 DB
-  # ═══════════════════════════════════════════════════════════════
-  neo4j:
-    image: neo4j:5-community
-    container_name: autus-neo4j
-    environment:
-      NEO4J_AUTH: neo4j/autus123
-      NEO4J_PLUGINS: '["apoc"]'
-      NEO4J_dbms_memory_heap_initial__size: 512m
-      NEO4J_dbms_memory_heap_max__size: 1G
-    ports:
-      - "7474:7474"  # HTTP
-      - "7687:7687"  # Bolt
-    volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # Redis - 캐시 (옵션)
-  # ═══════════════════════════════════════════════════════════════
-  redis:
-    image: redis:7-alpine
-    container_name: autus-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ═══════════════════════════════════════════════════════════════
-  # Frontend (정적 파일 서빙)
-  # ═══════════════════════════════════════════════════════════════
-  frontend:
-    image: nginx:alpine
-    container_name: autus-frontend
-    ports:
-      - "8080:80"
-    volumes:
-      - ./frontend:/usr/share/nginx/html:ro
-    depends_on:
-      - api
-    restart: unless-stopped
-
-# ═══════════════════════════════════════════════════════════════
-# 볼륨
-# ═══════════════════════════════════════════════════════════════
 volumes:
-  postgres_data:
-    name: autus_postgres_data
-  neo4j_data:
-    name: autus_neo4j_data
-  neo4j_logs:
-    name: autus_neo4j_logs
-  redis_data:
-    name: autus_redis_data
+  n8n_data:
 
-# ═══════════════════════════════════════════════════════════════
-# 네트워크
-# ═══════════════════════════════════════════════════════════════
 networks:
-  default:
-    name: autus_network
-
+  autus-network:
+    driver: bridge

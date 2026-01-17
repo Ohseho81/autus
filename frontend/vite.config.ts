@@ -87,14 +87,25 @@ export default defineConfig({
   },
   build: {
     // 번들 크기 경고 임계값 (KB)
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 800,
     
     // 코드 스플리팅 설정
     rollupOptions: {
+      // 단일 진입점 (최적화됨)
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        portal: path.resolve(__dirname, 'portal.html'),
+      },
       output: {
         manualChunks: {
           // React 코어
           'vendor-react': ['react', 'react-dom'],
+          
+          // Three.js (3D 렌더링)
+          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
+          
+          // 후처리 효과
+          'vendor-postprocessing': ['@react-three/postprocessing', 'postprocessing'],
           
           // 지도 라이브러리 (가장 큰 의존성)
           'vendor-map': ['mapbox-gl', '@deck.gl/core', '@deck.gl/layers', '@deck.gl/react'],
@@ -103,7 +114,7 @@ export default defineConfig({
           'vendor-charts': ['recharts'],
           
           // 유틸리티
-          'vendor-utils': ['zustand', 'axios'],
+          'vendor-utils': ['zustand', 'axios', 'framer-motion'],
           
           // 아이콘 (트리쉐이킹)
           'vendor-icons': ['lucide-react'],
@@ -130,7 +141,10 @@ export default defineConfig({
   
   // 의존성 최적화
   optimizeDeps: {
-    include: ['react', 'react-dom', 'zustand', 'framer-motion', 'axios'],
+    include: [
+      'react', 'react-dom', 'zustand', 'framer-motion', 'axios',
+      'three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'
+    ],
     exclude: ['@mapbox/node-pre-gyp'],
   },
   

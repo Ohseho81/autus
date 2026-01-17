@@ -1,0 +1,14 @@
+{
+  "name": "autus",
+  "version": "1.0.0",
+  "description": "AUTUS - Physics-Driven Decision System",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "test": "pytest tests/ -v",
+    "check": "node scripts/browser_check.js"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.35.0"
+  }
+}

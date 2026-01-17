@@ -1,0 +1,89 @@
+# =============================================================================
+# AUTUS Alertmanager 설정
+# =============================================================================
+
+global:
+  resolve_timeout: 5m
+  
+  # Slack 웹훅 (선택사항)
+  # slack_api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
+
+route:
+  # 기본 수신자
+  receiver: 'autus-default'
+  
+  # 그룹화 설정
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  
+  # 라우팅 규칙
+  routes:
+    # Critical 알림 → 즉시
+    - match:
+        severity: critical
+      receiver: 'autus-critical'
+      group_wait: 10s
+      repeat_interval: 1h
+    
+    # Warning 알림
+    - match:
+        severity: warning
+      receiver: 'autus-warning'
+      group_wait: 1m
+      repeat_interval: 4h
+    
+    # Info 알림
+    - match:
+        severity: info
+      receiver: 'autus-info'
+      group_wait: 5m
+      repeat_interval: 12h
+
+# 수신자 정의
+receivers:
+  # 기본 수신자
+  - name: 'autus-default'
+    webhook_configs:
+      - url: 'http://host.docker.internal:8000/api/alerts/webhook'
+        send_resolved: true
+
+  # Critical 알림
+  - name: 'autus-critical'
+    webhook_configs:
+      - url: 'http://host.docker.internal:8000/api/alerts/critical'
+        send_resolved: true
+    # Slack (설정 시)
+    # slack_configs:
+    #   - channel: '#autus-alerts'
+    #     send_resolved: true
+    #     title: '🚨 AUTUS Critical Alert'
+    #     text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ .Annotations.description }}\n{{ end }}'
+
+  # Warning 알림
+  - name: 'autus-warning'
+    webhook_configs:
+      - url: 'http://host.docker.internal:8000/api/alerts/warning'
+        send_resolved: true
+
+  # Info 알림
+  - name: 'autus-info'
+    webhook_configs:
+      - url: 'http://host.docker.internal:8000/api/alerts/info'
+
+# 억제 규칙 (중복 알림 방지)
+inhibit_rules:
+  # Critical이 발생하면 Warning 억제
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname']
+  
+  # Warning이 발생하면 Info 억제
+  - source_match:
+      severity: 'warning'
+    target_match:
+      severity: 'info'
+    equal: ['alertname']

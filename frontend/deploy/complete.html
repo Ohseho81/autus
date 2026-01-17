@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS Complete System v4.0 - 6-Stage Closed Loop</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#050608;--panel:#0a0d12;--card:#10141c;--card-hover:#161c28;
+      --border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);
+      --text:#f0f4f8;--text-secondary:#94a3b8;--dim:#64748b;
+      --cyan:#06b6d4;--green:#10b981;--yellow:#f59e0b;--orange:#f97316;--red:#ef4444;--purple:#8b5cf6;--blue:#3b82f6;--pink:#ec4899;
+      --gradient-cyan:linear-gradient(135deg,#06b6d4,#0891b2);
+      --gradient-green:linear-gradient(135deg,#10b981,#059669);
+      --gradient-blue:linear-gradient(135deg,#3b82f6,#2563eb);
+      --gradient-purple:linear-gradient(135deg,#8b5cf6,#7c3aed);
+      --gradient-orange:linear-gradient(135deg,#f97316,#ea580c);
+      --glow-cyan:0 0 20px rgba(6,182,212,0.3);
+      --glow-green:0 0 20px rgba(16,185,129,0.3);
+    }
+    
+    body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+    
+    /* Main Layout */
+    .app{display:grid;grid-template-rows:56px 1fr;grid-template-columns:240px 1fr 320px;height:100vh}
+    
+    /* Header */
+    .header{grid-column:1/-1;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-icon{width:36px;height:36px;background:var(--gradient-cyan);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:var(--glow-cyan)}
+    .logo-text{font-size:18px;font-weight:700}
+    .logo-badge{font-size:9px;padding:3px 8px;background:var(--gradient-purple);border-radius:10px;font-weight:600}
+    
+    .header-tabs{display:flex;gap:4px;background:var(--card);border-radius:10px;padding:4px}
+    .header-tab{padding:8px 16px;background:none;border:none;color:var(--dim);font-size:12px;font-weight:500;cursor:pointer;border-radius:8px;transition:all 0.2s;white-space:nowrap}
+    .header-tab.active{background:var(--blue);color:white}
+    .header-tab:hover:not(.active){color:var(--text);background:rgba(255,255,255,0.05)}
+    
+    .header-right{display:flex;align-items:center;gap:16px}
+    .stage-indicator{display:flex;gap:6px}
+    .stage-dot{width:24px;height:24px;border-radius:50%;background:var(--card);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.2s}
+    .stage-dot.active{border-color:var(--cyan);box-shadow:var(--glow-cyan)}
+    .stage-dot.complete{background:var(--green);border-color:var(--green)}
+    
+    /* Left Panel - Navigation & Templates */
+    .left-panel{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+    .panel-header{padding:16px;border-bottom:1px solid var(--border)}
+    .panel-title{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+    .search-box{width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px}
+    .search-box:focus{outline:none;border-color:var(--cyan)}
+    .search-box::placeholder{color:var(--dim)}
+    
+    .panel-scroll{flex:1;overflow-y:auto;padding:12px;scrollbar-width:thin;scrollbar-color:var(--card) transparent}
+    .panel-scroll::-webkit-scrollbar{width:4px}
+    .panel-scroll::-webkit-scrollbar-thumb{background:var(--card);border-radius:2px}
+    
+    /* Template Cards */
+    .template-section{margin-bottom:16px}
+    .template-section-title{font-size:10px;color:var(--dim);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+    .template-count{background:var(--card);padding:2px 6px;border-radius:10px;font-size:9px}
+    .template-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.2s}
+    .template-card:hover{border-color:var(--cyan);transform:translateX(4px)}
+    .template-card.active{border-color:var(--cyan);background:rgba(6,182,212,0.1)}
+    .template-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+    .template-icon{font-size:20px}
+    .template-info{flex:1}
+    .template-name{font-size:12px;font-weight:600}
+    .template-meta{font-size:10px;color:var(--dim)}
+    .template-badge{font-size:8px;padding:2px 6px;border-radius:4px;font-weight:600}
+    .template-badge.popular{background:rgba(249,115,22,0.2);color:var(--orange)}
+    .template-badge.new{background:rgba(16,185,129,0.2);color:var(--green)}
+    .template-badge.ai{background:rgba(139,92,246,0.2);color:var(--purple)}
+    .template-stats{display:flex;gap:12px;font-size:10px;color:var(--dim)}
+    
+    /* Main Content */
+    .main-content{display:flex;flex-direction:column;overflow:hidden;position:relative}
+    .main-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--panel)}
+    .view-title{font-size:16px;font-weight:600}
+    .view-subtitle{font-size:11px;color:var(--dim);margin-top:2px}
+    .action-buttons{display:flex;gap:8px}
+    .action-btn{padding:8px 16px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;border:none;display:flex;align-items:center;gap:6px}
+    .action-btn.primary{background:var(--gradient-blue);color:white}
+    .action-btn.secondary{background:var(--card);border:1px solid var(--border);color:var(--text)}
+    .action-btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+    
+    .main-scroll{flex:1;overflow-y:auto;padding:20px}
+    
+    /* Stage Views */
+    .stage-view{display:none}
+    .stage-view.active{display:block}
+    
+    /* Stage 1: Templates Marketplace */
+    .templates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+    .template-big-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;transition:all 0.2s;cursor:pointer}
+    .template-big-card:hover{border-color:var(--cyan);transform:translateY(-4px);box-shadow:var(--glow-cyan)}
+    .template-big-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+    .template-big-icon{width:48px;height:48px;background:var(--gradient-blue);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+    .template-big-info{flex:1}
+    .template-big-name{font-size:14px;font-weight:600;margin-bottom:4px}
+    .template-big-desc{font-size:11px;color:var(--dim);line-height:1.5}
+    .template-big-stats{display:flex;gap:16px;padding-top:12px;border-top:1px solid var(--border);font-size:10px;color:var(--dim)}
+    .template-big-stat{display:flex;align-items:center;gap:4px}
+    .template-big-stat .value{color:var(--text);font-weight:600}
+    
+    /* Stage 2: Task Capture */
+    .capture-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+    .capture-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;transition:all 0.2s;cursor:pointer}
+    .capture-card:hover{border-color:var(--green);transform:scale(1.02)}
+    .capture-card.connected{border-color:var(--green);background:rgba(16,185,129,0.05)}
+    .capture-icon{font-size:32px;margin-bottom:10px}
+    .capture-name{font-size:13px;font-weight:600;margin-bottom:4px}
+    .capture-status{font-size:10px;padding:4px 10px;border-radius:20px;display:inline-block}
+    .capture-status.online{background:rgba(16,185,129,0.2);color:var(--green)}
+    .capture-status.offline{background:rgba(100,116,139,0.2);color:var(--dim)}
+    .capture-count{font-size:10px;color:var(--dim);margin-top:8px}
+    
+    .captured-tasks{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+    .captured-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .captured-title{font-size:13px;font-weight:600}
+    .captured-badge{font-size:10px;background:var(--blue);padding:4px 10px;border-radius:20px}
+    .captured-list{max-height:300px;overflow-y:auto}
+    .captured-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:8px;margin-bottom:6px;background:var(--panel);transition:all 0.2s}
+    .captured-item:hover{background:var(--card-hover)}
+    .captured-item-icon{font-size:16px}
+    .captured-item-info{flex:1}
+    .captured-item-name{font-size:12px;font-weight:500}
+    .captured-item-source{font-size:10px;color:var(--dim)}
+    .captured-item-action{padding:6px 12px;background:var(--gradient-green);border:none;border-radius:6px;color:white;font-size:10px;font-weight:600;cursor:pointer}
+    
+    /* Stage 3: AI Suggestions */
+    .suggestions-container{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+    .suggestion-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;transition:all 0.2s}
+    .suggestion-card:hover{border-color:var(--border-hover)}
+    .suggestion-card.recommended{border-color:var(--cyan);box-shadow:var(--glow-cyan)}
+    .suggestion-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .suggestion-type{display:flex;align-items:center;gap:10px}
+    .suggestion-type-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .suggestion-type-icon.merge{background:rgba(59,130,246,0.2)}
+    .suggestion-type-icon.eliminate{background:rgba(239,68,68,0.2)}
+    .suggestion-type-icon.automate{background:rgba(16,185,129,0.2)}
+    .suggestion-title{font-size:14px;font-weight:600}
+    .suggestion-confidence{font-family:'JetBrains Mono',monospace;font-size:12px;padding:4px 10px;border-radius:6px;font-weight:600}
+    .suggestion-confidence.high{background:rgba(16,185,129,0.2);color:var(--green)}
+    .suggestion-confidence.medium{background:rgba(245,158,11,0.2);color:var(--yellow)}
+    
+    .suggestion-reason{background:var(--panel);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--text-secondary);line-height:1.6;border-left:3px solid var(--purple)}
+    .suggestion-reason strong{color:var(--text);display:block;margin-bottom:6px}
+    
+    .suggestion-preview{background:var(--panel);border-radius:8px;padding:12px;margin-bottom:12px}
+    .preview-title{font-size:10px;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
+    .preview-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .preview-metric{text-align:center}
+    .preview-metric-value{font-size:18px;font-weight:700}
+    .preview-metric-value.positive{color:var(--green)}
+    .preview-metric-value.negative{color:var(--red)}
+    .preview-metric-label{font-size:9px;color:var(--dim)}
+    
+    .suggestion-actions{display:flex;gap:8px}
+    .suggestion-btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s}
+    .suggestion-btn.apply{background:var(--gradient-green);color:white}
+    .suggestion-btn.skip{background:var(--card);border:1px solid var(--border);color:var(--dim)}
+    .suggestion-btn:hover{transform:translateY(-1px)}
+    
+    /* Alternative Suggestions */
+    .alternatives{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+    .alternatives-title{font-size:12px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .alternative-item{padding:12px;background:var(--panel);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;border:1px solid transparent}
+    .alternative-item:hover{border-color:var(--border-hover)}
+    .alternative-item.selected{border-color:var(--cyan);background:rgba(6,182,212,0.05)}
+    .alternative-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .alternative-name{font-size:11px;font-weight:600}
+    .alternative-confidence{font-size:10px;color:var(--dim)}
+    .alternative-desc{font-size:10px;color:var(--dim)}
+    
+    /* Stage 4: Outcome Dashboard */
+    .dashboard-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+    .dashboard-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+    .dashboard-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+    .dashboard-card-value{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace}
+    .dashboard-card-label{font-size:11px;color:var(--dim);margin-top:4px}
+    .dashboard-card-trend{font-size:11px;margin-top:8px;display:flex;align-items:center;gap:4px}
+    .dashboard-card-trend.up{color:var(--green)}
+    .dashboard-card-trend.down{color:var(--red)}
+    
+    .charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+    .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+    .chart-title{font-size:13px;font-weight:600;margin-bottom:16px}
+    .chart-container{height:200px;position:relative}
+    
+    /* Stage 5: Feedback Loop */
+    .feedback-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .feedback-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+    .feedback-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    .feedback-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+    .feedback-title{font-size:14px;font-weight:600}
+    .feedback-subtitle{font-size:11px;color:var(--dim)}
+    
+    .feedback-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--panel);border-radius:10px;margin-bottom:10px}
+    .feedback-item-icon{font-size:20px}
+    .feedback-item-info{flex:1}
+    .feedback-item-name{font-size:12px;font-weight:500}
+    .feedback-item-meta{font-size:10px;color:var(--dim)}
+    .feedback-buttons{display:flex;gap:6px}
+    .feedback-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:14px;cursor:pointer;transition:all 0.2s}
+    .feedback-btn:hover{transform:scale(1.1)}
+    .feedback-btn.positive:hover{border-color:var(--green);background:rgba(16,185,129,0.1)}
+    .feedback-btn.negative:hover{border-color:var(--red);background:rgba(239,68,68,0.1)}
+    .feedback-btn.selected.positive{background:var(--green);border-color:var(--green)}
+    .feedback-btn.selected.negative{background:var(--red);border-color:var(--red)}
+    
+    .learning-progress{margin-top:20px}
+    .progress-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
+    .progress-bar{height:8px;background:var(--panel);border-radius:4px;overflow:hidden}
+    .progress-fill{height:100%;border-radius:4px;transition:width 0.5s}
+    
+    /* Stage 6: Collective Intelligence */
+    .collective-hero{background:var(--gradient-purple);border-radius:16px;padding:30px;margin-bottom:24px;position:relative;overflow:hidden}
+    .collective-hero::before{content:'';position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/><circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/><circle cx="50" cy="50" r="20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></svg>');background-size:200px;opacity:0.5}
+    .collective-content{position:relative;z-index:1}
+    .collective-title{font-size:24px;font-weight:700;margin-bottom:8px}
+    .collective-desc{font-size:13px;opacity:0.9;max-width:600px;line-height:1.6}
+    .collective-stats{display:flex;gap:40px;margin-top:20px}
+    .collective-stat{text-align:center}
+    .collective-stat-value{font-size:32px;font-weight:700;font-family:'JetBrains Mono',monospace}
+    .collective-stat-label{font-size:11px;opacity:0.8}
+    
+    .best-practices{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+    .practice-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:all 0.2s}
+    .practice-card:hover{border-color:var(--purple)}
+    .practice-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .practice-icon{width:40px;height:40px;background:var(--gradient-orange);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .practice-title{font-size:13px;font-weight:600}
+    .practice-meta{font-size:10px;color:var(--dim)}
+    .practice-desc{font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:12px}
+    .practice-adoption{display:flex;align-items:center;gap:8px}
+    .adoption-bar{flex:1;height:6px;background:var(--panel);border-radius:3px;overflow:hidden}
+    .adoption-fill{height:100%;background:var(--gradient-green);border-radius:3px}
+    .adoption-label{font-size:10px;color:var(--dim);min-width:50px}
+    
+    /* Right Panel */
+    .right-panel{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column}
+    .right-header{padding:16px;border-bottom:1px solid var(--border)}
+    .right-title{font-size:13px;font-weight:600;margin-bottom:4px}
+    .right-subtitle{font-size:10px;color:var(--dim)}
+    .right-scroll{flex:1;overflow-y:auto;padding:12px}
+    
+    /* 6-Stage Pipeline */
+    .pipeline{padding:12px}
+    .pipeline-title{font-size:10px;color:var(--dim);text-transform:uppercase;margin-bottom:12px}
+    .pipeline-stage{display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all 0.2s}
+    .pipeline-stage:hover{border-color:var(--border-hover)}
+    .pipeline-stage.active{border-color:var(--cyan);background:rgba(6,182,212,0.05)}
+    .pipeline-stage.complete{border-color:var(--green)}
+    .pipeline-num{width:28px;height:28px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+    .pipeline-stage.active .pipeline-num{background:var(--cyan);color:var(--bg)}
+    .pipeline-stage.complete .pipeline-num{background:var(--green);color:white}
+    .pipeline-info{flex:1}
+    .pipeline-name{font-size:11px;font-weight:600}
+    .pipeline-status{font-size:9px;color:var(--dim)}
+    .pipeline-check{color:var(--green);font-size:14px}
+    
+    /* Activity Feed */
+    .activity{padding:12px;border-top:1px solid var(--border)}
+    .activity-title{font-size:10px;color:var(--dim);text-transform:uppercase;margin-bottom:12px}
+    .activity-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+    .activity-item:last-child{border:none}
+    .activity-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+    .activity-icon.merge{background:rgba(59,130,246,0.2)}
+    .activity-icon.eliminate{background:rgba(239,68,68,0.2)}
+    .activity-icon.learn{background:rgba(139,92,246,0.2)}
+    .activity-icon.capture{background:rgba(16,185,129,0.2)}
+    .activity-content{flex:1;min-width:0}
+    .activity-text{font-size:11px;line-height:1.4}
+    .activity-time{font-size:9px;color:var(--dim);margin-top:2px}
+    
+    /* Toast */
+    .toast{position:fixed;top:76px;right:20px;padding:14px 18px;background:var(--card);border:1px solid var(--border);border-radius:12px;font-size:12px;display:flex;align-items:center;gap:12px;z-index:1000;animation:toastIn 0.3s ease;backdrop-filter:blur(10px);max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,0.4)}
+    @keyframes toastIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+    .toast.success{border-color:var(--green)}
+    .toast.info{border-color:var(--blue)}
+    .toast.warning{border-color:var(--yellow)}
+    .toast-icon{font-size:18px}
+    .toast-content{flex:1}
+    .toast-title{font-weight:600}
+    .toast-desc{font-size:10px;color:var(--dim);margin-top:2px}
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-thumb{background:var(--card);border-radius:3px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--card-hover)}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">🏛️</div>
+        <span class="logo-text">AUTUS</span>
+        <span class="logo-badge">Complete v4.0</span>
+      </div>
+      
+      <div class="header-tabs">
+        <button class="header-tab active" data-stage="1">📚 Templates</button>
+        <button class="header-tab" data-stage="2">📥 Capture</button>
+        <button class="header-tab" data-stage="3">🤖 AI Suggest</button>
+        <button class="header-tab" data-stage="4">📊 Outcomes</button>
+        <button class="header-tab" data-stage="5">🔄 Feedback</button>
+        <button class="header-tab" data-stage="6">🌐 Collective</button>
+      </div>
+      
+      <div class="header-right">
+        <div class="stage-indicator">
+          <div class="stage-dot complete" title="Stage 1">1</div>
+          <div class="stage-dot complete" title="Stage 2">2</div>
+          <div class="stage-dot active" title="Stage 3">3</div>
+          <div class="stage-dot" title="Stage 4">4</div>
+          <div class="stage-dot" title="Stage 5">5</div>
+          <div class="stage-dot" title="Stage 6">6</div>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Left Panel -->
+    <aside class="left-panel">
+      <div class="panel-header">
+        <div class="panel-title">Template Library</div>
+        <input type="text" class="search-box" id="templateSearch" placeholder="Search 200+ templates...">
+      </div>
+      <div class="panel-scroll" id="templateList"></div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Stage 1: Template Marketplace -->
+      <div class="stage-view active" id="stage1">
+        <div class="main-header">
+          <div>
+            <div class="view-title">📚 Template Marketplace</div>
+            <div class="view-subtitle">200+ pre-built templates from global best practices</div>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn secondary">Import from n8n</button>
+            <button class="action-btn primary">+ Create Template</button>
+          </div>
+        </div>
+        <div class="main-scroll">
+          <div class="templates-grid" id="templatesGrid"></div>
+        </div>
+      </div>
+      
+      <!-- Stage 2: Auto Task Capture -->
+      <div class="stage-view" id="stage2">
+        <div class="main-header">
+          <div>
+            <div class="view-title">📥 Auto Task Capture</div>
+            <div class="view-subtitle">Automatically collect tasks from connected apps</div>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn primary" onclick="simulateCapture()">🔄 Sync All</button>
+          </div>
+        </div>
+        <div class="main-scroll">
+          <div class="capture-grid" id="captureGrid"></div>
+          <div class="captured-tasks">
+            <div class="captured-header">
+              <div class="captured-title">📋 Captured Tasks</div>
+              <div class="captured-badge" id="capturedCount">12 new</div>
+            </div>
+            <div class="captured-list" id="capturedList"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Stage 3: AI Suggestions -->
+      <div class="stage-view" id="stage3">
+        <div class="main-header">
+          <div>
+            <div class="view-title">🤖 AI Optimization Suggestions</div>
+            <div class="view-subtitle">Multi-agent analysis with alternative options</div>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn secondary">A/B Test Mode</button>
+            <button class="action-btn primary">Apply All High-Confidence</button>
+          </div>
+        </div>
+        <div class="main-scroll">
+          <div class="suggestions-container">
+            <div class="suggestions-main" id="suggestionsMain"></div>
+            <div class="alternatives" id="alternativesPanel">
+              <div class="alternatives-title">🔀 Alternative Options</div>
+              <div id="alternativesList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Stage 4: Outcome Dashboard -->
+      <div class="stage-view" id="stage4">
+        <div class="main-header">
+          <div>
+            <div class="view-title">📊 Outcome Dashboard</div>
+            <div class="view-subtitle">Track success rates, time saved, and error rates</div>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn secondary">Export Report</button>
+            <button class="action-btn primary">🔄 Refresh</button>
+          </div>
+        </div>
+        <div class="main-scroll">
+          <div class="dashboard-grid" id="dashboardGrid"></div>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-title">📈 Automation Progress Over Time</div>
+              <div class="chart-container"><canvas id="progressChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">🎯 Task Distribution</div>
+              <div class="chart-container"><canvas id="distributionChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Stage 5: Feedback Loop -->
+      <div class="stage-view" id="stage5">
+        <div class="main-header">
+          <div>
+            <div class="view-title">🔄 Feedback & Learning Loop</div>
+            <div class="view-subtitle">Your feedback improves AI accuracy (LoRA fine-tuning)</div>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn primary">💾 Save Learning Data</button>
+          </div>
+        </div>
+        <div class="main-scroll">
+          <div class="feedback-grid">
+            <div class="feedback-card">
+              <div class="feedback-header">
+                <div class="feedback-icon" style="background:var(--gradient-green)">✅</div>
+                <div>
+                  <div class="feedback-title">Recent Actions</div>
+                  <div class="feedback-subtitle">Rate the accuracy of AI suggestions</div>
+                </div>
+              </div>
+              <div id="feedbackList"></div>
+            </div>
+            <div class="feedback-card">
+              <div class="feedback-header">
+                <div class="feedback-icon" style="background:var(--gradient-purple)">🧠</div>
+                <div>
+                  <div class="feedback-title">Learning Progress</div>
+                  <div class="feedback-subtitle">Your personalized model training</div>
+                </div>
+              </div>
+              <div id="learningProgress"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Stage 6: Collective Intelligence -->
+      <div class="stage-view" id="stage6">
+        <div class="main-header">
+          <div>
+            <div class="view-title">🌐 Collective Intelligence</div>
+            <div class="view-subtitle">Learn from anonymized global best practices</div>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn secondary">Opt-out Settings</button>
+            <button class="action-btn primary">🔄 Sync Global Model</button>
+          </div>
+        </div>
+        <div class="main-scroll">
+          <div class="collective-hero">
+            <div class="collective-content">
+              <div class="collective-title">🌍 Global Learning Network</div>
+              <div class="collective-desc">Your anonymized data helps improve AUTUS for everyone. In return, you benefit from insights across 10,000+ organizations worldwide.</div>
+              <div class="collective-stats">
+                <div class="collective-stat">
+                  <div class="collective-stat-value">12,847</div>
+                  <div class="collective-stat-label">Organizations</div>
+                </div>
+                <div class="collective-stat">
+                  <div class="collective-stat-value">2.4M</div>
+                  <div class="collective-stat-label">Tasks Optimized</div>
+                </div>
+                <div class="collective-stat">
+                  <div class="collective-stat-value">847K</div>
+                  <div class="collective-stat-label">Hours Saved</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="best-practices" id="bestPractices"></div>
+        </div>
+      </div>
+    </main>
+    
+    <!-- Right Panel -->
+    <aside class="right-panel">
+      <div class="right-header">
+        <div class="right-title">6-Stage Pipeline</div>
+        <div class="right-subtitle">Closed-loop automation system</div>
+      </div>
+      <div class="right-scroll">
+        <div class="pipeline" id="pipelineStages"></div>
+        <div class="activity">
+          <div class="activity-title">Recent Activity</div>
+          <div id="activityFeed"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTUS Complete System v4.0 - 6-Stage Closed Loop
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Data
+const TEMPLATES = [
+  {id:1,icon:'💰',name:'Invoice Processing',category:'Finance',desc:'Auto-extract, validate, and submit invoices to ERP',users:4500,rating:4.8,time:'15min',badge:'popular'},
+  {id:2,icon:'📧',name:'Email Triage',category:'Communication',desc:'Classify, prioritize, and auto-respond to emails',users:8200,rating:4.9,time:'2min',badge:'popular'},
+  {id:3,icon:'👥',name:'Employee Onboarding',category:'HR',desc:'Complete 47-step onboarding process automation',users:3100,rating:4.7,time:'3days',badge:'new'},
+  {id:4,icon:'📊',name:'Sales Report Generator',category:'Sales',desc:'Weekly sales summary with AI insights',users:5600,rating:4.6,time:'30min',badge:'ai'},
+  {id:5,icon:'🛒',name:'Order Fulfillment',category:'Operations',desc:'End-to-end order processing and shipping',users:2900,rating:4.8,time:'4hours',badge:'popular'},
+  {id:6,icon:'📅',name:'Meeting Scheduler',category:'Productivity',desc:'AI-powered calendar optimization',users:12000,rating:4.9,time:'5min',badge:'ai'},
+  {id:7,icon:'🔐',name:'Access Request',category:'IT',desc:'Role-based access provisioning workflow',users:1800,rating:4.5,time:'2hours'},
+  {id:8,icon:'📝',name:'Contract Review',category:'Legal',desc:'AI clause extraction and risk analysis',users:950,rating:4.7,time:'1hour',badge:'ai'},
+  {id:9,icon:'🎯',name:'OKR Tracking',category:'Management',desc:'Quarterly goal setting and progress tracking',users:3400,rating:4.6,time:'weekly'},
+  {id:10,icon:'🚚',name:'Logistics Optimization',category:'Supply Chain',desc:'Route planning and delivery scheduling',users:1200,rating:4.8,time:'daily',badge:'new'},
+  {id:11,icon:'💳',name:'Expense Approval',category:'Finance',desc:'Multi-level approval with policy checks',users:6700,rating:4.7,time:'10min'},
+  {id:12,icon:'🔧',name:'IT Ticket Routing',category:'IT',desc:'Auto-classify and assign support tickets',users:4100,rating:4.5,time:'instant',badge:'ai'}
+];
+
+const INTEGRATIONS = [
+  {name:'Gmail',icon:'📧',status:'connected',count:23},
+  {name:'Google Calendar',icon:'📅',status:'connected',count:8},
+  {name:'Slack',icon:'💬',status:'connected',count:45},
+  {name:'Outlook',icon:'📬',status:'pending',count:0},
+  {name:'Notion',icon:'📝',status:'connected',count:12},
+  {name:'SAP ERP',icon:'🏢',status:'pending',count:0}
+];
+
+const CAPTURED_TASKS = [
+  {id:1,name:'Review Q4 budget proposal',source:'Gmail',time:'2min ago',icon:'📧'},
+  {id:2,name:'Team standup meeting',source:'Calendar',time:'5min ago',icon:'📅'},
+  {id:3,name:'Deploy hotfix to production',source:'Slack',time:'12min ago',icon:'💬'},
+  {id:4,name:'Approve vendor invoice #4521',source:'Gmail',time:'18min ago',icon:'📧'},
+  {id:5,name:'Update project documentation',source:'Notion',time:'25min ago',icon:'📝'},
+  {id:6,name:'Schedule client call',source:'Slack',time:'32min ago',icon:'💬'},
+  {id:7,name:'Review pull request #892',source:'Slack',time:'45min ago',icon:'💬'},
+  {id:8,name:'Quarterly planning session',source:'Calendar',time:'1h ago',icon:'📅'}
+];
+
+const SUGGESTIONS = [
+  {
+    type:'merge',
+    title:'Merge Invoice Tasks',
+    confidence:94,
+    reason:'Tasks #4 and #11 both involve invoice processing with 89% similar steps. Merging would eliminate 12 redundant actions.',
+    preview:{time:'+35%',errors:'-42%',cost:'-$280/mo'},
+    alternatives:[
+      {name:'Partial Merge',confidence:78,desc:'Merge validation steps only'},
+      {name:'Sequential Link',confidence:65,desc:'Keep separate but auto-trigger'},
+      {name:'No Action',confidence:23,desc:'Maintain current workflow'}
+    ]
+  },
+  {
+    type:'eliminate',
+    title:'Auto-Complete Report Generation',
+    confidence:98,
+    reason:'This task has been 100% automated for 30 days with 0 errors across 847 executions. Ready for full elimination.',
+    preview:{time:'+2h/week',errors:'0%',cost:'-$150/mo'},
+    alternatives:[
+      {name:'Monitor Mode',confidence:85,desc:'Auto-run but keep logs visible'},
+      {name:'Weekly Digest',confidence:72,desc:'Summarize instead of detail'},
+      {name:'Keep Manual',confidence:15,desc:'Revert to manual process'}
+    ]
+  },
+  {
+    type:'automate',
+    title:'Upgrade Email Triage to L3',
+    confidence:87,
+    reason:'Pattern analysis shows 92% of your email actions follow predictable rules. Upgrading to L3 will enable autonomous response.',
+    preview:{time:'+45min/day',errors:'+2%',cost:'-$420/mo'},
+    alternatives:[
+      {name:'L2 + Approval',confidence:91,desc:'Auto-draft, manual send'},
+      {name:'Category-specific',confidence:76,desc:'Only automate newsletters'},
+      {name:'Current L1',confidence:45,desc:'Keep classification only'}
+    ]
+  }
+];
+
+const FEEDBACK_ITEMS = [
+  {id:1,name:'Invoice Merge',type:'merge',time:'2h ago',result:'success'},
+  {id:2,name:'Email Auto-Response',type:'automate',time:'5h ago',result:'success'},
+  {id:3,name:'Report Elimination',type:'eliminate',time:'1d ago',result:'success'},
+  {id:4,name:'Meeting Scheduler',type:'automate',time:'2d ago',result:'partial'},
+  {id:5,name:'Expense Approval',type:'merge',time:'3d ago',result:'failed'}
+];
+
+const BEST_PRACTICES = [
+  {icon:'💰',title:'Finance → Invoice Zero-Touch',desc:'87% of Finance teams eliminated manual invoice processing within 60 days',adoption:87,category:'Finance'},
+  {icon:'📧',title:'Email → AI Response Templates',desc:'Top performers use AI-generated templates with 94% acceptance rate',adoption:72,category:'Communication'},
+  {icon:'👥',title:'HR → Onboarding Automation',desc:'Complete employee onboarding reduced from 5 days to 4 hours',adoption:65,category:'HR'},
+  {icon:'📊',title:'Sales → Predictive Reporting',desc:'Weekly reports auto-generated with 98% accuracy',adoption:58,category:'Sales'}
+];
+
+const STAGES = [
+  {num:1,name:'Pre-training',status:'Templates loaded',complete:true},
+  {num:2,name:'Task Capture',status:'12 tasks collected',complete:true},
+  {num:3,name:'AI Suggestions',status:'3 recommendations',complete:false,active:true},
+  {num:4,name:'Outcome Tracking',status:'Pending results',complete:false},
+  {num:5,name:'Feedback Loop',status:'Awaiting feedback',complete:false},
+  {num:6,name:'Collective Sync',status:'Next sync: 2h',complete:false}
+];
+
+const ACTIVITIES = [
+  {icon:'capture',text:'Captured 5 tasks from <b>Gmail</b>',time:'2 min ago'},
+  {icon:'learn',text:'AI learned from your feedback',time:'15 min ago'},
+  {icon:'merge',text:'Merged <b>Invoice #4521</b> workflow',time:'1h ago'},
+  {icon:'eliminate',text:'Eliminated <b>Report Gen</b> task',time:'3h ago'},
+  {icon:'learn',text:'Global model updated (+0.3% accuracy)',time:'6h ago'}
+];
+
+// State
+let currentStage = 1;
+let feedbackData = {};
+
+// Helpers
+const $=id=>document.getElementById(id);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Render Functions
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function renderTemplateList(){
+  const categories = [...new Set(TEMPLATES.map(t=>t.category))];
+  $('templateList').innerHTML = categories.map(cat=>{
+    const items = TEMPLATES.filter(t=>t.category===cat);
+    return `
+      <div class="template-section">
+        <div class="template-section-title">${cat} <span class="template-count">${items.length}</span></div>
+        ${items.map(t=>`
+          <div class="template-card" onclick="selectTemplate(${t.id})">
+            <div class="template-header">
+              <div class="template-icon">${t.icon}</div>
+              <div class="template-info">
+                <div class="template-name">${t.name}</div>
+                <div class="template-meta">${t.users.toLocaleString()} users</div>
+              </div>
+              ${t.badge?`<span class="template-badge ${t.badge}">${t.badge}</span>`:''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTemplatesGrid(){
+  $('templatesGrid').innerHTML = TEMPLATES.map(t=>`
+    <div class="template-big-card" onclick="selectTemplate(${t.id})">
+      <div class="template-big-header">
+        <div class="template-big-icon">${t.icon}</div>
+        <div class="template-big-info">
+          <div class="template-big-name">${t.name}</div>
+          <div class="template-big-desc">${t.desc}</div>
+        </div>
+        ${t.badge?`<span class="template-badge ${t.badge}">${t.badge.toUpperCase()}</span>`:''}
+      </div>
+      <div class="template-big-stats">
+        <div class="template-big-stat">👥 <span class="value">${t.users.toLocaleString()}</span> users</div>
+        <div class="template-big-stat">⭐ <span class="value">${t.rating}</span></div>
+        <div class="template-big-stat">⏱️ <span class="value">${t.time}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCaptureGrid(){
+  $('captureGrid').innerHTML = INTEGRATIONS.map(i=>`
+    <div class="capture-card ${i.status==='connected'?'connected':''}" onclick="toggleIntegration('${i.name}')">
+      <div class="capture-icon">${i.icon}</div>
+      <div class="capture-name">${i.name}</div>
+      <div class="capture-status ${i.status==='connected'?'online':'offline'}">${i.status==='connected'?'● Connected':'○ Connect'}</div>
+      ${i.count>0?`<div class="capture-count">${i.count} tasks captured</div>`:''}
+    </div>
+  `).join('');
+  
+  $('capturedList').innerHTML = CAPTURED_TASKS.map(t=>`
+    <div class="captured-item">
+      <div class="captured-item-icon">${t.icon}</div>
+      <div class="captured-item-info">
+        <div class="captured-item-name">${t.name}</div>
+        <div class="captured-item-source">${t.source} · ${t.time}</div>
+      </div>
+      <button class="captured-item-action" onclick="addToWorkflow(${t.id})">+ Add</button>
+    </div>
+  `).join('');
+}
+
+function renderSuggestions(){
+  $('suggestionsMain').innerHTML = SUGGESTIONS.map((s,i)=>`
+    <div class="suggestion-card ${i===0?'recommended':''}">
+      <div class="suggestion-header">
+        <div class="suggestion-type">
+          <div class="suggestion-type-icon ${s.type}">${s.type==='merge'?'🧲':s.type==='eliminate'?'🕳️':'⚡'}</div>
+          <div class="suggestion-title">${s.title}</div>
+        </div>
+        <div class="suggestion-confidence ${s.confidence>=90?'high':'medium'}">${s.confidence}%</div>
+      </div>
+      <div class="suggestion-reason">
+        <strong>🤖 Why this suggestion?</strong>
+        ${s.reason}
+      </div>
+      <div class="suggestion-preview">
+        <div class="preview-title">📈 Expected Outcome (Simulation)</div>
+        <div class="preview-metrics">
+          <div class="preview-metric">
+            <div class="preview-metric-value positive">${s.preview.time}</div>
+            <div class="preview-metric-label">Time Saved</div>
+          </div>
+          <div class="preview-metric">
+            <div class="preview-metric-value ${s.preview.errors.startsWith('-')?'positive':'negative'}">${s.preview.errors}</div>
+            <div class="preview-metric-label">Error Rate</div>
+          </div>
+          <div class="preview-metric">
+            <div class="preview-metric-value positive">${s.preview.cost}</div>
+            <div class="preview-metric-label">Cost Impact</div>
+          </div>
+        </div>
+      </div>
+      <div class="suggestion-actions">
+        <button class="suggestion-btn apply" onclick="applySuggestion(${i})">✓ Apply</button>
+        <button class="suggestion-btn skip" onclick="skipSuggestion(${i})">Skip</button>
+      </div>
+    </div>
+  `).join('');
+  
+  // Render first suggestion's alternatives
+  renderAlternatives(0);
+}
+
+function renderAlternatives(suggestionIndex){
+  const alts = SUGGESTIONS[suggestionIndex]?.alternatives || [];
+  $('alternativesList').innerHTML = alts.map((a,i)=>`
+    <div class="alternative-item ${i===0?'selected':''}" onclick="selectAlternative(${suggestionIndex},${i})">
+      <div class="alternative-header">
+        <div class="alternative-name">${a.name}</div>
+        <div class="alternative-confidence">${a.confidence}%</div>
+      </div>
+      <div class="alternative-desc">${a.desc}</div>
+    </div>
+  `).join('');
+}
+
+function renderDashboard(){
+  const metrics = [
+    {icon:'✅',label:'Success Rate',value:'94.2%',trend:'up',change:'+2.1%',color:'var(--gradient-green)'},
+    {icon:'⏱️',label:'Time Saved',value:'127h',trend:'up',change:'+18h',color:'var(--gradient-blue)'},
+    {icon:'⚠️',label:'Error Rate',value:'1.8%',trend:'down',change:'-0.5%',color:'var(--gradient-orange)'},
+    {icon:'💰',label:'Cost Saved',value:'$4,280',trend:'up',change:'+$620',color:'var(--gradient-purple)'}
+  ];
+  
+  $('dashboardGrid').innerHTML = metrics.map(m=>`
+    <div class="dashboard-card">
+      <div class="dashboard-card-icon" style="background:${m.color}">${m.icon}</div>
+      <div class="dashboard-card-value">${m.value}</div>
+      <div class="dashboard-card-label">${m.label}</div>
+      <div class="dashboard-card-trend ${m.trend}">${m.trend==='up'?'↑':'↓'} ${m.change} this month</div>
+    </div>
+  `).join('');
+  
+  // Charts
+  setTimeout(()=>{
+    // Progress Chart
+    const ctx1 = $('progressChart')?.getContext('2d');
+    if(ctx1){
+      new Chart(ctx1,{
+        type:'line',
+        data:{
+          labels:['Week 1','Week 2','Week 3','Week 4','Week 5','Week 6'],
+          datasets:[{
+            label:'Automation %',
+            data:[45,52,58,67,78,84],
+            borderColor:'#06b6d4',
+            backgroundColor:'rgba(6,182,212,0.1)',
+            fill:true,
+            tension:0.4
+          }]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b'}},
+            y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b'}}
+          }
+        }
+      });
+    }
+    
+    // Distribution Chart
+    const ctx2 = $('distributionChart')?.getContext('2d');
+    if(ctx2){
+      new Chart(ctx2,{
+        type:'doughnut',
+        data:{
+          labels:['Automated','In Progress','Manual'],
+          datasets:[{
+            data:[65,25,10],
+            backgroundColor:['#10b981','#f59e0b','#ef4444']
+          }]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{legend:{position:'bottom',labels:{color:'#94a3b8',padding:12}}}
+        }
+      });
+    }
+  },100);
+}
+
+function renderFeedback(){
+  $('feedbackList').innerHTML = FEEDBACK_ITEMS.map(f=>`
+    <div class="feedback-item">
+      <div class="feedback-item-icon">${f.type==='merge'?'🧲':f.type==='eliminate'?'🕳️':'⚡'}</div>
+      <div class="feedback-item-info">
+        <div class="feedback-item-name">${f.name}</div>
+        <div class="feedback-item-meta">${f.time} · ${f.result}</div>
+      </div>
+      <div class="feedback-buttons">
+        <button class="feedback-btn positive ${feedbackData[f.id]==='good'?'selected':''}" onclick="setFeedback(${f.id},'good')">👍</button>
+        <button class="feedback-btn negative ${feedbackData[f.id]==='bad'?'selected':''}" onclick="setFeedback(${f.id},'bad')">👎</button>
+      </div>
+    </div>
+  `).join('');
+  
+  // Learning progress
+  const totalFeedback = Object.keys(feedbackData).length;
+  const progress = Math.min(100, totalFeedback * 10);
+  $('learningProgress').innerHTML = `
+    <div class="learning-progress">
+      <div class="progress-label">
+        <span>Model Personalization</span>
+        <span>${progress}%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${progress}%;background:var(--gradient-purple)"></div>
+      </div>
+    </div>
+    <div class="learning-progress" style="margin-top:16px">
+      <div class="progress-label">
+        <span>Feedback Collected</span>
+        <span>${totalFeedback}/10</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${totalFeedback*10}%;background:var(--gradient-green)"></div>
+      </div>
+    </div>
+    <div class="learning-progress" style="margin-top:16px">
+      <div class="progress-label">
+        <span>LoRA Fine-tuning</span>
+        <span>${progress>=50?'Active':'Waiting for data'}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${Math.max(0,progress-50)*2}%;background:var(--gradient-cyan)"></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCollective(){
+  $('bestPractices').innerHTML = BEST_PRACTICES.map(p=>`
+    <div class="practice-card">
+      <div class="practice-header">
+        <div class="practice-icon">${p.icon}</div>
+        <div>
+          <div class="practice-title">${p.title}</div>
+          <div class="practice-meta">${p.category}</div>
+        </div>
+      </div>
+      <div class="practice-desc">${p.desc}</div>
+      <div class="practice-adoption">
+        <div class="adoption-bar">
+          <div class="adoption-fill" style="width:${p.adoption}%"></div>
+        </div>
+        <div class="adoption-label">${p.adoption}% adoption</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderPipeline(){
+  $('pipelineStages').innerHTML = `
+    <div class="pipeline-title">6-Stage Loop Status</div>
+    ${STAGES.map(s=>`
+      <div class="pipeline-stage ${s.complete?'complete':''} ${s.active?'active':''}" onclick="goToStage(${s.num})">
+        <div class="pipeline-num">${s.complete?'✓':s.num}</div>
+        <div class="pipeline-info">
+          <div class="pipeline-name">${s.name}</div>
+          <div class="pipeline-status">${s.status}</div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderActivity(){
+  $('activityFeed').innerHTML = ACTIVITIES.map(a=>`
+    <div class="activity-item">
+      <div class="activity-icon ${a.icon}">${a.icon==='merge'?'🧲':a.icon==='eliminate'?'🕳️':a.icon==='learn'?'🧠':'📥'}</div>
+      <div class="activity-content">
+        <div class="activity-text">${a.text}</div>
+        <div class="activity-time">${a.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Actions
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function goToStage(num){
+  currentStage = num;
+  document.querySelectorAll('.header-tab').forEach((tab,i)=>{
+    tab.classList.toggle('active',i+1===num);
+  });
+  document.querySelectorAll('.stage-view').forEach((view,i)=>{
+    view.classList.toggle('active',i+1===num);
+  });
+  
+  // Render stage content
+  if(num===1) renderTemplatesGrid();
+  if(num===2) renderCaptureGrid();
+  if(num===3) renderSuggestions();
+  if(num===4) renderDashboard();
+  if(num===5) renderFeedback();
+  if(num===6) renderCollective();
+}
+
+function selectTemplate(id){
+  const t = TEMPLATES.find(x=>x.id===id);
+  toast('Template Selected',`${t.icon} ${t.name} added to your workspace`,'success');
+  addActivity('capture',`Applied template <b>${t.name}</b>`);
+}
+
+function toggleIntegration(name){
+  const i = INTEGRATIONS.find(x=>x.name===name);
+  if(i.status==='connected'){
+    toast('Already Connected',`${name} is syncing tasks`,'info');
+  }else{
+    i.status='connected';
+    i.count=Math.floor(Math.random()*20)+5;
+    renderCaptureGrid();
+    toast('Connected',`${name} is now syncing`,'success');
+    addActivity('capture',`Connected <b>${name}</b>`);
+  }
+}
+
+function simulateCapture(){
+  const newTasks = 3 + Math.floor(Math.random()*5);
+  toast('Sync Complete',`${newTasks} new tasks captured`,'success');
+  addActivity('capture',`Captured ${newTasks} tasks`);
+}
+
+function addToWorkflow(id){
+  const t = CAPTURED_TASKS.find(x=>x.id===id);
+  toast('Task Added',`${t.name} added to workflow`,'success');
+}
+
+function applySuggestion(index){
+  const s = SUGGESTIONS[index];
+  toast('Applied',`${s.title} executed successfully`,'success');
+  addActivity(s.type,`Applied <b>${s.title}</b>`);
+  STAGES[2].complete = true;
+  STAGES[2].active = false;
+  STAGES[3].active = true;
+  renderPipeline();
+}
+
+function skipSuggestion(index){
+  toast('Skipped','Suggestion dismissed','info');
+}
+
+function selectAlternative(suggestionIndex, altIndex){
+  document.querySelectorAll('.alternative-item').forEach((el,i)=>{
+    el.classList.toggle('selected',i===altIndex);
+  });
+}
+
+function setFeedback(id, rating){
+  feedbackData[id] = rating;
+  renderFeedback();
+  toast('Feedback Saved','AI learning from your input','success');
+  addActivity('learn','Feedback recorded');
+}
+
+function addActivity(type, text){
+  ACTIVITIES.unshift({icon:type,text,time:'Just now'});
+  if(ACTIVITIES.length>10) ACTIVITIES.pop();
+  renderActivity();
+}
+
+function toast(title,desc,type='info'){
+  const existing = document.querySelector('.toast');
+  if(existing) existing.remove();
+  
+  const icons = {success:'✅',info:'ℹ️',warning:'⚠️'};
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `
+    <span class="toast-icon">${icons[type]}</span>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      <div class="toast-desc">${desc}</div>
+    </div>
+  `;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Events
+// ═══════════════════════════════════════════════════════════════════════════════
+
+document.querySelectorAll('.header-tab').forEach((tab,i)=>{
+  tab.addEventListener('click',()=>goToStage(i+1));
+});
+
+document.querySelectorAll('.stage-dot').forEach((dot,i)=>{
+  dot.addEventListener('click',()=>goToStage(i+1));
+});
+
+$('templateSearch').addEventListener('input',e=>{
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('.template-card').forEach(card=>{
+    const name = card.querySelector('.template-name').textContent.toLowerCase();
+    card.style.display = name.includes(q)?'block':'none';
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Init
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function init(){
+  renderTemplateList();
+  renderTemplatesGrid();
+  renderPipeline();
+  renderActivity();
+}
+
+init();
+</script>
+</body>
+</html>

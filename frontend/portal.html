@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTUS - Portal</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◉</text></svg>" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-deep: #030712;
+      --bg-surface: rgba(15, 23, 42, 0.85);
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --accent-indigo: #6366f1;
+      --accent-violet: #8b5cf6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #475569;
+    }
+    
+    html, body { height: 100%; overflow: hidden; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+    }
+    
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      background: rgba(3, 7, 18, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-glass);
+      z-index: 1000;
+    }
+    
+    .header-left { display: flex; align-items: center; gap: 1rem; }
+    
+    .back-btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+    
+    .back-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+    
+    .page-title { font-size: 1rem; font-weight: 600; }
+    
+    .nav-links { display: flex; gap: 0.5rem; }
+    
+    .nav-link {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    
+    .nav-link:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+    .nav-link.active { background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet)); border: none; }
+    
+    .container { display: grid; grid-template-columns: 1fr 320px; height: calc(100vh - 56px); margin-top: 56px; }
+    
+    .map-area { position: relative; }
+    
+    #map { width: 100%; height: 100%; background: var(--bg-deep); }
+    
+    .leaflet-control-attribution { display: none; }
+    
+    .node-marker {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 0 20px currentColor;
+      animation: pulse-marker 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-marker {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    
+    .leaflet-popup-content-wrapper {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+    }
+    
+    .leaflet-popup-tip { background: var(--bg-surface); }
+    
+    .panel {
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid var(--border-glass);
+      padding: 1.25rem;
+      overflow-y: auto;
+    }
+    
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 1.25rem 0 0.75rem;
+    }
+    
+    .section-label:first-child { margin-top: 0; }
+    
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    
+    .stat-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 14px;
+      padding: 1rem;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    
+    .stat-card:hover {
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+    
+    .node-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    
+    .node-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .node-item:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--accent-indigo);
+    }
+    
+    .node-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .node-info { flex: 1; }
+    .node-name { font-size: 0.9rem; font-weight: 500; }
+    .node-type { font-size: 0.75rem; color: var(--text-muted); }
+    .node-score { font-weight: 600; font-size: 0.85rem; }
+    
+    .gate-status {
+      padding: 1rem;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+      border: 1px solid var(--accent-indigo);
+      border-radius: 14px;
+      text-align: center;
+    }
+    
+    .gate-badge {
+      display: inline-block;
+      padding: 0.5rem 1.5rem;
+      background: var(--accent-emerald);
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #000;
+    }
+    
+    .gate-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a href="/" class="back-btn">← 홈</a>
+      <span class="page-title">◉ Portal</span>
+    </div>
+    <nav class="nav-links">
+      <a href="/portal.html" class="nav-link active">◉</a>
+      <a href="/k2-operator.html" class="nav-link">⬡</a>
+      <a href="/k10-observer.html" class="nav-link">◎</a>
+      <a href="/automation.html" class="nav-link">🤖</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="map-area">
+      <div id="map"></div>
+    </div>
+    
+    <aside class="panel">
+      <div class="section-label">시스템 현황</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">12</div>
+          <div class="stat-label">활성 노드</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">0.42</div>
+          <div class="stat-label">ΔṠ</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">87%</div>
+          <div class="stat-label">연결성</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">K2</div>
+          <div class="stat-label">스케일</div>
+        </div>
+      </div>
+      
+      <div class="section-label">Gate 상태</div>
+      <div class="gate-status">
+        <span class="gate-badge">PASS</span>
+        <div class="gate-desc">시스템 정상 운영 중</div>
+      </div>
+      
+      <div class="section-label">노드 목록</div>
+      <div class="node-list" id="nodeList"></div>
+    </aside>
+  </div>
+
+  <script>
+    const NODES = [
+      { id: 1, name: '본사', type: 'HQ', lat: 37.5665, lng: 126.9780, score: 8.5, color: '#6366f1' },
+      { id: 2, name: '강남지점', type: 'Branch', lat: 37.4979, lng: 127.0276, score: 7.2, color: '#10b981' },
+      { id: 3, name: '판교R&D', type: 'R&D', lat: 37.3947, lng: 127.1119, score: 9.1, color: '#8b5cf6' },
+      { id: 4, name: '인천물류', type: 'Logistics', lat: 37.4563, lng: 126.7052, score: 6.8, color: '#f59e0b' },
+      { id: 5, name: '부산지사', type: 'Branch', lat: 35.1796, lng: 129.0756, score: 7.5, color: '#06b6d4' },
+      { id: 6, name: '대전센터', type: 'Center', lat: 36.3504, lng: 127.3845, score: 8.0, color: '#ec4899' },
+    ];
+    
+    // Leaflet Map
+    const map = L.map('map', { center: [36.5, 127.5], zoom: 7, zoomControl: false });
+    
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+    
+    NODES.forEach(n => {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div class="node-marker" style="background: ${n.color}; border: 2px solid rgba(255,255,255,0.3);">${n.score}</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+      
+      L.marker([n.lat, n.lng], { icon }).addTo(map)
+        .bindPopup(`<div style="color: var(--text-primary); padding: 0.5rem;">
+          <strong>${n.name}</strong><br/>
+          <span style="color: var(--text-muted);">${n.type}</span>
+        </div>`);
+    });
+    
+    document.getElementById('nodeList').innerHTML = NODES.map(n => `
+      <div class="node-item" data-id="${n.id}">
+        <div class="node-dot" style="background: ${n.color}; box-shadow: 0 0 8px ${n.color}"></div>
+        <div class="node-info">
+          <div class="node-name">${n.name}</div>
+          <div class="node-type">${n.type}</div>
+        </div>
+        <span class="node-score" style="color: ${n.color}">${n.score}</span>
+      </div>
+    `).join('');
+    
+    document.querySelectorAll('.node-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const node = NODES.find(n => n.id === parseInt(item.dataset.id));
+        map.flyTo([node.lat, node.lng], 10, { duration: 1 });
+      });
+    });
+  </script>
+</body>
+</html>

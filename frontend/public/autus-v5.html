@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS v5.0 - Multi-Role Business Automation</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#030507;--panel:#080b10;--card:#0d1117;--card-hover:#151c25;
+      --border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);
+      --text:#f0f4f8;--text-secondary:#94a3b8;--dim:#64748b;
+      --cyan:#06b6d4;--green:#10b981;--yellow:#f59e0b;--orange:#f97316;--red:#ef4444;--purple:#8b5cf6;--blue:#3b82f6;--pink:#ec4899;--indigo:#6366f1;
+      --role-employee:#10b981;--role-leader:#3b82f6;--role-executive:#8b5cf6;--role-admin:#f97316;
+    }
+    
+    body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+    
+    /* Layout */
+    .app{display:flex;flex-direction:column;min-height:100vh}
+    
+    /* Header */
+    .header{background:var(--panel);border-bottom:1px solid var(--border);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .header-left{display:flex;align-items:center;gap:24px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--cyan),var(--blue));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 20px rgba(6,182,212,0.3)}
+    .logo-text{font-size:20px;font-weight:800;letter-spacing:-0.5px}
+    .logo-version{font-size:10px;padding:4px 8px;background:linear-gradient(135deg,var(--purple),var(--pink));border-radius:6px;font-weight:600}
+    
+    /* Role Selector */
+    .role-selector{position:relative}
+    .role-btn{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s}
+    .role-btn:hover{border-color:var(--border-hover);background:var(--card-hover)}
+    .role-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+    .role-info{text-align:left}
+    .role-name{font-size:13px;font-weight:600}
+    .role-type{font-size:10px;color:var(--dim)}
+    .role-arrow{color:var(--dim);font-size:12px;transition:transform 0.2s}
+    .role-selector.open .role-arrow{transform:rotate(180deg)}
+    
+    .role-dropdown{position:absolute;top:calc(100% + 8px);left:0;width:280px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:8px;display:none;box-shadow:0 20px 40px rgba(0,0,0,0.4)}
+    .role-selector.open .role-dropdown{display:block}
+    .role-option{display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;cursor:pointer;transition:all 0.2s}
+    .role-option:hover{background:var(--card)}
+    .role-option.active{background:var(--card);border:1px solid var(--border-hover)}
+    .role-option-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .role-option-info{flex:1}
+    .role-option-name{font-size:13px;font-weight:600}
+    .role-option-desc{font-size:10px;color:var(--dim)}
+    .role-option-check{color:var(--green);font-size:16px;opacity:0}
+    .role-option.active .role-option-check{opacity:1}
+    
+    /* Header Center - Navigation */
+    .header-nav{display:flex;gap:4px;background:var(--card);border-radius:10px;padding:4px}
+    .nav-btn{padding:10px 18px;background:none;border:none;color:var(--dim);font-size:12px;font-weight:500;cursor:pointer;border-radius:8px;transition:all 0.2s;display:flex;align-items:center;gap:6px}
+    .nav-btn:hover{color:var(--text);background:rgba(255,255,255,0.03)}
+    .nav-btn.active{background:var(--blue);color:white}
+    .nav-btn.hidden{display:none}
+    
+    /* Header Right */
+    .header-right{display:flex;align-items:center;gap:16px}
+    .header-stats{display:flex;gap:12px}
+    .header-stat{text-align:center;padding:6px 12px;background:var(--card);border-radius:8px;min-width:70px}
+    .header-stat-value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700}
+    .header-stat-label{font-size:9px;color:var(--dim);text-transform:uppercase}
+    .notification-btn{width:40px;height:40px;background:var(--card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:16px}
+    .notification-badge{position:absolute;top:-4px;right:-4px;width:18px;height:18px;background:var(--red);border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+    
+    /* Main Content */
+    .main{flex:1;padding:24px;max-width:1600px;margin:0 auto;width:100%}
+    
+    /* Dashboard Grid */
+    .dashboard{display:none}
+    .dashboard.active{display:block}
+    
+    /* Welcome Section */
+    .welcome{margin-bottom:24px}
+    .welcome-title{font-size:28px;font-weight:800;margin-bottom:6px}
+    .welcome-subtitle{color:var(--dim);font-size:14px}
+    
+    /* Stats Grid */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;transition:all 0.2s;position:relative;overflow:hidden}
+    .stat-card:hover{border-color:var(--border-hover);transform:translateY(-2px)}
+    .stat-card::before{content:'';position:absolute;top:0;right:0;width:100px;height:100px;border-radius:50%;filter:blur(40px);opacity:0.15}
+    .stat-card.cyan::before{background:var(--cyan)}
+    .stat-card.green::before{background:var(--green)}
+    .stat-card.purple::before{background:var(--purple)}
+    .stat-card.orange::before{background:var(--orange)}
+    .stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
+    .stat-value{font-size:32px;font-weight:800;font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+    .stat-label{font-size:12px;color:var(--dim)}
+    .stat-trend{position:absolute;top:20px;right:20px;font-size:11px;padding:4px 8px;border-radius:6px;font-weight:600}
+    .stat-trend.up{background:rgba(16,185,129,0.15);color:var(--green)}
+    .stat-trend.down{background:rgba(239,68,68,0.15);color:var(--red)}
+    
+    /* Content Grid */
+    .content-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+    .content-grid.single{grid-template-columns:1fr}
+    .content-grid.three{grid-template-columns:repeat(3,1fr)}
+    
+    /* Card */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+    .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .card-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+    .card-action{padding:8px 14px;background:var(--panel);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:11px;cursor:pointer;transition:all 0.2s}
+    .card-action:hover{border-color:var(--cyan);color:var(--cyan)}
+    
+    /* Task List */
+    .task-list{display:flex;flex-direction:column;gap:10px}
+    .task-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--panel);border-radius:10px;transition:all 0.2s;cursor:pointer}
+    .task-item:hover{background:var(--card-hover)}
+    .task-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .task-info{flex:1}
+    .task-name{font-size:13px;font-weight:500;margin-bottom:3px}
+    .task-meta{font-size:10px;color:var(--dim)}
+    .task-progress{width:60px}
+    .task-progress-bar{height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden}
+    .task-progress-fill{height:100%;border-radius:3px}
+    .task-percent{font-size:10px;color:var(--dim);text-align:right;margin-top:3px}
+    .task-actions{display:flex;gap:6px}
+    .task-action-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all 0.2s}
+    .task-action-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+    
+    /* Chart Container */
+    .chart-container{height:220px;position:relative}
+    
+    /* Team List */
+    .team-list{display:flex;flex-direction:column;gap:8px}
+    .team-member{display:flex;align-items:center;gap:12px;padding:12px;background:var(--panel);border-radius:10px}
+    .team-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+    .team-info{flex:1}
+    .team-name{font-size:12px;font-weight:500}
+    .team-role{font-size:10px;color:var(--dim)}
+    .team-status{width:8px;height:8px;border-radius:50%}
+    .team-status.online{background:var(--green);box-shadow:0 0 8px var(--green)}
+    .team-status.away{background:var(--yellow)}
+    .team-status.offline{background:var(--dim)}
+    
+    /* KPI Grid */
+    .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .kpi-card{background:var(--panel);border-radius:10px;padding:16px;text-align:center}
+    .kpi-value{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace}
+    .kpi-label{font-size:10px;color:var(--dim);margin-top:4px}
+    .kpi-trend{font-size:10px;margin-top:6px}
+    
+    /* Admin Tables */
+    .admin-table{width:100%;border-collapse:collapse}
+    .admin-table th{text-align:left;padding:12px;font-size:11px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border)}
+    .admin-table td{padding:12px;font-size:12px;border-bottom:1px solid var(--border)}
+    .admin-table tr:hover td{background:var(--panel)}
+    .user-cell{display:flex;align-items:center;gap:10px}
+    .user-cell-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+    .status-badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600}
+    .status-badge.active{background:rgba(16,185,129,0.15);color:var(--green)}
+    .status-badge.pending{background:rgba(245,158,11,0.15);color:var(--yellow)}
+    .status-badge.inactive{background:rgba(100,116,139,0.15);color:var(--dim)}
+    
+    /* Settings Grid */
+    .settings-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+    .setting-card{background:var(--panel);border-radius:12px;padding:20px}
+    .setting-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .setting-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .setting-title{font-size:13px;font-weight:600}
+    .setting-desc{font-size:11px;color:var(--dim);margin-bottom:12px}
+    .setting-toggle{width:48px;height:26px;background:var(--card);border-radius:13px;padding:3px;cursor:pointer;transition:all 0.2s}
+    .setting-toggle.on{background:var(--green)}
+    .setting-toggle-knob{width:20px;height:20px;background:white;border-radius:50%;transition:transform 0.2s}
+    .setting-toggle.on .setting-toggle-knob{transform:translateX(22px)}
+    
+    /* Insights */
+    .insight-list{display:flex;flex-direction:column;gap:12px}
+    .insight-item{padding:16px;background:var(--panel);border-radius:10px;border-left:4px solid var(--purple)}
+    .insight-title{font-size:12px;font-weight:600;margin-bottom:6px}
+    .insight-desc{font-size:11px;color:var(--dim);line-height:1.5}
+    .insight-action{margin-top:10px}
+    .insight-btn{padding:8px 14px;background:var(--purple);border:none;border-radius:6px;color:white;font-size:10px;font-weight:600;cursor:pointer}
+    
+    /* Global Benchmark */
+    .benchmark-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .benchmark-card{background:var(--panel);border-radius:12px;padding:20px;text-align:center}
+    .benchmark-icon{font-size:32px;margin-bottom:12px}
+    .benchmark-value{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace}
+    .benchmark-label{font-size:11px;color:var(--dim);margin-top:4px}
+    .benchmark-compare{font-size:10px;margin-top:10px;padding:6px 12px;background:var(--card);border-radius:20px;display:inline-block}
+    
+    /* Permission Matrix */
+    .permission-table{width:100%;border-collapse:collapse;font-size:11px}
+    .permission-table th,.permission-table td{padding:10px;text-align:center;border-bottom:1px solid var(--border)}
+    .permission-table th:first-child,.permission-table td:first-child{text-align:left}
+    .permission-check{color:var(--green)}
+    .permission-x{color:var(--red)}
+    
+    /* Toast */
+    .toast{position:fixed;top:80px;right:24px;padding:16px 20px;background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:12px;z-index:1000;animation:toastIn 0.3s ease;box-shadow:0 20px 50px rgba(0,0,0,0.4)}
+    @keyframes toastIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+    .toast.success{border-color:var(--green)}
+    .toast.info{border-color:var(--blue)}
+    .toast-icon{font-size:20px}
+    .toast-content{flex:1}
+    .toast-title{font-weight:600;font-size:13px}
+    .toast-desc{font-size:11px;color:var(--dim);margin-top:2px}
+    
+    /* Responsive */
+    @media(max-width:1200px){.stats-grid{grid-template-columns:repeat(2,1fr)}.content-grid{grid-template-columns:1fr}.content-grid.three{grid-template-columns:1fr 1fr}}
+    @media(max-width:800px){.header-nav{display:none}.stats-grid{grid-template-columns:1fr}.header-stats{display:none}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <div class="logo-icon">🏛️</div>
+          <span class="logo-text">AUTUS</span>
+          <span class="logo-version">v5.0</span>
+        </div>
+        
+        <!-- Role Selector -->
+        <div class="role-selector" id="roleSelector">
+          <div class="role-btn" onclick="toggleRoleSelector()">
+            <div class="role-avatar" id="currentRoleAvatar" style="background:var(--role-employee)">👤</div>
+            <div class="role-info">
+              <div class="role-name" id="currentRoleName">김직원</div>
+              <div class="role-type" id="currentRoleType">일반 직원</div>
+            </div>
+            <span class="role-arrow">▼</span>
+          </div>
+          <div class="role-dropdown" id="roleDropdown"></div>
+        </div>
+      </div>
+      
+      <nav class="header-nav" id="headerNav"></nav>
+      
+      <div class="header-right">
+        <div class="header-stats" id="headerStats"></div>
+        <div class="notification-btn">
+          🔔
+          <span class="notification-badge" id="notifBadge">3</span>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="main" id="mainContent"></main>
+  </div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTUS v5.0 - Multi-Role Business Automation System
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Role Definitions
+const ROLES = {
+  employee: {
+    id: 'employee',
+    name: '김직원',
+    type: '일반 직원',
+    avatar: '👤',
+    color: 'var(--role-employee)',
+    desc: '업무 실행 및 자동화 활용',
+    nav: ['my-tasks', 'automation', 'feedback'],
+    stats: ['tasks', 'automated', 'saved']
+  },
+  leader: {
+    id: 'leader',
+    name: '박팀장',
+    type: '팀 리더',
+    avatar: '👔',
+    color: 'var(--role-leader)',
+    desc: '팀 업무 관리 및 AI 제안 검토',
+    nav: ['team-tasks', 'ai-suggest', 'team-perf', 'reports'],
+    stats: ['team-tasks', 'suggestions', 'efficiency']
+  },
+  executive: {
+    id: 'executive',
+    name: '이상무',
+    type: '경영진 (C-Level)',
+    avatar: '👑',
+    color: 'var(--role-executive)',
+    desc: '전사 KPI 및 ROI 분석',
+    nav: ['dashboard', 'kpi', 'benchmark', 'insights'],
+    stats: ['roi', 'savings', 'adoption']
+  },
+  admin: {
+    id: 'admin',
+    name: '최관리',
+    type: '시스템 Admin',
+    avatar: '⚙️',
+    color: 'var(--role-admin)',
+    desc: '사용자/권한/시스템 관리',
+    nav: ['users', 'permissions', 'integrations', 'settings'],
+    stats: ['users', 'active', 'api-calls']
+  }
+};
+
+// Navigation Items by Role
+const NAV_ITEMS = {
+  'my-tasks': {icon: '📋', label: '내 업무'},
+  'automation': {icon: '⚡', label: '자동화 현황'},
+  'feedback': {icon: '🔄', label: '피드백'},
+  'team-tasks': {icon: '👥', label: '팀 업무'},
+  'ai-suggest': {icon: '🤖', label: 'AI 제안'},
+  'team-perf': {icon: '📊', label: '팀 성과'},
+  'reports': {icon: '📈', label: '리포트'},
+  'dashboard': {icon: '🎯', label: '대시보드'},
+  'kpi': {icon: '📊', label: 'KPI'},
+  'benchmark': {icon: '🌐', label: '벤치마크'},
+  'insights': {icon: '💡', label: '인사이트'},
+  'users': {icon: '👥', label: '사용자 관리'},
+  'permissions': {icon: '🔐', label: '권한 설정'},
+  'integrations': {icon: '🔗', label: '연동 관리'},
+  'settings': {icon: '⚙️', label: '시스템 설정'}
+};
+
+// Stats Definitions
+const STATS_DEFS = {
+  'tasks': {label: 'My Tasks', value: '12'},
+  'automated': {label: 'Automated', value: '78%'},
+  'saved': {label: 'Time Saved', value: '4.2h'},
+  'team-tasks': {label: 'Team Tasks', value: '47'},
+  'suggestions': {label: 'AI Suggestions', value: '8'},
+  'efficiency': {label: 'Efficiency', value: '+23%'},
+  'roi': {label: 'ROI', value: '340%'},
+  'savings': {label: 'Cost Saved', value: '$42K'},
+  'adoption': {label: 'Adoption', value: '89%'},
+  'users': {label: 'Total Users', value: '156'},
+  'active': {label: 'Active Now', value: '43'},
+  'api-calls': {label: 'API Calls', value: '12.4K'}
+};
+
+// State
+let currentRole = 'employee';
+let currentView = 'my-tasks';
+
+// Helpers
+const $ = id => document.getElementById(id);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Render Functions
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function renderRoleDropdown() {
+  $('roleDropdown').innerHTML = Object.values(ROLES).map(r => `
+    <div class="role-option ${r.id === currentRole ? 'active' : ''}" onclick="switchRole('${r.id}')">
+      <div class="role-option-avatar" style="background:${r.color}">${r.avatar}</div>
+      <div class="role-option-info">
+        <div class="role-option-name">${r.name}</div>
+        <div class="role-option-desc">${r.desc}</div>
+      </div>
+      <span class="role-option-check">✓</span>
+    </div>
+  `).join('');
+}
+
+function renderNav() {
+  const role = ROLES[currentRole];
+  $('headerNav').innerHTML = role.nav.map((navId, i) => {
+    const item = NAV_ITEMS[navId];
+    return `
+      <button class="nav-btn ${i === 0 ? 'active' : ''}" data-view="${navId}" onclick="switchView('${navId}')">
+        ${item.icon} ${item.label}
+      </button>
+    `;
+  }).join('');
+  currentView = role.nav[0];
+}
+
+function renderStats() {
+  const role = ROLES[currentRole];
+  $('headerStats').innerHTML = role.stats.map(statId => {
+    const stat = STATS_DEFS[statId];
+    return `
+      <div class="header-stat">
+        <div class="header-stat-value">${stat.value}</div>
+        <div class="header-stat-label">${stat.label}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateRoleUI() {
+  const role = ROLES[currentRole];
+  $('currentRoleAvatar').style.background = role.color;
+  $('currentRoleAvatar').textContent = role.avatar;
+  $('currentRoleName').textContent = role.name;
+  $('currentRoleType').textContent = role.type;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Dashboard Renderers
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function renderEmployeeDashboard(view) {
+  const dashboards = {
+    'my-tasks': `
+      <div class="welcome">
+        <div class="welcome-title">안녕하세요, 김직원님 👋</div>
+        <div class="welcome-subtitle">오늘도 효율적인 하루 되세요! 자동화로 4.2시간 절약 중입니다.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card cyan">
+          <div class="stat-icon" style="background:linear-gradient(135deg,var(--cyan),var(--blue))">📋</div>
+          <div class="stat-value">12</div>
+          <div class="stat-label">오늘의 업무</div>
+          <div class="stat-trend up">↑ 3 new</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon" style="background:linear-gradient(135deg,var(--green),#059669)">✅</div>
+          <div class="stat-value">78%</div>
+          <div class="stat-label">자동화율</div>
+          <div class="stat-trend up">↑ 12%</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-icon" style="background:linear-gradient(135deg,var(--purple),var(--pink))">⏱️</div>
+          <div class="stat-value">4.2h</div>
+          <div class="stat-label">절약 시간</div>
+          <div class="stat-trend up">↑ 1.5h</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-icon" style="background:linear-gradient(135deg,var(--orange),var(--red))">🎯</div>
+          <div class="stat-value">94%</div>
+          <div class="stat-label">성공률</div>
+          <div class="stat-trend up">↑ 2%</div>
+        </div>
+      </div>
+      <div class="content-grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 오늘의 업무</div>
+            <button class="card-action">+ 업무 추가</button>
+          </div>
+          <div class="task-list">
+            ${renderTaskList([
+              {icon: '📧', name: 'Q4 예산안 검토', meta: 'Gmail · 2시간 전', progress: 65, color: 'var(--yellow)'},
+              {icon: '📊', name: '주간 보고서 작성', meta: '자동 생성됨 · 30분 전', progress: 100, color: 'var(--green)'},
+              {icon: '📅', name: '팀 미팅 참석', meta: 'Calendar · 오후 3시', progress: 0, color: 'var(--blue)'},
+              {icon: '💳', name: '경비 청구서 제출', meta: '자동화 대기 · 95%', progress: 95, color: 'var(--green)'},
+              {icon: '📝', name: '프로젝트 문서 업데이트', meta: 'Notion · 어제', progress: 40, color: 'var(--orange)'}
+            ])}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🤖 AI 추천</div>
+          </div>
+          <div class="insight-list">
+            <div class="insight-item" style="border-color:var(--green)">
+              <div class="insight-title">🚀 자동화 가능</div>
+              <div class="insight-desc">"경비 청구서 제출"이 95% 완료되어 자동 실행할 수 있습니다.</div>
+              <div class="insight-action"><button class="insight-btn" style="background:var(--green)" onclick="automate()">자동 실행</button></div>
+            </div>
+            <div class="insight-item" style="border-color:var(--blue)">
+              <div class="insight-title">🧲 병합 제안</div>
+              <div class="insight-desc">"예산 검토"와 "보고서 작성"을 병합하면 30분 절약됩니다.</div>
+              <div class="insight-action"><button class="insight-btn" style="background:var(--blue)">검토하기</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+    'automation': `
+      <div class="welcome">
+        <div class="welcome-title">⚡ 자동화 현황</div>
+        <div class="welcome-subtitle">현재 12개 업무 중 9개가 자동화되어 있습니다.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-icon" style="background:var(--green)">✅</div><div class="stat-value">9</div><div class="stat-label">완전 자동화</div></div>
+        <div class="stat-card yellow"><div class="stat-icon" style="background:var(--yellow)">⚡</div><div class="stat-value">2</div><div class="stat-label">부분 자동화</div></div>
+        <div class="stat-card orange"><div class="stat-icon" style="background:var(--orange)">👤</div><div class="stat-value">1</div><div class="stat-label">수동 처리</div></div>
+        <div class="stat-card purple"><div class="stat-icon" style="background:var(--purple)">🎯</div><div class="stat-value">L2.4</div><div class="stat-label">평균 자동화 레벨</div></div>
+      </div>
+      <div class="content-grid single">
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 자동화 레벨별 분포</div></div>
+          <div class="chart-container"><canvas id="automationChart"></canvas></div>
+        </div>
+      </div>
+    `,
+    'feedback': `
+      <div class="welcome">
+        <div class="welcome-title">🔄 피드백 센터</div>
+        <div class="welcome-subtitle">AI 정확도 향상을 위해 피드백을 제공해주세요.</div>
+      </div>
+      <div class="content-grid">
+        <div class="card">
+          <div class="card-header"><div class="card-title">최근 AI 제안</div></div>
+          <div class="task-list">
+            ${[
+              {name: '경비 자동 제출', result: 'success', time: '2시간 전'},
+              {name: '이메일 자동 분류', result: 'success', time: '5시간 전'},
+              {name: '미팅 일정 조율', result: 'partial', time: '1일 전'},
+              {name: '보고서 자동 생성', result: 'success', time: '2일 전'}
+            ].map(f => `
+              <div class="task-item">
+                <div class="task-icon" style="background:${f.result==='success'?'rgba(16,185,129,0.2)':'rgba(245,158,11,0.2)'}">${f.result==='success'?'✅':'⚠️'}</div>
+                <div class="task-info">
+                  <div class="task-name">${f.name}</div>
+                  <div class="task-meta">${f.time}</div>
+                </div>
+                <div class="task-actions">
+                  <button class="task-action-btn" onclick="feedback('good')" title="좋았어요">👍</button>
+                  <button class="task-action-btn" onclick="feedback('bad')" title="개선 필요">👎</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🧠 학습 진행률</div></div>
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">87%</div><div class="kpi-label">개인화 완료</div></div>
+            <div class="kpi-card"><div class="kpi-value" style="color:var(--blue)">23</div><div class="kpi-label">피드백 제공</div></div>
+            <div class="kpi-card"><div class="kpi-value" style="color:var(--purple)">+12%</div><div class="kpi-label">정확도 향상</div></div>
+            <div class="kpi-card"><div class="kpi-value" style="color:var(--cyan)">Active</div><div class="kpi-label">LoRA 상태</div></div>
+          </div>
+        </div>
+      </div>
+    `
+  };
+  return dashboards[view] || dashboards['my-tasks'];
+}
+
+function renderLeaderDashboard(view) {
+  const dashboards = {
+    'team-tasks': `
+      <div class="welcome">
+        <div class="welcome-title">안녕하세요, 박팀장님 👔</div>
+        <div class="welcome-subtitle">팀 업무 현황을 한눈에 확인하세요. 오늘 8개의 AI 제안이 있습니다.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card cyan"><div class="stat-icon" style="background:linear-gradient(135deg,var(--cyan),var(--blue))">👥</div><div class="stat-value">47</div><div class="stat-label">팀 전체 업무</div><div class="stat-trend up">↑ 12</div></div>
+        <div class="stat-card green"><div class="stat-icon" style="background:linear-gradient(135deg,var(--green),#059669)">✅</div><div class="stat-value">82%</div><div class="stat-label">팀 자동화율</div><div class="stat-trend up">↑ 8%</div></div>
+        <div class="stat-card purple"><div class="stat-icon" style="background:linear-gradient(135deg,var(--purple),var(--pink))">🤖</div><div class="stat-value">8</div><div class="stat-label">AI 제안</div></div>
+        <div class="stat-card orange"><div class="stat-icon" style="background:linear-gradient(135deg,var(--orange),var(--red))">📈</div><div class="stat-value">+23%</div><div class="stat-label">효율성 향상</div></div>
+      </div>
+      <div class="content-grid">
+        <div class="card">
+          <div class="card-header"><div class="card-title">👥 팀원별 업무 현황</div><button class="card-action">리포트 생성</button></div>
+          <div class="team-list">
+            ${[
+              {name: '김직원', role: '개발팀', avatar: '👤', tasks: 12, auto: 78, status: 'online', color: 'var(--green)'},
+              {name: '이사원', role: '개발팀', avatar: '👩', tasks: 8, auto: 85, status: 'online', color: 'var(--blue)'},
+              {name: '박대리', role: '기획팀', avatar: '👨', tasks: 15, auto: 62, status: 'away', color: 'var(--yellow)'},
+              {name: '최주임', role: '디자인팀', avatar: '👩‍🎨', tasks: 9, auto: 91, status: 'online', color: 'var(--purple)'},
+              {name: '정인턴', role: '개발팀', avatar: '🧑‍💻', tasks: 5, auto: 45, status: 'offline', color: 'var(--orange)'}
+            ].map(m => `
+              <div class="team-member">
+                <div class="team-avatar" style="background:${m.color}">${m.avatar}</div>
+                <div class="team-info">
+                  <div class="team-name">${m.name}</div>
+                  <div class="team-role">${m.role} · ${m.tasks} tasks · ${m.auto}% 자동화</div>
+                </div>
+                <div class="team-status ${m.status}"></div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 팀 성과 추이</div></div>
+          <div class="chart-container"><canvas id="teamChart"></canvas></div>
+        </div>
+      </div>
+    `,
+    'ai-suggest': `
+      <div class="welcome">
+        <div class="welcome-title">🤖 AI 제안 검토</div>
+        <div class="welcome-subtitle">팀 전체에 적용할 최적화 제안을 검토하세요.</div>
+      </div>
+      <div class="content-grid single">
+        <div class="card">
+          <div class="card-header"><div class="card-title">승인 대기 중인 제안</div><button class="card-action">모두 승인</button></div>
+          <div class="task-list">
+            ${[
+              {type: 'merge', title: '경비 처리 워크플로우 통합', confidence: 94, impact: '+35% 시간 절약', team: '전체 팀'},
+              {type: 'automate', title: '주간 보고서 자동 생성', confidence: 91, impact: '+2h/주 절약', team: '기획팀'},
+              {type: 'eliminate', title: '중복 승인 프로세스 제거', confidence: 88, impact: '+25% 효율화', team: '개발팀'}
+            ].map(s => `
+              <div class="task-item" style="border-left:4px solid ${s.type==='merge'?'var(--blue)':s.type==='automate'?'var(--green)':'var(--red)'}">
+                <div class="task-icon" style="background:${s.type==='merge'?'rgba(59,130,246,0.2)':s.type==='automate'?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)'}">${s.type==='merge'?'🧲':s.type==='automate'?'⚡':'🕳️'}</div>
+                <div class="task-info">
+                  <div class="task-name">${s.title}</div>
+                  <div class="task-meta">${s.team} · ${s.impact} · 신뢰도 ${s.confidence}%</div>
+                </div>
+                <div class="task-actions">
+                  <button class="task-action-btn" style="background:var(--green);border-color:var(--green);color:white" onclick="approveSuggestion()">✓</button>
+                  <button class="task-action-btn" onclick="rejectSuggestion()">✕</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `,
+    'team-perf': `
+      <div class="welcome"><div class="welcome-title">📊 팀 성과 분석</div></div>
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-icon" style="background:var(--green)">📈</div><div class="stat-value">+23%</div><div class="stat-label">생산성 향상</div></div>
+        <div class="stat-card blue"><div class="stat-icon" style="background:var(--blue)">⏱️</div><div class="stat-value">32h</div><div class="stat-label">주간 절약 시간</div></div>
+        <div class="stat-card purple"><div class="stat-icon" style="background:var(--purple)">🎯</div><div class="stat-value">96%</div><div class="stat-label">목표 달성률</div></div>
+        <div class="stat-card cyan"><div class="stat-icon" style="background:var(--cyan)">🏆</div><div class="stat-label">팀 순위</div><div class="stat-value">Top 5%</div></div>
+      </div>
+    `,
+    'reports': `<div class="welcome"><div class="welcome-title">📈 리포트</div><div class="welcome-subtitle">팀 성과 리포트를 생성하고 공유하세요.</div></div>`
+  };
+  return dashboards[view] || dashboards['team-tasks'];
+}
+
+function renderExecutiveDashboard(view) {
+  const dashboards = {
+    'dashboard': `
+      <div class="welcome">
+        <div class="welcome-title">환영합니다, 이상무님 👑</div>
+        <div class="welcome-subtitle">전사 자동화 현황을 한눈에 확인하세요. ROI 340% 달성 중입니다.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card cyan"><div class="stat-icon" style="background:linear-gradient(135deg,var(--cyan),var(--blue))">💰</div><div class="stat-value">340%</div><div class="stat-label">ROI</div><div class="stat-trend up">↑ 45%</div></div>
+        <div class="stat-card green"><div class="stat-icon" style="background:linear-gradient(135deg,var(--green),#059669)">💵</div><div class="stat-value">$42K</div><div class="stat-label">월간 절감액</div><div class="stat-trend up">↑ $8K</div></div>
+        <div class="stat-card purple"><div class="stat-icon" style="background:linear-gradient(135deg,var(--purple),var(--pink))">📊</div><div class="stat-value">89%</div><div class="stat-label">도입률</div><div class="stat-trend up">↑ 12%</div></div>
+        <div class="stat-card orange"><div class="stat-icon" style="background:linear-gradient(135deg,var(--orange),var(--red))">⏱️</div><div class="stat-value">847h</div><div class="stat-label">월간 절약 시간</div></div>
+      </div>
+      <div class="content-grid">
+        <div class="card">
+          <div class="card-header"><div class="card-title">📈 부서별 ROI</div></div>
+          <div class="chart-container"><canvas id="roiChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🎯 핵심 지표</div></div>
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">$504K</div><div class="kpi-label">연간 절감 예상</div><div class="kpi-trend" style="color:var(--green)">↑ $96K YoY</div></div>
+            <div class="kpi-card"><div class="kpi-value" style="color:var(--blue)">156</div><div class="kpi-label">활성 사용자</div><div class="kpi-trend" style="color:var(--green)">↑ 23 MoM</div></div>
+            <div class="kpi-card"><div class="kpi-value" style="color:var(--purple)">2,847</div><div class="kpi-label">자동화된 업무</div><div class="kpi-trend" style="color:var(--green)">↑ 412 MoM</div></div>
+            <div class="kpi-card"><div class="kpi-value" style="color:var(--cyan)">94.2%</div><div class="kpi-label">성공률</div><div class="kpi-trend" style="color:var(--green)">↑ 2.1% MoM</div></div>
+          </div>
+        </div>
+      </div>
+    `,
+    'kpi': `
+      <div class="welcome"><div class="welcome-title">📊 KPI 대시보드</div></div>
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-value" style="color:var(--green)">94.2%</div><div class="stat-label">전사 성공률</div></div>
+        <div class="stat-card blue"><div class="stat-value" style="color:var(--blue)">82%</div><div class="stat-label">평균 자동화율</div></div>
+        <div class="stat-card purple"><div class="stat-value" style="color:var(--purple)">4.7/5</div><div class="stat-label">사용자 만족도</div></div>
+        <div class="stat-card cyan"><div class="stat-value" style="color:var(--cyan)">99.9%</div><div class="stat-label">시스템 가동률</div></div>
+      </div>
+    `,
+    'benchmark': `
+      <div class="welcome"><div class="welcome-title">🌐 글로벌 벤치마크</div><div class="welcome-subtitle">동종 업계 대비 성과를 비교합니다.</div></div>
+      <div class="benchmark-grid">
+        <div class="benchmark-card"><div class="benchmark-icon">🏆</div><div class="benchmark-value" style="color:var(--green)">Top 8%</div><div class="benchmark-label">업계 순위</div><div class="benchmark-compare">12,847개 기업 중</div></div>
+        <div class="benchmark-card"><div class="benchmark-icon">📈</div><div class="benchmark-value" style="color:var(--blue)">+34%</div><div class="benchmark-label">업계 평균 대비</div><div class="benchmark-compare">자동화율 기준</div></div>
+        <div class="benchmark-card"><div class="benchmark-icon">⚡</div><div class="benchmark-value" style="color:var(--purple)">2.4x</div><div class="benchmark-label">ROI 배수</div><div class="benchmark-compare">동종업계 평균 대비</div></div>
+      </div>
+    `,
+    'insights': `
+      <div class="welcome"><div class="welcome-title">💡 AI 인사이트</div></div>
+      <div class="content-grid single">
+        <div class="card">
+          <div class="insight-list">
+            <div class="insight-item"><div class="insight-title">🚀 성장 기회</div><div class="insight-desc">영업팀의 자동화율(62%)이 평균 이하입니다. 자동화 강화 시 월 $12K 추가 절감 예상.</div></div>
+            <div class="insight-item" style="border-color:var(--green)"><div class="insight-title">✅ 성공 사례</div><div class="insight-desc">재무팀이 청구서 처리 자동화로 지난 달 $8K 절감에 성공했습니다.</div></div>
+            <div class="insight-item" style="border-color:var(--yellow)"><div class="insight-title">⚠️ 주의 필요</div><div class="insight-desc">IT팀의 API 호출량이 급증 중입니다. 비용 최적화 검토 권장.</div></div>
+          </div>
+        </div>
+      </div>
+    `
+  };
+  return dashboards[view] || dashboards['dashboard'];
+}
+
+function renderAdminDashboard(view) {
+  const dashboards = {
+    'users': `
+      <div class="welcome">
+        <div class="welcome-title">👥 사용자 관리</div>
+        <div class="welcome-subtitle">156명의 사용자가 등록되어 있습니다.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-icon" style="background:var(--green)">✅</div><div class="stat-value">43</div><div class="stat-label">현재 접속 중</div></div>
+        <div class="stat-card blue"><div class="stat-icon" style="background:var(--blue)">👥</div><div class="stat-value">156</div><div class="stat-label">전체 사용자</div></div>
+        <div class="stat-card yellow"><div class="stat-icon" style="background:var(--yellow)">⏳</div><div class="stat-value">8</div><div class="stat-label">승인 대기</div></div>
+        <div class="stat-card red"><div class="stat-icon" style="background:var(--red)">🚫</div><div class="stat-value">3</div><div class="stat-label">비활성</div></div>
+      </div>
+      <div class="content-grid single">
+        <div class="card">
+          <div class="card-header"><div class="card-title">사용자 목록</div><button class="card-action">+ 사용자 추가</button></div>
+          <table class="admin-table">
+            <thead><tr><th>사용자</th><th>역할</th><th>부서</th><th>상태</th><th>마지막 접속</th></tr></thead>
+            <tbody>
+              ${[
+                {name:'김직원',avatar:'👤',role:'직원',dept:'개발팀',status:'active',last:'방금 전'},
+                {name:'박팀장',avatar:'👔',role:'팀리더',dept:'개발팀',status:'active',last:'5분 전'},
+                {name:'이사원',avatar:'👩',role:'직원',dept:'기획팀',status:'active',last:'1시간 전'},
+                {name:'최대리',avatar:'👨',role:'직원',dept:'영업팀',status:'pending',last:'2일 전'},
+                {name:'정인턴',avatar:'🧑‍💻',role:'직원',dept:'개발팀',status:'inactive',last:'1주 전'}
+              ].map(u=>`
+                <tr>
+                  <td><div class="user-cell"><div class="user-cell-avatar" style="background:var(--blue)">${u.avatar}</div>${u.name}</div></td>
+                  <td>${u.role}</td>
+                  <td>${u.dept}</td>
+                  <td><span class="status-badge ${u.status}">${u.status==='active'?'활성':u.status==='pending'?'대기':'비활성'}</span></td>
+                  <td>${u.last}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `,
+    'permissions': `
+      <div class="welcome"><div class="welcome-title">🔐 권한 설정</div></div>
+      <div class="content-grid single">
+        <div class="card">
+          <div class="card-header"><div class="card-title">역할별 권한 매트릭스</div></div>
+          <table class="permission-table">
+            <thead><tr><th>기능</th><th>직원</th><th>팀리더</th><th>경영진</th><th>Admin</th></tr></thead>
+            <tbody>
+              <tr><td>내 업무 조회</td><td class="permission-check">✓</td><td class="permission-check">✓</td><td class="permission-check">✓</td><td class="permission-check">✓</td></tr>
+              <tr><td>팀 업무 조회</td><td class="permission-x">✕</td><td class="permission-check">✓</td><td class="permission-check">✓</td><td class="permission-check">✓</td></tr>
+              <tr><td>AI 제안 승인</td><td class="permission-x">✕</td><td class="permission-check">✓</td><td class="permission-check">✓</td><td class="permission-check">✓</td></tr>
+              <tr><td>전사 KPI 조회</td><td class="permission-x">✕</td><td class="permission-x">✕</td><td class="permission-check">✓</td><td class="permission-check">✓</td></tr>
+              <tr><td>사용자 관리</td><td class="permission-x">✕</td><td class="permission-x">✕</td><td class="permission-x">✕</td><td class="permission-check">✓</td></tr>
+              <tr><td>시스템 설정</td><td class="permission-x">✕</td><td class="permission-x">✕</td><td class="permission-x">✕</td><td class="permission-check">✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `,
+    'integrations': `
+      <div class="welcome"><div class="welcome-title">🔗 연동 관리</div></div>
+      <div class="content-grid three">
+        ${[
+          {name:'Gmail',icon:'📧',status:'connected',calls:'12.4K'},
+          {name:'Slack',icon:'💬',status:'connected',calls:'8.2K'},
+          {name:'SAP ERP',icon:'🏢',status:'connected',calls:'3.1K'},
+          {name:'Notion',icon:'📝',status:'connected',calls:'2.8K'},
+          {name:'Jira',icon:'📋',status:'pending',calls:'-'},
+          {name:'Salesforce',icon:'☁️',status:'error',calls:'-'}
+        ].map(i=>`
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+              <div style="font-size:28px">${i.icon}</div>
+              <div>
+                <div style="font-size:14px;font-weight:600">${i.name}</div>
+                <span class="status-badge ${i.status==='connected'?'active':i.status==='pending'?'pending':'inactive'}">${i.status}</span>
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--dim)">API Calls: ${i.calls}</div>
+          </div>
+        `).join('')}
+      </div>
+    `,
+    'settings': `
+      <div class="welcome"><div class="welcome-title">⚙️ 시스템 설정</div></div>
+      <div class="settings-grid">
+        ${[
+          {icon:'🤖',title:'AI 자동 제안',desc:'사용자에게 자동으로 최적화 제안',on:true},
+          {icon:'🔔',title:'알림',desc:'이메일 및 푸시 알림 전송',on:true},
+          {icon:'📊',title:'분석 데이터 공유',desc:'익명화된 데이터로 글로벌 학습 참여',on:true},
+          {icon:'🔒',title:'2단계 인증',desc:'모든 사용자에게 2FA 강제',on:false}
+        ].map(s=>`
+          <div class="setting-card">
+            <div class="setting-header">
+              <div class="setting-icon" style="background:var(--card)">${s.icon}</div>
+              <div class="setting-title">${s.title}</div>
+            </div>
+            <div class="setting-desc">${s.desc}</div>
+            <div class="setting-toggle ${s.on?'on':''}" onclick="this.classList.toggle('on')">
+              <div class="setting-toggle-knob"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `
+  };
+  return dashboards[view] || dashboards['users'];
+}
+
+function renderTaskList(tasks) {
+  return tasks.map(t => `
+    <div class="task-item">
+      <div class="task-icon" style="background:${t.color}20">${t.icon}</div>
+      <div class="task-info">
+        <div class="task-name">${t.name}</div>
+        <div class="task-meta">${t.meta}</div>
+      </div>
+      <div class="task-progress">
+        <div class="task-progress-bar"><div class="task-progress-fill" style="width:${t.progress}%;background:${t.color}"></div></div>
+        <div class="task-percent">${t.progress}%</div>
+      </div>
+      <div class="task-actions">
+        <button class="task-action-btn">▶</button>
+        <button class="task-action-btn">⋮</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Actions
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function toggleRoleSelector() {
+  $('roleSelector').classList.toggle('open');
+}
+
+function switchRole(roleId) {
+  currentRole = roleId;
+  $('roleSelector').classList.remove('open');
+  updateRoleUI();
+  renderRoleDropdown();
+  renderNav();
+  renderStats();
+  renderDashboard();
+  toast('역할 전환', `${ROLES[roleId].type}(으)로 전환되었습니다.`, 'info');
+}
+
+function switchView(viewId) {
+  currentView = viewId;
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === viewId);
+  });
+  renderDashboard();
+}
+
+function renderDashboard() {
+  let html = '';
+  switch(currentRole) {
+    case 'employee': html = renderEmployeeDashboard(currentView); break;
+    case 'leader': html = renderLeaderDashboard(currentView); break;
+    case 'executive': html = renderExecutiveDashboard(currentView); break;
+    case 'admin': html = renderAdminDashboard(currentView); break;
+  }
+  $('mainContent').innerHTML = html;
+  
+  // Render charts if needed
+  setTimeout(() => {
+    if ($('automationChart')) renderAutomationChart();
+    if ($('teamChart')) renderTeamChart();
+    if ($('roiChart')) renderROIChart();
+  }, 100);
+}
+
+function renderAutomationChart() {
+  new Chart($('automationChart'), {
+    type: 'bar',
+    data: {
+      labels: ['L1 (반복)', 'L2 (조건부)', 'L3 (자율)'],
+      datasets: [{
+        data: [3, 5, 4],
+        backgroundColor: ['#06b6d4', '#10b981', '#8b5cf6']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {legend: {display: false}},
+      scales: {
+        x: {grid: {color: 'rgba(255,255,255,0.05)'}, ticks: {color: '#64748b'}},
+        y: {grid: {color: 'rgba(255,255,255,0.05)'}, ticks: {color: '#64748b'}}
+      }
+    }
+  });
+}
+
+function renderTeamChart() {
+  new Chart($('teamChart'), {
+    type: 'line',
+    data: {
+      labels: ['1주', '2주', '3주', '4주'],
+      datasets: [{
+        label: '자동화율',
+        data: [68, 72, 78, 82],
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.1)',
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {legend: {display: false}},
+      scales: {
+        x: {grid: {color: 'rgba(255,255,255,0.05)'}, ticks: {color: '#64748b'}},
+        y: {grid: {color: 'rgba(255,255,255,0.05)'}, ticks: {color: '#64748b'}, min: 50, max: 100}
+      }
+    }
+  });
+}
+
+function renderROIChart() {
+  new Chart($('roiChart'), {
+    type: 'bar',
+    data: {
+      labels: ['개발', '기획', '영업', '재무', 'HR'],
+      datasets: [{
+        data: [420, 380, 280, 520, 340],
+        backgroundColor: ['#06b6d4', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {legend: {display: false}},
+      scales: {
+        x: {grid: {color: 'rgba(255,255,255,0.05)'}, ticks: {color: '#64748b', callback: v => v + '%'}},
+        y: {grid: {display: false}, ticks: {color: '#94a3b8'}}
+      }
+    }
+  });
+}
+
+function automate() {
+  toast('자동화 실행', '경비 청구서가 자동으로 제출되었습니다.', 'success');
+}
+
+function feedback(type) {
+  toast('피드백 저장', type === 'good' ? 'AI 학습에 반영됩니다.' : '개선 사항을 기록했습니다.', 'info');
+}
+
+function approveSuggestion() {
+  toast('승인 완료', 'AI 제안이 팀에 적용됩니다.', 'success');
+}
+
+function rejectSuggestion() {
+  toast('제안 거부', '피드백이 AI 학습에 반영됩니다.', 'info');
+}
+
+function toast(title, desc, type = 'info') {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  
+  const icons = {success: '✅', info: 'ℹ️', warning: '⚠️'};
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `
+    <span class="toast-icon">${icons[type]}</span>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      <div class="toast-desc">${desc}</div>
+    </div>
+  `;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.role-selector')) {
+    $('roleSelector').classList.remove('open');
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Init
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function init() {
+  renderRoleDropdown();
+  updateRoleUI();
+  renderNav();
+  renderStats();
+  renderDashboard();
+}
+
+init();
+</script>
+</body>
+</html>

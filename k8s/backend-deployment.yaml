@@ -1,0 +1,170 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS Backend Deployment
+# ═══════════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autus-backend
+  namespace: autus
+  labels:
+    app: autus-backend
+    tier: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: autus-backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: autus-backend
+        tier: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: backend
+        image: your-registry/autus-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+        - name: socketio
+          containerPort: 3001
+        env:
+        # API Keys from Secrets
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autus-secrets
+              key: openai-api-key
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autus-secrets
+              key: anthropic-api-key
+        - name: DEEPSEEK_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autus-secrets
+              key: deepseek-api-key
+        - name: TOGETHER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autus-secrets
+              key: together-api-key
+        - name: PINECONE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autus-secrets
+              key: pinecone-api-key
+        - name: LANGCHAIN_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: autus-secrets
+              key: langchain-api-key
+        # Config from ConfigMap
+        - name: AUTUS_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: autus-config
+              key: AUTUS_ENV
+        - name: TYPEDB_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: autus-config
+              key: TYPEDB_ADDRESS
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: autus-config
+              key: REDIS_URL
+        - name: LANGCHAIN_TRACING_V2
+          valueFrom:
+            configMapKeyRef:
+              name: autus-config
+              key: LANGCHAIN_TRACING_V2
+        - name: LANGCHAIN_PROJECT
+          valueFrom:
+            configMapKeyRef:
+              name: autus-config
+              key: LANGCHAIN_PROJECT
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      imagePullSecrets:
+      - name: registry-credentials
+---
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: autus-backend-service
+  namespace: autus
+  labels:
+    app: autus-backend
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8000
+  - name: socketio
+    port: 3001
+    targetPort: 3001
+  selector:
+    app: autus-backend
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: autus-backend-hpa
+  namespace: autus
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: autus-backend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

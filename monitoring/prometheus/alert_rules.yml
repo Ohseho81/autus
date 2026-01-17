@@ -1,0 +1,169 @@
+# =============================================================================
+# AUTUS 알림 규칙
+# =============================================================================
+
+groups:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # AUTUS 핵심 메트릭 알림
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: autus_core_alerts
+    rules:
+      # Inertia Debt 경고
+      - alert: HighInertiaDebt
+        expr: autus_inertia_debt > 0.6
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Inertia Debt 경고 수준 ({{ $value | printf \"%.2f\" }})"
+          description: "Inertia Debt가 0.6을 초과했습니다. 시스템 부하를 확인하세요."
+
+      # Inertia Debt 위험
+      - alert: CriticalInertiaDebt
+        expr: autus_inertia_debt > 0.8
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 Inertia Debt 위험 ({{ $value | printf \"%.2f\" }})"
+          description: "Inertia Debt가 위험 수준입니다. 즉시 조치가 필요합니다."
+
+      # ΔṠ 급등
+      - alert: HighEntropyChange
+        expr: autus_delta_s_dot > 0.7
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "ΔṠ 상승 감지 ({{ $value | printf \"%.2f\" }})"
+          description: "엔트로피 변화율이 높습니다. 시스템 불안정 가능성."
+
+      # ΔṠ 위험
+      - alert: CriticalEntropyChange
+        expr: autus_delta_s_dot > 0.9
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 ΔṠ 위험 수준 ({{ $value | printf \"%.2f\" }})"
+          description: "엔트로피 변화율이 위험 수준입니다. Scale Lock 필요."
+
+      # Stability Score 저하
+      - alert: LowStabilityScore
+        expr: autus_stability_score < 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "안정성 점수 저하 ({{ $value | printf \"%.2f\" }})"
+          description: "사용자 안정성 점수가 낮습니다. 상태 확인이 필요합니다."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Safety Guard 알림
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: autus_safety_alerts
+    rules:
+      # Safety Guard 빈번한 트리거
+      - alert: FrequentSafetyTriggers
+        expr: increase(autus_safety_triggers_total[1h]) > 5
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Safety Guard 빈번한 트리거"
+          description: "지난 1시간 동안 Safety Guard가 {{ $value | printf \"%.0f\" }}회 트리거되었습니다."
+
+      # Scale Lock 위반
+      - alert: ScaleLockViolation
+        expr: increase(autus_scale_lock_violations_total[1h]) > 3
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 Scale Lock 위반 감지"
+          description: "지난 1시간 동안 Scale Lock 위반이 {{ $value | printf \"%.0f\" }}회 발생했습니다."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 성능 알림
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: autus_performance_alerts
+    rules:
+      # 워크플로우 지연
+      - alert: HighWorkflowLatency
+        expr: histogram_quantile(0.95, rate(autus_workflow_latency_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "워크플로우 지연 감지"
+          description: "워크플로우 p95 지연 시간이 {{ $value | printf \"%.2f\" }}초입니다."
+
+      # TFT 예측 지연
+      - alert: HighTFTPredictionLatency
+        expr: histogram_quantile(0.95, rate(autus_tft_prediction_latency_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TFT 예측 지연"
+          description: "TFT 예측 p95 지연 시간이 {{ $value | printf \"%.2f\" }}초입니다."
+
+      # GNN 임베딩 지연
+      - alert: HighGNNEmbeddingLatency
+        expr: histogram_quantile(0.95, rate(autus_gnn_embedding_latency_seconds_bucket[5m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GNN 임베딩 지연"
+          description: "GNN 임베딩 p95 지연 시간이 {{ $value | printf \"%.2f\" }}초입니다."
+
+      # 에러율 상승
+      - alert: HighErrorRate
+        expr: rate(autus_workflow_runs_total{status="error"}[5m]) / rate(autus_workflow_runs_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "에러율 상승"
+          description: "워크플로우 에러율이 {{ $value | printf \"%.1f\" }}%입니다."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 그래프 알림
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: autus_graph_alerts
+    rules:
+      # 그래프 노드 급증
+      - alert: RapidGraphGrowth
+        expr: increase(autus_graph_edges_total[1h]) > 100
+        for: 0m
+        labels:
+          severity: info
+        annotations:
+          summary: "그래프 급성장"
+          description: "지난 1시간 동안 {{ $value | printf \"%.0f\" }}개의 엣지가 추가되었습니다."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 시스템 알림
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: autus_system_alerts
+    rules:
+      # AUTUS 서비스 다운
+      - alert: AUTUSServiceDown
+        expr: up{job="autus-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 AUTUS 서비스 다운"
+          description: "AUTUS 백엔드 서비스가 응답하지 않습니다."
+
+      # Neo4j 다운
+      - alert: Neo4jDown
+        expr: up{job="neo4j"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 Neo4j 서비스 다운"
+          description: "Neo4j 데이터베이스가 응답하지 않습니다."

@@ -1,1 +1,5 @@
-export { default as AUTUSDashboard } from './AUTUSDashboard';
+/**
+ * AUTUS Dashboard Components
+ */
+
+export { TrinityDashboard } from './TrinityDashboard';

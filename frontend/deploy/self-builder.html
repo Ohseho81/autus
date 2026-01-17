@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS Self-Builder | Meta-Evolution Engine</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0f1a;
+      --surface: #111827;
+      --surface-2: #1f2937;
+      --surface-3: #374151;
+      --border: #374151;
+      --text: #f9fafb;
+      --text-dim: #9ca3af;
+      --text-muted: #6b7280;
+      --primary: #10b981;
+      --primary-dim: rgba(16, 185, 129, 0.15);
+      --cyan: #06b6d4;
+      --cyan-dim: rgba(6, 182, 212, 0.15);
+      --purple: #8b5cf6;
+      --purple-dim: rgba(139, 92, 246, 0.15);
+      --yellow: #f59e0b;
+      --yellow-dim: rgba(245, 158, 11, 0.15);
+      --red: #ef4444;
+      --gradient: linear-gradient(135deg, var(--primary), var(--cyan), var(--purple));
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--gradient);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    
+    .logo-text {
+      font-size: 24px;
+      font-weight: 800;
+    }
+    
+    .logo-badge {
+      padding: 6px 14px;
+      background: var(--purple);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+    }
+    
+    .status-row {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--surface-2);
+      border-radius: 20px;
+      font-size: 12px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    .status-dot.green { background: var(--primary); }
+    .status-dot.purple { background: var(--purple); }
+    .status-dot.cyan { background: var(--cyan); }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 60px 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient);
+    }
+    
+    .hero-title {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--text-dim);
+      max-width: 700px;
+      margin: 0 auto 30px;
+    }
+    
+    .hero-equation {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 32px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+    }
+    
+    .hero-equation span {
+      color: var(--primary);
+    }
+    
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    
+    .card-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    
+    .card-badge {
+      padding: 4px 12px;
+      background: var(--cyan-dim);
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--cyan);
+    }
+    
+    .card-body {
+      padding: 24px;
+    }
+    
+    /* Missing Features */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .feature-item:hover {
+      border-color: var(--primary);
+      background: var(--primary-dim);
+    }
+    
+    .feature-item.selected {
+      border-color: var(--primary);
+      background: var(--primary-dim);
+    }
+    
+    .feature-checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .feature-item.selected .feature-checkbox {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+    
+    .feature-info {
+      flex: 1;
+    }
+    
+    .feature-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    
+    .feature-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .feature-impact {
+      text-align: right;
+    }
+    
+    .impact-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .impact-label {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    
+    /* AI Generation Panel */
+    .generation-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .gen-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      background: var(--surface-2);
+      border-radius: 12px;
+    }
+    
+    .gen-step-num {
+      width: 32px;
+      height: 32px;
+      background: var(--surface-3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    
+    .gen-step.active .gen-step-num {
+      background: var(--cyan);
+      color: white;
+      animation: pulse 2s infinite;
+    }
+    
+    .gen-step.complete .gen-step-num {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .gen-step-content {
+      flex: 1;
+    }
+    
+    .gen-step-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .gen-step-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    /* Code Preview */
+    .code-preview {
+      background: #0d1117;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+    
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .code-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .code-tab {
+      padding: 6px 12px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .code-tab.active {
+      background: var(--surface-3);
+      color: var(--text);
+    }
+    
+    .code-body {
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .code-body pre {
+      color: #e6edf3;
+    }
+    
+    .code-keyword { color: #ff7b72; }
+    .code-string { color: #a5d6ff; }
+    .code-comment { color: #8b949e; }
+    .code-function { color: #d2a8ff; }
+    .code-number { color: #79c0ff; }
+    
+    /* Action Buttons */
+    .action-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .btn-primary {
+      background: var(--gradient);
+      color: white;
+      flex: 1;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-secondary {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    
+    .btn-secondary:hover {
+      border-color: var(--text-dim);
+      color: var(--text);
+    }
+    
+    /* Progress Section */
+    .progress-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    
+    .progress-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    
+    .progress-percent {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .progress-bar {
+      height: 12px;
+      background: var(--surface-2);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient);
+      border-radius: 6px;
+      transition: width 1s ease;
+    }
+    
+    .progress-stages {
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .progress-stage {
+      text-align: center;
+    }
+    
+    .stage-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--surface-2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-size: 18px;
+    }
+    
+    .stage-icon.complete {
+      background: var(--primary-dim);
+    }
+    
+    .stage-icon.active {
+      background: var(--cyan-dim);
+      animation: pulse 2s infinite;
+    }
+    
+    .stage-label {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    .stage-label.complete { color: var(--primary); }
+    .stage-label.active { color: var(--cyan); }
+    
+    /* Output Log */
+    .output-log {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    
+    .log-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .log-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .log-body {
+      padding: 16px 20px;
+      max-height: 250px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+    
+    .log-entry {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+    
+    .log-time {
+      color: var(--text-muted);
+      min-width: 70px;
+    }
+    
+    .log-type {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      min-width: 60px;
+      text-align: center;
+    }
+    
+    .log-type.info { background: var(--cyan-dim); color: var(--cyan); }
+    .log-type.success { background: var(--primary-dim); color: var(--primary); }
+    .log-type.ai { background: var(--purple-dim); color: var(--purple); }
+    .log-type.deploy { background: var(--yellow-dim); color: var(--yellow); }
+    
+    .log-message {
+      flex: 1;
+      color: var(--text-dim);
+    }
+    
+    /* Philosophy Section */
+    .philosophy {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-top: 24px;
+      text-align: center;
+    }
+    
+    .philosophy-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    
+    .philosophy-text {
+      font-size: 14px;
+      color: var(--text-dim);
+      max-width: 800px;
+      margin: 0 auto 24px;
+      line-height: 1.8;
+    }
+    
+    .philosophy-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 24px;
+      background: var(--surface-2);
+      border-radius: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .diagram-node {
+      padding: 16px 24px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    
+    .diagram-node.autus {
+      border-color: var(--primary);
+      background: var(--primary-dim);
+    }
+    
+    .diagram-arrow {
+      font-size: 24px;
+      color: var(--text-muted);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1000px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .hero-title {
+        font-size: 32px;
+      }
+      
+      .header {
+        flex-direction: column;
+        gap: 16px;
+      }
+      
+      .status-row {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .progress-stages {
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">🔄</div>
+        <span class="logo-text">AUTUS Self-Builder</span>
+        <span class="logo-badge">META-EVOLUTION</span>
+      </div>
+      <div class="status-row">
+        <div class="status-chip">
+          <span class="status-dot green"></span>
+          <span>Gemini API Ready</span>
+        </div>
+        <div class="status-chip">
+          <span class="status-dot purple"></span>
+          <span>Code Generator Active</span>
+        </div>
+        <div class="status-chip">
+          <span class="status-dot cyan"></span>
+          <span>Auto-Deploy Ready</span>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Hero -->
+    <section class="hero">
+      <h1 class="hero-title">AUTUS가 AUTUS를 만든다</h1>
+      <p class="hero-subtitle">
+        Self-Evolving System의 궁극적 구현. 
+        AUTUS는 자신의 누락된 기능을 감지하고, AI로 코드를 생성하여, 스스로를 진화시킵니다.
+      </p>
+      <div class="hero-equation">
+        AUTUS<sub>n</sub> + AI → AUTUS<sub>n+1</sub> <span>∞</span>
+      </div>
+    </section>
+    
+    <!-- Main Grid -->
+    <div class="main-grid">
+      <!-- Missing Features -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔍</span>
+            <span>누락된 기능 감지</span>
+          </div>
+          <span class="card-badge">Auto-Detected</span>
+        </div>
+        <div class="card-body">
+          <div class="feature-list" id="featureList">
+            <!-- Generated by JS -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- AI Generation -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🤖</span>
+            <span>AI 코드 생성</span>
+          </div>
+          <span class="card-badge">Gemini + Claude</span>
+        </div>
+        <div class="card-body">
+          <div class="generation-steps">
+            <div class="gen-step complete">
+              <div class="gen-step-num">✓</div>
+              <div class="gen-step-content">
+                <div class="gen-step-title">1. 기능 명세 분석</div>
+                <div class="gen-step-desc">선택된 기능의 요구사항을 파싱</div>
+              </div>
+            </div>
+            <div class="gen-step active">
+              <div class="gen-step-num">2</div>
+              <div class="gen-step-content">
+                <div class="gen-step-title">2. React/HTML 코드 생성</div>
+                <div class="gen-step-desc">Gemini API로 컴포넌트 생성 중...</div>
+              </div>
+            </div>
+            <div class="gen-step">
+              <div class="gen-step-num">3</div>
+              <div class="gen-step-content">
+                <div class="gen-step-title">3. 기존 코드와 병합</div>
+                <div class="gen-step-desc">현재 AUTUS에 자연스럽게 통합</div>
+              </div>
+            </div>
+            <div class="gen-step">
+              <div class="gen-step-num">4</div>
+              <div class="gen-step-content">
+                <div class="gen-step-title">4. 자동 배포</div>
+                <div class="gen-step-desc">Netlify/Vercel로 즉시 배포</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="code-preview">
+            <div class="code-header">
+              <div class="code-tabs">
+                <button class="code-tab active">Generated Code</button>
+                <button class="code-tab">Prompt</button>
+                <button class="code-tab">Diff</button>
+              </div>
+            </div>
+            <div class="code-body">
+              <pre><span class="code-comment">// AI Generated: Stage 1 Template Marketplace</span>
+<span class="code-keyword">const</span> <span class="code-function">TemplateMarketplace</span> = () => {
+  <span class="code-keyword">const</span> [templates, setTemplates] = useState([]);
+  <span class="code-keyword">const</span> [filter, setFilter] = useState(<span class="code-string">'all'</span>);
+  
+  <span class="code-keyword">useEffect</span>(() => {
+    <span class="code-comment">// Supabase에서 템플릿 로드</span>
+    supabase
+      .from(<span class="code-string">'templates'</span>)
+      .select(<span class="code-string">'*'</span>)
+      .then(({ data }) => setTemplates(data));
+  }, []);
+  
+  <span class="code-keyword">return</span> (
+    &lt;<span class="code-function">div</span> className=<span class="code-string">"templates-grid"</span>&gt;
+      {templates.map(t =&gt; (
+        &lt;<span class="code-function">TemplateCard</span> 
+          key={t.id}
+          {...t}
+          onApply={() =&gt; applyTemplate(t)}
+        /&gt;
+      ))}
+    &lt;/<span class="code-function">div</span>&gt;
+  );
+};</pre>
+            </div>
+          </div>
+          
+          <div class="action-row">
+            <button class="btn btn-primary" onclick="generateCode()">
+              <span>⚡</span>
+              <span>선택된 기능 생성 시작</span>
+            </button>
+            <button class="btn btn-secondary">
+              <span>📋</span>
+              <span>Preview</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Progress Section -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <span class="progress-title">🔄 Self-Evolution Progress</span>
+        <span class="progress-percent" id="progressPercent">67%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 67%;"></div>
+      </div>
+      <div class="progress-stages">
+        <div class="progress-stage">
+          <div class="stage-icon complete">📥</div>
+          <div class="stage-label complete">Task Capture</div>
+        </div>
+        <div class="progress-stage">
+          <div class="stage-icon complete">🔍</div>
+          <div class="stage-label complete">Gap Analysis</div>
+        </div>
+        <div class="progress-stage">
+          <div class="stage-icon active">🤖</div>
+          <div class="stage-label active">AI Generation</div>
+        </div>
+        <div class="progress-stage">
+          <div class="stage-icon">🔀</div>
+          <div class="stage-label">Code Merge</div>
+        </div>
+        <div class="progress-stage">
+          <div class="stage-icon">🚀</div>
+          <div class="stage-label">Auto Deploy</div>
+        </div>
+        <div class="progress-stage">
+          <div class="stage-icon">✅</div>
+          <div class="stage-label">Verification</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Output Log -->
+    <div class="output-log">
+      <div class="log-header">
+        <div class="log-title">
+          <span>📜</span>
+          <span>Evolution Log</span>
+        </div>
+        <span style="font-size: 12px; color: var(--text-dim);">Live</span>
+      </div>
+      <div class="log-body" id="logBody">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+    
+    <!-- Philosophy -->
+    <section class="philosophy">
+      <h2 class="philosophy-title">🧬 Self-Evolving Systemism</h2>
+      <p class="philosophy-text">
+        AUTUS는 단순한 자동화 도구가 아닙니다. 
+        스스로를 관찰하고, 부족한 부분을 인식하며, AI를 통해 자신을 확장하는 <strong>살아있는 시스템</strong>입니다.
+        이것이 Seho가 추구하는 "Self-Evolving Systemism"의 구현입니다.
+      </p>
+      <div class="philosophy-diagram">
+        <div class="diagram-node">현재 AUTUS</div>
+        <div class="diagram-arrow">→</div>
+        <div class="diagram-node">Gap Detection</div>
+        <div class="diagram-arrow">→</div>
+        <div class="diagram-node">AI Generation</div>
+        <div class="diagram-arrow">→</div>
+        <div class="diagram-node autus">진화된 AUTUS</div>
+        <div class="diagram-arrow">↻</div>
+      </div>
+    </section>
+  </div>
+  
+  <script>
+    // Data
+    const missingFeatures = [
+      { id: 1, name: 'Stage 1: Template Marketplace', desc: '247개 템플릿 라이브러리 + 검색/필터', impact: '+15점', selected: true },
+      { id: 2, name: 'Stage 6: Collective Intelligence', desc: '12,847 orgs 글로벌 네트워크', impact: '+15점', selected: true },
+      { id: 3, name: 'Pipeline Navigator', desc: '상단 6-Stage 시각적 스테퍼', impact: '+5점', selected: true },
+      { id: 4, name: 'Left Sidebar', desc: 'Quick Templates + Pipeline List', impact: '+3점', selected: false },
+      { id: 5, name: 'Right Sidebar (Activity Feed)', desc: '실시간 활동 로그', impact: '+3점', selected: false },
+      { id: 6, name: 'Bottom Operation Guide', desc: '진행 상태 가이드 바', impact: '+2점', selected: false }
+    ];
+    
+    const logEntries = [
+      { time: '14:32:01', type: 'info', message: 'Self-evolution cycle initiated' },
+      { time: '14:32:02', type: 'ai', message: 'Scanning current AUTUS deployment...' },
+      { time: '14:32:05', type: 'success', message: 'Gap analysis complete: 6 missing features detected' },
+      { time: '14:32:08', type: 'ai', message: 'Generating Stage 1: Template Marketplace...' },
+      { time: '14:32:15', type: 'ai', message: 'Gemini API: Creating React components...' },
+      { time: '14:32:22', type: 'success', message: 'Template Marketplace code generated (847 lines)' },
+      { time: '14:32:25', type: 'ai', message: 'Generating Stage 6: Collective Intelligence...' },
+      { time: '14:32:33', type: 'success', message: 'Collective Intelligence code generated (523 lines)' },
+      { time: '14:32:35', type: 'deploy', message: 'Preparing merge with existing codebase...' }
+    ];
+    
+    // Render
+    function renderFeatures() {
+      const list = document.getElementById('featureList');
+      list.innerHTML = missingFeatures.map(f => `
+        <div class="feature-item ${f.selected ? 'selected' : ''}" onclick="toggleFeature(${f.id})">
+          <div class="feature-checkbox">${f.selected ? '✓' : ''}</div>
+          <div class="feature-info">
+            <div class="feature-name">${f.name}</div>
+            <div class="feature-desc">${f.desc}</div>
+          </div>
+          <div class="feature-impact">
+            <div class="impact-value">${f.impact}</div>
+            <div class="impact-label">Impact</div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function renderLog() {
+      const log = document.getElementById('logBody');
+      log.innerHTML = logEntries.map(e => `
+        <div class="log-entry">
+          <span class="log-time">${e.time}</span>
+          <span class="log-type ${e.type}">${e.type.toUpperCase()}</span>
+          <span class="log-message">${e.message}</span>
+        </div>
+      `).join('');
+      log.scrollTop = log.scrollHeight;
+    }
+    
+    function toggleFeature(id) {
+      const feature = missingFeatures.find(f => f.id === id);
+      feature.selected = !feature.selected;
+      renderFeatures();
+      updateProgress();
+    }
+    
+    function updateProgress() {
+      const selected = missingFeatures.filter(f => f.selected).length;
+      const total = missingFeatures.length;
+      const percent = Math.round((selected / total) * 100);
+      document.getElementById('progressPercent').textContent = percent + '%';
+      document.getElementById('progressFill').style.width = percent + '%';
+    }
+    
+    function generateCode() {
+      const selected = missingFeatures.filter(f => f.selected);
+      if (selected.length === 0) {
+        alert('생성할 기능을 선택하세요.');
+        return;
+      }
+      
+      // Add log entry
+      logEntries.push({
+        time: new Date().toLocaleTimeString('en-GB'),
+        type: 'ai',
+        message: `Starting generation for ${selected.length} features...`
+      });
+      renderLog();
+      
+      // Simulate generation
+      setTimeout(() => {
+        logEntries.push({
+          time: new Date().toLocaleTimeString('en-GB'),
+          type: 'success',
+          message: 'Code generation complete! Ready for deployment.'
+        });
+        renderLog();
+        alert(`${selected.length}개 기능의 코드가 생성되었습니다!\n\n다음 단계: 자동 배포`);
+      }, 2000);
+    }
+    
+    // Init
+    renderFeatures();
+    renderLog();
+  </script>
+</body>
+</html>

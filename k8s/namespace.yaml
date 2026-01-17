@@ -1,0 +1,8 @@
+# AUTUS Kubernetes Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: autus
+  labels:
+    app.kubernetes.io/name: autus
+    app.kubernetes.io/version: "1.0.0"

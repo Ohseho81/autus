@@ -21,7 +21,7 @@ from injectors.master_injection import (
     RawKnowledge,
     DataSource,
 )
-from core.strategic_nodes import get_strategic_matrix, PhysicsDimension
+from core.compat import get_strategic_matrix, PhysicsDimension
 
 
 router = APIRouter(prefix="/injection", tags=["Injection"])

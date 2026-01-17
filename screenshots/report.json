@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Portal",
+    "path": "/portal.html",
+    "status": "ERROR: Navigation timeout of 30000 ms exceeded",
+    "loadTime": 30001,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 403 ()",
+      "JSHandle@error"
+    ],
+    "networkErrors": [],
+    "screenshot": "portal.png"
+  },
+  {
+    "name": "K2 Operator",
+    "path": "/k2-operator.html",
+    "status": "ERROR: page.waitForTimeout is not a function",
+    "loadTime": 1993,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 403 ()",
+      "JSHandle@error"
+    ],
+    "networkErrors": [],
+    "screenshot": "k2_operator.png"
+  },
+  {
+    "name": "K10 Observer",
+    "path": "/k10-observer.html",
+    "status": "ERROR: page.waitForTimeout is not a function",
+    "loadTime": 1588,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 403 ()",
+      "JSHandle@error"
+    ],
+    "networkErrors": [],
+    "screenshot": "k10_observer.png"
+  },
+  {
+    "name": "Galaxy",
+    "path": "/galaxy.html",
+    "status": "ERROR: page.waitForTimeout is not a function",
+    "loadTime": 1913,
+    "consoleErrors": [],
+    "networkErrors": [],
+    "screenshot": "galaxy.png"
+  }
+]

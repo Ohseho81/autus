@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS | Daily Brief</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0f1a;
+      --surface: #111827;
+      --surface-2: #1f2937;
+      --border: #374151;
+      --text: #f9fafb;
+      --text-dim: #9ca3af;
+      --primary: #10b981;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 30px 0;
+    }
+    
+    .greeting {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    
+    .date {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .card-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--surface-2);
+      color: var(--text-dim);
+    }
+    
+    .card-badge.important {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--red);
+    }
+    
+    /* Event Item */
+    .event-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .event-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    
+    .event-time {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue);
+      min-width: 50px;
+    }
+    
+    .event-content {
+      flex: 1;
+    }
+    
+    .event-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    
+    .event-meta {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    /* Email Item */
+    .email-item {
+      padding: 12px;
+      background: var(--surface-2);
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .email-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .email-from {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+    
+    .email-subject {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .email-preview {
+      font-size: 12px;
+      color: var(--text-dim);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    /* Message Item */
+    .message-item {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .message-item:last-child {
+      border-bottom: none;
+    }
+    
+    .message-channel {
+      font-size: 11px;
+      color: var(--purple);
+      font-weight: 600;
+    }
+    
+    .message-text {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    
+    /* Recommendation */
+    .recommendation {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent);
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .recommendation:last-child {
+      margin-bottom: 0;
+    }
+    
+    .recommendation-icon {
+      font-size: 20px;
+    }
+    
+    .recommendation-text {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    
+    /* Summary Stats */
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .stat-item {
+      text-align: center;
+      padding: 12px;
+      background: var(--surface-2);
+      border-radius: 10px;
+    }
+    
+    .stat-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    
+    /* Sync Button */
+    .sync-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--blue));
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    
+    .sync-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    }
+    
+    .sync-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-dim);
+    }
+    
+    .empty-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Footer Nav */
+    .footer-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+    
+    .nav-item {
+      text-align: center;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 10px;
+    }
+    
+    .nav-item.active {
+      color: var(--primary);
+    }
+    
+    .nav-icon {
+      font-size: 20px;
+      display: block;
+      margin-bottom: 2px;
+    }
+    
+    /* Bottom padding for nav */
+    .container {
+      padding-bottom: 80px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="greeting">☀️ 좋은 아침이에요</div>
+      <div class="date" id="todayDate">오늘</div>
+    </div>
+    
+    <!-- Summary -->
+    <div class="card">
+      <div class="summary-stats" id="summaryStats">
+        <div class="stat-item">
+          <div class="stat-value" id="emailCount">-</div>
+          <div class="stat-label">이메일</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="eventCount">-</div>
+          <div class="stat-label">일정</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="messageCount">-</div>
+          <div class="stat-label">메시지</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="totalCount">-</div>
+          <div class="stat-label">전체</div>
+        </div>
+      </div>
+      <button class="sync-btn" id="syncBtn" onclick="syncData()">
+        <span>🔄</span> 새로고침
+      </button>
+    </div>
+    
+    <!-- Today's Events -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📅 오늘 일정</div>
+        <div class="card-badge" id="eventBadge">0개</div>
+      </div>
+      <div id="eventsList">
+        <div class="empty-state">
+          <div class="empty-icon">🎉</div>
+          <div>오늘 일정이 없습니다</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Important Emails -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📧 중요 이메일</div>
+        <div class="card-badge important" id="emailBadge">0개</div>
+      </div>
+      <div id="emailsList">
+        <div class="empty-state">
+          <div class="empty-icon">✅</div>
+          <div>중요 이메일이 없습니다</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recent Messages -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">💬 최근 메시지</div>
+        <div class="card-badge" id="messageBadge">0개</div>
+      </div>
+      <div id="messagesList">
+        <div class="empty-state">
+          <div class="empty-icon">💤</div>
+          <div>새 메시지가 없습니다</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recommendations -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">💡 오늘의 추천</div>
+      </div>
+      <div id="recommendationsList">
+        <div class="recommendation">
+          <div class="recommendation-icon">🔗</div>
+          <div class="recommendation-text">서비스를 연결하면 더 정확한 추천을 받을 수 있어요</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer Navigation -->
+  <nav class="footer-nav">
+    <a href="/" class="nav-item">
+      <span class="nav-icon">🏠</span>
+      홈
+    </a>
+    <a href="/brief" class="nav-item active">
+      <span class="nav-icon">📋</span>
+      브리핑
+    </a>
+    <a href="/integrations" class="nav-item">
+      <span class="nav-icon">🔗</span>
+      연동
+    </a>
+    <a href="/setup" class="nav-item">
+      <span class="nav-icon">⚙️</span>
+      설정
+    </a>
+  </nav>
+
+  <script>
+    const API_BASE = 'http://localhost:8000';
+    const USER_ID = 'default';
+    
+    // 오늘 날짜 표시
+    function setTodayDate() {
+      const today = new Date();
+      const options = { month: 'long', day: 'numeric', weekday: 'long' };
+      document.getElementById('todayDate').textContent = today.toLocaleDateString('ko-KR', options);
+      
+      // 시간에 따른 인사
+      const hour = today.getHours();
+      let greeting = '☀️ 좋은 아침이에요';
+      if (hour >= 12 && hour < 18) greeting = '🌤️ 좋은 오후예요';
+      else if (hour >= 18) greeting = '🌙 좋은 저녁이에요';
+      document.querySelector('.greeting').textContent = greeting;
+    }
+    
+    async function loadBrief() {
+      try {
+        const resp = await fetch(`${API_BASE}/sync/brief/${USER_ID}`);
+        const data = await resp.json();
+        const brief = data.brief;
+        
+        // Summary
+        const summary = brief.summary || {};
+        const byType = summary.by_type || {};
+        
+        document.getElementById('emailCount').textContent = byType.email || 0;
+        document.getElementById('eventCount').textContent = byType.calendar || 0;
+        document.getElementById('messageCount').textContent = byType.message || 0;
+        document.getElementById('totalCount').textContent = summary.total_items || 0;
+        
+        // Events
+        const events = brief.today_events || [];
+        document.getElementById('eventBadge').textContent = `${events.length}개`;
+        
+        if (events.length > 0) {
+          document.getElementById('eventsList').innerHTML = events.map(e => `
+            <div class="event-item">
+              <div class="event-time">${formatTime(e.time)}</div>
+              <div class="event-content">
+                <div class="event-title">${escapeHtml(e.title)}</div>
+                ${e.location ? `<div class="event-meta">📍 ${escapeHtml(e.location)}</div>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        // Emails
+        const emails = brief.important_emails || [];
+        document.getElementById('emailBadge').textContent = `${emails.length}개`;
+        
+        if (emails.length > 0) {
+          document.getElementById('emailsList').innerHTML = emails.map(e => `
+            <div class="email-item">
+              <div class="email-from">${escapeHtml(e.from)}</div>
+              <div class="email-subject">${escapeHtml(e.title)}</div>
+              <div class="email-preview">${escapeHtml(e.preview)}</div>
+            </div>
+          `).join('');
+        }
+        
+        // Messages
+        const messages = brief.recent_messages || [];
+        document.getElementById('messageBadge').textContent = `${messages.length}개`;
+        
+        if (messages.length > 0) {
+          document.getElementById('messagesList').innerHTML = messages.map(m => `
+            <div class="message-item">
+              <div>
+                <div class="message-channel">${escapeHtml(m.channel)}</div>
+                <div class="message-text">${escapeHtml(m.content)}</div>
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        // Recommendations
+        const recs = brief.recommendations || [];
+        if (recs.length > 0) {
+          document.getElementById('recommendationsList').innerHTML = recs.map(r => `
+            <div class="recommendation">
+              <div class="recommendation-text">${escapeHtml(r)}</div>
+            </div>
+          `).join('');
+        }
+        
+      } catch (err) {
+        console.error('Failed to load brief:', err);
+      }
+    }
+    
+    async function syncData() {
+      const btn = document.getElementById('syncBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;margin:0"></span> 동기화 중...';
+      
+      try {
+        await fetch(`${API_BASE}/sync/now`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: USER_ID })
+        });
+        
+        await loadBrief();
+        
+      } catch (err) {
+        console.error('Sync failed:', err);
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔄</span> 새로고침';
+    }
+    
+    function formatTime(isoString) {
+      if (!isoString) return '';
+      const date = new Date(isoString);
+      return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, '&amp;')
+                 .replace(/</g, '&lt;')
+                 .replace(/>/g, '&gt;');
+    }
+    
+    // Init
+    setTodayDate();
+    loadBrief();
+  </script>
+</body>
+</html>

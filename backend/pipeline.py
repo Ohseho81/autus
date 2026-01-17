@@ -26,11 +26,11 @@ from enum import Enum
 
 # Core modules
 from core.unp import UNPTransformer, UNPPacket, create_unp_packet, validate_unp
-from core.nodes36 import (
-    Node36Registry, 
+from core.compat import (
     VeteranIntuitionTransformer, 
     get_node_registry,
     NODE_DEFINITIONS,
+    Node36 as Node36Registry,  # Alias for compatibility
 )
 from core.circuits import (
     SelfProtectionCircuit,

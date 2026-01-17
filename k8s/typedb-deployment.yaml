@@ -1,0 +1,80 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# TypeDB Deployment (StatefulSet for data persistence)
+# ═══════════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: typedb
+  namespace: autus
+  labels:
+    app: typedb
+    tier: database
+spec:
+  serviceName: typedb-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: typedb
+  template:
+    metadata:
+      labels:
+        app: typedb
+        tier: database
+    spec:
+      containers:
+      - name: typedb
+        image: vaticle/typedb:2.28.0
+        ports:
+        - name: grpc
+          containerPort: 1729
+        env:
+        - name: TYPEDB_SERVER_ADDRESS
+          value: "0.0.0.0:1729"
+        volumeMounts:
+        - name: typedb-data
+          mountPath: /opt/typedb-all-linux-x86_64/server/data
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "2Gi"
+          limits:
+            cpu: "2"
+            memory: "8Gi"
+        livenessProbe:
+          tcpSocket:
+            port: grpc
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: grpc
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: typedb-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: gp3  # AWS EBS gp3 or your storage class
+      resources:
+        requests:
+          storage: 50Gi
+---
+# TypeDB Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: typedb-service
+  namespace: autus
+  labels:
+    app: typedb
+spec:
+  type: ClusterIP
+  ports:
+  - name: grpc
+    port: 1729
+    targetPort: 1729
+  selector:
+    app: typedb

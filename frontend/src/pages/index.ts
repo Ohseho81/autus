@@ -13,3 +13,4 @@ export { default as FuturePage } from './FuturePage';
 export { default as LogsPage } from './LogsPage';
 export { default as MacroPage } from './MacroPage';
 export { default as TrinityPage } from './TrinityPage';
+export { default as WorkflowDashboard } from './WorkflowDashboard';

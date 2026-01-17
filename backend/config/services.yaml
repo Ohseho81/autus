@@ -1,0 +1,157 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTUS 외부 서비스 설정
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# 모듈 교체 시 이 파일만 수정하면 됨
+# 환경변수: ${VAR_NAME} 형식으로 참조
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+version: "1.0"
+environment: ${AUTUS_ENV:development}
+
+# ─────────────────────────────────────────────────────────────────────────────────
+# LLM 서비스
+# ─────────────────────────────────────────────────────────────────────────────────
+llm:
+  # 기본 제공자 (openai, deepseek, llama, anthropic, local)
+  provider: deepseek
+  
+  # 장애 시 fallback 순서
+  fallback:
+    - llama
+    - openai
+  
+  # 태스크별 제공자 오버라이드
+  task_routing:
+    reasoning: deepseek      # 복잡 추론
+    instruction: llama       # 지시 따르기
+    coding: deepseek         # 코드 생성
+    analysis: deepseek       # 분석
+    summarization: llama     # 요약
+  
+  # 제공자별 설정
+  providers:
+    deepseek:
+      model: deepseek-reasoner
+      api_key: ${DEEPSEEK_API_KEY}
+      base_url: https://api.deepseek.com/v1
+      temperature: 0.3
+      max_tokens: 4096
+      
+    llama:
+      model: meta-llama/Llama-3.3-70B-Instruct
+      api_key: ${TOGETHER_API_KEY}
+      base_url: https://api.together.xyz/v1
+      temperature: 0.7
+      max_tokens: 4096
+      
+    openai:
+      model: gpt-4o-mini
+      api_key: ${OPENAI_API_KEY}
+      temperature: 0.7
+      max_tokens: 4096
+      
+    anthropic:
+      model: claude-3-5-sonnet-20241022
+      api_key: ${ANTHROPIC_API_KEY}
+      temperature: 0.7
+      max_tokens: 4096
+      
+    local:
+      model: deepseek-r1:7b
+      base_url: http://localhost:11434/v1
+
+# ─────────────────────────────────────────────────────────────────────────────────
+# 벡터 DB
+# ─────────────────────────────────────────────────────────────────────────────────
+vector_db:
+  provider: pinecone
+  fallback:
+    - chroma
+  
+  providers:
+    pinecone:
+      api_key: ${PINECONE_API_KEY}
+      environment: ${PINECONE_ENV:us-east-1}
+      index_name: autus-main
+      dimension: 1536
+      metric: cosine
+      
+    chroma:
+      persist_directory: ./data/chroma
+      collection_name: autus
+      
+    weaviate:
+      url: ${WEAVIATE_URL:http://localhost:8080}
+      api_key: ${WEAVIATE_API_KEY}
+
+# ─────────────────────────────────────────────────────────────────────────────────
+# 그래프 DB
+# ─────────────────────────────────────────────────────────────────────────────────
+graph_db:
+  provider: neo4j
+  fallback:
+    - typedb
+  
+  providers:
+    neo4j:
+      uri: ${NEO4J_URI:bolt://localhost:7687}
+      user: ${NEO4J_USER:neo4j}
+      password: ${NEO4J_PASSWORD}
+      database: autus
+      
+    typedb:
+      address: ${TYPEDB_ADDRESS:localhost:1729}
+      database: autus
+
+# ─────────────────────────────────────────────────────────────────────────────────
+# 캐시
+# ─────────────────────────────────────────────────────────────────────────────────
+cache:
+  provider: redis
+  fallback: []
+  
+  providers:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379}
+      db: 0
+      password: ${REDIS_PASSWORD}
+      
+    memcached:
+      servers:
+        - localhost:11211
+
+# ─────────────────────────────────────────────────────────────────────────────────
+# 알림
+# ─────────────────────────────────────────────────────────────────────────────────
+notification:
+  provider: slack
+  fallback:
+    - discord
+  
+  providers:
+    slack:
+      webhook_url: ${SLACK_WEBHOOK_URL}
+      channel: "#autus-alerts"
+      
+    discord:
+      webhook_url: ${DISCORD_WEBHOOK_URL}
+
+# ─────────────────────────────────────────────────────────────────────────────────
+# 모니터링
+# ─────────────────────────────────────────────────────────────────────────────────
+monitoring:
+  provider: prometheus
+  
+  providers:
+    prometheus:
+      port: 9090
+      
+    langsmith:
+      api_key: ${LANGSMITH_API_KEY}
+      project: autus-production
+      
+    sentry:
+      dsn: ${SENTRY_DSN}
+      environment: ${AUTUS_ENV:development}

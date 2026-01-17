@@ -7,7 +7,7 @@
 #
 # ═══════════════════════════════════════════════════════════════════════════════
 
-.PHONY: help install dev test lint format clean clean-all docker-up docker-down frontend react react-build all streamlit simulator backup report release
+.PHONY: help install dev test lint format clean clean-all docker-up docker-down frontend react react-build all streamlit simulator backup report release up down logs db-migrate db-status test-ki test-collectors test-all setup
 
 # 기본 변수
 PYTHON := python3
@@ -34,18 +34,31 @@ NC := \033[0m
 help:
 	@echo ""
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════$(NC)"
-	@echo "$(CYAN)  🏛️  AUTUS - 개발 명령어 v$(VERSION)$(NC)"
+	@echo "$(CYAN)  🏛️  AUTUS v1.0.0 - 개발 명령어$(NC)"
 	@echo "$(CYAN)═══════════════════════════════════════════════════════════════$(NC)"
 	@echo ""
-	@echo "$(GREEN)🚀 시작$(NC)"
+	@echo "$(GREEN)⚡ 원클릭 실행$(NC)"
+	@echo "   make up           - Docker 전체 실행 (DB + API + Redis)"
+	@echo "   make down         - Docker 종료"
+	@echo "   make logs         - Docker 로그 보기"
+	@echo "   make setup        - 초기 설정 (환경변수 + 의존성)"
+	@echo ""
+	@echo "$(GREEN)🚀 개발$(NC)"
 	@echo "   make install      - Backend 의존성 설치"
 	@echo "   make install-all  - 전체 의존성 설치"
 	@echo "   make dev          - Backend API 서버 실행"
 	@echo "   make frontend     - React 개발 서버 실행"
 	@echo "   make all          - Backend + Frontend 동시 실행"
 	@echo ""
+	@echo "$(GREEN)🗄️ 데이터베이스$(NC)"
+	@echo "   make db-migrate   - K/I 스키마 마이그레이션"
+	@echo "   make db-status    - 테이블 상태 확인"
+	@echo "   make db-shell     - PostgreSQL 쉘"
+	@echo ""
 	@echo "$(GREEN)🧪 테스트$(NC)"
 	@echo "   make test         - 전체 테스트 실행"
+	@echo "   make test-ki      - K/I API 테스트"
+	@echo "   make test-collectors - OAuth 수집기 테스트"
 	@echo "   make test-cov     - 커버리지 포함 테스트"
 	@echo "   make test-watch   - 테스트 감시 모드"
 	@echo ""
@@ -186,7 +199,94 @@ security:
 	@echo "$(GREEN)✅ 보안 스캔 완료$(NC)"
 
 # ───────────────────────────────────────────────────────────────────────────────
-# 🐳 Docker
+# ⚡ 원클릭 명령어 (v4.2.0)
+# ───────────────────────────────────────────────────────────────────────────────
+
+up:
+	@echo ""
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(CYAN)  🏛️  AUTUS v1.0.0 시작$(NC)"
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)📋 .env 파일 생성 중...$(NC)"; \
+		cp .env.example .env 2>/dev/null || true; \
+	fi
+	@echo "$(CYAN)🐳 Docker 컨테이너 시작...$(NC)"
+	@docker-compose up -d
+	@echo ""
+	@echo "$(GREEN)✅ AUTUS 실행 중!$(NC)"
+	@echo ""
+	@echo "  📚 API Docs:    http://localhost:8000/docs"
+	@echo "  🏥 Health:      http://localhost:8000/health"
+	@echo "  🗄️ DB Admin:    http://localhost:8080 (make up-dev)"
+	@echo ""
+	@docker-compose ps
+
+up-dev:
+	@echo "$(CYAN)🛠️ 개발 모드로 시작 (Adminer 포함)...$(NC)"
+	@if [ ! -f .env ]; then cp .env.example .env; fi
+	@docker-compose --profile dev up -d
+	@echo ""
+	@echo "$(GREEN)✅ 개발 모드 실행 중!$(NC)"
+	@echo ""
+	@echo "  📚 API:         http://localhost:8000/docs"
+	@echo "  🗄️ Adminer:     http://localhost:8080"
+	@echo ""
+
+down:
+	@echo "$(CYAN)🛑 AUTUS 종료...$(NC)"
+	@docker-compose --profile dev down
+	@echo "$(GREEN)✅ 종료 완료$(NC)"
+
+logs:
+	@docker-compose logs -f --tail=100 api
+
+logs-all:
+	@docker-compose logs -f --tail=50
+
+setup:
+	@echo ""
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(CYAN)  🔧 AUTUS 초기 설정$(NC)"
+	@echo "$(CYAN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "$(CYAN)1. 환경 변수 설정...$(NC)"
+	@if [ ! -f .env ]; then \
+		cp .env.example .env; \
+		echo "$(GREEN)   ✅ .env 파일 생성됨$(NC)"; \
+	else \
+		echo "$(YELLOW)   ⏭️ .env 이미 존재$(NC)"; \
+	fi
+	@echo ""
+	@echo "$(CYAN)2. Python 가상환경...$(NC)"
+	@if [ ! -d venv ]; then \
+		python3 -m venv venv; \
+		echo "$(GREEN)   ✅ venv 생성됨$(NC)"; \
+	else \
+		echo "$(YELLOW)   ⏭️ venv 이미 존재$(NC)"; \
+	fi
+	@echo ""
+	@echo "$(CYAN)3. Python 의존성 설치...$(NC)"
+	@. venv/bin/activate && pip install -r $(BACKEND_DIR)/requirements.txt -q
+	@echo "$(GREEN)   ✅ 설치 완료$(NC)"
+	@echo ""
+	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo "$(GREEN)  ✅ 초기 설정 완료!$(NC)"
+	@echo "$(GREEN)═══════════════════════════════════════════════════════════════$(NC)"
+	@echo ""
+	@echo "  다음 단계:"
+	@echo "    1. .env 파일에서 OAuth 키 설정"
+	@echo "    2. make up 으로 실행"
+	@echo ""
+
+restart:
+	@echo "$(CYAN)🔄 재시작...$(NC)"
+	@docker-compose restart api
+	@echo "$(GREEN)✅ 재시작 완료$(NC)"
+
+# ───────────────────────────────────────────────────────────────────────────────
+# 🐳 Docker (상세)
 # ───────────────────────────────────────────────────────────────────────────────
 
 docker-up:
@@ -202,7 +302,7 @@ docker-down:
 
 docker-build:
 	@echo "$(CYAN)🐳 Docker 이미지 빌드...$(NC)"
-	@docker-compose build
+	@docker-compose build --no-cache
 	@echo "$(GREEN)✅ 빌드 완료$(NC)"
 
 docker-logs:
@@ -353,6 +453,89 @@ db-shell:
 	@echo "$(CYAN)🗄️ Database Shell...$(NC)"
 	@docker-compose exec db psql -U postgres 2>/dev/null || echo "DB 컨테이너 없음"
 
+# ───────────────────────────────────────────────────────────────────────────────
+# 🗄️ 데이터베이스 마이그레이션 (K/I v4.1)
+# ───────────────────────────────────────────────────────────────────────────────
+
+db-migrate:
+	@echo "$(CYAN)🗄️ K/I 스키마 마이그레이션...$(NC)"
+	@echo ""
+	@echo "실행할 SQL: backend/db/ki_schema.sql"
+	@echo ""
+	@if command -v psql >/dev/null 2>&1; then \
+		read -p "PostgreSQL 데이터베이스 이름 (기본: autus): " dbname; \
+		dbname=$${dbname:-autus}; \
+		echo "psql -d $$dbname -f backend/db/ki_schema.sql"; \
+		psql -d $$dbname -f backend/db/ki_schema.sql && \
+		echo "$(GREEN)✅ 마이그레이션 완료$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️ psql 명령어가 없습니다. Docker로 실행하세요:$(NC)"; \
+		echo "  docker-compose exec db psql -U postgres -d autus -f /app/db/ki_schema.sql"; \
+	fi
+
+db-migrate-docker:
+	@echo "$(CYAN)🗄️ Docker PostgreSQL 마이그레이션...$(NC)"
+	@docker-compose exec db psql -U postgres -d autus -f /app/backend/db/ki_schema.sql 2>/dev/null || \
+		echo "$(RED)❌ Docker DB 컨테이너가 실행 중이어야 합니다$(NC)"
+
+db-status:
+	@echo "$(CYAN)🗄️ 데이터베이스 테이블 상태...$(NC)"
+	@docker-compose exec db psql -U postgres -d autus -c "\dt" 2>/dev/null || \
+		psql -d autus -c "\dt" 2>/dev/null || \
+		echo "$(YELLOW)DB 연결 실패$(NC)"
+
+# ───────────────────────────────────────────────────────────────────────────────
+# 🧪 K/I API 테스트
+# ───────────────────────────────────────────────────────────────────────────────
+
+test-ki:
+	@echo "$(CYAN)🧪 K/I API 테스트...$(NC)"
+	@cd $(BACKEND_DIR) && $(PYTHON) -m pytest tests/test_ki_api.py -v
+
+test-collectors:
+	@echo "$(CYAN)🧪 OAuth 수집기 테스트...$(NC)"
+	@cd $(BACKEND_DIR) && $(PYTHON) -m pytest tests/test_collectors.py -v
+
+test-all:
+	@echo "$(CYAN)🧪 전체 테스트...$(NC)"
+	@cd $(BACKEND_DIR) && $(PYTHON) -m pytest tests/ -v --tb=short
+
 # 더미 타겟 (backup 인자용)
 daily weekly full:
 	@:
+
+# ───────────────────────────────────────────────────────────────────────────────
+# 🔄 월별 업데이트
+# ───────────────────────────────────────────────────────────────────────────────
+
+.PHONY: update update-dry update-status update-report
+
+update-dry:
+	@echo "$(CYAN)🔄 월별 업데이트 (DRY-RUN)$(NC)"
+	@.venv/bin/python scripts/monthly_update.py --dry-run --verbose
+
+update:
+	@echo "$(CYAN)🔄 월별 업데이트 실행$(NC)"
+	@.venv/bin/python scripts/monthly_update.py --execute --slack
+
+update-status:
+	@echo "$(CYAN)📦 패키지 상태 확인$(NC)"
+	@.venv/bin/python scripts/monthly_update.py --status
+
+update-report:
+	@echo "$(CYAN)📋 업데이트 리포트$(NC)"
+	@.venv/bin/python scripts/monthly_update.py --report
+
+# ───────────────────────────────────────────────────────────────────────────────
+# 🔧 서비스 관리
+# ───────────────────────────────────────────────────────────────────────────────
+
+.PHONY: services-status services-health
+
+services-status:
+	@echo "$(CYAN)🔧 서비스 상태$(NC)"
+	@.venv/bin/python -c "from backend.integrations.base import ServiceRegistry; print(ServiceRegistry.list_services())"
+
+services-health:
+	@echo "$(CYAN)💓 서비스 헬스체크$(NC)"
+	@.venv/bin/python -c "from backend.integrations.base import ServiceRegistry; print(ServiceRegistry.health_check_all())"

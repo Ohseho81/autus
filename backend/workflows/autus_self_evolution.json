@@ -1,0 +1,198 @@
+{
+  "name": "AUTUS Self-Evolution v13.0",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "⏰ 6시간마다 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://autus-ai.com",
+        "options": {}
+      },
+      "id": "fetch-site",
+      "name": "🌐 사이트 분석",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS 누락 기능 감지\nconst html = $input.first().json.data || '';\n\nconst requiredFeatures = [\n  { id: 'dashboard', pattern: /dashboard|대시보드/i, name: '대시보드', impact: 10 },\n  { id: 'feedback', pattern: /feedback|피드백|제출|수정|폐기/i, name: '피드백 시스템', impact: 15 },\n  { id: 'auth', pattern: /login|logout|인증|로그인/i, name: '인증 시스템', impact: 12 },\n  { id: 'analytics', pattern: /chart|graph|analytics|분석/i, name: '분석 차트', impact: 8 },\n  { id: 'realtime', pattern: /websocket|realtime|실시간/i, name: '실시간 기능', impact: 10 },\n  { id: 'notification', pattern: /notification|알림|toast/i, name: '알림 시스템', impact: 7 },\n  { id: 'search', pattern: /search|검색/i, name: '검색 기능', impact: 6 },\n  { id: 'export', pattern: /export|download|내보내기/i, name: '내보내기', impact: 5 },\n  { id: 'dark_mode', pattern: /dark-mode|theme|테마/i, name: '다크 모드', impact: 4 },\n  { id: 'mobile', pattern: /responsive|mobile|모바일/i, name: '모바일 최적화', impact: 9 },\n  { id: 'proof_pack', pattern: /proof|증빙|Proof Pack/i, name: 'Proof Pack 시스템', impact: 15 },\n  { id: 'smart_router', pattern: /router|라우터|헌법/i, name: 'Smart Router', impact: 12 }\n];\n\nconst detected = [];\nconst missing = [];\n\nfor (const feature of requiredFeatures) {\n  if (feature.pattern.test(html)) {\n    detected.push(feature);\n  } else {\n    missing.push(feature);\n  }\n}\n\nconst currentScore = detected.reduce((sum, f) => sum + f.impact, 0);\nconst maxScore = requiredFeatures.reduce((sum, f) => sum + f.impact, 0);\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    current_score: currentScore,\n    max_score: maxScore,\n    percentage: Math.round((currentScore / maxScore) * 100),\n    detected_count: detected.length,\n    missing_count: missing.length,\n    detected_features: detected.map(f => f.name),\n    missing_features: missing.map(f => ({ id: f.id, name: f.name, impact: f.impact })),\n    should_evolve: missing.length > 0\n  }\n};"
+      },
+      "id": "analyze-gaps",
+      "name": "🔍 누락 기능 분석",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.should_evolve }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-evolve",
+      "name": "진화 필요?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"AUTUS 자동화 시스템에 다음 기능을 추가하는 HTML/JavaScript 코드를 생성해주세요.\\n\\n누락된 기능: {{ $json.missing_features.map(f => f.name).join(', ') }}\\n\\n요구사항:\\n1. 기존 AUTUS 디자인 시스템과 일관된 스타일 (다크 테마, 그라디언트)\\n2. 한국어 UI\\n3. 실제 동작하는 JavaScript 코드\\n4. 모바일 반응형\\n\\n코드만 출력해주세요.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"maxOutputTokens\": 8192\n  }\n}"
+      },
+      "id": "gemini-generate",
+      "name": "🤖 Gemini 코드 생성",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1050, 200],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "gemini-api",
+          "name": "Gemini API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gemini 응답에서 코드 추출\nconst response = $input.first().json;\nconst gapAnalysis = $('🔍 누락 기능 분석').first().json;\n\nlet generatedCode = '';\ntry {\n  generatedCode = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n  // 코드 블록 추출\n  const codeMatch = generatedCode.match(/```(?:html|javascript)?\\n([\\s\\S]*?)```/);\n  if (codeMatch) {\n    generatedCode = codeMatch[1];\n  }\n} catch (e) {\n  generatedCode = 'Error extracting code';\n}\n\nreturn {\n  json: {\n    cycle_number: Date.now(),\n    timestamp: new Date().toISOString(),\n    missing_features: gapAnalysis.missing_features,\n    generated_code: generatedCode,\n    score_before: gapAnalysis.current_score,\n    status: generatedCode.length > 100 ? 'SUCCESS' : 'FAILED'\n  }\n};"
+      },
+      "id": "extract-code",
+      "name": "📝 코드 추출",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/evolution_logs",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"cycle_number\": {{ $json.cycle_number }},\n  \"detected_gaps\": {{ JSON.stringify($json.missing_features) }},\n  \"generated_features\": {{ JSON.stringify($json.missing_features.map(f => f.name)) }},\n  \"code_diff\": {{ JSON.stringify($json.generated_code.substring(0, 5000)) }},\n  \"deploy_status\": \"{{ $json.status }}\",\n  \"score_before\": {{ $json.score_before }}\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "log-supabase",
+      "name": "💾 Supabase 로그",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1450, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabase-api",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "#autus-evolution",
+        "text": "=🧬 *AUTUS 자기 진화 리포트*\n\n📊 *현재 점수:* {{ $('🔍 누락 기능 분석').first().json.current_score }} / {{ $('🔍 누락 기능 분석').first().json.max_score }} ({{ $('🔍 누락 기능 분석').first().json.percentage }}%)\n\n✅ *감지된 기능:* {{ $('🔍 누락 기능 분석').first().json.detected_count }}개\n❌ *누락된 기능:* {{ $('🔍 누락 기능 분석').first().json.missing_count }}개\n\n🔧 *누락 목록:*\n{{ $('🔍 누락 기능 분석').first().json.missing_features.map(f => `• ${f.name} (+${f.impact}점)`).join('\\n') }}\n\n🤖 *AI 코드 생성:* {{ $json.status }}\n⏰ {{ $json.timestamp }}",
+        "otherOptions": {}
+      },
+      "id": "slack-notify",
+      "name": "📢 Slack 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1650, 200],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-bot",
+          "name": "Slack Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 진화 불필요 - 스킵\nconst gapAnalysis = $('🔍 누락 기능 분석').first().json;\n\nreturn {\n  json: {\n    status: 'SKIPPED',\n    reason: '모든 핵심 기능이 이미 존재합니다',\n    current_score: gapAnalysis.current_score,\n    percentage: gapAnalysis.percentage,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "skip-evolve",
+      "name": "⏭️ 진화 스킵",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "channel": "#autus-evolution",
+        "text": "=✅ *AUTUS 상태 정상*\n\n📊 점수: {{ $json.current_score }} ({{ $json.percentage }}%)\n💡 모든 핵심 기능이 존재합니다.\n⏰ {{ $json.timestamp }}",
+        "otherOptions": {}
+      },
+      "id": "slack-skip-notify",
+      "name": "📢 스킵 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1250, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-bot",
+          "name": "Slack Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "⏰ 6시간마다 실행": {
+      "main": [[{"node": "🌐 사이트 분석", "type": "main", "index": 0}]]
+    },
+    "🌐 사이트 분석": {
+      "main": [[{"node": "🔍 누락 기능 분석", "type": "main", "index": 0}]]
+    },
+    "🔍 누락 기능 분석": {
+      "main": [[{"node": "진화 필요?", "type": "main", "index": 0}]]
+    },
+    "진화 필요?": {
+      "main": [
+        [{"node": "🤖 Gemini 코드 생성", "type": "main", "index": 0}],
+        [{"node": "⏭️ 진화 스킵", "type": "main", "index": 0}]
+      ]
+    },
+    "🤖 Gemini 코드 생성": {
+      "main": [[{"node": "📝 코드 추출", "type": "main", "index": 0}]]
+    },
+    "📝 코드 추출": {
+      "main": [[{"node": "💾 Supabase 로그", "type": "main", "index": 0}]]
+    },
+    "💾 Supabase 로그": {
+      "main": [[{"node": "📢 Slack 알림", "type": "main", "index": 0}]]
+    },
+    "⏭️ 진화 스킵": {
+      "main": [[{"node": "📢 스킵 알림", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {"executionOrder": "v1"},
+  "tags": [{"id": "1", "name": "AUTUS"}, {"id": "2", "name": "Self-Evolution"}],
+  "triggerCount": 1,
+  "versionId": "v13.0"
+}

@@ -1,0 +1,17 @@
+# =============================================================================
+# Grafana 대시보드 프로비저닝
+# =============================================================================
+
+apiVersion: 1
+
+providers:
+  - name: 'AUTUS Dashboards'
+    orgId: 1
+    folder: 'AUTUS'
+    folderUid: 'autus'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards

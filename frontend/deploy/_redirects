@@ -1,0 +1,8 @@
+/dev-console    /dev-console.html   200
+/complete       /complete.html      200
+/self-builder   /self-builder.html  200
+/builder        /builder.html       200
+/setup          /setup.html         200
+/integrations   /integrations.html  200
+/brief          /brief.html         200
+/*              /index.html         200

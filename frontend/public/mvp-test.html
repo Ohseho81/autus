@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS MVP 테스트</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .status {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .status-item {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-item.connected { background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; }
+        .status-item.disconnected { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
+        .chat-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+        }
+        .message {
+            padding: 10px 14px;
+            margin: 8px 0;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+        .message.user {
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            margin-left: auto;
+        }
+        .message.system {
+            background: rgba(255,255,255,0.1);
+        }
+        .message.progress {
+            background: rgba(34, 197, 94, 0.2);
+            border-left: 3px solid #22c55e;
+        }
+        .message.error {
+            background: rgba(239, 68, 68, 0.2);
+            border-left: 3px solid #ef4444;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1rem;
+        }
+        input::placeholder { color: rgba(255,255,255,0.5); }
+        input:focus { outline: 2px solid #7c3aed; }
+        button {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: scale(1.05); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #00d4ff);
+            border-radius: 3px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+        .quick-commands {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .quick-cmd {
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .quick-cmd:hover {
+            background: rgba(124, 58, 237, 0.3);
+            border-color: #7c3aed;
+        }
+        pre {
+            background: rgba(0,0,0,0.5);
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏛️ AUTUS MVP 테스트</h1>
+        
+        <div class="status">
+            <div id="ws-status" class="status-item disconnected">
+                <span id="ws-icon">⚪</span>
+                <span id="ws-text">연결 중...</span>
+            </div>
+            <div id="api-status" class="status-item disconnected">
+                <span id="api-icon">⚪</span>
+                <span id="api-text">API 확인 중...</span>
+            </div>
+        </div>
+
+        <div class="chat-box">
+            <div class="quick-commands">
+                <div class="quick-cmd" onclick="sendQuickCmd('헬스 체크')">💓 헬스 체크</div>
+                <div class="quick-cmd" onclick="sendQuickCmd('월 1회 최신화 하자')">🔄 월별 업데이트</div>
+                <div class="quick-cmd" onclick="sendQuickCmd('LangGraph 워크플로우 실행')">🔀 워크플로우</div>
+                <div class="quick-cmd" onclick="sendQuickCmd('서비스 상태 확인')">📊 서비스 상태</div>
+            </div>
+            
+            <div id="messages" class="messages">
+                <div class="message system">👋 AUTUS MVP에 오신 것을 환영합니다!</div>
+            </div>
+            
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-bar-fill"></div>
+            </div>
+            
+            <div class="input-area" style="margin-top: 15px;">
+                <input 
+                    type="text" 
+                    id="command" 
+                    placeholder="명령을 입력하세요 (예: 아우투스 외부 기술 최신화 하자)"
+                    onkeypress="if(event.key==='Enter') send()"
+                >
+                <button onclick="send()" id="send-btn">보내기</button>
+            </div>
+        </div>
+
+        <div class="chat-box">
+            <h3 style="margin-bottom: 15px;">📡 API 테스트</h3>
+            <div class="quick-commands">
+                <div class="quick-cmd" onclick="testAPI('/health')">GET /health</div>
+                <div class="quick-cmd" onclick="testAPI('/state')">GET /state</div>
+                <div class="quick-cmd" onclick="testAPI('/api/langgraph/workflows')">GET /workflows</div>
+                <div class="quick-cmd" onclick="testAPI('/api/langgraph/integrations/status')">GET /integrations</div>
+            </div>
+            <pre id="api-result">API 응답이 여기에 표시됩니다...</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let socket = null;
+        let isConnected = false;
+
+        // WebSocket 연결
+        function connectWebSocket() {
+            try {
+                socket = io(API_URL, {
+                    transports: ['websocket', 'polling'],
+                    reconnection: true,
+                    reconnectionAttempts: 5,
+                    reconnectionDelay: 1000,
+                });
+
+                socket.on('connect', () => {
+                    isConnected = true;
+                    updateStatus('ws', true, '연결됨');
+                    addMessage('system', '✅ WebSocket 연결됨');
+                });
+
+                socket.on('disconnect', () => {
+                    isConnected = false;
+                    updateStatus('ws', false, '연결 끊김');
+                    addMessage('error', '❌ WebSocket 연결 끊김');
+                });
+
+                socket.on('progress', (data) => {
+                    const percent = data.percent || 0;
+                    document.getElementById('progress-fill').style.width = percent + '%';
+                    addMessage('progress', `📊 ${data.stage} (${percent}%)`);
+                });
+
+                socket.on('result', (data) => {
+                    document.getElementById('progress-fill').style.width = '100%';
+                    addMessage('system', `✅ 결과: ${JSON.stringify(data.output, null, 2)}`);
+                    setTimeout(() => {
+                        document.getElementById('progress-fill').style.width = '0%';
+                    }, 2000);
+                });
+
+                socket.on('error', (data) => {
+                    addMessage('error', `❌ 오류: ${data.message}`);
+                });
+
+            } catch (e) {
+                console.error('WebSocket 연결 실패:', e);
+                updateStatus('ws', false, '연결 실패');
+            }
+        }
+
+        // API 상태 확인
+        async function checkAPIStatus() {
+            try {
+                const res = await fetch(API_URL + '/health');
+                const data = await res.json();
+                updateStatus('api', data.status === 'healthy', data.status);
+            } catch (e) {
+                updateStatus('api', false, '연결 실패');
+            }
+        }
+
+        // 상태 업데이트
+        function updateStatus(type, ok, text) {
+            const statusEl = document.getElementById(type + '-status');
+            const iconEl = document.getElementById(type + '-icon');
+            const textEl = document.getElementById(type + '-text');
+            
+            statusEl.className = 'status-item ' + (ok ? 'connected' : 'disconnected');
+            iconEl.textContent = ok ? '🟢' : '🔴';
+            textEl.textContent = text;
+        }
+
+        // 메시지 추가
+        function addMessage(type, content) {
+            const messages = document.getElementById('messages');
+            const msg = document.createElement('div');
+            msg.className = 'message ' + type;
+            
+            if (typeof content === 'object') {
+                msg.innerHTML = `<pre>${JSON.stringify(content, null, 2)}</pre>`;
+            } else {
+                msg.textContent = content;
+            }
+            
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // 명령 전송
+        function send() {
+            const input = document.getElementById('command');
+            const cmd = input.value.trim();
+            
+            if (!cmd) return;
+            
+            addMessage('user', cmd);
+            input.value = '';
+            
+            document.getElementById('progress-fill').style.width = '10%';
+
+            if (socket && isConnected) {
+                socket.emit('message', { command: cmd });
+            } else {
+                // WebSocket 없으면 REST API로 폴백
+                sendViaAPI(cmd);
+            }
+        }
+
+        // REST API로 전송
+        async function sendViaAPI(cmd) {
+            try {
+                addMessage('progress', '📡 REST API로 전송 중...');
+                
+                const res = await fetch(API_URL + '/api/langgraph/hybrid', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: 'test_user',
+                        goal: cmd 
+                    })
+                });
+                
+                const data = await res.json();
+                document.getElementById('progress-fill').style.width = '100%';
+                addMessage('system', data);
+                
+            } catch (e) {
+                addMessage('error', '❌ API 오류: ' + e.message);
+            }
+        }
+
+        // 빠른 명령
+        function sendQuickCmd(cmd) {
+            document.getElementById('command').value = cmd;
+            send();
+        }
+
+        // API 테스트
+        async function testAPI(endpoint) {
+            const resultEl = document.getElementById('api-result');
+            resultEl.textContent = '로딩 중...';
+            
+            try {
+                const res = await fetch(API_URL + endpoint);
+                const data = await res.json();
+                resultEl.textContent = JSON.stringify(data, null, 2);
+            } catch (e) {
+                resultEl.textContent = '오류: ' + e.message;
+            }
+        }
+
+        // 초기화
+        window.onload = () => {
+            checkAPIStatus();
+            connectWebSocket();
+            setInterval(checkAPIStatus, 30000);
+        };
+    </script>
+</body>
+</html>

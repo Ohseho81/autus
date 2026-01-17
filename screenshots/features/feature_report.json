@@ -1,0 +1,42 @@
+{
+  "portal": {
+    "header": true,
+    "gateConstitution": true,
+    "nodesPanel": true,
+    "viewTabs": true,
+    "apiConnection": true,
+    "hasMetrics": true
+  },
+  "k2": {
+    "stateIndicator": true,
+    "scaleLock": true,
+    "twoButtonsOnly": true,
+    "noForecast": false,
+    "gateDisplay": true,
+    "noApplyButton": true
+  },
+  "k10": {
+    "observingState": true,
+    "noApplyMessage": true,
+    "causalNetwork": true,
+    "afterimageLog": true,
+    "hypothesisInput": true,
+    "noApplyButton": true
+  },
+  "galaxy": {
+    "forecastTab": true,
+    "automationTab": true,
+    "taskTab": true,
+    "systemStatus": true,
+    "taskPrediction": true,
+    "entropyTag": true
+  },
+  "api": {
+    "root": true,
+    "status": true,
+    "nodes": true,
+    "presets": true,
+    "health": true,
+    "docs": true
+  }
+}

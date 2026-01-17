@@ -25,9 +25,8 @@ from datetime import datetime
 from enum import Enum
 
 # Core imports
-from core.strategic_nodes import get_strategic_matrix, PhysicsDimension
+from core.compat import get_strategic_matrix, PhysicsDimension, VeteranIntuitionTransformer
 from core.unp import UNPTransformer, create_unp_packet
-from core.nodes36 import VeteranIntuitionTransformer
 from core.circuits import get_protection_circuit, ObservationType
 from sovereign.zkp import get_zkp_engine
 from sovereign.poc import get_poc_engine, ContributionType

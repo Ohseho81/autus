@@ -1,0 +1,221 @@
+{
+  "version": "3.0.0",
+  "name": "AUTUS 48-Node System",
+  "philosophy": "인간이 이해할 수 있는 복잡도, 의미 있는 깊이",
+  "structure": {
+    "meta_categories": 4,
+    "domains_per_meta": 4,
+    "nodes_per_domain": 3,
+    "total_nodes": 48
+  },
+
+  "node_types": {
+    "A": { "name": "Archetype", "name_ko": "본질", "emoji": "⭐", "question": "이것의 본질은 무엇인가?" },
+    "D": { "name": "Dynamics", "name_ko": "흐름", "emoji": "🔄", "question": "이것은 어떻게 움직이는가?" },
+    "E": { "name": "Equilibrium", "name_ko": "균형", "emoji": "⚖️", "question": "균형점은 어디인가?" }
+  },
+
+  "meta_categories": {
+    "MAT": {
+      "name": "Material",
+      "name_ko": "물질",
+      "emoji": "💎",
+      "description": "물리적 자원과 신체",
+      "domains": ["CASH", "ASSET", "BODY", "SPACE"]
+    },
+    "MEN": {
+      "name": "Mental",
+      "name_ko": "정신",
+      "emoji": "🧠",
+      "description": "내면의 상태와 관계",
+      "domains": ["COGNI", "EMOTE", "WILL", "RELATE"]
+    },
+    "DYN": {
+      "name": "Dynamic",
+      "name_ko": "동적",
+      "emoji": "⚡",
+      "description": "활동과 변화",
+      "domains": ["TIME", "WORK", "GROW", "CHANGE"]
+    },
+    "TRS": {
+      "name": "Transcendent",
+      "name_ko": "초월",
+      "emoji": "🌟",
+      "description": "의미와 영향",
+      "domains": ["MEANING", "LEGACY", "IMPACT", "SELF"]
+    }
+  },
+
+  "domains": {
+    "CASH": {
+      "meta": "MAT",
+      "name": "현금",
+      "name_en": "Cash Flow",
+      "description": "즉시 사용 가능한 유동 자원"
+    },
+    "ASSET": {
+      "meta": "MAT",
+      "name": "자산",
+      "name_en": "Assets",
+      "description": "축적된 재산과 투자"
+    },
+    "BODY": {
+      "meta": "MAT",
+      "name": "신체",
+      "name_en": "Body",
+      "description": "물리적 건강과 에너지"
+    },
+    "SPACE": {
+      "meta": "MAT",
+      "name": "공간",
+      "name_en": "Space",
+      "description": "물리적 환경과 소유물"
+    },
+    "COGNI": {
+      "meta": "MEN",
+      "name": "인지",
+      "name_en": "Cognition",
+      "description": "사고, 학습, 판단"
+    },
+    "EMOTE": {
+      "meta": "MEN",
+      "name": "감정",
+      "name_en": "Emotion",
+      "description": "정서적 상태와 안정"
+    },
+    "WILL": {
+      "meta": "MEN",
+      "name": "의지",
+      "name_en": "Will",
+      "description": "동기, 결단, 실행력"
+    },
+    "RELATE": {
+      "meta": "MEN",
+      "name": "관계",
+      "name_en": "Relationship",
+      "description": "대인 관계와 네트워크"
+    },
+    "TIME": {
+      "meta": "DYN",
+      "name": "시간",
+      "name_en": "Time",
+      "description": "시간 자원과 활용"
+    },
+    "WORK": {
+      "meta": "DYN",
+      "name": "업무",
+      "name_en": "Work",
+      "description": "생산적 활동과 성과"
+    },
+    "GROW": {
+      "meta": "DYN",
+      "name": "성장",
+      "name_en": "Growth",
+      "description": "발전, 학습, 확장"
+    },
+    "CHANGE": {
+      "meta": "DYN",
+      "name": "변화",
+      "name_en": "Change",
+      "description": "전환, 적응, 혁신"
+    },
+    "MEANING": {
+      "meta": "TRS",
+      "name": "의미",
+      "name_en": "Meaning",
+      "description": "목적과 가치"
+    },
+    "LEGACY": {
+      "meta": "TRS",
+      "name": "유산",
+      "name_en": "Legacy",
+      "description": "남기는 것, 기여"
+    },
+    "IMPACT": {
+      "meta": "TRS",
+      "name": "영향",
+      "name_en": "Impact",
+      "description": "세상에 미치는 변화"
+    },
+    "SELF": {
+      "meta": "TRS",
+      "name": "자아",
+      "name_en": "Self",
+      "description": "정체성과 존재"
+    }
+  },
+
+  "nodes": {
+    "n01": { "domain": "CASH", "type": "A", "name": "현금 본질", "name_en": "Cash Essence", "description": "보유 현금의 절대량" },
+    "n02": { "domain": "CASH", "type": "D", "name": "현금 흐름", "name_en": "Cash Flow", "description": "현금의 유입/유출 속도" },
+    "n03": { "domain": "CASH", "type": "E", "name": "현금 균형", "name_en": "Cash Balance", "description": "적정 현금 보유량 대비 상태" },
+
+    "n04": { "domain": "ASSET", "type": "A", "name": "자산 본질", "name_en": "Asset Essence", "description": "총 자산 가치" },
+    "n05": { "domain": "ASSET", "type": "D", "name": "자산 흐름", "name_en": "Asset Flow", "description": "자산의 증감 추이" },
+    "n06": { "domain": "ASSET", "type": "E", "name": "자산 균형", "name_en": "Asset Balance", "description": "자산 배분의 적정성" },
+
+    "n07": { "domain": "BODY", "type": "A", "name": "신체 본질", "name_en": "Body Essence", "description": "기본 건강 상태" },
+    "n08": { "domain": "BODY", "type": "D", "name": "신체 흐름", "name_en": "Body Flow", "description": "에너지와 컨디션 변화" },
+    "n09": { "domain": "BODY", "type": "E", "name": "신체 균형", "name_en": "Body Balance", "description": "수면, 영양, 활동의 균형" },
+
+    "n10": { "domain": "SPACE", "type": "A", "name": "공간 본질", "name_en": "Space Essence", "description": "물리적 환경의 질" },
+    "n11": { "domain": "SPACE", "type": "D", "name": "공간 흐름", "name_en": "Space Flow", "description": "환경 변화와 이동" },
+    "n12": { "domain": "SPACE", "type": "E", "name": "공간 균형", "name_en": "Space Balance", "description": "필요 공간 대비 상태" },
+
+    "n13": { "domain": "COGNI", "type": "A", "name": "인지 본질", "name_en": "Cognition Essence", "description": "사고력과 판단력" },
+    "n14": { "domain": "COGNI", "type": "D", "name": "인지 흐름", "name_en": "Cognition Flow", "description": "학습과 정보 처리" },
+    "n15": { "domain": "COGNI", "type": "E", "name": "인지 균형", "name_en": "Cognition Balance", "description": "인지 부하와 여유" },
+
+    "n16": { "domain": "EMOTE", "type": "A", "name": "감정 본질", "name_en": "Emotion Essence", "description": "기본 정서 상태" },
+    "n17": { "domain": "EMOTE", "type": "D", "name": "감정 흐름", "name_en": "Emotion Flow", "description": "감정 변화와 표현" },
+    "n18": { "domain": "EMOTE", "type": "E", "name": "감정 균형", "name_en": "Emotion Balance", "description": "정서적 안정성" },
+
+    "n19": { "domain": "WILL", "type": "A", "name": "의지 본질", "name_en": "Will Essence", "description": "동기와 결단력" },
+    "n20": { "domain": "WILL", "type": "D", "name": "의지 흐름", "name_en": "Will Flow", "description": "의지력 소모와 회복" },
+    "n21": { "domain": "WILL", "type": "E", "name": "의지 균형", "name_en": "Will Balance", "description": "지속 가능한 의지력" },
+
+    "n22": { "domain": "RELATE", "type": "A", "name": "관계 본질", "name_en": "Relationship Essence", "description": "관계의 질과 깊이" },
+    "n23": { "domain": "RELATE", "type": "D", "name": "관계 흐름", "name_en": "Relationship Flow", "description": "관계의 형성과 변화" },
+    "n24": { "domain": "RELATE", "type": "E", "name": "관계 균형", "name_en": "Relationship Balance", "description": "관계의 주고받음" },
+
+    "n25": { "domain": "TIME", "type": "A", "name": "시간 본질", "name_en": "Time Essence", "description": "가용 시간의 양" },
+    "n26": { "domain": "TIME", "type": "D", "name": "시간 흐름", "name_en": "Time Flow", "description": "시간 사용 패턴" },
+    "n27": { "domain": "TIME", "type": "E", "name": "시간 균형", "name_en": "Time Balance", "description": "시간 배분의 적정성" },
+
+    "n28": { "domain": "WORK", "type": "A", "name": "업무 본질", "name_en": "Work Essence", "description": "업무량과 난이도" },
+    "n29": { "domain": "WORK", "type": "D", "name": "업무 흐름", "name_en": "Work Flow", "description": "업무 진행과 마감" },
+    "n30": { "domain": "WORK", "type": "E", "name": "업무 균형", "name_en": "Work Balance", "description": "업무와 휴식의 균형" },
+
+    "n31": { "domain": "GROW", "type": "A", "name": "성장 본질", "name_en": "Growth Essence", "description": "성장 잠재력" },
+    "n32": { "domain": "GROW", "type": "D", "name": "성장 흐름", "name_en": "Growth Flow", "description": "성장 속도와 방향" },
+    "n33": { "domain": "GROW", "type": "E", "name": "성장 균형", "name_en": "Growth Balance", "description": "지속 가능한 성장" },
+
+    "n34": { "domain": "CHANGE", "type": "A", "name": "변화 본질", "name_en": "Change Essence", "description": "변화의 필요성" },
+    "n35": { "domain": "CHANGE", "type": "D", "name": "변화 흐름", "name_en": "Change Flow", "description": "변화의 진행 상태" },
+    "n36": { "domain": "CHANGE", "type": "E", "name": "변화 균형", "name_en": "Change Balance", "description": "안정과 변화의 균형" },
+
+    "n37": { "domain": "MEANING", "type": "A", "name": "의미 본질", "name_en": "Meaning Essence", "description": "삶의 목적" },
+    "n38": { "domain": "MEANING", "type": "D", "name": "의미 흐름", "name_en": "Meaning Flow", "description": "의미 탐색과 발견" },
+    "n39": { "domain": "MEANING", "type": "E", "name": "의미 균형", "name_en": "Meaning Balance", "description": "의미와 현실의 균형" },
+
+    "n40": { "domain": "LEGACY", "type": "A", "name": "유산 본질", "name_en": "Legacy Essence", "description": "남길 것의 가치" },
+    "n41": { "domain": "LEGACY", "type": "D", "name": "유산 흐름", "name_en": "Legacy Flow", "description": "유산 구축 과정" },
+    "n42": { "domain": "LEGACY", "type": "E", "name": "유산 균형", "name_en": "Legacy Balance", "description": "현재와 미래의 균형" },
+
+    "n43": { "domain": "IMPACT", "type": "A", "name": "영향 본질", "name_en": "Impact Essence", "description": "영향력의 범위" },
+    "n44": { "domain": "IMPACT", "type": "D", "name": "영향 흐름", "name_en": "Impact Flow", "description": "영향력 확산" },
+    "n45": { "domain": "IMPACT", "type": "E", "name": "영향 균형", "name_en": "Impact Balance", "description": "영향의 질과 양" },
+
+    "n46": { "domain": "SELF", "type": "A", "name": "자아 본질", "name_en": "Self Essence", "description": "정체성의 명확함" },
+    "n47": { "domain": "SELF", "type": "D", "name": "자아 흐름", "name_en": "Self Flow", "description": "자아 탐색과 성찰" },
+    "n48": { "domain": "SELF", "type": "E", "name": "자아 균형", "name_en": "Self Balance", "description": "이상과 현실 자아" }
+  },
+
+  "pressure_states": {
+    "STABLE": { "range": [0, 0.3], "color": "#22C55E", "label": "안정" },
+    "MONITORING": { "range": [0.3, 0.5], "color": "#EAB308", "label": "관찰" },
+    "PRESSURING": { "range": [0.5, 0.78], "color": "#F97316", "label": "압박" },
+    "IRREVERSIBLE": { "range": [0.78, 0.9], "color": "#EF4444", "label": "위험" },
+    "CRITICAL": { "range": [0.9, 1.0], "color": "#18181B", "label": "위기" }
+  }
+}

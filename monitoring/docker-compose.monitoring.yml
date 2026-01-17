@@ -1,77 +1,148 @@
-# monitoring/docker-compose.monitoring.yml
-# Prometheus + Grafana + Uptime Kuma
+# =============================================================================
+# AUTUS 모니터링 스택 Docker Compose
+# =============================================================================
+# 
+# 구성요소:
+# - Prometheus: 메트릭 수집 (포트 9090)
+# - Grafana: 대시보드 시각화 (포트 3001)
+# - Alertmanager: 알림 관리 (포트 9093)
+# - Node Exporter: 시스템 메트릭 (포트 9100)
+#
+# 사용법:
+#   cd monitoring
+#   docker compose -f docker-compose.monitoring.yml up -d
+#
+# 접속:
+#   - Prometheus: http://localhost:9090
+#   - Grafana: http://localhost:3001 (admin / autus2026)
+#   - Alertmanager: http://localhost:9093
+#
+# =============================================================================
 
 version: '3.8'
 
 services:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Prometheus - 메트릭 수집
+  # ─────────────────────────────────────────────────────────────────────────────
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.55.0
     container_name: autus-prometheus
-    ports:
-      - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.retention.time=30d'
-    restart: unless-stopped
-    networks:
-      - autus-network
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: autus-grafana
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
     ports:
-      - "3001:3000"
+      - "9090:9090"
+    networks:
+      - autus-monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Grafana - 대시보드 시각화
+  # ─────────────────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:12.3.0
+    container_name: autus-grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-autus123}
+      - GF_SECURITY_ADMIN_PASSWORD=autus2026
       - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_FEATURE_TOGGLES_ENABLE=newNavigation
+    ports:
+      - "3001:3000"
+    networks:
+      - autus-monitoring
     depends_on:
       - prometheus
     restart: unless-stopped
-    networks:
-      - autus-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: autus-node-exporter
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Alertmanager - 알림 관리
+  # ─────────────────────────────────────────────────────────────────────────────
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: autus-alertmanager
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
     ports:
-      - "9100:9100"
+      - "9093:9093"
+    networks:
+      - autus-monitoring
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Node Exporter - 시스템 메트릭
+  # ─────────────────────────────────────────────────────────────────────────────
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: autus-node-exporter
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     command:
       - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    restart: unless-stopped
-    networks:
-      - autus-network
-
-  uptime-kuma:
-    image: louislam/uptime-kuma:latest
-    container_name: autus-uptime
     ports:
-      - "3002:3001"
-    volumes:
-      - uptime_data:/app/data
-    restart: unless-stopped
+      - "9100:9100"
     networks:
-      - autus-network
+      - autus-monitoring
+    restart: unless-stopped
 
-volumes:
-  prometheus_data:
-  grafana_data:
-  uptime_data:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Loki - 로그 수집 (선택사항)
+  # ─────────────────────────────────────────────────────────────────────────────
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: autus-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - autus-monitoring
+    restart: unless-stopped
 
 networks:
-  autus-network:
-    external: true
+  autus-monitoring:
+    name: autus-monitoring
+    driver: bridge
+
+volumes:
+  prometheus-data:
+    name: autus-prometheus-data
+  grafana-data:
+    name: autus-grafana-data
+  alertmanager-data:
+    name: autus-alertmanager-data

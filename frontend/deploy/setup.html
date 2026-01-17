@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS | One-Click Setup</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0f1a;
+      --surface: #111827;
+      --border: #374151;
+      --text: #f9fafb;
+      --text-dim: #9ca3af;
+      --primary: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .logo {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .subtitle {
+      color: var(--text-dim);
+      margin-top: 8px;
+    }
+    
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+    
+    .status-dot.connected { background: var(--primary); }
+    .status-dot.error { background: var(--red); }
+    
+    .input-group {
+      margin-bottom: 16px;
+    }
+    
+    .input-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      display: block;
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: var(--blue);
+    }
+    
+    .input-field::placeholder {
+      color: var(--text-dim);
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue), #8b5cf6);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .service-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .service-item.connected {
+      border-color: var(--primary);
+    }
+    
+    .service-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    
+    .service-name {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .service-status {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    
+    .service-status.connected {
+      color: var(--primary);
+    }
+    
+    .log-area {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .log-line {
+      margin-bottom: 4px;
+    }
+    
+    .log-line.success { color: var(--primary); }
+    .log-line.error { color: var(--red); }
+    .log-line.info { color: var(--blue); }
+    
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--blue));
+      width: 0%;
+      transition: width 0.5s;
+    }
+    
+    .help-text {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 8px;
+    }
+    
+    .help-text a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">⚙️</div>
+      <div class="title">AUTUS One-Click Setup</div>
+      <div class="subtitle">API 키만 입력하면 모든 서비스가 자동 연결됩니다</div>
+    </div>
+    
+    <!-- Status -->
+    <div class="card">
+      <div class="card-title">📊 연결 상태</div>
+      <div class="services-grid" id="servicesGrid">
+        <div class="service-item" data-service="supabase">
+          <div class="service-icon">🗄️</div>
+          <div class="service-name">Supabase</div>
+          <div class="service-status">미연결</div>
+        </div>
+        <div class="service-item" data-service="netlify">
+          <div class="service-icon">🌐</div>
+          <div class="service-name">Netlify</div>
+          <div class="service-status">미연결</div>
+        </div>
+        <div class="service-item" data-service="railway">
+          <div class="service-icon">🚂</div>
+          <div class="service-name">Railway</div>
+          <div class="service-status">미연결</div>
+        </div>
+        <div class="service-item" data-service="github">
+          <div class="service-icon">🐙</div>
+          <div class="service-name">GitHub</div>
+          <div class="service-status">미연결</div>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+    
+    <!-- Credentials -->
+    <div class="card">
+      <div class="card-title">🔑 API Keys 입력</div>
+      
+      <div class="input-group">
+        <label class="input-label">Supabase URL</label>
+        <input type="text" class="input-field" id="supabaseUrl" placeholder="https://xxx.supabase.co">
+        <div class="help-text"><a href="https://supabase.com/dashboard" target="_blank">Supabase Dashboard</a>에서 확인</div>
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">Supabase Service Key</label>
+        <input type="password" class="input-field" id="supabaseKey" placeholder="eyJ...">
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">Netlify Access Token</label>
+        <input type="password" class="input-field" id="netlifyToken" placeholder="xxx">
+        <div class="help-text"><a href="https://app.netlify.com/user/applications#personal-access-tokens" target="_blank">Netlify Personal Access Tokens</a></div>
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">Railway API Token</label>
+        <input type="password" class="input-field" id="railwayToken" placeholder="xxx">
+        <div class="help-text"><a href="https://railway.app/account/tokens" target="_blank">Railway Account Tokens</a></div>
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">GitHub Token (optional)</label>
+        <input type="password" class="input-field" id="githubToken" placeholder="ghp_xxx">
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="card">
+      <button class="btn btn-primary" id="setupBtn" onclick="runSetup()">
+        🚀 원클릭 설정 시작
+      </button>
+    </div>
+    
+    <!-- Logs -->
+    <div class="card">
+      <div class="card-title">📋 실행 로그</div>
+      <div class="log-area" id="logArea">
+        <div class="log-line info">API 키를 입력하고 '원클릭 설정 시작'을 누르세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:8000';
+    
+    function log(message, type = 'info') {
+      const logArea = document.getElementById('logArea');
+      const line = document.createElement('div');
+      line.className = `log-line ${type}`;
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logArea.appendChild(line);
+      logArea.scrollTop = logArea.scrollHeight;
+    }
+    
+    function updateServiceStatus(service, connected, message) {
+      const item = document.querySelector(`[data-service="${service}"]`);
+      if (item) {
+        item.classList.toggle('connected', connected);
+        item.querySelector('.service-status').textContent = message;
+        item.querySelector('.service-status').classList.toggle('connected', connected);
+      }
+    }
+    
+    function updateProgress(percent) {
+      document.getElementById('progressFill').style.width = `${percent}%`;
+    }
+    
+    async function runSetup() {
+      const btn = document.getElementById('setupBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ 설정 중...';
+      
+      const data = {
+        supabase_url: document.getElementById('supabaseUrl').value,
+        supabase_key: document.getElementById('supabaseKey').value,
+        netlify_token: document.getElementById('netlifyToken').value,
+        railway_token: document.getElementById('railwayToken').value,
+        github_token: document.getElementById('githubToken').value
+      };
+      
+      log('원클릭 설정을 시작합니다...', 'info');
+      updateProgress(10);
+      
+      try {
+        const resp = await fetch(`${API_BASE}/provision/one-click`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await resp.json();
+        updateProgress(50);
+        
+        // 각 서비스 상태 업데이트
+        for (const [service, status] of Object.entries(result.results || {})) {
+          updateServiceStatus(service, status.success, status.success ? '연결됨' : '실패');
+          log(`${service}: ${status.message}`, status.success ? 'success' : 'error');
+          
+          if (status.url) {
+            log(`  → ${status.url}`, 'info');
+          }
+        }
+        
+        updateProgress(100);
+        
+        if (result.success) {
+          log('✅ 모든 서비스 설정 완료!', 'success');
+        } else {
+          log('⚠️ 일부 서비스 설정 실패', 'error');
+        }
+        
+      } catch (err) {
+        log(`오류: ${err.message}`, 'error');
+        log('백엔드 서버가 실행 중인지 확인하세요.', 'info');
+      }
+      
+      btn.disabled = false;
+      btn.textContent = '🚀 원클릭 설정 시작';
+    }
+    
+    // 초기 상태 확인
+    async function checkStatus() {
+      try {
+        const resp = await fetch(`${API_BASE}/provision/status`);
+        const data = await resp.json();
+        
+        for (const [service, status] of Object.entries(data.services || {})) {
+          updateServiceStatus(service, status.connected, status.connected ? '연결됨' : '미연결');
+        }
+        
+        const percent = (data.ready_count / data.total_count) * 100;
+        updateProgress(percent);
+        
+      } catch (err) {
+        log('백엔드 서버에 연결할 수 없습니다.', 'error');
+      }
+    }
+    
+    // 페이지 로드시 상태 확인
+    checkStatus();
+  </script>
+</body>
+</html>

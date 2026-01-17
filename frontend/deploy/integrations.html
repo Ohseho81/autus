@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS | Full Integration Hub</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0f1a;
+      --surface: #111827;
+      --surface-2: #1f2937;
+      --border: #374151;
+      --text: #f9fafb;
+      --text-dim: #9ca3af;
+      --primary: #10b981;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 40px 0;
+    }
+    
+    .header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    
+    .header p {
+      color: var(--text-dim);
+    }
+    
+    /* Stats */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    /* Section */
+    .section {
+      margin-bottom: 30px;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* Provider Grid */
+    .providers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    
+    .provider-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .provider-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--blue);
+    }
+    
+    .provider-card.connected {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent);
+    }
+    
+    .provider-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+    
+    .provider-name {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .provider-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+    
+    .provider-status {
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+    
+    .provider-status.connected {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--primary);
+    }
+    
+    .provider-status.disconnected {
+      background: var(--surface-2);
+      color: var(--text-dim);
+    }
+    
+    /* Data Section */
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    @media (max-width: 600px) {
+      .data-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    .data-type-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .data-type-card:hover {
+      background: var(--surface-2);
+    }
+    
+    .data-type-card.active {
+      border-color: var(--blue);
+      background: rgba(59, 130, 246, 0.1);
+    }
+    
+    .data-type-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+    
+    .data-type-name {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .data-type-count {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    /* Data List */
+    .data-list {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    
+    .data-item {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    
+    .data-item:last-child {
+      border-bottom: none;
+    }
+    
+    .data-item:hover {
+      background: var(--surface-2);
+    }
+    
+    .data-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    
+    .data-content {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .data-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .data-preview {
+      font-size: 12px;
+      color: var(--text-dim);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .data-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-align: right;
+      flex-shrink: 0;
+    }
+    
+    .data-source {
+      background: var(--surface-2);
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+    
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--blue));
+      color: white;
+      flex: 1;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    
+    /* Search */
+    .search-box {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .search-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--blue);
+    }
+    
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 12px 24px;
+      border-radius: 10px;
+      display: none;
+      z-index: 1000;
+    }
+    
+    .toast.show {
+      display: block;
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-dim);
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Empty */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-dim);
+    }
+    
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔗 Full Integration Hub</h1>
+      <p>모든 서비스를 연결하고 데이터를 한 곳에서 관리하세요</p>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-value" id="connectedCount">0</div>
+        <div class="stat-label">연결된 서비스</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="dataCount">0</div>
+        <div class="stat-label">수집된 데이터</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="lastSync">-</div>
+        <div class="stat-label">마지막 동기화</div>
+      </div>
+    </div>
+    
+    <!-- Provider Section -->
+    <div class="section">
+      <div class="section-title">📱 서비스 연결</div>
+      <div class="providers-grid" id="providersGrid">
+        <!-- 동적 생성 -->
+      </div>
+    </div>
+    
+    <!-- Data Section -->
+    <div class="section">
+      <div class="section-title">📊 수집된 데이터</div>
+      
+      <div class="actions">
+        <button class="btn btn-primary" onclick="syncAll()">
+          <span>🔄</span> 전체 동기화
+        </button>
+        <button class="btn btn-secondary" onclick="exportData()">
+          <span>📥</span> 내보내기
+        </button>
+      </div>
+      
+      <div class="data-grid" id="dataTypesGrid">
+        <!-- 동적 생성 -->
+      </div>
+      
+      <div class="search-box">
+        <input type="text" class="search-input" id="searchInput" placeholder="데이터 검색...">
+        <button class="btn btn-secondary" onclick="searchData()">검색</button>
+      </div>
+      
+      <div class="data-list" id="dataList">
+        <div class="empty-state">
+          <div class="icon">📭</div>
+          <div>서비스를 연결하고 데이터를 동기화하세요</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API_BASE = 'http://localhost:8000';
+    const USER_ID = 'default';
+    
+    let currentFilter = null;
+    
+    // =====================
+    // Provider 관리
+    // =====================
+    
+    const providerMeta = {
+      google: { icon: '🔵', name: 'Google', desc: 'Gmail, Calendar, Drive' },
+      microsoft: { icon: '🟦', name: 'Microsoft', desc: 'Outlook, OneDrive, Teams' },
+      slack: { icon: '💜', name: 'Slack', desc: '메시지, 채널, 파일' },
+      notion: { icon: '⬛', name: 'Notion', desc: '페이지, 데이터베이스' },
+      github: { icon: '🐙', name: 'GitHub', desc: '레포, 이슈, PR' },
+      stripe: { icon: '💳', name: 'Stripe', desc: '결제, 구독, 고객' },
+      shopify: { icon: '🛍️', name: 'Shopify', desc: '주문, 상품, 고객' },
+      discord: { icon: '🎮', name: 'Discord', desc: '서버, 채널, 메시지' },
+      dropbox: { icon: '📦', name: 'Dropbox', desc: '파일, 폴더' },
+      zoom: { icon: '📹', name: 'Zoom', desc: '미팅, 녹화' },
+      hubspot: { icon: '🧡', name: 'HubSpot', desc: 'CRM, 연락처' },
+      salesforce: { icon: '☁️', name: 'Salesforce', desc: '리드, 기회' },
+      kakao: { icon: '💛', name: '카카오', desc: '프로필, 메시지' },
+      naver: { icon: '💚', name: '네이버', desc: '프로필, 카페' },
+      toss: { icon: '🔷', name: '토스', desc: '결제, 송금' },
+    };
+    
+    async function loadProviders() {
+      try {
+        const resp = await fetch(`${API_BASE}/integration/status/${USER_ID}`);
+        const data = await resp.json();
+        
+        document.getElementById('connectedCount').textContent = data.connected_count;
+        
+        const grid = document.getElementById('providersGrid');
+        grid.innerHTML = data.providers.map(p => {
+          const meta = providerMeta[p.id] || { icon: '🔗', name: p.name, desc: '' };
+          return `
+            <div class="provider-card ${p.connected ? 'connected' : ''}" onclick="toggleProvider('${p.id}', ${p.connected})">
+              <div class="provider-icon">${meta.icon}</div>
+              <div class="provider-name">${meta.name}</div>
+              <div class="provider-desc">${meta.desc}</div>
+              <div class="provider-status ${p.connected ? 'connected' : 'disconnected'}">
+                ${p.connected ? '✓ 연결됨' : '연결하기'}
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+      } catch (err) {
+        console.error('Failed to load providers:', err);
+      }
+    }
+    
+    async function toggleProvider(providerId, isConnected) {
+      if (isConnected) {
+        // 연결 해제
+        if (confirm(`${providerMeta[providerId]?.name || providerId} 연결을 해제하시겠습니까?`)) {
+          try {
+            await fetch(`${API_BASE}/integration/disconnect`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ provider: providerId, user_id: USER_ID })
+            });
+            showToast('연결이 해제되었습니다');
+            loadProviders();
+          } catch (err) {
+            showToast('연결 해제 실패', 'error');
+          }
+        }
+      } else {
+        // 연결 시작
+        try {
+          const resp = await fetch(`${API_BASE}/integration/connect`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider: providerId, user_id: USER_ID })
+          });
+          const data = await resp.json();
+          
+          // OAuth URL로 이동
+          window.location.href = data.auth_url;
+        } catch (err) {
+          showToast('연결 시작 실패. 백엔드 설정을 확인하세요.', 'error');
+        }
+      }
+    }
+    
+    // =====================
+    // Data 관리
+    // =====================
+    
+    const dataTypeMeta = {
+      email: { icon: '📧', name: '이메일' },
+      calendar: { icon: '📅', name: '캘린더' },
+      message: { icon: '💬', name: '메시지' },
+      document: { icon: '📄', name: '문서' },
+      task: { icon: '✅', name: '할일' },
+      contact: { icon: '👤', name: '연락처' },
+      transaction: { icon: '💳', name: '결제' },
+      code: { icon: '💻', name: '코드' },
+    };
+    
+    async function loadDataTypes() {
+      const grid = document.getElementById('dataTypesGrid');
+      grid.innerHTML = Object.entries(dataTypeMeta).map(([id, meta]) => `
+        <div class="data-type-card ${currentFilter === id ? 'active' : ''}" onclick="filterByType('${id}')">
+          <div class="data-type-icon">${meta.icon}</div>
+          <div class="data-type-name">${meta.name}</div>
+          <div class="data-type-count" id="count-${id}">0</div>
+        </div>
+      `).join('');
+    }
+    
+    function filterByType(type) {
+      currentFilter = currentFilter === type ? null : type;
+      loadDataTypes();
+      loadData();
+    }
+    
+    async function loadData() {
+      const list = document.getElementById('dataList');
+      list.innerHTML = '<div class="loading"><div class="spinner"></div><p>데이터 로딩 중...</p></div>';
+      
+      try {
+        let url = `${API_BASE}/integration/data?user_id=${USER_ID}`;
+        if (currentFilter) {
+          url += `&data_type=${currentFilter}`;
+        }
+        
+        const resp = await fetch(url);
+        const data = await resp.json();
+        
+        document.getElementById('dataCount').textContent = data.total;
+        
+        if (data.data.length === 0) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📭</div>
+              <div>데이터가 없습니다. 동기화를 실행하세요.</div>
+            </div>
+          `;
+          return;
+        }
+        
+        list.innerHTML = data.data.map(item => {
+          const typeMeta = dataTypeMeta[item.type] || { icon: '📎', name: item.type };
+          const sourceMeta = providerMeta[item.source] || { icon: '🔗', name: item.source };
+          
+          return `
+            <div class="data-item">
+              <div class="data-icon">${typeMeta.icon}</div>
+              <div class="data-content">
+                <div class="data-title">${escapeHtml(item.title)}</div>
+                <div class="data-preview">${escapeHtml(item.content)}</div>
+              </div>
+              <div class="data-meta">
+                <div class="data-source">${sourceMeta.icon} ${sourceMeta.name}</div>
+                <div>${formatTime(item.timestamp)}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+      } catch (err) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">⚠️</div>
+            <div>데이터 로딩 실패</div>
+          </div>
+        `;
+      }
+    }
+    
+    async function syncAll() {
+      showToast('🔄 동기화 중...');
+      
+      try {
+        const resp = await fetch(`${API_BASE}/integration/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(USER_ID)
+        });
+        const data = await resp.json();
+        
+        showToast(`✅ ${data.synced_count}개 데이터 동기화 완료!`);
+        document.getElementById('lastSync').textContent = '방금';
+        loadData();
+        
+      } catch (err) {
+        showToast('동기화 실패. 서비스 연결을 확인하세요.', 'error');
+      }
+    }
+    
+    async function searchData() {
+      const query = document.getElementById('searchInput').value;
+      if (!query) return;
+      
+      try {
+        const resp = await fetch(`${API_BASE}/integration/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: USER_ID, query })
+        });
+        const data = await resp.json();
+        
+        // 결과 표시 로직...
+        showToast(`${data.count}개 결과 발견`);
+        
+      } catch (err) {
+        showToast('검색 실패');
+      }
+    }
+    
+    function exportData() {
+      showToast('📥 데이터 내보내기 준비 중...');
+      // 실제 구현: JSON/CSV 다운로드
+    }
+    
+    // =====================
+    // Helpers
+    // =====================
+    
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast show';
+      
+      setTimeout(() => {
+        toast.className = 'toast';
+      }, 3000);
+    }
+    
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, '&amp;')
+                 .replace(/</g, '&lt;')
+                 .replace(/>/g, '&gt;');
+    }
+    
+    function formatTime(isoString) {
+      if (!isoString) return '';
+      const date = new Date(isoString);
+      const now = new Date();
+      const diff = now - date;
+      
+      if (diff < 60000) return '방금';
+      if (diff < 3600000) return `${Math.floor(diff/60000)}분 전`;
+      if (diff < 86400000) return `${Math.floor(diff/3600000)}시간 전`;
+      if (diff < 604800000) return `${Math.floor(diff/86400000)}일 전`;
+      
+      return date.toLocaleDateString('ko-KR');
+    }
+    
+    // =====================
+    // URL 파라미터 처리
+    // =====================
+    
+    function handleUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      
+      if (params.get('success')) {
+        showToast(`✅ ${params.get('success')} 연결 완료!`);
+        window.history.replaceState({}, '', '/integrations');
+      }
+      
+      if (params.get('error')) {
+        showToast(`❌ 연결 실패: ${params.get('error')}`, 'error');
+        window.history.replaceState({}, '', '/integrations');
+      }
+    }
+    
+    // =====================
+    // Init
+    // =====================
+    
+    handleUrlParams();
+    loadProviders();
+    loadDataTypes();
+    loadData();
+  </script>
+</body>
+</html>

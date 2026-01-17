@@ -1,59 +1,538 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" class="dark">
   <head>
+  <!-- 기본 메타태그 -->
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  <!-- SEO 메타태그 -->
+  <title>AUTUS - 물리 기반 의사결정 자동화 플랫폼</title>
+  <meta name="description" content="AUTUS는 Money Physics 엔진 기반의 통합 비즈니스 자동화 플랫폼입니다. LangGraph, Neo4j, TFT를 활용한 지능형 워크플로우 자동화." />
+  <meta name="keywords" content="AUTUS, 자동화, 비즈니스, Physics, LangGraph, AI, 의사결정, 워크플로우" />
+  <meta name="author" content="AUTUS Team" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Open Graph (SNS 공유용) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="AUTUS" />
+  <meta property="og:title" content="AUTUS - 물리 기반 의사결정 자동화 플랫폼" />
+  <meta property="og:description" content="Money Physics 엔진 기반 통합 비즈니스 자동화. 5단계 솔루션 루프로 업무를 자동화하세요." />
+  <meta property="og:image" content="/og-image.png" />
+  <meta property="og:url" content="https://autus.ai" />
+  <meta property="og:locale" content="ko_KR" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AUTUS - 물리 기반 의사결정 자동화" />
+  <meta name="twitter:description" content="Money Physics 엔진 기반 통합 비즈니스 자동화 플랫폼" />
+  <meta name="twitter:image" content="/og-image.png" />
+  
+  <!-- 테마 색상 -->
+  <meta name="theme-color" content="#030712" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  
+  <!-- 파비콘 -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  
+  <!-- DNS Prefetch / Preconnect (성능 최적화) -->
+  <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+  <!-- Critical Font Preload -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  </noscript>
+  
+  <!-- Critical CSS (Inline for LCP) -->
+  <style>
+    /* Critical Path CSS - LCP 최적화 */
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{--bg-deep:#030712;--text-primary:#f8fafc;--accent-indigo:#6366f1}
+    html,body{height:100%;overflow:hidden}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg-deep);color:var(--text-primary)}
     
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#1a1a2e" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="AUTUS" />
-    <meta name="application-name" content="AUTUS" />
-    <meta name="description" content="Universal Engine for 8 Billion Humans - 돈의 물리학으로 인생을 설계하는 통합 플랫폼" />
+    /* 스킵 네비게이션 (접근성) */
+    .skip-link{position:absolute;top:-100px;left:0;z-index:9999;padding:1rem;background:var(--accent-indigo);color:#fff;text-decoration:none;font-weight:600}
+    .skip-link:focus{top:0}
     
-    <!-- Favicon & Icons -->
-    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-    <link rel="manifest" href="/manifest.json" />
+    /* Aurora Background (Critical) */
+    .aurora-bg{position:fixed;inset:0;overflow:hidden;z-index:0}
+    .aurora-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.4;animation:aurora 20s ease-in-out infinite}
+    .aurora-blob:nth-child(1){width:600px;height:600px;background:linear-gradient(135deg,#6366f1,#8b5cf6);top:-20%;left:-10%}
+    .aurora-blob:nth-child(2){width:500px;height:500px;background:linear-gradient(135deg,#06b6d4,#10b981);top:50%;right:-15%;animation-delay:-5s}
+    .aurora-blob:nth-child(3){width:400px;height:400px;background:linear-gradient(135deg,#f43f5e,#f59e0b);bottom:-10%;left:30%;animation-delay:-10s}
+    @keyframes aurora{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(30px,-30px) scale(1.1)}50%{transform:translate(-20px,20px) scale(0.95)}75%{transform:translate(20px,10px) scale(1.05)}}
     
-    <!-- Open Graph -->
-    <meta property="og:title" content="AUTUS - Money Physics Engine" />
-    <meta property="og:description" content="Universal Engine for 8 Billion Humans" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/icons/icon-512.png" />
+    /* Noise Overlay */
+    .noise{position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");opacity:0.03;pointer-events:none;z-index:1}
     
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AUTUS" />
-    <meta name="twitter:description" content="Money Physics Engine" />
+    /* Container */
+    .container{position:relative;z-index:2;display:flex;flex-direction:column;height:100vh;padding:1.5rem}
     
-    <title>AUTUS - Money Physics Engine</title>
+    /* Header Critical */
+    .header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:16px;margin-bottom:1.5rem}
+    .brand{display:flex;align-items:center;gap:1rem}
+    .brand-icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:12px;font-size:1.5rem}
+    .brand-text{font-size:1.5rem;font-weight:600;letter-spacing:0.15em;background:linear-gradient(135deg,#fff 0%,#94a3b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .version-badge{padding:0.35rem 0.75rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:20px;font-size:0.75rem;color:#94a3b8}
     
-    <!-- External CSS -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
+    /* Bento Grid Critical */
+    .bento-grid{flex:1;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(6,1fr);gap:1rem;overflow:hidden}
     
-    <!-- Preconnect -->
-    <link rel="preconnect" href="https://api.mapbox.com" />
-    <link rel="dns-prefetch" href="https://api.mapbox.com" />
+    /* Loading State */
+    .loading{display:flex;align-items:center;justify-content:center;height:100vh}
+    .loading-spinner{width:40px;height:40px;border:3px solid rgba(99,102,241,0.3);border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+  
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "AUTUS",
+    "description": "물리 기반 의사결정 자동화 플랫폼",
+    "url": "https://autus.ai",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "KRW"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "AUTUS Team"
+    }
+  }
+  </script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+  <!-- 스킵 네비게이션 (접근성) -->
+  <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+  
+  <!-- Aurora Background -->
+  <div class="aurora-bg" aria-hidden="true">
+    <div class="aurora-blob"></div>
+    <div class="aurora-blob"></div>
+    <div class="aurora-blob"></div>
+  </div>
+  <div class="noise" aria-hidden="true"></div>
+  
+  <div class="container">
+    <!-- Header -->
+    <header class="header" role="banner">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">🏛️</div>
+        <span class="brand-text">AUTUS</span>
+      </div>
+      <span class="version-badge" aria-label="버전 8.0.0">v8.0.0 • 2026</span>
+    </header>
     
-    <!-- Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('✅ AUTUS SW registered:', registration.scope);
-            })
-            .catch((error) => {
-              console.warn('⚠️ SW registration failed:', error);
-            });
-        });
+    <!-- Main Content -->
+    <main id="main-content" class="bento-grid" role="main">
+      <!-- Hero: Automation Builder -->
+      <a href="/automation.html" class="glass-card card-hero card-indigo" aria-label="Automation Builder - LangGraph 기반 워크플로우">
+        <span class="card-badge">NEW</span>
+        <div class="card-icon" aria-hidden="true">🤖</div>
+        <h2 class="card-title">Automation Builder</h2>
+        <p class="card-desc">LangGraph 기반 Agentic Workflow. 5단계 자동화 루프를 시각적으로 구성하고 실행하세요.</p>
+        <div class="card-footer">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-text">LangGraph Engine Active</span>
+        </div>
+        <div class="card-preview" aria-hidden="true">
+          <div class="preview-bars">
+            <div class="preview-bar"><div class="preview-bar-fill" style="background: var(--accent-indigo);"></div></div>
+            <div class="preview-bar"><div class="preview-bar-fill" style="background: var(--accent-emerald); animation-delay: -0.5s;"></div></div>
+            <div class="preview-bar"><div class="preview-bar-fill" style="background: var(--accent-cyan); animation-delay: -1s;"></div></div>
+            <div class="preview-bar"><div class="preview-bar-fill" style="background: var(--accent-violet); animation-delay: -1.5s;"></div></div>
+          </div>
+        </div>
+      </a>
+      
+      <!-- Featured Cards -->
+      <a href="/cosmos.html" class="glass-card card-featured card-violet" aria-label="사용자 계수 - 1-12-144 구조">
+        <div class="card-icon" aria-hidden="true">🌌</div>
+        <h3 class="card-title">사용자 계수</h3>
+        <p class="card-desc">은하계 → 태양계 → 지구 계층적 뷰</p>
+        <div class="card-footer">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-text">1-12-144 Active</span>
+        </div>
+      </a>
+      
+      <a href="/flow.html" class="glass-card card-featured card-emerald" aria-label="가치 흐름 - 실시간 시각화">
+        <div class="card-icon" aria-hidden="true">💰</div>
+        <h3 class="card-title">가치 흐름</h3>
+        <p class="card-desc">실시간 맵 + 개체 + 플로우 시각화</p>
+        <div class="card-footer">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-text">Stream Connected</span>
+        </div>
+      </a>
+      
+      <a href="/dashboard.html" class="glass-card card-featured card-cyan" aria-label="사용자 상수 - K, Ψ, I, S, R">
+        <div class="card-icon" aria-hidden="true">📊</div>
+        <h3 class="card-title">사용자 상수</h3>
+        <p class="card-desc">K, Ψ, I, S, R 계기판 + 내비게이션</p>
+        <div class="card-footer">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-text">K = 7.2</span>
+        </div>
+      </a>
+      
+      <a href="/solution.html" class="glass-card card-featured card-amber" aria-label="업무 솔루션 - 5단계 루프">
+        <div class="card-icon" aria-hidden="true">⚡</div>
+        <h3 class="card-title">업무 솔루션</h3>
+        <p class="card-desc">수집 → 분석 → 자동화 → 삭제 → 피드백</p>
+        <div class="card-footer">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-text">5-Stage Loop</span>
+        </div>
+      </a>
+      
+      <a href="/tasks.html" class="glass-card card-featured card-rose" aria-label="570개 업무 매트릭스">
+        <div class="card-icon" aria-hidden="true">📋</div>
+        <h3 class="card-title">570개 업무</h3>
+        <p class="card-desc">8분야 × 70개 업무 매트릭스</p>
+        <div class="card-footer">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-text">312 Automated</span>
+        </div>
+      </a>
+      
+      <!-- Standard Cards -->
+      <a href="/portal.html" class="glass-card card-standard card-indigo" aria-label="Portal - 통합 대시보드">
+        <div class="card-icon" aria-hidden="true">◉</div>
+        <h3 class="card-title">Portal</h3>
+        <p class="card-desc">통합 대시보드</p>
+      </a>
+      
+      <a href="/k2-operator.html" class="glass-card card-standard card-emerald" aria-label="K2 실행자 뷰">
+        <div class="card-icon" aria-hidden="true">⬡</div>
+        <h3 class="card-title">K2</h3>
+        <p class="card-desc">실행자 뷰</p>
+      </a>
+      
+      <a href="/k10-observer.html" class="glass-card card-standard card-violet" aria-label="K10 관찰자 뷰">
+        <div class="card-icon" aria-hidden="true">◎</div>
+        <h3 class="card-title">K10</h3>
+        <p class="card-desc">관찰자 뷰</p>
+      </a>
+      
+      <a href="/galaxy.html" class="glass-card card-standard card-cyan" aria-label="Galaxy 3D 시각화">
+        <div class="card-icon" aria-hidden="true">✧</div>
+        <h3 class="card-title">Galaxy</h3>
+        <p class="card-desc">3D 시각화</p>
+      </a>
+      
+      <a href="/autus-dashboard.html" class="glass-card card-standard card-rose" aria-label="Dashboard v8.0">
+        <span class="card-badge">NEW</span>
+        <div class="card-icon" aria-hidden="true">📊</div>
+        <h3 class="card-title">Dashboard v8.0</h3>
+        <p class="card-desc">FSD + 1-12-144 그래프</p>
+      </a>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+      <span>© 2026 AUTUS</span>
+      <a href="/scale.html">Scale System</a>
+      <span>Physics-Driven Decision System</span>
+    </footer>
+  </div>
+  
+  <!-- Deferred Non-Critical CSS -->
+  <style>
+    /* Non-Critical CSS - 로드 후 적용 */
+    :root {
+      --bg-surface: rgba(15, 23, 42, 0.6);
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.4);
+      --accent-violet: #8b5cf6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-secondary: #94a3b8;
+      --text-muted: #475569;
+      --blur-glass: 20px;
+      --shadow-glow: 0 0 60px -12px;
+    }
+    
+    /* Glass Card */
+    .glass-card {
+      position: relative;
+      background: var(--bg-glass);
+      backdrop-filter: blur(var(--blur-glass));
+      -webkit-backdrop-filter: blur(var(--blur-glass));
+      border: 1px solid var(--border-glass);
+      border-radius: 20px;
+      padding: 1.25rem;
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--glow-color, transparent) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    
+    .glass-card:hover {
+      transform: translateY(-4px) scale(1.01);
+      border-color: var(--border-glow);
+      box-shadow: var(--shadow-glow) var(--glow-color, var(--accent-indigo));
+    }
+    
+    .glass-card:hover::before {
+      opacity: 0.1;
+    }
+    
+    /* Focus Styles (접근성) */
+    .glass-card:focus-visible {
+      outline: 2px solid var(--accent-indigo);
+      outline-offset: 2px;
+    }
+    
+    /* Card Sizes */
+    .card-hero { grid-column: span 6; grid-row: span 4; }
+    .card-featured { grid-column: span 3; grid-row: span 2; }
+    .card-standard { grid-column: span 2; grid-row: span 2; }
+    
+    /* Card Content */
+    .card-icon {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-glass);
+      border-radius: 14px;
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+      transition: all 0.3s;
+    }
+    
+    .glass-card:hover .card-icon {
+      transform: scale(1.1);
+      border-color: var(--glow-color, var(--border-glow));
+    }
+    
+    .card-hero .card-icon {
+      width: 80px;
+      height: 80px;
+      font-size: 2.5rem;
+      border-radius: 20px;
+    }
+    
+    .card-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.3rem 0.6rem;
+      background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet));
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+    
+    .card-hero .card-title { font-size: 1.75rem; }
+    
+    .card-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    
+    .card-hero .card-desc {
+      font-size: 0.95rem;
+      max-width: 400px;
+    }
+    
+    .card-footer {
+      margin-top: auto;
+      padding-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--accent-emerald); }
+      50% { opacity: 0.8; box-shadow: 0 0 0 6px transparent; }
+    }
+    
+    .status-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    
+    /* Hero Card Special */
+    .card-hero {
+      justify-content: center;
+      align-items: flex-start;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, transparent 50%), var(--bg-glass);
+    }
+    
+    .card-hero .card-icon {
+      background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet));
+      border: none;
+    }
+    
+    /* Spatial Floating Effect */
+    .card-preview {
+      position: absolute;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      width: 200px;
+      height: 140px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      overflow: hidden;
+      transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
+      transition: transform 0.4s;
+      box-shadow: -20px 20px 40px rgba(0, 0, 0, 0.3), 0 0 40px rgba(99, 102, 241, 0.1);
+    }
+    
+    .glass-card:hover .card-preview {
+      transform: perspective(1000px) rotateY(-8deg) rotateX(8deg) translateY(-10px);
+    }
+    
+    .preview-bars {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .preview-bar {
+      height: 6px;
+      background: var(--border-glass);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    
+    .preview-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      animation: bar-grow 2s ease-in-out infinite;
+    }
+    
+    @keyframes bar-grow {
+      0%, 100% { width: 30%; }
+      50% { width: 90%; }
+    }
+    
+    /* Color Variants */
+    .card-indigo { --glow-color: var(--accent-indigo); }
+    .card-violet { --glow-color: var(--accent-violet); }
+    .card-cyan { --glow-color: var(--accent-cyan); }
+    .card-emerald { --glow-color: var(--accent-emerald); }
+    .card-amber { --glow-color: var(--accent-amber); }
+    .card-rose { --glow-color: var(--accent-rose); }
+    
+    /* Footer */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    
+    .footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer a:hover {
+      color: var(--text-primary);
+    }
+    
+    .footer a:focus-visible {
+      outline: 2px solid var(--accent-indigo);
+      outline-offset: 2px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1400px) {
+      .card-hero { grid-column: span 8; }
+      .card-featured { grid-column: span 4; }
+    }
+    
+    @media (max-width: 1024px) {
+      .bento-grid {
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: auto;
       }
-    </script>
+      .card-hero { grid-column: span 6; grid-row: span 2; }
+      .card-featured { grid-column: span 3; }
+      .card-standard { grid-column: span 2; }
+      .card-preview { display: none; }
+    }
+    
+    @media (max-width: 768px) {
+      .container { padding: 1rem; }
+      .bento-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+      .card-hero, .card-featured, .card-standard { grid-column: span 1; grid-row: span 1; }
+      .card-hero .card-icon { width: 56px; height: 56px; font-size: 1.75rem; }
+      .card-hero .card-title { font-size: 1.25rem; }
+      .footer { flex-wrap: wrap; gap: 1rem; }
+    }
+    
+    /* 애니메이션 감소 선호 */
+    @media (prefers-reduced-motion: reduce) {
+      .aurora-blob,
+      .status-dot,
+      .preview-bar-fill {
+        animation: none;
+      }
+      .glass-card {
+        transition: none;
+      }
+    }
+  </style>
   </body>
 </html>

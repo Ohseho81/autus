@@ -56,7 +56,7 @@ class TestZeroMeaning:
         try:
             from integrations.zero_meaning import anonymize
             
-            data = {
+        data = {
                 "name": "홍길동",
                 "email": "hong@example.com",
                 "phone": "010-1234-5678"

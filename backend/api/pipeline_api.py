@@ -21,7 +21,7 @@ from datetime import datetime
 
 # Pipeline imports
 from pipeline import get_pipeline, run_pipeline, AutusPipeline
-from core.nodes36 import (
+from core.compat import (
     get_node_registry,
     get_node,
     transform_intuition,
@@ -205,27 +205,28 @@ async def get_144_vector():
 @router.post("/transform/intuition")
 async def transform_veteran_intuition(request: TransformRequest):
     """
-    🧠 베테랑 직관을 36차원 벡터로 변환
+    🧠 베테랑 직관을 48차원 벡터로 변환
     """
-    from core.nodes36 import VeteranIntuitionTransformer
+    from core.compat import VeteranIntuitionTransformer
     
-    vector = VeteranIntuitionTransformer.transform(
-        text=request.text,
-        numeric_data=request.numeric_data,
+    transformer = VeteranIntuitionTransformer()
+    result = transformer.transform(
+        content=request.text,
+        domain="WORK",  # 기본 도메인
         experience_years=request.experience_years,
     )
     
-    explanation = VeteranIntuitionTransformer.explain(vector)
+    vector = result.get("vector", [])
     
     return {
         "success": True,
         "vector": vector,
-        "explanation": explanation,
+        "result": result,
         "statistics": {
-            "average": sum(vector) / len(vector),
-            "max_value": max(vector),
-            "min_value": min(vector),
-            "active_nodes": len([v for v in vector if v > 0.6]),
+            "average": sum(vector) / len(vector) if vector else 0,
+            "max_value": max(vector) if vector else 0,
+            "min_value": min(vector) if vector else 0,
+            "active_nodes": len([v for v in vector if abs(v) > 0.1]),
         },
     }
 

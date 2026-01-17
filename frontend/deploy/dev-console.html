@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS Dev Console - Self-Building System</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a24;
+      --border: #2a2a3a;
+      --text: #e8e8f0;
+      --text2: #888899;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --cyan: #06b6d4;
+      --purple: #a855f7;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    
+    .header-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface2);
+      padding: 4px;
+      border-radius: 10px;
+    }
+    
+    .header-tab {
+      padding: 8px 20px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    
+    .header-tab:hover { color: var(--text); }
+    .header-tab.active {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--surface2);
+      border-radius: 20px;
+      font-size: 12px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    .status-dot.green { background: var(--green); }
+    .status-dot.yellow { background: var(--yellow); }
+    .status-dot.red { background: var(--red); }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* Main Layout */
+    .main {
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      height: calc(100vh - 69px);
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .sidebar-section {
+      margin-bottom: 24px;
+    }
+    
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+    
+    .wizard-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--surface2);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .wizard-step:hover { border-color: var(--border); }
+    .wizard-step.active { border-color: var(--accent); background: rgba(99, 102, 241, 0.1); }
+    .wizard-step.completed { border-color: var(--green); }
+    
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .wizard-step.completed .step-number {
+      background: var(--green);
+      color: white;
+    }
+    
+    .wizard-step.active .step-number {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .step-info { flex: 1; }
+    .step-name { font-size: 13px; font-weight: 500; }
+    .step-desc { font-size: 11px; color: var(--text2); }
+    
+    .step-status {
+      font-size: 16px;
+    }
+    
+    /* Progress */
+    .progress-bar {
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--green));
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+    
+    /* Content */
+    .content {
+      padding: 24px;
+      overflow-y: auto;
+    }
+    
+    .content-header {
+      margin-bottom: 24px;
+    }
+    
+    .content-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .content-desc {
+      color: var(--text2);
+      font-size: 14px;
+    }
+    
+    /* Code Block */
+    .code-container {
+      background: #0d1117;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+    }
+    
+    .code-lang {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #8b949e;
+    }
+    
+    .code-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .code-btn {
+      padding: 6px 12px;
+      border: none;
+      background: #21262d;
+      color: #c9d1d9;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    
+    .code-btn:hover { background: #30363d; }
+    .code-btn.copied { background: var(--green); color: white; }
+    
+    .code-content {
+      padding: 16px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #c9d1d9;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    
+    /* Action Cards */
+    .action-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .action-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .action-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    
+    .action-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    
+    .action-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .action-desc {
+      font-size: 12px;
+      color: var(--text2);
+    }
+    
+    /* Console Input */
+    .console-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .console-label {
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 8px;
+    }
+    
+    .console-field {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .console-textarea {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text);
+      font-family: 'SF Mono', monospace;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    .console-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .console-submit {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    
+    .console-submit:hover { transform: scale(1.02); }
+    .console-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    /* Right Panel */
+    .right-panel {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .panel-section {
+      margin-bottom: 24px;
+    }
+    
+    .panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Log */
+    .log-item {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      background: var(--surface2);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    
+    .log-time {
+      color: var(--text2);
+      white-space: nowrap;
+    }
+    
+    .log-type {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .log-type.success { background: rgba(16, 185, 129, 0.2); color: var(--green); }
+    .log-type.info { background: rgba(99, 102, 241, 0.2); color: var(--accent); }
+    .log-type.warning { background: rgba(245, 158, 11, 0.2); color: var(--yellow); }
+    .log-type.error { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+    
+    .log-message { flex: 1; }
+    
+    /* Checklist */
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: var(--surface2);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    
+    .checklist-item:hover { background: var(--border); }
+    
+    .check-box {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: transparent;
+    }
+    
+    .checklist-item.checked .check-box {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+    
+    .check-label { font-size: 13px; flex: 1; }
+    
+    /* AI Response */
+    .ai-response {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .ai-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .ai-avatar {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    
+    .ai-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .ai-content {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    .ai-content code {
+      background: rgba(0,0,0,0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', monospace;
+      font-size: 13px;
+    }
+    
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .btn-primary:hover { background: var(--accent2); }
+    
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover { background: var(--border); }
+    
+    .btn-success {
+      background: var(--green);
+      color: white;
+    }
+    
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 16px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .toast-icon { font-size: 24px; }
+    .toast-content { flex: 1; }
+    .toast-title { font-weight: 600; font-size: 14px; }
+    .toast-desc { font-size: 12px; color: var(--text2); }
+    
+    /* Loading */
+    .loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Env Vars */
+    .env-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .env-table th, .env-table td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    
+    .env-table th {
+      color: var(--text2);
+      font-weight: 500;
+    }
+    
+    .env-key {
+      font-family: 'SF Mono', monospace;
+      color: var(--cyan);
+    }
+    
+    .env-value {
+      font-family: 'SF Mono', monospace;
+    }
+    
+    .env-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    /* Auth Screen */
+    .auth-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .auth-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+    }
+    .auth-box h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .auth-box p {
+      color: var(--text2);
+      margin-bottom: 24px;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 16px;
+      margin-bottom: 16px;
+      text-align: center;
+      letter-spacing: 4px;
+    }
+    .auth-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .auth-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .auth-btn:hover {
+      opacity: 0.9;
+    }
+    .auth-error {
+      color: var(--red);
+      font-size: 14px;
+      margin-top: 12px;
+      display: none;
+    }
+    .app-content { display: none; }
+    .app-content.visible { display: block; }
+  </style>
+</head>
+<body>
+  <!-- Auth Screen -->
+  <div class="auth-screen" id="authScreen">
+    <div class="auth-box">
+      <h2>🔐 AUTUS Dev Console</h2>
+      <p>관리자 비밀번호를 입력하세요</p>
+      <input type="password" class="auth-input" id="authPassword" placeholder="••••••" maxlength="20" autofocus>
+      <button class="auth-btn" onclick="checkAuth()">접속하기</button>
+      <div class="auth-error" id="authError">비밀번호가 올바르지 않습니다</div>
+    </div>
+  </div>
+  
+  <div class="app-content" id="appContent">
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">🧠</div>
+      <span>AUTUS <span style="color:var(--accent)">Dev Console</span></span>
+    </div>
+    
+    <div class="header-tabs">
+      <button class="header-tab active" data-tab="wizard">Setup Wizard</button>
+      <button class="header-tab" data-tab="console">Dev Console</button>
+      <button class="header-tab" data-tab="env">Environment</button>
+      <button class="header-tab" data-tab="logs">Activity Log</button>
+    </div>
+    
+    <div class="header-status">
+      <div class="status-badge">
+        <div class="status-dot" id="supabaseStatus"></div>
+        <span>Supabase</span>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot" id="n8nStatus"></div>
+        <span>n8n</span>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot" id="geminiStatus"></div>
+        <span>Gemini</span>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main Layout -->
+  <main class="main">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Setup Progress</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-title">Setup Steps</div>
+        <div id="wizardSteps"></div>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-title">🚀 Auto Setup</div>
+        <div class="action-cards" style="grid-template-columns: 1fr;">
+          <div class="action-card" onclick="runAutoSetup()" style="border-color:var(--green);background:rgba(16,185,129,0.1);">
+            <div class="action-icon">🧠</div>
+            <div class="action-name">AUTUS 자동 설정</div>
+            <div class="action-desc">전체 환경 자동 구성</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-title">Quick Actions</div>
+        <div class="action-cards" style="grid-template-columns: 1fr;">
+          <div class="action-card" onclick="generateSQL()">
+            <div class="action-icon">🗄️</div>
+            <div class="action-name">Generate SQL</div>
+            <div class="action-desc">Supabase 테이블 생성</div>
+          </div>
+          <div class="action-card" onclick="generateDocker()">
+            <div class="action-icon">🐳</div>
+            <div class="action-name">Docker Compose</div>
+            <div class="action-desc">n8n 컨테이너 설정</div>
+          </div>
+          <div class="action-card" onclick="generateEnv()">
+            <div class="action-icon">🔑</div>
+            <div class="action-name">ENV Template</div>
+            <div class="action-desc">환경변수 템플릿</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Content -->
+    <section class="content" id="mainContent">
+      <!-- Will be populated by JS -->
+    </section>
+    
+    <!-- Right Panel -->
+    <aside class="right-panel">
+      <div class="panel-section">
+        <div class="panel-title">📋 Setup Checklist</div>
+        <div id="checklist"></div>
+      </div>
+      
+      <div class="panel-section">
+        <div class="panel-title">📜 Activity Log</div>
+        <div id="activityLog"></div>
+      </div>
+      
+      <div class="panel-section">
+        <div class="panel-title">🤖 AUTUS AI</div>
+        <div class="ai-response">
+          <div class="ai-header">
+            <div class="ai-avatar">🧠</div>
+            <div class="ai-name">AUTUS Assistant</div>
+          </div>
+          <div class="ai-content" id="aiMessage">
+            안녕하세요! AUTUS 셀프-빌딩 시스템입니다. 
+            왼쪽 Setup Wizard를 따라 환경을 구성하면, 
+            제가 필요한 코드와 설정을 자동으로 생성해 드립니다.
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+  
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <div class="toast-icon">✅</div>
+    <div class="toast-content">
+      <div class="toast-title" id="toastTitle">Success</div>
+      <div class="toast-desc" id="toastDesc">Operation completed</div>
+    </div>
+  </div>
+  
+  <script>
+    // ═══════════════════════════════════════════════════════════════
+    // State
+    // ═══════════════════════════════════════════════════════════════
+    
+    const STATE = {
+      currentTab: 'wizard',
+      currentStep: 0,
+      completedSteps: new Set(),
+      checklist: {
+        supabase_project: false,
+        supabase_tables: false,
+        supabase_rls: false,
+        n8n_docker: false,
+        n8n_workflows: false,
+        azure_app: false,
+        gemini_key: false,
+        env_config: false
+      },
+      logs: [],
+      env: {
+        SUPABASE_URL: '',
+        SUPABASE_ANON_KEY: '',
+        SUPABASE_SERVICE_KEY: '',
+        N8N_BASE_URL: 'http://localhost:5678',
+        GEMINI_API_KEY: '',
+        MS_CLIENT_ID: '',
+        MS_CLIENT_SECRET: '',
+        MS_TENANT_ID: ''
+      }
+    };
+    
+    // ═══════════════════════════════════════════════════════════════
+    // Setup Steps Configuration
+    // ═══════════════════════════════════════════════════════════════
+    
+    const SETUP_STEPS = [
+      {
+        id: 'supabase',
+        name: 'Supabase Setup',
+        desc: '데이터베이스 테이블 생성',
+        icon: '🗄️'
+      },
+      {
+        id: 'rls',
+        name: 'RLS Security',
+        desc: '보안 정책 적용',
+        icon: '🔒'
+      },
+      {
+        id: 'n8n',
+        name: 'n8n Docker',
+        desc: '워크플로우 엔진 설정',
+        icon: '🐳'
+      },
+      {
+        id: 'microsoft',
+        name: 'Microsoft 365',
+        desc: 'Azure AD 앱 등록',
+        icon: '🔷'
+      },
+      {
+        id: 'gemini',
+        name: 'Gemini AI',
+        desc: 'API 키 설정',
+        icon: '🤖'
+      },
+      {
+        id: 'verify',
+        name: 'Verify Setup',
+        desc: '전체 연결 테스트',
+        icon: '✅'
+      }
+    ];
+    
+    // ═══════════════════════════════════════════════════════════════
+    // SQL Templates
+    // ═══════════════════════════════════════════════════════════════
+    
+    const SQL_TEMPLATES = {
+      tables: `-- ═══════════════════════════════════════════════════════════════
+-- AUTUS Supabase Tables (Auto-Generated)
+-- Generated: ${new Date().toISOString()}
+-- ═══════════════════════════════════════════════════════════════
+
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ═══════════════════════════════════════════════════════════════
+-- Stage 1: Templates (Template Marketplace)
+-- ═══════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS templates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,          -- Finance, HR, IT, Sales, Ops, Prod
+    description TEXT,
+    nodes_json JSONB NOT NULL,       -- React Flow 노드 배열
+    metrics JSONB DEFAULT '{}',      -- { "users": 0, "rating": 0.0, "time": 0.0 }
+    badges TEXT[] DEFAULT '{}',      -- ['Popular', 'AI', 'New']
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ═══════════════════════════════════════════════════════════════
+-- Stage 2 & 3: Tasks (Captured Tasks)
+-- ═══════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS tasks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    source TEXT,                     -- 'Gmail', 'Outlook', 'SAP', 'Manual'
+    captured_at TIMESTAMPTZ DEFAULT NOW(),
+    status TEXT DEFAULT 'captured',  -- captured, suggested, executed, eliminated
+    data JSONB,                      -- 원본 데이터
+    user_id UUID,                    -- auth.users 참조
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ═══════════════════════════════════════════════════════════════
+-- Stage 4: Outcomes (Execution Results)
+-- ═══════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS outcomes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    task_id UUID REFERENCES tasks(id) ON DELETE CASCADE,
+    success BOOLEAN,
+    time_saved_minutes NUMERIC,
+    error_rate_percent NUMERIC,
+    cost_saved NUMERIC,
+    executed_at TIMESTAMPTZ DEFAULT NOW(),
+    notes TEXT
+);
+
+-- ═══════════════════════════════════════════════════════════════
+-- Stage 5: Feedbacks (User Feedback for LoRA)
+-- ═══════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS feedbacks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    suggestion_id TEXT,              -- AI suggestion unique key
+    task_id UUID REFERENCES tasks(id),
+    feedback_type TEXT CHECK (feedback_type IN ('thumbs_up', 'thumbs_down')),
+    comment TEXT,
+    user_id UUID,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ═══════════════════════════════════════════════════════════════
+-- Stage 6: Global Stats (Collective Intelligence)
+-- ═══════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS global_stats (
+    id SERIAL PRIMARY KEY,
+    org_count BIGINT DEFAULT 0,
+    task_count BIGINT DEFAULT 0,
+    adoption_rate NUMERIC DEFAULT 0,
+    last_sync TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ═══════════════════════════════════════════════════════════════
+-- Indexes for Performance
+-- ═══════════════════════════════════════════════════════════════
+CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_outcomes_task_id ON outcomes(task_id);
+CREATE INDEX IF NOT EXISTS idx_feedbacks_user_id ON feedbacks(user_id);
+CREATE INDEX IF NOT EXISTS idx_templates_category ON templates(category);
+
+-- ═══════════════════════════════════════════════════════════════
+-- Done! Run this in Supabase SQL Editor
+-- ═══════════════════════════════════════════════════════════════`,
+
+      rls: `-- ═══════════════════════════════════════════════════════════════
+-- AUTUS Row Level Security (RLS) Policies
+-- Run AFTER creating tables
+-- ═══════════════════════════════════════════════════════════════
+
+-- ═══════════════════════════════════════════════════════════════
+-- tasks: 사용자별 격리
+-- ═══════════════════════════════════════════════════════════════
+ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own tasks"
+ON tasks FOR SELECT
+TO authenticated
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own tasks"
+ON tasks FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own tasks"
+ON tasks FOR UPDATE
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own tasks"
+ON tasks FOR DELETE
+TO authenticated
+USING (auth.uid() = user_id);
+
+-- ═══════════════════════════════════════════════════════════════
+-- templates: 공개 읽기, 인증된 사용자만 생성
+-- ═══════════════════════════════════════════════════════════════
+ALTER TABLE templates ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Templates are viewable by everyone"
+ON templates FOR SELECT
+TO authenticated, anon
+USING (true);
+
+CREATE POLICY "Authenticated users can manage templates"
+ON templates FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+-- ═══════════════════════════════════════════════════════════════
+-- outcomes: task 소유자만
+-- ═══════════════════════════════════════════════════════════════
+ALTER TABLE outcomes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own outcomes"
+ON outcomes FOR ALL
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM tasks
+    WHERE tasks.id = outcomes.task_id
+    AND tasks.user_id = auth.uid()
+  )
+);
+
+-- ═══════════════════════════════════════════════════════════════
+-- feedbacks: 사용자별 격리
+-- ═══════════════════════════════════════════════════════════════
+ALTER TABLE feedbacks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own feedback"
+ON feedbacks FOR ALL
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+-- ═══════════════════════════════════════════════════════════════
+-- global_stats: 읽기 전용 (서비스 키로만 쓰기)
+-- ═══════════════════════════════════════════════════════════════
+ALTER TABLE global_stats ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Global stats are public read"
+ON global_stats FOR SELECT
+TO authenticated, anon
+USING (true);
+
+-- ═══════════════════════════════════════════════════════════════
+-- RLS Applied! Test with different users.
+-- ═══════════════════════════════════════════════════════════════`
+    };
+    
+    const DOCKER_COMPOSE = `# ═══════════════════════════════════════════════════════════════
+# AUTUS n8n Docker Compose
+# Generated: ${new Date().toISOString()}
+# ═══════════════════════════════════════════════════════════════
+
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: autus-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=\${N8N_PASSWORD:-autus_secure_password}
+      - N8N_HOST=\${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://\${N8N_HOST:-localhost}:5678/
+      - GENERIC_TIMEZONE=Asia/Seoul
+      - TZ=Asia/Seoul
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - autus-network
+
+  # Optional: Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: autus-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - autus-network
+
+volumes:
+  n8n_data:
+  redis_data:
+
+networks:
+  autus-network:
+    driver: bridge
+
+# ═══════════════════════════════════════════════════════════════
+# Usage:
+#   docker-compose up -d
+#   Open http://localhost:5678
+# ═══════════════════════════════════════════════════════════════`;
+
+    const ENV_TEMPLATE = `# ═══════════════════════════════════════════════════════════════
+# AUTUS Environment Variables
+# Generated: ${new Date().toISOString()}
+# ═══════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════
+# Supabase
+# Get from: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api
+# ═══════════════════════════════════════════════════════════════
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_KEY=eyJ...  # Keep secret! Server-side only
+
+# ═══════════════════════════════════════════════════════════════
+# n8n
+# ═══════════════════════════════════════════════════════════════
+N8N_BASE_URL=http://localhost:5678
+N8N_API_KEY=  # Optional, for API access
+
+# ═══════════════════════════════════════════════════════════════
+# Gemini AI
+# Get from: https://aistudio.google.com/app/apikey
+# ═══════════════════════════════════════════════════════════════
+GEMINI_API_KEY=AIza...
+
+# ═══════════════════════════════════════════════════════════════
+# Microsoft Graph (Azure AD)
+# Get from: https://portal.azure.com → App registrations
+# ═══════════════════════════════════════════════════════════════
+MS_CLIENT_ID=
+MS_CLIENT_SECRET=
+MS_TENANT_ID=common
+
+# ═══════════════════════════════════════════════════════════════
+# Salesforce (Optional)
+# ═══════════════════════════════════════════════════════════════
+SF_CLIENT_ID=
+SF_CLIENT_SECRET=
+SF_INSTANCE_URL=https://login.salesforce.com
+
+# ═══════════════════════════════════════════════════════════════
+# ServiceNow (Optional)
+# ═══════════════════════════════════════════════════════════════
+SNOW_INSTANCE=
+SNOW_USERNAME=
+SNOW_PASSWORD=
+
+# ═══════════════════════════════════════════════════════════════
+# Security
+# ═══════════════════════════════════════════════════════════════
+AUTUS_WEBHOOK_SECRET=your_secure_secret_here
+JWT_SECRET=your_jwt_secret_here`;
+
+    // ═══════════════════════════════════════════════════════════════
+    // Render Functions
+    // ═══════════════════════════════════════════════════════════════
+    
+    function renderWizardSteps() {
+      const container = document.getElementById('wizardSteps');
+      container.innerHTML = SETUP_STEPS.map((step, i) => {
+        const isCompleted = STATE.completedSteps.has(i);
+        const isActive = i === STATE.currentStep;
+        return `
+          <div class="wizard-step ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}"
+               onclick="goToStep(${i})">
+            <div class="step-number">${isCompleted ? '✓' : i + 1}</div>
+            <div class="step-info">
+              <div class="step-name">${step.name}</div>
+              <div class="step-desc">${step.desc}</div>
+            </div>
+            <div class="step-status">${step.icon}</div>
+          </div>
+        `;
+      }).join('');
+      
+      // Update progress
+      const progress = (STATE.completedSteps.size / SETUP_STEPS.length) * 100;
+      document.getElementById('progressFill').style.width = `${progress}%`;
+    }
+    
+    function renderChecklist() {
+      const container = document.getElementById('checklist');
+      const items = [
+        { key: 'supabase_project', label: 'Supabase 프로젝트 생성' },
+        { key: 'supabase_tables', label: 'DB 테이블 생성' },
+        { key: 'supabase_rls', label: 'RLS 보안 정책 적용' },
+        { key: 'n8n_docker', label: 'n8n Docker 실행' },
+        { key: 'n8n_workflows', label: 'n8n 워크플로우 설정' },
+        { key: 'azure_app', label: 'Azure AD 앱 등록' },
+        { key: 'gemini_key', label: 'Gemini API 키 설정' },
+        { key: 'env_config', label: '환경변수 설정 완료' }
+      ];
+      
+      container.innerHTML = items.map(item => `
+        <div class="checklist-item ${STATE.checklist[item.key] ? 'checked' : ''}"
+             onclick="toggleChecklist('${item.key}')">
+          <div class="check-box">✓</div>
+          <div class="check-label">${item.label}</div>
+        </div>
+      `).join('');
+    }
+    
+    function renderLogs() {
+      const container = document.getElementById('activityLog');
+      const recentLogs = STATE.logs.slice(-10).reverse();
+      
+      container.innerHTML = recentLogs.map(log => `
+        <div class="log-item">
+          <span class="log-time">${log.time}</span>
+          <span class="log-type ${log.type}">${log.type}</span>
+          <span class="log-message">${log.message}</span>
+        </div>
+      `).join('') || '<div style="color:var(--text2);font-size:12px;text-align:center;padding:20px;">No activity yet</div>';
+    }
+    
+    function renderContent() {
+      const container = document.getElementById('mainContent');
+      
+      if (STATE.currentTab === 'wizard') {
+        renderWizardContent(container);
+      } else if (STATE.currentTab === 'console') {
+        renderConsoleContent(container);
+      } else if (STATE.currentTab === 'env') {
+        renderEnvContent(container);
+      } else if (STATE.currentTab === 'logs') {
+        renderLogsContent(container);
+      }
+    }
+    
+    function renderWizardContent(container) {
+      const step = SETUP_STEPS[STATE.currentStep];
+      let content = '';
+      
+      if (step.id === 'supabase') {
+        content = `
+          <div class="content-header">
+            <h1 class="content-title">🗄️ Step 1: Supabase 테이블 생성</h1>
+            <p class="content-desc">AUTUS가 자동으로 생성한 SQL을 Supabase SQL Editor에서 실행하세요.</p>
+          </div>
+          
+          <div class="action-cards">
+            <div class="action-card" onclick="window.open('https://supabase.com/dashboard', '_blank')">
+              <div class="action-icon">🌐</div>
+              <div class="action-name">Supabase 열기</div>
+              <div class="action-desc">대시보드로 이동</div>
+            </div>
+            <div class="action-card" onclick="copySQL('tables')">
+              <div class="action-icon">📋</div>
+              <div class="action-name">SQL 복사</div>
+              <div class="action-desc">클립보드에 복사</div>
+            </div>
+          </div>
+          
+          <div class="code-container">
+            <div class="code-header">
+              <div class="code-lang">
+                <span>📄</span>
+                <span>SQL - Supabase Tables</span>
+              </div>
+              <div class="code-actions">
+                <button class="code-btn" onclick="copySQL('tables')">📋 Copy</button>
+              </div>
+            </div>
+            <div class="code-content">${escapeHtml(SQL_TEMPLATES.tables)}</div>
+          </div>
+          
+          <div class="btn-row">
+            <button class="btn btn-success" onclick="markStepComplete(0, 'supabase_tables')">
+              ✅ 테이블 생성 완료
+            </button>
+            <button class="btn btn-secondary" onclick="goToStep(1)">
+              다음 단계 →
+            </button>
+          </div>
+        `;
+      } else if (step.id === 'rls') {
+        content = `
+          <div class="content-header">
+            <h1 class="content-title">🔒 Step 2: RLS 보안 정책 적용</h1>
+            <p class="content-desc">Row Level Security로 사용자별 데이터 격리를 설정합니다.</p>
+          </div>
+          
+          <div class="ai-response">
+            <div class="ai-header">
+              <div class="ai-avatar">🧠</div>
+              <div class="ai-name">AUTUS Security Advisor</div>
+            </div>
+            <div class="ai-content">
+              RLS는 <code>auth.uid()</code>를 사용해 각 사용자가 자신의 데이터만 접근하도록 합니다.
+              anon 키로는 데이터에 접근할 수 없어 보안이 강화됩니다.
+            </div>
+          </div>
+          
+          <div class="code-container">
+            <div class="code-header">
+              <div class="code-lang">
+                <span>🔒</span>
+                <span>SQL - RLS Policies</span>
+              </div>
+              <div class="code-actions">
+                <button class="code-btn" onclick="copySQL('rls')">📋 Copy</button>
+              </div>
+            </div>
+            <div class="code-content">${escapeHtml(SQL_TEMPLATES.rls)}</div>
+          </div>
+          
+          <div class="btn-row">
+            <button class="btn btn-success" onclick="markStepComplete(1, 'supabase_rls')">
+              ✅ RLS 적용 완료
+            </button>
+            <button class="btn btn-secondary" onclick="goToStep(2)">
+              다음 단계 →
+            </button>
+          </div>
+        `;
+      } else if (step.id === 'n8n') {
+        content = `
+          <div class="content-header">
+            <h1 class="content-title">🐳 Step 3: n8n Docker 설정</h1>
+            <p class="content-desc">워크플로우 자동화 엔진을 Docker로 실행합니다.</p>
+          </div>
+          
+          <div class="action-cards">
+            <div class="action-card" onclick="copyDocker()">
+              <div class="action-icon">📋</div>
+              <div class="action-name">docker-compose.yml</div>
+              <div class="action-desc">복사 후 프로젝트 루트에 저장</div>
+            </div>
+            <div class="action-card" onclick="showToast('Command', 'docker-compose up -d')">
+              <div class="action-icon">▶️</div>
+              <div class="action-name">Run Command</div>
+              <div class="action-desc">docker-compose up -d</div>
+            </div>
+          </div>
+          
+          <div class="code-container">
+            <div class="code-header">
+              <div class="code-lang">
+                <span>🐳</span>
+                <span>YAML - docker-compose.yml</span>
+              </div>
+              <div class="code-actions">
+                <button class="code-btn" onclick="copyDocker()">📋 Copy</button>
+              </div>
+            </div>
+            <div class="code-content">${escapeHtml(DOCKER_COMPOSE)}</div>
+          </div>
+          
+          <div class="btn-row">
+            <button class="btn btn-success" onclick="markStepComplete(2, 'n8n_docker')">
+              ✅ n8n 실행 완료
+            </button>
+            <button class="btn btn-secondary" onclick="window.open('http://localhost:5678', '_blank')">
+              🌐 n8n 열기 (localhost:5678)
+            </button>
+          </div>
+        `;
+      } else if (step.id === 'microsoft') {
+        content = `
+          <div class="content-header">
+            <h1 class="content-title">🔷 Step 4: Microsoft 365 연동</h1>
+            <p class="content-desc">Azure AD에서 앱을 등록하고 Graph API 권한을 설정합니다.</p>
+          </div>
+          
+          <div class="ai-response">
+            <div class="ai-header">
+              <div class="ai-avatar">🧠</div>
+              <div class="ai-name">AUTUS Guide</div>
+            </div>
+            <div class="ai-content">
+              <strong>Azure Portal 설정 순서:</strong><br>
+              1. <a href="https://portal.azure.com" target="_blank">portal.azure.com</a> → App registrations<br>
+              2. New registration → 이름: "AUTUS"<br>
+              3. Redirect URI: <code>http://localhost:3000/auth/callback</code><br>
+              4. API permissions → Microsoft Graph 추가<br>
+              5. Client secret 생성 → 복사
+            </div>
+          </div>
+          
+          <div class="action-cards">
+            <div class="action-card" onclick="window.open('https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade', '_blank')">
+              <div class="action-icon">🔷</div>
+              <div class="action-name">Azure Portal</div>
+              <div class="action-desc">앱 등록 페이지</div>
+            </div>
+          </div>
+          
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px;">
+            <h3 style="margin-bottom:16px;font-size:14px;">필요한 Graph API 권한</h3>
+            <table class="env-table">
+              <tr><th>Permission</th><th>Type</th><th>Description</th></tr>
+              <tr><td>Mail.Read</td><td>Delegated</td><td>이메일 읽기</td></tr>
+              <tr><td>Calendars.Read</td><td>Delegated</td><td>캘린더 읽기</td></tr>
+              <tr><td>Chat.Read</td><td>Delegated</td><td>Teams 채팅 읽기</td></tr>
+              <tr><td>Files.Read.All</td><td>Delegated</td><td>SharePoint/OneDrive 파일</td></tr>
+              <tr><td>User.Read</td><td>Delegated</td><td>프로필 정보</td></tr>
+            </table>
+          </div>
+          
+          <div class="btn-row">
+            <button class="btn btn-success" onclick="markStepComplete(3, 'azure_app')">
+              ✅ Azure 앱 등록 완료
+            </button>
+          </div>
+        `;
+      } else if (step.id === 'gemini') {
+        content = `
+          <div class="content-header">
+            <h1 class="content-title">🤖 Step 5: Gemini AI 설정</h1>
+            <p class="content-desc">Google AI Studio에서 API 키를 발급받습니다.</p>
+          </div>
+          
+          <div class="action-cards">
+            <div class="action-card" onclick="window.open('https://aistudio.google.com/app/apikey', '_blank')">
+              <div class="action-icon">🔑</div>
+              <div class="action-name">API Key 발급</div>
+              <div class="action-desc">Google AI Studio</div>
+            </div>
+          </div>
+          
+          <div class="ai-response">
+            <div class="ai-header">
+              <div class="ai-avatar">🧠</div>
+              <div class="ai-name">AUTUS AI Prompt Template</div>
+            </div>
+            <div class="ai-content">
+              AUTUS가 사용하는 기본 프롬프트입니다. 환경에 맞게 수정하세요.
+            </div>
+          </div>
+          
+          <div class="code-container">
+            <div class="code-header">
+              <div class="code-lang">
+                <span>🤖</span>
+                <span>Gemini Prompt Template</span>
+              </div>
+              <div class="code-actions">
+                <button class="code-btn" onclick="copyGeminiPrompt()">📋 Copy</button>
+              </div>
+            </div>
+            <div class="code-content">${escapeHtml(`You are AUTUS, an AI workflow optimizer.
+
+Current tasks: {tasks_json}
+User context: {user_context}
+Previous suggestions accuracy: {accuracy}%
+
+Analyze the tasks and suggest 3 actions:
+1. Merge: Combine similar tasks
+2. Eliminate: Remove redundant tasks  
+3. Automate: Create automation flow
+
+For each suggestion provide:
+- confidence: 0-100
+- reason: 2-3 sentences
+- simulation: { time: "+X%", errors: "-Y%", cost: "-$Z" }
+- alternatives: [3 alternative options]
+
+Output: JSON array`)}</div>
+          </div>
+          
+          <div class="btn-row">
+            <button class="btn btn-success" onclick="markStepComplete(4, 'gemini_key')">
+              ✅ Gemini 설정 완료
+            </button>
+          </div>
+        `;
+      } else if (step.id === 'verify') {
+        content = `
+          <div class="content-header">
+            <h1 class="content-title">✅ Step 6: 전체 연결 테스트</h1>
+            <p class="content-desc">모든 서비스가 정상적으로 연결되었는지 확인합니다.</p>
+          </div>
+          
+          <div class="action-cards">
+            <div class="action-card" onclick="testSupabase()">
+              <div class="action-icon">🗄️</div>
+              <div class="action-name">Supabase 테스트</div>
+              <div class="action-desc">DB 연결 확인</div>
+            </div>
+            <div class="action-card" onclick="testN8n()">
+              <div class="action-icon">🐳</div>
+              <div class="action-name">n8n 테스트</div>
+              <div class="action-desc">워크플로우 엔진 확인</div>
+            </div>
+            <div class="action-card" onclick="testGemini()">
+              <div class="action-icon">🤖</div>
+              <div class="action-name">Gemini 테스트</div>
+              <div class="action-desc">AI 응답 확인</div>
+            </div>
+          </div>
+          
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px;">
+            <h3 style="margin-bottom:16px;font-size:14px;">연결 상태</h3>
+            <div style="display:grid;gap:12px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:8px;">
+                <div class="status-dot green"></div>
+                <span style="flex:1;">Supabase</span>
+                <span style="color:var(--green);">Connected</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:8px;">
+                <div class="status-dot green"></div>
+                <span style="flex:1;">n8n</span>
+                <span style="color:var(--green);">Running</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:8px;">
+                <div class="status-dot green"></div>
+                <span style="flex:1;">Gemini AI</span>
+                <span style="color:var(--green);">Active</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="btn-row">
+            <button class="btn btn-success" onclick="completeSetup()">
+              🎉 Setup 완료!
+            </button>
+            <button class="btn btn-primary" onclick="window.location.href='autus-production.html'">
+              → AUTUS 시작하기
+            </button>
+          </div>
+        `;
+      }
+      
+      container.innerHTML = content;
+    }
+    
+    function renderConsoleContent(container) {
+      container.innerHTML = `
+        <div class="content-header">
+          <h1 class="content-title">💻 Dev Console</h1>
+          <p class="content-desc">AUTUS에게 명령을 입력하면 코드/설정을 자동 생성합니다.</p>
+        </div>
+        
+        <div class="console-input">
+          <div class="console-label">Enter Command (e.g., "Generate SAP connector", "Create n8n workflow for email")</div>
+          <div class="console-field">
+            <textarea class="console-textarea" id="consoleInput" placeholder="무엇을 생성할까요?"></textarea>
+            <button class="console-submit" onclick="executeCommand()">
+              🧠 Generate
+            </button>
+          </div>
+        </div>
+        
+        <div id="consoleOutput"></div>
+        
+        <div class="action-cards">
+          <div class="action-card" onclick="setCommand('Generate Microsoft Graph connector')">
+            <div class="action-icon">🔷</div>
+            <div class="action-name">MS Graph Connector</div>
+          </div>
+          <div class="action-card" onclick="setCommand('Create n8n workflow for Gmail to Supabase')">
+            <div class="action-icon">📧</div>
+            <div class="action-name">Gmail → Supabase</div>
+          </div>
+          <div class="action-card" onclick="setCommand('Generate Playwright RPA script for login')">
+            <div class="action-icon">🤖</div>
+            <div class="action-name">RPA Script</div>
+          </div>
+          <div class="action-card" onclick="setCommand('Create Process Mining analysis')">
+            <div class="action-icon">📊</div>
+            <div class="action-name">Process Mining</div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderEnvContent(container) {
+      container.innerHTML = `
+        <div class="content-header">
+          <h1 class="content-title">🔑 Environment Variables</h1>
+          <p class="content-desc">.env 파일에 설정할 환경변수들입니다.</p>
+        </div>
+        
+        <div class="code-container">
+          <div class="code-header">
+            <div class="code-lang">
+              <span>🔑</span>
+              <span>.env</span>
+            </div>
+            <div class="code-actions">
+              <button class="code-btn" onclick="copyEnv()">📋 Copy</button>
+            </div>
+          </div>
+          <div class="code-content">${escapeHtml(ENV_TEMPLATE)}</div>
+        </div>
+        
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
+          <h3 style="margin-bottom:16px;font-size:14px;">Quick Links</h3>
+          <div style="display:grid;gap:12px;">
+            <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--cyan);text-decoration:none;">
+              🗄️ Supabase Dashboard → Settings → API
+            </a>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--cyan);text-decoration:none;">
+              🤖 Google AI Studio → Get API Key
+            </a>
+            <a href="https://portal.azure.com" target="_blank" style="color:var(--cyan);text-decoration:none;">
+              🔷 Azure Portal → App Registrations
+            </a>
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderLogsContent(container) {
+      container.innerHTML = `
+        <div class="content-header">
+          <h1 class="content-title">📜 Activity Log</h1>
+          <p class="content-desc">AUTUS 셀프-빌딩 활동 기록</p>
+        </div>
+        
+        <div id="fullLogs" style="max-height:600px;overflow-y:auto;">
+          ${STATE.logs.map(log => `
+            <div class="log-item">
+              <span class="log-time">${log.time}</span>
+              <span class="log-type ${log.type}">${log.type}</span>
+              <span class="log-message">${log.message}</span>
+            </div>
+          `).reverse().join('') || '<div style="color:var(--text2);text-align:center;padding:40px;">No activity yet</div>'}
+        </div>
+      `;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // Actions
+    // ═══════════════════════════════════════════════════════════════
+    
+    function goToStep(step) {
+      STATE.currentStep = step;
+      renderWizardSteps();
+      renderContent();
+      addLog('info', `Step ${step + 1}: ${SETUP_STEPS[step].name} 시작`);
+    }
+    
+    function markStepComplete(step, checklistKey) {
+      STATE.completedSteps.add(step);
+      STATE.checklist[checklistKey] = true;
+      renderWizardSteps();
+      renderChecklist();
+      addLog('success', `${SETUP_STEPS[step].name} 완료!`);
+      showToast('완료!', `${SETUP_STEPS[step].name} 설정이 완료되었습니다.`);
+      
+      // Auto advance
+      if (step < SETUP_STEPS.length - 1) {
+        setTimeout(() => goToStep(step + 1), 500);
+      }
+    }
+    
+    function toggleChecklist(key) {
+      STATE.checklist[key] = !STATE.checklist[key];
+      renderChecklist();
+      addLog('info', `Checklist: ${key} ${STATE.checklist[key] ? '✓' : '○'}`);
+    }
+    
+    function copySQL(type) {
+      navigator.clipboard.writeText(SQL_TEMPLATES[type]);
+      showToast('복사됨!', 'SQL이 클립보드에 복사되었습니다.');
+      addLog('info', `SQL (${type}) 복사됨`);
+    }
+    
+    function copyDocker() {
+      navigator.clipboard.writeText(DOCKER_COMPOSE);
+      showToast('복사됨!', 'docker-compose.yml이 복사되었습니다.');
+      addLog('info', 'docker-compose.yml 복사됨');
+    }
+    
+    function copyEnv() {
+      navigator.clipboard.writeText(ENV_TEMPLATE);
+      showToast('복사됨!', '.env 템플릿이 복사되었습니다.');
+      addLog('info', '.env 템플릿 복사됨');
+    }
+    
+    function copyGeminiPrompt() {
+      const prompt = `You are AUTUS, an AI workflow optimizer...`;
+      navigator.clipboard.writeText(prompt);
+      showToast('복사됨!', 'Gemini 프롬프트가 복사되었습니다.');
+    }
+    
+    function generateSQL() { goToStep(0); }
+    function generateDocker() { goToStep(2); }
+    function generateEnv() { switchTab('env'); }
+    
+    function setCommand(cmd) {
+      document.getElementById('consoleInput').value = cmd;
+    }
+    
+    async function executeCommand() {
+      const input = document.getElementById('consoleInput').value;
+      if (!input.trim()) return;
+      
+      addLog('info', `Command: ${input}`);
+      document.getElementById('aiMessage').textContent = '생성 중...';
+      
+      // Simulate AI response
+      setTimeout(() => {
+        const output = document.getElementById('consoleOutput');
+        output.innerHTML = `
+          <div class="ai-response">
+            <div class="ai-header">
+              <div class="ai-avatar">🧠</div>
+              <div class="ai-name">AUTUS Generated</div>
+            </div>
+            <div class="ai-content">
+              <strong>Command:</strong> ${input}<br><br>
+              코드가 생성되었습니다. 아래에서 복사하세요.
+            </div>
+          </div>
+          <div class="code-container">
+            <div class="code-header">
+              <div class="code-lang">Generated Code</div>
+              <div class="code-actions">
+                <button class="code-btn" onclick="copyGeneratedCode()">📋 Copy</button>
+              </div>
+            </div>
+            <div class="code-content" id="generatedCode"># AUTUS Auto-Generated
+# Command: ${input}
+
+# Your code will appear here
+print("AUTUS generated this code!")</div>
+          </div>
+        `;
+        
+        document.getElementById('aiMessage').textContent = '코드 생성 완료! 왼쪽 콘솔에서 확인하세요.';
+        addLog('success', '코드 생성 완료');
+      }, 1000);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // API Configuration
+    // ═══════════════════════════════════════════════════════════════
+    
+    const API_BASE = 'http://localhost:8000';
+    
+    async function apiCall(endpoint, method = 'GET', body = null) {
+      try {
+        const options = {
+          method,
+          headers: { 'Content-Type': 'application/json' }
+        };
+        if (body) options.body = JSON.stringify(body);
+        
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+        return await response.json();
+      } catch (error) {
+        console.error('API Error:', error);
+        return { error: error.message };
+      }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // Auto Setup (AUTUS가 스스로 실행)
+    // ═══════════════════════════════════════════════════════════════
+    
+    async function runAutoSetup() {
+      addLog('info', '🚀 AUTUS 자동 설정 시작...');
+      showToast('시작', 'AUTUS가 스스로 환경을 구성합니다...');
+      
+      document.getElementById('aiMessage').textContent = 'AUTUS가 자동으로 환경을 구성하고 있습니다...';
+      
+      try {
+        const result = await apiCall('/setup/auto', 'POST');
+        
+        if (result.error) {
+          addLog('error', `자동 설정 실패: ${result.error}`);
+          showToast('실패', result.error);
+          return;
+        }
+        
+        // 각 단계 상태 업데이트
+        result.steps.forEach((step, i) => {
+          const status = step.status === 'completed' ? '✅' : 
+                         step.status === 'skipped' ? '⏭️' : '❌';
+          addLog(step.status === 'completed' ? 'success' : 'info', 
+                 `${status} ${step.name}: ${step.message}`);
+        });
+        
+        // 점수 업데이트
+        if (result.success) {
+          SETUP_STEPS.forEach((_, i) => STATE.completedSteps.add(i));
+          Object.keys(STATE.checklist).forEach(k => STATE.checklist[k] = true);
+          renderWizardSteps();
+          renderChecklist();
+          
+          document.getElementById('supabaseStatus').className = 'status-dot green';
+          document.getElementById('aiMessage').textContent = `🎉 AUTUS 자동 설정 완료! 점수: ${result.score}/100`;
+          
+          showToast('🎉 완료!', `AUTUS가 스스로 환경을 구성했습니다. 점수: ${result.score}/100`);
+          addLog('success', `🎉 자동 설정 완료! 점수: ${result.score}/100`);
+        } else {
+          showToast('부분 완료', '일부 단계가 실패했습니다. 수동으로 완료해주세요.');
+        }
+        
+        // 다음 단계 표시
+        if (result.next_steps && result.next_steps.length > 0) {
+          document.getElementById('aiMessage').textContent += '\n\n다음 단계:\n' + result.next_steps.map(s => `→ ${s}`).join('\n');
+        }
+        
+      } catch (error) {
+        addLog('error', `자동 설정 오류: ${error.message}`);
+        showToast('오류', error.message);
+      }
+    }
+    
+    async function testSupabase() {
+      addLog('info', 'Supabase 연결 테스트...');
+      
+      try {
+        const result = await apiCall('/setup/verify');
+        
+        if (result.success) {
+          document.getElementById('supabaseStatus').className = 'status-dot green';
+          addLog('success', 'Supabase 연결 성공!');
+          showToast('성공', 'Supabase 연결됨');
+        } else {
+          document.getElementById('supabaseStatus').className = 'status-dot red';
+          addLog('error', `Supabase 오류: ${result.message}`);
+          showToast('실패', result.message);
+        }
+      } catch (error) {
+        // Fallback to simulation
+        document.getElementById('supabaseStatus').className = 'status-dot yellow';
+        addLog('warning', 'API 서버 미실행 - 시뮬레이션 모드');
+        showToast('시뮬레이션', 'API 서버를 시작하세요');
+      }
+    }
+    
+    async function testN8n() {
+      addLog('info', 'n8n 연결 테스트...');
+      
+      try {
+        const result = await apiCall('/setup/n8n/health');
+        
+        if (result.status === 'running') {
+          document.getElementById('n8nStatus').className = 'status-dot green';
+          addLog('success', `n8n 실행 중! (${result.url})`);
+          showToast('성공', 'n8n 연결됨');
+        } else {
+          document.getElementById('n8nStatus').className = 'status-dot yellow';
+          addLog('warning', `n8n 미실행: ${result.error || result.status}`);
+          showToast('경고', 'n8n이 실행되지 않았습니다');
+        }
+      } catch (error) {
+        document.getElementById('n8nStatus').className = 'status-dot yellow';
+        addLog('warning', 'n8n 상태 확인 실패');
+      }
+    }
+    
+    async function testGemini() {
+      addLog('info', 'Gemini AI 테스트...');
+      
+      // Gemini는 환경변수로만 확인 가능
+      document.getElementById('geminiStatus').className = 'status-dot yellow';
+      addLog('info', 'Gemini API 키는 .env에서 확인하세요');
+      showToast('정보', 'GEMINI_API_KEY 환경변수 설정 필요');
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // API-based SQL Execution
+    // ═══════════════════════════════════════════════════════════════
+    
+    async function autoCreateTables() {
+      addLog('info', '🗄️ 테이블 자동 생성 시작...');
+      
+      try {
+        const result = await apiCall('/setup/supabase/tables', 'POST');
+        
+        if (result.success) {
+          markStepComplete(0, 'supabase_tables');
+          addLog('success', '테이블 생성 완료!');
+        } else {
+          addLog('error', `테이블 생성 실패: ${result.message}`);
+          showToast('실패', '수동으로 SQL을 실행해주세요');
+        }
+      } catch (error) {
+        addLog('warning', 'API 서버 미실행 - SQL을 복사해서 Supabase에서 직접 실행하세요');
+      }
+    }
+    
+    async function autoApplyRLS() {
+      addLog('info', '🔒 RLS 정책 자동 적용 시작...');
+      
+      try {
+        const result = await apiCall('/setup/supabase/rls', 'POST');
+        
+        if (result.success) {
+          markStepComplete(1, 'supabase_rls');
+          addLog('success', 'RLS 정책 적용 완료!');
+        } else {
+          addLog('error', `RLS 적용 실패: ${result.message}`);
+        }
+      } catch (error) {
+        addLog('warning', 'API 서버 미실행');
+      }
+    }
+    
+    function completeSetup() {
+      SETUP_STEPS.forEach((_, i) => STATE.completedSteps.add(i));
+      Object.keys(STATE.checklist).forEach(k => STATE.checklist[k] = true);
+      renderWizardSteps();
+      renderChecklist();
+      addLog('success', '🎉 AUTUS Setup 완료!');
+      showToast('🎉 완료!', 'AUTUS 환경 설정이 완료되었습니다.');
+    }
+    
+    function switchTab(tab) {
+      STATE.currentTab = tab;
+      document.querySelectorAll('.header-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+      });
+      renderContent();
+    }
+    
+    function addLog(type, message) {
+      const time = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+      STATE.logs.push({ type, message, time });
+      renderLogs();
+    }
+    
+    function showToast(title, desc) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDesc').textContent = desc;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+    
+    function escapeHtml(text) {
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // Initialize
+    // ═══════════════════════════════════════════════════════════════
+    
+    document.querySelectorAll('.header-tab').forEach(tab => {
+      tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    });
+    
+    // Initial render
+    renderWizardSteps();
+    renderChecklist();
+    renderLogs();
+    renderContent();
+    
+    // Set initial status
+    document.getElementById('supabaseStatus').className = 'status-dot yellow';
+    document.getElementById('n8nStatus').className = 'status-dot yellow';
+    document.getElementById('geminiStatus').className = 'status-dot yellow';
+    
+    addLog('info', 'AUTUS Dev Console 시작됨');
+    addLog('info', 'Setup Wizard로 환경을 구성하세요');
+    
+    // ═══════════════════════════════════════════════════════════════
+    // Auth System
+    // ═══════════════════════════════════════════════════════════════
+    
+    const AUTH_PASSWORD = 'autus2026';  // 변경 가능
+    const AUTH_KEY = 'autus_dev_auth';
+    
+    function checkAuth() {
+      const input = document.getElementById('authPassword').value;
+      const errorEl = document.getElementById('authError');
+      
+      if (input === AUTH_PASSWORD) {
+        sessionStorage.setItem(AUTH_KEY, 'true');
+        showApp();
+      } else {
+        errorEl.style.display = 'block';
+        document.getElementById('authPassword').value = '';
+        setTimeout(() => errorEl.style.display = 'none', 2000);
+      }
+    }
+    
+    function showApp() {
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('appContent').classList.add('visible');
+    }
+    
+    // Enter key support
+    document.getElementById('authPassword').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') checkAuth();
+    });
+    
+    // Check if already authenticated
+    if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+      showApp();
+    }
+  </script>
+  </div><!-- end app-content -->
+</body>
+</html>

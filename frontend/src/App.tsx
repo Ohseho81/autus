@@ -45,6 +45,15 @@ const PressureMapView = lazy(() => import('./components/PressureMap/PressureMapV
 const LearningLoopDemo = lazy(() => import('./components/LearningLoopDemo').then(m => ({ default: m.default })));
 const LaplacianSimulator = lazy(() => import('./components/LaplacianSimulator').then(m => ({ default: m.default })));
 const DataInputDashboard = lazy(() => import('./components/DataInputDashboard').then(m => ({ default: m.default })));
+const SystemDashboard = lazy(() => import('./pages/SystemDashboard').then(m => ({ default: m.default })));
+const ProcessFlowGraph = lazy(() => import('./components/Process/ProcessFlowGraph').then(m => ({ default: m.default })));
+const BlackHoleDemo = lazy(() => import('./components/Process/BlackHoleAnimation').then(m => ({ default: m.BlackHoleDemo })));
+const ProcessDashboard = lazy(() => import('./pages/ProcessDashboard').then(m => ({ default: m.default })));
+const NervousSystemDashboard = lazy(() => import('./pages/NervousSystemDashboard').then(m => ({ default: m.default })));
+const WorkflowDashboard = lazy(() => import('./pages/WorkflowDashboard').then(m => ({ default: m.default })));
+const SemanticZoomDemo = lazy(() => import('./pages/SemanticZoomDemo').then(m => ({ default: m.default })));
+const AutomationPage = lazy(() => import('./pages/AutomationPage').then(m => ({ default: m.default })));
+const TasksPage = lazy(() => import('./pages/TasksPage').then(m => ({ default: m.default })));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // View Types
@@ -87,7 +96,7 @@ const DataInputDashboard = lazy(() => import('./components/DataInputDashboard').
 // 'logs'       = 내 로그 페이지
 // 'macro'      = 거시 흐름 페이지
 //
-type View = 'transform' | 'trinity' | 'matrix' | 'engine' | 'cube' | 'unified' | 'map' | 'quantum' | 'smb' | 'ontology' | 'graph' | 'hexagon' | 'dashboard' | 'prediction' | 'cube72' | 'matrix72' | 'stress' | 'pressure' | 'learning' | 'simulator' | 'data' | 'mylearning' | 'work' | 'goals' | 'future' | 'logs' | 'macro';
+type View = 'transform' | 'trinity' | 'matrix' | 'engine' | 'cube' | 'unified' | 'map' | 'quantum' | 'smb' | 'ontology' | 'graph' | 'hexagon' | 'dashboard' | 'prediction' | 'cube72' | 'matrix72' | 'stress' | 'pressure' | 'learning' | 'simulator' | 'data' | 'mylearning' | 'work' | 'goals' | 'future' | 'logs' | 'macro' | 'system' | 'process' | 'blackhole' | 'bpmn' | 'nervous' | 'workflow' | 'zoom' | 'automation' | 'tasks';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Loading Fallback
@@ -140,7 +149,7 @@ function parseDeepLink(hash: string): DeepLinkState {
     });
   }
   
-  const validViews: View[] = ['transform', 'trinity', 'matrix', 'engine', 'cube', 'unified', 'map', 'quantum', 'ontology', 'graph', 'smb', 'hexagon', 'dashboard', 'prediction', 'cube72', 'matrix72', 'pressure', 'learning', 'simulator', 'data', 'mylearning', 'work', 'goals', 'future', 'logs', 'macro'];
+  const validViews: View[] = ['transform', 'trinity', 'matrix', 'engine', 'cube', 'unified', 'map', 'quantum', 'ontology', 'graph', 'smb', 'hexagon', 'dashboard', 'prediction', 'cube72', 'matrix72', 'pressure', 'learning', 'simulator', 'data', 'mylearning', 'work', 'goals', 'future', 'logs', 'macro', 'system', 'process', 'blackhole', 'bpmn', 'nervous', 'workflow', 'zoom', 'automation', 'tasks'];
   const validView = validViews.includes(view as View) ? (view as View) : 'transform';
   
   return { view: validView, nodeId, params };
@@ -263,6 +272,24 @@ function App() {
         return <PageWrapper><LogsPage /></PageWrapper>;
       case 'macro':
         return <PageWrapper><MacroPage /></PageWrapper>;
+      case 'system':
+        return <PageWrapper><SystemDashboard /></PageWrapper>;
+      case 'process':
+        return <PageWrapper><ProcessFlowGraph /></PageWrapper>;
+      case 'blackhole':
+        return <PageWrapper><BlackHoleDemo /></PageWrapper>;
+      case 'bpmn':
+        return <ProcessDashboard />;
+      case 'nervous':
+        return <NervousSystemDashboard />;
+      case 'workflow':
+        return <PageWrapper fullHeight={true}><WorkflowDashboard /></PageWrapper>;
+      case 'zoom':
+        return <SemanticZoomDemo />;
+      case 'automation':
+        return <PageWrapper><AutomationPage /></PageWrapper>;
+      case 'tasks':
+        return <PageWrapper><TasksPage /></PageWrapper>;
       
       default:
         return <PageWrapper><TransformDashboard /></PageWrapper>;
@@ -343,7 +370,15 @@ function NavigationSidebar({
     // Separator - Legacy
     { id: 'divider3', icon: '', label: '', color: '' },
     
-    // Legacy Views (collapsed)
+    // Process & System
+    { id: 'tasks', icon: '📋', label: '업무등록', color: '#3b82f6' },
+    { id: 'automation', icon: '⚡', label: '자동화', color: '#22c55e' },
+    { id: 'zoom', icon: '🔭', label: 'Zoom', color: '#a855f7' },
+    { id: 'workflow', icon: '🔀', label: 'Workflow', color: '#00d4ff' },
+    { id: 'nervous', icon: '⚡', label: 'Nervous', color: '#22d3ee' },
+    { id: 'bpmn', icon: '📋', label: 'BPMN', color: '#f59e0b' },
+    { id: 'process', icon: '🔄', label: 'Process', color: '#8b5cf6' },
+    { id: 'system', icon: '🖥️', label: 'System', color: '#22c55e' },
     { id: 'trinity', icon: '👑', label: 'Trinity', color: '#fbbf24' },
     { id: 'dashboard', icon: '📊', label: 'Audit', color: '#64748b' },
     { id: 'unified', icon: '⚛️', label: 'Unified', color: '#06b6d4' },
