@@ -6,483 +6,659 @@
   <meta name="theme-color" content="#0a0f1a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="AUTUS">
-  <meta name="description" content="Responsibility OS — Zero-Cloud P2P Decision System">
+  <title>AUTUS v15.2 · Daily OS</title>
   <link rel="manifest" href="./manifest.json">
-  <title>AUTUS v15.2 — Responsibility OS</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    :root{--bg:#0a0f1a;--bg2:#111827;--bg3:#1f2937;--green:#10b981;--cyan:#06b6d4;--purple:#8b5cf6;--orange:#f59e0b;--red:#ef4444;--text:#f3f4f6;--text2:#9ca3af;--muted:#4b5563;--border:rgba(255,255,255,0.08);--glow:rgba(0,255,170,0.4);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
-    html,body{height:100%;overflow:hidden}
-    body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);user-select:none;-webkit-user-select:none}
-    .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;transition:opacity 0.5s}
-    .loading-screen.hidden{opacity:0;pointer-events:none}
-    .loading-logo{width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,var(--green),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:white;margin-bottom:24px;animation:logoPulse 1.5s infinite}
-    @keyframes logoPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-    .loading-text{font-size:14px;color:var(--muted);margin-bottom:8px}
-    .loading-bar{width:200px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
-    .loading-bar-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));width:0%;transition:width 0.3s}
-    .live-badge{position:fixed;top:calc(var(--safe-top) + 8px);right:8px;display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:14px;font-size:9px;color:var(--green);font-weight:600;z-index:200;text-transform:uppercase;letter-spacing:1px}
-    .live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1s infinite}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
-    .flash{position:fixed;inset:0;background:radial-gradient(circle at center,rgba(0,255,170,0.6),transparent 70%);z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.1s}
+    :root{
+      --bg:#0a0f1a;--bg2:#111827;--bg3:#1f2937;
+      --green:#10b981;--cyan:#06b6d4;--red:#ef4444;--orange:#f59e0b;--purple:#8b5cf6;
+      --text:#f3f4f6;--text2:#9ca3af;--muted:#4b5563;
+      --border:rgba(255,255,255,0.08);
+      --glow:rgba(16,185,129,0.4);
+      --safe-top:env(safe-area-inset-top,0px);
+      --safe-bottom:env(safe-area-inset-bottom,0px);
+    }
+    html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+    body{display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+
+    /* ═══════════════════════════════════════════════════════════
+       LIVE BADGE
+       ═══════════════════════════════════════════════════════════ */
+    .live{position:fixed;top:calc(var(--safe-top) + 12px);right:12px;display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:20px;font-size:10px;color:var(--green);font-weight:600;z-index:100;letter-spacing:0.5px}
+    .live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.2s ease-in-out infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+    /* ═══════════════════════════════════════════════════════════
+       HEADER (V Display)
+       ═══════════════════════════════════════════════════════════ */
+    .header{flex:0 0 auto;padding:40px 20px 20px;text-align:center;background:linear-gradient(180deg,rgba(16,185,129,0.08) 0%,transparent 100%)}
+    .v-amount{font-size:72px;font-weight:800;line-height:1;background:linear-gradient(135deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;position:relative;display:inline-block}
+    .v-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:4px;margin-top:4px}
+    .v-delta{position:absolute;top:0;right:-50px;font-size:18px;font-weight:700;color:var(--green);opacity:0;transform:translateY(10px);transition:all 0.3s}
+    .v-delta.visible{opacity:1;transform:translateY(0)}
+    .v-delta.negative{color:var(--red)}
+
+    /* ═══════════════════════════════════════════════════════════
+       QUESTION ZONE (Center)
+       ═══════════════════════════════════════════════════════════ */
+    .question-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+    
+    /* Question Content */
+    .question-content{text-align:center;max-width:320px;position:relative}
+    .question-text{font-size:22px;font-weight:600;line-height:1.5;margin-bottom:16px;transition:all 0.3s}
+    .question-meta{font-size:14px;color:var(--green);font-weight:600}
+    .question-meta span{opacity:0.7;color:var(--text2);font-weight:400;margin-left:4px}
+
+    /* ═══════════════════════════════════════════════════════════
+       EMPTY STATES
+       ═══════════════════════════════════════════════════════════ */
+    .empty-state{text-align:center;animation:fadeIn 0.4s ease-out}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    
+    .empty-icon{font-size:48px;margin-bottom:20px;display:inline-block}
+    .empty-icon.spin{animation:spinSlow 20s linear infinite;color:var(--green)}
+    .empty-icon.pulse{animation:pulse 2s ease-in-out infinite;color:var(--muted)}
+    .empty-icon.flip{animation:flip 4s ease-in-out infinite}
+    
+    @keyframes spinSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:0.5}50%{transform:scale(1.08);opacity:1}}
+    @keyframes flip{0%,45%{transform:rotateX(0)}50%,95%{transform:rotateX(180deg)}100%{transform:rotateX(360deg)}}
+    
+    .empty-title{font-size:18px;font-weight:600;margin-bottom:8px}
+    .empty-subtitle{font-size:13px;color:var(--text2);line-height:1.5}
+    .empty-stats{font-size:14px;color:var(--text2);margin-top:16px}
+    .empty-stats strong{color:var(--green)}
+    
+    /* Progress Bar (for WAITING state) */
+    .empty-progress{margin-top:24px;width:260px}
+    .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px}
+    .progress-source{display:flex;align-items:center;gap:6px;color:var(--text)}
+    .progress-day{color:var(--text2)}
+    .progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));transition:width 0.5s}
+
+    /* ═══════════════════════════════════════════════════════════
+       BUTTON ZONE
+       ═══════════════════════════════════════════════════════════ */
+    .button-zone{flex:0 0 auto;padding:20px;padding-bottom:calc(20px + var(--safe-bottom))}
+    .buttons{display:flex;gap:12px;max-width:400px;margin:0 auto}
+    
+    .btn{flex:1;padding:18px 24px;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.15s;border:none;position:relative;overflow:hidden}
+    .btn:active{transform:scale(0.97)}
+    .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+    
+    .btn-no{background:transparent;border:2px solid var(--border);color:var(--text2);flex:0.8}
+    .btn-no:hover{border-color:var(--muted);color:var(--text)}
+    
+    .btn-yes{background:linear-gradient(135deg,var(--green),var(--cyan));color:var(--bg);flex:1.2;box-shadow:0 4px 24px var(--glow)}
+    .btn-yes:hover{box-shadow:0 6px 32px var(--glow)}
+    
+    /* Link Button (for GENESIS state) */
+    .btn-link{width:100%;padding:16px;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.15s}
+    .btn-link:hover{border-color:var(--cyan);color:var(--cyan)}
+
+    /* ═══════════════════════════════════════════════════════════
+       ANIMATIONS
+       ═══════════════════════════════════════════════════════════ */
+    /* Flash overlay */
+    .flash{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.1s;z-index:1000}
+    .flash.accept{background:radial-gradient(circle at center,rgba(16,185,129,0.4),transparent 70%)}
+    .flash.reject{background:radial-gradient(circle at center,rgba(239,68,68,0.2),transparent 70%)}
     .flash.active{opacity:1}
-    .app{height:100%;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
-    .header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
-    .logo{display:flex;align-items:center;gap:8px}
-    .logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:white}
-    .logo-text{font-size:17px;font-weight:700}
-    .header-right{display:flex;align-items:center;gap:10px}
-    .status-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(16,185,129,0.15);border-radius:12px;font-size:11px;color:var(--green);font-weight:500}
-    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
-    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.7;transform:scale(0.95)}}
-    .offline-pill{display:none;align-items:center;gap:4px;padding:4px 10px;background:rgba(245,158,11,0.15);border-radius:12px;font-size:11px;color:var(--orange)}
-    .offline-pill.visible{display:flex}
-    .encrypt-pill{display:flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(139,92,246,0.15);border-radius:12px;font-size:10px;color:var(--purple);font-weight:500}
-    .tab-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-    .tab{display:none;min-height:100%;padding-bottom:80px}
-    .tab.active{display:block}
-    .nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg2);border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);z-index:100}
-    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;color:var(--muted);cursor:pointer;transition:all 0.15s;position:relative}
+
+    /* Question transitions */
+    .question-content.accept-out{animation:acceptOut 0.4s ease-out forwards}
+    .question-content.accept-in{animation:acceptIn 0.3s ease-out forwards}
+    .question-content.reject-out{animation:rejectOut 0.35s ease-out forwards}
+    .question-content.reject-in{animation:rejectIn 0.3s ease-out forwards}
+    
+    @keyframes acceptOut{
+      0%{transform:translateY(0);opacity:1}
+      100%{transform:translateY(-30px);opacity:0}
+    }
+    @keyframes acceptIn{
+      0%{transform:translateY(30px);opacity:0}
+      100%{transform:translateY(0);opacity:1}
+    }
+    @keyframes rejectOut{
+      0%{transform:translateX(0);opacity:1}
+      20%{transform:translateX(-8px)}
+      40%{transform:translateX(8px)}
+      60%{transform:translateX(-4px)}
+      80%{transform:translateX(100%);opacity:0}
+      100%{transform:translateX(100%);opacity:0}
+    }
+    @keyframes rejectIn{
+      0%{transform:translateX(-100%);opacity:0}
+      100%{transform:translateX(0);opacity:1}
+    }
+
+    /* V counter animation */
+    .v-amount.counting{animation:vPulse 0.4s ease-out}
+    @keyframes vPulse{
+      0%{transform:scale(1)}
+      50%{transform:scale(1.05)}
+      100%{transform:scale(1)}
+    }
+
+    /* Checkmark morph */
+    .checkmark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(0.5)}
+    .checkmark.visible{animation:checkIn 0.3s ease-out forwards}
+    @keyframes checkIn{
+      0%{opacity:0;transform:scale(0.5)}
+      60%{transform:scale(1.2)}
+      100%{opacity:1;transform:scale(1)}
+    }
+    .checkmark-icon{width:64px;height:64px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 0 40px var(--glow)}
+
+    /* ═══════════════════════════════════════════════════════════
+       NAV
+       ═══════════════════════════════════════════════════════════ */
+    .nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg2);border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);z-index:50}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;color:var(--muted);cursor:pointer;position:relative;transition:color 0.15s}
     .nav-item::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--cyan);transition:width 0.2s}
     .nav-item.active{color:var(--cyan)}
-    .nav-item.active::before{width:28px}
+    .nav-item.active::before{width:24px}
     .nav-icon{font-size:20px}
-    .nav-label{font-size:10px;margin-top:2px;font-weight:500}
+    .nav-label{font-size:10px;margin-top:2px}
 
-    /* ═══════════════════════════════════════════════════════════════
-       DAILY TAB — CARDLESS VERSION C
-       ═══════════════════════════════════════════════════════════════ */
-    .daily{padding:16px;max-width:440px;margin:0 auto}
-    
-    /* Value Hero - Compact */
-    .value-hero{background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(6,182,212,0.12));border:1px solid rgba(16,185,129,0.25);border-radius:16px;padding:20px 16px;text-align:center;margin-bottom:20px}
-    .value-row{display:flex;align-items:baseline;justify-content:center;gap:8px}
-    .value-amount{font-size:56px;font-weight:800;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
-    .value-unit{font-size:14px;color:var(--muted);font-weight:500}
-    .value-formula{font-size:9px;color:var(--muted);font-family:monospace;margin-top:4px;opacity:0.6}
-    .value-breakdown{display:flex;justify-content:center;gap:24px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
-    .breakdown-item{text-align:center}
-    .breakdown-val{font-size:16px;font-weight:700}
-    .breakdown-val.mint{color:var(--green)}
-    .breakdown-val.tax{color:var(--red)}
-    .breakdown-val.synergy{color:var(--purple)}
-    .breakdown-lbl{font-size:8px;color:var(--muted);margin-top:1px;text-transform:uppercase;letter-spacing:0.5px}
-
-    /* Inline Suggestion — Cardless */
-    .suggestion-inline{margin-bottom:20px}
-    .sug-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-    .sug-category{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
-    .sug-proof{display:flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:8px;font-size:8px;color:var(--purple);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
-    .sug-content{font-size:18px;font-weight:600;line-height:1.5;margin-bottom:16px;text-align:center}
-    .sug-content .hl{color:var(--green);font-weight:700}
-    
-    /* Impact Row — Horizontal */
-    .impact-row{display:flex;justify-content:center;gap:20px;margin-bottom:20px}
-    .impact-item{display:flex;flex-direction:column;align-items:center;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;min-width:70px}
-    .impact-val{font-size:16px;font-weight:700}
-    .impact-val.pos{color:var(--green)}
-    .impact-val.neg{color:var(--muted)}
-    .impact-val.syn{color:var(--purple)}
-    .impact-lbl{font-size:8px;color:var(--muted);margin-top:2px;text-transform:uppercase}
-
-    /* Action Buttons — Full Width */
-    .action-buttons{display:flex;gap:12px}
-    .btn-reject{flex:1;padding:16px;background:transparent;border:1px solid var(--border);border-radius:14px;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s}
-    .btn-reject:active{background:rgba(255,255,255,0.05)}
-    .btn-accept{flex:2;padding:16px;background:linear-gradient(135deg,var(--green),var(--cyan));border:none;border-radius:14px;color:var(--bg);font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 0 24px var(--glow);transition:all 0.15s}
-    .btn-accept:active{transform:scale(0.97)}
-
-    /* Outcome */
-    .outcome{display:none;text-align:center;padding:28px 20px;background:var(--bg2);border:1px solid var(--green);border-radius:16px}
-    .outcome.visible{display:block;animation:popIn 0.3s}
-    @keyframes popIn{0%{opacity:0;transform:scale(0.9)}70%{transform:scale(1.02)}100%{opacity:1;transform:scale(1)}}
-    .outcome-icon{width:56px;height:56px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px;box-shadow:0 0 24px var(--glow)}
-    .outcome-title{font-size:16px;font-weight:600;margin-bottom:4px}
-    .outcome-delta{font-size:13px;color:var(--green);margin-bottom:4px}
-    .outcome-hash{font-size:9px;font-family:monospace;color:var(--purple);margin-bottom:14px;word-break:break-all}
-    .btn-next{padding:10px 24px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:12px;font-weight:500;cursor:pointer}
-
-    /* Integration Gate */
-    .gate-section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:20px}
-    .gate-title{font-size:12px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-    .gate-days{display:flex;gap:6px;margin-bottom:12px}
-    .gate-day{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:var(--bg3);color:var(--muted)}
-    .gate-day.done{background:rgba(16,185,129,0.2);color:var(--green)}
-    .gate-day.current{background:rgba(6,182,212,0.2);color:var(--cyan);border:1px solid var(--cyan)}
-    .gate-progress{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:8px}
-    .gate-progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));transition:width 0.3s}
-    .gate-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
-    .gate-stat.ok{color:var(--green)}
-    .gate-unlock{font-size:10px;color:var(--cyan);margin-top:10px;text-align:center}
-
-    /* ═══════════════════════════════════════════════════════════════
-       P2P TAB
-       ═══════════════════════════════════════════════════════════════ */
-    .p2p{padding:16px;max-width:480px;margin:0 auto}
-    .p2p-section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
-    .p2p-title{font-size:12px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-    .peer-id-box{background:var(--bg3);border-radius:8px;padding:10px;text-align:center;font-family:monospace;font-size:14px;color:var(--cyan);letter-spacing:1px}
-    .p2p-buttons{display:flex;gap:8px;margin-top:12px}
-    .btn-p2p{flex:1;padding:10px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
-    .btn-p2p.primary{background:linear-gradient(135deg,var(--cyan),var(--purple));border:none;color:white}
-    .btn-p2p.secondary{background:transparent;border:1px solid var(--border);color:var(--text2)}
-    .sim-section{background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(239,68,68,0.05));border:1px solid rgba(245,158,11,0.3);border-radius:14px;padding:16px;margin-bottom:12px}
-    .sim-title{color:var(--orange);font-size:12px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-    .sim-desc{font-size:10px;color:var(--text2);margin-bottom:10px;line-height:1.5}
-    .btn-sim{width:100%;padding:10px;background:var(--orange);border:none;border-radius:8px;color:var(--bg);font-size:11px;font-weight:600;cursor:pointer}
-    .peer-list{margin-top:8px}
-    .peer-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px}
-    .peer-info{display:flex;align-items:center;gap:8px}
-    .peer-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
-    .peer-dot.simulated{background:var(--orange)}
-    .peer-id-small{font-family:monospace;font-size:11px}
-    .peer-action{padding:5px 10px;background:var(--purple);border:none;border-radius:5px;color:white;font-size:9px;font-weight:600;cursor:pointer}
-    .empty-peers{text-align:center;padding:16px;color:var(--muted);font-size:11px}
-
-    /* Sync Modal */
-    .sync-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center;padding:20px}
-    .sync-modal.visible{display:flex}
-    .sync-content{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:340px;width:100%;text-align:center}
-    .sync-icon{font-size:32px;margin-bottom:12px}
-    .sync-title{font-size:15px;font-weight:600;margin-bottom:6px}
-    .sync-title.ok{color:var(--green)}
-    .sync-title.warn{color:var(--orange)}
-    .sync-title.error{color:var(--red)}
-    .sync-info{font-size:11px;color:var(--text2);margin-bottom:12px;font-family:monospace}
-    .sync-message{background:var(--bg3);border-radius:8px;padding:12px;font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:16px;text-align:left}
-    .sync-buttons{display:flex;gap:10px}
-    .sync-btn{flex:1;padding:12px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer}
-    .sync-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--muted)}
-    .sync-btn.primary{background:var(--cyan);border:none;color:var(--bg)}
-
-    /* ═══════════════════════════════════════════════════════════════
-       NODES TAB — 1-12-144
-       ═══════════════════════════════════════════════════════════════ */
-    .nodes{padding:16px;max-width:480px;margin:0 auto}
-    .nodes-header{text-align:center;margin-bottom:20px}
-    .nodes-title{font-size:16px;font-weight:700;margin-bottom:4px}
-    .nodes-subtitle{font-size:11px;color:var(--muted)}
-    .nodes-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
-    .node-slot{aspect-ratio:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;position:relative}
-    .node-slot.selected{border-color:var(--green);background:rgba(16,185,129,0.1)}
-    .node-slot.selected::after{content:'✓';position:absolute;top:4px;right:4px;width:16px;height:16px;background:var(--green);border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;color:var(--bg)}
-    .node-avatar{font-size:24px;margin-bottom:4px}
-    .node-name{font-size:9px;color:var(--text2);text-align:center;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .nodes-count{text-align:center;font-size:12px;color:var(--muted);margin-bottom:16px}
-    .nodes-count span{color:var(--green);font-weight:600}
-    .nodes-fallback{text-align:center;padding:40px 20px}
-    .fallback-icon{font-size:48px;margin-bottom:16px}
-    .fallback-title{font-size:15px;font-weight:600;margin-bottom:8px}
-    .fallback-text{font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:16px}
-    .fallback-guide{background:var(--bg3);border-radius:10px;padding:14px;font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:16px}
-    .btn-fallback{padding:12px 24px;background:var(--cyan);border:none;border-radius:10px;color:var(--bg);font-size:12px;font-weight:600;cursor:pointer}
-
-    /* ═══════════════════════════════════════════════════════════════
-       LEDGER TAB
-       ═══════════════════════════════════════════════════════════════ */
-    .ledger{padding:16px}
-    .ledger-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-    .ledger-stat{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
-    .stat-val{font-size:22px;font-weight:700;color:var(--purple)}
-    .stat-val.green{color:var(--green)}
-    .stat-val.red{color:var(--red)}
-    .stat-lbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
-    .ledger-chain{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-    .ledger-block{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border)}
-    .ledger-block:last-child{border-bottom:none}
-    .block-hash{font-family:monospace;font-size:9px;color:var(--purple);min-width:70px}
-    .block-type{padding:2px 6px;border-radius:4px;font-size:8px;font-weight:600;text-transform:uppercase}
-    .block-type.accept{background:rgba(16,185,129,0.2);color:var(--green)}
-    .block-type.reject{background:rgba(239,68,68,0.2);color:var(--red)}
-    .block-type.genesis{background:rgba(139,92,246,0.2);color:var(--purple)}
-    .block-type.sync{background:rgba(6,182,212,0.2);color:var(--cyan)}
-    .block-delta{font-weight:600;font-size:11px}
-    .block-delta.pos{color:var(--green)}
-    .block-delta.zero{color:var(--muted)}
-    .block-time{margin-left:auto;font-size:9px;color:var(--muted)}
-    .ledger-empty{text-align:center;padding:32px 20px;color:var(--muted)}
-    .ledger-empty-icon{font-size:36px;margin-bottom:8px}
-
-    /* ═══════════════════════════════════════════════════════════════
-       SETTINGS TAB
-       ═══════════════════════════════════════════════════════════════ */
-    .settings{padding:16px}
-    .settings-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
-    .settings-title{font-size:12px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-    .settings-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
-    .settings-row:last-child{border-bottom:none}
-    .settings-label{font-size:11px}
-    .settings-value{font-size:10px;color:var(--muted)}
-    .settings-value.green{color:var(--green)}
-    .settings-value.purple{color:var(--purple)}
-    .btn-danger{width:100%;padding:10px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;margin-top:6px}
-    .version-info{text-align:center;padding:16px;color:var(--muted);font-size:9px;line-height:1.5}
-
-    .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:11px;z-index:1000;opacity:0;transition:all 0.3s}
+    /* ═══════════════════════════════════════════════════════════
+       TOAST
+       ═══════════════════════════════════════════════════════════ */
+    .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;z-index:200;opacity:0;transition:all 0.3s}
     .toast.visible{transform:translateX(-50%) translateY(0);opacity:1}
+
+    /* ═══════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════ */
+    @media (max-height: 600px) {
+      .header{padding:20px 20px 10px}
+      .v-amount{font-size:56px}
+      .question-text{font-size:18px}
+    }
   </style>
 </head>
 <body>
-  <div class="loading-screen" id="loadingScreen">
-    <div class="loading-logo">A</div>
-    <div class="loading-text">Initializing Responsibility OS...</div>
-    <div class="loading-bar"><div class="loading-bar-fill" id="loadingBar"></div></div>
+
+  <!-- Live Badge -->
+  <div class="live">
+    <div class="live-dot"></div>
+    LIVE
   </div>
-  <div class="live-badge"><div class="live-dot"></div><span>v15.2 · Responsibility</span></div>
+
+  <!-- Flash Overlay -->
   <div class="flash" id="flash"></div>
+
+  <!-- Toast -->
   <div class="toast" id="toast"></div>
-  
-  <!-- Sync Modal -->
-  <div class="sync-modal" id="syncModal">
-    <div class="sync-content">
-      <div class="sync-icon" id="syncIcon">🔗</div>
-      <div class="sync-title" id="syncTitle">SYNC OK</div>
-      <div class="sync-info" id="syncInfo">Head: 0x7a3f...</div>
-      <div class="sync-message" id="syncMessage"></div>
-      <div class="sync-buttons" id="syncButtons"></div>
-    </div>
-  </div>
-  
-  <div class="app">
-    <header class="header">
-      <div class="logo"><div class="logo-icon">A</div><span class="logo-text">AUTUS</span></div>
-      <div class="header-right">
-        <div class="offline-pill" id="offlinePill">⚡ Offline</div>
-        <div class="encrypt-pill">🔐 AES-256</div>
-        <div class="status-pill"><div class="status-dot"></div><span id="blockCount">0</span></div>
-      </div>
-    </header>
-    <div class="tab-area">
-      <!-- DAILY TAB — CARDLESS -->
-      <div class="tab active" id="tabDaily">
-        <div class="daily">
-          <div class="value-hero">
-            <div class="value-row">
-              <div class="value-amount" id="valueAmount">0</div>
-              <div class="value-unit">V</div>
-            </div>
-            <div class="value-formula">V = (M - T) × (1 + s)^t</div>
-            <div class="value-breakdown">
-              <div class="breakdown-item"><div class="breakdown-val mint" id="mintVal">0</div><div class="breakdown-lbl">Mint</div></div>
-              <div class="breakdown-item"><div class="breakdown-val tax" id="taxVal">0</div><div class="breakdown-lbl">Tax</div></div>
-              <div class="breakdown-item"><div class="breakdown-val synergy" id="synergyVal">0.00</div><div class="breakdown-lbl">Synergy</div></div>
-            </div>
-          </div>
-          <div class="suggestion-inline" id="suggestion">
-            <div class="sug-meta">
-              <div class="sug-category"><span id="sugIcon">📊</span><span id="sugCat">재무</span></div>
-              <div class="sug-proof">🔐 Proof Ready</div>
-            </div>
-            <div class="sug-content" id="sugText">자동화 → <span class="hl">4.2시간</span> 즉시 회수</div>
-            <div class="impact-row">
-              <div class="impact-item"><div class="impact-val pos" id="impactM">+12</div><div class="impact-lbl">Mint</div></div>
-              <div class="impact-item"><div class="impact-val neg" id="impactT">-4</div><div class="impact-lbl">Tax</div></div>
-              <div class="impact-item"><div class="impact-val syn" id="impactS">+0.10</div><div class="impact-lbl">Synergy</div></div>
-            </div>
-            <div class="action-buttons">
-              <button class="btn-reject" id="btnReject">Reject</button>
-              <button class="btn-accept" id="btnAccept">✓ Accept</button>
-            </div>
-          </div>
-          <div class="outcome" id="outcome">
-            <div class="outcome-icon">✓</div>
-            <div class="outcome-title">Recorded to Ledger</div>
-            <div class="outcome-delta" id="outcomeDelta">V: 0 → 8</div>
-            <div class="outcome-hash" id="outcomeHash">Hash: 0x0000...</div>
-            <button class="btn-next" id="btnNext">다음 결정 →</button>
-          </div>
-          <!-- Integration Gate -->
-          <div class="gate-section">
-            <div class="gate-title">🏫 스와튼 학원 연동</div>
-            <div class="gate-days" id="gateDays"></div>
-            <div class="gate-progress"><div class="gate-progress-fill" id="gateProgress" style="width:0%"></div></div>
-            <div class="gate-stats">
-              <span class="gate-stat ok" id="gateStat1">자동화: 87% ✓</span>
-              <span class="gate-stat ok" id="gateStat2">수동: 13% ✓</span>
-              <span class="gate-stat ok" id="gateStat3">누락: 0건 ✓</span>
-            </div>
-            <div class="gate-unlock" id="gateUnlock">[ 7일 완료 시 → 가족 캘린더 잠금 해제 ]</div>
-          </div>
-        </div>
-      </div>
-      <!-- P2P TAB -->
-      <div class="tab" id="tabP2P">
-        <div class="p2p">
-          <div class="p2p-section">
-            <div class="p2p-title">🆔 내 Peer ID</div>
-            <div class="peer-id-box" id="myPeerId">AUTUS-XXXXXXXX</div>
-          </div>
-          <div class="sim-section">
-            <div class="sim-title">🧪 가상 Peer 시뮬레이션</div>
-            <div class="sim-desc">실제 연결 없이 P2P 동기화를 테스트합니다.<br><strong>L2 Catalyst</strong> 노드와의 연결을 시뮬레이션합니다.</div>
-            <button class="btn-sim" id="btnSimulate">🚀 가상 Peer 연결 시뮬레이션</button>
-          </div>
-          <div class="p2p-section">
-            <div class="p2p-title">📲 QR 핸드셰이크</div>
-            <div class="p2p-buttons">
-              <button class="btn-p2p secondary" id="btnShowQR">📤 내 QR</button>
-              <button class="btn-p2p primary" id="btnScanQR">📷 QR 스캔</button>
-            </div>
-          </div>
-          <div class="p2p-section">
-            <div class="p2p-title">🔗 연결된 Peers</div>
-            <div class="peer-list" id="peerList"><div class="empty-peers">연결된 peer가 없습니다</div></div>
-          </div>
-        </div>
-      </div>
-      <!-- NODES TAB -->
-      <div class="tab" id="tabNodes">
-        <div class="nodes">
-          <div class="nodes-header">
-            <div class="nodes-title">⭐ 핵심 관계</div>
-            <div class="nodes-subtitle">1-12-144 모델</div>
-          </div>
-          <div id="nodesContent"></div>
-        </div>
-      </div>
-      <!-- LEDGER TAB -->
-      <div class="tab" id="tabLedger">
-        <div class="ledger">
-          <div class="ledger-stats">
-            <div class="ledger-stat"><div class="stat-val" id="statBlocks">0</div><div class="stat-lbl">Blocks</div></div>
-            <div class="ledger-stat"><div class="stat-val green" id="statAccepts">0</div><div class="stat-lbl">Accepts</div></div>
-            <div class="ledger-stat"><div class="stat-val red" id="statRejects">0</div><div class="stat-lbl">Rejects</div></div>
-          </div>
-          <div class="ledger-chain" id="ledgerChain"><div class="ledger-empty"><div class="ledger-empty-icon">📜</div><div>아직 기록이 없습니다</div></div></div>
-        </div>
-      </div>
-      <!-- SETTINGS TAB -->
-      <div class="tab" id="tabSettings">
-        <div class="settings">
-          <div class="settings-section">
-            <div class="settings-title">💾 Storage</div>
-            <div class="settings-row"><span class="settings-label">Engine</span><span class="settings-value">IndexedDB (Local)</span></div>
-            <div class="settings-row"><span class="settings-label">Cloud Sync</span><span class="settings-value green">Disabled (Sovereign)</span></div>
-            <div class="settings-row"><span class="settings-label">Encryption</span><span class="settings-value purple">AES-256-GCM</span></div>
-            <div class="settings-row"><span class="settings-label">Service Worker</span><span class="settings-value" id="swStatus">Checking...</span></div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-title">📊 Statistics</div>
-            <div class="settings-row"><span class="settings-label">Total Blocks</span><span class="settings-value" id="settingsBlocks">0</span></div>
-            <div class="settings-row"><span class="settings-label">Total Value (V)</span><span class="settings-value" id="settingsValue">0</span></div>
-            <div class="settings-row"><span class="settings-label">Peer ID</span><span class="settings-value" id="settingsPeerId">-</span></div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-title">⚠️ Danger Zone</div>
-            <button class="btn-danger" id="btnExport">📤 Export All Data</button>
-            <button class="btn-danger" id="btnReset">🗑️ Reset All Data</button>
-          </div>
-          <div class="version-info">AUTUS v15.2 — Responsibility OS<br>Zero-Cloud · P2P · Immutable Ledger<br>중앙 서버 의존도: 0%</div>
-        </div>
-      </div>
-    </div>
-    <nav class="nav">
-      <div class="nav-item active" data-tab="tabDaily"><span class="nav-icon">⚡</span><span class="nav-label">Daily</span></div>
-      <div class="nav-item" data-tab="tabP2P"><span class="nav-icon">🔗</span><span class="nav-label">P2P</span></div>
-      <div class="nav-item" data-tab="tabNodes"><span class="nav-icon">⭐</span><span class="nav-label">Nodes</span></div>
-      <div class="nav-item" data-tab="tabLedger"><span class="nav-icon">🔐</span><span class="nav-label">Ledger</span></div>
-      <div class="nav-item" data-tab="tabSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></div>
-    </nav>
-  </div>
-<script>
-const CONFIG={DB_NAME:'autus_v15_2',DB_VERSION:2,ENCRYPTION_ALGORITHM:'AES-GCM',KEY_LENGTH:256,IV_LENGTH:12,MIN_BLOCKS_FOR_RECOMMEND:20,MIN_DAYS_FOR_RECOMMEND:7,RECOMMEND_COUNT:7,MAX_NODES:12};
-class SovereignCrypto{constructor(){this.key=null}async init(){const stored=localStorage.getItem('autus_key');if(stored){const keyData=Uint8Array.from(atob(stored),c=>c.charCodeAt(0));this.key=await crypto.subtle.importKey('raw',keyData,CONFIG.ENCRYPTION_ALGORITHM,false,['encrypt','decrypt'])}else{this.key=await crypto.subtle.generateKey({name:CONFIG.ENCRYPTION_ALGORITHM,length:CONFIG.KEY_LENGTH},true,['encrypt','decrypt']);const exported=await crypto.subtle.exportKey('raw',this.key);localStorage.setItem('autus_key',btoa(String.fromCharCode(...new Uint8Array(exported))))}}async getPublicKeyHash(){const exported=await crypto.subtle.exportKey('raw',this.key);const hash=await crypto.subtle.digest('SHA-256',exported);return Array.from(new Uint8Array(hash)).slice(0,8).map(b=>b.toString(16).padStart(2,'0')).join('')}}
-const sovereign=new SovereignCrypto();
-async function sha256(msg){const buf=new TextEncoder().encode(msg);const hash=await crypto.subtle.digest('SHA-256',buf);return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('')}
-let db=null;
-function initDB(){return new Promise((res,rej)=>{const req=indexedDB.open(CONFIG.DB_NAME,CONFIG.DB_VERSION);req.onerror=()=>rej(req.error);req.onsuccess=()=>{db=req.result;res(db)};req.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('ledger')){const s=d.createObjectStore('ledger',{keyPath:'hash'});s.createIndex('timestamp','timestamp',{unique:false})}if(!d.objectStoreNames.contains('state'))d.createObjectStore('state',{keyPath:'key'});if(!d.objectStoreNames.contains('nodes'))d.createObjectStore('nodes',{keyPath:'id'});if(!d.objectStoreNames.contains('gate'))d.createObjectStore('gate',{keyPath:'source'})}})}
-async function getLastBlock(){return new Promise(res=>{const tx=db.transaction('ledger','readonly');const idx=tx.objectStore('ledger').index('timestamp');const req=idx.openCursor(null,'prev');req.onsuccess=e=>{const c=e.target.result;res(c?c.value:{hash:'AUTUS_GENESIS_V15.2',prev_hash:'0'.repeat(64),timestamp:new Date().toISOString(),type:'genesis'})}})}
-async function addBlock(type,payload){const last=await getLastBlock();const ts=new Date().toISOString();const hash=await sha256(JSON.stringify({prev_hash:last.hash,timestamp:ts,type,payload}));const block={hash,prev_hash:last.hash,timestamp:ts,type,payload};return new Promise((res,rej)=>{const tx=db.transaction('ledger','readwrite');const req=tx.objectStore('ledger').add(block);req.onsuccess=()=>res(block);req.onerror=()=>rej(req.error)})}
-async function getAllBlocks(){return new Promise(res=>{const req=db.transaction('ledger','readonly').objectStore('ledger').index('timestamp').getAll();req.onsuccess=()=>res(req.result)})}
-const state={V:0,M:0,T:0,s:0,index:0,peerId:'AUTUS-'+Math.random().toString(36).substring(2,10).toUpperCase(),connectedPeers:[],selectedNodes:[],gateDay:0};
-async function loadState(){return new Promise(res=>{const req=db.transaction('state','readonly').objectStore('state').get('main');req.onsuccess=()=>{if(req.result)Object.assign(state,req.result.data);res()};req.onerror=()=>res()})}
-async function saveState(){return new Promise(res=>{const tx=db.transaction('state','readwrite');tx.objectStore('state').put({key:'main',data:{V:state.V,M:state.M,T:state.T,s:state.s,index:state.index,peerId:state.peerId,selectedNodes:state.selectedNodes,gateDay:state.gateDay}});tx.oncomplete=()=>res()})}
-function calculateV(){state.V=Math.round((state.M-state.T)*Math.pow(1+state.s,1));return state.V}
-const suggestions=[
-  {icon:'🏫',cat:'스와튼',text:'출석률 <span class="hl">92%</span> 달성',mint:2,tax:0,synergy:0.02},
-  {icon:'🏫',cat:'스와튼',text:'신규 등록 <span class="hl">1건</span>',mint:5,tax:0,synergy:0.05},
-  {icon:'🏫',cat:'스와튼',text:'수업 완료 <span class="hl">3건</span>',mint:3,tax:0,synergy:0.03},
-  {icon:'🏫',cat:'스와튼',text:'결제 완료 ₩<span class="hl">450,000</span>',mint:3,tax:0,synergy:0.03},
-  {icon:'📊',cat:'재무',text:'자동화 → <span class="hl">4.2시간</span> 회수',mint:12,tax:4,synergy:0.10},
-  {icon:'🔄',cat:'운영',text:'승인 <span class="hl">3건</span> 48시간 초과',mint:8,tax:2,synergy:0.05},
-  {icon:'📋',cat:'HR',text:'액션아이템 <span class="hl">5건</span> 미추적',mint:15,tax:5,synergy:0.15}
-];
-function $(id){return document.getElementById(id)}
-function updateUI(){$('valueAmount').textContent=state.V;$('mintVal').textContent=state.M;$('taxVal').textContent=state.T;$('synergyVal').textContent=state.s.toFixed(2);$('settingsValue').textContent=state.V;$('myPeerId').textContent=state.peerId;$('settingsPeerId').textContent=state.peerId;updateGateUI()}
-function updateGateUI(){const days=$('gateDays');days.innerHTML='';for(let i=1;i<=7;i++){const d=document.createElement('div');d.className='gate-day'+(i<=state.gateDay?' done':'')+(i===state.gateDay+1?' current':'');d.textContent=i;days.appendChild(d)}$('gateProgress').style.width=(state.gateDay/7*100)+'%';$('gateUnlock').textContent=state.gateDay>=7?'✓ 가족 캘린더 잠금 해제됨':`[ ${7-state.gateDay}일 남음 → 가족 캘린더 잠금 해제 ]`}
-async function updateLedgerUI(){const blocks=await getAllBlocks();$('blockCount').textContent=blocks.length;$('statBlocks').textContent=blocks.length;$('settingsBlocks').textContent=blocks.length;const accepts=blocks.filter(b=>b.payload?.action==='accept').length;const rejects=blocks.filter(b=>b.payload?.action==='reject').length;$('statAccepts').textContent=accepts;$('statRejects').textContent=rejects;const chain=$('ledgerChain');if(blocks.length===0){chain.innerHTML='<div class="ledger-empty"><div class="ledger-empty-icon">📜</div><div>아직 기록이 없습니다</div></div>';return}chain.innerHTML=blocks.slice().reverse().slice(0,30).map(b=>{const action=b.payload?.action||b.type;const typeClass=action==='accept'?'accept':action==='reject'?'reject':action==='sync'?'sync':'genesis';const delta=b.payload?.delta||0;const deltaClass=delta>0?'pos':'zero';const time=new Date(b.timestamp).toLocaleString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});return`<div class="ledger-block"><span class="block-hash">${b.hash.substring(0,8)}...</span><span class="block-type ${typeClass}">${action}</span><span class="block-delta ${deltaClass}">${delta>0?'+'+delta:delta}</span><span class="block-time">${time}</span></div>`}).join('')}
-function loadSuggestion(){const s=suggestions[state.index];$('sugIcon').textContent=s.icon;$('sugCat').textContent=s.cat;$('sugText').innerHTML=s.text;$('impactM').textContent='+'+s.mint;$('impactT').textContent=s.tax>0?'-'+s.tax:'0';$('impactS').textContent='+'+s.synergy.toFixed(2)}
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),2500)}
-function flash(){$('flash').classList.add('active');setTimeout(()=>$('flash').classList.remove('active'),100);if(navigator.vibrate)navigator.vibrate(50)}
-function updatePeerList(){const list=$('peerList');if(state.connectedPeers.length===0){list.innerHTML='<div class="empty-peers">연결된 peer가 없습니다</div>';return}list.innerHTML=state.connectedPeers.map(p=>`<div class="peer-item"><div class="peer-info"><div class="peer-dot ${p.simulated?'simulated':''}"></div><span class="peer-id-small">${p.id}</span></div><button class="peer-action" onclick="syncWithPeer('${p.id}')">Sync</button></div>`).join('')}
 
-// Nodes Tab - 1-12-144 with Fallback
-async function updateNodesUI(){const blocks=await getAllBlocks();const content=$('nodesContent');
-  if(blocks.length<CONFIG.MIN_BLOCKS_FOR_RECOMMEND){
-    const current=blocks.length;
-    if(blocks.length===0){
-      content.innerHTML=`<div class="nodes-fallback"><div class="fallback-icon">👤</div><div class="fallback-title">당신만 있습니다.</div><div class="fallback-guide">1-12-144 모델은 결정을 통해 자동으로 채워집니다.<br>먼저 Daily에서 결정을 시작하세요.</div><button class="btn-fallback" onclick="goToDaily()">Daily로 이동 →</button></div>`;
-    }else{
-      content.innerHTML=`<div class="nodes-fallback"><div class="fallback-icon">📊</div><div class="fallback-title">아직 데이터가 충분하지 않습니다.</div><div class="fallback-text">추천을 위해 필요한 것:<br>• 결정 기록 20개 이상 (현재: ${current}개)<br>• 또는 7일 이상 사용</div><div class="fallback-guide">시스템이 당신의 관계를 학습하고 있습니다.<br>결정을 계속하면 추천이 정교해집니다.</div><button class="btn-fallback" onclick="goToDaily()">나중에</button></div>`;
+  <!-- Header: V Display -->
+  <header class="header">
+    <div class="v-amount" id="vAmount">0<span class="v-delta" id="vDelta">+0</span></div>
+    <div class="v-label">V</div>
+  </header>
+
+  <!-- Question Zone -->
+  <main class="question-zone" id="questionZone">
+    <!-- Dynamic content: question or empty state -->
+  </main>
+
+  <!-- Button Zone -->
+  <footer class="button-zone" id="buttonZone">
+    <!-- Dynamic content: buttons or empty -->
+  </footer>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-item active" data-tab="daily">
+      <span class="nav-icon">⚡</span>
+      <span class="nav-label">Daily</span>
+    </div>
+    <div class="nav-item" data-tab="nodes">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">Nodes</span>
+    </div>
+    <div class="nav-item" data-tab="ledger">
+      <span class="nav-icon">🔐</span>
+      <span class="nav-label">Ledger</span>
+    </div>
+  </nav>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════
+    // CONFIG & STATE
+    // ═══════════════════════════════════════════════════════════════
+    const CONFIG = { DB_NAME: 'autus_v152', DB_VERSION: 1 };
+    let db = null;
+    
+    const state = {
+      V: 0,
+      M: 0,
+      T: 0,
+      s: 0,
+      currentIndex: 0,
+      todayAccepts: 0,
+      todayRejects: 0,
+      hasIntegration: false,
+      integrationProgress: { source: '스와튼 학원', day: 0, percent: 0 }
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // DECISIONS (Mock data - will be replaced by n8n)
+    // ═══════════════════════════════════════════════════════════════
+    const decisions = [
+      { id: 1, text: '스와튼 수강생 관리를\n자동화할까요?', delta: 18, time: '2.4h' },
+      { id: 2, text: '세 자녀 스케줄을\n일괄 동기화할까요?', delta: 12, time: '1.5h' },
+      { id: 3, text: '학원 매출 리포트를\n자동 생성할까요?', delta: 14, time: '3.2h' },
+      { id: 4, text: '반복 이메일 발송을\n자동화할까요?', delta: 8, time: '0.8h' },
+      { id: 5, text: '신규 등록 프로세스를\n30% 단축할까요?', delta: 22, time: '4.1h' }
+    ];
+
+    // ═══════════════════════════════════════════════════════════════
+    // DATABASE
+    // ═══════════════════════════════════════════════════════════════
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => { db = req.result; resolve(db); };
+        req.onupgradeneeded = (e) => {
+          const d = e.target.result;
+          if (!d.objectStoreNames.contains('ledger')) {
+            const s = d.createObjectStore('ledger', { keyPath: 'hash' });
+            s.createIndex('timestamp', 'timestamp');
+            s.createIndex('date', 'date');
+          }
+          if (!d.objectStoreNames.contains('state')) {
+            d.createObjectStore('state', { keyPath: 'key' });
+          }
+        };
+      });
     }
-    return;
-  }
-  const recommended=generateRecommendations(blocks);
-  let html=`<div class="nodes-grid">`;
-  for(let i=0;i<CONFIG.MAX_NODES;i++){const node=recommended[i]||{avatar:'➕',name:''};const isSelected=state.selectedNodes.includes(i);html+=`<div class="node-slot${isSelected?' selected':''}" onclick="toggleNode(${i})"><div class="node-avatar">${node.avatar}</div><div class="node-name">${node.name}</div></div>`}
-  html+=`</div><div class="nodes-count">선택: <span>${state.selectedNodes.length}</span>/12</div>`;
-  content.innerHTML=html;
-}
-function generateRecommendations(blocks){const avatars=['👧','👦','👶','👩','💼','📚','🔧','👨','👴','👵','🐕','🤖'];const names=['첫째','둘째','셋째','배우자','직원A','강사B','Claude','친구C','부모님','조부모','반려동물','AI'];return avatars.map((a,i)=>({avatar:a,name:names[i]}))}
-function toggleNode(idx){const i=state.selectedNodes.indexOf(idx);if(i>=0)state.selectedNodes.splice(i,1);else if(state.selectedNodes.length<12)state.selectedNodes.push(idx);saveState();updateNodesUI()}
-function goToDaily(){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelector('[data-tab="tabDaily"]').classList.add('active');$('tabDaily').classList.add('active')}
 
-// Sync Modal
-function showSyncModal(type,peer,myBlock,peerBlock){const modal=$('syncModal');const icon=$('syncIcon');const title=$('syncTitle');const info=$('syncInfo');const msg=$('syncMessage');const btns=$('syncButtons');
-  if(type==='ok'){icon.textContent='🔗';title.textContent='SYNC OK';title.className='sync-title ok';info.textContent=`Head: ${myBlock.substring(0,8)}...`;msg.textContent='';btns.innerHTML='';setTimeout(()=>modal.classList.remove('visible'),3000)}
-  else if(type==='ahead'){icon.textContent='⚠';title.textContent='HEAD MISMATCH';title.className='sync-title warn';info.innerHTML=`나: ${myBlock.substring(0,8)}...<br>Peer: ${peerBlock.substring(0,8)}...`;msg.textContent='상대방이 5개 블록 뒤처져 있습니다.\n상대방에게 동기화를 요청할 수 있습니다.';btns.innerHTML=`<button class="sync-btn secondary" onclick="closeSyncModal()">무시</button><button class="sync-btn primary" onclick="sendSyncOffer()">동기화 제안 보내기</button>`}
-  else if(type==='behind'){icon.textContent='⚠';title.textContent='HEAD MISMATCH';title.className='sync-title warn';info.innerHTML=`나: ${myBlock.substring(0,8)}...<br>Peer: ${peerBlock.substring(0,8)}...`;msg.textContent='내 Ledger가 5개 블록 뒤처져 있습니다.\n상대방의 블록을 받으시겠습니까?';btns.innerHTML=`<button class="sync-btn secondary" onclick="closeSyncModal()">거절</button><button class="sync-btn primary" onclick="requestBlocks()">블록 요청</button>`}
-  else if(type==='fork'){icon.textContent='🔴';title.textContent='FORK DETECTED';title.className='sync-title error';info.textContent=`분기점: Block #38`;msg.textContent='서로 다른 결정이 기록되었습니다.\n수동 검토가 필요합니다.\n자동 병합은 지원되지 않습니다.';btns.innerHTML=`<button class="sync-btn secondary" onclick="closeSyncModal()">닫기</button>`}
-  modal.classList.add('visible');
-}
-function closeSyncModal(){$('syncModal').classList.remove('visible')}
-function sendSyncOffer(){closeSyncModal();toast('📤 동기화 제안을 보냈습니다')}
-function requestBlocks(){closeSyncModal();toast('📥 블록 요청을 보냈습니다')}
+    async function sha256(msg) {
+      const buf = new TextEncoder().encode(msg);
+      const hash = await crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
 
-// Actions
-$('btnAccept').addEventListener('click',async()=>{const s=suggestions[state.index];const oldV=state.V;state.M+=s.mint;state.T+=s.tax;state.s=Math.min(1,state.s+s.synergy);calculateV();if(s.cat==='스와튼'&&state.gateDay<7)state.gateDay=Math.min(7,state.gateDay+1);const block=await addBlock('decision',{action:'accept',suggestion:s.cat,mint:s.mint,tax:s.tax,synergy:s.synergy,delta:state.V-oldV});await saveState();flash();$('suggestion').style.display='none';$('outcome').classList.add('visible');$('outcomeDelta').textContent=`V: ${oldV} → ${state.V} (+${state.V-oldV})`;$('outcomeHash').textContent=`Hash: ${block.hash.substring(0,28)}...`;updateUI();updateLedgerUI()});
-$('btnReject').addEventListener('click',async()=>{const s=suggestions[state.index];await addBlock('decision',{action:'reject',suggestion:s.cat,delta:0});await saveState();await updateLedgerUI();loadNext()});
-$('btnNext').addEventListener('click',loadNext);
-function loadNext(){state.index=(state.index+1)%suggestions.length;loadSuggestion();$('suggestion').style.display='block';$('outcome').classList.remove('visible');saveState()}
+    async function getLastBlock() {
+      return new Promise(resolve => {
+        const tx = db.transaction('ledger', 'readonly');
+        const req = tx.objectStore('ledger').index('timestamp').openCursor(null, 'prev');
+        req.onsuccess = (e) => {
+          const cursor = e.target.result;
+          resolve(cursor ? cursor.value : { hash: 'GENESIS_V152', timestamp: new Date().toISOString() });
+        };
+      });
+    }
 
-// Simulation
-$('btnSimulate').addEventListener('click',async()=>{const virtualPeer={id:'L2-CATALYST-'+Math.random().toString(36).substring(2,6).toUpperCase(),simulated:true};state.connectedPeers.push(virtualPeer);updatePeerList();toast(`🔗 ${virtualPeer.id} 연결됨`);setTimeout(async()=>{const last=await getLastBlock();showSyncModal('ok','',last.hash,'')},1500);setTimeout(async()=>{const oldS=state.s;state.s=Math.min(1,state.s+0.13);const oldV=state.V;calculateV();await addBlock('sync',{action:'sync',peer:virtualPeer.id,synergyBoost:0.13,delta:state.V-oldV});await saveState();flash();updateUI();updateLedgerUI();toast(`📦 Proof Pack 수신 · Synergy ${oldS.toFixed(2)} → ${state.s.toFixed(2)}`)},3000)});
-async function syncWithPeer(peerId){toast(`🔄 ${peerId}와 동기화 중...`);setTimeout(async()=>{const last=await getLastBlock();const scenario=Math.random();if(scenario<0.5)showSyncModal('ok','',last.hash,last.hash);else if(scenario<0.75)showSyncModal('ahead','',last.hash,'0x2c8b...');else if(scenario<0.9)showSyncModal('behind','','0x2c8b...',last.hash);else showSyncModal('fork','','','')},1500)}
+    async function addBlock(type, payload) {
+      const last = await getLastBlock();
+      const ts = new Date().toISOString();
+      const date = ts.split('T')[0];
+      const hash = await sha256(JSON.stringify({ prev: last.hash, ts, type, payload }));
+      const block = { hash, prev_hash: last.hash, timestamp: ts, date, type, payload };
+      
+      return new Promise(resolve => {
+        const tx = db.transaction('ledger', 'readwrite');
+        tx.objectStore('ledger').add(block).onsuccess = () => resolve(block);
+      });
+    }
 
-// Nav
-document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click',()=>{const tabId=item.dataset.tab;document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));item.classList.add('active');$(tabId).classList.add('active');if(tabId==='tabLedger')updateLedgerUI();if(tabId==='tabNodes')updateNodesUI()}));
+    async function getTodayBlocks() {
+      const today = new Date().toISOString().split('T')[0];
+      return new Promise(resolve => {
+        const tx = db.transaction('ledger', 'readonly');
+        const req = tx.objectStore('ledger').index('date').getAll(today);
+        req.onsuccess = () => resolve(req.result || []);
+      });
+    }
 
-// Settings
-$('btnExport').addEventListener('click',async()=>{const blocks=await getAllBlocks();const keyHash=await sovereign.getPublicKeyHash();const exportData={version:'15.2.0',peerId:state.peerId,keyHash,exportedAt:new Date().toISOString(),state:{V:state.V,M:state.M,T:state.T,s:state.s},ledger:blocks};const blob=new Blob([JSON.stringify(exportData,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`autus-export-${Date.now()}.json`;a.click();URL.revokeObjectURL(url);toast('📤 데이터 내보내기 완료')});
-$('btnReset').addEventListener('click',()=>{if(confirm('모든 데이터가 삭제됩니다. 계속?')){localStorage.removeItem('autus_key');indexedDB.deleteDatabase(CONFIG.DB_NAME);location.reload()}});
+    async function getAllBlocks() {
+      return new Promise(resolve => {
+        const tx = db.transaction('ledger', 'readonly');
+        tx.objectStore('ledger').getAll().onsuccess = (e) => resolve(e.target.result || []);
+      });
+    }
 
-// Service Worker
-if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').then(()=>{$('swStatus').textContent='Active ✓';$('swStatus').style.color='var(--green)'}).catch(()=>{$('swStatus').textContent='Failed';$('swStatus').style.color='var(--red)'});
+    async function loadState() {
+      return new Promise(resolve => {
+        const tx = db.transaction('state', 'readonly');
+        const req = tx.objectStore('state').get('main');
+        req.onsuccess = () => {
+          if (req.result) Object.assign(state, req.result.data);
+          resolve();
+        };
+        req.onerror = () => resolve();
+      });
+    }
 
-// Offline
-function updateOnline(){$('offlinePill').classList.toggle('visible',!navigator.onLine)}
-window.addEventListener('online',updateOnline);window.addEventListener('offline',updateOnline);updateOnline();
+    async function saveState() {
+      return new Promise(resolve => {
+        const tx = db.transaction('state', 'readwrite');
+        tx.objectStore('state').put({ key: 'main', data: state });
+        tx.oncomplete = () => resolve();
+      });
+    }
 
-// Keyboard
-document.addEventListener('keydown',e=>{if(e.key==='a'||e.key==='A')$('btnAccept').click();if(e.key==='r'||e.key==='R')$('btnReject').click()});
+    // ═══════════════════════════════════════════════════════════════
+    // V CALCULATION
+    // ═══════════════════════════════════════════════════════════════
+    function calculateV() {
+      state.V = Math.round((state.M - state.T) * Math.pow(1 + state.s, 1));
+      return state.V;
+    }
 
-// Init
-async function init(){const bar=$('loadingBar');bar.style.width='20%';await sovereign.init();bar.style.width='40%';await initDB();bar.style.width='60%';await loadState();bar.style.width='80%';calculateV();updateUI();loadSuggestion();await updateLedgerUI();bar.style.width='100%';setTimeout(()=>$('loadingScreen').classList.add('hidden'),500)}
-init();
-</script>
+    // ═══════════════════════════════════════════════════════════════
+    // EMPTY STATE DETECTION
+    // ═══════════════════════════════════════════════════════════════
+    async function getEmptyStateType() {
+      const allBlocks = await getAllBlocks();
+      const todayBlocks = await getTodayBlocks();
+      const pendingCount = decisions.length - state.currentIndex;
+      
+      // Count today's decisions
+      const todayDecisions = todayBlocks.filter(b => b.type === 'decision');
+      state.todayAccepts = todayDecisions.filter(b => b.payload?.action === 'accept').length;
+      state.todayRejects = todayDecisions.filter(b => b.payload?.action === 'reject').length;
+      
+      // A. DONE: Made decisions today, none pending
+      if (todayDecisions.length > 0 && pendingCount === 0) {
+        return 'DONE';
+      }
+      
+      // B. GENESIS: First time (only genesis block)
+      if (allBlocks.length <= 1) {
+        return 'GENESIS';
+      }
+      
+      // C. WAITING: Has integration but no pending
+      if (state.hasIntegration && pendingCount === 0) {
+        return 'WAITING';
+      }
+      
+      // D. ACTIVE: Has pending decisions
+      if (pendingCount > 0) {
+        return 'ACTIVE';
+      }
+      
+      return 'WAITING';
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // RENDER
+    // ═══════════════════════════════════════════════════════════════
+    const $ = id => document.getElementById(id);
+
+    function renderV(animate = false) {
+      const el = $('vAmount');
+      el.innerHTML = `${state.V}<span class="v-delta" id="vDelta"></span>`;
+      if (animate) {
+        el.classList.add('counting');
+        setTimeout(() => el.classList.remove('counting'), 400);
+      }
+    }
+
+    function showDelta(value) {
+      const el = $('vDelta');
+      el.textContent = value > 0 ? `+${value}` : value;
+      el.className = `v-delta visible ${value < 0 ? 'negative' : ''}`;
+      setTimeout(() => el.classList.remove('visible'), 2000);
+    }
+
+    function renderQuestion(decision) {
+      const zone = $('questionZone');
+      zone.innerHTML = `
+        <div class="question-content" id="questionContent">
+          <div class="question-text">${decision.text}</div>
+          <div class="question-meta">+${decision.delta}V <span>· ${decision.time}</span></div>
+        </div>
+        <div class="checkmark" id="checkmark">
+          <div class="checkmark-icon">✓</div>
+        </div>
+      `;
+      
+      $('buttonZone').innerHTML = `
+        <div class="buttons">
+          <button class="btn btn-no" id="btnNo">아니오</button>
+          <button class="btn btn-yes" id="btnYes">예</button>
+        </div>
+      `;
+      
+      // Bind buttons
+      $('btnNo').addEventListener('click', handleReject);
+      $('btnYes').addEventListener('click', handleAccept);
+    }
+
+    function renderEmptyState(type) {
+      const configs = {
+        DONE: {
+          icon: '✦',
+          iconClass: 'spin',
+          title: '오늘의 결정 완료',
+          subtitle: '',
+          stats: `<strong>${state.todayAccepts}</strong> Accept · <strong>${state.todayRejects}</strong> Reject`,
+          button: null
+        },
+        GENESIS: {
+          icon: '◯',
+          iconClass: 'pulse',
+          title: '첫 결정을 기다립니다',
+          subtitle: '결정이 도착하면 여기에 나타납니다.',
+          stats: null,
+          button: { text: '데이터 연동 시작 →', action: 'startIntegration' }
+        },
+        WAITING: {
+          icon: '⏳',
+          iconClass: 'flip',
+          title: '새 결정을 기다리는 중',
+          subtitle: '',
+          progress: state.integrationProgress,
+          button: null
+        }
+      };
+      
+      const config = configs[type];
+      const zone = $('questionZone');
+      
+      let progressHTML = '';
+      if (config.progress) {
+        progressHTML = `
+          <div class="empty-progress">
+            <div class="progress-header">
+              <span class="progress-source">🏫 ${config.progress.source}</span>
+              <span class="progress-day">${config.progress.day}일차</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${config.progress.percent}%"></div>
+            </div>
+          </div>
+        `;
+      }
+      
+      zone.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon ${config.iconClass}">${config.icon}</div>
+          <div class="empty-title">${config.title}</div>
+          <div class="empty-subtitle">${config.subtitle}</div>
+          ${config.stats ? `<div class="empty-stats">${config.stats}</div>` : ''}
+          ${progressHTML}
+        </div>
+      `;
+      
+      if (config.button) {
+        $('buttonZone').innerHTML = `
+          <button class="btn-link" id="btnLink">${config.button.text}</button>
+        `;
+        $('btnLink').addEventListener('click', () => {
+          // Simulate integration start
+          state.hasIntegration = true;
+          state.integrationProgress = { source: '스와튼 학원', day: 1, percent: 14 };
+          state.currentIndex = 0; // Reset to show decisions
+          saveState();
+          render();
+          toast('🏫 스와튼 학원 연동 시작');
+        });
+      } else {
+        $('buttonZone').innerHTML = '';
+      }
+    }
+
+    async function render() {
+      const stateType = await getEmptyStateType();
+      
+      if (stateType === 'ACTIVE') {
+        const decision = decisions[state.currentIndex];
+        renderQuestion(decision);
+      } else {
+        renderEmptyState(stateType);
+      }
+      
+      renderV();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // ACTIONS
+    // ═══════════════════════════════════════════════════════════════
+    async function handleAccept() {
+      const decision = decisions[state.currentIndex];
+      const oldV = state.V;
+      
+      // Update state
+      state.M += decision.delta;
+      state.s = Math.min(1, state.s + 0.02);
+      calculateV();
+      
+      // Record to ledger
+      await addBlock('decision', {
+        action: 'accept',
+        decisionId: decision.id,
+        delta: state.V - oldV
+      });
+      await saveState();
+      
+      // Animations
+      flash('accept');
+      haptic();
+      
+      // Show checkmark
+      const content = $('questionContent');
+      const check = $('checkmark');
+      content.classList.add('accept-out');
+      
+      setTimeout(() => {
+        check.classList.add('visible');
+        renderV(true);
+        showDelta(state.V - oldV);
+      }, 200);
+      
+      setTimeout(() => {
+        state.currentIndex++;
+        saveState();
+        render();
+        
+        // Animate in
+        const newContent = $('questionContent');
+        if (newContent) newContent.classList.add('accept-in');
+      }, 700);
+    }
+
+    async function handleReject() {
+      const decision = decisions[state.currentIndex];
+      
+      // Record to ledger (no V change)
+      await addBlock('decision', {
+        action: 'reject',
+        decisionId: decision.id,
+        delta: 0
+      });
+      await saveState();
+      
+      // Animations
+      flash('reject');
+      
+      const content = $('questionContent');
+      content.classList.add('reject-out');
+      
+      setTimeout(() => {
+        state.currentIndex++;
+        saveState();
+        render();
+        
+        const newContent = $('questionContent');
+        if (newContent) newContent.classList.add('reject-in');
+      }, 400);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // UTILITIES
+    // ═══════════════════════════════════════════════════════════════
+    function flash(type) {
+      const el = $('flash');
+      el.className = `flash ${type} active`;
+      setTimeout(() => el.classList.remove('active'), 150);
+    }
+
+    function haptic() {
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+
+    function toast(msg) {
+      const el = $('toast');
+      el.textContent = msg;
+      el.classList.add('visible');
+      setTimeout(() => el.classList.remove('visible'), 2500);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // KEYBOARD SHORTCUTS
+    // ═══════════════════════════════════════════════════════════════
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      if (key === 'y' || key === 'a' || key === ' ') {
+        e.preventDefault();
+        const btn = $('btnYes');
+        if (btn) btn.click();
+      }
+      if (key === 'n' || key === 'r') {
+        e.preventDefault();
+        const btn = $('btnNo');
+        if (btn) btn.click();
+      }
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // NAV
+    // ═══════════════════════════════════════════════════════════════
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const tab = item.dataset.tab;
+        if (tab !== 'daily') {
+          toast(`${item.querySelector('.nav-label').textContent} 탭 준비 중`);
+        }
+      });
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // SERVICE WORKER
+    // ═══════════════════════════════════════════════════════════════
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════════
+    async function init() {
+      await initDB();
+      await loadState();
+      calculateV();
+      await render();
+    }
+
+    init();
+  </script>
 </body>
 </html>
