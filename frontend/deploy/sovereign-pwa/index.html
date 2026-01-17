@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0f1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AUTUS">
+  <meta name="description" content="Zero-Cloud P2P Decision Operating System">
+  
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%230a0f1a' width='512' height='512' rx='100'/><text x='256' y='340' font-family='system-ui' font-size='280' font-weight='bold' fill='%2310b981' text-anchor='middle'>A</text></svg>">
+  
+  <title>AUTUS v15.1 Sovereign</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{--bg:#0a0f1a;--bg2:#111827;--bg3:#1f2937;--green:#10b981;--cyan:#06b6d4;--purple:#8b5cf6;--orange:#f59e0b;--red:#ef4444;--text:#f3f4f6;--muted:#4b5563;--border:rgba(255,255,255,0.08);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+    html,body{height:100%;overflow:hidden}
+    body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);user-select:none;-webkit-user-select:none;touch-action:manipulation}
+    
+    .pwa-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,var(--green),var(--cyan));padding:calc(var(--safe-top) + 8px) 16px 8px;display:none;justify-content:space-between;align-items:center;z-index:1000}
+    .pwa-banner.visible{display:flex}
+    .pwa-banner-text{font-size:13px;font-weight:600;color:var(--bg)}
+    .pwa-banner-btn{padding:6px 14px;background:var(--bg);border:none;border-radius:16px;color:var(--green);font-size:12px;font-weight:600;cursor:pointer}
+    .pwa-banner-close{background:none;border:none;color:var(--bg);font-size:18px;cursor:pointer;padding:4px}
+    
+    .ble-alert{position:fixed;top:calc(var(--safe-top) + 60px);left:16px;right:16px;background:rgba(139,92,246,0.95);border-radius:12px;padding:12px 16px;display:none;align-items:center;gap:12px;z-index:900;backdrop-filter:blur(10px)}
+    .ble-alert.visible{display:flex}
+    .ble-alert-icon{font-size:24px;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    .ble-alert-text{flex:1;font-size:13px;font-weight:500}
+    .ble-alert-btn{padding:8px 16px;background:white;border:none;border-radius:8px;color:var(--purple);font-size:12px;font-weight:600;cursor:pointer}
+    
+    .app-container{height:100%;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+    
+    .header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:white}
+    .logo-text{font-size:18px;font-weight:700}
+    .logo-badge{font-size:9px;color:var(--purple);background:rgba(139,92,246,0.15);padding:3px 8px;border-radius:10px;font-weight:600}
+    .header-right{display:flex;align-items:center;gap:12px}
+    .status-pill{display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(16,185,129,0.15);border-radius:12px;font-size:11px;color:var(--green)}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+    .offline-indicator{display:none;align-items:center;gap:4px;padding:4px 10px;background:rgba(245,158,11,0.15);border-radius:12px;font-size:11px;color:var(--orange)}
+    .offline-indicator.visible{display:flex}
+    
+    .tab-content-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+    .tab-content{display:none;min-height:100%;padding-bottom:80px}
+    .tab-content.active{display:block}
+    
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg2);border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);z-index:100}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;color:var(--muted);cursor:pointer;transition:all .15s;position:relative}
+    .nav-item::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--cyan);transition:width .2s}
+    .nav-item.active{color:var(--cyan)}
+    .nav-item.active::before{width:32px}
+    .nav-icon{font-size:22px}
+    .nav-label{font-size:10px;margin-top:2px;font-weight:500}
+    
+    .daily-content{padding:16px;max-width:440px;margin:0 auto}
+    .value-hero{background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(6,182,212,0.12));border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:20px}
+    .value-amount{font-size:64px;font-weight:800;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+    .value-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-top:6px}
+    .value-formula{font-size:10px;color:var(--muted);font-family:monospace;margin-top:8px;opacity:.7}
+    .value-breakdown{display:flex;justify-content:center;gap:32px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+    .breakdown-item{text-align:center}
+    .breakdown-value{font-size:20px;font-weight:700}
+    .breakdown-value.mint{color:var(--green)}
+    .breakdown-value.tax{color:var(--red)}
+    .breakdown-value.synergy{color:var(--purple)}
+    .breakdown-label{font-size:10px;color:var(--muted);margin-top:2px}
+    
+    .suggestion-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
+    .sug-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .sug-category{display:flex;align-items:center;gap:6px;font-size:12px;color:#9ca3af}
+    .sug-proof{display:flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:12px;font-size:10px;color:var(--purple);font-weight:600}
+    .sug-text{font-size:17px;font-weight:600;line-height:1.5;margin-bottom:16px;text-align:center}
+    .sug-text .hl{color:var(--green);font-weight:700}
+    .sug-impact{display:flex;justify-content:space-around;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:16px}
+    .impact-item{text-align:center}
+    .impact-value{font-size:16px;font-weight:700;color:var(--green)}
+    .impact-value.negative{color:var(--muted)}
+    .impact-value.synergy{color:var(--purple)}
+    .impact-label{font-size:10px;color:var(--muted);margin-top:2px}
+    .sug-actions{display:flex;gap:12px}
+    .btn-reject{flex:1;padding:14px;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer}
+    .btn-accept{flex:2;padding:14px;background:linear-gradient(135deg,var(--green),var(--cyan));border:none;border-radius:12px;color:var(--bg);font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 0 24px rgba(0,255,170,0.4)}
+    
+    .outcome-view{display:none;text-align:center;padding:32px 20px;background:var(--bg2);border:1px solid var(--green);border-radius:16px}
+    .outcome-view.visible{display:block;animation:popIn .3s}
+    @keyframes popIn{0%{opacity:0;transform:scale(.9)}70%{transform:scale(1.02)}100%{opacity:1;transform:scale(1)}}
+    .outcome-icon{width:64px;height:64px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;box-shadow:0 0 32px rgba(0,255,170,0.4)}
+    .outcome-title{font-size:18px;font-weight:600;margin-bottom:8px}
+    .outcome-delta{font-size:14px;color:var(--green);margin-bottom:8px}
+    .outcome-hash{font-size:11px;font-family:monospace;color:var(--purple);margin-bottom:20px;word-break:break-all}
+    .btn-next{padding:12px 28px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:500;cursor:pointer}
+    
+    .p2p-content{padding:16px;max-width:500px;margin:0 auto}
+    .p2p-section{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
+    .p2p-title{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .peer-id-display{background:var(--bg3);border-radius:10px;padding:14px;text-align:center;font-family:monospace;font-size:16px;color:var(--cyan);letter-spacing:1px}
+    .qr-container{display:flex;flex-direction:column;align-items:center;padding:20px}
+    .qr-canvas{background:white;border-radius:12px;padding:16px;margin-bottom:16px}
+    .qr-status{font-size:12px;color:var(--muted);text-align:center}
+    .scanner-container{position:relative;width:100%;max-width:300px;margin:0 auto;border-radius:16px;overflow:hidden;background:var(--bg3)}
+    .scanner-video{width:100%;display:block;border-radius:16px}
+    .scanner-placeholder{width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:48px}
+    .scanner-placeholder-text{font-size:12px;margin-top:12px}
+    .p2p-buttons{display:flex;gap:12px;margin-top:16px}
+    .btn-p2p{flex:1;padding:14px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn-p2p.primary{background:linear-gradient(135deg,var(--cyan),var(--purple));border:none;color:white}
+    .btn-p2p.secondary{background:transparent;border:1px solid var(--border);color:#9ca3af}
+    .peer-list{margin-top:12px}
+    .peer-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg3);border-radius:10px;margin-bottom:8px}
+    .peer-info{display:flex;align-items:center;gap:10px}
+    .peer-status-dot{width:10px;height:10px;border-radius:50%;background:var(--green)}
+    .peer-id{font-family:monospace;font-size:13px}
+    .peer-action{padding:6px 14px;background:var(--purple);border:none;border-radius:8px;color:white;font-size:11px;font-weight:600;cursor:pointer}
+    .empty-peers{text-align:center;padding:24px;color:var(--muted);font-size:13px}
+    .sovereignty-notice{background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:16px;margin-top:16px}
+    .sovereignty-notice p{font-size:12px;color:#9ca3af;line-height:1.6}
+    
+    .ledger-content{padding:16px}
+    .ledger-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+    .ledger-stat{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center}
+    .stat-value{font-size:26px;font-weight:700;color:var(--purple)}
+    .stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+    .ledger-chain{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+    .ledger-block{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .ledger-block:last-child{border-bottom:none}
+    .block-hash{font-family:monospace;font-size:11px;color:var(--purple);min-width:90px}
+    .block-type{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:600;text-transform:uppercase}
+    .block-type.accept{background:rgba(16,185,129,0.2);color:var(--green)}
+    .block-type.reject{background:rgba(239,68,68,0.2);color:var(--red)}
+    .block-type.genesis{background:rgba(139,92,246,0.2);color:var(--purple)}
+    .block-delta{font-weight:600;font-size:13px}
+    .block-delta.positive{color:var(--green)}
+    .block-delta.zero{color:var(--muted)}
+    .block-time{margin-left:auto;font-size:11px;color:var(--muted)}
+    .ledger-empty{text-align:center;padding:40px 20px;color:var(--muted)}
+    .ledger-empty-icon{font-size:48px;margin-bottom:12px}
+    
+    .settings-content{padding:16px}
+    .settings-section{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
+    .settings-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+    .settings-row:last-child{border-bottom:none}
+    .settings-label{font-size:13px}
+    .settings-value{font-size:12px;color:var(--muted)}
+    .settings-value.green{color:var(--green)}
+    .btn-danger{width:100%;padding:14px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:12px;color:var(--red);font-size:14px;font-weight:600;cursor:pointer;margin-top:8px}
+    
+    .flash-overlay{position:fixed;inset:0;background:radial-gradient(circle,rgba(0,255,170,0.5),transparent 70%);z-index:9999;pointer-events:none;opacity:0;transition:opacity .1s}
+    .flash-overlay.active{opacity:1}
+    .spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div class="pwa-banner" id="pwaBanner">
+    <span class="pwa-banner-text">📱 홈 화면에 추가하여 오프라인 사용</span>
+    <button class="pwa-banner-btn" id="pwaInstallBtn">설치</button>
+    <button class="pwa-banner-close" id="pwaDismissBtn">×</button>
+  </div>
+  
+  <div class="ble-alert" id="bleAlert">
+    <span class="ble-alert-icon">📡</span>
+    <span class="ble-alert-text">근접 노드 발견: <strong id="bleDistance">12m</strong></span>
+    <button class="ble-alert-btn" id="bleConnectBtn">연결</button>
+  </div>
+  
+  <div class="flash-overlay" id="flashOverlay"></div>
+  
+  <div class="app-container">
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">A</div>
+        <span class="logo-text">AUTUS</span>
+        <span class="logo-badge">v15.1</span>
+      </div>
+      <div class="header-right">
+        <div class="offline-indicator" id="offlineIndicator"><span>⚡</span><span>Offline</span></div>
+        <div class="status-pill"><div class="status-dot"></div><span id="blockCount">0</span></div>
+      </div>
+    </header>
+    
+    <div class="tab-content-area">
+      <!-- DAILY TAB -->
+      <div class="tab-content active" id="tabDaily">
+        <div class="daily-content">
+          <div class="value-hero">
+            <div class="value-amount" id="valueAmount">0</div>
+            <div class="value-label">자산(V)</div>
+            <div class="value-formula">V = (M - T) × (1 + s)^t</div>
+            <div class="value-breakdown">
+              <div class="breakdown-item"><div class="breakdown-value mint" id="mintValue">0</div><div class="breakdown-label">Mint (M)</div></div>
+              <div class="breakdown-item"><div class="breakdown-value tax" id="taxValue">0</div><div class="breakdown-label">Tax (T)</div></div>
+              <div class="breakdown-item"><div class="breakdown-value synergy" id="synergyValue">0.00</div><div class="breakdown-label">Synergy (s)</div></div>
+            </div>
+          </div>
+          
+          <div class="suggestion-card" id="suggestionCard">
+            <div class="sug-header">
+              <div class="sug-category"><span id="sugIcon">📊</span><span id="sugCat">재무</span></div>
+              <div class="sug-proof"><span>🔐</span><span>Proof Ready</span></div>
+            </div>
+            <div class="sug-text" id="sugText">자동화 → <span class="hl">4.2시간</span> 즉시 회수</div>
+            <div class="sug-impact">
+              <div class="impact-item"><div class="impact-value" id="impactMint">+12</div><div class="impact-label">Mint</div></div>
+              <div class="impact-item"><div class="impact-value negative" id="impactTax">-4</div><div class="impact-label">Tax</div></div>
+              <div class="impact-item"><div class="impact-value synergy" id="impactSynergy">+0.10</div><div class="impact-label">Synergy</div></div>
+            </div>
+            <div class="sug-actions">
+              <button class="btn-reject" id="btnReject">Reject</button>
+              <button class="btn-accept" id="btnAccept">✓ ACCEPT</button>
+            </div>
+          </div>
+          
+          <div class="outcome-view" id="outcomeView">
+            <div class="outcome-icon">✓</div>
+            <div class="outcome-title">Recorded to Ledger</div>
+            <div class="outcome-delta" id="outcomeDelta">V: 0 → 8</div>
+            <div class="outcome-hash" id="outcomeHash">Hash: 0x0000...</div>
+            <button class="btn-next" id="btnNext">다음 결정 →</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- P2P TAB -->
+      <div class="tab-content" id="tabP2P">
+        <div class="p2p-content">
+          <div class="p2p-section">
+            <div class="p2p-title">🆔 내 Peer ID</div>
+            <div class="peer-id-display" id="myPeerId">AUTUS-XXXXXXXX</div>
+          </div>
+          
+          <div class="p2p-section">
+            <div class="p2p-title">📲 QR 핸드셰이크</div>
+            <div class="qr-container" id="qrDisplay" style="display:none"><div class="qr-canvas" id="qrCanvas"></div><div class="qr-status">상대방이 이 QR을 스캔하면 연결됩니다</div></div>
+            <div class="scanner-container" id="scannerContainer" style="display:none"><video class="scanner-video" id="scannerVideo" playsinline></video></div>
+            <div class="scanner-container" id="scannerPlaceholder"><div class="scanner-placeholder"><span>📷</span><span class="scanner-placeholder-text">카메라로 QR 스캔</span></div></div>
+            <div class="p2p-buttons">
+              <button class="btn-p2p secondary" id="btnShowQR"><span>📤</span><span>내 QR 보기</span></button>
+              <button class="btn-p2p primary" id="btnScanQR"><span>📷</span><span>QR 스캔</span></button>
+            </div>
+          </div>
+          
+          <div class="p2p-section">
+            <div class="p2p-title">📡 BLE 탐색</div>
+            <div class="p2p-buttons">
+              <button class="btn-p2p secondary" id="btnBLEAdvertise"><span>📢</span><span>Advertise</span></button>
+              <button class="btn-p2p primary" id="btnBLEScan"><span>🔍</span><span>주변 검색</span></button>
+            </div>
+            <div id="bleStatus" style="margin-top:12px;text-align:center;font-size:12px;color:var(--muted)"></div>
+          </div>
+          
+          <div class="p2p-section">
+            <div class="p2p-title">🔗 연결된 Peers</div>
+            <div class="peer-list" id="peerList"><div class="empty-peers">연결된 peer가 없습니다</div></div>
+          </div>
+          
+          <div class="sovereignty-notice">
+            <p>🛡️ <strong>Data Sovereignty</strong><br>모든 데이터는 이 기기에만 저장됩니다.<br>P2P 연결 시에만 선택한 데이터가 전송됩니다.<br><strong>Zero-Cloud · On-Device Only</strong></p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- LEDGER TAB -->
+      <div class="tab-content" id="tabLedger">
+        <div class="ledger-content">
+          <div class="ledger-stats">
+            <div class="ledger-stat"><div class="stat-value" id="statBlocks">0</div><div class="stat-label">Blocks</div></div>
+            <div class="ledger-stat"><div class="stat-value" id="statAccepts" style="color:var(--green)">0</div><div class="stat-label">Accepts</div></div>
+            <div class="ledger-stat"><div class="stat-value" id="statRejects" style="color:var(--red)">0</div><div class="stat-label">Rejects</div></div>
+          </div>
+          <div class="ledger-chain" id="ledgerChain"><div class="ledger-empty"><div class="ledger-empty-icon">📜</div><div>아직 기록이 없습니다</div></div></div>
+        </div>
+      </div>
+      
+      <!-- SETTINGS TAB -->
+      <div class="tab-content" id="tabSettings">
+        <div class="settings-content">
+          <div class="settings-section">
+            <div class="settings-title">💾 Storage</div>
+            <div class="settings-row"><span class="settings-label">Engine</span><span class="settings-value">IndexedDB (Local)</span></div>
+            <div class="settings-row"><span class="settings-label">Cloud Sync</span><span class="settings-value green">Disabled (Sovereign)</span></div>
+            <div class="settings-row"><span class="settings-label">PWA Status</span><span class="settings-value" id="pwaStatus">Checking...</span></div>
+            <div class="settings-row"><span class="settings-label">Service Worker</span><span class="settings-value" id="swStatus">Checking...</span></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-title">📊 Statistics</div>
+            <div class="settings-row"><span class="settings-label">Total Blocks</span><span class="settings-value" id="settingsBlocks">0</span></div>
+            <div class="settings-row"><span class="settings-label">Total Value (V)</span><span class="settings-value" id="settingsValue">0</span></div>
+            <div class="settings-row"><span class="settings-label">Peer ID</span><span class="settings-value" id="settingsPeerId">-</span></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-title">⚠️ Danger Zone</div>
+            <button class="btn-danger" id="btnExport">📤 Export All Data</button>
+            <button class="btn-danger" id="btnReset">🗑️ Reset All Data</button>
+          </div>
+          <div style="text-align:center;padding:20px;color:var(--muted);font-size:11px">AUTUS v15.1 Sovereign<br>Zero-Cloud · P2P · Immutable Ledger</div>
+        </div>
+      </div>
+    </div>
+    
+    <nav class="bottom-nav">
+      <div class="nav-item active" data-tab="tabDaily"><span class="nav-icon">⚡</span><span class="nav-label">Daily</span></div>
+      <div class="nav-item" data-tab="tabP2P"><span class="nav-icon">🔗</span><span class="nav-label">P2P</span></div>
+      <div class="nav-item" data-tab="tabLedger"><span class="nav-icon">🔐</span><span class="nav-label">Ledger</span></div>
+      <div class="nav-item" data-tab="tabSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></div>
+    </nav>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script>
+    // Service Worker
+    if('serviceWorker'in navigator){window.addEventListener('load',async()=>{try{const r=await navigator.serviceWorker.register('./sw.js');console.log('[PWA] SW registered');document.getElementById('swStatus').textContent='Active ✓';document.getElementById('swStatus').style.color='var(--green)'}catch(e){document.getElementById('swStatus').textContent='Failed';document.getElementById('swStatus').style.color='var(--red)'}})}
+    
+    // PWA Install
+    let deferredPrompt=null;
+    window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('pwaBanner').classList.add('visible');document.getElementById('pwaStatus').textContent='Available'});
+    document.getElementById('pwaInstallBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();const{outcome}=await deferredPrompt.userChoice;if(outcome==='accepted'){document.getElementById('pwaStatus').textContent='Installed ✓';document.getElementById('pwaStatus').style.color='var(--green)'}deferredPrompt=null;document.getElementById('pwaBanner').classList.remove('visible')});
+    document.getElementById('pwaDismissBtn').addEventListener('click',()=>document.getElementById('pwaBanner').classList.remove('visible'));
+    if(window.matchMedia('(display-mode: standalone)').matches){document.getElementById('pwaStatus').textContent='Installed ✓';document.getElementById('pwaStatus').style.color='var(--green)'}
+    
+    // Offline
+    function updateOnline(){document.getElementById('offlineIndicator').classList.toggle('visible',!navigator.onLine)}
+    window.addEventListener('online',updateOnline);window.addEventListener('offline',updateOnline);updateOnline();
+    
+    // Tabs
+    document.querySelectorAll('.nav-item').forEach(i=>i.addEventListener('click',()=>{const t=i.dataset.tab;document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));i.classList.add('active');document.getElementById(t).classList.add('active');if(t==='tabLedger')updateLedgerUI()}));
+    
+    // IndexedDB
+    const DB='autus_sovereign_v15';let db=null;
+    function initDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB,1);r.onerror=()=>rej(r.error);r.onsuccess=()=>{db=r.result;res(db)};r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('ledger')){const s=d.createObjectStore('ledger',{keyPath:'hash'});s.createIndex('timestamp','timestamp',{unique:false})}if(!d.objectStoreNames.contains('state'))d.createObjectStore('state',{keyPath:'key'})}})}
+    
+    // Ledger
+    async function sha256(m){const b=new TextEncoder().encode(m);const h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('')}
+    async function getLastBlock(){return new Promise(r=>{const t=db.transaction('ledger','readonly');const s=t.objectStore('ledger');const i=s.index('timestamp');const q=i.openCursor(null,'prev');q.onsuccess=e=>{const c=e.target.result;r(c?c.value:{hash:'AUTUS_GENESIS_V15.1',prev_hash:'0000000000000000',timestamp:new Date().toISOString(),type:'genesis'})}})}
+    async function addBlock(type,payload){const last=await getLastBlock();const ts=new Date().toISOString();const hash=await sha256(JSON.stringify({prev_hash:last.hash,timestamp:ts,type,payload}));const block={hash,prev_hash:last.hash,timestamp:ts,type,payload};return new Promise((res,rej)=>{const t=db.transaction('ledger','readwrite');const s=t.objectStore('ledger');const r=s.add(block);r.onsuccess=()=>res(block);r.onerror=()=>rej(r.error)})}
+    async function getAllBlocks(){return new Promise(r=>{const t=db.transaction('ledger','readonly');const i=t.objectStore('ledger').index('timestamp');const q=i.getAll();q.onsuccess=()=>r(q.result)})}
+    
+    // State
+    const state={V:0,M:0,T:0,s:0,index:0,peerId:'AUTUS-'+Math.random().toString(36).substring(2,10).toUpperCase()};
+    async function loadState(){return new Promise(r=>{const t=db.transaction('state','readonly');const q=t.objectStore('state').get('main');q.onsuccess=()=>{if(q.result)Object.assign(state,q.result.data);r()};q.onerror=()=>r()})}
+    async function saveState(){return new Promise(r=>{const t=db.transaction('state','readwrite');t.objectStore('state').put({key:'main',data:{V:state.V,M:state.M,T:state.T,s:state.s,index:state.index,peerId:state.peerId}});t.oncomplete=()=>r()})}
+    function calculateV(){state.V=Math.round((state.M-state.T)*Math.pow(1+state.s,1));return state.V}
+    
+    // Suggestions
+    const suggestions=[
+      {icon:'📊',cat:'재무',text:'자동화 → <span class="hl">4.2시간</span> 즉시 회수',mint:12,tax:4,synergy:.10},
+      {icon:'🔄',cat:'운영',text:'승인 <span class="hl">3건</span> 48시간 초과',mint:8,tax:2,synergy:.05},
+      {icon:'📋',cat:'HR',text:'회의 액션아이템 <span class="hl">5건</span> 미추적',mint:15,tax:5,synergy:.15},
+      {icon:'📧',cat:'이메일',text:'반복 발송 → <span class="hl">자동화</span>',mint:6,tax:2,synergy:.08},
+      {icon:'📈',cat:'KPI',text:'주간 리포트 <span class="hl">자동 생성</span>',mint:10,tax:3,synergy:.12}
+    ];
+    
+    // UI
+    function updateUI(){document.getElementById('valueAmount').textContent=state.V;document.getElementById('mintValue').textContent=state.M;document.getElementById('taxValue').textContent=state.T;document.getElementById('synergyValue').textContent=state.s.toFixed(2);document.getElementById('settingsValue').textContent=state.V;document.getElementById('myPeerId').textContent=state.peerId;document.getElementById('settingsPeerId').textContent=state.peerId}
+    async function updateLedgerUI(){const blocks=await getAllBlocks();document.getElementById('blockCount').textContent=blocks.length;document.getElementById('statBlocks').textContent=blocks.length;document.getElementById('settingsBlocks').textContent=blocks.length;const accepts=blocks.filter(b=>b.payload?.action==='accept').length;const rejects=blocks.filter(b=>b.payload?.action==='reject').length;document.getElementById('statAccepts').textContent=accepts;document.getElementById('statRejects').textContent=rejects;const chain=document.getElementById('ledgerChain');if(blocks.length===0){chain.innerHTML='<div class="ledger-empty"><div class="ledger-empty-icon">📜</div><div>아직 기록이 없습니다</div></div>';return}chain.innerHTML=blocks.slice().reverse().slice(0,20).map(b=>{const a=b.payload?.action||b.type;const tc=a==='accept'?'accept':a==='reject'?'reject':'genesis';const d=b.payload?.delta||0;const dc=d>0?'positive':'zero';const t=new Date(b.timestamp).toLocaleString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});return`<div class="ledger-block"><span class="block-hash">${b.hash.substring(0,10)}...</span><span class="block-type ${tc}">${a}</span><span class="block-delta ${dc}">${d>0?'+'+d:d}</span><span class="block-time">${t}</span></div>`}).join('')}
+    function loadSuggestion(){const s=suggestions[state.index];document.getElementById('sugIcon').textContent=s.icon;document.getElementById('sugCat').textContent=s.cat;document.getElementById('sugText').innerHTML=s.text;document.getElementById('impactMint').textContent='+'+s.mint;document.getElementById('impactTax').textContent='-'+s.tax;document.getElementById('impactSynergy').textContent='+'+s.synergy.toFixed(2)}
+    
+    // Actions
+    document.getElementById('btnAccept').addEventListener('click',async()=>{const s=suggestions[state.index];const oldV=state.V;state.M+=s.mint;state.T+=s.tax;state.s=Math.min(1,state.s+s.synergy);calculateV();const block=await addBlock('decision',{action:'accept',suggestion:s.cat,mint:s.mint,tax:s.tax,synergy:s.synergy,delta:state.V-oldV});await saveState();document.getElementById('flashOverlay').classList.add('active');setTimeout(()=>document.getElementById('flashOverlay').classList.remove('active'),100);document.getElementById('suggestionCard').style.display='none';document.getElementById('outcomeView').classList.add('visible');document.getElementById('outcomeDelta').textContent=`V: ${oldV} → ${state.V} (+${state.V-oldV})`;document.getElementById('outcomeHash').textContent=`Hash: ${block.hash.substring(0,24)}...`;updateUI();updateLedgerUI();if(navigator.vibrate)navigator.vibrate(50)});
+    document.getElementById('btnReject').addEventListener('click',async()=>{const s=suggestions[state.index];await addBlock('decision',{action:'reject',suggestion:s.cat,delta:0});await saveState();await updateLedgerUI();loadNext()});
+    document.getElementById('btnNext').addEventListener('click',loadNext);
+    function loadNext(){state.index=(state.index+1)%suggestions.length;loadSuggestion();document.getElementById('suggestionCard').style.display='block';document.getElementById('outcomeView').classList.remove('visible');saveState()}
+    
+    // QR
+    let scanning=false,scanStream=null;
+    document.getElementById('btnShowQR').addEventListener('click',async()=>{stopScan();const qr=document.getElementById('qrDisplay');const ph=document.getElementById('scannerPlaceholder');if(qr.style.display==='flex'){qr.style.display='none';ph.style.display='block';return}ph.style.display='none';qr.style.display='flex';const data=JSON.stringify({type:'autus_handshake',peerId:state.peerId,timestamp:Date.now()});const canvas=document.getElementById('qrCanvas');canvas.innerHTML='';try{await QRCode.toCanvas(canvas,data,{width:200,margin:2,color:{dark:'#0a0f1a',light:'#ffffff'}})}catch(e){canvas.innerHTML='<div style="padding:40px;color:var(--red)">QR 생성 실패</div>'}});
+    document.getElementById('btnScanQR').addEventListener('click',async()=>{document.getElementById('qrDisplay').style.display='none';if(scanning){stopScan();return}try{const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});scanStream=stream;scanning=true;const video=document.getElementById('scannerVideo');document.getElementById('scannerPlaceholder').style.display='none';document.getElementById('scannerContainer').style.display='block';video.srcObject=stream;video.play();scanQR()}catch(e){alert('카메라 접근 권한이 필요합니다.')}});
+    function scanQR(){if(!scanning)return;const video=document.getElementById('scannerVideo');const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d');if(video.readyState===video.HAVE_ENOUGH_DATA){canvas.width=video.videoWidth;canvas.height=video.videoHeight;ctx.drawImage(video,0,0);const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);const code=jsQR(imageData.data,imageData.width,imageData.height);if(code){try{const data=JSON.parse(code.data);if(data.type==='autus_handshake'){addPeer(data.peerId);stopScan();if(navigator.vibrate)navigator.vibrate([50,50,100]);return}}catch(e){}}}requestAnimationFrame(scanQR)}
+    function stopScan(){scanning=false;if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null}document.getElementById('scannerContainer').style.display='none';document.getElementById('scannerPlaceholder').style.display='block'}
+    function addPeer(peerId){const list=document.getElementById('peerList');if(list.querySelector(`[data-peer="${peerId}"]`))return;const empty=list.querySelector('.empty-peers');if(empty)empty.remove();const item=document.createElement('div');item.className='peer-item';item.dataset.peer=peerId;item.innerHTML=`<div class="peer-info"><div class="peer-status-dot"></div><span class="peer-id">${peerId}</span></div><button class="peer-action">Sync</button>`;list.appendChild(item)}
+    
+    // BLE
+    document.getElementById('btnBLEAdvertise').addEventListener('click',()=>{document.getElementById('bleStatus').innerHTML='⚠️ 브라우저 BLE Advertise 미지원'});
+    document.getElementById('btnBLEScan').addEventListener('click',async()=>{if(!navigator.bluetooth){document.getElementById('bleStatus').innerHTML='⚠️ Bluetooth 미지원';return}document.getElementById('bleStatus').innerHTML='<div class="spinner" style="margin:0 auto"></div> 검색 중...';try{const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true});document.getElementById('bleStatus').innerHTML=`✓ 발견: ${device.name||'Unknown'}`}catch(e){document.getElementById('bleStatus').innerHTML='주변 노드 없음'}});
+    document.getElementById('bleConnectBtn').addEventListener('click',()=>document.getElementById('bleAlert').classList.remove('visible'));
+    
+    // Settings
+    document.getElementById('btnExport').addEventListener('click',async()=>{const blocks=await getAllBlocks();const data={version:'15.1.0',peerId:state.peerId,exportedAt:new Date().toISOString(),state:{V:state.V,M:state.M,T:state.T,s:state.s},ledger:blocks};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`autus-export-${Date.now()}.json`;a.click();URL.revokeObjectURL(url)});
+    document.getElementById('btnReset').addEventListener('click',()=>{if(confirm('⚠️ 모든 데이터가 삭제됩니다. 계속?')){indexedDB.deleteDatabase(DB);location.reload()}});
+    
+    // Keyboard
+    document.addEventListener('keydown',e=>{if(e.key==='a'||e.key==='A')document.getElementById('btnAccept').click();if(e.key==='r'||e.key==='R')document.getElementById('btnReject').click()});
+    
+    // Init
+    async function init(){await initDB();await loadState();calculateV();updateUI();loadSuggestion();await updateLedgerUI();console.log('%c AUTUS v15.1 Sovereign ','background:linear-gradient(135deg,#10b981,#06b6d4);color:white;font-size:16px;font-weight:bold;padding:8px 16px;border-radius:8px');console.log('[AUTUS] Peer ID:',state.peerId)}
+    init();
+  </script>
+</body>
+</html>
