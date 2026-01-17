@@ -16,12 +16,21 @@ on:
       - '.github/workflows/deploy-sovereign.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 env:
   NODE_VERSION: "20"
 
 jobs:
-  build-and-deploy:
-    name: Build & Deploy to Netlify
+  build:
+    name: Build Sovereign Live
     runs-on: ubuntu-latest
     
     steps:
@@ -43,25 +52,28 @@ jobs:
         working-directory: sovereign-live
         run: npm run build
 
-      - name: 🚀 Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
+      - name: 📤 Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          publish-dir: './sovereign-live/out'
-          production-deploy: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy Sovereign Live v${{ github.run_number }}"
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        timeout-minutes: 5
+          path: sovereign-live/out
 
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      
       - name: ✅ Deploy Complete
-        if: success()
         run: |
           echo "═══════════════════════════════════════════════════════════"
           echo "✅ AUTUS Sovereign Live 배포 완료!"
           echo "═══════════════════════════════════════════════════════════"
-          echo "🌐 URL: https://autus-ai.com"
-          echo "📦 Version: ${{ github.run_number }}"
-          echo "📅 Time: $(date)"
+          echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
           echo "═══════════════════════════════════════════════════════════"
