@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AUTUS v15.2 — 스와튼 학원 Webhook Schema",
+  "description": "n8n 첫 원천 데이터: 스와튼 학원 이벤트",
+  "version": "1.0.0",
+  
+  "type": "object",
+  "required": ["source", "timestamp", "events"],
+  
+  "properties": {
+    "source": {
+      "type": "string",
+      "const": "swaton",
+      "description": "데이터 원천 식별자"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "웹훅 발송 시각 (ISO 8601)"
+    },
+    "api_version": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "description": "이벤트 배열"
+    }
+  },
+  
+  "event_types": {
+    "attendance": {
+      "description": "출석 이벤트",
+      "required": ["type", "timestamp", "student_count", "present"],
+      "v_formula": {
+        "condition": "출석률 >= 90%",
+        "value": "+2V"
+      }
+    },
+    "payment": {
+      "description": "결제 이벤트",
+      "required": ["type", "timestamp", "amount", "student_id"],
+      "v_formula": {
+        "value": "+3V"
+      }
+    },
+    "registration": {
+      "description": "신규 등록",
+      "required": ["type", "timestamp", "student_id"],
+      "v_formula": {
+        "value": "+5V"
+      }
+    },
+    "class": {
+      "description": "수업 완료",
+      "required": ["type", "timestamp", "class_id", "status"],
+      "v_formula": {
+        "condition": "status === 'completed'",
+        "value": "+1V"
+      }
+    },
+    "absence": {
+      "description": "결석",
+      "required": ["type", "timestamp", "student_id", "contacted"],
+      "v_formula": {
+        "condition": "contacted === false",
+        "value": "-2V (Tax)"
+      }
+    }
+  },
+  
+  "examples": [
+    {
+      "source": "swaton",
+      "timestamp": "2026-01-17T14:00:00Z",
+      "events": [
+        {
+          "type": "attendance",
+          "timestamp": "2026-01-17T14:00:00Z",
+          "class_id": "CLS-001",
+          "class_name": "초급반 A",
+          "student_count": 24,
+          "present": 22
+        },
+        {
+          "type": "payment",
+          "timestamp": "2026-01-17T10:30:00Z",
+          "student_id": "ST-0042",
+          "amount": 450000
+        }
+      ]
+    }
+  ],
+  
+  "autus_meta": {
+    "webhook_endpoint": "/api/webhook/swaton",
+    "auth_type": "bearer_token",
+    "v_conversion_rules": {
+      "attendance_90_plus": { "v": 2, "type": "mint" },
+      "new_registration": { "v": 5, "type": "mint" },
+      "payment_complete": { "v": 3, "type": "mint" },
+      "class_complete": { "v": 1, "type": "mint" },
+      "absence_no_contact": { "v": -2, "type": "tax" }
+    },
+    "gate_requirements": {
+      "consecutive_days": 7,
+      "automation_rate_min": 0.8
+    }
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "version": "15.2",
+  "codename": "Responsibility OS",
+  "timestamp": "2026-01-17T00:00:00Z",
+  
+  "integration": {
+    "n8n_sources_max": 1,
+    "first_source": "swaton_academy",
+    "expansion_gate": {
+      "consecutive_days": 7,
+      "automation_rate_min": 0.8,
+      "manual_intervention_max": 0.2,
+      "proof_missing_max": 0
+    },
+    "unlock_sequence": ["swaton", "family_calendar", "finance"],
+    "v_formula": {
+      "attendance_90_plus": 2,
+      "new_registration": 5,
+      "payment_complete": 3,
+      "class_complete": 1,
+      "absence_no_contact": -2
+    }
+  },
+  
+  "p2p": {
+    "sync_mode": "LEDGER_HEAD_ONLY",
+    "auto_merge": false,
+    "mismatch_default_action": "ignore",
+    "fork_resolution": "manual_only",
+    "messages": {
+      "sync_ok": {
+        "title": "SYNC OK",
+        "color": "#10b981",
+        "auto_close_ms": 3000
+      },
+      "mismatch_ahead": {
+        "title": "HEAD MISMATCH",
+        "message": "상대방이 {n}개 블록 뒤처져 있습니다.\n상대방에게 동기화를 요청할 수 있습니다.",
+        "color": "#f59e0b",
+        "buttons": ["무시", "동기화 제안 보내기"],
+        "default": 0
+      },
+      "mismatch_behind": {
+        "title": "HEAD MISMATCH",
+        "message": "내 Ledger가 {n}개 블록 뒤처져 있습니다.\n상대방의 블록을 받으시겠습니까?",
+        "color": "#f59e0b",
+        "buttons": ["거절", "블록 요청"],
+        "default": 0
+      },
+      "fork_detected": {
+        "title": "FORK DETECTED",
+        "message": "서로 다른 결정이 기록되었습니다.\n수동 검토가 필요합니다.\n자동 병합은 지원되지 않습니다.",
+        "color": "#ef4444",
+        "buttons": ["닫기"],
+        "default": 0
+      }
+    }
+  },
+  
+  "nodes": {
+    "manual_create": false,
+    "selection_mode": "AUTO_RECOMMEND_MIN_EDIT",
+    "recommend_count": 7,
+    "max_selection": 12,
+    "min_data_for_recommend": {
+      "blocks": 20,
+      "days": 7
+    },
+    "fallback_mode": "guide_to_daily",
+    "fallback_messages": {
+      "data_insufficient": {
+        "title": "아직 데이터가 충분하지 않습니다.",
+        "detail": "추천을 위해 필요한 것:\n• 결정 기록 20개 이상 (현재: {current}개)\n• 또는 7일 이상 사용",
+        "guide": "시스템이 당신의 관계를 학습하고 있습니다.\n결정을 계속하면 추천이 정교해집니다.",
+        "button": "나중에"
+      },
+      "empty_ledger": {
+        "title": "당신만 있습니다.",
+        "guide": "1-12-144 모델은 결정을 통해 자동으로 채워집니다.\n먼저 Daily에서 결정을 시작하세요.",
+        "button": "Daily로 이동 →"
+      },
+      "all_excluded": {
+        "title": "모든 추천을 제외했습니다.",
+        "guide": "핵심 관계 없이도 AUTUS는 작동합니다.\nSynergy 계산에 영향을 줄 수 있습니다.",
+        "buttons": ["이대로 진행", "다시 선택"]
+      }
+    },
+    "recommend_priority": [
+      "ledger_frequency",
+      "recent_7d_interaction",
+      "p2p_exchange_history",
+      "time_density"
+    ]
+  },
+  
+  "geo": {
+    "live_tracking": false,
+    "mode": "ANCHOR_TIMELINE_REPLAY",
+    "current_position_marker": false
+  },
+  
+  "ui": {
+    "daily_mode": "cardless",
+    "suggestion_display": "inline",
+    "keyboard_shortcuts": {
+      "accept": ["a", "A"],
+      "reject": ["r", "R"]
+    }
+  },
+  
+  "prohibited": {
+    "words": ["오류", "문제", "에러", "실패"],
+    "ui_elements": ["text_input_for_nodes", "add_new_button", "empty_grid", "command_phrases"],
+    "actions": ["auto_merge", "auto_sync", "force_update"]
+  }
+}
