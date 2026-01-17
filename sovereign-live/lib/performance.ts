@@ -164,11 +164,11 @@ export function invalidateCache(keyPrefix?: string): void {
     return;
   }
 
-  for (const key of cache.keys()) {
+  Array.from(cache.keys()).forEach((key) => {
     if (key.startsWith(keyPrefix)) {
       cache.delete(key);
     }
-  }
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
