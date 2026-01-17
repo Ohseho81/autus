@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTUS v15.0 — Team View</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-primary: #0a0f1a;
+      --bg-secondary: #111827;
+      --bg-tertiary: #1f2937;
+      --accent-green: #10b981;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --accent-orange: #f59e0b;
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #4b5563;
+      --border-color: rgba(255,255,255,0.08);
+      --glow-green: rgba(0, 255, 170, 0.4);
+      --glow-cyan: rgba(6, 182, 212, 0.3);
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    
+    .app-container { display: flex; height: 100vh; }
+    
+    .sidebar {
+      width: 200px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 0;
+    }
+    
+    .sidebar-header {
+      padding: 0 16px 16px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 16px;
+    }
+    
+    .logo { display: flex; align-items: center; gap: 10px; }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    .logo-text { font-size: 18px; font-weight: 700; }
+    .nav-section { padding: 0 8px; }
+    
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    
+    .nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+    .nav-item.active { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); font-weight: 500; }
+    .nav-item-icon { font-size: 16px; width: 20px; text-align: center; }
+    
+    .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid var(--border-color); }
+    
+    .role-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 8px;
+    }
+    
+    .role-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    
+    .role-details { flex: 1; }
+    .role-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+    .role-badge { font-size: 10px; color: var(--accent-cyan); }
+    
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+    
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .view-title { font-size: 18px; font-weight: 600; }
+    
+    .team-badge {
+      padding: 5px 12px;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+    }
+    
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    
+    .btn-daily-os {
+      padding: 10px 16px;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+      border: none;
+      border-radius: 8px;
+      color: var(--bg-primary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    
+    .btn-daily-os:hover { transform: translateY(-2px); box-shadow: 0 4px 16px var(--glow-green); }
+    
+    .content-area { flex: 1; display: flex; overflow: hidden; }
+    .panel-left { flex: 1; display: flex; flex-direction: column; padding: 20px; }
+    
+    .panel-right {
+      width: 300px;
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border-color);
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .team-map-container {
+      flex: 1;
+      position: relative;
+      background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.05) 0%, transparent 70%);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    
+    .team-map { width: 100%; height: 100%; position: relative; }
+    
+    .leader-node {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 40px var(--glow-cyan);
+      z-index: 10;
+    }
+    
+    .leader-avatar { font-size: 24px; }
+    .leader-label { font-size: 9px; font-weight: 600; color: var(--bg-primary); margin-top: 2px; }
+    
+    .team-node {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-cyan);
+      background: var(--bg-secondary);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .team-node:hover {
+      transform: scale(1.15);
+      border-color: var(--accent-green);
+      box-shadow: 0 0 24px var(--glow-green);
+      z-index: 20;
+    }
+    
+    .team-node.has-pending {
+      border-color: var(--accent-orange);
+      animation: pendingPulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes pendingPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    }
+    
+    .team-node-avatar { font-size: 20px; }
+    
+    .team-node-name {
+      position: absolute;
+      bottom: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    
+    .team-node-pending {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 20px;
+      height: 20px;
+      background: var(--accent-orange);
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .connections-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    
+    .connection-line { stroke: rgba(6, 182, 212, 0.25); stroke-width: 1.5; fill: none; }
+    .connection-line.active { stroke: var(--accent-cyan); stroke-width: 2; }
+    
+    .team-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 18px;
+    }
+    
+    .team-overlay-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+    .team-overlay-value { font-size: 28px; font-weight: 700; color: var(--accent-cyan); }
+    .team-overlay-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    
+    .member-detail-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 380px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      z-index: 1000;
+      display: none;
+    }
+    
+    .member-detail-panel.visible { display: block; animation: slideIn 0.2s ease-out; }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+      to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    
+    .member-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    
+    .member-avatar-large {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      border: 2px solid var(--accent-cyan);
+    }
+    
+    .member-info { flex: 1; }
+    .member-name { font-size: 18px; font-weight: 600; }
+    .member-role { font-size: 12px; color: var(--text-muted); }
+    
+    .member-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    
+    .readonly-alert {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 11px;
+      color: var(--accent-purple);
+    }
+    
+    .member-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    
+    .member-stat { background: var(--bg-tertiary); border-radius: 10px; padding: 14px; text-align: center; }
+    .member-stat-value { font-size: 22px; font-weight: 700; }
+    .member-stat-value.green { color: var(--accent-green); }
+    .member-stat-value.cyan { color: var(--accent-cyan); }
+    .member-stat-value.orange { color: var(--accent-orange); }
+    .member-stat-value.purple { color: var(--accent-purple); }
+    .member-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+    
+    .bottleneck-alert {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+    
+    .bottleneck-title { font-size: 11px; font-weight: 600; color: var(--accent-orange); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .bottleneck-text { font-size: 13px; color: var(--text-secondary); }
+    
+    .member-actions { display: flex; gap: 10px; }
+    
+    .btn-request {
+      flex: 1;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+      border: none;
+      border-radius: 10px;
+      color: var(--bg-primary);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .btn-request:hover { transform: translateY(-2px); box-shadow: 0 4px 16px var(--glow-cyan); }
+    
+    .btn-close {
+      padding: 14px 20px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    
+    .metrics-section { margin-bottom: 20px; }
+    .metrics-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--text-primary); }
+    .metric-card { background: var(--bg-tertiary); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+    .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
+    .metric-label { font-size: 12px; color: var(--text-muted); }
+    .metric-value { font-size: 14px; font-weight: 600; }
+    .metric-value.green { color: var(--accent-green); }
+    .metric-value.cyan { color: var(--accent-cyan); }
+    .metric-value.orange { color: var(--accent-orange); }
+    .metric-value.red { color: #ef4444; }
+    
+    .progress-bar { height: 6px; background: var(--bg-primary); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+    .progress-fill.green { background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan)); }
+    
+    .team-list-mini { background: var(--bg-tertiary); border-radius: 10px; overflow: hidden; }
+    
+    .team-list-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    
+    .team-list-item:last-child { border-bottom: none; }
+    .team-list-item:hover { background: var(--bg-secondary); }
+    
+    .team-list-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    
+    .team-list-info { flex: 1; }
+    .team-list-name { font-size: 12px; font-weight: 500; }
+    .team-list-status { font-size: 10px; color: var(--text-muted); }
+    
+    .team-list-pending {
+      padding: 3px 8px;
+      background: rgba(245, 158, 11, 0.2);
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent-orange);
+    }
+    
+    .team-list-ok { font-size: 12px; color: var(--accent-green); }
+    
+    .bottom-bar {
+      padding: 14px 24px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .status-info { display: flex; align-items: center; gap: 20px; font-size: 12px; color: var(--text-muted); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); margin-right: 6px; display: inline-block; }
+    .status-item { display: flex; align-items: center; }
+    
+    .overlay-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      display: none;
+    }
+    
+    .overlay-bg.visible { display: block; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">A</div>
+          <span class="logo-text">AUTUS</span>
+        </div>
+      </div>
+      
+      <nav class="nav-section">
+        <div class="nav-item" onclick="location.href='daily-os.html'">
+          <span class="nav-item-icon">⚡</span>
+          <span>Daily OS</span>
+        </div>
+        <div class="nav-item active">
+          <span class="nav-item-icon">👥</span>
+          <span>Team View</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-item-icon">📚</span>
+          <span>Explore</span>
+        </div>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="role-info">
+          <div class="role-avatar">👤</div>
+          <div class="role-details">
+            <div class="role-name">박팀장</div>
+            <div class="role-badge">K2 Team Lead</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <div class="header-left">
+          <h1 class="view-title">👥 Team View</h1>
+          <span class="team-badge">개발팀 · 6명</span>
+        </div>
+        <div class="header-right">
+          <button class="btn-daily-os" onclick="location.href='daily-os.html'">
+            <span>⚡</span>
+            <span>내 Daily OS</span>
+          </button>
+        </div>
+      </header>
+      
+      <div class="content-area">
+        <div class="panel-left">
+          <div class="team-map-container">
+            <svg class="connections-svg" id="connectionsSvg"></svg>
+            <div class="team-map" id="teamMap">
+              <div class="leader-node">
+                <span class="leader-avatar">👤</span>
+                <span class="leader-label">나 (리더)</span>
+              </div>
+            </div>
+            <div class="team-overlay">
+              <div class="team-overlay-title">Team Score</div>
+              <div class="team-overlay-value" id="teamScore">78</div>
+              <div class="team-overlay-sub">▲ +3.2 이번 주</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel-right">
+          <div class="metrics-section">
+            <h3 class="metrics-title">📊 팀 현황</h3>
+            <div class="metric-card">
+              <div class="metric-row">
+                <span class="metric-label">전체 대기 결정</span>
+                <span class="metric-value orange" id="totalPending">8건</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">48시간 초과</span>
+                <span class="metric-value red">2건</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">오늘 처리</span>
+                <span class="metric-value green">12건</span>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-row">
+                <span class="metric-label">팀 Accept Rate</span>
+                <span class="metric-value cyan">76%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill green" style="width: 76%"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="metrics-section">
+            <h3 class="metrics-title">👥 팀원 상태</h3>
+            <div class="team-list-mini" id="teamListMini"></div>
+          </div>
+          
+          <div class="metrics-section">
+            <h3 class="metrics-title">✋ 내 승인 대기</h3>
+            <div class="metric-card">
+              <div class="metric-row">
+                <span class="metric-label">휴가 승인</span>
+                <span class="metric-value orange">2건</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">예산 승인</span>
+                <span class="metric-value orange">1건</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">배포 승인</span>
+                <span class="metric-value green">0건</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bottom-bar">
+        <div class="status-info">
+          <div class="status-item"><span class="status-dot"></span><span>시스템 정상</span></div>
+          <div class="status-item"><span>팀원 6명 활성</span></div>
+          <div class="status-item"><span>마지막 동기화: 방금 전</span></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <div class="overlay-bg" id="overlayBg" onclick="closeMemberDetail()"></div>
+  
+  <div class="member-detail-panel" id="memberDetailPanel">
+    <div class="member-header">
+      <div class="member-avatar-large" id="memberAvatar">👤</div>
+      <div class="member-info">
+        <div class="member-name" id="memberName">김철수</div>
+        <div class="member-role" id="memberRole">프론트엔드 개발자</div>
+      </div>
+      <button class="member-close" onclick="closeMemberDetail()">✕</button>
+    </div>
+    <div class="readonly-alert">
+      <span>🔒</span>
+      <span>읽기 전용 — 결정은 해당 팀원의 Daily OS에서만 가능합니다</span>
+    </div>
+    <div class="member-stats">
+      <div class="member-stat"><div class="member-stat-value green" id="memberScore">73</div><div class="member-stat-label">Score</div></div>
+      <div class="member-stat"><div class="member-stat-value orange" id="memberPending">3</div><div class="member-stat-label">Pending</div></div>
+      <div class="member-stat"><div class="member-stat-value cyan" id="memberCompleted">28</div><div class="member-stat-label">완료 (이번 주)</div></div>
+      <div class="member-stat"><div class="member-stat-value purple" id="memberAcceptRate">82%</div><div class="member-stat-label">Accept Rate</div></div>
+    </div>
+    <div class="bottleneck-alert" id="bottleneckAlert">
+      <div class="bottleneck-title"><span>⚠️</span><span>병목 감지</span></div>
+      <div class="bottleneck-text" id="bottleneckText">코드 리뷰 승인 대기 52시간 초과</div>
+    </div>
+    <div class="member-actions">
+      <button class="btn-request" onclick="sendRequest()"><span>📤</span><span>결정 요청 보내기</span></button>
+      <button class="btn-close" onclick="closeMemberDetail()">닫기</button>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      selectedMember: null,
+      members: [
+        { id: 1, name: '김철수', emoji: '👨‍💻', role: '프론트엔드', angle: 30, pending: 3, score: 73, acceptRate: 82 },
+        { id: 2, name: '이영희', emoji: '👩‍💻', role: '백엔드', angle: 90, pending: 0, score: 91, acceptRate: 88 },
+        { id: 3, name: '박지민', emoji: '👨‍💻', role: 'DevOps', angle: 150, pending: 2, score: 68, acceptRate: 75 },
+        { id: 4, name: '최수진', emoji: '👩‍💻', role: 'QA', angle: 210, pending: 0, score: 85, acceptRate: 92 },
+        { id: 5, name: '정민호', emoji: '👨‍💻', role: '프론트엔드', angle: 270, pending: 1, score: 77, acceptRate: 79 },
+        { id: 6, name: '한소연', emoji: '👩‍💻', role: '백엔드', angle: 330, pending: 2, score: 70, acceptRate: 71 },
+      ]
+    };
+    
+    function renderTeamNodes() {
+      const container = document.getElementById('teamMap');
+      const svg = document.getElementById('connectionsSvg');
+      const centerX = container.offsetWidth / 2;
+      const centerY = container.offsetHeight / 2;
+      const radius = Math.min(centerX, centerY) * 0.6;
+      
+      container.querySelectorAll('.team-node').forEach(n => n.remove());
+      svg.innerHTML = '';
+      
+      state.members.forEach(member => {
+        const rad = (member.angle * Math.PI) / 180;
+        const x = centerX + Math.cos(rad) * radius;
+        const y = centerY + Math.sin(rad) * radius;
+        
+        const el = document.createElement('div');
+        el.className = `team-node ${member.pending > 0 ? 'has-pending' : ''}`;
+        el.style.left = `${x - 28}px`;
+        el.style.top = `${y - 28}px`;
+        el.onclick = () => openMemberDetail(member);
+        el.innerHTML = `
+          <span class="team-node-avatar">${member.emoji}</span>
+          <span class="team-node-name">${member.name}</span>
+          ${member.pending > 0 ? `<span class="team-node-pending">${member.pending}</span>` : ''}
+        `;
+        container.appendChild(el);
+        
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', centerX);
+        line.setAttribute('y1', centerY);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', y);
+        line.setAttribute('class', `connection-line ${member.pending > 0 ? '' : 'active'}`);
+        svg.appendChild(line);
+      });
+      
+      const avgScore = Math.round(state.members.reduce((a, m) => a + m.score, 0) / state.members.length);
+      document.getElementById('teamScore').textContent = avgScore;
+      document.getElementById('totalPending').textContent = `${state.members.reduce((a, m) => a + m.pending, 0)}건`;
+    }
+    
+    function renderTeamList() {
+      const list = document.getElementById('teamListMini');
+      list.innerHTML = '';
+      state.members.forEach(member => {
+        const item = document.createElement('div');
+        item.className = 'team-list-item';
+        item.onclick = () => openMemberDetail(member);
+        item.innerHTML = `
+          <div class="team-list-avatar">${member.emoji}</div>
+          <div class="team-list-info">
+            <div class="team-list-name">${member.name}</div>
+            <div class="team-list-status">${member.role} · Score ${member.score}</div>
+          </div>
+          ${member.pending > 0 ? `<span class="team-list-pending">${member.pending}건</span>` : `<span class="team-list-ok">✓</span>`}
+        `;
+        list.appendChild(item);
+      });
+    }
+    
+    function openMemberDetail(member) {
+      state.selectedMember = member;
+      document.getElementById('memberAvatar').textContent = member.emoji;
+      document.getElementById('memberName').textContent = member.name;
+      document.getElementById('memberRole').textContent = member.role + ' 개발자';
+      document.getElementById('memberScore').textContent = member.score;
+      document.getElementById('memberPending').textContent = member.pending;
+      document.getElementById('memberCompleted').textContent = Math.floor(Math.random() * 20) + 20;
+      document.getElementById('memberAcceptRate').textContent = member.acceptRate + '%';
+      
+      const bottleneck = document.getElementById('bottleneckAlert');
+      if (member.pending > 0) {
+        bottleneck.style.display = 'block';
+        document.getElementById('bottleneckText').textContent = `${member.pending}건의 결정이 대기 중 (최대 ${Math.floor(Math.random() * 48) + 24}시간)`;
+      } else {
+        bottleneck.style.display = 'none';
+      }
+      
+      document.getElementById('overlayBg').classList.add('visible');
+      document.getElementById('memberDetailPanel').classList.add('visible');
+    }
+    
+    function closeMemberDetail() {
+      document.getElementById('overlayBg').classList.remove('visible');
+      document.getElementById('memberDetailPanel').classList.remove('visible');
+      state.selectedMember = null;
+    }
+    
+    function sendRequest() {
+      if (state.selectedMember) {
+        alert(`📤 ${state.selectedMember.name}에게 결정 요청을 보냈습니다.`);
+        closeMemberDetail();
+      }
+    }
+    
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMemberDetail(); });
+    window.addEventListener('load', () => { renderTeamNodes(); renderTeamList(); });
+    window.addEventListener('resize', () => { renderTeamNodes(); });
+  </script>
+</body>
+</html>
