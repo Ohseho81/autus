@@ -1,0 +1,26 @@
+{
+  "name": "AUTUS Sovereign",
+  "short_name": "AUTUS",
+  "description": "Zero-Cloud P2P Decision Operating System",
+  "version": "15.1.0",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0f1a",
+  "theme_color": "#10b981",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%230a0f1a' width='512' height='512' rx='100'/><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%2310b981'/><stop offset='100%25' stop-color='%2306b6d4'/></linearGradient></defs><text x='256' y='340' font-family='system-ui' font-size='280' font-weight='bold' fill='url(%23g)' text-anchor='middle'>A</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Daily OS", "url": "./index.html#daily" },
+    { "name": "P2P Sync", "url": "./index.html#p2p" }
+  ],
+  "scope": "./",
+  "lang": "ko"
+}

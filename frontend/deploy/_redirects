@@ -9,6 +9,8 @@
 /sovereign-v15  /sovereign-v15.html 200
 /sovereign-pwa  /sovereign-pwa/index.html 200
 /sovereign-pwa/* /sovereign-pwa/:splat 200
+/sovereign-live  /sovereign-live/index.html 200
+/sovereign-live/* /sovereign-live/:splat 200
 /daily-os       /daily-os.html      200
 /team-view      /team-view.html     200
 /*              /index.html         200

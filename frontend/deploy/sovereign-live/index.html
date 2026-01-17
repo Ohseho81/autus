@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0f1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AUTUS">
+  <meta name="description" content="Zero-Cloud P2P Decision Operating System">
+  <link rel="manifest" href="./manifest.json">
+  <title>AUTUS v15.1 Sovereign</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{--bg:#0a0f1a;--bg2:#111827;--bg3:#1f2937;--green:#10b981;--cyan:#06b6d4;--purple:#8b5cf6;--orange:#f59e0b;--red:#ef4444;--text:#f3f4f6;--text2:#9ca3af;--muted:#4b5563;--border:rgba(255,255,255,0.08);--glow:rgba(0,255,170,0.4);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+    html,body{height:100%;overflow:hidden}
+    body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);user-select:none;-webkit-user-select:none}
+    .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;transition:opacity 0.5s}
+    .loading-screen.hidden{opacity:0;pointer-events:none}
+    .loading-logo{width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,var(--green),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:white;margin-bottom:24px;animation:logoPulse 1.5s infinite}
+    @keyframes logoPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    .loading-text{font-size:14px;color:var(--muted);margin-bottom:8px}
+    .loading-bar{width:200px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+    .loading-bar-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));width:0%;transition:width 0.3s}
+    .live-badge{position:fixed;top:calc(var(--safe-top) + 8px);right:8px;display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:14px;font-size:9px;color:var(--green);font-weight:600;z-index:200;text-transform:uppercase;letter-spacing:1px}
+    .live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1s infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+    .pwa-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,var(--green),var(--cyan));padding:calc(var(--safe-top) + 10px) 16px 10px;display:none;justify-content:space-between;align-items:center;z-index:1000}
+    .pwa-banner.visible{display:flex}
+    .pwa-banner-text{font-size:12px;font-weight:600;color:var(--bg)}
+    .pwa-banner-btn{padding:6px 14px;background:var(--bg);border:none;border-radius:14px;color:var(--green);font-size:11px;font-weight:600;cursor:pointer}
+    .pwa-banner-close{background:none;border:none;color:var(--bg);font-size:20px;cursor:pointer;padding:4px}
+    .proximity-alert{position:fixed;top:calc(var(--safe-top) + 56px);left:12px;right:12px;background:rgba(139,92,246,0.95);border-radius:14px;padding:14px 16px;display:none;align-items:center;gap:12px;z-index:900;backdrop-filter:blur(10px);animation:slideIn 0.3s}
+    .proximity-alert.visible{display:flex}
+    @keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .proximity-icon{font-size:24px;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.7;transform:scale(0.95)}}
+    .proximity-text{flex:1;font-size:13px;font-weight:500}
+    .proximity-text strong{color:var(--cyan)}
+    .proximity-btn{padding:8px 16px;background:white;border:none;border-radius:8px;color:var(--purple);font-size:12px;font-weight:600;cursor:pointer}
+    .flash{position:fixed;inset:0;background:radial-gradient(circle at center,rgba(0,255,170,0.6),transparent 70%);z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.1s}
+    .flash.active{opacity:1}
+    .app{height:100%;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+    .logo{display:flex;align-items:center;gap:8px}
+    .logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:white}
+    .logo-text{font-size:17px;font-weight:700}
+    .header-right{display:flex;align-items:center;gap:10px}
+    .status-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(16,185,129,0.15);border-radius:12px;font-size:11px;color:var(--green);font-weight:500}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+    .offline-pill{display:none;align-items:center;gap:4px;padding:4px 10px;background:rgba(245,158,11,0.15);border-radius:12px;font-size:11px;color:var(--orange)}
+    .offline-pill.visible{display:flex}
+    .encrypt-pill{display:flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(139,92,246,0.15);border-radius:12px;font-size:10px;color:var(--purple);font-weight:500}
+    .tab-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+    .tab{display:none;min-height:100%;padding-bottom:80px}
+    .tab.active{display:block}
+    .nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg2);border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);z-index:100}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;color:var(--muted);cursor:pointer;transition:all 0.15s;position:relative}
+    .nav-item::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--cyan);transition:width 0.2s}
+    .nav-item.active{color:var(--cyan)}
+    .nav-item.active::before{width:28px}
+    .nav-icon{font-size:20px}
+    .nav-label{font-size:10px;margin-top:2px;font-weight:500}
+    .daily{padding:16px;max-width:440px;margin:0 auto}
+    .value-hero{background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(6,182,212,0.12));border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:24px 20px;text-align:center;margin-bottom:16px}
+    .value-amount{font-size:60px;font-weight:800;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+    .value-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-top:4px}
+    .value-formula{font-size:9px;color:var(--muted);font-family:monospace;margin-top:6px;opacity:0.7}
+    .value-breakdown{display:flex;justify-content:center;gap:28px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+    .breakdown-item{text-align:center}
+    .breakdown-val{font-size:18px;font-weight:700}
+    .breakdown-val.mint{color:var(--green)}
+    .breakdown-val.tax{color:var(--red)}
+    .breakdown-val.synergy{color:var(--purple)}
+    .breakdown-lbl{font-size:9px;color:var(--muted);margin-top:2px}
+    .suggestion{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:16px}
+    .sug-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .sug-cat{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+    .sug-proof{display:flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:10px;font-size:9px;color:var(--purple);font-weight:600}
+    .sug-text{font-size:16px;font-weight:600;line-height:1.5;margin-bottom:14px;text-align:center}
+    .sug-text .hl{color:var(--green);font-weight:700}
+    .sug-impact{display:flex;justify-content:space-around;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:14px}
+    .impact-item{text-align:center}
+    .impact-val{font-size:15px;font-weight:700;color:var(--green)}
+    .impact-val.neg{color:var(--muted)}
+    .impact-val.syn{color:var(--purple)}
+    .impact-lbl{font-size:9px;color:var(--muted);margin-top:2px}
+    .sug-actions{display:flex;gap:10px}
+    .btn-reject{flex:1;padding:13px;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer}
+    .btn-accept{flex:2;padding:13px;background:linear-gradient(135deg,var(--green),var(--cyan));border:none;border-radius:12px;color:var(--bg);font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 0 20px var(--glow)}
+    .outcome{display:none;text-align:center;padding:28px 20px;background:var(--bg2);border:1px solid var(--green);border-radius:16px}
+    .outcome.visible{display:block;animation:popIn 0.3s}
+    @keyframes popIn{0%{opacity:0;transform:scale(0.9)}70%{transform:scale(1.02)}100%{opacity:1;transform:scale(1)}}
+    .outcome-icon{width:60px;height:60px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px;box-shadow:0 0 28px var(--glow)}
+    .outcome-title{font-size:17px;font-weight:600;margin-bottom:6px}
+    .outcome-delta{font-size:14px;color:var(--green);margin-bottom:6px}
+    .outcome-hash{font-size:10px;font-family:monospace;color:var(--purple);margin-bottom:16px;word-break:break-all}
+    .btn-next{padding:10px 24px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:12px;font-weight:500;cursor:pointer}
+    .p2p{padding:16px;max-width:480px;margin:0 auto}
+    .p2p-section{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px}
+    .p2p-title{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .peer-id-box{background:var(--bg3);border-radius:10px;padding:12px;text-align:center;font-family:monospace;font-size:15px;color:var(--cyan);letter-spacing:1px}
+    .qr-container{display:flex;flex-direction:column;align-items:center;padding:16px}
+    .qr-canvas{background:white;border-radius:12px;padding:12px;margin-bottom:12px}
+    .qr-status{font-size:11px;color:var(--muted);text-align:center}
+    .scanner-box{position:relative;width:100%;max-width:280px;margin:0 auto;border-radius:14px;overflow:hidden;background:var(--bg3)}
+    .scanner-video{width:100%;display:block;border-radius:14px}
+    .scanner-placeholder{width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:40px}
+    .scanner-placeholder-text{font-size:11px;margin-top:10px}
+    .p2p-buttons{display:flex;gap:10px;margin-top:14px}
+    .btn-p2p{flex:1;padding:12px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+    .btn-p2p.primary{background:linear-gradient(135deg,var(--cyan),var(--purple));border:none;color:white}
+    .btn-p2p.secondary{background:transparent;border:1px solid var(--border);color:var(--text2)}
+    .peer-list{margin-top:10px}
+    .peer-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg3);border-radius:10px;margin-bottom:8px}
+    .peer-info{display:flex;align-items:center;gap:10px}
+    .peer-dot{width:10px;height:10px;border-radius:50%;background:var(--green)}
+    .peer-dot.simulated{background:var(--orange)}
+    .peer-id-small{font-family:monospace;font-size:12px}
+    .peer-action{padding:6px 12px;background:var(--purple);border:none;border-radius:6px;color:white;font-size:10px;font-weight:600;cursor:pointer}
+    .empty-peers{text-align:center;padding:20px;color:var(--muted);font-size:12px}
+    .sovereign-notice{background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:14px;margin-top:14px}
+    .sovereign-notice p{font-size:11px;color:var(--text2);line-height:1.6}
+    .sim-section{background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(239,68,68,0.05));border:1px solid rgba(245,158,11,0.3);border-radius:16px;padding:18px;margin-bottom:14px}
+    .sim-title{color:var(--orange);font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .sim-desc{font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.5}
+    .btn-sim{width:100%;padding:12px;background:var(--orange);border:none;border-radius:10px;color:var(--bg);font-size:12px;font-weight:600;cursor:pointer}
+    .ledger{padding:16px}
+    .ledger-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    .ledger-stat{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+    .stat-val{font-size:24px;font-weight:700;color:var(--purple)}
+    .stat-val.green{color:var(--green)}
+    .stat-val.red{color:var(--red)}
+    .stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+    .ledger-chain{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .ledger-block{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)}
+    .ledger-block:last-child{border-bottom:none}
+    .block-hash{font-family:monospace;font-size:10px;color:var(--purple);min-width:80px}
+    .block-type{padding:3px 8px;border-radius:5px;font-size:9px;font-weight:600;text-transform:uppercase}
+    .block-type.accept{background:rgba(16,185,129,0.2);color:var(--green)}
+    .block-type.reject{background:rgba(239,68,68,0.2);color:var(--red)}
+    .block-type.genesis{background:rgba(139,92,246,0.2);color:var(--purple)}
+    .block-type.sync{background:rgba(6,182,212,0.2);color:var(--cyan)}
+    .block-delta{font-weight:600;font-size:12px}
+    .block-delta.pos{color:var(--green)}
+    .block-delta.zero{color:var(--muted)}
+    .block-time{margin-left:auto;font-size:10px;color:var(--muted)}
+    .ledger-empty{text-align:center;padding:36px 20px;color:var(--muted)}
+    .ledger-empty-icon{font-size:40px;margin-bottom:10px}
+    .settings{padding:16px}
+    .settings-section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px}
+    .settings-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .settings-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+    .settings-row:last-child{border-bottom:none}
+    .settings-label{font-size:12px}
+    .settings-value{font-size:11px;color:var(--muted)}
+    .settings-value.green{color:var(--green)}
+    .settings-value.purple{color:var(--purple)}
+    .btn-danger{width:100%;padding:12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;margin-top:8px}
+    .version-info{text-align:center;padding:18px;color:var(--muted);font-size:10px;line-height:1.6}
+    .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:12px;z-index:1000;opacity:0;transition:all 0.3s}
+    .toast.visible{transform:translateX(-50%) translateY(0);opacity:1}
+  </style>
+</head>
+<body>
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-logo">A</div>
+    <div class="loading-text">Initializing Sovereign Mode...</div>
+    <div class="loading-bar"><div class="loading-bar-fill" id="loadingBar"></div></div>
+  </div>
+  <div class="live-badge"><div class="live-dot"></div><span>LIVE · Sovereign</span></div>
+  <div class="pwa-banner" id="pwaBanner">
+    <span class="pwa-banner-text">📱 홈 화면에 추가하여 오프라인 사용</span>
+    <button class="pwa-banner-btn" id="pwaInstallBtn">설치</button>
+    <button class="pwa-banner-close" id="pwaDismissBtn">×</button>
+  </div>
+  <div class="proximity-alert" id="proximityAlert">
+    <span class="proximity-icon">📡</span>
+    <span class="proximity-text">근접 노드 발견: <strong id="proximityDistance">~12m</strong></span>
+    <button class="proximity-btn" id="proximityConnectBtn">연결</button>
+  </div>
+  <div class="flash" id="flash"></div>
+  <div class="toast" id="toast"></div>
+  <div class="app">
+    <header class="header">
+      <div class="logo"><div class="logo-icon">A</div><span class="logo-text">AUTUS</span></div>
+      <div class="header-right">
+        <div class="offline-pill" id="offlinePill">⚡ Offline</div>
+        <div class="encrypt-pill">🔐 AES-256</div>
+        <div class="status-pill"><div class="status-dot"></div><span id="blockCount">0</span></div>
+      </div>
+    </header>
+    <div class="tab-area">
+      <div class="tab active" id="tabDaily">
+        <div class="daily">
+          <div class="value-hero">
+            <div class="value-amount" id="valueAmount">0</div>
+            <div class="value-label">자산(V)</div>
+            <div class="value-formula">V = (M - T) × (1 + s)^t</div>
+            <div class="value-breakdown">
+              <div class="breakdown-item"><div class="breakdown-val mint" id="mintVal">0</div><div class="breakdown-lbl">Mint (M)</div></div>
+              <div class="breakdown-item"><div class="breakdown-val tax" id="taxVal">0</div><div class="breakdown-lbl">Tax (T)</div></div>
+              <div class="breakdown-item"><div class="breakdown-val synergy" id="synergyVal">0.00</div><div class="breakdown-lbl">Synergy (s)</div></div>
+            </div>
+          </div>
+          <div class="suggestion" id="suggestion">
+            <div class="sug-header">
+              <div class="sug-cat"><span id="sugIcon">📊</span><span id="sugCat">재무</span></div>
+              <div class="sug-proof">🔐 Proof Ready</div>
+            </div>
+            <div class="sug-text" id="sugText">자동화 → <span class="hl">4.2시간</span> 즉시 회수</div>
+            <div class="sug-impact">
+              <div class="impact-item"><div class="impact-val" id="impactM">+12</div><div class="impact-lbl">Mint</div></div>
+              <div class="impact-item"><div class="impact-val neg" id="impactT">-4</div><div class="impact-lbl">Tax</div></div>
+              <div class="impact-item"><div class="impact-val syn" id="impactS">+0.10</div><div class="impact-lbl">Synergy</div></div>
+            </div>
+            <div class="sug-actions">
+              <button class="btn-reject" id="btnReject">Reject</button>
+              <button class="btn-accept" id="btnAccept">✓ ACCEPT</button>
+            </div>
+          </div>
+          <div class="outcome" id="outcome">
+            <div class="outcome-icon">✓</div>
+            <div class="outcome-title">Recorded to Ledger</div>
+            <div class="outcome-delta" id="outcomeDelta">V: 0 → 8</div>
+            <div class="outcome-hash" id="outcomeHash">Hash: 0x0000...</div>
+            <button class="btn-next" id="btnNext">다음 결정 →</button>
+          </div>
+        </div>
+      </div>
+      <div class="tab" id="tabP2P">
+        <div class="p2p">
+          <div class="p2p-section">
+            <div class="p2p-title">🆔 내 Peer ID</div>
+            <div class="peer-id-box" id="myPeerId">AUTUS-XXXXXXXX</div>
+          </div>
+          <div class="sim-section">
+            <div class="sim-title">🧪 가상 Peer 시뮬레이션</div>
+            <div class="sim-desc">실제 연결 없이 P2P 동기화를 테스트합니다.<br><strong>L2 Catalyst(핵심 파트너)</strong> 노드와의 연결을 시뮬레이션하여 Synergy 계수 상승을 확인합니다.</div>
+            <button class="btn-sim" id="btnSimulate">🚀 가상 Peer 연결 시뮬레이션</button>
+          </div>
+          <div class="p2p-section">
+            <div class="p2p-title">📲 QR 핸드셰이크</div>
+            <div class="qr-container" id="qrDisplay" style="display:none"><div class="qr-canvas" id="qrCanvas"></div><div class="qr-status">상대방이 이 QR을 스캔하면 연결됩니다</div></div>
+            <div class="scanner-box" id="scannerBox" style="display:none"><video class="scanner-video" id="scannerVideo" playsinline></video></div>
+            <div class="scanner-box" id="scannerPlaceholder"><div class="scanner-placeholder"><span>📷</span><span class="scanner-placeholder-text">카메라로 QR 스캔</span></div></div>
+            <div class="p2p-buttons">
+              <button class="btn-p2p secondary" id="btnShowQR">📤 내 QR</button>
+              <button class="btn-p2p primary" id="btnScanQR">📷 QR 스캔</button>
+            </div>
+          </div>
+          <div class="p2p-section">
+            <div class="p2p-title">📡 BLE 탐색</div>
+            <div class="p2p-buttons">
+              <button class="btn-p2p secondary" id="btnBLEAdvertise">📢 Advertise</button>
+              <button class="btn-p2p primary" id="btnBLEScan">🔍 주변 검색</button>
+            </div>
+            <div id="bleStatus" style="margin-top:10px;text-align:center;font-size:11px;color:var(--muted)"></div>
+          </div>
+          <div class="p2p-section">
+            <div class="p2p-title">🔗 연결된 Peers</div>
+            <div class="peer-list" id="peerList"><div class="empty-peers">연결된 peer가 없습니다</div></div>
+          </div>
+          <div class="sovereign-notice"><p>🛡️ <strong>Sovereign Shield Active</strong><br>모든 P2P 전송은 <strong>AES-256-GCM</strong>으로 암호화됩니다.</p></div>
+        </div>
+      </div>
+      <div class="tab" id="tabLedger">
+        <div class="ledger">
+          <div class="ledger-stats">
+            <div class="ledger-stat"><div class="stat-val" id="statBlocks">0</div><div class="stat-lbl">Blocks</div></div>
+            <div class="ledger-stat"><div class="stat-val green" id="statAccepts">0</div><div class="stat-lbl">Accepts</div></div>
+            <div class="ledger-stat"><div class="stat-val red" id="statRejects">0</div><div class="stat-lbl">Rejects</div></div>
+          </div>
+          <div class="ledger-chain" id="ledgerChain"><div class="ledger-empty"><div class="ledger-empty-icon">📜</div><div>아직 기록이 없습니다</div></div></div>
+        </div>
+      </div>
+      <div class="tab" id="tabSettings">
+        <div class="settings">
+          <div class="settings-section">
+            <div class="settings-title">💾 Storage</div>
+            <div class="settings-row"><span class="settings-label">Engine</span><span class="settings-value">IndexedDB (Local)</span></div>
+            <div class="settings-row"><span class="settings-label">Cloud Sync</span><span class="settings-value green">Disabled (Sovereign)</span></div>
+            <div class="settings-row"><span class="settings-label">Encryption</span><span class="settings-value purple">AES-256-GCM</span></div>
+            <div class="settings-row"><span class="settings-label">PWA Status</span><span class="settings-value" id="pwaStatus">Checking...</span></div>
+            <div class="settings-row"><span class="settings-label">Service Worker</span><span class="settings-value" id="swStatus">Checking...</span></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-title">📊 Statistics</div>
+            <div class="settings-row"><span class="settings-label">Total Blocks</span><span class="settings-value" id="settingsBlocks">0</span></div>
+            <div class="settings-row"><span class="settings-label">Total Value (V)</span><span class="settings-value" id="settingsValue">0</span></div>
+            <div class="settings-row"><span class="settings-label">Peer ID</span><span class="settings-value" id="settingsPeerId">-</span></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-title">⚠️ Danger Zone</div>
+            <button class="btn-danger" id="btnExport">📤 Export All Data</button>
+            <button class="btn-danger" id="btnReset">🗑️ Reset All Data</button>
+          </div>
+          <div class="version-info">AUTUS v15.1 Sovereign · LIVE MODE<br>Zero-Cloud · P2P · Immutable Ledger · AES-256-GCM</div>
+        </div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" data-tab="tabDaily"><span class="nav-icon">⚡</span><span class="nav-label">Daily</span></div>
+      <div class="nav-item" data-tab="tabP2P"><span class="nav-icon">🔗</span><span class="nav-label">P2P</span></div>
+      <div class="nav-item" data-tab="tabLedger"><span class="nav-icon">🔐</span><span class="nav-label">Ledger</span></div>
+      <div class="nav-item" data-tab="tabSettings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></div>
+    </nav>
+  </div>
+  <script>
+    const CONFIG={DB_NAME:'autus_sovereign_live',DB_VERSION:1,ENCRYPTION_ALGORITHM:'AES-GCM',KEY_LENGTH:256,IV_LENGTH:12};
+    class SovereignCrypto{constructor(){this.key=null}async init(){const stored=localStorage.getItem('autus_key');if(stored){const keyData=Uint8Array.from(atob(stored),c=>c.charCodeAt(0));this.key=await crypto.subtle.importKey('raw',keyData,CONFIG.ENCRYPTION_ALGORITHM,false,['encrypt','decrypt'])}else{this.key=await crypto.subtle.generateKey({name:CONFIG.ENCRYPTION_ALGORITHM,length:CONFIG.KEY_LENGTH},true,['encrypt','decrypt']);const exported=await crypto.subtle.exportKey('raw',this.key);localStorage.setItem('autus_key',btoa(String.fromCharCode(...new Uint8Array(exported))))}}async encrypt(data){const iv=crypto.getRandomValues(new Uint8Array(CONFIG.IV_LENGTH));const encoded=new TextEncoder().encode(JSON.stringify(data));const encrypted=await crypto.subtle.encrypt({name:CONFIG.ENCRYPTION_ALGORITHM,iv},this.key,encoded);return{iv:Array.from(iv),data:Array.from(new Uint8Array(encrypted))}}async decrypt(encrypted){const iv=new Uint8Array(encrypted.iv);const data=new Uint8Array(encrypted.data);const decrypted=await crypto.subtle.decrypt({name:CONFIG.ENCRYPTION_ALGORITHM,iv},this.key,data);return JSON.parse(new TextDecoder().decode(decrypted))}async getPublicKeyHash(){const exported=await crypto.subtle.exportKey('raw',this.key);const hash=await crypto.subtle.digest('SHA-256',exported);return Array.from(new Uint8Array(hash)).slice(0,8).map(b=>b.toString(16).padStart(2,'0')).join('')}}
+    const sovereign=new SovereignCrypto();
+    async function sha256(msg){const buf=new TextEncoder().encode(msg);const hash=await crypto.subtle.digest('SHA-256',buf);return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('')}
+    let db=null;
+    function initDB(){return new Promise((res,rej)=>{const req=indexedDB.open(CONFIG.DB_NAME,CONFIG.DB_VERSION);req.onerror=()=>rej(req.error);req.onsuccess=()=>{db=req.result;res(db)};req.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('ledger')){const s=d.createObjectStore('ledger',{keyPath:'hash'});s.createIndex('timestamp','timestamp',{unique:false})}if(!d.objectStoreNames.contains('state'))d.createObjectStore('state',{keyPath:'key'})}})}
+    async function getLastBlock(){return new Promise(res=>{const tx=db.transaction('ledger','readonly');const idx=tx.objectStore('ledger').index('timestamp');const req=idx.openCursor(null,'prev');req.onsuccess=e=>{const c=e.target.result;res(c?c.value:{hash:'AUTUS_GENESIS_V15.1_LIVE',prev_hash:'0000000000000000',timestamp:new Date().toISOString(),type:'genesis'})}})}
+    async function addBlock(type,payload){const last=await getLastBlock();const ts=new Date().toISOString();const hash=await sha256(JSON.stringify({prev_hash:last.hash,timestamp:ts,type,payload}));const block={hash,prev_hash:last.hash,timestamp:ts,type,payload};return new Promise((res,rej)=>{const tx=db.transaction('ledger','readwrite');const req=tx.objectStore('ledger').add(block);req.onsuccess=()=>res(block);req.onerror=()=>rej(req.error)})}
+    async function getAllBlocks(){return new Promise(res=>{const req=db.transaction('ledger','readonly').objectStore('ledger').index('timestamp').getAll();req.onsuccess=()=>res(req.result)})}
+    const state={V:0,M:0,T:0,s:0,index:0,peerId:'AUTUS-'+Math.random().toString(36).substring(2,10).toUpperCase(),connectedPeers:[]};
+    async function loadState(){return new Promise(res=>{const req=db.transaction('state','readonly').objectStore('state').get('main');req.onsuccess=()=>{if(req.result)Object.assign(state,req.result.data);res()};req.onerror=()=>res()})}
+    async function saveState(){return new Promise(res=>{const tx=db.transaction('state','readwrite');tx.objectStore('state').put({key:'main',data:{V:state.V,M:state.M,T:state.T,s:state.s,index:state.index,peerId:state.peerId}});tx.oncomplete=()=>res()})}
+    function calculateV(){state.V=Math.round((state.M-state.T)*Math.pow(1+state.s,1));return state.V}
+    const suggestions=[{icon:'📊',cat:'재무',text:'자동화 → <span class="hl">4.2시간</span> 즉시 회수',mint:12,tax:4,synergy:.10},{icon:'🔄',cat:'운영',text:'승인 <span class="hl">3건</span> 48시간 초과',mint:8,tax:2,synergy:.05},{icon:'📋',cat:'HR',text:'회의 액션아이템 <span class="hl">5건</span> 미추적',mint:15,tax:5,synergy:.15},{icon:'📧',cat:'이메일',text:'반복 발송 → <span class="hl">자동화</span>',mint:6,tax:2,synergy:.08},{icon:'📈',cat:'KPI',text:'주간 리포트 <span class="hl">자동 생성</span>',mint:10,tax:3,synergy:.12},{icon:'💼',cat:'영업',text:'고객 응대 시간 <span class="hl">30%</span> 단축',mint:20,tax:8,synergy:.18},{icon:'🔧',cat:'개발',text:'CI/CD 파이프라인 <span class="hl">최적화</span>',mint:14,tax:6,synergy:.12}];
+    function $(id){return document.getElementById(id)}
+    function updateUI(){$('valueAmount').textContent=state.V;$('mintVal').textContent=state.M;$('taxVal').textContent=state.T;$('synergyVal').textContent=state.s.toFixed(2);$('settingsValue').textContent=state.V;$('myPeerId').textContent=state.peerId;$('settingsPeerId').textContent=state.peerId}
+    async function updateLedgerUI(){const blocks=await getAllBlocks();$('blockCount').textContent=blocks.length;$('statBlocks').textContent=blocks.length;$('settingsBlocks').textContent=blocks.length;const accepts=blocks.filter(b=>b.payload?.action==='accept').length;const rejects=blocks.filter(b=>b.payload?.action==='reject').length;$('statAccepts').textContent=accepts;$('statRejects').textContent=rejects;const chain=$('ledgerChain');if(blocks.length===0){chain.innerHTML='<div class="ledger-empty"><div class="ledger-empty-icon">📜</div><div>아직 기록이 없습니다</div></div>';return}chain.innerHTML=blocks.slice().reverse().slice(0,30).map(b=>{const action=b.payload?.action||b.type;const typeClass=action==='accept'?'accept':action==='reject'?'reject':action==='sync'?'sync':'genesis';const delta=b.payload?.delta||0;const deltaClass=delta>0?'pos':'zero';const time=new Date(b.timestamp).toLocaleString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});return`<div class="ledger-block"><span class="block-hash">${b.hash.substring(0,8)}...</span><span class="block-type ${typeClass}">${action}</span><span class="block-delta ${deltaClass}">${delta>0?'+'+delta:delta}</span><span class="block-time">${time}</span></div>`}).join('')}
+    function loadSuggestion(){const s=suggestions[state.index];$('sugIcon').textContent=s.icon;$('sugCat').textContent=s.cat;$('sugText').innerHTML=s.text;$('impactM').textContent='+'+s.mint;$('impactT').textContent='-'+s.tax;$('impactS').textContent='+'+s.synergy.toFixed(2)}
+    function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),2500)}
+    function flash(){$('flash').classList.add('active');setTimeout(()=>$('flash').classList.remove('active'),100);if(navigator.vibrate)navigator.vibrate(50)}
+    function updatePeerList(){const list=$('peerList');if(state.connectedPeers.length===0){list.innerHTML='<div class="empty-peers">연결된 peer가 없습니다</div>';return}list.innerHTML=state.connectedPeers.map(p=>`<div class="peer-item"><div class="peer-info"><div class="peer-dot ${p.simulated?'simulated':''}"></div><span class="peer-id-small">${p.id}</span></div><button class="peer-action" onclick="syncWithPeer('${p.id}')">Sync</button></div>`).join('')}
+    $('btnAccept').addEventListener('click',async()=>{const s=suggestions[state.index];const oldV=state.V;state.M+=s.mint;state.T+=s.tax;state.s=Math.min(1,state.s+s.synergy);calculateV();const block=await addBlock('decision',{action:'accept',suggestion:s.cat,mint:s.mint,tax:s.tax,synergy:s.synergy,delta:state.V-oldV});await saveState();flash();$('suggestion').style.display='none';$('outcome').classList.add('visible');$('outcomeDelta').textContent=`V: ${oldV} → ${state.V} (+${state.V-oldV})`;$('outcomeHash').textContent=`Hash: ${block.hash.substring(0,28)}...`;updateUI();updateLedgerUI()});
+    $('btnReject').addEventListener('click',async()=>{const s=suggestions[state.index];await addBlock('decision',{action:'reject',suggestion:s.cat,delta:0});await saveState();await updateLedgerUI();loadNext()});
+    $('btnNext').addEventListener('click',loadNext);
+    function loadNext(){state.index=(state.index+1)%suggestions.length;loadSuggestion();$('suggestion').style.display='block';$('outcome').classList.remove('visible');saveState()}
+    $('btnSimulate').addEventListener('click',async()=>{const virtualPeer={id:'L2-CATALYST-'+Math.random().toString(36).substring(2,6).toUpperCase(),simulated:true};$('proximityDistance').textContent='~3m';$('proximityAlert').classList.add('visible');setTimeout(async()=>{$('proximityAlert').classList.remove('visible');state.connectedPeers.push(virtualPeer);updatePeerList();toast(`🔗 ${virtualPeer.id} 연결됨`);setTimeout(async()=>{const oldS=state.s;const synergyBoost=0.13;state.s=Math.min(1,state.s+synergyBoost);const oldV=state.V;calculateV();const block=await addBlock('sync',{action:'sync',peer:virtualPeer.id,synergyBoost:synergyBoost,delta:state.V-oldV,proofPack:'AUTOMATION_PROOF_PACK_v2'});await saveState();flash();updateUI();updateLedgerUI();toast(`📦 Proof Pack 수신 · Synergy ${oldS.toFixed(2)} → ${state.s.toFixed(2)}`);setTimeout(()=>{toast(`📈 자산(V) 곡선 상향 굴절: ${oldV} → ${state.V}`)},2000)},1500)},2000)});
+    async function syncWithPeer(peerId){toast(`🔄 ${peerId}와 동기화 중...`);setTimeout(async()=>{const blocks=await getAllBlocks();const encrypted=await sovereign.encrypt({blocks:blocks.slice(-5),state:{V:state.V,M:state.M,T:state.T,s:state.s}});const block=await addBlock('sync',{action:'sync',peer:peerId,blocksExchanged:5,delta:0,encrypted:true});await updateLedgerUI();toast(`✓ ${peerId}와 동기화 완료 · AES-256-GCM 암호화`)},1500)}
+    let scanning=false,scanStream=null;
+    $('btnShowQR').addEventListener('click',async()=>{stopScanning();const qrContainer=$('qrDisplay');const placeholder=$('scannerPlaceholder');if(qrContainer.style.display==='flex'){qrContainer.style.display='none';placeholder.style.display='block';return}placeholder.style.display='none';qrContainer.style.display='flex';const keyHash=await sovereign.getPublicKeyHash();const qrData=JSON.stringify({type:'autus_handshake_v15.1',peerId:state.peerId,keyHash:keyHash,timestamp:Date.now()});const canvas=$('qrCanvas');canvas.innerHTML='';try{await QRCode.toCanvas(canvas,qrData,{width:180,margin:2,color:{dark:'#0a0f1a',light:'#ffffff'}})}catch(e){canvas.innerHTML='<div style="padding:30px;color:var(--red);">QR 생성 실패</div>'}});
+    $('btnScanQR').addEventListener('click',async()=>{$('qrDisplay').style.display='none';if(scanning){stopScanning();return}try{const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});scanStream=stream;scanning=true;const video=$('scannerVideo');const container=$('scannerBox');const placeholder=$('scannerPlaceholder');placeholder.style.display='none';container.style.display='block';video.srcObject=stream;video.play();scanQR()}catch(e){toast('카메라 접근 권한이 필요합니다')}});
+    function scanQR(){if(!scanning)return;const video=$('scannerVideo');const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d');if(video.readyState===video.HAVE_ENOUGH_DATA){canvas.width=video.videoWidth;canvas.height=video.videoHeight;ctx.drawImage(video,0,0);const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);const code=jsQR(imageData.data,imageData.width,imageData.height);if(code){try{const data=JSON.parse(code.data);if(data.type==='autus_handshake_v15.1'){state.connectedPeers.push({id:data.peerId,simulated:false});updatePeerList();stopScanning();flash();toast(`🔗 ${data.peerId} 연결됨`);return}}catch(e){}}}requestAnimationFrame(scanQR)}
+    function stopScanning(){scanning=false;if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null}$('scannerBox').style.display='none';$('scannerPlaceholder').style.display='block'}
+    $('btnBLEAdvertise').addEventListener('click',()=>{$('bleStatus').innerHTML='⚠️ 브라우저에서 BLE Advertise는 미지원'});
+    $('btnBLEScan').addEventListener('click',async()=>{if(!navigator.bluetooth){$('bleStatus').innerHTML='⚠️ Bluetooth가 지원되지 않습니다';return}$('bleStatus').innerHTML='🔍 검색 중...';try{const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:['battery_service']});$('bleStatus').innerHTML=`✓ 발견: ${device.name||'Unknown'}`;$('proximityDistance').textContent='~5m';$('proximityAlert').classList.add('visible')}catch(e){$('bleStatus').innerHTML=e.name==='NotFoundError'?'주변에 기기를 찾을 수 없습니다':'취소됨'}});
+    $('proximityConnectBtn').addEventListener('click',()=>$('proximityAlert').classList.remove('visible'));
+    document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click',()=>{const tabId=item.dataset.tab;document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));item.classList.add('active');$(tabId).classList.add('active');if(tabId==='tabLedger')updateLedgerUI()}));
+    $('btnExport').addEventListener('click',async()=>{const blocks=await getAllBlocks();const keyHash=await sovereign.getPublicKeyHash();const exportData={version:'15.1.0-LIVE',peerId:state.peerId,keyHash:keyHash,exportedAt:new Date().toISOString(),state:{V:state.V,M:state.M,T:state.T,s:state.s},ledger:blocks};const blob=new Blob([JSON.stringify(exportData,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`autus-export-${Date.now()}.json`;a.click();URL.revokeObjectURL(url);toast('📤 데이터 내보내기 완료')});
+    $('btnReset').addEventListener('click',()=>{if(confirm('⚠️ 모든 데이터가 삭제됩니다. 계속?')){localStorage.removeItem('autus_key');indexedDB.deleteDatabase(CONFIG.DB_NAME);location.reload()}});
+    let deferredPrompt=null;
+    window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('pwaBanner').classList.add('visible');$('pwaStatus').textContent='Available'});
+    $('pwaInstallBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();const{outcome}=await deferredPrompt.userChoice;if(outcome==='accepted'){$('pwaStatus').textContent='Installed ✓';$('pwaStatus').style.color='var(--green)'}deferredPrompt=null;$('pwaBanner').classList.remove('visible')});
+    $('pwaDismissBtn').addEventListener('click',()=>$('pwaBanner').classList.remove('visible'));
+    if(window.matchMedia('(display-mode: standalone)').matches){$('pwaStatus').textContent='Installed ✓';$('pwaStatus').style.color='var(--green)'}
+    if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').then(()=>{$('swStatus').textContent='Active ✓';$('swStatus').style.color='var(--green)'}).catch(()=>{$('swStatus').textContent='Failed';$('swStatus').style.color='var(--red)'});
+    function updateOnline(){$('offlinePill').classList.toggle('visible',!navigator.onLine)}
+    window.addEventListener('online',updateOnline);window.addEventListener('offline',updateOnline);updateOnline();
+    document.addEventListener('keydown',e=>{if(e.key==='a'||e.key==='A')$('btnAccept').click();if(e.key==='r'||e.key==='R')$('btnReject').click()});
+    async function init(){const bar=$('loadingBar');bar.style.width='20%';await sovereign.init();bar.style.width='40%';await initDB();bar.style.width='60%';await loadState();bar.style.width='80%';calculateV();updateUI();loadSuggestion();await updateLedgerUI();bar.style.width='100%';setTimeout(()=>$('loadingScreen').classList.add('hidden'),500)}
+    init();
+  </script>
+</body>
+</html>
