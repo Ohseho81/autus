@@ -1,0 +1,67 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🚀 AUTUS Sovereign Live - autus-ai.com 배포
+# ═══════════════════════════════════════════════════════════════════════════════
+# 
+# sovereign-live를 Netlify에 자동 배포
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: Deploy Sovereign Live
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sovereign-live/**'
+      - '.github/workflows/deploy-sovereign.yml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy to Netlify
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: sovereign-live/package-lock.json
+
+      - name: 📥 Install Dependencies
+        working-directory: sovereign-live
+        run: npm ci
+
+      - name: 🔨 Build
+        working-directory: sovereign-live
+        run: npm run build
+
+      - name: 🚀 Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './sovereign-live/out'
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy Sovereign Live v${{ github.run_number }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 5
+
+      - name: ✅ Deploy Complete
+        if: success()
+        run: |
+          echo "═══════════════════════════════════════════════════════════"
+          echo "✅ AUTUS Sovereign Live 배포 완료!"
+          echo "═══════════════════════════════════════════════════════════"
+          echo "🌐 URL: https://autus-ai.com"
+          echo "📦 Version: ${{ github.run_number }}"
+          echo "📅 Time: $(date)"
+          echo "═══════════════════════════════════════════════════════════"
