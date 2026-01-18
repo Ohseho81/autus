@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS — Consensus Engine Demo</title>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .consensus-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            padding: 8px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 16px 24px;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            color: var(--text-dim);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(180, 74, 255, 0.1));
+            color: var(--neon-cyan);
+        }
+
+        .tab-btn-icon {
+            font-size: 20px;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* ====== TAB 1: 솔루션 활용 기록 ====== */
+        .usage-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .usage-form { grid-template-columns: 1fr; }
+        }
+
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .form-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .form-select, .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+
+        .form-select option {
+            background: var(--bg-card);
+        }
+
+        .mts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .mts-item {
+            padding: 16px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .mts-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .mts-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .mts-value.m { color: var(--neon-green); }
+        .mts-value.t { color: var(--neon-orange); }
+        .mts-value.s { color: var(--neon-cyan); }
+
+        .mts-slider {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .submit-section {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.05), rgba(180, 74, 255, 0.03));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .score-preview {
+            text-align: center;
+        }
+
+        .score-preview-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .score-preview-value {
+            font-size: 36px;
+            font-weight: 700;
+            font-family: 'SF Mono', monospace;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 30px var(--neon-cyan);
+        }
+
+        .submit-btn {
+            padding: 16px 48px;
+            background: linear-gradient(135deg, var(--neon-green), #00aa66);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* ====== TAB 2: 솔루션 랭킹 ====== */
+        .ranking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .ranking-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .task-filter {
+            padding: 12px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: all 0.3s;
+        }
+
+        .ranking-item:hover {
+            border-color: var(--neon-cyan);
+            transform: translateX(4px);
+        }
+
+        .ranking-item.standard {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(0, 240, 255, 0.05));
+            border-color: var(--neon-green);
+        }
+
+        .ranking-position {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            background: var(--bg-hover);
+        }
+
+        .ranking-item:nth-child(1) .ranking-position {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+        }
+
+        .ranking-item:nth-child(2) .ranking-position {
+            background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+            color: #000;
+        }
+
+        .ranking-item:nth-child(3) .ranking-position {
+            background: linear-gradient(135deg, #CD7F32, #8B4513);
+            color: #fff;
+        }
+
+        .ranking-info {
+            flex: 1;
+        }
+
+        .ranking-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .standard-badge {
+            padding: 4px 10px;
+            background: var(--neon-green);
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .ranking-meta {
+            font-size: 12px;
+            color: var(--text-dim);
+            display: flex;
+            gap: 16px;
+        }
+
+        .ranking-stats {
+            display: flex;
+            gap: 24px;
+            text-align: center;
+        }
+
+        .ranking-stat {
+            min-width: 80px;
+        }
+
+        .ranking-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .ranking-stat-value.score { color: var(--neon-cyan); }
+        .ranking-stat-value.usage { color: var(--neon-purple); }
+        .ranking-stat-value.vgrowth { color: var(--neon-green); }
+
+        .ranking-stat-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        /* Progress Bar for Standard Threshold */
+        .progress-bar {
+            height: 6px;
+            background: var(--bg-hover);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        /* ====== TAB 3: RetroPGF 보상 ====== */
+        .retro-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .retro-period {
+            display: flex;
+            gap: 12px;
+        }
+
+        .period-input {
+            padding: 10px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .retro-pool {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pool-label {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .pool-input {
+            width: 120px;
+            padding: 10px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--neon-green);
+            font-size: 16px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .calculate-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--neon-purple), #8844cc);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calculate-btn:hover {
+            box-shadow: 0 0 30px rgba(180, 74, 255, 0.4);
+        }
+
+        .retro-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .retro-summary { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .summary-card {
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .summary-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'SF Mono', monospace;
+            margin-bottom: 4px;
+        }
+
+        .summary-label {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .distribution-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .distribution-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .distribution-rank {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-hover);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .distribution-item:nth-child(1) .distribution-rank { background: #FFD700; color: #000; }
+        .distribution-item:nth-child(2) .distribution-rank { background: #C0C0C0; color: #000; }
+        .distribution-item:nth-child(3) .distribution-rank { background: #CD7F32; color: #fff; }
+
+        .distribution-user {
+            flex: 1;
+        }
+
+        .distribution-user-id {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .distribution-user-type {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .distribution-stats {
+            display: flex;
+            gap: 20px;
+            text-align: center;
+        }
+
+        .distribution-stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .distribution-stat-label {
+            font-size: 9px;
+            color: var(--text-dim);
+        }
+
+        .distribution-reward {
+            text-align: right;
+            min-width: 100px;
+        }
+
+        .distribution-reward-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--neon-green);
+        }
+
+        .distribution-reward-percent {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 32px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--neon-green);
+            border-radius: 12px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 320px;
+            animation: toastIn 0.4s ease;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .toast-icon { font-size: 24px; }
+        .toast-content { flex: 1; }
+        .toast-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .toast-message { font-size: 12px; color: var(--text-dim); }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div id="nav"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="consensus-container">
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="usage">
+                <span class="tab-btn-icon">📝</span>
+                솔루션 활용 기록
+            </button>
+            <button class="tab-btn" data-tab="ranking">
+                <span class="tab-btn-icon">🏆</span>
+                실효성 랭킹
+            </button>
+            <button class="tab-btn" data-tab="retropgf">
+                <span class="tab-btn-icon">🎁</span>
+                RetroPGF 보상
+            </button>
+        </div>
+
+        <!-- TAB 1: 솔루션 활용 기록 -->
+        <div class="tab-panel active" id="usagePanel">
+            <div class="usage-form">
+                <!-- 업무 & 솔루션 선택 -->
+                <div class="form-card">
+                    <div class="form-card-title">
+                        <span>📋</span> 업무 & 솔루션 선택
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">업무 유형</label>
+                        <select class="form-select" id="taskSelect">
+                            <option value="weekly_report">주간 보고서 작성</option>
+                            <option value="invoice_processing">청구서 처리</option>
+                            <option value="parent_consult">학부모 상담 일지</option>
+                            <option value="schedule_coord">일정 조율</option>
+                            <option value="student_progress">학생 진도 관리</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">사용한 솔루션</label>
+                        <select class="form-select" id="solutionSelect">
+                            <option value="auto_template">자동 템플릿 생성</option>
+                            <option value="ai_draft">AI 초안 작성</option>
+                            <option value="manual_standard">수동 표준 양식</option>
+                            <option value="hybrid_assist">하이브리드 보조</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">활용 시간 (분)</label>
+                        <input type="number" class="form-input" id="durationInput" value="15" min="1" max="480">
+                    </div>
+                </div>
+
+                <!-- Before 상태 -->
+                <div class="form-card">
+                    <div class="form-card-title">
+                        <span>📊</span> Before (사용 전)
+                    </div>
+                    <div class="mts-grid">
+                        <div class="mts-item">
+                            <div class="mts-label">M (가치)</div>
+                            <div class="mts-value m" id="beforeMValue">200</div>
+                            <input type="range" class="mts-slider" id="beforeM" min="50" max="500" value="200" oninput="updateValue('beforeM')">
+                        </div>
+                        <div class="mts-item">
+                            <div class="mts-label">T (비용)</div>
+                            <div class="mts-value t" id="beforeTValue">400</div>
+                            <input type="range" class="mts-slider" id="beforeT" min="50" max="500" value="400" oninput="updateValue('beforeT')">
+                        </div>
+                        <div class="mts-item">
+                            <div class="mts-label">s (시너지)</div>
+                            <div class="mts-value s" id="beforeSValue">0.10</div>
+                            <input type="range" class="mts-slider" id="beforeS" min="0" max="100" value="10" oninput="updateValue('beforeS')">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- After 상태 -->
+                <div class="form-card">
+                    <div class="form-card-title">
+                        <span>✨</span> After (사용 후)
+                    </div>
+                    <div class="mts-grid">
+                        <div class="mts-item">
+                            <div class="mts-label">M (가치)</div>
+                            <div class="mts-value m" id="afterMValue">300</div>
+                            <input type="range" class="mts-slider" id="afterM" min="50" max="500" value="300" oninput="updateValue('afterM')">
+                        </div>
+                        <div class="mts-item">
+                            <div class="mts-label">T (비용)</div>
+                            <div class="mts-value t" id="afterTValue">100</div>
+                            <input type="range" class="mts-slider" id="afterT" min="50" max="500" value="100" oninput="updateValue('afterT')">
+                        </div>
+                        <div class="mts-item">
+                            <div class="mts-label">s (시너지)</div>
+                            <div class="mts-value s" id="afterSValue">0.35</div>
+                            <input type="range" class="mts-slider" id="afterS" min="0" max="100" value="35" oninput="updateValue('afterS')">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="submit-section">
+                    <div class="score-preview">
+                        <div class="score-preview-label">예상 실효성 점수</div>
+                        <div class="score-preview-value" id="scorePreview">0.612</div>
+                    </div>
+                    <button class="submit-btn" onclick="recordUsage()">
+                        ✓ 활용 결과 기록
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: 실효성 랭킹 -->
+        <div class="tab-panel" id="rankingPanel">
+            <div class="ranking-header">
+                <h2 class="ranking-title">🏆 솔루션 실효성 랭킹</h2>
+                <select class="task-filter" id="rankingTaskFilter" onchange="renderRanking()">
+                    <option value="all">모든 업무</option>
+                    <option value="weekly_report">주간 보고서 작성</option>
+                    <option value="invoice_processing">청구서 처리</option>
+                    <option value="parent_consult">학부모 상담 일지</option>
+                    <option value="schedule_coord">일정 조율</option>
+                    <option value="student_progress">학생 진도 관리</option>
+                </select>
+            </div>
+            <div class="ranking-list" id="rankingList">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- TAB 3: RetroPGF 보상 -->
+        <div class="tab-panel" id="retropgfPanel">
+            <div class="retro-header">
+                <div class="retro-period">
+                    <input type="date" class="period-input" id="periodStart" value="2026-01-01">
+                    <span style="color: var(--text-dim);">~</span>
+                    <input type="date" class="period-input" id="periodEnd" value="2026-01-18">
+                </div>
+                <div class="retro-pool">
+                    <span class="pool-label">총 보상 풀</span>
+                    <input type="number" class="pool-input" id="rewardPool" value="10000">
+                    <span style="color: var(--neon-green);">AUS</span>
+                </div>
+                <button class="calculate-btn" onclick="calculateRetroPGF()">
+                    📊 배분 계산
+                </button>
+            </div>
+
+            <div class="retro-summary" id="retroSummary">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="distribution-list" id="distributionList">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/consensus.js"></script>
+    <script>
+        // Navigation
+        document.getElementById('nav').innerHTML = generateNav('consensus');
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab + 'Panel').classList.add('active');
+            });
+        });
+
+        // Update M/T/s value displays
+        function updateValue(id) {
+            const input = document.getElementById(id);
+            const display = document.getElementById(id + 'Value');
+            
+            if (id.includes('S')) {
+                display.textContent = (input.value / 100).toFixed(2);
+            } else {
+                display.textContent = input.value;
+            }
+            
+            updateScorePreview();
+        }
+
+        // Update score preview
+        function updateScorePreview() {
+            const before = {
+                M: parseFloat(document.getElementById('beforeM').value),
+                T: parseFloat(document.getElementById('beforeT').value),
+                s: parseFloat(document.getElementById('beforeS').value) / 100
+            };
+            const after = {
+                M: parseFloat(document.getElementById('afterM').value),
+                T: parseFloat(document.getElementById('afterT').value),
+                s: parseFloat(document.getElementById('afterS').value) / 100
+            };
+
+            const score = ConsensusEngine.calculateEffectiveness(before, after, 1);
+            document.getElementById('scorePreview').textContent = score.toFixed(3);
+        }
+
+        // Record usage
+        function recordUsage() {
+            const taskId = document.getElementById('taskSelect').value;
+            const solutionId = document.getElementById('solutionSelect').value;
+            const duration = parseInt(document.getElementById('durationInput').value);
+
+            const before = {
+                M: parseFloat(document.getElementById('beforeM').value),
+                T: parseFloat(document.getElementById('beforeT').value),
+                s: parseFloat(document.getElementById('beforeS').value) / 100
+            };
+            const after = {
+                M: parseFloat(document.getElementById('afterM').value),
+                T: parseFloat(document.getElementById('afterT').value),
+                s: parseFloat(document.getElementById('afterS').value) / 100
+            };
+
+            const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+            const userType = AUTUS.kernel.role_id || 'teacher';
+
+            const log = ConsensusEngine.recordUsage({
+                taskId,
+                solutionId,
+                userId,
+                userType,
+                before,
+                after,
+                durationMinutes: duration
+            });
+
+            showToast('✅ 활용 기록 완료', `실효성 점수: ${log.effectivenessScore.toFixed(3)}`);
+            renderRanking();
+        }
+
+        // Render ranking
+        function renderRanking() {
+            const filter = document.getElementById('rankingTaskFilter').value;
+            const list = document.getElementById('rankingList');
+
+            let solutions = [];
+            
+            if (filter === 'all') {
+                Object.entries(ConsensusEngine.solutionStats).forEach(([id, stats]) => {
+                    solutions.push({
+                        solutionId: id,
+                        taskId: stats.taskId,
+                        avgScore: stats.avgScore,
+                        usageCount: stats.usageCount,
+                        avgVGrowth: stats.avgVGrowth,
+                        uniqueUsers: stats.users.size,
+                        isStandard: ConsensusEngine.standards[stats.taskId]?.solutionId === id
+                    });
+                });
+            } else {
+                solutions = ConsensusEngine.getSolutionRanking(filter);
+            }
+
+            solutions.sort((a, b) => b.avgScore - a.avgScore);
+
+            if (solutions.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 60px; color: var(--text-dim);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+                        <div>아직 활용 기록이 없습니다</div>
+                        <div style="font-size: 13px; margin-top: 8px;">솔루션을 활용하면 자동으로 랭킹이 생성됩니다</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const solutionNames = {
+                'auto_template': '자동 템플릿 생성',
+                'ai_draft': 'AI 초안 작성',
+                'manual_standard': '수동 표준 양식',
+                'hybrid_assist': '하이브리드 보조'
+            };
+
+            const taskNames = {
+                'weekly_report': '주간 보고서',
+                'invoice_processing': '청구서 처리',
+                'parent_consult': '학부모 상담',
+                'schedule_coord': '일정 조율',
+                'student_progress': '진도 관리'
+            };
+
+            list.innerHTML = solutions.map((s, i) => {
+                const progressPercent = Math.min(100, (s.avgScore / 0.8) * 100);
+                const usagePercent = Math.min(100, (s.usageCount / 50) * 100);
+
+                return `
+                    <div class="ranking-item ${s.isStandard ? 'standard' : ''} fade-in" style="animation-delay: ${i * 0.05}s;">
+                        <div class="ranking-position">${i + 1}</div>
+                        <div class="ranking-info">
+                            <div class="ranking-name">
+                                ${solutionNames[s.solutionId] || s.solutionId}
+                                ${s.isStandard ? '<span class="standard-badge">✓ 표준</span>' : ''}
+                            </div>
+                            <div class="ranking-meta">
+                                <span>📋 ${taskNames[s.taskId] || s.taskId}</span>
+                                <span>👥 ${s.uniqueUsers}명 활용</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                            </div>
+                            <div class="progress-label">표준 기준 ${progressPercent.toFixed(0)}% 달성</div>
+                        </div>
+                        <div class="ranking-stats">
+                            <div class="ranking-stat">
+                                <div class="ranking-stat-value score">${s.avgScore.toFixed(3)}</div>
+                                <div class="ranking-stat-label">실효성</div>
+                            </div>
+                            <div class="ranking-stat">
+                                <div class="ranking-stat-value usage">${s.usageCount}</div>
+                                <div class="ranking-stat-label">활용 횟수</div>
+                            </div>
+                            <div class="ranking-stat">
+                                <div class="ranking-stat-value vgrowth">${(s.avgVGrowth * 100).toFixed(1)}%</div>
+                                <div class="ranking-stat-label">V 증가</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Calculate RetroPGF
+        function calculateRetroPGF() {
+            const startDate = new Date(document.getElementById('periodStart').value).getTime();
+            const endDate = new Date(document.getElementById('periodEnd').value).getTime() + 86400000;
+            const totalReward = parseInt(document.getElementById('rewardPool').value);
+
+            const result = ConsensusEngine.calculateRetroPGF(totalReward, startDate, endDate);
+
+            // Render summary
+            document.getElementById('retroSummary').innerHTML = `
+                <div class="summary-card fade-in">
+                    <div class="summary-icon">👥</div>
+                    <div class="summary-value text-cyan">${result.participantCount}</div>
+                    <div class="summary-label">참여자 수</div>
+                </div>
+                <div class="summary-card fade-in" style="animation-delay: 0.1s;">
+                    <div class="summary-icon">📊</div>
+                    <div class="summary-value text-purple">${result.totalContribution.toFixed(1)}</div>
+                    <div class="summary-label">총 기여도</div>
+                </div>
+                <div class="summary-card fade-in" style="animation-delay: 0.2s;">
+                    <div class="summary-icon">🎁</div>
+                    <div class="summary-value text-green">${totalReward.toLocaleString()}</div>
+                    <div class="summary-label">총 보상 (AUS)</div>
+                </div>
+                <div class="summary-card fade-in" style="animation-delay: 0.3s;">
+                    <div class="summary-icon">💎</div>
+                    <div class="summary-value text-orange">${result.distributions.length > 0 ? result.distributions[0].reward.toLocaleString() : 0}</div>
+                    <div class="summary-label">최대 보상</div>
+                </div>
+            `;
+
+            // Render distribution
+            if (result.distributions.length === 0) {
+                document.getElementById('distributionList').innerHTML = `
+                    <div style="text-align: center; padding: 60px; color: var(--text-dim);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🎁</div>
+                        <div>해당 기간에 활용 기록이 없습니다</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const roleNames = { owner: '오너', director: '원장', teacher: '강사', staff: '행정', parent: '학부모', student: '학생' };
+
+            document.getElementById('distributionList').innerHTML = result.distributions.slice(0, 20).map((d, i) => `
+                <div class="distribution-item fade-in" style="animation-delay: ${i * 0.03}s;">
+                    <div class="distribution-rank">${i + 1}</div>
+                    <div class="distribution-user">
+                        <div class="distribution-user-id">${d.userId}</div>
+                        <div class="distribution-user-type">${roleNames[d.userType] || d.userType}</div>
+                    </div>
+                    <div class="distribution-stats">
+                        <div>
+                            <div class="distribution-stat-value" style="color: var(--neon-cyan);">${d.logCount}</div>
+                            <div class="distribution-stat-label">활용 횟수</div>
+                        </div>
+                        <div>
+                            <div class="distribution-stat-value" style="color: var(--neon-purple);">${d.standardContributions}</div>
+                            <div class="distribution-stat-label">표준 기여</div>
+                        </div>
+                    </div>
+                    <div class="distribution-reward">
+                        <div class="distribution-reward-value">${d.reward.toLocaleString()} AUS</div>
+                        <div class="distribution-reward-percent">${d.contributionPercent.toFixed(1)}%</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Toast notification
+        function showToast(title, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <div class="toast-icon">✨</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // Event listeners for consensus events
+        window.addEventListener('autus:standard', (e) => {
+            showToast('🏆 표준 솔루션 확정', e.detail.userMessage);
+            renderRanking();
+        });
+
+        window.addEventListener('autus:gate2', (e) => {
+            showToast('⚠️ Gate-2 경고', e.detail.message);
+        });
+
+        // Init
+        updateScorePreview();
+        renderRanking();
+    </script>
+</body>
+</html>
