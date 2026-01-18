@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS — Wireframes & Components</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00D4AA;
+      --primary-end: #00B4D8;
+      --neon-cyan: #00F5FF;
+      --bg-dark: #0a0e1a;
+      --bg-light: #f8fafc;
+      --bg-panel: #ffffff;
+      --glass-bg: rgba(255,255,255,0.8);
+      --glass-border: rgba(0,212,170,0.3);
+      --text-dark: #1a1a2e;
+      --text-muted: #64748b;
+      --success: #00D4AA;
+      --warning: #FFB800;
+      --danger: #FF4757;
+      --info: #00B4D8;
+      --purple: #8B5CF6;
+      --skeleton: #e2e8f0;
+      --skeleton-shine: #f1f5f9;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 50%, #f5f3ff 100%);
+      color: var(--text-dark);
+      min-height: 100vh;
+    }
+    
+    /* Page Header */
+    .page-header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-end));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 18px;
+    }
+    
+    .logo-text {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    
+    .logo-text span {
+      color: var(--primary);
+    }
+    
+    .header-nav {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .nav-link {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    
+    .nav-link:hover {
+      background: var(--skeleton);
+      color: var(--text-dark);
+    }
+    
+    .nav-link.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-end));
+      color: white;
+    }
+    
+    /* Main Container */
+    .main-container {
+      padding: 40px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    
+    .section-title {
+      font-size: 28px;
+      font-weight: 300;
+      margin-bottom: 8px;
+      color: var(--text-dark);
+    }
+    
+    .section-title span {
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+    
+    /* Wireframe Grid */
+    .wireframe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 32px;
+      margin-bottom: 60px;
+    }
+    
+    .wireframe-card {
+      background: var(--bg-panel);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border: 1px solid var(--glass-border);
+      transition: all 0.3s;
+    }
+    
+    .wireframe-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,212,170,0.15);
+    }
+    
+    .wf-header {
+      background: linear-gradient(90deg, #1a1a2e, #2d2d44);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .wf-dots {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .wf-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    .wf-dot:nth-child(1) { background: #FF5F56; }
+    .wf-dot:nth-child(2) { background: #FFBD2E; }
+    .wf-dot:nth-child(3) { background: #27C93F; }
+    
+    .wf-title {
+      color: rgba(255,255,255,0.9);
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .wf-badge {
+      margin-left: auto;
+      padding: 4px 10px;
+      background: rgba(0,212,170,0.2);
+      border: 1px solid var(--primary);
+      border-radius: 12px;
+      font-size: 10px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    
+    .wf-body {
+      padding: 20px;
+      background: #fafbfc;
+      min-height: 400px;
+    }
+    
+    /* Skeleton Elements */
+    .sk {
+      background: linear-gradient(90deg, var(--skeleton) 25%, var(--skeleton-shine) 50%, var(--skeleton) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-shine 1.5s infinite;
+      border-radius: 4px;
+    }
+    
+    @keyframes skeleton-shine {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    /* Common Layout Components */
+    .wf-topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      border: 1px solid var(--skeleton);
+    }
+    
+    .wf-logo-mini {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-end));
+      border-radius: 6px;
+    }
+    
+    .wf-searchbar {
+      flex: 1;
+      height: 28px;
+      max-width: 200px;
+    }
+    
+    .wf-icon-group {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+    
+    .wf-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+    
+    .wf-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--info));
+    }
+    
+    /* 3-Column Layout */
+    .wf-3col {
+      display: grid;
+      grid-template-columns: 60px 1fr 180px;
+      gap: 12px;
+      height: 320px;
+    }
+    
+    .wf-sidebar {
+      background: white;
+      border-radius: 8px;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid var(--skeleton);
+    }
+    
+    .wf-nav-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      margin: 0 auto;
+    }
+    
+    .wf-nav-icon.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-end)) !important;
+      box-shadow: 0 4px 12px rgba(0,212,170,0.3);
+    }
+    
+    .wf-main {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid var(--skeleton);
+      overflow: hidden;
+    }
+    
+    .wf-context {
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid var(--skeleton);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    /* KPI Cards */
+    .wf-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .wf-kpi-card {
+      background: var(--bg-light);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid var(--skeleton);
+    }
+    
+    .wf-kpi-value {
+      height: 20px;
+      width: 60%;
+      margin-bottom: 6px;
+    }
+    
+    .wf-kpi-label {
+      height: 10px;
+      width: 80%;
+    }
+    
+    .wf-kpi-spark {
+      height: 24px;
+      margin-top: 8px;
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    
+    .wf-spark-bar {
+      flex: 1;
+      background: var(--primary);
+      border-radius: 2px;
+      opacity: 0.6;
+    }
+    
+    /* Chart */
+    .wf-chart {
+      background: var(--bg-light);
+      border-radius: 8px;
+      padding: 16px;
+      height: 160px;
+      border: 1px solid var(--skeleton);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .wf-chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .wf-chart-title {
+      height: 12px;
+      width: 80px;
+    }
+    
+    .wf-chart-legend {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .wf-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .wf-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    
+    .wf-legend-text {
+      height: 8px;
+      width: 30px;
+    }
+    
+    .wf-chart-area {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+    }
+    
+    .wf-area-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70%;
+      background: linear-gradient(180deg, rgba(0,212,170,0.3) 0%, transparent 100%);
+      border-top: 2px solid var(--primary);
+      border-radius: 0 0 8px 8px;
+    }
+    
+    /* Globe Visualization */
+    .wf-globe-container {
+      position: relative;
+      height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .wf-globe {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #1a1a2e, #0a0e1a);
+      position: relative;
+      box-shadow: 
+        0 0 60px rgba(0,212,170,0.3),
+        inset 0 0 40px rgba(0,180,216,0.2);
+    }
+    
+    .wf-orbit {
+      position: absolute;
+      border: 1px dashed rgba(0,212,170,0.3);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .wf-orbit:nth-child(1) { width: 100px; height: 100px; }
+    .wf-orbit:nth-child(2) { width: 150px; height: 150px; }
+    .wf-orbit:nth-child(3) { width: 200px; height: 200px; }
+    
+    .wf-planet {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px currentColor;
+    }
+    
+    .wf-planet.t1 { background: #FFD700; color: #FFD700; }
+    .wf-planet.t2 { background: #00AAFF; color: #00AAFF; }
+    .wf-planet.t3 { background: #00CC66; color: #00CC66; }
+    .wf-planet.t4 { background: #888888; color: #888888; }
+    
+    /* Action Buttons */
+    .wf-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 16px;
+    }
+    
+    .wf-action-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .wf-action-btn.recover {
+      background: rgba(0,212,170,0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .wf-action-btn.defriction {
+      background: rgba(0,180,216,0.1);
+      border-color: var(--info);
+      color: var(--info);
+    }
+    
+    .wf-action-btn.shock {
+      background: rgba(255,184,0,0.1);
+      border-color: var(--warning);
+      color: var(--warning);
+    }
+    
+    /* Heatmap */
+    .wf-heatmap {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 3px;
+      padding: 16px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid var(--skeleton);
+    }
+    
+    .wf-heat-row-label {
+      grid-column: 1 / -1;
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 4px 0;
+      font-weight: 500;
+    }
+    
+    .wf-heat-cell {
+      aspect-ratio: 1;
+      border-radius: 3px;
+      transition: transform 0.2s;
+    }
+    
+    .wf-heat-cell:hover {
+      transform: scale(1.3);
+      z-index: 10;
+    }
+    
+    .wf-heat-legend {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    
+    .wf-heat-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    
+    .wf-heat-legend-box {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+    
+    /* Timeline / Gantt */
+    .wf-timeline {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid var(--skeleton);
+    }
+    
+    .wf-timeline-header {
+      display: flex;
+      margin-bottom: 12px;
+      padding-left: 80px;
+    }
+    
+    .wf-timeline-month {
+      flex: 1;
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    
+    .wf-gantt-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .wf-gantt-label {
+      width: 68px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+    
+    .wf-gantt-track {
+      flex: 1;
+      height: 24px;
+      background: var(--bg-light);
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .wf-gantt-bar {
+      position: absolute;
+      height: 100%;
+      border-radius: 4px;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: white;
+      font-weight: 600;
+    }
+    
+    /* Cards List */
+    .wf-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    
+    .wf-card-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid var(--skeleton);
+    }
+    
+    .wf-card-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    
+    .wf-card-content {
+      flex: 1;
+    }
+    
+    .wf-card-title {
+      height: 10px;
+      width: 60%;
+      margin-bottom: 4px;
+    }
+    
+    .wf-card-meta {
+      height: 8px;
+      width: 40%;
+    }
+    
+    .wf-card-badge {
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 600;
+    }
+    
+    /* Context Panel Items */
+    .wf-context-section {
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--skeleton);
+    }
+    
+    .wf-context-section:last-child {
+      border-bottom: none;
+    }
+    
+    .wf-context-title {
+      height: 10px;
+      width: 60%;
+      margin-bottom: 10px;
+    }
+    
+    .wf-context-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    
+    .wf-context-label {
+      height: 8px;
+      width: 50%;
+    }
+    
+    .wf-context-value {
+      height: 8px;
+      width: 30%;
+    }
+    
+    /* Component Labels */
+    .component-label {
+      position: absolute;
+      padding: 4px 8px;
+      background: var(--text-dark);
+      color: white;
+      font-size: 9px;
+      font-weight: 600;
+      border-radius: 4px;
+      white-space: nowrap;
+      z-index: 20;
+      pointer-events: none;
+    }
+    
+    .component-label::before {
+      content: '';
+      position: absolute;
+      border: 4px solid transparent;
+    }
+    
+    .component-label.top::before {
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-top-color: var(--text-dark);
+    }
+    
+    .component-label.left::before {
+      right: -8px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-left-color: var(--text-dark);
+    }
+    
+    /* Annotations */
+    .wf-annotation {
+      position: relative;
+    }
+    
+    .wf-annotation::after {
+      content: attr(data-label);
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 2px 8px;
+      background: var(--purple);
+      color: white;
+      font-size: 8px;
+      font-weight: 600;
+      border-radius: 4px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .wf-annotation:hover::after {
+      opacity: 1;
+    }
+    
+    /* Component Library Section */
+    .component-section {
+      margin-bottom: 60px;
+    }
+    
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    
+    .component-card {
+      background: var(--bg-panel);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--skeleton);
+      text-align: center;
+    }
+    
+    .component-preview {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    
+    .component-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    
+    .component-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    
+    /* Button Samples */
+    .btn-sample {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-end));
+      color: white;
+      box-shadow: 0 4px 12px rgba(0,212,170,0.3);
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: var(--text-dark);
+      border: 1px solid var(--skeleton);
+    }
+    
+    .btn-ghost {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+    
+    /* Input Samples */
+    .input-sample {
+      padding: 10px 14px;
+      border: 1px solid var(--skeleton);
+      border-radius: 8px;
+      font-size: 12px;
+      width: 100%;
+      background: white;
+    }
+    
+    .input-sample:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0,212,170,0.1);
+    }
+    
+    /* Badge Samples */
+    .badge-sample {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    
+    .badge-success { background: rgba(0,212,170,0.15); color: var(--primary); }
+    .badge-warning { background: rgba(255,184,0,0.15); color: var(--warning); }
+    .badge-danger { background: rgba(255,71,87,0.15); color: var(--danger); }
+    .badge-info { background: rgba(0,180,216,0.15); color: var(--info); }
+    
+    /* Footer */
+    .page-footer {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="page-header">
+    <div class="logo">
+      <div class="logo-icon">A</div>
+      <div class="logo-text">AUTUS <span>Wireframes</span></div>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="solar.html" class="nav-link">Solar</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="sitemap.html" class="nav-link">Sitemap</a>
+      <a href="wireframe.html" class="nav-link active">Wireframes</a>
+    </nav>
+  </header>
+  
+  <main class="main-container">
+    <!-- Section: Page Wireframes -->
+    <section class="component-section">
+      <h2 class="section-title">Page <span>Wireframes</span></h2>
+      <p class="section-subtitle">AUTUS 주요 페이지의 상세 레이아웃 및 컴포넌트 배치</p>
+      
+      <div class="wireframe-grid">
+        <!-- Index (Home) -->
+        <div class="wireframe-card">
+          <div class="wf-header">
+            <div class="wf-dots">
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+            </div>
+            <span class="wf-title">index.html</span>
+            <span class="wf-badge">HOME</span>
+          </div>
+          <div class="wf-body">
+            <div class="wf-topbar">
+              <div class="wf-logo-mini"></div>
+              <div class="wf-searchbar sk"></div>
+              <div class="wf-icon-group">
+                <div class="wf-icon sk"></div>
+                <div class="wf-icon sk"></div>
+                <div class="wf-avatar"></div>
+              </div>
+            </div>
+            <div class="wf-3col">
+              <div class="wf-sidebar">
+                <div class="wf-nav-icon sk active"></div>
+                <div class="wf-nav-icon sk"></div>
+                <div class="wf-nav-icon sk"></div>
+                <div class="wf-nav-icon sk"></div>
+                <div class="wf-nav-icon sk"></div>
+              </div>
+              <div class="wf-main">
+                <div class="wf-kpi-grid">
+                  <div class="wf-kpi-card">
+                    <div class="wf-kpi-value sk"></div>
+                    <div class="wf-kpi-label sk"></div>
+                    <div class="wf-kpi-spark">
+                      <div class="wf-spark-bar" style="height:40%"></div>
+                      <div class="wf-spark-bar" style="height:60%"></div>
+                      <div class="wf-spark-bar" style="height:35%"></div>
+                      <div class="wf-spark-bar" style="height:80%"></div>
+                      <div class="wf-spark-bar" style="height:55%"></div>
+                    </div>
+                  </div>
+                  <div class="wf-kpi-card">
+                    <div class="wf-kpi-value sk"></div>
+                    <div class="wf-kpi-label sk"></div>
+                    <div class="wf-kpi-spark">
+                      <div class="wf-spark-bar" style="height:70%;background:var(--info)"></div>
+                      <div class="wf-spark-bar" style="height:50%;background:var(--info)"></div>
+                      <div class="wf-spark-bar" style="height:85%;background:var(--info)"></div>
+                      <div class="wf-spark-bar" style="height:60%;background:var(--info)"></div>
+                      <div class="wf-spark-bar" style="height:75%;background:var(--info)"></div>
+                    </div>
+                  </div>
+                  <div class="wf-kpi-card">
+                    <div class="wf-kpi-value sk"></div>
+                    <div class="wf-kpi-label sk"></div>
+                    <div class="wf-kpi-spark">
+                      <div class="wf-spark-bar" style="height:55%;background:var(--warning)"></div>
+                      <div class="wf-spark-bar" style="height:45%;background:var(--warning)"></div>
+                      <div class="wf-spark-bar" style="height:65%;background:var(--warning)"></div>
+                      <div class="wf-spark-bar" style="height:40%;background:var(--warning)"></div>
+                      <div class="wf-spark-bar" style="height:70%;background:var(--warning)"></div>
+                    </div>
+                  </div>
+                  <div class="wf-kpi-card">
+                    <div class="wf-kpi-value sk"></div>
+                    <div class="wf-kpi-label sk"></div>
+                    <div class="wf-kpi-spark">
+                      <div class="wf-spark-bar" style="height:30%;background:var(--purple)"></div>
+                      <div class="wf-spark-bar" style="height:50%;background:var(--purple)"></div>
+                      <div class="wf-spark-bar" style="height:75%;background:var(--purple)"></div>
+                      <div class="wf-spark-bar" style="height:60%;background:var(--purple)"></div>
+                      <div class="wf-spark-bar" style="height:90%;background:var(--purple)"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="wf-chart">
+                  <div class="wf-chart-header">
+                    <div class="wf-chart-title sk"></div>
+                    <div class="wf-chart-legend">
+                      <div class="wf-legend-item">
+                        <div class="wf-legend-dot" style="background:var(--primary)"></div>
+                        <div class="wf-legend-text sk"></div>
+                      </div>
+                      <div class="wf-legend-item">
+                        <div class="wf-legend-dot" style="background:var(--info)"></div>
+                        <div class="wf-legend-text sk"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="wf-chart-area">
+                    <div class="wf-area-line"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="wf-context">
+                <div class="wf-context-section">
+                  <div class="wf-context-title sk"></div>
+                  <div class="wf-context-item"><div class="wf-context-label sk"></div><div class="wf-context-value sk"></div></div>
+                  <div class="wf-context-item"><div class="wf-context-label sk"></div><div class="wf-context-value sk"></div></div>
+                  <div class="wf-context-item"><div class="wf-context-label sk"></div><div class="wf-context-value sk"></div></div>
+                </div>
+                <div class="wf-context-section">
+                  <div class="wf-context-title sk"></div>
+                  <div class="wf-context-item"><div class="wf-context-label sk"></div><div class="wf-context-value sk"></div></div>
+                  <div class="wf-context-item"><div class="wf-context-label sk"></div><div class="wf-context-value sk"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Solar HQ -->
+        <div class="wireframe-card">
+          <div class="wf-header">
+            <div class="wf-dots">
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+            </div>
+            <span class="wf-title">solar.html</span>
+            <span class="wf-badge">CORE</span>
+          </div>
+          <div class="wf-body">
+            <div class="wf-topbar">
+              <div class="wf-logo-mini"></div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span style="font-size:11px;color:var(--text-muted);">GATE:</span>
+                <span class="badge-sample badge-success">SAFE</span>
+              </div>
+              <div class="wf-icon-group">
+                <div class="wf-icon sk"></div>
+                <div class="wf-avatar"></div>
+              </div>
+            </div>
+            <div class="wf-globe-container">
+              <div class="wf-globe">
+                <div class="wf-orbit"></div>
+                <div class="wf-orbit"></div>
+                <div class="wf-orbit"></div>
+                <div class="wf-planet t1" style="top:15%;left:48%"></div>
+                <div class="wf-planet t2" style="top:35%;left:82%"></div>
+                <div class="wf-planet t3" style="top:65%;left:75%"></div>
+                <div class="wf-planet t2" style="top:80%;left:40%"></div>
+                <div class="wf-planet t4" style="top:60%;left:15%"></div>
+                <div class="wf-planet t3" style="top:30%;left:20%"></div>
+              </div>
+            </div>
+            <div class="wf-actions">
+              <div class="wf-action-btn recover">💚 RECOVER</div>
+              <div class="wf-action-btn defriction">💙 DEFRICTION</div>
+              <div class="wf-action-btn shock">💛 SHOCK_DAMP</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Dashboard -->
+        <div class="wireframe-card">
+          <div class="wf-header">
+            <div class="wf-dots">
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+            </div>
+            <span class="wf-title">dashboard.html</span>
+            <span class="wf-badge">ANALYTICS</span>
+          </div>
+          <div class="wf-body">
+            <div class="wf-topbar">
+              <div class="wf-logo-mini"></div>
+              <div class="wf-searchbar sk"></div>
+              <div class="wf-icon-group">
+                <div class="wf-icon sk"></div>
+                <div class="wf-avatar"></div>
+              </div>
+            </div>
+            <div class="wf-3col" style="grid-template-columns: 60px 1fr 160px;">
+              <div class="wf-sidebar">
+                <div class="wf-nav-icon sk"></div>
+                <div class="wf-nav-icon sk active"></div>
+                <div class="wf-nav-icon sk"></div>
+                <div class="wf-nav-icon sk"></div>
+              </div>
+              <div class="wf-main">
+                <div class="wf-kpi-grid" style="grid-template-columns: repeat(2, 1fr);">
+                  <div class="wf-kpi-card" style="border-left:3px solid var(--danger)">
+                    <div style="font-size:20px;font-weight:700;color:var(--danger)">0.42</div>
+                    <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Risk Index</div>
+                  </div>
+                  <div class="wf-kpi-card" style="border-left:3px solid var(--info)">
+                    <div style="font-size:20px;font-weight:700;color:var(--info)">2.31</div>
+                    <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Entropy</div>
+                  </div>
+                </div>
+                <div class="wf-chart" style="height:140px;">
+                  <div class="wf-chart-header">
+                    <div class="wf-chart-title sk"></div>
+                  </div>
+                  <div class="wf-chart-area">
+                    <div class="wf-area-line" style="height:60%;background:linear-gradient(180deg, rgba(0,180,216,0.3) 0%, transparent 100%);border-top-color:var(--info);"></div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;">
+                  <div style="height:8px;background:var(--primary);border-radius:4px;opacity:0.8"></div>
+                  <div style="height:8px;background:var(--info);border-radius:4px;opacity:0.6"></div>
+                  <div style="height:8px;background:var(--warning);border-radius:4px;opacity:0.4"></div>
+                </div>
+              </div>
+              <div class="wf-context">
+                <div style="font-size:11px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Recent Activity</div>
+                <div class="wf-card-item" style="padding:8px;border:none;background:var(--bg-light);">
+                  <div class="wf-card-status" style="background:var(--primary)"></div>
+                  <div class="wf-card-content">
+                    <div class="wf-card-title sk" style="width:80%"></div>
+                    <div class="wf-card-meta sk" style="width:50%"></div>
+                  </div>
+                </div>
+                <div class="wf-card-item" style="padding:8px;border:none;background:var(--bg-light);">
+                  <div class="wf-card-status" style="background:var(--info)"></div>
+                  <div class="wf-card-content">
+                    <div class="wf-card-title sk" style="width:70%"></div>
+                    <div class="wf-card-meta sk" style="width:60%"></div>
+                  </div>
+                </div>
+                <div class="wf-card-item" style="padding:8px;border:none;background:var(--bg-light);">
+                  <div class="wf-card-status" style="background:var(--warning)"></div>
+                  <div class="wf-card-content">
+                    <div class="wf-card-title sk" style="width:90%"></div>
+                    <div class="wf-card-meta sk" style="width:45%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Heatmap -->
+        <div class="wireframe-card">
+          <div class="wf-header">
+            <div class="wf-dots">
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+            </div>
+            <span class="wf-title">heatmap.html</span>
+            <span class="wf-badge">VISUAL</span>
+          </div>
+          <div class="wf-body">
+            <div class="wf-topbar">
+              <div class="wf-logo-mini"></div>
+              <div style="display:flex;gap:6px;">
+                <span class="badge-sample badge-info">Recovery</span>
+                <span class="badge-sample badge-success">Stability</span>
+                <span class="badge-sample" style="background:#f3e5f5;color:var(--purple);">Cohesion</span>
+              </div>
+              <div class="wf-icon-group">
+                <div class="wf-avatar"></div>
+              </div>
+            </div>
+            <div class="wf-heatmap" id="heatmapGrid">
+              <div class="wf-heat-row-label">Jan</div>
+            </div>
+            <div class="wf-heat-legend">
+              <div class="wf-heat-legend-item">
+                <div class="wf-heat-legend-box" style="background:#0d4f3c"></div>
+                <span>Low</span>
+              </div>
+              <div class="wf-heat-legend-item">
+                <div class="wf-heat-legend-box" style="background:var(--primary)"></div>
+                <span>Normal</span>
+              </div>
+              <div class="wf-heat-legend-item">
+                <div class="wf-heat-legend-box" style="background:var(--warning)"></div>
+                <span>Warning</span>
+              </div>
+              <div class="wf-heat-legend-item">
+                <div class="wf-heat-legend-box" style="background:var(--danger)"></div>
+                <span>Critical</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Timeline -->
+        <div class="wireframe-card">
+          <div class="wf-header">
+            <div class="wf-dots">
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+            </div>
+            <span class="wf-title">timeline.html</span>
+            <span class="wf-badge">HISTORY</span>
+          </div>
+          <div class="wf-body">
+            <div class="wf-topbar">
+              <div class="wf-logo-mini"></div>
+              <div class="wf-searchbar sk"></div>
+              <div class="wf-icon-group">
+                <div class="wf-avatar"></div>
+              </div>
+            </div>
+            <div class="wf-timeline">
+              <div class="wf-timeline-header">
+                <div class="wf-timeline-month">Jan</div>
+                <div class="wf-timeline-month">Feb</div>
+                <div class="wf-timeline-month">Mar</div>
+                <div class="wf-timeline-month">Apr</div>
+              </div>
+              <div class="wf-gantt-row">
+                <div class="wf-gantt-label">RECOVER</div>
+                <div class="wf-gantt-track">
+                  <div class="wf-gantt-bar" style="left:5%;width:20%;background:var(--primary);">✓</div>
+                  <div class="wf-gantt-bar" style="left:40%;width:15%;background:var(--primary);opacity:0.5;"></div>
+                  <div class="wf-gantt-bar" style="left:70%;width:18%;background:var(--primary);">✓</div>
+                </div>
+              </div>
+              <div class="wf-gantt-row">
+                <div class="wf-gantt-label">DEFRIC</div>
+                <div class="wf-gantt-track">
+                  <div class="wf-gantt-bar" style="left:15%;width:25%;background:var(--info);">✓</div>
+                  <div class="wf-gantt-bar" style="left:55%;width:20%;background:var(--info);">✓</div>
+                </div>
+              </div>
+              <div class="wf-gantt-row">
+                <div class="wf-gantt-label">SHOCK</div>
+                <div class="wf-gantt-track">
+                  <div class="wf-gantt-bar" style="left:8%;width:12%;background:var(--warning);opacity:0.4;"></div>
+                  <div class="wf-gantt-bar" style="left:30%;width:18%;background:var(--warning);">✓</div>
+                  <div class="wf-gantt-bar" style="left:65%;width:22%;background:var(--warning);opacity:0.6;"></div>
+                </div>
+              </div>
+            </div>
+            <div class="wf-cards-list">
+              <div class="wf-card-item">
+                <div class="wf-card-status" style="background:var(--primary)"></div>
+                <div class="wf-card-content">
+                  <div style="font-size:11px;font-weight:600;">#A001 · RECOVER</div>
+                  <div style="font-size:9px;color:var(--text-muted);">2026-01-15 14:32</div>
+                </div>
+                <span class="badge-sample badge-success">LOCKED</span>
+              </div>
+              <div class="wf-card-item">
+                <div class="wf-card-status" style="background:var(--warning)"></div>
+                <div class="wf-card-content">
+                  <div style="font-size:11px;font-weight:600;">#A002 · SHOCK_DAMP</div>
+                  <div style="font-size:9px;color:var(--text-muted);">2026-01-16 09:15</div>
+                </div>
+                <span class="badge-sample badge-warning">PENDING</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Sitemap -->
+        <div class="wireframe-card">
+          <div class="wf-header">
+            <div class="wf-dots">
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+              <div class="wf-dot"></div>
+            </div>
+            <span class="wf-title">sitemap.html</span>
+            <span class="wf-badge">STRUCTURE</span>
+          </div>
+          <div class="wf-body">
+            <div class="wf-topbar">
+              <div class="wf-logo-mini"></div>
+              <div style="display:flex;gap:8px;">
+                <div style="padding:6px 12px;background:var(--primary);color:white;border-radius:20px;font-size:10px;font-weight:600;">Sitemap</div>
+                <div style="padding:6px 12px;background:var(--skeleton);border-radius:20px;font-size:10px;color:var(--text-muted);">User Flow</div>
+                <div style="padding:6px 12px;background:var(--skeleton);border-radius:20px;font-size:10px;color:var(--text-muted);">Wireframes</div>
+              </div>
+              <div class="wf-icon-group">
+                <div class="wf-avatar"></div>
+              </div>
+            </div>
+            <div style="padding:16px;">
+              <div style="text-align:center;margin-bottom:24px;">
+                <div style="display:inline-block;padding:12px 24px;background:var(--primary);color:white;border-radius:8px;font-size:12px;font-weight:600;">🏠 HOME</div>
+                <div style="width:2px;height:20px;background:var(--primary);margin:0 auto;"></div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
+                <div style="text-align:center;">
+                  <div style="padding:10px;background:#e8f5f1;border:1px solid var(--primary);border-radius:8px;font-size:10px;font-weight:600;">🌐 Solar</div>
+                  <div style="width:1px;height:12px;background:var(--skeleton);margin:0 auto;"></div>
+                  <div style="padding:6px;background:var(--skeleton);border-radius:4px;font-size:8px;margin-top:4px;">Globe</div>
+                  <div style="padding:6px;background:var(--skeleton);border-radius:4px;font-size:8px;margin-top:4px;">Actions</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="padding:10px;background:#e3f2fd;border:1px solid var(--info);border-radius:8px;font-size:10px;font-weight:600;">📊 Dashboard</div>
+                  <div style="width:1px;height:12px;background:var(--skeleton);margin:0 auto;"></div>
+                  <div style="padding:6px;background:var(--skeleton);border-radius:4px;font-size:8px;margin-top:4px;">KPI</div>
+                  <div style="padding:6px;background:var(--skeleton);border-radius:4px;font-size:8px;margin-top:4px;">Charts</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="padding:10px;background:#fff3e0;border:1px solid var(--warning);border-radius:8px;font-size:10px;font-weight:600;">🔥 Heatmap</div>
+                  <div style="width:1px;height:12px;background:var(--skeleton);margin:0 auto;"></div>
+                  <div style="padding:6px;background:var(--skeleton);border-radius:4px;font-size:8px;margin-top:4px;">Grid</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="padding:10px;background:#f3e5f5;border:1px solid var(--purple);border-radius:8px;font-size:10px;font-weight:600;">📅 Timeline</div>
+                  <div style="width:1px;height:12px;background:var(--skeleton);margin:0 auto;"></div>
+                  <div style="padding:6px;background:var(--skeleton);border-radius:4px;font-size:8px;margin-top:4px;">Gantt</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="padding:10px;background:#fce4ec;border:1px solid var(--danger);border-radius:8px;font-size:10px;font-weight:600;">⚙️ Settings</div>
+                  <div style="width:1px;height:12px;background:var(--skeleton);margin:0 auto;"></div>
+                  <div style="padding:6px;background:var(--skeleton);border-radius:4px;font-size:8px;margin-top:4px;">Profile</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Section: Component Library -->
+    <section class="component-section">
+      <h2 class="section-title">Component <span>Library</span></h2>
+      <p class="section-subtitle">AUTUS UI 구성 요소 라이브러리</p>
+      
+      <div class="component-grid">
+        <!-- Buttons -->
+        <div class="component-card">
+          <div class="component-preview">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn-sample btn-primary">Primary</button>
+              <button class="btn-sample btn-secondary">Secondary</button>
+              <button class="btn-sample btn-ghost">Ghost</button>
+            </div>
+          </div>
+          <div class="component-name">Buttons</div>
+          <div class="component-desc">Primary, Secondary, Ghost</div>
+        </div>
+        
+        <!-- Input -->
+        <div class="component-card">
+          <div class="component-preview">
+            <div style="width:100%;">
+              <input type="text" class="input-sample" placeholder="Search...">
+            </div>
+          </div>
+          <div class="component-name">Text Input</div>
+          <div class="component-desc">Search, Form fields</div>
+        </div>
+        
+        <!-- Badges -->
+        <div class="component-card">
+          <div class="component-preview">
+            <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+              <span class="badge-sample badge-success">SAFE</span>
+              <span class="badge-sample badge-warning">WARNING</span>
+              <span class="badge-sample badge-danger">CRITICAL</span>
+              <span class="badge-sample badge-info">INFO</span>
+            </div>
+          </div>
+          <div class="component-name">Badges</div>
+          <div class="component-desc">Status indicators</div>
+        </div>
+        
+        <!-- KPI Card -->
+        <div class="component-card">
+          <div class="component-preview">
+            <div class="wf-kpi-card" style="width:100%;border-left:3px solid var(--primary);">
+              <div style="font-size:24px;font-weight:700;color:var(--primary)">0.42</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Risk Index</div>
+            </div>
+          </div>
+          <div class="component-name">KPI Card</div>
+          <div class="component-desc">Metric display</div>
+        </div>
+        
+        <!-- Action Button -->
+        <div class="component-card">
+          <div class="component-preview">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="wf-action-btn recover" style="font-size:12px;">💚 RECOVER</div>
+              <div class="wf-action-btn defriction" style="font-size:12px;">💙 DEFRICTION</div>
+              <div class="wf-action-btn shock" style="font-size:12px;">💛 SHOCK_DAMP</div>
+            </div>
+          </div>
+          <div class="component-name">Action Buttons</div>
+          <div class="component-desc">Impulse triggers</div>
+        </div>
+        
+        <!-- Avatar -->
+        <div class="component-card">
+          <div class="component-preview">
+            <div style="display:flex;gap:12px;align-items:center;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--info));"></div>
+              <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--danger));"></div>
+              <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--warning),var(--danger));"></div>
+            </div>
+          </div>
+          <div class="component-name">Avatar</div>
+          <div class="component-desc">User profile images</div>
+        </div>
+        
+        <!-- Nav Icon -->
+        <div class="component-card">
+          <div class="component-preview">
+            <div style="display:flex;gap:8px;">
+              <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--primary-end));border-radius:10px;box-shadow:0 4px 12px rgba(0,212,170,0.3);"></div>
+              <div style="width:40px;height:40px;background:var(--skeleton);border-radius:10px;"></div>
+              <div style="width:40px;height:40px;background:var(--skeleton);border-radius:10px;"></div>
+            </div>
+          </div>
+          <div class="component-name">Nav Icons</div>
+          <div class="component-desc">Sidebar navigation</div>
+        </div>
+        
+        <!-- Progress -->
+        <div class="component-card">
+          <div class="component-preview">
+            <div style="width:100%;display:flex;flex-direction:column;gap:12px;">
+              <div style="height:8px;background:var(--skeleton);border-radius:4px;overflow:hidden;">
+                <div style="width:75%;height:100%;background:var(--primary);border-radius:4px;"></div>
+              </div>
+              <div style="height:8px;background:var(--skeleton);border-radius:4px;overflow:hidden;">
+                <div style="width:45%;height:100%;background:var(--warning);border-radius:4px;"></div>
+              </div>
+              <div style="height:8px;background:var(--skeleton);border-radius:4px;overflow:hidden;">
+                <div style="width:90%;height:100%;background:var(--info);border-radius:4px;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="component-name">Progress Bars</div>
+          <div class="component-desc">Completion indicators</div>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <footer class="page-footer">
+    AUTUS Wireframes & Components · 2026
+  </footer>
+  
+  <script>
+    // Generate heatmap cells
+    const heatColors = ['#1a2332', '#0d4f3c', '#00875a', '#00D4AA', '#FFB800', '#FF4757'];
+    const heatmapGrid = document.getElementById('heatmapGrid');
+    
+    for (let i = 0; i < 36; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'wf-heat-cell';
+      cell.style.background = heatColors[Math.floor(Math.random() * heatColors.length)];
+      heatmapGrid.appendChild(cell);
+    }
+    
+    // Add hover effect to wireframe cards
+    document.querySelectorAll('.wireframe-card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        card.style.borderColor = 'var(--primary)';
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.borderColor = 'var(--glass-border)';
+      });
+    });
+  </script>
+</body>
+</html>
