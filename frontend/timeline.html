@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS — Action Timeline</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00D4AA;
+      --primary-end: #00B4D8;
+      --neon-cyan: #00F5FF;
+      --bg-dark: #0a0e1a;
+      --bg-panel: rgba(15, 20, 35, 0.95);
+      --glass-bg: rgba(20, 30, 50, 0.8);
+      --glass-border: rgba(0, 212, 255, 0.2);
+      --text-primary: #ffffff;
+      --text-secondary: #a0aec0;
+      --text-muted: #718096;
+      --success: #00D4AA;
+      --warning: #FFB800;
+      --danger: #FF4757;
+      --recover: #00D4AA;
+      --defriction: #00B4D8;
+      --shock-damp: #FFB800;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+    
+    .app-container {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      grid-template-rows: 60px 1fr;
+      min-height: 100vh;
+    }
+    
+    /* Header */
+    .top-header {
+      grid-column: 1 / -1;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      backdrop-filter: blur(20px);
+    }
+    .logo { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 700; }
+    .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--primary-end)); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .header-title { font-size: 16px; font-weight: 600; color: var(--text-secondary); }
+    
+    .view-toggle {
+      display: flex;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .view-btn {
+      padding: 8px 16px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .view-btn.active {
+      background: var(--primary);
+      color: var(--bg-dark);
+      font-weight: 600;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--glass-border);
+      padding: 20px 12px;
+    }
+    .nav-section { margin-bottom: 24px; }
+    .nav-label { font-size: 10px; letter-spacing: 0.15em; color: var(--text-muted); padding: 0 12px; margin-bottom: 10px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 10px;
+      color: var(--text-secondary); text-decoration: none;
+      font-size: 13px; font-weight: 500; transition: all 0.2s; margin-bottom: 4px;
+    }
+    .nav-item:hover { background: rgba(0, 212, 255, 0.08); color: var(--text-primary); }
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(0, 180, 216, 0.1));
+      color: var(--primary); border: 1px solid rgba(0, 212, 170, 0.3);
+    }
+    
+    /* Main Content */
+    .main-content {
+      padding: 24px;
+      overflow-y: auto;
+    }
+    
+    /* Gantt Container */
+    .gantt-container {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+      overflow-x: auto;
+    }
+    
+    /* Time Header */
+    .time-header {
+      display: flex;
+      margin-left: 140px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 12px;
+    }
+    
+    .time-slot {
+      width: 80px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .time-slot.current {
+      color: var(--neon-cyan);
+      font-weight: 600;
+    }
+    
+    /* Gantt Row */
+    .gantt-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      min-height: 48px;
+    }
+    
+    .gantt-label {
+      width: 140px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .gantt-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .gantt-icon.recover { background: rgba(0, 212, 170, 0.2); }
+    .gantt-icon.defriction { background: rgba(0, 180, 216, 0.2); }
+    .gantt-icon.shock-damp { background: rgba(255, 184, 0, 0.2); }
+    
+    .gantt-name {
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .gantt-track {
+      flex: 1;
+      display: flex;
+      position: relative;
+      height: 32px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 6px;
+    }
+    
+    .gantt-bar {
+      position: absolute;
+      height: 100%;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    
+    .gantt-bar:hover {
+      transform: scaleY(1.1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    
+    .gantt-bar.recover {
+      background: linear-gradient(90deg, var(--recover), rgba(0, 212, 170, 0.7));
+      color: var(--bg-dark);
+    }
+    .gantt-bar.defriction {
+      background: linear-gradient(90deg, var(--defriction), rgba(0, 180, 216, 0.7));
+      color: var(--bg-dark);
+    }
+    .gantt-bar.shock-damp {
+      background: linear-gradient(90deg, var(--shock-damp), rgba(255, 184, 0, 0.7));
+      color: var(--bg-dark);
+    }
+    .gantt-bar.preview {
+      opacity: 0.5;
+      border: 2px dashed currentColor;
+      background: transparent !important;
+      color: var(--text-primary);
+    }
+    .gantt-bar.rejected {
+      opacity: 0.3;
+      text-decoration: line-through;
+    }
+    
+    /* Current Time Line */
+    .current-time-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--danger);
+      box-shadow: 0 0 10px var(--danger);
+      z-index: 10;
+    }
+    .current-time-line::before {
+      content: 'NOW';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      color: var(--danger);
+      font-weight: 600;
+    }
+    
+    /* Action List */
+    .action-list {
+      margin-top: 24px;
+    }
+    
+    .action-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .action-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .action-filter {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .filter-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    
+    .action-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.2s;
+    }
+    .action-card:hover {
+      border-color: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+    }
+    
+    .action-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    
+    .action-card-id {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .action-card-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    .action-card-status.locked {
+      background: rgba(0, 212, 170, 0.15);
+      color: var(--success);
+    }
+    .action-card-status.pending {
+      background: rgba(255, 184, 0, 0.15);
+      color: var(--warning);
+    }
+    .action-card-status.rejected {
+      background: rgba(255, 71, 87, 0.15);
+      color: var(--danger);
+    }
+    
+    .action-card-type {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    
+    .action-card-time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    
+    .action-card-progress {
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .action-card-progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    
+    .action-card-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .action-card-delta {
+      font-size: 11px;
+    }
+    .delta-positive { color: var(--success); }
+    .delta-negative { color: var(--danger); }
+    
+    .action-card-cost {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="top-header">
+      <div class="logo">
+        <div class="logo-icon">A</div>
+        <span>AUTUS</span>
+      </div>
+      <div class="header-title">⏱️ Action Timeline</div>
+      <div class="view-toggle">
+        <button class="view-btn active">Today</button>
+        <button class="view-btn">Week</button>
+        <button class="view-btn">Month</button>
+      </div>
+    </header>
+    
+    <nav class="sidebar">
+      <div class="nav-section">
+        <div class="nav-label">MAIN</div>
+        <a href="index.html" class="nav-item"><span>🏠</span><span>Home</span></a>
+        <a href="solar.html" class="nav-item"><span>🌐</span><span>Solar HQ</span></a>
+        <a href="dashboard.html" class="nav-item"><span>📊</span><span>Dashboard</span></a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">ANALYTICS</div>
+        <a href="heatmap.html" class="nav-item"><span>🗓️</span><span>Heatmap</span></a>
+        <a href="timeline.html" class="nav-item active"><span>⏱️</span><span>Timeline</span></a>
+      </div>
+    </nav>
+    
+    <main class="main-content">
+      <!-- Gantt Chart -->
+      <div class="gantt-container">
+        <div class="time-header" id="timeHeader"></div>
+        <div id="ganttChart"></div>
+      </div>
+      
+      <!-- Action Cards -->
+      <div class="action-list">
+        <div class="action-header">
+          <div class="action-title">Recent Actions</div>
+          <div class="action-filter">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Locked</button>
+            <button class="filter-btn">Pending</button>
+            <button class="filter-btn">Rejected</button>
+          </div>
+        </div>
+        <div class="action-grid" id="actionGrid"></div>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    // Time slots (24 hours, show 08:00 - 18:00)
+    const timeSlots = [];
+    for (let h = 8; h <= 18; h++) {
+      timeSlots.push(`${h.toString().padStart(2, '0')}:00`);
+    }
+    
+    const currentHour = new Date().getHours();
+    
+    // Render time header
+    document.getElementById('timeHeader').innerHTML = timeSlots.map((t, i) => 
+      `<div class="time-slot ${i + 8 === currentHour ? 'current' : ''}">${t}</div>`
+    ).join('');
+    
+    // Impulse data
+    const impulses = [
+      { type: 'recover', name: 'RECOVER', icon: '🔄' },
+      { type: 'defriction', name: 'DEFRICTION', icon: '⚡' },
+      { type: 'shock-damp', name: 'SHOCK_DAMP', icon: '🛡️' }
+    ];
+    
+    // Sample bars
+    const bars = [
+      { type: 'recover', start: 0, duration: 3, label: 'Risk -0.15', status: 'completed' },
+      { type: 'recover', start: 5, duration: 2, label: 'Risk -0.08', status: 'completed' },
+      { type: 'defriction', start: 2, duration: 4, label: 'Friction -0.12', status: 'completed' },
+      { type: 'defriction', start: 7, duration: 2, label: 'Preview', status: 'preview' },
+      { type: 'shock-damp', start: 1, duration: 2, label: 'Rejected', status: 'rejected' },
+      { type: 'shock-damp', start: 4, duration: 3, label: 'Shock -0.20', status: 'completed' }
+    ];
+    
+    // Render Gantt chart
+    const ganttChart = document.getElementById('ganttChart');
+    ganttChart.innerHTML = impulses.map(imp => {
+      const impBars = bars.filter(b => b.type === imp.type);
+      const barsHtml = impBars.map(b => {
+        const left = b.start * 80;
+        const width = b.duration * 80 - 4;
+        const statusClass = b.status === 'preview' ? 'preview' : b.status === 'rejected' ? 'rejected' : '';
+        return `<div class="gantt-bar ${imp.type} ${statusClass}" style="left:${left}px;width:${width}px">${b.label}</div>`;
+      }).join('');
+      
+      // Current time line position
+      const currentTimeLeft = (currentHour - 8) * 80;
+      const timeLine = currentHour >= 8 && currentHour <= 18 
+        ? `<div class="current-time-line" style="left:${currentTimeLeft}px"></div>` 
+        : '';
+      
+      return `
+        <div class="gantt-row">
+          <div class="gantt-label">
+            <div class="gantt-icon ${imp.type}">${imp.icon}</div>
+            <span class="gantt-name">${imp.name}</span>
+          </div>
+          <div class="gantt-track">
+            ${barsHtml}
+            ${imp.type === 'recover' ? timeLine : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    // Action cards data
+    const actions = [
+      { id: '#A001', type: 'RECOVER', status: 'locked', start: '09:15', end: '09:45', progress: 100, delta: -0.15, cost: 12 },
+      { id: '#A002', type: 'DEFRICTION', status: 'locked', start: '10:00', end: '11:30', progress: 100, delta: -0.12, cost: 18 },
+      { id: '#A003', type: 'SHOCK_DAMP', status: 'rejected', start: '09:30', end: '10:00', progress: 0, delta: 0, cost: 25 },
+      { id: '#A004', type: 'RECOVER', status: 'locked', start: '13:00', end: '14:00', progress: 100, delta: -0.08, cost: 10 },
+      { id: '#A005', type: 'SHOCK_DAMP', status: 'locked', start: '12:00', end: '13:30', progress: 100, delta: -0.20, cost: 22 },
+      { id: '#A006', type: 'DEFRICTION', status: 'pending', start: '15:00', end: '16:00', progress: 35, delta: -0.10, cost: 15 }
+    ];
+    
+    // Render action cards
+    document.getElementById('actionGrid').innerHTML = actions.map(a => {
+      const statusIcon = a.status === 'locked' ? '✅' : a.status === 'pending' ? '⏳' : '❌';
+      const statusLabel = a.status.charAt(0).toUpperCase() + a.status.slice(1);
+      const typeColor = a.type === 'RECOVER' ? 'var(--recover)' : 
+                        a.type === 'DEFRICTION' ? 'var(--defriction)' : 'var(--shock-damp)';
+      
+      return `
+        <div class="action-card">
+          <div class="action-card-header">
+            <span class="action-card-id">${a.id}</span>
+            <span class="action-card-status ${a.status}">${statusIcon} ${statusLabel}</span>
+          </div>
+          <div class="action-card-type" style="color:${typeColor}">${a.type}</div>
+          <div class="action-card-time">
+            <span>${a.start} → ${a.end}</span>
+            <span>${a.progress}%</span>
+          </div>
+          <div class="action-card-progress">
+            <div class="action-card-progress-fill" style="width:${a.progress}%;background:${typeColor}"></div>
+          </div>
+          <div class="action-card-meta">
+            <span class="action-card-delta ${a.delta < 0 ? 'delta-positive' : 'delta-negative'}">
+              Δ Risk: ${a.delta > 0 ? '+' : ''}${a.delta.toFixed(2)}
+            </span>
+            <span class="action-card-cost">Cost: ${a.cost} SQ</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  </script>
+</body>
+</html>

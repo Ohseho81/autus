@@ -1,379 +1,489 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTUS - 사용자 상수</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    :root {
+      --primary: #00D4AA;
+      --primary-end: #00B4D8;
+      --neon-cyan: #00F5FF;
+      --bg-dark: #0a0e1a;
+      --bg-panel: rgba(15, 20, 35, 0.95);
+      --glass-bg: rgba(20, 30, 50, 0.8);
+      --glass-border: rgba(0, 212, 255, 0.2);
+      --text-primary: #ffffff;
+      --text-secondary: #a0aec0;
+      --text-muted: #718096;
+      --success: #00D4AA;
+      --warning: #FFB800;
+      --danger: #FF4757;
+      --radius: 12px;
+    }
     
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    :root {
-      --bg-deep: #030712;
-      --bg-surface: rgba(15, 23, 42, 0.7);
-      --bg-glass: rgba(255, 255, 255, 0.03);
-      --border-glass: rgba(255, 255, 255, 0.08);
-      --accent-indigo: #6366f1;
-      --accent-violet: #8b5cf6;
-      --accent-cyan: #06b6d4;
-      --accent-emerald: #10b981;
-      --accent-amber: #f59e0b;
-      --accent-rose: #f43f5e;
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #475569;
-    }
-    
-    html, body { height: 100%; overflow: hidden; }
-    
     body {
       font-family: 'Inter', -apple-system, sans-serif;
-      background: var(--bg-deep);
+      background: var(--bg-dark);
       color: var(--text-primary);
+      min-height: 100vh;
     }
     
-    /* Aurora */
-    .aurora {
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      z-index: 0;
+    .app-container {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      grid-template-rows: 60px 1fr;
+      min-height: 100vh;
     }
     
-    .aurora-blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(100px);
-      opacity: 0.3;
-    }
-    
-    .aurora-blob:nth-child(1) {
-      width: 500px; height: 500px;
-      background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet));
-      top: -20%; left: 20%;
-      animation: float 20s ease-in-out infinite;
-    }
-    
-    .aurora-blob:nth-child(2) {
-      width: 400px; height: 400px;
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald));
-      bottom: -10%; right: 10%;
-      animation: float 25s ease-in-out infinite reverse;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(30px, -30px); }
-    }
-    
-    .header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 56px;
+    /* Header */
+    .top-header {
+      grid-column: 1 / -1;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--glass-border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 1.25rem;
-      background: rgba(3, 7, 18, 0.8);
+      padding: 0 24px;
       backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border-glass);
-      z-index: 100;
     }
     
-    .header-left { display: flex; align-items: center; gap: 1rem; }
+    .logo { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 700; letter-spacing: 0.1em; }
+    .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--primary-end)); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
     
-    .back-btn {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: var(--bg-glass);
-      border: 1px solid var(--border-glass);
-      border-radius: 10px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.85rem;
-      transition: all 0.3s;
-    }
+    .header-title { font-size: 16px; font-weight: 600; color: var(--text-secondary); }
     
-    .back-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
-    
-    .page-title { font-size: 1rem; font-weight: 600; }
-    
-    .nav-links { display: flex; gap: 0.5rem; }
-    
-    .nav-link {
-      width: 40px; height: 40px;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--bg-glass);
-      border: 1px solid var(--border-glass);
-      border-radius: 10px;
-      text-decoration: none;
-      transition: all 0.3s;
-    }
-    
-    .nav-link:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
-    .nav-link.active { background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet)); border: none; }
-    
-    .main {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
-      grid-template-rows: 1fr 1fr auto;
-      gap: 1rem;
-      height: calc(100vh - 56px);
-      padding: 1rem;
-      margin-top: 56px;
-    }
-    
-    .glass-card {
-      background: var(--bg-surface);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border-glass);
-      border-radius: 20px;
-      padding: 1.25rem;
-    }
-    
-    /* Main Gauge */
-    .gauge-main {
-      grid-row: span 2;
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .time-filter {
       display: flex;
-      flex-direction: column;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .time-btn {
+      padding: 8px 16px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .time-btn.active {
+      background: var(--primary);
+      color: var(--bg-dark);
+      font-weight: 600;
+    }
+    .time-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+    
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--glass-border);
+      padding: 20px 12px;
+    }
+    .nav-section { margin-bottom: 24px; }
+    .nav-label { font-size: 10px; letter-spacing: 0.15em; color: var(--text-muted); padding: 0 12px; margin-bottom: 10px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 10px;
+      color: var(--text-secondary); text-decoration: none;
+      font-size: 13px; font-weight: 500; transition: all 0.2s; margin-bottom: 4px;
+    }
+    .nav-item:hover { background: rgba(0, 212, 255, 0.08); color: var(--text-primary); }
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(0, 180, 216, 0.1));
+      color: var(--primary);
+      border: 1px solid rgba(0, 212, 170, 0.3);
+    }
+    
+    /* Main Content */
+    .main-content {
+      padding: 24px;
+      overflow-y: auto;
+    }
+    
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .kpi-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s;
+    }
+    .kpi-card:hover {
+      border-color: rgba(0, 212, 255, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    .kpi-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .kpi-label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.1em; }
+    .kpi-icon { font-size: 18px; }
+    
+    .kpi-value {
+      font-size: 36px;
+      font-weight: 300;
+      margin-bottom: 8px;
+    }
+    .kpi-value.success { color: var(--success); text-shadow: 0 0 20px rgba(0,212,170,0.3); }
+    .kpi-value.warning { color: var(--warning); text-shadow: 0 0 20px rgba(255,184,0,0.3); }
+    .kpi-value.danger { color: var(--danger); text-shadow: 0 0 20px rgba(255,71,87,0.3); }
+    .kpi-value.cyan { color: var(--neon-cyan); text-shadow: 0 0 20px rgba(0,245,255,0.3); }
+    
+    .kpi-change { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+    .kpi-change.positive { color: var(--success); }
+    .kpi-change.negative { color: var(--danger); }
+    
+    .kpi-sparkline {
+      height: 40px;
+      margin-top: 16px;
+      position: relative;
+    }
+    .kpi-sparkline canvas { width: 100% !important; height: 100% !important; }
+    
+    /* Chart Section */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .chart-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .chart-title { font-size: 14px; font-weight: 600; }
+    .chart-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    
+    .chart-container { height: 250px; position: relative; }
+    .chart-container canvas { width: 100% !important; height: 100% !important; }
+    
+    /* Planet Progress */
+    .planet-grid {
+      display: grid;
+      gap: 12px;
+    }
+    
+    .planet-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .planet-row:hover { background: rgba(255,255,255,0.05); }
+    
+    .planet-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    .planet-name { font-size: 12px; flex: 1; color: var(--text-secondary); }
+    .planet-value { font-size: 13px; font-weight: 600; width: 50px; text-align: right; }
+    
+    .planet-bar {
+      flex: 2;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .planet-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    
+    /* Recent Activity */
+    .activity-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    
+    .activity-list { display: flex; flex-direction: column; gap: 12px; }
+    
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .activity-item:hover { background: rgba(255,255,255,0.05); }
+    
+    .activity-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
     }
+    .activity-icon.success { background: rgba(0,212,170,0.15); }
+    .activity-icon.warning { background: rgba(255,184,0,0.15); }
+    .activity-icon.danger { background: rgba(255,71,87,0.15); }
     
-    .gauge-ring {
-      position: relative;
-      width: 280px;
-      height: 280px;
-    }
-    
-    .gauge-ring svg { transform: rotate(-90deg); }
-    
-    .gauge-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 20; }
-    
-    .gauge-fill {
-      fill: none;
-      stroke: url(#gaugeGrad);
-      stroke-width: 20;
-      stroke-linecap: round;
-      stroke-dasharray: 754;
-      stroke-dashoffset: 188;
-      transition: stroke-dashoffset 1s;
-    }
-    
-    .gauge-center {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-    }
-    
-    .gauge-value {
-      font-size: 4rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .gauge-label { font-size: 1rem; color: var(--text-muted); }
-    .gauge-sub { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem; }
-    
-    /* Constant Cards */
-    .const-card {
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .const-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.75rem;
-    }
-    
-    .const-icon {
-      width: 40px; height: 40px;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 10px;
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
-    
-    .const-trend {
-      font-size: 0.75rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 6px;
-      font-weight: 500;
-    }
-    
-    .const-trend.up { background: rgba(16,185,129,0.2); color: var(--accent-emerald); }
-    .const-trend.down { background: rgba(244,63,94,0.2); color: var(--accent-rose); }
-    .const-trend.stable { background: rgba(100,116,139,0.2); color: var(--text-muted); }
-    
-    .const-value {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 0.25rem;
-    }
-    
-    .const-name { font-size: 0.85rem; color: var(--text-muted); }
-    
-    .const-bar {
-      margin-top: auto;
-      height: 6px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    
-    .const-bar-fill { height: 100%; border-radius: 3px; transition: width 1s; }
-    
-    /* Nav Panel */
-    .nav-panel {
-      grid-column: span 3;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    
-    .nav-title {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-    
-    .nav-path {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex: 1;
-    }
-    
-    .nav-node {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.6rem 1rem;
-      background: var(--bg-glass);
-      border: 1px solid var(--border-glass);
-      border-radius: 10px;
-      font-size: 0.85rem;
-    }
-    
-    .nav-node.current {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.1));
-      border-color: var(--accent-indigo);
-    }
-    
-    .nav-arrow { color: var(--text-muted); }
-    
-    .nav-target {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.1));
-      border-color: var(--accent-emerald);
-      color: var(--accent-emerald);
-    }
+    .activity-content { flex: 1; }
+    .activity-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+    .activity-desc { font-size: 11px; color: var(--text-muted); }
+    .activity-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
   </style>
 </head>
 <body>
-  <div class="aurora">
-    <div class="aurora-blob"></div>
-    <div class="aurora-blob"></div>
+  <div class="app-container">
+    <header class="top-header">
+      <div class="logo">
+        <div class="logo-icon">A</div>
+        <span>AUTUS</span>
   </div>
-  
-  <header class="header">
-    <div class="header-left">
-      <a href="/" class="back-btn">← 홈</a>
-      <span class="page-title">📊 사용자 상수</span>
-    </div>
-    <nav class="nav-links">
-      <a href="/cosmos.html" class="nav-link">🌌</a>
-      <a href="/flow.html" class="nav-link">💰</a>
-      <a href="/dashboard.html" class="nav-link active">📊</a>
-      <a href="/solution.html" class="nav-link">⚡</a>
-      <a href="/tasks.html" class="nav-link">📋</a>
-      <a href="/automation.html" class="nav-link">🤖</a>
-    </nav>
-  </header>
-
-  <main class="main">
-    <div class="glass-card gauge-main">
-      <div class="gauge-ring">
-        <svg width="280" height="280" viewBox="0 0 280 280">
-          <defs>
-            <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#6366f1" />
-              <stop offset="100%" style="stop-color:#10b981" />
-            </linearGradient>
-          </defs>
-          <circle class="gauge-bg" cx="140" cy="140" r="120" />
-          <circle class="gauge-fill" cx="140" cy="140" r="120" />
-        </svg>
-        <div class="gauge-center">
-          <div class="gauge-value">7.2</div>
-          <div class="gauge-label">사용자 상수 K</div>
-          <div class="gauge-sub">상위 15%</div>
+      <div class="header-title">📊 Dashboard</div>
+      <div class="header-right">
+        <div class="time-filter">
+          <button class="time-btn">24H</button>
+          <button class="time-btn active">7D</button>
+          <button class="time-btn">30D</button>
+          <button class="time-btn">90D</button>
         </div>
       </div>
+    </header>
+    
+    <nav class="sidebar">
+      <div class="nav-section">
+        <div class="nav-label">MAIN</div>
+        <a href="index.html" class="nav-item"><span>🏠</span><span>Home</span></a>
+        <a href="solar.html" class="nav-item"><span>🌐</span><span>Solar HQ</span></a>
+        <a href="dashboard.html" class="nav-item active"><span>📊</span><span>Dashboard</span></a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">ANALYTICS</div>
+        <a href="heatmap.html" class="nav-item"><span>🗓️</span><span>Heatmap</span></a>
+        <a href="timeline.html" class="nav-item"><span>⏱️</span><span>Timeline</span></a>
+    </div>
+    </nav>
+    
+    <main class="main-content">
+      <!-- KPI Cards -->
+      <section class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">RISK INDEX</span>
+            <span class="kpi-icon">📉</span>
+          </div>
+          <div class="kpi-value success">0.42</div>
+          <div class="kpi-change positive">↓ 12.5% from last period</div>
+          <div class="kpi-sparkline"><canvas id="spark1"></canvas></div>
+        </div>
+        
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">ENTROPY</span>
+            <span class="kpi-icon">🌀</span>
+          </div>
+          <div class="kpi-value cyan">0.38</div>
+          <div class="kpi-change positive">↓ 5.2% from last period</div>
+          <div class="kpi-sparkline"><canvas id="spark2"></canvas></div>
+        </div>
+        
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">PRESSURE</span>
+            <span class="kpi-icon">⚡</span>
+          </div>
+          <div class="kpi-value warning">0.61</div>
+          <div class="kpi-change negative">↑ 8.1% from last period</div>
+          <div class="kpi-sparkline"><canvas id="spark3"></canvas></div>
+        </div>
+        
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">FLOW</span>
+            <span class="kpi-icon">💧</span>
+          </div>
+          <div class="kpi-value cyan">0.75</div>
+          <div class="kpi-change positive">↑ 3.4% from last period</div>
+          <div class="kpi-sparkline"><canvas id="spark4"></canvas></div>
+        </div>
+      </section>
+      
+      <!-- Charts -->
+      <section class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Risk & Entropy Trend</div>
+              <div class="chart-subtitle">Last 30 days performance</div>
+            </div>
+      </div>
+          <div class="chart-container"><canvas id="trendChart"></canvas></div>
     </div>
     
-    <div class="glass-card const-card">
-      <div class="const-header">
-        <div class="const-icon" style="background: rgba(99,102,241,0.2); color: var(--accent-indigo)">Ψ</div>
-        <span class="const-trend stable">−</span>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Planet Performance</div>
+              <div class="chart-subtitle">Current state distribution</div>
+            </div>
+          </div>
+          <div class="planet-grid" id="planetGrid"></div>
+        </div>
+      </section>
+      
+      <!-- Activity -->
+      <section class="activity-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Recent Activity</div>
+            <div class="chart-subtitle">Latest impulse actions and system events</div>
+          </div>
       </div>
-      <div class="const-value" style="color: var(--accent-indigo)">0.42</div>
-      <div class="const-name">비가역성 (Ψ)</div>
-      <div class="const-bar"><div class="const-bar-fill" style="width: 42%; background: var(--accent-indigo)"></div></div>
+        <div class="activity-list" id="activityList"></div>
+      </section>
+    </main>
     </div>
+  
+  <script>
+    // Sparkline Charts
+    const sparkConfig = {
+      type: 'line',
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { display: false }, y: { display: false } },
+        elements: { point: { radius: 0 }, line: { tension: 0.4, borderWidth: 2 } }
+      }
+    };
     
-    <div class="glass-card const-card">
-      <div class="const-header">
-        <div class="const-icon" style="background: rgba(16,185,129,0.2); color: var(--accent-emerald)">I</div>
-        <span class="const-trend up">+12%</span>
-      </div>
-      <div class="const-value" style="color: var(--accent-emerald)">8.4</div>
-      <div class="const-name">상호작용 (I)</div>
-      <div class="const-bar"><div class="const-bar-fill" style="width: 84%; background: var(--accent-emerald)"></div></div>
-    </div>
+    const sparkData = [
+      [0.65, 0.58, 0.52, 0.48, 0.45, 0.42, 0.42],
+      [0.45, 0.42, 0.40, 0.38, 0.39, 0.37, 0.38],
+      [0.52, 0.55, 0.58, 0.60, 0.59, 0.62, 0.61],
+      [0.68, 0.70, 0.72, 0.74, 0.73, 0.75, 0.75]
+    ];
+    const sparkColors = ['#00D4AA', '#00F5FF', '#FFB800', '#00B4D8'];
     
-    <div class="glass-card const-card">
-      <div class="const-header">
-        <div class="const-icon" style="background: rgba(139,92,246,0.2); color: var(--accent-violet)">S</div>
-        <span class="const-trend down">−5%</span>
-      </div>
-      <div class="const-value" style="color: var(--accent-violet)">0.67</div>
-      <div class="const-name">엔트로피 (S)</div>
-      <div class="const-bar"><div class="const-bar-fill" style="width: 67%; background: var(--accent-violet)"></div></div>
-    </div>
+    ['spark1', 'spark2', 'spark3', 'spark4'].forEach((id, i) => {
+      new Chart(document.getElementById(id), {
+        ...sparkConfig,
+        data: {
+          labels: ['', '', '', '', '', '', ''],
+          datasets: [{ data: sparkData[i], borderColor: sparkColors[i], fill: false }]
+        }
+      });
+    });
     
-    <div class="glass-card const-card">
-      <div class="const-header">
-        <div class="const-icon" style="background: rgba(6,182,212,0.2); color: var(--accent-cyan)">R</div>
-        <span class="const-trend up">+8%</span>
-      </div>
-      <div class="const-value" style="color: var(--accent-cyan)">5.2</div>
-      <div class="const-name">책임 반경 (R)</div>
-      <div class="const-bar"><div class="const-bar-fill" style="width: 52%; background: var(--accent-cyan)"></div></div>
-    </div>
+    // Trend Chart
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: Array.from({length: 30}, (_, i) => i + 1),
+        datasets: [
+          {
+            label: 'Risk',
+            data: Array.from({length: 30}, () => 0.35 + Math.random() * 0.2),
+            borderColor: '#00D4AA',
+            backgroundColor: 'rgba(0, 212, 170, 0.1)',
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Entropy',
+            data: Array.from({length: 30}, () => 0.30 + Math.random() * 0.15),
+            borderColor: '#00F5FF',
+            backgroundColor: 'rgba(0, 245, 255, 0.1)',
+            fill: true,
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { color: '#a0aec0', font: { size: 11 } } }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#718096', font: { size: 10 } } },
+          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#718096', font: { size: 10 } }, min: 0, max: 1 }
+        }
+      }
+    });
     
-    <div class="glass-card nav-panel">
-      <span class="nav-title">현재 경로</span>
-      <div class="nav-path">
-        <div class="nav-node"><span>🌌</span><span>은하계</span></div>
-        <span class="nav-arrow">→</span>
-        <div class="nav-node"><span>☀️</span><span>재무 도메인</span></div>
-        <span class="nav-arrow">→</span>
-        <div class="nav-node current"><span>🌍</span><span>예산 관리</span></div>
-        <span class="nav-arrow">→</span>
-        <div class="nav-node nav-target"><span>🎯</span><span>월간 결산 완료</span></div>
+    // Planet Grid
+    const planets = [
+      { name: 'Recovery', value: 0.82, color: '#00D4AA' },
+      { name: 'Stability', value: 0.91, color: '#00B4D8' },
+      { name: 'Cohesion', value: 0.65, color: '#FFB800' },
+      { name: 'Shock', value: 0.23, color: '#FF4757' },
+      { name: 'Friction', value: 0.31, color: '#FF6B6B' },
+      { name: 'Transfer', value: 0.78, color: '#00F5FF' },
+      { name: 'Time', value: 0.85, color: '#9B59B6' },
+      { name: 'Quality', value: 0.72, color: '#3498DB' },
+      { name: 'Output', value: 0.88, color: '#2ECC71' }
+    ];
+    
+    document.getElementById('planetGrid').innerHTML = planets.map(p => `
+      <div class="planet-row">
+        <div class="planet-dot" style="background:${p.color};box-shadow:0 0 8px ${p.color}"></div>
+        <span class="planet-name">${p.name}</span>
+        <div class="planet-bar">
+          <div class="planet-bar-fill" style="width:${p.value*100}%;background:${p.color}"></div>
+        </div>
+        <span class="planet-value" style="color:${p.color}">${(p.value*100).toFixed(0)}%</span>
       </div>
-    </div>
-  </main>
+    `).join('');
+    
+    // Activity List
+    const activities = [
+      { type: 'success', icon: '✅', title: 'RECOVER Applied', desc: 'Risk reduced by 0.12', time: '2 min ago' },
+      { type: 'warning', icon: '⏸️', title: 'DEFRICTION Hold', desc: 'Waiting for approval', time: '15 min ago' },
+      { type: 'danger', icon: '❌', title: 'SHOCK_DAMP Rejected', desc: 'Cost exceeds threshold', time: '1 hour ago' },
+      { type: 'success', icon: '🔄', title: 'State Sync', desc: 'All planets synchronized', time: '2 hours ago' },
+      { type: 'warning', icon: '⚠️', title: 'Bottleneck Detected', desc: 'Cohesion at 65%', time: '3 hours ago' }
+    ];
+    
+    document.getElementById('activityList').innerHTML = activities.map(a => `
+      <div class="activity-item">
+        <div class="activity-icon ${a.type}">${a.icon}</div>
+        <div class="activity-content">
+          <div class="activity-title">${a.title}</div>
+          <div class="activity-desc">${a.desc}</div>
+        </div>
+        <span class="activity-time">${a.time}</span>
+      </div>
+    `).join('');
+  </script>
 </body>
 </html>

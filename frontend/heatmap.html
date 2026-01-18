@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AUTUS — Planet Heatmap</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00D4AA;
+      --primary-end: #00B4D8;
+      --neon-cyan: #00F5FF;
+      --bg-dark: #0a0e1a;
+      --bg-panel: rgba(15, 20, 35, 0.95);
+      --glass-bg: rgba(20, 30, 50, 0.8);
+      --glass-border: rgba(0, 212, 255, 0.2);
+      --text-primary: #ffffff;
+      --text-secondary: #a0aec0;
+      --text-muted: #718096;
+      --success: #00D4AA;
+      --warning: #FFB800;
+      --danger: #FF4757;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+    
+    .app-container {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      grid-template-rows: 60px 1fr;
+      min-height: 100vh;
+    }
+    
+    /* Header */
+    .top-header {
+      grid-column: 1 / -1;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      backdrop-filter: blur(20px);
+    }
+    .logo { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 700; }
+    .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--primary-end)); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .header-title { font-size: 16px; font-weight: 600; color: var(--text-secondary); }
+    
+    .year-selector {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .year-btn {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .year-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .year-display {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--neon-cyan);
+      min-width: 80px;
+      text-align: center;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--glass-border);
+      padding: 20px 12px;
+    }
+    .nav-section { margin-bottom: 24px; }
+    .nav-label { font-size: 10px; letter-spacing: 0.15em; color: var(--text-muted); padding: 0 12px; margin-bottom: 10px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 10px;
+      color: var(--text-secondary); text-decoration: none;
+      font-size: 13px; font-weight: 500; transition: all 0.2s; margin-bottom: 4px;
+    }
+    .nav-item:hover { background: rgba(0, 212, 255, 0.08); color: var(--text-primary); }
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(0, 180, 216, 0.1));
+      color: var(--primary); border: 1px solid rgba(0, 212, 170, 0.3);
+    }
+    
+    /* Main Content */
+    .main-content {
+      padding: 24px;
+      overflow-y: auto;
+    }
+    
+    /* Legend */
+    .legend-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .legend-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+    
+    /* Heatmap Container */
+    .heatmap-container {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    
+    .heatmap-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .heatmap-label {
+      width: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+    
+    .heatmap-description {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    
+    .heatmap-cells {
+      display: flex;
+      gap: 3px;
+      flex: 1;
+    }
+    
+    .heatmap-cell {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .heatmap-cell:hover {
+      transform: scale(1.5);
+      z-index: 10;
+      box-shadow: 0 0 10px currentColor;
+    }
+    
+    .heatmap-cell[data-level="0"] { background: #1a2332; }
+    .heatmap-cell[data-level="1"] { background: #0d4f3c; }
+    .heatmap-cell[data-level="2"] { background: #00875a; }
+    .heatmap-cell[data-level="3"] { background: #00D4AA; }
+    .heatmap-cell[data-level="4"] { background: #FFB800; }
+    .heatmap-cell[data-level="5"] { background: #FF4757; }
+    
+    /* Month Labels */
+    .month-labels {
+      display: flex;
+      padding-left: 100px;
+      margin-bottom: 12px;
+    }
+    
+    .month-label {
+      flex: 1;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    
+    /* Stats Summary */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+    
+    .stat-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 300;
+      margin-bottom: 6px;
+    }
+    .stat-value.success { color: var(--success); }
+    .stat-value.warning { color: var(--warning); }
+    .stat-value.danger { color: var(--danger); }
+    
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+    }
+    
+    /* Tooltip */
+    .tooltip {
+      position: fixed;
+      background: var(--bg-panel);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      pointer-events: none;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    .tooltip-date { color: var(--text-muted); margin-bottom: 4px; }
+    .tooltip-value { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="top-header">
+      <div class="logo">
+        <div class="logo-icon">A</div>
+        <span>AUTUS</span>
+      </div>
+      <div class="header-title">🗓️ Planet Heatmap</div>
+      <div class="year-selector">
+        <button class="year-btn" onclick="changeYear(-1)">◀</button>
+        <div class="year-display" id="yearDisplay">2026</div>
+        <button class="year-btn" onclick="changeYear(1)">▶</button>
+      </div>
+    </header>
+    
+    <nav class="sidebar">
+      <div class="nav-section">
+        <div class="nav-label">MAIN</div>
+        <a href="index.html" class="nav-item"><span>🏠</span><span>Home</span></a>
+        <a href="solar.html" class="nav-item"><span>🌐</span><span>Solar HQ</span></a>
+        <a href="dashboard.html" class="nav-item"><span>📊</span><span>Dashboard</span></a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">ANALYTICS</div>
+        <a href="heatmap.html" class="nav-item active"><span>🗓️</span><span>Heatmap</span></a>
+        <a href="timeline.html" class="nav-item"><span>⏱️</span><span>Timeline</span></a>
+      </div>
+    </nav>
+    
+    <main class="main-content">
+      <!-- Legend -->
+      <div class="legend-bar">
+        <div class="legend-item">
+          <div class="legend-box" style="background:#1a2332"></div>
+          <span>No Data</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background:#0d4f3c"></div>
+          <span>0.0 - 0.2</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background:#00875a"></div>
+          <span>0.2 - 0.4</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background:#00D4AA"></div>
+          <span>0.4 - 0.6</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background:#FFB800"></div>
+          <span>0.6 - 0.8</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background:#FF4757"></div>
+          <span>0.8 - 1.0</span>
+        </div>
+      </div>
+      
+      <!-- Heatmap -->
+      <div class="heatmap-container">
+        <div class="month-labels">
+          <span class="month-label">Jan</span>
+          <span class="month-label">Feb</span>
+          <span class="month-label">Mar</span>
+          <span class="month-label">Apr</span>
+          <span class="month-label">May</span>
+          <span class="month-label">Jun</span>
+          <span class="month-label">Jul</span>
+          <span class="month-label">Aug</span>
+          <span class="month-label">Sep</span>
+          <span class="month-label">Oct</span>
+          <span class="month-label">Nov</span>
+          <span class="month-label">Dec</span>
+        </div>
+        
+        <div id="heatmapGrid"></div>
+        
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value success" id="safeDays">287</div>
+            <div class="stat-label">SAFE DAYS</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value warning" id="cautionDays">52</div>
+            <div class="stat-label">CAUTION DAYS</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value danger" id="criticalDays">26</div>
+            <div class="stat-label">CRITICAL DAYS</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <div class="tooltip" id="tooltip">
+    <div class="tooltip-date" id="tooltipDate"></div>
+    <div class="tooltip-value" id="tooltipValue"></div>
+  </div>
+  
+  <script>
+    const planets = [
+      { name: 'Recovery', desc: 'System recovery capacity' },
+      { name: 'Stability', desc: 'Overall system stability' },
+      { name: 'Cohesion', desc: 'Component integration' },
+      { name: 'Shock', desc: 'External impact level' },
+      { name: 'Friction', desc: 'Internal resistance' },
+      { name: 'Transfer', desc: 'Data flow efficiency' },
+      { name: 'Time', desc: 'Time management' },
+      { name: 'Quality', desc: 'Output quality' },
+      { name: 'Output', desc: 'Production rate' }
+    ];
+    
+    let currentYear = 2026;
+    
+    function generateHeatmapData(seed) {
+      const data = [];
+      for (let i = 0; i < 365; i++) {
+        const base = Math.sin(i * 0.02 + seed) * 0.3 + 0.5;
+        const noise = Math.random() * 0.2 - 0.1;
+        data.push(Math.max(0, Math.min(1, base + noise)));
+      }
+      return data;
+    }
+    
+    function getLevel(value) {
+      if (value < 0.2) return 1;
+      if (value < 0.4) return 2;
+      if (value < 0.6) return 3;
+      if (value < 0.8) return 4;
+      return 5;
+    }
+    
+    function renderHeatmap() {
+      const grid = document.getElementById('heatmapGrid');
+      grid.innerHTML = '';
+      
+      let safeDays = 0, cautionDays = 0, criticalDays = 0;
+      
+      planets.forEach((planet, pi) => {
+        const row = document.createElement('div');
+        row.className = 'heatmap-row';
+        
+        const label = document.createElement('div');
+        label.className = 'heatmap-label';
+        label.innerHTML = `${planet.name}<div class="heatmap-description">${planet.desc}</div>`;
+        row.appendChild(label);
+        
+        const cells = document.createElement('div');
+        cells.className = 'heatmap-cells';
+        
+        const data = generateHeatmapData(pi * 10 + currentYear);
+        
+        data.forEach((value, day) => {
+          const cell = document.createElement('div');
+          cell.className = 'heatmap-cell';
+          const level = getLevel(value);
+          cell.dataset.level = level;
+          cell.dataset.value = value.toFixed(2);
+          cell.dataset.day = day;
+          cell.dataset.planet = planet.name;
+          
+          if (level <= 3) safeDays++;
+          else if (level === 4) cautionDays++;
+          else criticalDays++;
+          
+          cell.addEventListener('mouseenter', showTooltip);
+          cell.addEventListener('mouseleave', hideTooltip);
+          
+          cells.appendChild(cell);
+        });
+        
+        row.appendChild(cells);
+        grid.appendChild(row);
+      });
+      
+      // Update stats (averaged across planets)
+      document.getElementById('safeDays').textContent = Math.round(safeDays / 9);
+      document.getElementById('cautionDays').textContent = Math.round(cautionDays / 9);
+      document.getElementById('criticalDays').textContent = Math.round(criticalDays / 9);
+    }
+    
+    function showTooltip(e) {
+      const tooltip = document.getElementById('tooltip');
+      const cell = e.target;
+      const day = parseInt(cell.dataset.day);
+      const date = new Date(currentYear, 0, day + 1);
+      const dateStr = date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+      
+      document.getElementById('tooltipDate').textContent = `${cell.dataset.planet} · ${dateStr}`;
+      document.getElementById('tooltipValue').textContent = `Value: ${cell.dataset.value}`;
+      document.getElementById('tooltipValue').style.color = 
+        cell.dataset.level <= 3 ? '#00D4AA' : 
+        cell.dataset.level === 4 ? '#FFB800' : '#FF4757';
+      
+      tooltip.style.display = 'block';
+      tooltip.style.left = e.pageX + 10 + 'px';
+      tooltip.style.top = e.pageY + 10 + 'px';
+    }
+    
+    function hideTooltip() {
+      document.getElementById('tooltip').style.display = 'none';
+    }
+    
+    function changeYear(delta) {
+      currentYear += delta;
+      document.getElementById('yearDisplay').textContent = currentYear;
+      renderHeatmap();
+    }
+    
+    // Initial render
+    renderHeatmap();
+  </script>
+</body>
+</html>
