@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS Education — Multi-Persona Theme System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* AUTUS Core Colors */
+            --autus-primary: #00D4AA;
+            --autus-secondary: #00B4D8;
+            --autus-neon: #00F5FF;
+
+            /* Theme A: Dark Obsidian (Owner/원장) */
+            --obsidian-bg: #0a0e1a;
+            --obsidian-bg-secondary: #0f1525;
+            --obsidian-bg-tertiary: #1a2035;
+            --obsidian-border: rgba(0, 212, 170, 0.2);
+            --obsidian-text: #F8FAFC;
+            --obsidian-text-secondary: #94A3B8;
+            --obsidian-point: #00D4AA;
+            --obsidian-alert: #FFB800;
+            --obsidian-danger: #FF4757;
+            --obsidian-glow: rgba(0, 212, 170, 0.4);
+
+            /* Theme B: Soft Ivory (Parent/학부모) */
+            --ivory-bg: #FDFCF8;
+            --ivory-bg-secondary: #FEF7ED;
+            --ivory-bg-tertiary: #FFF7ED;
+            --ivory-border: #E7E5E4;
+            --ivory-text: #1C1917;
+            --ivory-text-secondary: #78716C;
+            --ivory-point: #6366F1;
+            --ivory-accent: #EC4899;
+            --ivory-warm: #FCD34D;
+            --ivory-success: #10B981;
+
+            /* Theme C: High-Contrast Cyber (Staff/선생님) */
+            --cyber-bg: #FFFFFF;
+            --cyber-bg-secondary: #F8FAFC;
+            --cyber-bg-tertiary: #F1F5F9;
+            --cyber-border: #E2E8F0;
+            --cyber-text: #0F172A;
+            --cyber-text-secondary: #64748B;
+            --cyber-point: #3B82F6;
+            --cyber-task: #EF4444;
+            --cyber-success: #22C55E;
+            --cyber-warning: #F59E0B;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: all 0.4s ease;
+            min-height: 100vh;
+        }
+
+        /* ============================================
+           THEME A: DARK OBSIDIAN (OWNER/원장)
+           - Physics Dashboard 스타일
+           - 전체 조직 시각화
+        ============================================ */
+        body.theme-obsidian {
+            background: var(--obsidian-bg);
+            color: var(--obsidian-text);
+        }
+
+        .theme-obsidian .header {
+            background: linear-gradient(180deg, var(--obsidian-bg-secondary) 0%, transparent 100%);
+            border-bottom: 1px solid var(--obsidian-border);
+            backdrop-filter: blur(20px);
+        }
+
+        .theme-obsidian .card {
+            background: var(--obsidian-bg-secondary);
+            border: 1px solid var(--obsidian-border);
+            border-radius: 16px;
+            box-shadow: 0 0 40px rgba(0, 212, 170, 0.05);
+        }
+
+        .theme-obsidian .card:hover {
+            border-color: var(--obsidian-point);
+            box-shadow: 0 0 60px var(--obsidian-glow);
+        }
+
+        .theme-obsidian .text-secondary {
+            color: var(--obsidian-text-secondary);
+        }
+
+        .theme-obsidian .accent {
+            color: var(--obsidian-point);
+        }
+
+        .theme-obsidian .alert {
+            color: var(--obsidian-alert);
+        }
+
+        .theme-obsidian .danger {
+            color: var(--obsidian-danger);
+        }
+
+        .theme-obsidian .glow-text {
+            text-shadow: 0 0 20px var(--obsidian-glow);
+        }
+
+        .theme-obsidian .btn-primary {
+            background: linear-gradient(135deg, var(--obsidian-point), var(--autus-secondary));
+            color: white;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 212, 170, 0.3);
+        }
+
+        .theme-obsidian .btn-primary:hover {
+            box-shadow: 0 6px 30px rgba(0, 212, 170, 0.5);
+        }
+
+        .theme-obsidian .stat-card {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 180, 216, 0.05));
+            border: 1px solid var(--obsidian-border);
+        }
+
+        .theme-obsidian .stat-card.warning {
+            background: linear-gradient(135deg, rgba(255, 184, 0, 0.1), rgba(255, 71, 87, 0.05));
+            border-color: rgba(255, 184, 0, 0.3);
+        }
+
+        .theme-obsidian .logo-icon {
+            background: linear-gradient(135deg, var(--obsidian-point), var(--autus-secondary));
+            box-shadow: 0 0 30px var(--obsidian-glow);
+        }
+
+        .theme-obsidian .sidebar {
+            background: var(--obsidian-bg-secondary);
+            border-right: 1px solid var(--obsidian-border);
+        }
+
+        .theme-obsidian .nav-item.active {
+            background: linear-gradient(90deg, rgba(0, 212, 170, 0.2), transparent);
+            border-left: 3px solid var(--obsidian-point);
+        }
+
+        .theme-obsidian .physics-ring {
+            stroke: var(--obsidian-point);
+            filter: drop-shadow(0 0 10px var(--obsidian-glow));
+        }
+
+        /* ============================================
+           THEME B: SOFT IVORY (PARENT/학부모)
+           - 따뜻하고 친근한 스타일
+           - 아이 성장 중심
+        ============================================ */
+        body.theme-ivory {
+            background: var(--ivory-bg);
+            color: var(--ivory-text);
+        }
+
+        .theme-ivory .header {
+            background: linear-gradient(180deg, var(--ivory-bg-secondary) 0%, var(--ivory-bg) 100%);
+            border-bottom: 1px solid var(--ivory-border);
+        }
+
+        .theme-ivory .card {
+            background: white;
+            border: 1px solid var(--ivory-border);
+            border-radius: 24px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+        }
+
+        .theme-ivory .card:hover {
+            box-shadow: 0 8px 40px rgba(99, 102, 241, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .theme-ivory .text-secondary {
+            color: var(--ivory-text-secondary);
+        }
+
+        .theme-ivory .accent {
+            color: var(--ivory-point);
+        }
+
+        .theme-ivory .highlight {
+            color: var(--ivory-accent);
+        }
+
+        .theme-ivory .success {
+            color: var(--ivory-success);
+        }
+
+        .theme-ivory .btn-primary {
+            background: linear-gradient(135deg, var(--ivory-point), #818CF8);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .theme-ivory .btn-secondary {
+            background: linear-gradient(135deg, var(--ivory-accent), #F472B6);
+            color: white;
+            border: none;
+            border-radius: 16px;
+        }
+
+        .theme-ivory .stat-card {
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .theme-ivory .stat-card.purple {
+            background: linear-gradient(135deg, #EEF2FF, #E0E7FF);
+        }
+
+        .theme-ivory .stat-card.pink {
+            background: linear-gradient(135deg, #FDF2F8, #FCE7F3);
+        }
+
+        .theme-ivory .stat-card.yellow {
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+        }
+
+        .theme-ivory .stat-card.green {
+            background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+        }
+
+        .theme-ivory .logo-icon {
+            background: linear-gradient(135deg, var(--ivory-point), var(--ivory-accent));
+        }
+
+        .theme-ivory .photo-card {
+            border-radius: 20px;
+            overflow: hidden;
+            border: 4px solid white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .theme-ivory .growth-dot {
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .theme-ivory .badge-new {
+            background: linear-gradient(135deg, var(--ivory-accent), #F472B6);
+            color: white;
+        }
+
+        /* ============================================
+           THEME C: HIGH-CONTRAST CYBER (STAFF/선생님)
+           - 깔끔하고 효율적인 스타일
+           - 태스크 중심
+        ============================================ */
+        body.theme-cyber {
+            background: var(--cyber-bg);
+            color: var(--cyber-text);
+        }
+
+        .theme-cyber .header {
+            background: var(--cyber-bg);
+            border-bottom: 2px solid var(--cyber-border);
+        }
+
+        .theme-cyber .card {
+            background: var(--cyber-bg-secondary);
+            border: 1px solid var(--cyber-border);
+            border-radius: 12px;
+        }
+
+        .theme-cyber .card:hover {
+            border-color: var(--cyber-point);
+        }
+
+        .theme-cyber .text-secondary {
+            color: var(--cyber-text-secondary);
+        }
+
+        .theme-cyber .accent {
+            color: var(--cyber-point);
+        }
+
+        .theme-cyber .urgent {
+            color: var(--cyber-task);
+            font-weight: 700;
+        }
+
+        .theme-cyber .success {
+            color: var(--cyber-success);
+        }
+
+        .theme-cyber .warning {
+            color: var(--cyber-warning);
+        }
+
+        .theme-cyber .btn-primary {
+            background: var(--cyber-point);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .theme-cyber .btn-success {
+            background: var(--cyber-success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .theme-cyber .btn-danger {
+            background: var(--cyber-task);
+            color: white;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .theme-cyber .stat-card {
+            border-radius: 8px;
+        }
+
+        .theme-cyber .stat-card.urgent {
+            background: #FEF2F2;
+            border-left: 4px solid var(--cyber-task);
+        }
+
+        .theme-cyber .stat-card.normal {
+            background: #EFF6FF;
+            border-left: 4px solid var(--cyber-point);
+        }
+
+        .theme-cyber .stat-card.done {
+            background: #F0FDF4;
+            border-left: 4px solid var(--cyber-success);
+        }
+
+        .theme-cyber .logo-icon {
+            background: var(--cyber-point);
+        }
+
+        .theme-cyber .task-urgent {
+            background: #FEF2F2;
+            border-left: 4px solid var(--cyber-task);
+            animation: urgentPulse 2s ease-in-out infinite;
+        }
+
+        .theme-cyber .task-normal {
+            background: var(--cyber-bg-tertiary);
+            border-left: 4px solid var(--cyber-point);
+        }
+
+        .theme-cyber .task-done {
+            background: #F0FDF4;
+            border-left: 4px solid var(--cyber-success);
+            opacity: 0.8;
+        }
+
+        @keyframes urgentPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2); }
+            50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        }
+
+        /* ============================================
+           COMMON STYLES
+        ============================================ */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 100;
+            transition: all 0.3s;
+        }
+
+        .sidebar-logo {
+            padding: 0 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 2px;
+        }
+
+        .nav-section {
+            padding: 0 12px;
+            margin-bottom: 24px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            opacity: 0.5;
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover {
+            opacity: 0.8;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 18px;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .theme-obsidian .nav-badge {
+            background: rgba(0, 212, 170, 0.2);
+            color: var(--obsidian-point);
+        }
+
+        .theme-ivory .nav-badge {
+            background: rgba(236, 72, 153, 0.15);
+            color: var(--ivory-accent);
+        }
+
+        .theme-cyber .nav-badge {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--cyber-task);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            width: 280px;
+        }
+
+        .theme-obsidian .header-search {
+            background: var(--obsidian-bg-tertiary);
+            border: 1px solid var(--obsidian-border);
+        }
+
+        .theme-ivory .header-search {
+            background: white;
+            border: 1px solid var(--ivory-border);
+        }
+
+        .theme-cyber .header-search {
+            background: var(--cyber-bg-tertiary);
+            border: 1px solid var(--cyber-border);
+        }
+
+        .header-search input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 13px;
+            color: inherit;
+        }
+
+        .header-search input::placeholder {
+            opacity: 0.5;
+        }
+
+        /* Theme Switcher */
+        .theme-switcher {
+            display: flex;
+            gap: 6px;
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .theme-obsidian .theme-switcher {
+            background: var(--obsidian-bg-tertiary);
+        }
+
+        .theme-ivory .theme-switcher {
+            background: var(--ivory-bg-tertiary);
+        }
+
+        .theme-cyber .theme-switcher {
+            background: var(--cyber-bg-tertiary);
+        }
+
+        .theme-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            color: inherit;
+            opacity: 0.6;
+        }
+
+        .theme-btn:hover {
+            opacity: 0.8;
+        }
+
+        .theme-btn.active {
+            opacity: 1;
+        }
+
+        .theme-obsidian .theme-btn.active {
+            background: var(--obsidian-bg);
+            color: var(--obsidian-point);
+            box-shadow: 0 2px 10px rgba(0, 212, 170, 0.2);
+        }
+
+        .theme-ivory .theme-btn.active {
+            background: white;
+            color: var(--ivory-point);
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+        }
+
+        .theme-cyber .theme-btn.active {
+            background: white;
+            color: var(--cyber-point);
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 18px;
+        }
+
+        .theme-obsidian .header-icon {
+            background: var(--obsidian-bg-tertiary);
+        }
+
+        .theme-ivory .header-icon {
+            background: white;
+            border: 1px solid var(--ivory-border);
+        }
+
+        .theme-cyber .header-icon {
+            background: var(--cyber-bg-tertiary);
+        }
+
+        .header-icon:hover {
+            transform: scale(1.05);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .theme-obsidian .avatar {
+            background: linear-gradient(135deg, var(--obsidian-point), var(--autus-secondary));
+        }
+
+        .theme-ivory .avatar {
+            background: linear-gradient(135deg, var(--ivory-point), var(--ivory-accent));
+        }
+
+        .theme-cyber .avatar {
+            background: var(--cyber-point);
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 24px 32px;
+        }
+
+        /* Persona Banner */
+        .persona-banner {
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .theme-obsidian .persona-banner {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 180, 216, 0.05));
+            border: 1px solid var(--obsidian-border);
+        }
+
+        .theme-ivory .persona-banner {
+            background: linear-gradient(135deg, #FDF4FF, #FAE8FF);
+            border: 1px solid #F5D0FE;
+        }
+
+        .theme-cyber .persona-banner {
+            background: var(--cyber-bg-tertiary);
+            border: 1px solid var(--cyber-border);
+        }
+
+        .persona-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .persona-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .theme-obsidian .persona-avatar {
+            background: linear-gradient(135deg, var(--obsidian-point), var(--autus-secondary));
+            box-shadow: 0 4px 20px var(--obsidian-glow);
+        }
+
+        .theme-ivory .persona-avatar {
+            background: linear-gradient(135deg, var(--ivory-point), var(--ivory-accent));
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .theme-cyber .persona-avatar {
+            background: var(--cyber-point);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .persona-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .persona-role {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        .persona-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Cards */
+        .card {
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        /* Stats */
+        .stat-card {
+            padding: 20px;
+            border-radius: 16px;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .stat-trend {
+            font-size: 12px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Task Items */
+        .task-item {
+            padding: 16px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .task-item:hover {
+            transform: translateX(4px);
+        }
+
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        .task-checkbox.checked {
+            background: currentColor;
+        }
+
+        .task-checkbox.checked::after {
+            content: '✓';
+            color: white;
+        }
+
+        .task-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .task-meta {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 2px;
+        }
+
+        .task-time {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Photo Grid (Parent Theme) */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .photo-card {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            transition: all 0.3s;
+        }
+
+        .photo-card:hover {
+            transform: scale(1.05);
+        }
+
+        .photo-card.large {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        .photo-card.bg-1 { background: linear-gradient(135deg, #FEF3C7, #FDE68A); }
+        .photo-card.bg-2 { background: linear-gradient(135deg, #FCE7F3, #FBCFE8); }
+        .photo-card.bg-3 { background: linear-gradient(135deg, #DBEAFE, #BFDBFE); }
+        .photo-card.bg-4 { background: linear-gradient(135deg, #D1FAE5, #A7F3D0); }
+
+        /* Growth Timeline (Parent Theme) */
+        .growth-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .growth-item {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .growth-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .growth-content {
+            flex: 1;
+        }
+
+        .growth-date {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-bottom: 4px;
+        }
+
+        .growth-text {
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* Neural Map (Owner Theme) */
+        .neural-container {
+            height: 280px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #neural-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            height: 200px;
+            position: relative;
+        }
+
+        /* Physics Display (Owner Theme) */
+        .physics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .physics-item {
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .theme-obsidian .physics-item {
+            background: var(--obsidian-bg-tertiary);
+        }
+
+        .physics-label {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-bottom: 4px;
+        }
+
+        .physics-value {
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Progress Ring */
+        .progress-ring {
+            width: 80px;
+            height: 80px;
+            position: relative;
+        }
+
+        .progress-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-bg {
+            fill: none;
+            stroke-width: 6;
+        }
+
+        .theme-obsidian .progress-ring-bg {
+            stroke: var(--obsidian-bg-tertiary);
+        }
+
+        .progress-ring-fill {
+            fill: none;
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .theme-obsidian .progress-ring-fill {
+            stroke: var(--obsidian-point);
+            filter: drop-shadow(0 0 6px var(--obsidian-glow));
+        }
+
+        .progress-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* AI Insight Box */
+        .ai-insight {
+            padding: 20px;
+            border-radius: 12px;
+            line-height: 1.8;
+        }
+
+        .theme-obsidian .ai-insight {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.08), rgba(0, 180, 216, 0.04));
+            border: 1px solid var(--obsidian-border);
+        }
+
+        .theme-ivory .ai-insight {
+            background: linear-gradient(135deg, #FEF7ED, #FFF7ED);
+            border: 1px solid var(--ivory-border);
+        }
+
+        .theme-cyber .ai-insight {
+            background: var(--cyber-bg-tertiary);
+            border: 1px solid var(--cyber-border);
+        }
+
+        .ai-insight-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .grid-4 { grid-template-columns: repeat(2, 1fr); }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+                padding: 12px 0;
+            }
+            .sidebar-logo .logo-text,
+            .sidebar-logo .logo-sub,
+            .nav-label,
+            .nav-item span,
+            .nav-badge {
+                display: none;
+            }
+            .nav-item {
+                justify-content: center;
+                padding: 12px;
+            }
+            .main-content {
+                margin-left: 60px;
+            }
+            .header {
+                flex-wrap: wrap;
+                gap: 12px;
+                padding: 12px 16px;
+            }
+            .header-search {
+                order: 3;
+                width: 100%;
+            }
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+            .content-area {
+                padding: 16px;
+            }
+            .persona-banner {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            .persona-info {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="theme-obsidian">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon">A</div>
+                <div>
+                    <div class="logo-text">AUTUS</div>
+                    <div class="logo-sub">Education Pack</div>
+                </div>
+            </div>
+
+            <nav class="nav-section">
+                <div class="nav-label">Main</div>
+                <div class="nav-item active">
+                    <span class="nav-icon">🏠</span>
+                    <span>대시보드</span>
+                </div>
+                <div class="nav-item" onclick="location.href='solar.html'">
+                    <span class="nav-icon">🌐</span>
+                    <span>Solar HQ</span>
+                </div>
+                <div class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    <span>분석</span>
+                    <span class="nav-badge">NEW</span>
+                </div>
+            </nav>
+
+            <nav class="nav-section">
+                <div class="nav-label">Workspace</div>
+                <div class="nav-item">
+                    <span class="nav-icon">👥</span>
+                    <span>학생 관리</span>
+                </div>
+                <div class="nav-item">
+                    <span class="nav-icon">📅</span>
+                    <span>일정</span>
+                </div>
+                <div class="nav-item">
+                    <span class="nav-icon">💬</span>
+                    <span>메시지</span>
+                    <span class="nav-badge">3</span>
+                </div>
+            </nav>
+
+            <nav class="nav-section" style="margin-top: auto;">
+                <div class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span>설정</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <h1 class="page-title" id="pageTitle">Command Center</h1>
+                    <div class="header-search">
+                        <span>🔍</span>
+                        <input type="text" placeholder="검색..." id="searchInput">
+                    </div>
+                </div>
+
+                <div class="theme-switcher">
+                    <button class="theme-btn active" data-theme="obsidian">
+                        🌑 원장
+                    </button>
+                    <button class="theme-btn" data-theme="ivory">
+                        🌸 학부모
+                    </button>
+                    <button class="theme-btn" data-theme="cyber">
+                        ⚡ 선생님
+                    </button>
+                </div>
+
+                <div class="header-actions">
+                    <div class="header-icon">🔔</div>
+                    <div class="avatar" id="headerAvatar">👔</div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Persona Banner -->
+                <div class="persona-banner">
+                    <div class="persona-info">
+                        <div class="persona-avatar" id="personaEmoji">👔</div>
+                        <div>
+                            <div class="persona-name" id="personaName">오세호 원장님</div>
+                            <div class="persona-role" id="personaRole">Strategic Command Center</div>
+                        </div>
+                    </div>
+                    <div class="persona-actions">
+                        <button class="btn btn-primary" id="actionBtn">📡 시뮬레이션</button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Content -->
+                <div id="contentArea">
+                    <!-- Content loaded by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ============================================
+        // THEME CONTENT TEMPLATES
+        // ============================================
+
+        const themeContent = {
+            // THEME A: DARK OBSIDIAN (OWNER/원장)
+            obsidian: `
+                <div class="section-title">🧬 Organism Vitals</div>
+                <div class="grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-label text-secondary">Entropy</div>
+                        <div class="stat-value accent glow-text">24.5</div>
+                        <div class="stat-trend alert">↑ +2.3%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-label text-secondary">Velocity</div>
+                        <div class="stat-value accent glow-text">78.2</div>
+                        <div class="stat-trend accent">↑ +5.1%</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-label text-secondary">Friction</div>
+                        <div class="stat-value alert">12.8</div>
+                        <div class="stat-trend accent">↓ -1.2%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-label text-secondary">Sync Rate</div>
+                        <div class="stat-value accent glow-text">87%</div>
+                        <div class="stat-trend text-secondary">— stable</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🧠 Neural Synchrony</div>
+                            <span class="badge" style="background: rgba(0, 212, 170, 0.2); color: var(--obsidian-point);">9 Nodes</span>
+                        </div>
+                        <div class="neural-container">
+                            <svg id="neural-svg"></svg>
+                        </div>
+                        <div class="physics-grid">
+                            <div class="physics-item">
+                                <div class="physics-label">Recovery</div>
+                                <div class="physics-value accent">0.85</div>
+                            </div>
+                            <div class="physics-item">
+                                <div class="physics-label">Stability</div>
+                                <div class="physics-value accent">0.92</div>
+                            </div>
+                            <div class="physics-item">
+                                <div class="physics-label">Cohesion</div>
+                                <div class="physics-value accent">0.78</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📊 3-Year Vector</div>
+                            <span class="badge" style="background: rgba(255, 184, 0, 0.2); color: var(--obsidian-alert);">Projected</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="predictionChart"></canvas>
+                        </div>
+                        <div class="ai-insight" style="margin-top: 16px;">
+                            <div class="ai-insight-title">🤖 AI Strategic Insight</div>
+                            <p class="text-secondary">
+                                현재 <span class="accent">엔트로피 5% 상승</span> 감지. 
+                                <span class="alert">행정 동기화</span> 필요. 
+                                유지 시 <span class="accent">2028년 매출 200%</span> 달성 확률 <span class="accent">85%</span>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <div class="card-title">🎯 Action Queue</div>
+                        <button class="btn btn-primary" style="padding: 8px 16px; font-size: 12px;">+ 새 액션</button>
+                    </div>
+                    <div class="grid-3">
+                        <div class="task-item" style="background: rgba(0, 212, 170, 0.1); border-left: 3px solid var(--obsidian-point);">
+                            <div class="task-content">
+                                <div>
+                                    <div class="task-title accent">RECOVER #A001</div>
+                                    <div class="task-meta">Finance · τ=0.95</div>
+                                </div>
+                            </div>
+                            <div class="badge" style="background: rgba(0, 212, 170, 0.2); color: var(--obsidian-point);">LOCKED</div>
+                        </div>
+                        <div class="task-item" style="background: rgba(0, 180, 216, 0.1); border-left: 3px solid var(--autus-secondary);">
+                            <div class="task-content">
+                                <div>
+                                    <div class="task-title" style="color: var(--autus-secondary);">DEFRICTION #A002</div>
+                                    <div class="task-meta">Admin · τ=0.88</div>
+                                </div>
+                            </div>
+                            <div class="badge" style="background: rgba(0, 180, 216, 0.2); color: var(--autus-secondary);">PENDING</div>
+                        </div>
+                        <div class="task-item" style="background: rgba(255, 184, 0, 0.1); border-left: 3px solid var(--obsidian-alert);">
+                            <div class="task-content">
+                                <div>
+                                    <div class="task-title alert">SHOCK_DAMP #A003</div>
+                                    <div class="task-meta">Marketing · τ=0.72</div>
+                                </div>
+                            </div>
+                            <div class="badge" style="background: rgba(255, 184, 0, 0.2); color: var(--obsidian-alert);">REVIEW</div>
+                        </div>
+                    </div>
+                </div>
+            `,
+
+            // THEME B: SOFT IVORY (PARENT/학부모)
+            ivory: `
+                <div class="section-title">🌱 우리 아이 성장 기록</div>
+                
+                <div class="grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card purple">
+                        <div class="stat-icon">📚</div>
+                        <div class="stat-label" style="color: var(--ivory-point);">이번 달 출석</div>
+                        <div class="stat-value" style="color: var(--ivory-point);">100%</div>
+                        <div class="stat-trend success">완벽해요! 🎉</div>
+                    </div>
+                    <div class="stat-card pink">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-label" style="color: var(--ivory-accent);">성취 뱃지</div>
+                        <div class="stat-value" style="color: var(--ivory-accent);">12</div>
+                        <div class="stat-trend highlight">+2 이번 주</div>
+                    </div>
+                    <div class="stat-card yellow">
+                        <div class="stat-icon">⏰</div>
+                        <div class="stat-label" style="color: #B45309;">학습 시간</div>
+                        <div class="stat-value" style="color: #B45309;">48h</div>
+                        <div class="stat-trend" style="color: #D97706;">이번 주</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-label" style="color: #047857;">평균 점수</div>
+                        <div class="stat-value" style="color: #047857;">92</div>
+                        <div class="stat-trend success">↑ +5점</div>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-bottom: 24px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📸 이번 주 활동</div>
+                            <span class="badge badge-new">NEW +3</span>
+                        </div>
+                        <div class="photo-grid">
+                            <div class="photo-card large bg-1">📚</div>
+                            <div class="photo-card bg-2">✏️</div>
+                            <div class="photo-card bg-3">🎨</div>
+                            <div class="photo-card bg-4">🎵</div>
+                            <div class="photo-card bg-2">🌟</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">💝 성장 일기</div>
+                        </div>
+                        <div class="growth-timeline">
+                            <div class="growth-item">
+                                <div class="growth-dot" style="background: var(--ivory-accent);"></div>
+                                <div class="growth-content">
+                                    <div class="growth-date">오늘 · 1월 18일</div>
+                                    <div class="growth-text">수학 문제 해결력이 <span class="highlight">눈에 띄게 향상</span>되었어요! 선생님이 특별히 칭찬해 주셨답니다. 🌟</div>
+                                </div>
+                            </div>
+                            <div class="growth-item">
+                                <div class="growth-dot" style="background: var(--ivory-point);"></div>
+                                <div class="growth-content">
+                                    <div class="growth-date">어제 · 1월 17일</div>
+                                    <div class="growth-text">영어 단어 암기 테스트에서 <span class="accent">95점</span>을 받았어요.</div>
+                                </div>
+                            </div>
+                            <div class="growth-item">
+                                <div class="growth-dot" style="background: var(--ivory-warm);"></div>
+                                <div class="growth-content">
+                                    <div class="growth-date">1월 15일</div>
+                                    <div class="growth-text">친구들과 협동 프로젝트를 성공적으로 마쳤어요.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🎧 선생님의 음성 리포트</div>
+                        <span class="badge" style="background: var(--ivory-point); color: white;">NEW</span>
+                    </div>
+                    <div class="ai-insight">
+                        <p class="text-secondary" style="margin-bottom: 16px; font-size: 15px;">
+                            "연우가 이번 주에 정말 열심히 했어요. 특히 수학에서 <span class="accent">어려운 문제도 포기하지 않고</span> 끝까지 
+                            풀어보려는 모습이 인상적이었습니다. 집에서도 많이 칭찬해 주세요!"
+                        </p>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-primary">▶ 음성으로 듣기</button>
+                            <button class="btn btn-secondary">💬 답장하기</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+
+            // THEME C: HIGH-CONTRAST CYBER (STAFF/선생님)
+            cyber: `
+                <div class="section-title">📋 오늘의 태스크</div>
+                
+                <div class="grid-3" style="margin-bottom: 24px;">
+                    <div class="stat-card urgent">
+                        <div class="stat-icon">🚨</div>
+                        <div class="stat-label urgent">긴급</div>
+                        <div class="stat-value urgent">3</div>
+                        <div class="stat-trend urgent">즉시 처리 필요</div>
+                    </div>
+                    <div class="stat-card normal">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-label accent">진행 중</div>
+                        <div class="stat-value accent">8</div>
+                        <div class="stat-trend accent">오늘 마감 4개</div>
+                    </div>
+                    <div class="stat-card done">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-label success">완료</div>
+                        <div class="stat-value success">12</div>
+                        <div class="stat-trend success">오늘 +5</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">⚡ 긴급 태스크</div>
+                            <span class="badge" style="background: #FEE2E2; color: var(--cyber-task);">즉시 처리</span>
+                        </div>
+                        <div class="task-item task-urgent">
+                            <div class="task-content">
+                                <div class="task-checkbox urgent"></div>
+                                <div>
+                                    <div class="task-title urgent">학부모 상담 자료 준비</div>
+                                    <div class="task-meta">김연우 학부모 · 14:00 예정</div>
+                                </div>
+                            </div>
+                            <div class="task-time urgent">30분 전</div>
+                        </div>
+                        <div class="task-item task-urgent">
+                            <div class="task-content">
+                                <div class="task-checkbox urgent"></div>
+                                <div>
+                                    <div class="task-title urgent">보강 수업 교재 출력</div>
+                                    <div class="task-meta">3학년 수학반 · 5부</div>
+                                </div>
+                            </div>
+                            <div class="task-time urgent">1시간 전</div>
+                        </div>
+                        <div class="task-item task-urgent">
+                            <div class="task-content">
+                                <div class="task-checkbox urgent"></div>
+                                <div>
+                                    <div class="task-title urgent">출결 데이터 입력</div>
+                                    <div class="task-meta">오전반 15명</div>
+                                </div>
+                            </div>
+                            <div class="task-time urgent">2시간 전</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📝 일반 태스크</div>
+                            <span class="badge" style="background: #DBEAFE; color: var(--cyber-point);">8개</span>
+                        </div>
+                        <div class="task-item task-normal">
+                            <div class="task-content">
+                                <div class="task-checkbox accent"></div>
+                                <div>
+                                    <div class="task-title">주간 학습 리포트 작성</div>
+                                    <div class="task-meta">마감: 오늘 18:00</div>
+                                </div>
+                            </div>
+                            <div class="task-time accent">3h</div>
+                        </div>
+                        <div class="task-item task-normal">
+                            <div class="task-content">
+                                <div class="task-checkbox accent"></div>
+                                <div>
+                                    <div class="task-title">신규 교재 검토</div>
+                                    <div class="task-meta">영어 리딩 교재</div>
+                                </div>
+                            </div>
+                            <div class="task-time accent">오늘</div>
+                        </div>
+                        <div class="task-item task-done">
+                            <div class="task-content">
+                                <div class="task-checkbox success checked"></div>
+                                <div>
+                                    <div class="task-title" style="text-decoration: line-through; opacity: 0.6;">오전 출석체크</div>
+                                    <div class="task-meta">완료 · 09:15</div>
+                                </div>
+                            </div>
+                            <div class="task-time success">✓</div>
+                        </div>
+                        <div class="task-item task-done">
+                            <div class="task-content">
+                                <div class="task-checkbox success checked"></div>
+                                <div>
+                                    <div class="task-title" style="text-decoration: line-through; opacity: 0.6;">1교시 수업 진행</div>
+                                    <div class="task-meta">완료 · 10:30</div>
+                                </div>
+                            </div>
+                            <div class="task-time success">✓</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <div class="card-title">🤖 AI 업무 보조</div>
+                    </div>
+                    <div class="ai-insight">
+                        <p class="text-secondary" style="margin-bottom: 16px;">
+                            <span class="accent">3건의 자동 생성 문서</span>가 준비되었습니다. 검토 후 원클릭으로 전송하세요.
+                        </p>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-primary">📄 문서 확인</button>
+                            <button class="btn btn-success">✓ 일괄 승인</button>
+                            <button class="btn btn-danger" style="opacity: 0.8;">✕ 전체 취소</button>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        // Persona data
+        const personaData = {
+            obsidian: {
+                pageTitle: 'Command Center',
+                emoji: '👔',
+                personaName: '오세호 원장님',
+                personaRole: 'Strategic Command · Physics Dashboard',
+                actionBtn: '📡 시뮬레이션',
+                searchPlaceholder: 'Physics 검색...'
+            },
+            ivory: {
+                pageTitle: '아이 성장 리포트',
+                emoji: '💝',
+                personaName: '연우 어머니',
+                personaRole: '우리 아이 성장 파트너',
+                actionBtn: '💬 선생님께 메시지',
+                searchPlaceholder: '활동 검색...'
+            },
+            cyber: {
+                pageTitle: 'Task Planner',
+                emoji: '⚡',
+                personaName: '김민수 선생님',
+                personaRole: 'Action Planner · 수학 담당',
+                actionBtn: '+ 태스크 추가',
+                searchPlaceholder: '태스크 검색...'
+            }
+        };
+
+        // ============================================
+        // THEME SWITCHING
+        // ============================================
+        function switchTheme(theme) {
+            // Update body class
+            document.body.className = `theme-${theme}`;
+
+            // Update buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.theme-btn[data-theme="${theme}"]`).classList.add('active');
+
+            // Update content
+            document.getElementById('contentArea').innerHTML = themeContent[theme];
+
+            // Update persona info
+            const data = personaData[theme];
+            document.getElementById('pageTitle').textContent = data.pageTitle;
+            document.getElementById('personaEmoji').textContent = data.emoji;
+            document.getElementById('headerAvatar').textContent = data.emoji;
+            document.getElementById('personaName').textContent = data.personaName;
+            document.getElementById('personaRole').textContent = data.personaRole;
+            document.getElementById('actionBtn').innerHTML = data.actionBtn;
+            document.getElementById('searchInput').placeholder = data.searchPlaceholder;
+
+            // Initialize theme-specific components
+            if (theme === 'obsidian') {
+                setTimeout(() => {
+                    initNeuralMap();
+                    initPredictionChart();
+                }, 100);
+            }
+
+            // Save preference
+            localStorage.setItem('autus-edu-theme', theme);
+        }
+
+        // ============================================
+        // NEURAL MAP (OBSIDIAN THEME)
+        // ============================================
+        function initNeuralMap() {
+            const svg = document.getElementById('neural-svg');
+            if (!svg) return;
+
+            const width = svg.clientWidth || 400;
+            const height = svg.clientHeight || 280;
+
+            svg.innerHTML = `
+                <defs>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#00D4AA;stop-opacity:0.8" />
+                        <stop offset="100%" style="stop-color:#00B4D8;stop-opacity:0.3" />
+                    </linearGradient>
+                </defs>
+            `;
+
+            // 9 planets (AUTUS style)
+            const nodes = [
+                { x: width/2, y: height/2, r: 24, color: '#00D4AA', label: 'CORE', tier: 'T1' },
+                { x: width/2 - 100, y: height/2 - 70, r: 12, color: '#00AAFF', sync: 0.95, tier: 'T2' },
+                { x: width/2 + 110, y: height/2 - 50, r: 12, color: '#00AAFF', sync: 0.88, tier: 'T2' },
+                { x: width/2 - 120, y: height/2 + 60, r: 10, color: '#00CC66', sync: 0.82, tier: 'T3' },
+                { x: width/2 + 90, y: height/2 + 80, r: 10, color: '#00CC66', sync: 0.78, tier: 'T3' },
+                { x: width/2 + 40, y: height/2 - 100, r: 10, color: '#00CC66', sync: 0.91, tier: 'T3' },
+                { x: width/2 - 60, y: height/2 + 100, r: 8, color: '#888888', sync: 0.65, tier: 'T4' },
+                { x: width/2 + 140, y: height/2 + 20, r: 8, color: '#FFB800', sync: 0.58, tier: 'T4' },
+                { x: width/2 - 150, y: height/2 - 20, r: 8, color: '#888888', sync: 0.72, tier: 'T4' }
+            ];
+
+            // Draw orbits
+            [60, 100, 140].forEach(r => {
+                const orbit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                orbit.setAttribute('cx', width/2);
+                orbit.setAttribute('cy', height/2);
+                orbit.setAttribute('r', r);
+                orbit.setAttribute('fill', 'none');
+                orbit.setAttribute('stroke', 'rgba(0, 212, 170, 0.1)');
+                orbit.setAttribute('stroke-width', '1');
+                orbit.setAttribute('stroke-dasharray', '4,4');
+                svg.appendChild(orbit);
+            });
+
+            // Draw lines
+            nodes.slice(1).forEach(node => {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', width/2);
+                line.setAttribute('y1', height/2);
+                line.setAttribute('x2', node.x);
+                line.setAttribute('y2', node.y);
+                line.setAttribute('stroke', 'url(#lineGrad)');
+                line.setAttribute('stroke-width', (node.sync || 0.5) * 3);
+                line.setAttribute('stroke-opacity', (node.sync || 0.5) * 0.6);
+                svg.appendChild(line);
+            });
+
+            // Draw nodes
+            nodes.forEach((node, i) => {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                
+                // Glow circle
+                if (i === 0) {
+                    const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    glow.setAttribute('cx', node.x);
+                    glow.setAttribute('cy', node.y);
+                    glow.setAttribute('r', node.r + 8);
+                    glow.setAttribute('fill', 'rgba(0, 212, 170, 0.2)');
+                    glow.setAttribute('filter', 'url(#glow)');
+                    g.appendChild(glow);
+                }
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', node.x);
+                circle.setAttribute('cy', node.y);
+                circle.setAttribute('r', node.r);
+                circle.setAttribute('fill', node.color);
+                if (i === 0) {
+                    circle.setAttribute('filter', 'url(#glow)');
+                }
+                g.appendChild(circle);
+
+                // Tier label
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', node.x);
+                text.setAttribute('y', node.y + 4);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', i === 0 ? '#0a0e1a' : 'white');
+                text.setAttribute('font-size', i === 0 ? '10' : '8');
+                text.setAttribute('font-weight', '600');
+                text.textContent = node.label || node.tier;
+                g.appendChild(text);
+
+                svg.appendChild(g);
+            });
+        }
+
+        // ============================================
+        // PREDICTION CHART (OBSIDIAN THEME)
+        // ============================================
+        function initPredictionChart() {
+            const canvas = document.getElementById('predictionChart');
+            if (!canvas) return;
+
+            new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: ['2024', '2025', '2026', '2027', '2028'],
+                    datasets: [{
+                        label: 'Growth',
+                        data: [80, 100, 135, 185, 250],
+                        borderColor: '#00D4AA',
+                        backgroundColor: 'rgba(0, 212, 170, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#00D4AA',
+                        pointBorderColor: '#0a0e1a',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1a2035',
+                            borderColor: '#00D4AA',
+                            borderWidth: 1,
+                            titleColor: '#00D4AA',
+                            bodyColor: '#F8FAFC'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94A3B8', font: { size: 11 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { 
+                                color: '#94A3B8', 
+                                font: { size: 11 },
+                                callback: v => v + '%' 
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        // ============================================
+        // EVENT HANDLERS
+        // ============================================
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchTheme(btn.dataset.theme);
+            });
+        });
+
+        // Task checkbox toggle
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('task-checkbox')) {
+                e.target.classList.toggle('checked');
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('autus-edu-theme') || 'obsidian';
+            switchTheme(savedTheme);
+        });
+    </script>
+</body>
+</html>
