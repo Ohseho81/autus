@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS — 당신을 위한 도구</title>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .intro-container {
+            min-height: 100vh;
+            padding: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .intro-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+        }
+
+        .intro-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .intro-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            color: #000;
+        }
+
+        .intro-logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            color: var(--text);
+        }
+
+        .intro-skip {
+            color: var(--text-dim);
+            font-size: 13px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .intro-skip:hover {
+            color: var(--neon-cyan);
+        }
+
+        .role-selector {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .role-tab {
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            font-size: 13px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .role-tab:hover {
+            border-color: var(--text-dim);
+        }
+
+        .role-tab.active {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(180, 74, 255, 0.15));
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+
+        .role-tab-icon {
+            font-size: 18px;
+        }
+
+        .hero-section {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 60px;
+        }
+
+        .hero-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        .hero-highlight {
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .reward-preview {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto 60px;
+        }
+
+        @media (max-width: 900px) {
+            .reward-preview {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .preview-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .preview-card:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .preview-card:hover::before {
+            opacity: 1;
+        }
+
+        .preview-card.clicked {
+            background: rgba(0, 240, 255, 0.05);
+            border-color: var(--neon-green);
+        }
+
+        .preview-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(180, 74, 255, 0.2));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .preview-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .preview-benefit {
+            font-size: 14px;
+            color: var(--neon-green);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .preview-desc {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .preview-demo {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--text-dim);
+            border-left: 3px solid var(--neon-cyan);
+        }
+
+        .preview-demo-label {
+            font-size: 9px;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .cta-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .cta-btn {
+            padding: 20px 60px;
+            background: linear-gradient(135deg, var(--neon-green), #00aa66);
+            border: none;
+            border-radius: 16px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cta-btn:hover {
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .cta-note {
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .privacy-section {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .privacy-text {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .privacy-text a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+        }
+
+        .privacy-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .toggle-switch {
+            width: 40px;
+            height: 22px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--neon-green);
+            border-color: var(--neon-green);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(18px);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+
+    <div class="intro-container">
+        <header class="intro-header">
+            <div class="intro-logo">
+                <div class="intro-logo-icon">A</div>
+                <span class="intro-logo-text">AUTUS</span>
+            </div>
+            <span class="intro-skip" onclick="location.href='index.html'">건너뛰기 →</span>
+        </header>
+
+        <div class="role-selector">
+            <div class="role-tab" data-role="owner">
+                <span class="role-tab-icon">👔</span>
+                오너/원장
+            </div>
+            <div class="role-tab active" data-role="teacher">
+                <span class="role-tab-icon">👨‍🏫</span>
+                강사
+            </div>
+            <div class="role-tab" data-role="staff">
+                <span class="role-tab-icon">📋</span>
+                행정
+            </div>
+            <div class="role-tab" data-role="parent">
+                <span class="role-tab-icon">👪</span>
+                학부모
+            </div>
+            <div class="role-tab" data-role="student">
+                <span class="role-tab-icon">🎓</span>
+                학생
+            </div>
+        </div>
+
+        <div class="hero-section" id="heroSection">
+            <h1 class="hero-title">
+                상담/리포트를<br>
+                <span class="hero-highlight">30초로 줄입니다</span>
+            </h1>
+            <p class="hero-subtitle">
+                수업이 끝나면 자동으로 학부모 상담 일지가 준비됩니다.<br>
+                반복 업무 대신 수업에만 집중하세요.
+            </p>
+        </div>
+
+        <div class="reward-preview" id="rewardPreview"></div>
+
+        <div class="cta-section">
+            <button class="cta-btn" onclick="goToSignup()">무료로 시작하기</button>
+            <p class="cta-note">신용카드 없이 · 1분 내 완료</p>
+        </div>
+
+        <div class="privacy-section">
+            <div class="privacy-text">
+                🔒 데이터는 당신의 것입니다. <a href="#">개인정보 처리방침</a>
+            </div>
+            <div class="privacy-toggle">
+                <span>최소 수집 모드</span>
+                <div class="toggle-switch active" id="privacyToggle"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const roleContent = {
+            owner: {
+                title: '퇴원 리스크와 현금흐름을<br><span class="hero-highlight">먼저 잡습니다</span>',
+                subtitle: '미납 예상 가구와 퇴원 징후를 미리 감지합니다.<br>거절감 없는 안내 문안까지 자동 생성됩니다.',
+                cards: [
+                    { icon: '💰', title: 'Cash-Flow Guardian', benefit: '미납 30% 조기 회수', desc: '이번 달 미납 예상 가구를 추출하고, 거절감 없는 납부 안내 문안을 준비합니다.', demo: '"미납 예상 가구 4곳을 추출했습니다. 정중한 안내 문안 3종을 준비했습니다."' },
+                    { icon: '📊', title: 'Risk Radar', benefit: '퇴원 82% 사전 감지', desc: '학습 에너지가 급감한 학생을 발견하고, 상담용 맞춤 대응 스크립트를 생성합니다.', demo: '"최근 3일간 에너지 급감 학생 2명 발견. 퇴원 징후 확률 82%입니다."' },
+                    { icon: '📈', title: 'Growth Insight', benefit: '주간 트렌드 자동 리포트', desc: '지점별 출결/성적/재등록률을 한 눈에 파악할 수 있는 리포트를 자동 생성합니다.', demo: '"A지점 재등록률이 지난 주 대비 12% 상승했습니다."' }
+                ]
+            },
+            teacher: {
+                title: '상담/리포트를<br><span class="hero-highlight">30초로 줄입니다</span>',
+                subtitle: '수업이 끝나면 자동으로 학부모 상담 일지가 준비됩니다.<br>반복 업무 대신 수업에만 집중하세요.',
+                cards: [
+                    { icon: '📝', title: 'Magic Reporter', benefit: '상담 일지 20분 → 30초', desc: '오늘 수업 로그를 바탕으로 학부모 상담 일지 초안을 자동 작성합니다.', demo: '"오늘 상담 일지 5건의 초안을 작성했습니다. 퇴근 시간을 20분 앞당겨 드릴게요."' },
+                    { icon: '🎯', title: 'Focus Planner', benefit: '수업 준비 시간 50% 단축', desc: '학생별 취약점을 분석하여 맞춤 수업 자료를 추천합니다.', demo: '"연우는 분수 연산에서 반복 오류. 추천 문제 10개를 준비했습니다."' },
+                    { icon: '💬', title: 'Parent Bridge', benefit: '학부모 소통 스트레스 ↓', desc: '민감한 학부모 문의에 대한 적절한 답변 옵션을 제안합니다.', demo: '"감정적 문의 감지. 핵심 요구사항 요약과 답변 옵션 2개를 준비했습니다."' }
+                ]
+            },
+            staff: {
+                title: '감정 노동과 반복 업무를<br><span class="hero-highlight">자동으로 필터링</span>',
+                subtitle: '학부모 컴플레인의 핵심만 추출하고,<br>적절한 답변 옵션을 즉시 추천합니다.',
+                cards: [
+                    { icon: '🛡️', title: 'Friction Filter', benefit: '감정 노동 70% 감소', desc: '감정적 표현이 섞인 문의에서 핵심 요구사항만 중립적으로 요약합니다.', demo: '"감정적 표현 감지. AI가 핵심 요구사항만 요약했습니다."' },
+                    { icon: '📅', title: 'Schedule Sync', benefit: '일정 조율 자동화', desc: '상담/보충수업 일정을 자동으로 조율하고 안내 문자를 생성합니다.', demo: '"다음 주 상담 가능 시간 3개를 추출했습니다. 안내 문자를 발송할까요?"' },
+                    { icon: '📋', title: 'Document Auto', benefit: '문서 작업 80% 자동화', desc: '반복되는 안내문, 공지사항, 동의서를 템플릿 기반으로 자동 생성합니다.', demo: '"4월 학부모 공개수업 안내문 초안을 작성했습니다."' }
+                ]
+            },
+            parent: {
+                title: '아이의 이번 주 성장을<br><span class="hero-highlight">10초로 확인</span>',
+                subtitle: '매일 아이의 학습 현황을 확인하느라 지치셨나요?<br>중요한 순간만 하이라이트로 전달드립니다.',
+                cards: [
+                    { icon: '🌟', title: 'Growth Highlight', benefit: '하루 10초로 성장 확인', desc: '아이의 유의미한 학습 성취를 15초 영상 리포트로 구성합니다.', demo: '"연우가 오늘 가장 어려워하던 문제를 스스로 풀었습니다!"' },
+                    { icon: '📊', title: 'Weekly Summary', benefit: '주간 학습 리포트 자동 생성', desc: '이번 주 아이의 출결, 성적 변화, 집중도를 한 눈에 요약합니다.', demo: '"이번 주 연우의 수학 정확도가 15% 향상되었습니다."' },
+                    { icon: '💬', title: 'Teacher Connect', benefit: '선생님과 1:1 소통 간소화', desc: '아이에 대해 궁금한 점을 물어보면 담당 선생님에게 정리된 질문을 전달합니다.', demo: '"질문을 정리해서 김 선생님께 전달드렸습니다. 답변이 오면 알려드릴게요."' }
+                ]
+            },
+            student: {
+                title: '공부가<br><span class="hero-highlight">게임처럼 재밌어진다</span>',
+                subtitle: '매일 퀘스트를 완료하고 배지를 획득하세요.<br>어제 틀린 문제? 복습하면 경험치 2배!',
+                cards: [
+                    { icon: '🎮', title: 'Achievement Quest', benefit: '학습 몰입도 200% UP', desc: '오늘의 퀘스트를 완료하면 배지와 경험치를 획득합니다.', demo: '"오늘 퀘스트 3개만 완료하면 \'단어 마스터\' 배지 획득!"' },
+                    { icon: '📈', title: 'Level Up System', benefit: '나만의 성장 기록', desc: '매일 쌓이는 경험치로 레벨업하고, 친구들과 랭킹을 겨뤄보세요.', demo: '"축하합니다! 레벨 15 달성. 전체 상위 12%입니다."' },
+                    { icon: '🔄', title: 'Smart Review', benefit: '복습 효율 극대화', desc: '어제 틀린 문제를 복습하면 추가 경험치 2배! AI가 취약점을 분석합니다.', demo: '"어제 틀린 문제 복습 시 경험치 2배! 도전하시겠어요?"' }
+                ]
+            }
+        };
+
+        let currentRole = 'teacher';
+        let clickedCards = new Set();
+
+        function renderContent(role) {
+            currentRole = role;
+            const content = roleContent[role];
+
+            document.getElementById('heroSection').innerHTML = `
+                <h1 class="hero-title">${content.title}</h1>
+                <p class="hero-subtitle">${content.subtitle}</p>
+            `;
+
+            const preview = document.getElementById('rewardPreview');
+            preview.innerHTML = content.cards.map((card, i) => `
+                <div class="preview-card fade-in ${clickedCards.has(role + i) ? 'clicked' : ''}" 
+                     style="animation-delay: ${i * 0.1}s;" 
+                     data-card="${role + i}">
+                    <div class="preview-icon">${card.icon}</div>
+                    <h3 class="preview-title">${card.title}</h3>
+                    <div class="preview-benefit">✓ ${card.benefit}</div>
+                    <p class="preview-desc">${card.desc}</p>
+                    <div class="preview-demo">
+                        <div class="preview-demo-label">예시</div>
+                        ${card.demo}
+                    </div>
+                </div>
+            `).join('');
+
+            preview.querySelectorAll('.preview-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const cardId = card.dataset.card;
+                    clickedCards.add(cardId);
+                    card.classList.add('clicked');
+                    console.log('Event: onIntroViewed - Card clicked:', cardId);
+                });
+            });
+        }
+
+        document.querySelectorAll('.role-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                renderContent(tab.dataset.role);
+            });
+        });
+
+        document.getElementById('privacyToggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+
+        function goToSignup() {
+            localStorage.setItem('autus_preferred_role', currentRole);
+            localStorage.setItem('autus_clicked_cards', JSON.stringify([...clickedCards]));
+            console.log('Event: onIntroCompleted', { role: currentRole, clickedCards: [...clickedCards] });
+            location.href = 'signup.html';
+        }
+
+        renderContent('teacher');
+    </script>
+</body>
+</html>

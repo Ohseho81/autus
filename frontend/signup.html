@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS — 시작 설정</title>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .signup-container {
+            min-height: 100vh;
+            display: flex;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-panel {
+            width: 320px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 900px) {
+            .progress-panel { display: none; }
+            .form-panel { padding: 24px !important; }
+        }
+
+        .progress-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 60px;
+        }
+
+        .progress-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .progress-logo-text {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .progress-steps {
+            flex: 1;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 32px;
+            opacity: 0.4;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active {
+            opacity: 1;
+        }
+
+        .progress-step.completed {
+            opacity: 0.7;
+        }
+
+        .step-indicator {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active .step-indicator {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--neon-cyan);
+        }
+
+        .progress-step.completed .step-indicator {
+            border-color: var(--neon-green);
+            background: var(--neon-green);
+            color: #000;
+        }
+
+        .step-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .step-content p {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .progress-note {
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .form-panel {
+            flex: 1;
+            padding: 60px 80px;
+            overflow-y: auto;
+        }
+
+        .form-section {
+            display: none;
+            max-width: 600px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .form-subtitle {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 40px;
+        }
+
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 600px) {
+            .role-grid { grid-template-columns: 1fr; }
+        }
+
+        .role-card {
+            padding: 24px;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .role-card:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-4px);
+        }
+
+        .role-card.selected {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .role-card-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .role-card-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .role-card-desc {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .affiliation-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-field {
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        .capacity-slider {
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .slider-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        .pain-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pain-option {
+            padding: 20px 24px;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .pain-option:hover {
+            border-color: var(--neon-purple);
+        }
+
+        .pain-option.selected {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .pain-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: rgba(180, 74, 255, 0.2);
+        }
+
+        .pain-text h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .pain-text p {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .orbit-options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .orbit-option {
+            padding: 24px;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .orbit-option:hover {
+            border-color: var(--neon-cyan);
+        }
+
+        .orbit-option.selected {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .orbit-option.recommended::after {
+            content: '추천';
+            position: absolute;
+            top: -10px;
+            right: 16px;
+            padding: 4px 12px;
+            background: var(--neon-orange);
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .orbit-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .orbit-visual {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .orbit-visual::before {
+            content: '';
+            position: absolute;
+            border: 2px dashed var(--neon-cyan);
+            border-radius: 50%;
+        }
+
+        .orbit-core .orbit-visual { background: rgba(0, 240, 255, 0.3); }
+        .orbit-core .orbit-visual::before { width: 40px; height: 40px; }
+
+        .orbit-mid .orbit-visual { background: rgba(180, 74, 255, 0.2); }
+        .orbit-mid .orbit-visual::before { width: 48px; height: 48px; }
+
+        .orbit-outer .orbit-visual { background: rgba(68, 136, 255, 0.2); }
+        .orbit-outer .orbit-visual::before { width: 52px; height: 52px; }
+
+        .orbit-dot {
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .orbit-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .orbit-subtitle {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .orbit-desc {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .energy-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .energy-options { grid-template-columns: 1fr; }
+        }
+
+        .energy-option {
+            padding: 24px;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .energy-option:hover {
+            border-color: var(--neon-cyan);
+        }
+
+        .energy-option.selected {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .energy-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .energy-level {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .energy-desc {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .form-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-back {
+            padding: 14px 28px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-dim);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-back:hover {
+            border-color: var(--text);
+            color: var(--text);
+        }
+
+        .btn-next {
+            padding: 14px 40px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-next:hover {
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-next:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-complete {
+            background: linear-gradient(135deg, var(--neon-green), #00aa66);
+        }
+
+        .reward-preview {
+            margin-top: 32px;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(180, 74, 255, 0.1));
+            border: 1px solid var(--neon-cyan);
+            border-radius: 16px;
+        }
+
+        .reward-preview-label {
+            font-size: 10px;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .reward-preview-content {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .reward-preview-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+
+    <div class="signup-container">
+        <div class="progress-panel">
+            <div class="progress-logo">
+                <div class="progress-logo-icon">A</div>
+                <span class="progress-logo-text">AUTUS</span>
+            </div>
+
+            <div class="progress-steps">
+                <div class="progress-step active" data-step="1">
+                    <div class="step-indicator">1</div>
+                    <div class="step-content">
+                        <h4>역할 선택</h4>
+                        <p>당신에게 맞는 화면을 준비합니다</p>
+                    </div>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-indicator">2</div>
+                    <div class="step-content">
+                        <h4>소속 연결</h4>
+                        <p>학원/반/담당 정보를 입력합니다</p>
+                    </div>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-indicator">3</div>
+                    <div class="step-content">
+                        <h4>우선 해결 과제</h4>
+                        <p>가장 먼저 해결하고 싶은 것</p>
+                    </div>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <div class="step-indicator">4</div>
+                    <div class="step-content">
+                        <h4>자동화 거리</h4>
+                        <p>AI 개입 수준을 선택합니다</p>
+                    </div>
+                </div>
+                <div class="progress-step" data-step="5">
+                    <div class="step-indicator">5</div>
+                    <div class="step-content">
+                        <h4>현재 에너지</h4>
+                        <p>오늘의 컨디션을 알려주세요</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-note">
+                🔒 입력하신 정보는 오직 당신의 경험 최적화에만 사용됩니다. 
+                언제든 수정하거나 내보낼 수 있습니다.
+            </div>
+        </div>
+
+        <div class="form-panel">
+            <!-- Step 1: Role -->
+            <div class="form-section active" data-step="1">
+                <h2 class="form-title">어떤 역할이신가요?</h2>
+                <p class="form-subtitle">선택에 따라 완전히 다른 화면이 준비됩니다.</p>
+
+                <div class="role-grid" id="roleGrid">
+                    <div class="role-card" data-role="owner">
+                        <div class="role-card-icon">👔</div>
+                        <div class="role-card-name">오너</div>
+                        <div class="role-card-desc">전체 운영과 재무 관리</div>
+                    </div>
+                    <div class="role-card" data-role="director">
+                        <div class="role-card-icon">🎯</div>
+                        <div class="role-card-name">원장</div>
+                        <div class="role-card-desc">지점 운영과 학생 관리</div>
+                    </div>
+                    <div class="role-card" data-role="teacher">
+                        <div class="role-card-icon">👨‍🏫</div>
+                        <div class="role-card-name">강사</div>
+                        <div class="role-card-desc">수업과 학생 지도</div>
+                    </div>
+                    <div class="role-card" data-role="staff">
+                        <div class="role-card-icon">📋</div>
+                        <div class="role-card-name">행정</div>
+                        <div class="role-card-desc">행정 업무와 학부모 응대</div>
+                    </div>
+                    <div class="role-card" data-role="parent">
+                        <div class="role-card-icon">👪</div>
+                        <div class="role-card-name">학부모</div>
+                        <div class="role-card-desc">자녀의 학습 현황 확인</div>
+                    </div>
+                    <div class="role-card" data-role="student">
+                        <div class="role-card-icon">🎓</div>
+                        <div class="role-card-name">학생</div>
+                        <div class="role-card-desc">나의 학습과 성장</div>
+                    </div>
+                </div>
+
+                <div class="form-nav">
+                    <button class="btn-back" onclick="location.href='intro.html'">← 뒤로</button>
+                    <button class="btn-next" id="btnNext1" disabled>다음 →</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Affiliation -->
+            <div class="form-section" data-step="2">
+                <h2 class="form-title">소속을 연결해주세요</h2>
+                <p class="form-subtitle">정확한 정보가 더 나은 경험을 만듭니다.</p>
+
+                <div class="affiliation-form" id="affiliationForm"></div>
+
+                <div class="form-nav">
+                    <button class="btn-back" onclick="goToStep(1)">← 뒤로</button>
+                    <button class="btn-next" id="btnNext2" onclick="goToStep(3)">다음 →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Pain Point -->
+            <div class="form-section" data-step="3">
+                <h2 class="form-title">가장 먼저 해결하고 싶은 것은?</h2>
+                <p class="form-subtitle">선택한 문제부터 해결해 드립니다.</p>
+
+                <div class="pain-options" id="painOptions"></div>
+
+                <div class="form-nav">
+                    <button class="btn-back" onclick="goToStep(2)">← 뒤로</button>
+                    <button class="btn-next" id="btnNext3" disabled>다음 →</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Orbit -->
+            <div class="form-section" data-step="4">
+                <h2 class="form-title">AI가 얼마나 도와드릴까요?</h2>
+                <p class="form-subtitle">언제든 바꿀 수 있습니다.</p>
+
+                <div class="orbit-options">
+                    <div class="orbit-option orbit-core" data-orbit="0.2">
+                        <div class="orbit-header">
+                            <div class="orbit-visual"><div class="orbit-dot"></div></div>
+                            <div>
+                                <div class="orbit-title">가까이 (편함↑)</div>
+                                <div class="orbit-subtitle">AI 자동화 최대</div>
+                            </div>
+                        </div>
+                        <p class="orbit-desc">AI가 대부분을 자동으로 처리합니다. 확인/실행만 하면 됩니다.</p>
+                    </div>
+
+                    <div class="orbit-option orbit-mid recommended" data-orbit="0.5">
+                        <div class="orbit-header">
+                            <div class="orbit-visual"><div class="orbit-dot"></div></div>
+                            <div>
+                                <div class="orbit-title">중간 (추천+선택)</div>
+                                <div class="orbit-subtitle">AI 추천 + 내 선택</div>
+                            </div>
+                        </div>
+                        <p class="orbit-desc">AI가 옵션을 제안하고, 내가 선택합니다. 균형잡힌 협업입니다.</p>
+                    </div>
+
+                    <div class="orbit-option orbit-outer" data-orbit="0.8">
+                        <div class="orbit-header">
+                            <div class="orbit-visual"><div class="orbit-dot"></div></div>
+                            <div>
+                                <div class="orbit-title">멀리 (자율↑)</div>
+                                <div class="orbit-subtitle">정보 제공만</div>
+                            </div>
+                        </div>
+                        <p class="orbit-desc">AI는 분석 결과만 제공합니다. 모든 판단은 내가 합니다.</p>
+                    </div>
+                </div>
+
+                <div class="form-nav">
+                    <button class="btn-back" onclick="goToStep(3)">← 뒤로</button>
+                    <button class="btn-next" id="btnNext4" disabled>다음 →</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Energy -->
+            <div class="form-section" data-step="5">
+                <h2 class="form-title">오늘 컨디션은 어떠세요?</h2>
+                <p class="form-subtitle">컨디션에 맞춰 업무량을 조절합니다.</p>
+
+                <div class="energy-options">
+                    <div class="energy-option" data-energy="0.3">
+                        <div class="energy-icon">😔</div>
+                        <div class="energy-level">번아웃/낮음</div>
+                        <div class="energy-desc">최소한만 처리할게요</div>
+                    </div>
+                    <div class="energy-option" data-energy="0.5">
+                        <div class="energy-icon">😐</div>
+                        <div class="energy-level">보통</div>
+                        <div class="energy-desc">적당히 진행할게요</div>
+                    </div>
+                    <div class="energy-option" data-energy="0.8">
+                        <div class="energy-icon">😄</div>
+                        <div class="energy-level">의욕적/높음</div>
+                        <div class="energy-desc">더 많이 해볼게요</div>
+                    </div>
+                </div>
+
+                <div class="reward-preview" id="rewardPreview" style="display: none;">
+                    <div class="reward-preview-label">🎁 첫 번째 보상 카드가 준비되었습니다</div>
+                    <div class="reward-preview-icon" id="rewardIcon"></div>
+                    <div class="reward-preview-content" id="rewardContent"></div>
+                </div>
+
+                <div class="form-nav">
+                    <button class="btn-back" onclick="goToStep(4)">← 뒤로</button>
+                    <button class="btn-next btn-complete" id="btnComplete" disabled onclick="completeSignup()">
+                        완료하고 첫 보상 받기 🎁
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script>
+        const kernelData = {
+            role_id: null,
+            affiliation_map: {},
+            base_capacity: 0,
+            pain_point_top1: null,
+            sync_orbit: 0.5,
+            current_energy: 0.5
+        };
+
+        let currentStep = 1;
+
+        const painPoints = {
+            owner: [
+                { id: 'cashflow', icon: '💰', title: '미납/현금흐름', desc: '수납 관리와 미납 추적이 어렵다' },
+                { id: 'churn', icon: '📉', title: '퇴원 리스크', desc: '갑작스러운 퇴원을 예측하기 어렵다' },
+                { id: 'growth', icon: '📊', title: '성장 정체', desc: '학원 성장 방향을 잡기 어렵다' }
+            ],
+            director: [
+                { id: 'churn', icon: '📉', title: '퇴원 리스크', desc: '학생 이탈을 미리 감지하고 싶다' },
+                { id: 'staff', icon: '👥', title: '직원 관리', desc: '강사/직원 역량 파악이 어렵다' },
+                { id: 'parent', icon: '💬', title: '학부모 소통', desc: '학부모 불만을 미리 알고 싶다' }
+            ],
+            teacher: [
+                { id: 'admin', icon: '📝', title: '잡무/행정', desc: '상담 일지, 리포트 작성에 시간이 너무 많이 든다' },
+                { id: 'prep', icon: '📚', title: '수업 준비', desc: '학생별 맞춤 수업 준비가 부담스럽다' },
+                { id: 'parent', icon: '💬', title: '학부모 소통', desc: '민감한 학부모 대응이 스트레스다' }
+            ],
+            staff: [
+                { id: 'emotion', icon: '😓', title: '감정 노동', desc: '학부모 컴플레인 응대가 힘들다' },
+                { id: 'schedule', icon: '📅', title: '일정 조율', desc: '상담/보충 일정 조율이 복잡하다' },
+                { id: 'document', icon: '📋', title: '문서 작업', desc: '반복되는 안내문/공지 작성이 많다' }
+            ],
+            parent: [
+                { id: 'anxiety', icon: '😰', title: '학습 불안', desc: '아이가 제대로 따라가는지 걱정된다' },
+                { id: 'visibility', icon: '👀', title: '정보 부족', desc: '아이의 학습 상황을 파악하기 어렵다' },
+                { id: 'communication', icon: '💬', title: '소통 마찰', desc: '선생님과 소통이 원활하지 않다' }
+            ],
+            student: [
+                { id: 'motivation', icon: '😴', title: '동기 부족', desc: '공부할 의욕이 안 생긴다' },
+                { id: 'difficulty', icon: '😵', title: '이해 어려움', desc: '수업 내용이 어렵다' },
+                { id: 'boredom', icon: '😑', title: '지루함', desc: '공부가 재미없다' }
+            ]
+        };
+
+        const affiliationFields = {
+            owner: [
+                { id: 'academy_name', label: '학원명', placeholder: '예: 해오름 영어학원' },
+                { id: 'branch_count', label: '운영 지점 수', type: 'slider', min: 1, max: 10 }
+            ],
+            director: [
+                { id: 'academy_name', label: '학원명', placeholder: '예: 해오름 영어학원' },
+                { id: 'branch_name', label: '지점명', placeholder: '예: 강남점' },
+                { id: 'student_count', label: '담당 학생 수', type: 'slider', min: 10, max: 200 }
+            ],
+            teacher: [
+                { id: 'academy_name', label: '학원명', placeholder: '예: 해오름 영어학원' },
+                { id: 'subject', label: '담당 과목', placeholder: '예: 영어' },
+                { id: 'student_count', label: '담당 학생 수', type: 'slider', min: 5, max: 50 }
+            ],
+            staff: [
+                { id: 'academy_name', label: '학원명', placeholder: '예: 해오름 영어학원' },
+                { id: 'department', label: '담당 업무', placeholder: '예: 행정/상담/수납' }
+            ],
+            parent: [
+                { id: 'academy_name', label: '자녀 학원명', placeholder: '예: 해오름 영어학원' },
+                { id: 'child_name', label: '자녀 이름', placeholder: '예: 김연우' },
+                { id: 'child_count', label: '자녀 수', type: 'slider', min: 1, max: 4 }
+            ],
+            student: [
+                { id: 'academy_name', label: '학원명', placeholder: '예: 해오름 영어학원' },
+                { id: 'grade', label: '학년', placeholder: '예: 중2' },
+                { id: 'subject', label: '수강 과목', placeholder: '예: 영어, 수학' }
+            ]
+        };
+
+        const firstRewards = {
+            owner: { icon: '💰', msg: '이번 달 미납 예상 가구 4곳을 추출했습니다. 정중한 납부 안내 문안 3종을 준비했습니다.' },
+            director: { icon: '📊', msg: '최근 3일간 학습 에너지가 급감한 학생 2명을 발견했습니다. 맞춤 대응 스크립트를 생성했습니다.' },
+            teacher: { icon: '📝', msg: '오늘 상담 일지 5건의 초안을 작성했습니다. 퇴근 시간을 20분 앞당겨 드릴게요.' },
+            staff: { icon: '🛡️', msg: '감정적 문의 1건의 핵심 요구사항을 요약했습니다. 답변 옵션 2개를 추천합니다.' },
+            parent: { icon: '🌟', msg: '연우가 오늘 가장 어려워하던 문제를 스스로 풀었습니다! 15초 성장 리포트를 준비했습니다.' },
+            student: { icon: '🎮', msg: '오늘 퀘스트 3개만 완료하면 "단어 마스터" 배지 획득! 어제 틀린 문제 복습 시 경험치 2배!' }
+        };
+
+        const preferredRole = localStorage.getItem('autus_preferred_role');
+        if (preferredRole) {
+            selectRole(preferredRole);
+        }
+
+        function goToStep(step) {
+            document.querySelectorAll('.progress-step').forEach(s => {
+                const stepNum = parseInt(s.dataset.step);
+                s.classList.remove('active', 'completed');
+                if (stepNum < step) s.classList.add('completed');
+                if (stepNum === step) s.classList.add('active');
+            });
+
+            document.querySelectorAll('.form-section').forEach(s => {
+                s.classList.remove('active');
+                if (parseInt(s.dataset.step) === step) s.classList.add('active');
+            });
+
+            currentStep = step;
+        }
+
+        document.getElementById('roleGrid').addEventListener('click', (e) => {
+            const card = e.target.closest('.role-card');
+            if (card) {
+                selectRole(card.dataset.role);
+            }
+        });
+
+        function selectRole(role) {
+            kernelData.role_id = role;
+            
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+            const selectedCard = document.querySelector(`[data-role="${role}"]`);
+            if (selectedCard) selectedCard.classList.add('selected');
+
+            document.getElementById('btnNext1').disabled = false;
+            document.getElementById('btnNext1').onclick = () => {
+                renderAffiliationForm(role);
+                goToStep(2);
+            };
+        }
+
+        function renderAffiliationForm(role) {
+            const fields = affiliationFields[role] || [];
+            const form = document.getElementById('affiliationForm');
+
+            form.innerHTML = fields.map(field => {
+                if (field.type === 'slider') {
+                    return `
+                        <div class="input-group">
+                            <label class="input-label">${field.label}</label>
+                            <div class="capacity-slider">
+                                <div class="slider-header">
+                                    <span>${field.label}</span>
+                                    <span class="slider-value" id="${field.id}Value">${field.min}</span>
+                                </div>
+                                <input type="range" id="${field.id}" min="${field.min}" max="${field.max}" value="${field.min}"
+                                    oninput="document.getElementById('${field.id}Value').textContent = this.value; kernelData.base_capacity = parseInt(this.value);">
+                            </div>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="input-group">
+                        <label class="input-label">${field.label}</label>
+                        <input type="text" class="input-field" id="${field.id}" 
+                            placeholder="${field.placeholder}"
+                            oninput="kernelData.affiliation_map['${field.id}'] = this.value;">
+                    </div>
+                `;
+            }).join('');
+
+            renderPainPoints(role);
+        }
+
+        function renderPainPoints(role) {
+            const pains = painPoints[role] || [];
+            const container = document.getElementById('painOptions');
+
+            container.innerHTML = pains.map(pain => `
+                <div class="pain-option" data-pain="${pain.id}">
+                    <div class="pain-icon">${pain.icon}</div>
+                    <div class="pain-text">
+                        <h4>${pain.title}</h4>
+                        <p>${pain.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            container.querySelectorAll('.pain-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    container.querySelectorAll('.pain-option').forEach(o => o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    kernelData.pain_point_top1 = opt.dataset.pain;
+                    document.getElementById('btnNext3').disabled = false;
+                    document.getElementById('btnNext3').onclick = () => goToStep(4);
+                });
+            });
+        }
+
+        document.querySelectorAll('.orbit-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.orbit-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                kernelData.sync_orbit = parseFloat(opt.dataset.orbit);
+                document.getElementById('btnNext4').disabled = false;
+                document.getElementById('btnNext4').onclick = () => goToStep(5);
+            });
+        });
+
+        document.querySelectorAll('.energy-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.energy-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                kernelData.current_energy = parseFloat(opt.dataset.energy);
+                
+                const reward = firstRewards[kernelData.role_id];
+                document.getElementById('rewardIcon').textContent = reward.icon;
+                document.getElementById('rewardContent').textContent = reward.msg;
+                document.getElementById('rewardPreview').style.display = 'block';
+                
+                document.getElementById('btnComplete').disabled = false;
+            });
+        });
+
+        function completeSignup() {
+            console.log('Event: onSignupCompleted', kernelData);
+            console.log('Event: onRoleFixed', kernelData.role_id);
+            console.log('Event: onOrbitSet', kernelData.sync_orbit);
+            console.log('Event: onFirstRewardIssued');
+
+            localStorage.setItem('autus_kernel', JSON.stringify(kernelData));
+
+            if (typeof AUTUS !== 'undefined') {
+                AUTUS.resetData();
+            }
+
+            location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

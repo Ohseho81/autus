@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS — 시작</title>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        body {
+            overflow: hidden;
+        }
+
+        .splash-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Animated Background */
+        .splash-bg {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .orbit-ring {
+            position: absolute;
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: orbit-pulse 4s ease-in-out infinite;
+        }
+
+        .orbit-ring:nth-child(1) { width: 200px; height: 200px; animation-delay: 0s; }
+        .orbit-ring:nth-child(2) { width: 400px; height: 400px; animation-delay: 0.5s; }
+        .orbit-ring:nth-child(3) { width: 600px; height: 600px; animation-delay: 1s; }
+        .orbit-ring:nth-child(4) { width: 800px; height: 800px; animation-delay: 1.5s; }
+        .orbit-ring:nth-child(5) { width: 1000px; height: 1000px; animation-delay: 2s; }
+
+        @keyframes orbit-pulse {
+            0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.02); }
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        /* Logo */
+        .splash-logo {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 800;
+            color: #000;
+            margin-bottom: 40px;
+            box-shadow: 0 0 60px rgba(0, 240, 255, 0.4);
+            animation: logo-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes logo-glow {
+            0%, 100% { box-shadow: 0 0 60px rgba(0, 240, 255, 0.4); }
+            50% { box-shadow: 0 0 80px rgba(0, 240, 255, 0.6), 0 0 120px rgba(180, 74, 255, 0.3); }
+        }
+
+        /* Title */
+        .splash-title {
+            font-size: 42px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 16px;
+            background: linear-gradient(90deg, #fff, var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease forwards;
+        }
+
+        .splash-subtitle {
+            font-size: 18px;
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInUp 1s ease 0.2s forwards;
+            opacity: 0;
+        }
+
+        /* CTA Buttons */
+        .splash-cta {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: fadeInUp 1s ease 0.4s forwards;
+            opacity: 0;
+        }
+
+        .btn-start {
+            padding: 20px 80px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            border: none;
+            border-radius: 16px;
+            color: #000;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-start::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .btn-start:hover::before {
+            transform: translateX(100%);
+        }
+
+        .btn-start:hover {
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-login {
+            padding: 16px 40px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-dim);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+
+        /* Bottom Note */
+        .splash-note {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .note-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        /* Role Hint Animation */
+        .role-hint {
+            position: fixed;
+            bottom: 100px;
+            display: flex;
+            gap: 20px;
+            animation: fadeInUp 1s ease 0.8s forwards;
+            opacity: 0;
+        }
+
+        .role-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .role-icon:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    
+    <div class="splash-bg">
+        <div class="orbit-ring"></div>
+        <div class="orbit-ring"></div>
+        <div class="orbit-ring"></div>
+        <div class="orbit-ring"></div>
+        <div class="orbit-ring"></div>
+    </div>
+
+    <div class="splash-container">
+        <div class="splash-logo">A</div>
+        
+        <h1 class="splash-title">오늘, 더 쉬워진다.</h1>
+        <p class="splash-subtitle">당신의 역할에 맞춰 자동으로 정리됩니다.</p>
+        
+        <div class="splash-cta">
+            <button class="btn-start" onclick="startOnboarding()">시작하기</button>
+            <button class="btn-login" onclick="location.href='index.html'">이미 계정이 있어요</button>
+        </div>
+
+        <div class="role-hint">
+            <div class="role-icon" title="원장">👔</div>
+            <div class="role-icon" title="강사">👨‍🏫</div>
+            <div class="role-icon" title="행정">📋</div>
+            <div class="role-icon" title="학부모">👪</div>
+            <div class="role-icon" title="학생">🎓</div>
+        </div>
+    </div>
+
+    <div class="splash-note">
+        <div class="note-dot"></div>
+        <span>데이터 주권 보장 · 강제 없음 · 언제든 내보내기 가능</span>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const bg = document.querySelector('.splash-bg');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDuration = (3 + Math.random() * 4) + 's';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                bg.appendChild(particle);
+                animateParticle(particle);
+            }
+        }
+
+        function animateParticle(particle) {
+            const duration = 5000 + Math.random() * 5000;
+            const startX = parseFloat(particle.style.left);
+            const startY = parseFloat(particle.style.top);
+            const endX = startX + (Math.random() - 0.5) * 20;
+            const endY = startY + (Math.random() - 0.5) * 20;
+
+            particle.animate([
+                { left: startX + '%', top: startY + '%', opacity: 0.3 },
+                { left: endX + '%', top: endY + '%', opacity: 0.8 },
+                { left: startX + '%', top: startY + '%', opacity: 0.3 }
+            ], {
+                duration: duration,
+                iterations: Infinity
+            });
+        }
+
+        function startOnboarding() {
+            console.log('Event: onAppOpened');
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                location.href = 'intro.html';
+            }, 500);
+        }
+
+        createParticles();
+    </script>
+</body>
+</html>
