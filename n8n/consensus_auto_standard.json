@@ -1,0 +1,174 @@
+{
+  "name": "AUTUS - Consensus Auto Standard",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 1 * *"
+            }
+          ]
+        }
+      },
+      "id": "monthly-trigger",
+      "name": "매월 1일 자정",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.VERCEL_API_URL}}/api/leaderboard?type=solution&limit=50",
+        "options": {}
+      },
+      "id": "fetch-ranking",
+      "name": "솔루션 랭킹 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Standard Solution Checker\nconst response = $input.first().json;\nconst solutions = response.data?.entries || [];\n\nconst CRITERIA = {\n  effectiveness: 0.80,\n  usage_count: 50,\n  v_growth: 0.15\n};\n\n// 표준 자격 충족 솔루션 필터링\nconst qualified = solutions.filter(sol => \n  sol.avg_score >= CRITERIA.effectiveness &&\n  sol.usage_count >= CRITERIA.usage_count &&\n  sol.avg_v_growth >= CRITERIA.v_growth\n);\n\n// 신규 표준 후보 (아직 is_standard가 아닌 것)\nconst newStandards = qualified.filter(sol => !sol.is_standard);\n\n// Gate-2 경고 대상 (기존 표준이 자격 미달)\nconst warnings = solutions.filter(sol => \n  sol.is_standard && (\n    sol.avg_score < CRITERIA.effectiveness ||\n    sol.usage_count < CRITERIA.usage_count ||\n    sol.avg_v_growth < CRITERIA.v_growth\n  )\n);\n\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    total_solutions: solutions.length,\n    qualified_count: qualified.length,\n    new_standards: newStandards,\n    gate2_warnings: warnings,\n    criteria: CRITERIA\n  }\n}];"
+      },
+      "id": "check-standards",
+      "name": "표준 자격 검사",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "new-standard-check",
+              "leftValue": "={{ $json.new_standards.length }}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ]
+        }
+      },
+      "id": "has-new-standards",
+      "name": "신규 표준 있음?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "warning-check",
+              "leftValue": "={{ $json.gate2_warnings.length }}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ]
+        }
+      },
+      "id": "has-warnings",
+      "name": "Gate-2 경고?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 신규 표준 등록\nconst data = $input.first().json;\nconst newStandards = data.new_standards;\n\nreturn newStandards.map(sol => ({\n  json: {\n    action: 'register_standard',\n    solution_id: sol.solution_id,\n    task_id: sol.task_id,\n    stats: {\n      effectiveness: sol.avg_score,\n      usage_count: sol.usage_count,\n      v_growth: sol.avg_v_growth\n    }\n  }\n}));"
+      },
+      "id": "prepare-register",
+      "name": "표준 등록 준비",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/standards",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ solution_id: $json.solution_id, task_id: $json.task_id, effectiveness_at_set: $json.stats.effectiveness, usage_count_at_set: $json.stats.usage_count, v_growth_at_set: $json.stats.v_growth }) }}",
+        "options": {
+          "headers": {
+            "values": [
+              { "name": "apikey", "value": "={{$env.SUPABASE_ANON_KEY}}" },
+              { "name": "Authorization", "value": "Bearer {{$env.SUPABASE_ANON_KEY}}" },
+              { "name": "Prefer", "value": "return=representation" }
+            ]
+          }
+        }
+      },
+      "id": "register-standard",
+      "name": "표준 등록",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://kakaoapi.aligo.in/akv10/alimtalk/send/",
+        "sendBody": true,
+        "specifyBody": "form",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{$env.ALIGO_API_KEY}}" },
+            { "name": "userid", "value": "={{$env.ALIGO_USER_ID}}" },
+            { "name": "senderkey", "value": "={{$env.ALIGO_SENDER_KEY}}" },
+            { "name": "tpl_code", "value": "AUTUS_GATE2_001" },
+            { "name": "sender", "value": "={{$env.SENDER_PHONE}}" },
+            { "name": "receiver_1", "value": "={{$env.ADMIN_PHONE}}" },
+            { "name": "subject_1", "value": "[AUTUS] Gate-2 표준 경고" },
+            { "name": "message_1", "value": "⚠️ 표준 솔루션 자격 미달 감지!\n\n기존 표준 솔루션이 기준치를 하회했습니다.\n즉시 아우투스에서 확인하세요.\n\n자동 해제까지 7일 남음." }
+          ]
+        },
+        "options": {}
+      },
+      "id": "gate2-alert",
+      "name": "Gate-2 경고 발송",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 400]
+    }
+  ],
+  "connections": {
+    "매월 1일 자정": {
+      "main": [[{ "node": "솔루션 랭킹 조회", "type": "main", "index": 0 }]]
+    },
+    "솔루션 랭킹 조회": {
+      "main": [[{ "node": "표준 자격 검사", "type": "main", "index": 0 }]]
+    },
+    "표준 자격 검사": {
+      "main": [[
+        { "node": "신규 표준 있음?", "type": "main", "index": 0 },
+        { "node": "Gate-2 경고?", "type": "main", "index": 0 }
+      ]]
+    },
+    "신규 표준 있음?": {
+      "main": [
+        [{ "node": "표준 등록 준비", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "표준 등록 준비": {
+      "main": [[{ "node": "표준 등록", "type": "main", "index": 0 }]]
+    },
+    "Gate-2 경고?": {
+      "main": [
+        [{ "node": "Gate-2 경고 발송", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["autus", "consensus", "standard", "gate2"]
+}

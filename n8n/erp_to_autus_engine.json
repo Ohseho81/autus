@@ -1,0 +1,191 @@
+{
+  "name": "AUTUS - ERP to Physics Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 6 }]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "6시간마다 스캔",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.hagnara.com/v1/students/vitals",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-API-KEY", "value": "={{$env.HAGNARA_KEY}}" }
+          ]
+        }
+      },
+      "id": "erp-fetch",
+      "name": "ERP 데이터 수집",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// AUTUS Physics v2.2 - Signal Transformer\nconst items = $input.all();\nconst ENTROPY_THRESHOLD = 0.7;\nconst VELOCITY_THRESHOLD = 0.1;\n\nreturn items.map(item => {\n  const d = item.json;\n  \n  // M (Mint): 산출 가치 = 수업료 + 성취도 보너스\n  const mint = (d.monthly_fee || 300000) * (1 + (d.achievement_score || 0.7));\n  \n  // T (Tax): 투입 비용 = 미납액 + 관리 비용\n  const unpaidAmount = d.payment_status === 'unpaid' ? (d.unpaid_balance || 100000) : 0;\n  const tax = unpaidAmount + (d.admin_cost || 50000);\n  \n  // s (Synergy): 연결 계수 = 출석률 기반\n  const synergy = Math.min(1, (d.attendance_rate || 80) / 100 * 0.3);\n  \n  // Entropy: 무질서도 = 미납 + 결석 + 성적하락\n  const paymentEntropy = d.payment_status === 'unpaid' ? 0.4 : 0;\n  const attendanceEntropy = d.attendance_rate < 70 ? 0.3 : 0;\n  const performanceEntropy = d.grade_trend === 'down' ? 0.2 : 0;\n  const entropy = Math.min(1, paymentEntropy + attendanceEntropy + performanceEntropy);\n  \n  // Velocity: 성장률 = 이전 대비 변화\n  const velocity = (d.grade_delta || 0) * 0.1;\n  \n  // Friction: 마찰 = 불만/컴플레인\n  const friction = (d.complaint_count || 0) * 0.1;\n  \n  // V 계산: V = (M - T) × (1 + s)^t\n  const t = 1; // 월 단위\n  const value_v = (mint - tax) * Math.pow(1 + synergy, t);\n  \n  // 상태 판정\n  let status = 'stable';\n  if (entropy > ENTROPY_THRESHOLD || value_v < 0) status = 'urgent';\n  else if (entropy > 0.5 || velocity < 0) status = 'warning';\n  else if (velocity > VELOCITY_THRESHOLD && synergy > 0.2) status = 'opportunity';\n  \n  // 긴급도\n  const urgency = Math.min(1, entropy * 0.6 + (value_v < 0 ? 0.4 : 0));\n  \n  // 추천 Impulse\n  let recommended_impulse = 'RECOVER';\n  if (entropy > ENTROPY_THRESHOLD) recommended_impulse = 'SHOCK_DAMP';\n  else if (tax > mint * 0.8) recommended_impulse = 'DEFRICTION';\n  \n  return {\n    json: {\n      external_id: d.student_id || d.external_id,\n      name: d.student_name || d.name,\n      type: 'student',\n      \n      // Physics 파라미터\n      mint: Math.round(mint),\n      tax: Math.round(tax),\n      synergy: parseFloat(synergy.toFixed(3)),\n      entropy: parseFloat(entropy.toFixed(3)),\n      velocity: parseFloat(velocity.toFixed(3)),\n      friction: parseFloat(friction.toFixed(3)),\n      value_v: Math.round(value_v),\n      \n      // 상태\n      status,\n      urgency: parseFloat(urgency.toFixed(3)),\n      recommended_impulse,\n      \n      // 원본 데이터 참조\n      _raw: {\n        payment_status: d.payment_status,\n        attendance_rate: d.attendance_rate,\n        grade_trend: d.grade_trend\n      }\n    }\n  };\n});"
+      },
+      "id": "physics-calc",
+      "name": "Physics v2.2 계산기",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.VERCEL_API_URL}}/api/organisms",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ userId: $env.AUTUS_USER_ID, ...($json) }) }}",
+        "options": {}
+      },
+      "id": "supabase-sync",
+      "name": "Supabase 동기화",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "entropy-check",
+              "leftValue": "={{ $json.entropy }}",
+              "rightValue": 0.5,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ]
+        }
+      },
+      "id": "risk-check",
+      "name": "위험 감지?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.VERCEL_API_URL}}/api/brain",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: 'generate_reward_card', userId: $env.AUTUS_USER_ID, payload: { role: 'director', pain_point: 'churn', orbit_distance: 0.3, context_data: { student_name: $json.name, entropy: $json.entropy, status: $json.status, recommended_impulse: $json.recommended_impulse } } }) }}",
+        "options": {}
+      },
+      "id": "ai-card-gen",
+      "name": "AI 보상 카드 생성",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://kakaoapi.aligo.in/akv10/alimtalk/send/",
+        "sendBody": true,
+        "specifyBody": "form",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{$env.ALIGO_API_KEY}}" },
+            { "name": "userid", "value": "={{$env.ALIGO_USER_ID}}" },
+            { "name": "senderkey", "value": "={{$env.ALIGO_SENDER_KEY}}" },
+            { "name": "tpl_code", "value": "AUTUS_ALERT_001" },
+            { "name": "sender", "value": "={{$env.SENDER_PHONE}}" },
+            { "name": "receiver_1", "value": "={{$env.ADMIN_PHONE}}" },
+            { "name": "subject_1", "value": "[AUTUS] 퇴원 위험 감지" },
+            { "name": "message_1", "value": "⚠️ {{ $json.name }} 학생 엔트로피 급등!\n\n📊 상태: {{ $json.status }}\n🌡️ 엔트로피: {{ Math.round($json.entropy * 100) }}%\n💡 추천: {{ $json.recommended_impulse }}\n\n아우투스에서 처방 카드를 확인하세요." }
+          ]
+        },
+        "options": {}
+      },
+      "id": "kakao-alert",
+      "name": "카카오 알림톡",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "opportunity-check",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "opportunity",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "opportunity-check",
+      "name": "기회 감지?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1050, 450]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.VERCEL_API_URL}}/api/rewards",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: 'generate', userId: $env.AUTUS_USER_ID, payload: { context: { student_name: $json.name, velocity: $json.velocity, synergy: $json.synergy, status: 'opportunity' } } }) }}",
+        "options": {}
+      },
+      "id": "reward-badge",
+      "name": "보상 배지 발급",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 450]
+    }
+  ],
+  "connections": {
+    "6시간마다 스캔": {
+      "main": [[{ "node": "ERP 데이터 수집", "type": "main", "index": 0 }]]
+    },
+    "ERP 데이터 수집": {
+      "main": [[{ "node": "Physics v2.2 계산기", "type": "main", "index": 0 }]]
+    },
+    "Physics v2.2 계산기": {
+      "main": [[{ "node": "Supabase 동기화", "type": "main", "index": 0 }]]
+    },
+    "Supabase 동기화": {
+      "main": [
+        [
+          { "node": "위험 감지?", "type": "main", "index": 0 },
+          { "node": "기회 감지?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "위험 감지?": {
+      "main": [
+        [{ "node": "AI 보상 카드 생성", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "AI 보상 카드 생성": {
+      "main": [[{ "node": "카카오 알림톡", "type": "main", "index": 0 }]]
+    },
+    "기회 감지?": {
+      "main": [
+        [{ "node": "보상 배지 발급", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["autus", "erp", "physics", "alert"]
+}

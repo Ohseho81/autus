@@ -1,0 +1,101 @@
+{
+  "name": "AUTUS - Weekly V Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "weekly-trigger",
+      "name": "매주 월요일 9시",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.VERCEL_API_URL}}/api/physics?userId={{$env.AUTUS_USER_ID}}",
+        "options": {}
+      },
+      "id": "fetch-physics",
+      "name": "전체 물리 상태 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Weekly V Report Generator\nconst response = $input.first().json;\nconst organisms = response.data?.organisms || [];\nconst summary = response.data?.summary || {};\n\n// 상태별 분류\nconst urgent = organisms.filter(o => o.summary?.status === 'urgent');\nconst warning = organisms.filter(o => o.summary?.status === 'warning');\nconst opportunity = organisms.filter(o => o.summary?.status === 'opportunity');\nconst stable = organisms.filter(o => o.summary?.status === 'stable');\n\n// Top 3 성장자\nconst topGrowers = [...organisms]\n  .sort((a, b) => (b.velocity || 0) - (a.velocity || 0))\n  .slice(0, 3);\n\n// Top 3 위험자\nconst topRisks = [...organisms]\n  .sort((a, b) => (b.urgency || 0) - (a.urgency || 0))\n  .slice(0, 3);\n\n// 리포트 생성\nconst report = {\n  generated_at: new Date().toISOString(),\n  period: '지난 7일',\n  \n  summary: {\n    total_v: summary.total_v || 0,\n    avg_synergy: summary.avg_synergy || 0,\n    organism_count: summary.organism_count || 0,\n    urgent_count: summary.urgent_count || 0\n  },\n  \n  distribution: {\n    urgent: urgent.length,\n    warning: warning.length,\n    opportunity: opportunity.length,\n    stable: stable.length\n  },\n  \n  top_growers: topGrowers.map(o => ({\n    name: o.name,\n    velocity: o.velocity,\n    value_v: o.computed_v\n  })),\n  \n  top_risks: topRisks.map(o => ({\n    name: o.name,\n    urgency: o.urgency,\n    entropy: o.entropy,\n    recommended_impulse: o.recommended_impulse\n  })),\n  \n  // 리포트 메시지 생성\n  message: `📊 AUTUS 주간 리포트\\n\\n` +\n    `총 V: ${(summary.total_v || 0).toLocaleString()}원\\n` +\n    `평균 시너지: ${((summary.avg_synergy || 0) * 100).toFixed(1)}%\\n\\n` +\n    `🚨 긴급: ${urgent.length}명\\n` +\n    `⚠️ 주의: ${warning.length}명\\n` +\n    `✨ 기회: ${opportunity.length}명\\n` +\n    `✅ 안정: ${stable.length}명\\n\\n` +\n    `🏆 성장 TOP 3:\\n` +\n    topGrowers.map((o, i) => `${i+1}. ${o.name} (+${((o.velocity || 0) * 100).toFixed(1)}%)`).join('\\n') + '\\n\\n' +\n    `⚡ 즉시 조치 필요:\\n` +\n    topRisks.slice(0, 3).map(o => `- ${o.name}: ${o.recommended_impulse}`).join('\\n')\n};\n\nreturn [{ json: report }];"
+      },
+      "id": "report-gen",
+      "name": "리포트 생성",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://kakaoapi.aligo.in/akv10/alimtalk/send/",
+        "sendBody": true,
+        "specifyBody": "form",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{$env.ALIGO_API_KEY}}" },
+            { "name": "userid", "value": "={{$env.ALIGO_USER_ID}}" },
+            { "name": "senderkey", "value": "={{$env.ALIGO_SENDER_KEY}}" },
+            { "name": "tpl_code", "value": "AUTUS_WEEKLY_001" },
+            { "name": "sender", "value": "={{$env.SENDER_PHONE}}" },
+            { "name": "receiver_1", "value": "={{$env.ADMIN_PHONE}}" },
+            { "name": "subject_1", "value": "[AUTUS] 주간 V 리포트" },
+            { "name": "message_1", "value": "={{ $json.message }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "kakao-report",
+      "name": "카카오 알림톡",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.VERCEL_API_URL}}/api/rewards",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: 'generate', userId: $env.AUTUS_USER_ID, payload: { context: { type: 'weekly_report', summary: $json.summary, distribution: $json.distribution, top_growers: $json.top_growers } } }) }}",
+        "options": {}
+      },
+      "id": "save-report",
+      "name": "리포트 저장",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "매주 월요일 9시": {
+      "main": [[{ "node": "전체 물리 상태 조회", "type": "main", "index": 0 }]]
+    },
+    "전체 물리 상태 조회": {
+      "main": [[{ "node": "리포트 생성", "type": "main", "index": 0 }]]
+    },
+    "리포트 생성": {
+      "main": [[
+        { "node": "카카오 알림톡", "type": "main", "index": 0 },
+        { "node": "리포트 저장", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["autus", "report", "weekly"]
+}
