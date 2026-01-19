@@ -1,0 +1,21 @@
+{
+  "name": "autus-vercel-api",
+  "version": "1.0.0",
+  "description": "AUTUS Edge-First API - Claude + Supabase",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "@anthropic-ai/sdk": "^0.17.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.0"
+  }
+}
