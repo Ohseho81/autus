@@ -96,8 +96,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Supabase에 직접 INSERT
-    const { supabaseAdmin } = await import('@/lib/supabase');
+    const { getSupabaseAdmin } = await import('@/lib/supabase');
+    const supabaseAdmin = getSupabaseAdmin();
     
+    // value_v는 DB에서 자동 계산됨 (GENERATED ALWAYS AS)
     const initialState = {
       user_id: userId,
       name,
@@ -113,8 +115,6 @@ export async function POST(request: NextRequest) {
       status: 'stable',
       urgency: 0.3
     };
-
-    initialState.value_v = calculateV(initialState.mint, initialState.tax, initialState.synergy);
 
     const { data, error } = await supabaseAdmin
       .from('organisms')

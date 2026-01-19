@@ -1,0 +1,145 @@
+# ============================================
+# AUTUS GitHub Actions - CI/CD 자동화
+# ============================================
+
+name: AUTUS Deploy & Monitor
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # 매일 오전 9시 (KST) 위험 학생 스캔
+    - cron: '0 0 * * *'
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+jobs:
+  # ============================================
+  # 1. 자동 배포
+  # ============================================
+  deploy:
+    name: 🚀 Vercel 배포
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Vercel 배포
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+      
+      - name: Slack 알림 - 배포 완료
+        if: success()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚀 AUTUS 배포 완료!\n커밋: ${{ github.event.head_commit.message }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ============================================
+  # 2. PR 미리보기 배포
+  # ============================================
+  preview:
+    name: 👀 Preview 배포
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Vercel Preview 배포
+        uses: amondnet/vercel-action@v25
+        id: vercel
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+      
+      - name: PR에 Preview URL 코멘트
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🔗 Preview 배포 완료!\n\n${{ steps.vercel.outputs.preview-url }}`
+            })
+
+  # ============================================
+  # 3. 매일 위험 스캔 (스케줄)
+  # ============================================
+  daily-risk-scan:
+    name: 🔍 일일 위험 스캔
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+      - name: n8n 워크플로우 트리거
+        run: |
+          curl -X POST "${{ secrets.N8N_WEBHOOK_URL }}/risk-detection" \
+            -H "Content-Type: application/json" \
+            -d '{"trigger": "github_actions", "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+      
+      - name: Vercel API - Claude 분석 호출
+        run: |
+          curl -X POST "https://vercel-api-two-rust.vercel.app/api/brain" \
+            -H "Content-Type: application/json" \
+            -d '{"action": "analyzeRisk", "payload": {"scope": "all"}}'
+
+  # ============================================
+  # 4. Supabase 마이그레이션
+  # ============================================
+  migrate:
+    name: 🗄️ DB 마이그레이션
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, '[migrate]')
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Supabase CLI 설치
+        run: npm install -g supabase
+      
+      - name: 마이그레이션 실행
+        run: |
+          supabase link --project-ref pphzvnaedmzcvpxjulti
+          supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  # ============================================
+  # 5. 주간 리포트 생성 (금요일 오전 9시 KST)
+  # ============================================
+  weekly-report:
+    name: 📊 주간 리포트
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+      - name: 주간 리포트 생성 여부 확인
+        id: check-friday
+        run: |
+          if [ "$(date +%u)" = "5" ]; then
+            echo "is_friday=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: n8n 주간 리포트 트리거
+        if: steps.check-friday.outputs.is_friday == 'true'
+        run: |
+          curl -X POST "${{ secrets.N8N_WEBHOOK_URL }}/weekly-report" \
+            -H "Content-Type: application/json" \
+            -d '{"trigger": "github_actions", "week": "'$(date +%Y-W%V)'"}'
