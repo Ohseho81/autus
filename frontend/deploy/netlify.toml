@@ -42,6 +42,6 @@
 # API 프록시 (Vercel API)
 [[redirects]]
   from = "/api/*"
-  to = "https://vercel-api-ohsehos-projects.vercel.app/api/:splat"
+  to = "https://api.autus-ai.com/api/:splat"
   status = 200
   force = true

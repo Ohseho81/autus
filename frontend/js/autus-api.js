@@ -7,7 +7,7 @@
  */
 
 const AUTUS_API = {
-  baseUrl: window.AUTUS_API_URL || 'http://localhost:8000',
+  baseUrl: window.AUTUS_API_URL || 'https://api.autus-ai.com',
   
   // ═══════════════════════════════════════════════════════════════════════════
   // 시스템 API

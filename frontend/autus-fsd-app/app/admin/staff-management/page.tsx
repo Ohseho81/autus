@@ -315,7 +315,7 @@ const CSVUploadModal: React.FC<{
   onUpload: (staffList: Omit<StaffMember, 'id' | 'status' | 'inviteCode' | 'invitedAt'>[]) => void;
 }> = ({ isOpen, onClose, onUpload }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<any[]>([]);
+  const [preview, setPreview] = useState<{ name: string; email: string; phone: string; role: RoleType }[]>([]);
   const [error, setError] = useState('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
