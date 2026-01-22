@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS Strategy Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Leaflet for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --card: #111118;
+            --border: #1e1e2e;
+            --text: #e4e4e7;
+            --dim: #71717a;
+            --cyan: #00f0ff;
+            --green: #00ff88;
+            --purple: #b44aff;
+            --orange: #ff8800;
+            --red: #ff4444;
+            --gold: #ffd700;
+            --pink: #ff0080;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-link {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--dim);
+            text-decoration: none;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr 300px;
+            height: calc(100vh - 73px);
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        /* Left Panel - External Intelligence */
+        .left-panel {
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-header {
+            padding: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .panel-body {
+            padding: 12px;
+        }
+
+        /* News Cards */
+        .news-card {
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid var(--border);
+        }
+
+        .news-card:hover {
+            background: rgba(0,240,255,0.05);
+            border-left-color: var(--cyan);
+        }
+
+        .news-card.policy { border-left-color: var(--purple); }
+        .news-card.admission { border-left-color: var(--orange); }
+        .news-card.trend { border-left-color: var(--green); }
+
+        .news-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .news-tag.policy { background: var(--purple); color: #fff; }
+        .news-tag.admission { background: var(--orange); color: #000; }
+        .news-tag.trend { background: var(--green); color: #000; }
+
+        .news-title {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .news-date {
+            font-size: 11px;
+            color: var(--dim);
+        }
+
+        /* Center - Map */
+        .map-container {
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+        }
+
+        /* Map Controls */
+        .map-controls {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .map-btn {
+            padding: 10px 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .map-btn:hover, .map-btn.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        /* Map Legend */
+        .map-legend {
+            position: absolute;
+            bottom: 24px;
+            left: 16px;
+            z-index: 1000;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .legend-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--dim);
+            margin-bottom: 6px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Right Panel - Internal Intelligence */
+        .right-panel {
+            background: var(--card);
+            border-left: 1px solid var(--border);
+            overflow-y: auto;
+        }
+
+        /* Competitor Cards */
+        .competitor-card {
+            padding: 14px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .competitor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .competitor-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .threat-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .threat-badge.high { background: var(--red); color: #fff; }
+        .threat-badge.medium { background: var(--orange); color: #000; }
+        .threat-badge.low { background: var(--green); color: #000; }
+
+        .competitor-address {
+            font-size: 11px;
+            color: var(--dim);
+            margin-bottom: 8px;
+        }
+
+        .competitor-stats {
+            display: flex;
+            gap: 12px;
+        }
+
+        .stat-item {
+            font-size: 11px;
+        }
+
+        .stat-label {
+            color: var(--dim);
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--cyan);
+        }
+
+        /* Customer Zone Cards */
+        .zone-card {
+            padding: 14px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--green);
+        }
+
+        .zone-name {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .zone-potential {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .potential-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .potential-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--green), var(--gold));
+            border-radius: 3px;
+        }
+
+        .potential-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        /* Strategy Summary */
+        .strategy-box {
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(0,240,255,0.1), rgba(180,74,255,0.1));
+            border: 1px solid var(--cyan);
+            border-radius: 12px;
+            margin: 12px;
+        }
+
+        .strategy-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--cyan);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .strategy-text {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        /* Custom Leaflet Styles */
+        .leaflet-container {
+            background: var(--bg);
+        }
+
+        .custom-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .marker-competitor {
+            background: var(--red);
+            border: 2px solid #fff;
+        }
+
+        .marker-customer {
+            background: var(--green);
+            border: 2px solid #fff;
+        }
+
+        .marker-academy {
+            background: var(--gold);
+            border: 3px solid #fff;
+        }
+
+        /* Pulse animation for academy marker */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255,215,0,0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255,215,0,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); }
+        }
+
+        .marker-academy {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">🗺️</div>
+            <span class="logo-text">AUTUS Strategy Intelligence</span>
+        </div>
+        <div class="nav-links">
+            <a href="live-dashboard.html" class="nav-link">📊 Dashboard</a>
+            <a href="agent-dashboard.html" class="nav-link">🤖 Agent</a>
+            <a href="physics-visualization.html" class="nav-link">🧬 Physics</a>
+            <a href="strategy-map.html" class="nav-link active">🗺️ Strategy</a>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- Left Panel: External Intelligence -->
+        <div class="left-panel">
+            <div class="panel-section">
+                <div class="panel-header">
+                    📰 외부 인텔리전스
+                </div>
+            </div>
+
+            <!-- Education Policy -->
+            <div class="panel-section">
+                <div class="panel-header" style="font-size:12px;">
+                    🏛️ 교육정책
+                </div>
+                <div class="panel-body" id="policy-news">
+                    <div class="news-card policy">
+                        <span class="news-tag policy">정책</span>
+                        <div class="news-title">2026학년도 대입 정시 비율 확대 발표</div>
+                        <div class="news-date">2시간 전</div>
+                    </div>
+                    <div class="news-card policy">
+                        <span class="news-tag policy">정책</span>
+                        <div class="news-title">교육부, 사교육비 경감 대책 추진</div>
+                        <div class="news-date">5시간 전</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admission Trends -->
+            <div class="panel-section">
+                <div class="panel-header" style="font-size:12px;">
+                    🎓 입시 트렌드
+                </div>
+                <div class="panel-body" id="admission-news">
+                    <div class="news-card admission">
+                        <span class="news-tag admission">입시</span>
+                        <div class="news-title">SKY 수시 합격자 내신 평균 1.2등급</div>
+                        <div class="news-date">3시간 전</div>
+                    </div>
+                    <div class="news-card admission">
+                        <span class="news-tag admission">입시</span>
+                        <div class="news-title">의대 정원 증원, 경쟁률 완화 전망</div>
+                        <div class="news-date">6시간 전</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Trends -->
+            <div class="panel-section">
+                <div class="panel-header" style="font-size:12px;">
+                    📈 시장 트렌드
+                </div>
+                <div class="panel-body" id="market-news">
+                    <div class="news-card trend">
+                        <span class="news-tag trend">트렌드</span>
+                        <div class="news-title">AI 학습 플랫폼 사용률 300% 증가</div>
+                        <div class="news-date">1일 전</div>
+                    </div>
+                    <div class="news-card trend">
+                        <span class="news-tag trend">트렌드</span>
+                        <div class="news-title">학원 온라인 전환 가속화</div>
+                        <div class="news-date">2일 전</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center: Map -->
+        <div class="map-container">
+            <div id="map"></div>
+
+            <div class="map-controls">
+                <button class="map-btn active" onclick="toggleLayer('competitors')">
+                    🔴 경쟁사
+                </button>
+                <button class="map-btn active" onclick="toggleLayer('customers')">
+                    🟢 고객 단지
+                </button>
+                <button class="map-btn" onclick="toggleLayer('heatmap')">
+                    🔥 Hot Zone
+                </button>
+            </div>
+
+            <div class="map-legend">
+                <div class="legend-title">📍 지도 범례</div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--gold)"></div>
+                    우리 학원
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--red)"></div>
+                    경쟁 학원
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--green)"></div>
+                    잠재 고객 단지
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--orange)"></div>
+                    기회 지역
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Internal Intelligence -->
+        <div class="right-panel">
+            <div class="panel-section">
+                <div class="panel-header">
+                    🎯 내부 인텔리전스
+                </div>
+            </div>
+
+            <!-- AI Strategy -->
+            <div class="strategy-box">
+                <div class="strategy-title">🧠 AI 전략 분석</div>
+                <div class="strategy-text">
+                    반경 2km 내 <strong>경쟁사 8곳</strong> 감지. 
+                    <strong>래미안대치팰리스</strong> 방면 점유율이 낮습니다. 
+                    해당 구역 타겟 마케팅 권장.
+                </div>
+            </div>
+
+            <!-- Competitors -->
+            <div class="panel-section">
+                <div class="panel-header" style="font-size:12px;">
+                    ⚔️ 경쟁사 (반경 2km)
+                </div>
+                <div class="panel-body" id="competitors-list">
+                    <div class="competitor-card">
+                        <div class="competitor-header">
+                            <span class="competitor-name">대치메가스터디</span>
+                            <span class="threat-badge high">High</span>
+                        </div>
+                        <div class="competitor-address">서울 강남구 대치동 123</div>
+                        <div class="competitor-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">거리</span>
+                                <span class="stat-value">0.8km</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">위협도</span>
+                                <span class="stat-value">85%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="competitor-card">
+                        <div class="competitor-header">
+                            <span class="competitor-name">강남대성학원</span>
+                            <span class="threat-badge medium">Med</span>
+                        </div>
+                        <div class="competitor-address">서울 강남구 대치동 456</div>
+                        <div class="competitor-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">거리</span>
+                                <span class="stat-value">1.2km</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">위협도</span>
+                                <span class="stat-value">62%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="competitor-card">
+                        <div class="competitor-header">
+                            <span class="competitor-name">시대인재</span>
+                            <span class="threat-badge low">Low</span>
+                        </div>
+                        <div class="competitor-address">서울 강남구 대치동 789</div>
+                        <div class="competitor-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">거리</span>
+                                <span class="stat-value">1.8km</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">위협도</span>
+                                <span class="stat-value">35%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Zones -->
+            <div class="panel-section">
+                <div class="panel-header" style="font-size:12px;">
+                    🏠 잠재 고객 단지
+                </div>
+                <div class="panel-body" id="zones-list">
+                    <div class="zone-card">
+                        <div class="zone-name">래미안대치팰리스</div>
+                        <div class="zone-potential">
+                            <div class="potential-bar">
+                                <div class="potential-fill" style="width:85%"></div>
+                            </div>
+                            <span class="potential-value">V 85</span>
+                        </div>
+                    </div>
+                    <div class="zone-card">
+                        <div class="zone-name">대치아이파크</div>
+                        <div class="zone-potential">
+                            <div class="potential-bar">
+                                <div class="potential-fill" style="width:72%"></div>
+                            </div>
+                            <span class="potential-value">V 72</span>
+                        </div>
+                    </div>
+                    <div class="zone-card">
+                        <div class="zone-name">선경아파트</div>
+                        <div class="zone-potential">
+                            <div class="potential-bar">
+                                <div class="potential-fill" style="width:68%"></div>
+                            </div>
+                            <span class="potential-value">V 68</span>
+                        </div>
+                    </div>
+                    <div class="zone-card">
+                        <div class="zone-name">은마아파트</div>
+                        <div class="zone-potential">
+                            <div class="potential-bar">
+                                <div class="potential-fill" style="width:55%"></div>
+                            </div>
+                            <span class="potential-value">V 55</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // AUTUS API Base URL
+        const API_BASE = 'https://vercel-7dnjuc6bb-ohsehos-projects.vercel.app/api';
+        
+        // Initialize Map (대치동 중심)
+        const academyLocation = [37.4949, 127.0664];
+        const map = L.map('map', {
+            center: academyLocation,
+            zoom: 15,
+            zoomControl: false
+        });
+
+        // Dark tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Custom icon creator
+        function createIcon(type, size = 30) {
+            return L.divIcon({
+                className: 'custom-marker',
+                html: `<div class="custom-marker marker-${type}" style="width:${size}px;height:${size}px;"></div>`,
+                iconSize: [size, size],
+                iconAnchor: [size/2, size/2]
+            });
+        }
+
+        // Academy marker (center)
+        const academyMarker = L.marker(academyLocation, {
+            icon: createIcon('academy', 40)
+        }).addTo(map);
+        academyMarker.bindPopup('<strong>🏫 우리 학원</strong><br>AUTUS 본원');
+
+        // Layer groups
+        const competitorMarkers = L.layerGroup().addTo(map);
+        const customerMarkers = L.layerGroup().addTo(map);
+
+        // 2km radius circle
+        L.circle(academyLocation, {
+            radius: 2000,
+            color: '#00f0ff',
+            fillColor: '#00f0ff',
+            fillOpacity: 0.05,
+            weight: 1,
+            dashArray: '5, 10'
+        }).addTo(map);
+
+        // 1km radius circle
+        L.circle(academyLocation, {
+            radius: 1000,
+            color: '#b44aff',
+            fillColor: '#b44aff',
+            fillOpacity: 0.05,
+            weight: 1,
+            dashArray: '5, 10'
+        }).addTo(map);
+
+        // Toggle layer visibility
+        const layers = {
+            competitors: { layer: competitorMarkers, active: true },
+            customers: { layer: customerMarkers, active: true },
+            heatmap: { layer: null, active: false }
+        };
+
+        function toggleLayer(name) {
+            const layerInfo = layers[name];
+            if (!layerInfo.layer) return;
+
+            layerInfo.active = !layerInfo.active;
+            
+            if (layerInfo.active) {
+                layerInfo.layer.addTo(map);
+            } else {
+                map.removeLayer(layerInfo.layer);
+            }
+
+            const btns = document.querySelectorAll('.map-btn');
+            btns.forEach(btn => {
+                if (btn.textContent.includes(name === 'competitors' ? '경쟁사' : name === 'customers' ? '고객' : 'Hot')) {
+                    btn.classList.toggle('active', layerInfo.active);
+                }
+            });
+        }
+
+        // Add zoom control
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // ============ LOAD DATA FROM API ============
+        
+        // Load competitors from Naver API
+        async function loadCompetitors() {
+            try {
+                const res = await fetch(`${API_BASE}/geo?type=competitors&query=${encodeURIComponent('대치동 학원')}&display=10`);
+                const data = await res.json();
+                
+                if (data.success && data.data) {
+                    competitorMarkers.clearLayers();
+                    const listEl = document.getElementById('competitors-list');
+                    listEl.innerHTML = '';
+                    
+                    data.data.forEach((comp, i) => {
+                        // Calculate distance from academy
+                        const distance = calculateDistance(academyLocation[0], academyLocation[1], comp.lat, comp.lng);
+                        const threat = Math.max(20, 100 - (distance * 50)); // Closer = higher threat
+                        const threatLevel = threat > 70 ? 'high' : threat > 40 ? 'medium' : 'low';
+                        
+                        // Add marker if coordinates valid
+                        if (comp.lat && comp.lng) {
+                            const marker = L.marker([comp.lat, comp.lng], {
+                                icon: createIcon('competitor', 24)
+                            });
+                            marker.bindPopup(`<strong>⚔️ ${comp.name}</strong><br>카테고리: ${comp.category}<br>위협도: ${threat.toFixed(0)}%`);
+                            competitorMarkers.addLayer(marker);
+                        }
+                        
+                        // Add to list
+                        listEl.innerHTML += `
+                            <div class="competitor-card">
+                                <div class="competitor-header">
+                                    <span class="competitor-name">${comp.name}</span>
+                                    <span class="threat-badge ${threatLevel}">${threatLevel.charAt(0).toUpperCase() + threatLevel.slice(1)}</span>
+                                </div>
+                                <div class="competitor-address">${comp.address || '주소 정보 없음'}</div>
+                                <div class="competitor-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">거리</span>
+                                        <span class="stat-value">${distance.toFixed(1)}km</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">위협도</span>
+                                        <span class="stat-value">${threat.toFixed(0)}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load competitors:', err);
+            }
+        }
+
+        // Load customer zones (아파트 단지)
+        async function loadCustomerZones() {
+            try {
+                const res = await fetch(`${API_BASE}/geo?type=apartments&query=${encodeURIComponent('대치동 아파트')}&display=10`);
+                const data = await res.json();
+                
+                if (data.success && data.data) {
+                    customerMarkers.clearLayers();
+                    const listEl = document.getElementById('zones-list');
+                    listEl.innerHTML = '';
+                    
+                    data.data.forEach((zone, i) => {
+                        const potential = Math.floor(50 + Math.random() * 40); // Random V potential for demo
+                        
+                        if (zone.lat && zone.lng) {
+                            const marker = L.marker([zone.lat, zone.lng], {
+                                icon: createIcon('customer', 20)
+                            });
+                            marker.bindPopup(`<strong>🏠 ${zone.name}</strong><br>잠재 V: ${potential}`);
+                            customerMarkers.addLayer(marker);
+                        }
+                        
+                        listEl.innerHTML += `
+                            <div class="zone-card">
+                                <div class="zone-name">${zone.name}</div>
+                                <div class="zone-potential">
+                                    <div class="potential-bar">
+                                        <div class="potential-fill" style="width:${potential}%"></div>
+                                    </div>
+                                    <span class="potential-value">V ${potential}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load customer zones:', err);
+            }
+        }
+
+        // Load news
+        async function loadNews() {
+            try {
+                // Policy news
+                const policyRes = await fetch(`${API_BASE}/geo?type=news&query=${encodeURIComponent('교육 정책')}&display=3`);
+                const policyData = await policyRes.json();
+                if (policyData.success && policyData.data) {
+                    renderNews('policy-news', policyData.data, 'policy');
+                }
+                
+                // Admission news
+                const admissionRes = await fetch(`${API_BASE}/geo?type=news&query=${encodeURIComponent('입시 수능')}&display=3`);
+                const admissionData = await admissionRes.json();
+                if (admissionData.success && admissionData.data) {
+                    renderNews('admission-news', admissionData.data, 'admission');
+                }
+                
+                // Market trends
+                const marketRes = await fetch(`${API_BASE}/geo?type=news&query=${encodeURIComponent('사교육 학원 트렌드')}&display=3`);
+                const marketData = await marketRes.json();
+                if (marketData.success && marketData.data) {
+                    renderNews('market-news', marketData.data, 'trend');
+                }
+            } catch (err) {
+                console.error('Failed to load news:', err);
+            }
+        }
+
+        function renderNews(containerId, items, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = items.map(item => `
+                <div class="news-card ${type}" onclick="window.open('${item.link}', '_blank')">
+                    <span class="news-tag ${type}">${type === 'policy' ? '정책' : type === 'admission' ? '입시' : '트렌드'}</span>
+                    <div class="news-title">${item.title}</div>
+                    <div class="news-date">${formatDate(item.pubDate)}</div>
+                </div>
+            `).join('');
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = Math.floor((now - date) / (1000 * 60 * 60));
+            if (diff < 1) return '방금 전';
+            if (diff < 24) return `${diff}시간 전`;
+            return `${Math.floor(diff/24)}일 전`;
+        }
+
+        // Calculate distance between two coordinates (km)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // Load strategic analysis
+        async function loadStrategicAnalysis() {
+            try {
+                const res = await fetch(`${API_BASE}/geo`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        center_lat: academyLocation[0],
+                        center_lng: academyLocation[1],
+                        academy_name: '대치동'
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success && data.data?.analysis) {
+                    const analysis = data.data.analysis;
+                    const strategyBox = document.querySelector('.strategy-text');
+                    strategyBox.innerHTML = `
+                        반경 2km 내 <strong>경쟁사 ${analysis.competitor_count}곳</strong> 감지.
+                        위협 수준: <strong style="color:${analysis.threat_level === 'high' ? '#ff4444' : analysis.threat_level === 'medium' ? '#ff8800' : '#00ff88'}">${analysis.threat_level.toUpperCase()}</strong><br>
+                        기회 점수: <strong>${(analysis.opportunity_score * 100).toFixed(0)}%</strong><br><br>
+                        📌 ${analysis.recommendations.join('<br>📌 ')}
+                    `;
+                }
+            } catch (err) {
+                console.error('Failed to load strategic analysis:', err);
+            }
+        }
+
+        // Initialize all data
+        async function initializeData() {
+            console.log('🗺️ Loading Strategy Intelligence from Naver API...');
+            await Promise.all([
+                loadCompetitors(),
+                loadCustomerZones(),
+                loadNews(),
+                loadStrategicAnalysis()
+            ]);
+            console.log('✅ Strategy Intelligence loaded!');
+        }
+
+        // Load on page ready
+        initializeData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+{
+  "name": "AUTUS Agent Executor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "autus-action",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "autus-action"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "operation": "equal",
+              "value1": "={{ $json.action }}",
+              "value2": "send_sms"
+            },
+            {
+              "operation": "equal",
+              "value1": "={{ $json.action }}",
+              "value2": "send_kakao"
+            },
+            {
+              "operation": "equal",
+              "value1": "={{ $json.action }}",
+              "value2": "update_erp"
+            },
+            {
+              "operation": "equal",
+              "value1": "={{ $json.action }}",
+              "value2": "issue_reward"
+            }
+          ]
+        }
+      },
+      "name": "Switch on Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://apis.aligo.in/send/",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"key\": \"{{ $env.ALIGO_API_KEY }}\",\n  \"user_id\": \"{{ $env.ALIGO_USER_ID }}\",\n  \"sender\": \"{{ $env.ALIGO_SENDER }}\",\n  \"receiver\": \"{{ $json.data.target }}\",\n  \"msg\": \"{{ $json.data.message }}\",\n  \"testmode_yn\": \"Y\"\n}",
+        "options": {}
+      },
+      "name": "Aligo SMS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 100],
+      "notesInFlow": true,
+      "notes": "알리고 SMS 발송\n테스트모드: Y"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://alimtalk-api.bizmsg.kr/v2/sender/send",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "userId",
+              "value": "={{ $env.BIZM_USER_ID }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message_type\": \"AT\",\n  \"phn\": \"{{ $json.data.target }}\",\n  \"profile\": \"{{ $env.BIZM_PROFILE_KEY }}\",\n  \"tmplId\": \"{{ $json.data.template_id || 'AUTUS_DEFAULT' }}\",\n  \"msg\": \"{{ $json.data.message }}\",\n  \"smsKind\": \"S\",\n  \"smsSender\": \"{{ $env.ALIGO_SENDER }}\",\n  \"smsMsg\": \"{{ $json.data.message }}\"\n}",
+        "options": {}
+      },
+      "name": "Kakao Alimtalk",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 250],
+      "notesInFlow": true,
+      "notes": "카카오 알림톡 발송\n비즈엠 API 사용"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hagnara.co.kr/v1/update",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.HAGNARA_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"student_id\": \"{{ $json.data.student_id }}\",\n  \"field\": \"{{ $json.data.field }}\",\n  \"value\": \"{{ $json.data.value }}\"\n}",
+        "options": {}
+      },
+      "name": "Hagnara ERP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 400],
+      "notesInFlow": true,
+      "notes": "학원나라 ERP 업데이트"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rewards",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_id\": \"{{ $json.data.user_id }}\",\n  \"type\": \"{{ $json.data.reward_type || 'badge' }}\",\n  \"title\": \"{{ $json.data.title || 'AUTUS 보상' }}\",\n  \"description\": \"{{ $json.data.description }}\",\n  \"metadata\": {{ JSON.stringify($json.data.metadata || {}) }}\n}",
+        "options": {}
+      },
+      "name": "Issue Reward",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 550],
+      "notesInFlow": true,
+      "notes": "Supabase에 리워드 저장"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"execution_id\": \"{{ $json.execution_id || $('Webhook').item.json.execution_id }}\",\n  \"action\": \"{{ $('Webhook').item.json.action }}\",\n  \"result\": {{ JSON.stringify($json) }},\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {}
+      },
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"{{ $json.error || 'Unknown error' }}\",\n  \"execution_id\": \"{{ $('Webhook').item.json.execution_id }}\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 실행 로그 기록\nconst item = $input.first().json;\n\nconsole.log('AUTUS Action Executed:', {\n  action: item.action,\n  execution_id: item.execution_id,\n  timestamp: new Date().toISOString()\n});\n\nreturn [{\n  json: {\n    logged: true,\n    action: item.action,\n    execution_id: item.execution_id\n  }\n}];"
+      },
+      "name": "Log Execution",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 500],
+      "notesInFlow": true,
+      "notes": "실행 로그 기록"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch on Action",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch on Action": {
+      "main": [
+        [
+          {
+            "node": "Aligo SMS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Kakao Alimtalk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hagnara ERP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Issue Reward",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aligo SMS": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kakao Alimtalk": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hagnara ERP": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Issue Reward": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "AUTUS",
+      "createdAt": "2026-01-19T00:00:00.000Z",
+      "updatedAt": "2026-01-19T00:00:00.000Z"
+    },
+    {
+      "name": "Agent",
+      "createdAt": "2026-01-19T00:00:00.000Z",
+      "updatedAt": "2026-01-19T00:00:00.000Z"
+    }
+  ],
+  "triggerCount": 0,
+  "meta": {
+    "instanceId": "autus-production"
+  }
+}

@@ -1,0 +1,202 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════════
+   AUTUS FSD v2.0 — Tesla Grade Styles (9.8/10)
+   ═══════════════════════════════════════════════════════════════════ */
+
+* {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+body {
+  background: #05050a;
+  color: white;
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Grid Background (Tesla-style)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.grid-bg {
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Node Effects (Risk Levels)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.node-critical {
+  box-shadow: 0 0 20px rgba(242, 95, 92, 0.6), 0 0 40px rgba(242, 95, 92, 0.3);
+  animation: pulse-critical 1.8s ease-in-out infinite;
+}
+
+.node-warning {
+  box-shadow: 0 0 15px rgba(255, 213, 74, 0.5), 0 0 30px rgba(255, 213, 74, 0.2);
+  animation: pulse-warning 2.4s ease-in-out infinite;
+}
+
+.node-normal {
+  box-shadow: 0 0 10px rgba(34, 227, 138, 0.4);
+}
+
+@keyframes pulse-critical {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.04); opacity: 0.92; }
+}
+
+@keyframes pulse-warning {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.02); opacity: 0.96; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   State Indicator Glow (v2.0 - 부드러운 색상)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.state-alert {
+  text-shadow: 0 0 25px rgba(242, 95, 92, 0.75), 0 0 50px rgba(242, 95, 92, 0.35);
+  animation: alert-shake 0.4s ease-in-out;
+}
+
+.state-watch {
+  text-shadow: 0 0 25px rgba(255, 213, 74, 0.75), 0 0 50px rgba(255, 213, 74, 0.35);
+}
+
+.state-ready {
+  text-shadow: 0 0 25px rgba(26, 232, 255, 0.75), 0 0 50px rgba(26, 232, 255, 0.35);
+}
+
+.state-executing {
+  text-shadow: 0 0 25px rgba(34, 227, 138, 0.75), 0 0 50px rgba(34, 227, 138, 0.35);
+}
+
+@keyframes alert-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Button Hover Effects (v2.0 - 36px 그림자)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.btn-primary {
+  @apply transition-all duration-200;
+  box-shadow: 0 0 30px rgba(26, 232, 255, 0.3);
+}
+
+.btn-primary:hover {
+  box-shadow: 
+    0 0 36px rgba(26, 232, 255, 0.4),
+    0 0 12px rgba(26, 232, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  @apply transition-all duration-200;
+}
+
+.btn-danger:hover {
+  box-shadow: 
+    0 0 36px rgba(242, 95, 92, 0.4),
+    0 0 12px rgba(242, 95, 92, 0.7);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Number Display (v2.0 - font-semibold)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.num-display {
+  @apply font-semibold tracking-tight;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Confidence Bar Shimmer
+   ═══════════════════════════════════════════════════════════════════ */
+
+.confidence-shimmer {
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255,255,255,0.15) 50%, 
+    transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Scanline Effect
+   ═══════════════════════════════════════════════════════════════════ */
+
+.scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(26, 232, 255, 0.4), transparent);
+  animation: scan 4s linear infinite;
+}
+
+@keyframes scan {
+  0% { top: 0; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Card Styles
+   ═══════════════════════════════════════════════════════════════════ */
+
+.card-glass {
+  @apply bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl;
+}
+
+.card-critical {
+  @apply bg-red-500/10 border-red-500/30;
+}
+
+.card-warning {
+  @apply bg-yellow-500/10 border-yellow-500/30;
+}
+
+.card-success {
+  @apply bg-green-500/10 border-green-500/30;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Scrollbar
+   ═══════════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

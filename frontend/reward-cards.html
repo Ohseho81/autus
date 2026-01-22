@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS - 보상 카드 대시보드</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --accent-gold: #ffd700;
+            --accent-blue: #00aaff;
+            --accent-green: #00ff88;
+            --accent-red: #ff4444;
+            --accent-purple: #a855f7;
+            --text-primary: #ffffff;
+            --text-secondary: #8b8b9a;
+            --border: rgba(255,255,255,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 24px;
+        }
+
+        .stat-item {
+            text-align: right;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-value.gold { color: var(--accent-gold); }
+        .stat-value.green { color: var(--accent-green); }
+
+        /* Action Buttons */
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-gold), #ffaa00);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-blue);
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+
+        /* Reward Card */
+        .reward-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reward-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-blue));
+        }
+
+        .reward-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border-color: var(--accent-gold);
+        }
+
+        .reward-card.urgent::before {
+            background: linear-gradient(90deg, var(--accent-red), #ff6b6b);
+        }
+
+        .reward-card.opportunity::before {
+            background: linear-gradient(90deg, var(--accent-green), #00cc66);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card-icon {
+            font-size: 40px;
+            line-height: 1;
+        }
+
+        .card-title-area {
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .card-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .card-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .card-status.new {
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--accent-gold);
+        }
+
+        .card-status.urgent {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        .card-message {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card-btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-btn.primary {
+            background: var(--accent-gold);
+            color: #000;
+        }
+
+        .card-btn.primary:hover {
+            background: #ffcc00;
+            transform: scale(1.02);
+        }
+
+        .card-btn.secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+
+        .card-btn.secondary:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .card-btn.danger {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        /* Generate Card Form */
+        .generate-form {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .form-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--accent-green);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { border-color: var(--accent-green); }
+        .toast.error { border-color: var(--accent-red); }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎴 보상 카드 대시보드</h1>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <div class="stat-label">오늘 생성된 카드</div>
+                    <div class="stat-value gold" id="todayCards">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">실행된 액션</div>
+                    <div class="stat-value green" id="executedActions">-</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Generate Card Form -->
+        <div class="generate-form">
+            <div class="form-title">✨ AI 보상 카드 생성</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>역할</label>
+                    <select id="roleSelect">
+                        <option value="원장">👔 원장</option>
+                        <option value="선생님">👩‍🏫 선생님</option>
+                        <option value="학부모">👨‍👩‍👧 학부모</option>
+                        <option value="학생">🎒 학생</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>주요 고민</label>
+                    <select id="painPointSelect">
+                        <option value="퇴원 학생 증가">퇴원 학생 증가</option>
+                        <option value="미수금 관리">미수금 관리</option>
+                        <option value="학부모 상담">학부모 상담</option>
+                        <option value="성적 관리">성적 관리</option>
+                        <option value="마케팅/홍보">마케팅/홍보</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>자동화 수준 (0.2=자동, 0.8=수동)</label>
+                    <input type="range" id="orbitDistance" min="0.2" max="0.8" step="0.1" value="0.5">
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label>추가 컨텍스트 (선택)</label>
+                <textarea id="contextData" placeholder='예: {"student_name": "김철수", "overdue_days": 15}'></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="generateCard()">
+                🤖 AI 카드 생성
+            </button>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <button class="btn btn-secondary" onclick="loadCards()">
+                🔄 새로고침
+            </button>
+            <button class="btn btn-secondary" onclick="clearAllCards()">
+                🗑️ 모두 읽음 처리
+            </button>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="cards-grid" id="cardsContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                카드 불러오는 중...
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast">
+            <span class="icon">✅</span>
+            <span class="message">액션이 실행되었습니다.</span>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://vercel-8w2fohodh-ohsehos-projects.vercel.app/api';
+        let cards = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCards();
+            loadStats();
+        });
+
+        // Load reward cards
+        async function loadCards() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>카드 불러오는 중...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/rewards`);
+                const data = await response.json();
+
+                if (data.success && data.data.cards) {
+                    cards = data.data.cards;
+                    renderCards();
+                } else {
+                    // Demo cards
+                    cards = getDemoCards();
+                    renderCards();
+                }
+            } catch (error) {
+                console.error('Error loading cards:', error);
+                cards = getDemoCards();
+                renderCards();
+            }
+        }
+
+        // Render cards
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+
+            if (cards.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="icon">📭</div>
+                        <p>보상 카드가 없습니다.</p>
+                        <p style="font-size: 14px; margin-top: 8px;">위의 'AI 카드 생성' 버튼을 눌러 새 카드를 만들어보세요.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = cards.map((card, index) => `
+                <div class="reward-card ${card.status || ''}" data-index="${index}">
+                    <div class="card-header">
+                        <div class="card-icon">${card.icon || '🎴'}</div>
+                        <div class="card-title-area">
+                            <div class="card-title">${card.title}</div>
+                            <div class="card-meta">${card.created_at ? new Date(card.created_at).toLocaleString('ko-KR') : '방금 전'}</div>
+                        </div>
+                        ${card.is_new ? '<span class="card-status new">NEW</span>' : ''}
+                        ${card.status === 'urgent' ? '<span class="card-status urgent">긴급</span>' : ''}
+                    </div>
+                    <div class="card-message">${card.message}</div>
+                    <div class="card-actions">
+                        ${(card.actions || []).map(action => `
+                            <button class="card-btn ${action.type === 'primary' || action.requires_approval === false ? 'primary' : action.type === 'danger' ? 'danger' : 'secondary'}"
+                                    onclick="executeAction(${index}, '${action.type}', ${JSON.stringify(action.webhook_payload || {}).replace(/"/g, '&quot;')})">
+                                ${action.label}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Generate new card via AI
+        async function generateCard() {
+            const role = document.getElementById('roleSelect').value;
+            const painPoint = document.getElementById('painPointSelect').value;
+            const orbitDistance = parseFloat(document.getElementById('orbitDistance').value);
+            let contextData = {};
+
+            try {
+                const contextInput = document.getElementById('contextData').value;
+                if (contextInput.trim()) {
+                    contextData = JSON.parse(contextInput);
+                }
+            } catch (e) {
+                showToast('컨텍스트 데이터 JSON 형식이 올바르지 않습니다.', 'error');
+                return;
+            }
+
+            showToast('🤖 AI가 카드를 생성하는 중...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/brain`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generateRewardCard',
+                        data: {
+                            role,
+                            pain_point: painPoint,
+                            orbit_distance: orbitDistance,
+                            context_data: contextData
+                        }
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.data.reward_card) {
+                    const newCard = {
+                        ...data.data.reward_card,
+                        is_new: true,
+                        created_at: new Date().toISOString()
+                    };
+                    cards.unshift(newCard);
+                    renderCards();
+                    showToast('✨ 새 보상 카드가 생성되었습니다!', 'success');
+                    document.getElementById('todayCards').textContent = parseInt(document.getElementById('todayCards').textContent || 0) + 1;
+                } else {
+                    showToast('카드 생성에 실패했습니다: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error generating card:', error);
+                showToast('카드 생성 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // Execute action
+        async function executeAction(cardIndex, actionType, webhookPayload) {
+            const card = cards[cardIndex];
+            
+            if (webhookPayload && webhookPayload.action_type) {
+                showToast(`🚀 ${actionType} 액션 실행 중...`, 'info');
+
+                try {
+                    const response = await fetch(`${API_BASE}/execute`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action_type: webhookPayload.action_type,
+                            payload: webhookPayload,
+                            requires_approval: false
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showToast(`✅ ${webhookPayload.action_type} 실행 완료!`, 'success');
+                        document.getElementById('executedActions').textContent = 
+                            parseInt(document.getElementById('executedActions').textContent || 0) + 1;
+                        
+                        // Mark card as acted
+                        cards[cardIndex].is_acted = true;
+                        cards[cardIndex].is_new = false;
+                        renderCards();
+                    } else {
+                        showToast('액션 실행 실패: ' + (data.error || 'Unknown'), 'error');
+                    }
+                } catch (error) {
+                    showToast('액션 실행 중 오류 발생', 'error');
+                }
+            } else {
+                showToast(`${actionType} 버튼 클릭됨`, 'success');
+            }
+        }
+
+        // Load stats
+        async function loadStats() {
+            document.getElementById('todayCards').textContent = cards.length || '0';
+            document.getElementById('executedActions').textContent = '0';
+        }
+
+        // Clear all cards
+        function clearAllCards() {
+            cards = cards.map(c => ({ ...c, is_new: false }));
+            renderCards();
+            showToast('모든 카드를 읽음 처리했습니다.', 'success');
+        }
+
+        // Show toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.querySelector('.message').textContent = message;
+            toast.querySelector('.icon').textContent = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            toast.className = `toast show ${type}`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Demo cards
+        function getDemoCards() {
+            return [
+                {
+                    title: '퇴원 위험 학생 감지',
+                    icon: '🚨',
+                    message: '윤지우 학생의 출석률이 크게 떨어졌습니다. 학부모 상담을 진행하면 퇴원을 예방할 수 있습니다.',
+                    status: 'urgent',
+                    is_new: true,
+                    created_at: new Date().toISOString(),
+                    actions: [
+                        { label: '📞 상담 전화', type: 'send_sms', requires_approval: false, webhook_payload: { action_type: 'send_sms', target: '010-1234-5678', message: '학부모 상담 요청' } },
+                        { label: '📝 상담 스크립트', type: 'view', requires_approval: false }
+                    ]
+                },
+                {
+                    title: '미수금 알림 발송',
+                    icon: '💰',
+                    message: '강민서 학생 가정에 이번 달 수강료 미납 안내 문자를 발송할 수 있습니다.',
+                    status: '',
+                    is_new: true,
+                    created_at: new Date(Date.now() - 3600000).toISOString(),
+                    actions: [
+                        { label: '📱 카카오 알림톡', type: 'send_kakao', requires_approval: false, webhook_payload: { action_type: 'send_kakao', template_id: 'payment_reminder' } },
+                        { label: '나중에', type: 'dismiss', requires_approval: false }
+                    ]
+                },
+                {
+                    title: '신규 등록 기회',
+                    icon: '🎯',
+                    message: '래미안대치팰리스 단지에서 수학 과외를 찾는 문의가 증가했습니다. 타겟 마케팅을 진행해보세요.',
+                    status: 'opportunity',
+                    is_new: false,
+                    created_at: new Date(Date.now() - 86400000).toISOString(),
+                    actions: [
+                        { label: '📊 분석 보기', type: 'view', requires_approval: false },
+                        { label: '📣 마케팅 시작', type: 'generate_report', requires_approval: true, webhook_payload: { action_type: 'generate_report', metadata: { type: 'marketing' } } }
+                    ]
+                }
+            ];
+        }
+    </script>
+</body>
+</html>

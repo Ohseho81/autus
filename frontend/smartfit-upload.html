@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS x 스마트핏 연동</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+        * { font-family: 'Pretendard', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    
+    <div class="max-w-2xl mx-auto p-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold mb-4">
+                <span class="text-blue-400">AUTUS</span> × 
+                <span class="text-green-400">스마트핏</span>
+            </h1>
+            <p class="text-gray-400">학원 데이터를 업로드하면 AI가 퇴원 위험 학생을 자동 감지합니다</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="bg-gray-800 rounded-2xl p-8 mb-8">
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                📤 데이터 업로드
+            </h2>
+            
+            <!-- Academy ID -->
+            <div class="mb-6">
+                <label class="block text-sm text-gray-400 mb-2">학원 ID</label>
+                <input type="text" id="academyId" value="demo-academy" 
+                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none">
+            </div>
+            
+            <!-- File Upload -->
+            <div class="mb-6">
+                <label class="block text-sm text-gray-400 mb-2">CSV 파일 업로드</label>
+                <div id="dropZone" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
+                    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" class="hidden">
+                    <div class="text-4xl mb-4">📁</div>
+                    <p class="text-gray-400">클릭하거나 파일을 드래그하세요</p>
+                    <p class="text-sm text-gray-500 mt-2">CSV, Excel 파일 지원</p>
+                </div>
+                <p id="fileName" class="text-sm text-green-400 mt-2 hidden"></p>
+            </div>
+            
+            <!-- Or Divider -->
+            <div class="flex items-center gap-4 my-6">
+                <div class="flex-1 h-px bg-gray-700"></div>
+                <span class="text-gray-500 text-sm">또는</span>
+                <div class="flex-1 h-px bg-gray-700"></div>
+            </div>
+            
+            <!-- Text Input -->
+            <div class="mb-6">
+                <label class="block text-sm text-gray-400 mb-2">CSV 텍스트 직접 입력</label>
+                <textarea id="csvText" rows="8" 
+                    placeholder="학생코드,학생명,학년,반,학부모명,연락처,등록금,미납금,출석률
+ST001,김OO,중2,수학A,김엄마,010-1234-5678,800000,0,95%
+ST002,이OO,고1,영어B,이아빠,010-2345-6789,1000000,200000,75%
+ST003,박OO,중3,전과목,박엄마,010-3456-7890,1500000,450000,55%"
+                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white text-sm font-mono focus:border-blue-500 focus:outline-none resize-none"></textarea>
+            </div>
+            
+            <!-- Upload Button -->
+            <button id="uploadBtn" onclick="uploadData()" 
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                <span>🚀</span> 데이터 업로드 및 분석
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="bg-gray-800 rounded-2xl p-8 hidden">
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                📊 분석 결과
+            </h2>
+            
+            <div id="resultContent" class="space-y-4">
+                <!-- Results will be inserted here -->
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="mt-6 flex gap-4">
+                <a href="/autus-fsd.html" 
+                    class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg text-center transition-colors">
+                    🎯 AUTUS 대시보드 열기
+                </a>
+                <button onclick="resetForm()" 
+                    class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg transition-colors">
+                    🔄 다시 업로드
+                </button>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-gray-800/50 rounded-2xl p-6 mt-8">
+            <h3 class="font-bold mb-4 flex items-center gap-2">
+                💡 스마트핏에서 데이터 내보내기
+            </h3>
+            <ol class="space-y-3 text-sm text-gray-400">
+                <li class="flex items-start gap-3">
+                    <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs">1</span>
+                    스마트핏 로그인 → <strong class="text-white">학생관리</strong> 메뉴
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs">2</span>
+                    <strong class="text-white">전체 선택</strong> → 상단 <strong class="text-white">내보내기</strong> 버튼 클릭
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs">3</span>
+                    파일 형식: <strong class="text-white">CSV</strong> 또는 <strong class="text-white">Excel</strong> 선택
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs">4</span>
+                    다운로드된 파일을 위에 업로드!
+                </li>
+            </ol>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center text-gray-500 text-sm mt-12">
+            <p>AUTUS — 확정된 결과만 판다</p>
+            <p class="mt-1">© 2024 AUTUS. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://vercel-4hp1bz9et-ohsehos-projects.vercel.app/api/erp/smartfit';
+        // const API_URL = 'http://localhost:3000/api/erp/smartfit'; // 로컬 테스트용
+        
+        let selectedFile = null;
+        
+        // 파일 드래그 앤 드롭
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-blue-500', 'bg-blue-500/10');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-blue-500', 'bg-blue-500/10');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500', 'bg-blue-500/10');
+            
+            const file = e.dataTransfer.files[0];
+            handleFile(file);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            handleFile(file);
+        });
+        
+        function handleFile(file) {
+            if (file && (file.name.endsWith('.csv') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
+                selectedFile = file;
+                document.getElementById('fileName').textContent = `✅ ${file.name} 선택됨`;
+                document.getElementById('fileName').classList.remove('hidden');
+                document.getElementById('csvText').value = ''; // 텍스트 입력 초기화
+            } else {
+                alert('CSV 또는 Excel 파일만 업로드 가능합니다.');
+            }
+        }
+        
+        async function uploadData() {
+            const academyId = document.getElementById('academyId').value;
+            const csvText = document.getElementById('csvText').value;
+            const btn = document.getElementById('uploadBtn');
+            
+            if (!selectedFile && !csvText.trim()) {
+                alert('파일을 업로드하거나 CSV 텍스트를 입력하세요.');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="animate-spin">⏳</span> 분석 중...';
+            
+            try {
+                let response;
+                
+                if (selectedFile) {
+                    // 파일 업로드
+                    const formData = new FormData();
+                    formData.append('file', selectedFile);
+                    
+                    response = await fetch(`${API_URL}?academy_id=${academyId}`, {
+                        method: 'POST',
+                        body: formData,
+                    });
+                } else {
+                    // CSV 텍스트 전송
+                    response = await fetch(`${API_URL}?academy_id=${academyId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ csv_text: csvText }),
+                    });
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResults(result);
+                } else {
+                    alert('오류: ' + result.error);
+                }
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('업로드 중 오류가 발생했습니다: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🚀</span> 데이터 업로드 및 분석';
+            }
+        }
+        
+        function showResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultContent');
+            
+            const { data, alerts } = result;
+            
+            contentDiv.innerHTML = `
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-700 rounded-lg p-4 text-center">
+                        <p class="text-3xl font-bold text-white">${data.total}</p>
+                        <p class="text-sm text-gray-400">총 학생 수</p>
+                    </div>
+                    <div class="bg-gray-700 rounded-lg p-4 text-center">
+                        <p class="text-3xl font-bold text-green-400">${data.synced}</p>
+                        <p class="text-sm text-gray-400">동기화 완료</p>
+                    </div>
+                </div>
+                
+                <!-- Risk Breakdown -->
+                <div class="bg-gray-700 rounded-lg p-4 mb-4">
+                    <h4 class="font-bold mb-3">위험도 분석</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                                Critical (즉시 조치)
+                            </span>
+                            <span class="text-red-400 font-bold">${data.critical_students}명</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                                High (주의 필요)
+                            </span>
+                            <span class="text-yellow-400 font-bold">${data.high_risk_students}명</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                                Normal
+                            </span>
+                            <span class="text-green-400 font-bold">${data.synced - data.critical_students - data.high_risk_students}명</span>
+                        </div>
+                    </div>
+                </div>
+                
+                ${alerts && alerts.length > 0 ? `
+                <div class="bg-red-900/30 border border-red-500/50 rounded-lg p-4">
+                    <h4 class="font-bold text-red-400 mb-2">⚠️ 알림</h4>
+                    ${alerts.map(a => `<p class="text-sm text-red-300">${a}</p>`).join('')}
+                </div>
+                ` : ''}
+                
+                ${data.errors > 0 ? `
+                <p class="text-sm text-yellow-400 mt-4">
+                    ⚠️ ${data.errors}개 레코드 처리 중 오류 발생
+                </p>
+                ` : ''}
+            `;
+            
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function resetForm() {
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileName').classList.add('hidden');
+            document.getElementById('csvText').value = '';
+            document.getElementById('results').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

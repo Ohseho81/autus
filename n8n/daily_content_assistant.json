@@ -1,0 +1,121 @@
+{
+  "name": "AUTUS 일일 콘텐츠 어시스턴트",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule",
+      "name": "⏰ 매일 오전 9시",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://vercel-93ldk21p4-ohsehos-projects.vercel.app/api/brain",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"action\": \"generateDailyContent\",\n  \"data\": {\n    \"type\": \"cafe_post\",\n    \"topics\": [\"퇴원\", \"미수금\", \"상담\", \"마케팅\"],\n    \"style\": \"value_providing\",\n    \"day_of_week\": \"{{ $now.format('dddd') }}\"\n  }\n}"
+      },
+      "id": "generate-content",
+      "name": "🤖 AI 글 생성",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [440, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://search.naver.com/search.naver?where=article&query=학원+퇴원+site:cafe.daum.net",
+        "method": "GET"
+      },
+      "id": "search-posts",
+      "name": "🔍 오늘의 추천 글 검색",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 추천 글 3개 추출 (간소화)\nconst posts = [\n  { title: '퇴원생 고민', link: 'https://cafe.daum.net/hakwwon/xxx' },\n  { title: '미수금 관리 어려워요', link: 'https://cafe.daum.net/hakwwon/yyy' },\n  { title: '학부모 상담 팁', link: 'https://cafe.daum.net/hakwwon/zzz' }\n];\n\nreturn [{ json: { recommended_posts: posts.slice(0, 3) } }];"
+      },
+      "id": "extract-posts",
+      "name": "📄 추천 글 추출",
+      "type": "n8n-nodes-base.code",
+      "position": [660, 400]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "options": {}
+      },
+      "id": "merge",
+      "name": "🔗 데이터 합치기",
+      "type": "n8n-nodes-base.merge",
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#autus-daily",
+        "text": "☀️ *오늘의 학원노 활동 가이드*\n\n━━━━━━━━━━━━━━━━━━━━\n\n📝 *오늘 올릴 글 (복사해서 사용)*\n```\n{{ $('🤖 AI 글 생성').json.data?.content || '퇴원 위험 신호 3가지...' }}\n```\n\n━━━━━━━━━━━━━━━━━━━━\n\n💬 *댓글 달 추천 글*\n{{ $json.recommended_posts ? $json.recommended_posts.map((p, i) => `${i+1}. ${p.title}\\n   ${p.link}`).join('\\n') : '추천 글 없음' }}\n\n━━━━━━━━━━━━━━━━━━━━\n\n⏱️ 예상 소요 시간: *3분*\n\n👉 학원노 바로가기: https://cafe.daum.net/hakwwon",
+        "otherOptions": {}
+      },
+      "id": "slack-notify",
+      "name": "📢 Slack 알림",
+      "type": "n8n-nodes-base.slack",
+      "position": [1100, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://kapi.kakao.com/v2/api/talk/memo/default/send",
+        "method": "POST",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "kakaoApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"template_object\": {\n    \"object_type\": \"text\",\n    \"text\": \"☀️ 오늘의 학원노 활동\\n\\n📝 글 1개 올리기\\n💬 댓글 3개 달기\\n\\n⏱️ 3분이면 끝!\",\n    \"link\": {\n      \"web_url\": \"https://cafe.daum.net/hakwwon\"\n    }\n  }\n}"
+      },
+      "id": "kakao-notify",
+      "name": "📱 카카오톡 알림 (선택)",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1100, 500],
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "⏰ 매일 오전 9시": {
+      "main": [[
+        { "node": "🤖 AI 글 생성", "type": "main", "index": 0 },
+        { "node": "🔍 오늘의 추천 글 검색", "type": "main", "index": 0 }
+      ]]
+    },
+    "🤖 AI 글 생성": {
+      "main": [[{ "node": "🔗 데이터 합치기", "type": "main", "index": 0 }]]
+    },
+    "🔍 오늘의 추천 글 검색": {
+      "main": [[{ "node": "📄 추천 글 추출", "type": "main", "index": 0 }]]
+    },
+    "📄 추천 글 추출": {
+      "main": [[{ "node": "🔗 데이터 합치기", "type": "main", "index": 1 }]]
+    },
+    "🔗 데이터 합치기": {
+      "main": [[
+        { "node": "📢 Slack 알림", "type": "main", "index": 0 }
+      ]]
+    }
+  }
+}

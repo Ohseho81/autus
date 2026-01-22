@@ -1,0 +1,305 @@
+{
+  "name": "AUTUS ERP 동기화 (학원나라 → Supabase)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "⏰ 매시간 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.hagnara.com/v1/students",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Academy-ID",
+              "value": "={{ $env.HAGNARA_ACADEMY_ID }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "hagnara-students",
+      "name": "📚 학원나라 학생 목록",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 200],
+      "notesInFlow": true,
+      "notes": "학원나라 API에서 학생 데이터 가져오기"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.hagnara.com/v1/payments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "overdue"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "hagnara-payments",
+      "name": "💳 미납 목록 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 400],
+      "notesInFlow": true,
+      "notes": "미납 학생 목록"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 학생 데이터를 AUTUS 형식으로 변환\nconst students = $input.all().map(item => item.json);\n\nconst transformed = students.map(student => ({\n  id: student.student_id,\n  name: student.name,\n  grade: student.grade,\n  attendance_rate: parseFloat(student.attendance_rate || 100),\n  homework_rate: parseFloat(student.homework_submission_rate || 100),\n  grade_trend: parseFloat(student.grade_change || 0),\n  payment_status: student.payment_status || 'paid'\n}));\n\nreturn [{\n  json: {\n    event_type: 'erp_sync',\n    source: 'hagnara_sync_workflow',\n    timestamp: new Date().toISOString(),\n    data: {\n      academy_id: $env.AUTUS_ACADEMY_ID,\n      students: transformed,\n      sync_type: 'students'\n    }\n  }\n}];"
+      },
+      "id": "transform-students",
+      "name": "🔄 학생 데이터 변환",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 미납 데이터를 AUTUS 형식으로 변환\nconst payments = $input.all().map(item => item.json);\n\nconst overdueItems = payments.map(p => ({\n  student_id: p.student_id,\n  student_name: p.student_name,\n  amount_due: parseFloat(p.amount),\n  days_overdue: parseInt(p.days_overdue || 0),\n  due_date: p.due_date\n}));\n\n// 개별 미납 알림 생성\nconst alerts = overdueItems.map(item => ({\n  json: {\n    event_type: 'payment_overdue',\n    source: 'hagnara_sync_workflow',\n    timestamp: new Date().toISOString(),\n    data: item\n  }\n}));\n\nreturn alerts.length > 0 ? alerts : [{ json: { skip: true } }];"
+      },
+      "id": "transform-payments",
+      "name": "🔄 미납 데이터 변환",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "filter-empty",
+      "name": "🔍 빈 데이터 필터",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [880, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AUTUS_WEBHOOK_URL || 'https://vercel-8w2fohodh-ohsehos-projects.vercel.app/api/webhook/n8n' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Webhook-Secret",
+              "value": "={{ $env.N8N_WEBHOOK_SECRET }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "webhook-students",
+      "name": "🚀 AUTUS 학생 동기화",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AUTUS_WEBHOOK_URL || 'https://vercel-8w2fohodh-ohsehos-projects.vercel.app/api/webhook/n8n' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Webhook-Secret",
+              "value": "={{ $env.N8N_WEBHOOK_SECRET }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "webhook-payments",
+      "name": "🚀 AUTUS 미납 알림",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 400]
+    },
+    {
+      "parameters": {
+        "channel": "#autus-alerts",
+        "text": "✅ AUTUS ERP 동기화 완료\n\n학생 동기화: {{ $json.data?.result?.students_updated || 0 }}명\n미납 알림: {{ $('webhook-payments').json?.data?.result?.days_overdue ? '발송됨' : '없음' }}\n\n시간: {{ new Date().toLocaleString('ko-KR') }}",
+        "otherOptions": {}
+      },
+      "id": "slack-notify",
+      "name": "📢 Slack 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1100, 200],
+      "credentials": {
+        "slackApi": {
+          "id": "slack-cred",
+          "name": "Slack Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "⏰ 매시간 실행": {
+      "main": [
+        [
+          {
+            "node": "📚 학원나라 학생 목록",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "💳 미납 목록 조회",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📚 학원나라 학생 목록": {
+      "main": [
+        [
+          {
+            "node": "🔄 학생 데이터 변환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💳 미납 목록 조회": {
+      "main": [
+        [
+          {
+            "node": "🔄 미납 데이터 변환",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 학생 데이터 변환": {
+      "main": [
+        [
+          {
+            "node": "🚀 AUTUS 학생 동기화",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 미납 데이터 변환": {
+      "main": [
+        [
+          {
+            "node": "🔍 빈 데이터 필터",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 빈 데이터 필터": {
+      "main": [
+        [
+          {
+            "node": "🚀 AUTUS 미납 알림",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚀 AUTUS 학생 동기화": {
+      "main": [
+        [
+          {
+            "node": "📢 Slack 알림",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "AUTUS",
+      "id": "autus-tag"
+    },
+    {
+      "name": "ERP Sync",
+      "id": "erp-tag"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-20T12:00:00.000Z",
+  "versionId": "1"
+}

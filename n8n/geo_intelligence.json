@@ -1,0 +1,300 @@
+{
+  "name": "AUTUS Geo Intelligence",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "name": "Schedule (6시간마다)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://openapi.naver.com/v1/search/local.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "학원"
+            },
+            {
+              "name": "display",
+              "value": "20"
+            },
+            {
+              "name": "sort",
+              "value": "random"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Naver-Client-Id",
+              "value": "={{ $env.NAVER_CLIENT_ID }}"
+            },
+            {
+              "name": "X-Naver-Client-Secret",
+              "value": "={{ $env.NAVER_CLIENT_SECRET }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "네이버 지도 - 경쟁사",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 200],
+      "notesInFlow": true,
+      "notes": "반경 내 학원 검색"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://openapi.naver.com/v1/search/local.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "아파트"
+            },
+            {
+              "name": "display",
+              "value": "20"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Naver-Client-Id",
+              "value": "={{ $env.NAVER_CLIENT_ID }}"
+            },
+            {
+              "name": "X-Naver-Client-Secret",
+              "value": "={{ $env.NAVER_CLIENT_SECRET }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "네이버 지도 - 고객단지",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 350],
+      "notesInFlow": true,
+      "notes": "주변 아파트 단지"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://openapi.naver.com/v1/search/news.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "교육정책 입시"
+            },
+            {
+              "name": "display",
+              "value": "10"
+            },
+            {
+              "name": "sort",
+              "value": "date"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Naver-Client-Id",
+              "value": "={{ $env.NAVER_CLIENT_ID }}"
+            },
+            {
+              "name": "X-Naver-Client-Secret",
+              "value": "={{ $env.NAVER_CLIENT_SECRET }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "네이버 뉴스 - 교육정책",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 500],
+      "notesInFlow": true,
+      "notes": "교육 뉴스 수집"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://openapi.naver.com/v1/search/news.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "대학입시 수능 대입"
+            },
+            {
+              "name": "display",
+              "value": "10"
+            },
+            {
+              "name": "sort",
+              "value": "date"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Naver-Client-Id",
+              "value": "={{ $env.NAVER_CLIENT_ID }}"
+            },
+            {
+              "name": "X-Naver-Client-Secret",
+              "value": "={{ $env.NAVER_CLIENT_SECRET }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "네이버 뉴스 - 입시트렌드",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 650],
+      "notesInFlow": true,
+      "notes": "입시 트렌드 수집"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 모든 데이터 통합 및 정제\nconst competitors = $('네이버 지도 - 경쟁사').first().json.items || [];\nconst apartments = $('네이버 지도 - 고객단지').first().json.items || [];\nconst eduNews = $('네이버 뉴스 - 교육정책').first().json.items || [];\nconst admissionNews = $('네이버 뉴스 - 입시트렌드').first().json.items || [];\n\n// 학원 중심점 (대치동 예시)\nconst center = { lat: 37.4949, lng: 127.0664 };\n\n// 경쟁사 데이터 정제\nconst competitorNodes = competitors.map((item, idx) => ({\n  id: `comp_${idx}`,\n  type: 'competitor',\n  name: item.title.replace(/<[^>]*>/g, ''),\n  address: item.address,\n  category: item.category,\n  mapx: parseInt(item.mapx) / 10000000,\n  mapy: parseInt(item.mapy) / 10000000,\n  threat_level: Math.random() * 0.5 + 0.3, // 위협도 (임시)\n  collected_at: new Date().toISOString()\n}));\n\n// 고객 단지 데이터 정제\nconst apartmentNodes = apartments.map((item, idx) => ({\n  id: `apt_${idx}`,\n  type: 'customer_zone',\n  name: item.title.replace(/<[^>]*>/g, ''),\n  address: item.address,\n  mapx: parseInt(item.mapx) / 10000000,\n  mapy: parseInt(item.mapy) / 10000000,\n  potential_v: Math.random() * 100 + 50, // 잠재 가치 (임시)\n  collected_at: new Date().toISOString()\n}));\n\n// 뉴스 데이터 정제\nconst newsItems = [...eduNews, ...admissionNews].map((item, idx) => ({\n  id: `news_${idx}`,\n  type: item.title.includes('입시') || item.title.includes('수능') ? 'admission' : 'policy',\n  title: item.title.replace(/<[^>]*>/g, ''),\n  description: item.description.replace(/<[^>]*>/g, ''),\n  link: item.originallink || item.link,\n  pubDate: item.pubDate,\n  sentiment: Math.random() > 0.5 ? 'positive' : 'neutral', // 감성 분석 (임시)\n  collected_at: new Date().toISOString()\n}));\n\nreturn [{\n  json: {\n    center,\n    timestamp: new Date().toISOString(),\n    competitors: competitorNodes,\n    customer_zones: apartmentNodes,\n    news: newsItems,\n    summary: {\n      total_competitors: competitorNodes.length,\n      total_zones: apartmentNodes.length,\n      total_news: newsItems.length,\n      avg_threat: competitorNodes.reduce((a, b) => a + b.threat_level, 0) / competitorNodes.length || 0\n    }\n  }\n}];"
+      },
+      "name": "데이터 통합/정제",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/geo_intelligence",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "name": "Supabase 저장",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 400],
+      "notesInFlow": true,
+      "notes": "geo_intelligence 테이블에 저장"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.VERCEL_API_URL }}/api/brain",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"analyze_geo_intel\",\n  \"payload\": {\n    \"summary\": {{ JSON.stringify($json.summary) }},\n    \"top_news\": {{ JSON.stringify($json.news.slice(0, 3)) }}\n  }\n}",
+        "options": {}
+      },
+      "name": "Claude 분석",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 550],
+      "notesInFlow": true,
+      "notes": "AI 전략 분석"
+    }
+  ],
+  "connections": {
+    "Schedule (6시간마다)": {
+      "main": [
+        [
+          { "node": "네이버 지도 - 경쟁사", "type": "main", "index": 0 },
+          { "node": "네이버 지도 - 고객단지", "type": "main", "index": 0 },
+          { "node": "네이버 뉴스 - 교육정책", "type": "main", "index": 0 },
+          { "node": "네이버 뉴스 - 입시트렌드", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "네이버 지도 - 경쟁사": {
+      "main": [[{ "node": "데이터 통합/정제", "type": "main", "index": 0 }]]
+    },
+    "네이버 지도 - 고객단지": {
+      "main": [[{ "node": "데이터 통합/정제", "type": "main", "index": 0 }]]
+    },
+    "네이버 뉴스 - 교육정책": {
+      "main": [[{ "node": "데이터 통합/정제", "type": "main", "index": 0 }]]
+    },
+    "네이버 뉴스 - 입시트렌드": {
+      "main": [[{ "node": "데이터 통합/정제", "type": "main", "index": 0 }]]
+    },
+    "데이터 통합/정제": {
+      "main": [
+        [
+          { "node": "Supabase 저장", "type": "main", "index": 0 },
+          { "node": "Claude 분석", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "AUTUS" },
+    { "name": "Geo" },
+    { "name": "Intelligence" }
+  ]
+}

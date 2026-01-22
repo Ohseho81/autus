@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS FSD - Tesla Full Self-Driving UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        body {
+            background: #000;
+            overflow: hidden;
+        }
+        
+        /* Tesla-style glow effects (v2.0 - 채도 -12%, 명도 +6%) */
+        .node-critical {
+            box-shadow: 0 0 20px rgba(242, 95, 92, 0.6), 0 0 40px rgba(242, 95, 92, 0.3);
+            animation: pulse-critical 1.8s ease-in-out infinite;
+        }
+        
+        .node-high {
+            box-shadow: 0 0 15px rgba(255, 213, 74, 0.5), 0 0 30px rgba(255, 213, 74, 0.2);
+            animation: pulse-high 2.4s ease-in-out infinite;
+        }
+        
+        .node-low {
+            box-shadow: 0 0 10px rgba(34, 227, 138, 0.4);
+        }
+        
+        @keyframes pulse-critical {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.04); opacity: 0.92; }
+        }
+        
+        @keyframes pulse-high {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.96; }
+        }
+        
+        /* Halo animation (v2.0 - 3.4s로 느리게) */
+        .halo {
+            animation: halo-pulse 3.4s ease-in-out infinite;
+        }
+        
+        @keyframes halo-pulse {
+            0%, 100% { opacity: 0.25; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.45; transform: translate(-50%, -50%) scale(1.08); }
+        }
+        
+        /* State indicator glow (v2.0 - 부드러운 색상) */
+        .state-alert {
+            text-shadow: 0 0 25px rgba(242, 95, 92, 0.75), 0 0 50px rgba(242, 95, 92, 0.35);
+            animation: alert-shake 0.4s ease-in-out;
+        }
+        
+        .state-watch {
+            text-shadow: 0 0 25px rgba(255, 213, 74, 0.75), 0 0 50px rgba(255, 213, 74, 0.35);
+        }
+        
+        .state-ready {
+            text-shadow: 0 0 25px rgba(26, 232, 255, 0.75), 0 0 50px rgba(26, 232, 255, 0.35);
+        }
+        
+        .state-executing {
+            text-shadow: 0 0 25px rgba(34, 227, 138, 0.75), 0 0 50px rgba(34, 227, 138, 0.35);
+        }
+        
+        /* v2.0 - ALERT 시 미세 진동 */
+        @keyframes alert-shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-4px); }
+            40% { transform: translateX(4px); }
+            60% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+        }
+        
+        /* Grid background */
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        
+        /* Velocity vector animation */
+        .velocity-line {
+            stroke-dasharray: 5, 5;
+            animation: dash 0.6s linear infinite;
+        }
+        
+        @keyframes dash {
+            to { stroke-dashoffset: -10; }
+        }
+        
+        /* Prediction curve animation */
+        .prediction-line {
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+            animation: draw-line 2.5s ease-out forwards;
+        }
+        
+        @keyframes draw-line {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        /* Scanline effect (Tesla-like) */
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(26, 232, 255, 0.4), transparent);
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        
+        /* Mode button active state (v2.0) */
+        .mode-active {
+            background: linear-gradient(135deg, #1d9bf0, #1a73e8);
+            box-shadow: 0 0 20px rgba(26, 232, 255, 0.4);
+        }
+        
+        /* Confidence bar shimmer */
+        .confidence-bar {
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.15) 50%, 
+                transparent 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        /* v2.0 - 버튼 호버 효과 개선 */
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            box-shadow: 0 0 36px rgba(34, 227, 138, 0.4), 0 0 12px rgba(34, 227, 138, 0.7);
+            transform: translateY(-1px);
+        }
+        
+        .danger-btn:hover {
+            box-shadow: 0 0 36px rgba(242, 95, 92, 0.4), 0 0 12px rgba(242, 95, 92, 0.7);
+        }
+        
+        /* v2.0 - 숫자 폰트 개선 */
+        .num-display {
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen bg-black text-white overflow-hidden">
+    
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- HUD: 상단 상태바 (Tesla FSD v2.0 - 12px 하향) -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <header id="hud" class="absolute top-3 left-0 right-0 h-16 bg-gradient-to-b from-black via-black/90 to-transparent z-50 flex items-center px-6 border-b border-gray-800/30 backdrop-blur-sm">
+        
+        <!-- MODE 선택 -->
+        <div class="flex gap-1 mr-8">
+            <button onclick="setMode('manual')" id="mode-manual" class="mode-btn mode-active px-4 py-2 rounded text-xs font-bold transition-all">
+                Manual
+            </button>
+            <button onclick="setMode('assisted')" id="mode-assisted" class="mode-btn bg-gray-800/50 hover:bg-gray-700 px-4 py-2 rounded text-xs font-bold text-gray-400 transition-all">
+                Assisted
+            </button>
+            <button onclick="setMode('auto')" id="mode-auto" class="mode-btn bg-gray-800/50 hover:bg-gray-700 px-4 py-2 rounded text-xs font-bold text-gray-400 transition-all">
+                Auto
+            </button>
+        </div>
+
+        <!-- CONFIDENCE (v2.0) -->
+        <div class="flex items-center gap-3 mr-8">
+            <div class="w-36 h-2.5 bg-gray-800/80 rounded-full overflow-hidden relative">
+                <div id="confidence-fill" class="h-full bg-emerald-500 transition-all duration-500 relative">
+                    <div class="confidence-bar absolute inset-0"></div>
+                </div>
+            </div>
+            <span id="confidence-text" class="text-sm font-semibold num-display text-emerald-400">87%</span>
+        </div>
+
+        <!-- NEXT ACTION -->
+        <div class="flex-1 text-center">
+            <p id="next-action" class="text-sm text-gray-300 truncate">
+                <span class="text-blue-400">▶</span> 카드 승인 대기 중...
+            </p>
+        </div>
+
+        <!-- SAFETY INDICATOR -->
+        <div id="safety-indicator" class="ml-8 flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+            </div>
+            <span class="text-xs text-green-400 font-bold">SAFE</span>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- STATE INDICATOR (v2.0 - 위치 조정) -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div id="state-indicator" class="absolute top-24 left-1/2 transform -translate-x-1/2 z-40 text-center">
+        <p id="state-text" class="text-4xl font-black tracking-[0.25em] state-watch text-yellow-400">
+            WATCH
+        </p>
+        <p id="state-sub" class="text-xs text-gray-500/80 mt-2 font-medium">신호 감지 중 • 3개 노드 모니터링</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- MAIN CANVAS AREA (Live Academy Feed) -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <main id="canvas-area" class="absolute top-16 left-0 right-80 bottom-20 bg-gray-950 grid-bg overflow-hidden">
+        
+        <!-- Scanline effect -->
+        <div class="scanline"></div>
+        
+        <!-- SVG Layer for Lines -->
+        <svg id="svg-layer" class="absolute inset-0 w-full h-full pointer-events-none">
+            <!-- Lane Lines (정상 운영 경로) -->
+            <g id="lane-lines" opacity="0.2">
+                <line x1="100" y1="500" x2="400" y2="200" stroke="#22c55e" stroke-width="2" stroke-dasharray="10,5"/>
+                <line x1="400" y1="200" x2="700" y2="300" stroke="#22c55e" stroke-width="2" stroke-dasharray="10,5"/>
+                <line x1="700" y1="300" x2="1000" y2="150" stroke="#22c55e" stroke-width="2" stroke-dasharray="10,5"/>
+            </g>
+            
+            <!-- Velocity Vectors (will be dynamically added) -->
+            <g id="velocity-vectors"></g>
+            
+            <!-- Connection Lines -->
+            <g id="connection-lines" opacity="0.3"></g>
+            
+            <!-- Arrow marker definition -->
+            <defs>
+                <marker id="arrowhead-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="#dc2626"/>
+                </marker>
+                <marker id="arrowhead-yellow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="#eab308"/>
+                </marker>
+                <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="#22c55e"/>
+                </marker>
+                
+                <!-- Glow filter -->
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>
+        </svg>
+
+        <!-- Nodes Container -->
+        <div id="nodes-container" class="absolute inset-0"></div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- 72h Prediction Curve (v2.0) -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="prediction-panel" class="absolute top-8 right-4 w-56 bg-gray-900/80 border border-gray-700/40 rounded-xl p-3.5 backdrop-blur-md">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">72h PREDICTION</span>
+                <span class="text-[10px] text-rose-400 font-semibold num-display">▲ 23%</span>
+            </div>
+            <svg class="w-full h-16" viewBox="0 0 200 60">
+                <!-- Background grid -->
+                <g opacity="0.1">
+                    <line x1="0" y1="15" x2="200" y2="15" stroke="white"/>
+                    <line x1="0" y1="30" x2="200" y2="30" stroke="white"/>
+                    <line x1="0" y1="45" x2="200" y2="45" stroke="white"/>
+                </g>
+                <!-- Risk line -->
+                <polyline
+                    class="prediction-line"
+                    points="0,50 25,48 50,42 75,35 100,25 125,20 150,22 175,28 200,35"
+                    fill="none"
+                    stroke="#ef4444"
+                    stroke-width="2"
+                    filter="url(#glow)"
+                />
+                <!-- Current point -->
+                <circle cx="100" cy="25" r="4" fill="#ef4444">
+                    <animate attributeName="r" values="4;6;4" dur="1s" repeatCount="indefinite"/>
+                </circle>
+            </svg>
+            <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+                <span>-72h</span>
+                <span>NOW</span>
+                <span>+72h</span>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- Risk Distribution (v2.0) -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="absolute bottom-4 left-4 w-52 bg-gray-900/80 border border-gray-700/40 rounded-xl p-3.5 backdrop-blur-md">
+            <span class="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">RISK DISTRIBUTION</span>
+            <div class="mt-3 space-y-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+                    <div class="flex-1 h-2 bg-gray-800/60 rounded-full overflow-hidden">
+                        <div class="h-full bg-rose-500 w-[15%]"></div>
+                    </div>
+                    <span class="text-[10px] text-rose-400 font-semibold num-display w-8 text-right">15%</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                    <div class="flex-1 h-2 bg-gray-800/60 rounded-full overflow-hidden">
+                        <div class="h-full bg-amber-500 w-[25%]"></div>
+                    </div>
+                    <span class="text-[10px] text-amber-400 font-semibold num-display w-8 text-right">25%</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                    <div class="flex-1 h-2 bg-gray-800/60 rounded-full overflow-hidden">
+                        <div class="h-full bg-emerald-500 w-[60%]"></div>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-semibold num-display w-8 text-right">60%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- Live Data Feed Ticker (v2.0) -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="absolute bottom-4 left-60 right-4 bg-gray-900/70 border border-gray-700/40 rounded-xl px-4 py-2.5 backdrop-blur-md">
+            <div class="flex items-center gap-4 text-[11px] overflow-hidden">
+                <span class="text-gray-600 shrink-0 font-semibold uppercase tracking-wider">LIVE</span>
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <div id="ticker" class="flex-1 overflow-hidden whitespace-nowrap">
+                    <span class="ticker-item text-rose-400">🔴 김OO 출석률 60% 감지</span>
+                    <span class="ticker-item text-amber-400 ml-8">🟡 이OO 숙제 미제출 2회</span>
+                    <span class="ticker-item text-emerald-400 ml-8">🟢 박OO 성적 +15점 상승</span>
+                    <span class="ticker-item text-cyan-400 ml-8">📊 학부모 만족도 조사 완료</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- RIGHT PANEL: 선택된 노드 상세 -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <aside id="right-panel" class="absolute top-16 right-0 w-80 bottom-20 bg-gray-900/95 border-l border-gray-700 backdrop-blur-sm overflow-y-auto transition-all">
+        
+        <!-- Empty State -->
+        <div id="panel-empty" class="h-full flex flex-col items-center justify-center text-gray-500 p-6">
+            <i data-lucide="mouse-pointer-click" class="w-12 h-12 mb-4 opacity-50"></i>
+            <p class="text-sm text-center">노드를 클릭하여<br>상세 정보를 확인하세요</p>
+        </div>
+        
+        <!-- Node Detail (hidden by default) -->
+        <div id="panel-detail" class="hidden p-5 space-y-5">
+            
+            <!-- Header -->
+            <div class="flex items-start justify-between">
+                <div>
+                    <span id="detail-type" class="text-xs text-blue-400 font-bold uppercase">STUDENT</span>
+                    <h2 id="detail-name" class="text-2xl font-black mt-1">김OO</h2>
+                </div>
+                <button onclick="closePanel()" class="text-gray-500 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Risk Score (v2.0) -->
+            <div class="bg-gray-800/40 rounded-xl p-4 backdrop-blur-sm border border-gray-700/30">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-wider">Risk Score</span>
+                    <span id="detail-risk-badge" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-rose-500/20 text-rose-400">CRITICAL</span>
+                </div>
+                <div class="flex items-end gap-3">
+                    <span id="detail-risk-score" class="text-5xl font-semibold num-display text-rose-400">212</span>
+                    <span class="text-sm text-gray-600 mb-2 font-medium">/ 300</span>
+                </div>
+                <div class="w-full h-2.5 bg-gray-700/50 rounded-full mt-3 overflow-hidden">
+                    <div id="detail-risk-bar" class="h-full bg-gradient-to-r from-rose-500 to-rose-400 transition-all" style="width: 70%"></div>
+                </div>
+            </div>
+            
+            <!-- Confidence (v2.0) -->
+            <div class="bg-gray-800/40 rounded-xl p-4 backdrop-blur-sm border border-gray-700/30">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-wider">Confidence</span>
+                    <span id="detail-confidence" class="text-sm font-semibold num-display text-emerald-400">87%</span>
+                </div>
+                <div class="w-full h-2.5 bg-gray-700/50 rounded-full overflow-hidden">
+                    <div id="detail-confidence-bar" class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all" style="width: 87%"></div>
+                </div>
+                <p class="text-[10px] text-gray-600 mt-2">AI 예측 신뢰도</p>
+            </div>
+            
+            <!-- Recent Signals -->
+            <div class="border-t border-gray-700 pt-4">
+                <h3 class="text-xs text-gray-400 uppercase mb-3 flex items-center gap-2">
+                    <i data-lucide="activity" class="w-4 h-4"></i>
+                    Recent Signals
+                </h3>
+                <ul id="detail-signals" class="space-y-2">
+                    <li class="flex items-center gap-2 text-sm">
+                        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                        <span class="text-gray-300">출석률</span>
+                        <span class="text-red-400 ml-auto">82% → 60% ↓</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-sm">
+                        <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                        <span class="text-gray-300">숙제 미제출</span>
+                        <span class="text-yellow-400 ml-auto">+2회</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-sm">
+                        <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                        <span class="text-gray-300">성적 변화</span>
+                        <span class="text-yellow-400 ml-auto">-5점</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Suggested Intervention (v2.0) -->
+            <div class="border-t border-gray-700/50 pt-4">
+                <h3 class="text-[10px] text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i>
+                    AI Recommended Action
+                </h3>
+                <div class="bg-cyan-900/20 border border-cyan-500/20 rounded-xl p-4 backdrop-blur-sm">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="zap" class="w-4 h-4 text-cyan-400"></i>
+                        <span class="font-semibold text-cyan-300">Card: EMERGENCY</span>
+                    </div>
+                    <p class="text-sm text-cyan-200/70 mb-3 leading-relaxed">
+                        "학부모님, 최근 OO 학생의 출석률이 감소했습니다. 함께 상담을 통해 해결책을 찾아보면 좋겠습니다."
+                    </p>
+                    <div class="flex items-center justify-between text-[10px] text-cyan-300/50">
+                        <span>예상 ROI: <strong class="text-cyan-300 num-display">₩147,000</strong></span>
+                        <span>성공률: <strong class="text-cyan-300 num-display" id="detail-success-rate">71%</strong></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons (v2.0 - 개선된 호버 효과) -->
+            <div class="flex gap-2 pt-2">
+                <button onclick="approveAction()" class="action-btn flex-1 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-lg">
+                    <i data-lucide="zap" class="w-4 h-4"></i>
+                    Approve & Send
+                </button>
+                <button onclick="closePanel()" class="flex-1 bg-gray-800/60 hover:bg-gray-700/80 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 border border-gray-700/50">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    Decline
+                </button>
+            </div>
+            
+            <!-- Preview Options (v2.0) -->
+            <div class="border-t border-gray-700/50 pt-4">
+                <h3 class="text-[10px] text-gray-500 uppercase tracking-wider mb-3">Message Preview (3 Options)</h3>
+                <div class="space-y-2">
+                    <button class="w-full text-left p-3.5 bg-gray-800/30 hover:bg-gray-700/40 rounded-xl border border-gray-700/30 text-xs transition-all hover:border-cyan-500/30">
+                        <span class="text-cyan-400 font-semibold">A. 공감형</span>
+                        <p class="text-gray-500 mt-1.5 truncate">"요즘 학원 오기 힘드시죠? 저희가 도와드릴게요..."</p>
+                    </button>
+                    <button class="w-full text-left p-3.5 bg-gray-800/30 hover:bg-gray-700/40 rounded-xl border border-gray-700/30 text-xs transition-all hover:border-amber-500/30">
+                        <span class="text-amber-400 font-semibold">B. 데이터형</span>
+                        <p class="text-gray-500 mt-1.5 truncate">"OO 학생 출석률 60%, 상위 30% 대비 20%p 낮습니다..."</p>
+                    </button>
+                    <button class="w-full text-left p-3.5 bg-gray-800/30 hover:bg-gray-700/40 rounded-xl border border-gray-700/30 text-xs transition-all hover:border-emerald-500/30">
+                        <span class="text-emerald-400 font-semibold">C. 액션형</span>
+                        <p class="text-gray-500 mt-1.5 truncate">"이번 주 토요일 상담 가능하신가요? 30분이면..."</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- BOTTOM CONTROL PANEL -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <footer id="control-panel" class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black via-black/95 to-transparent border-t border-gray-800/50 flex items-center justify-between px-6 z-40">
+        
+        <!-- Last Action -->
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
+                <i data-lucide="send" class="w-5 h-5 text-blue-400"></i>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400">Last Action</p>
+                <p id="last-action" class="text-sm font-bold">SMS 발송 완료 (5분 전)</p>
+            </div>
+        </div>
+        
+        <!-- Success Rate (v2.0 - font-semibold) -->
+        <div class="flex items-center gap-8">
+            <div class="text-center">
+                <p class="text-[10px] text-gray-500 uppercase tracking-wider">Success Rate</p>
+                <p class="text-2xl font-semibold num-display text-emerald-400">71%</p>
+            </div>
+            <div class="text-center">
+                <p class="text-[10px] text-gray-500 uppercase tracking-wider">This Month</p>
+                <p class="text-2xl font-semibold num-display text-cyan-400">23<span class="text-sm font-normal">건</span></p>
+            </div>
+            <div class="text-center">
+                <p class="text-[10px] text-gray-500 uppercase tracking-wider">Saved Value</p>
+                <p class="text-2xl font-semibold num-display text-amber-400">₩3.2M</p>
+            </div>
+        </div>
+        
+        <!-- Disengagement Button (v2.0) -->
+        <button onclick="disengagement()" class="danger-btn bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 group shadow-lg">
+            <i data-lucide="octagon" class="w-5 h-5 group-hover:animate-pulse"></i>
+            DISENGAGEMENT
+        </button>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- JAVASCRIPT -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // STATE MACHINE (v2.0 - 채도 -12%, 명도 +6%)
+        // ═══════════════════════════════════════════════════════════════
+        const STATE_COLORS = {
+            idle: { color: 'text-gray-400', class: '', hex: '#5a6370' },
+            watch: { color: 'text-amber-400', class: 'state-watch', hex: '#ffd54a' },
+            alert: { color: 'text-rose-400', class: 'state-alert', hex: '#f25f5c' },
+            plan_ready: { color: 'text-cyan-400', class: 'state-ready', hex: '#1ae8ff' },
+            executing: { color: 'text-emerald-400', class: 'state-executing', hex: '#22e38a' },
+            verifying: { color: 'text-violet-400', class: '', hex: '#b366f0' },
+            learning: { color: 'text-amber-400', class: '', hex: '#ffd54a' },
+            failsafe: { color: 'text-rose-500', class: 'state-alert', hex: '#f25f5c' }
+        };
+
+        let currentMode = 'manual';
+        let currentState = 'watch';
+        let currentConfidence = 87;
+        let selectedNode = null;
+
+        // ═══════════════════════════════════════════════════════════════
+        // NODES DATA (Academy Objects)
+        // ═══════════════════════════════════════════════════════════════
+        let nodes = [
+            {
+                id: 's1',
+                name: '김OO',
+                type: 'student',
+                risk_score: 212,
+                risk_band: 'critical',
+                confidence: 87,
+                velocity: { x: 0.4, y: 0.6 },
+                x: 350, y: 280,
+                signals: [
+                    { label: '출석률', value: '82% → 60%', delta: 'down', color: 'red' },
+                    { label: '숙제 미제출', value: '+2회', delta: 'up', color: 'yellow' },
+                    { label: '성적 변화', value: '-5점', delta: 'down', color: 'yellow' }
+                ]
+            },
+            {
+                id: 's2',
+                name: '이OO',
+                type: 'student',
+                risk_score: 156,
+                risk_band: 'high',
+                confidence: 72,
+                velocity: { x: 0.2, y: 0.3 },
+                x: 550, y: 220,
+                signals: [
+                    { label: '출석률', value: '95%', delta: 'stable', color: 'green' },
+                    { label: '숙제 미제출', value: '+1회', delta: 'up', color: 'yellow' },
+                    { label: '학부모 응답', value: '없음 3일', delta: 'down', color: 'red' }
+                ]
+            },
+            {
+                id: 's3',
+                name: '박OO',
+                type: 'student',
+                risk_score: 45,
+                risk_band: 'low',
+                confidence: 95,
+                velocity: { x: -0.1, y: -0.1 },
+                x: 700, y: 350,
+                signals: [
+                    { label: '출석률', value: '100%', delta: 'stable', color: 'green' },
+                    { label: '성적', value: '+15점', delta: 'up', color: 'green' },
+                    { label: '학부모 만족도', value: '5점', delta: 'up', color: 'green' }
+                ]
+            },
+            {
+                id: 'p1',
+                name: '학부모A',
+                type: 'parent',
+                risk_score: 88,
+                risk_band: 'medium',
+                confidence: 78,
+                velocity: { x: 0.15, y: 0.2 },
+                x: 250, y: 180,
+                signals: [
+                    { label: '상담 응답률', value: '60%', delta: 'down', color: 'yellow' },
+                    { label: '수납 상태', value: '정상', delta: 'stable', color: 'green' }
+                ]
+            },
+            {
+                id: 't1',
+                name: '강사B',
+                type: 'teacher',
+                risk_score: 32,
+                risk_band: 'low',
+                confidence: 92,
+                velocity: { x: 0, y: 0 },
+                x: 500, y: 400,
+                signals: [
+                    { label: '담당 학생 만족도', value: '4.5/5', delta: 'stable', color: 'green' },
+                    { label: '수업 완료율', value: '98%', delta: 'stable', color: 'green' }
+                ]
+            }
+        ];
+
+        // ═══════════════════════════════════════════════════════════════
+        // RENDER FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function renderNodes() {
+            const container = document.getElementById('nodes-container');
+            const velocityGroup = document.getElementById('velocity-vectors');
+            const connectionGroup = document.getElementById('connection-lines');
+            
+            container.innerHTML = '';
+            velocityGroup.innerHTML = '';
+            connectionGroup.innerHTML = '';
+
+            nodes.forEach(node => {
+                // Create node element
+                const nodeEl = document.createElement('div');
+                nodeEl.className = 'absolute cursor-pointer transition-all hover:scale-110';
+                nodeEl.style.left = `${node.x}px`;
+                nodeEl.style.top = `${node.y}px`;
+                nodeEl.style.transform = 'translate(-50%, -50%)';
+                nodeEl.onclick = () => selectNode(node);
+
+                // Halo (Confidence circle)
+                const haloSize = 80 + (node.confidence / 100) * 40;
+                const haloColor = getRiskColor(node.risk_band);
+                
+                nodeEl.innerHTML = `
+                    <!-- Halo -->
+                    <div class="halo absolute rounded-full border-2 pointer-events-none"
+                         style="width: ${haloSize}px; height: ${haloSize}px; 
+                                left: 50%; top: 50%; 
+                                border-color: ${haloColor};
+                                opacity: ${node.confidence / 200}">
+                    </div>
+                    
+                    <!-- Node box -->
+                    <div class="relative w-14 h-14 rounded-lg border-2 flex flex-col items-center justify-center
+                                ${getNodeClass(node.risk_band)}"
+                         style="border-color: ${haloColor}; background: ${haloColor}20">
+                        <span class="text-lg">${getNodeIcon(node.type)}</span>
+                        <span class="text-[10px] font-bold text-white/80">${node.risk_score}</span>
+                    </div>
+                    
+                    <!-- Label -->
+                    <div class="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 text-center whitespace-nowrap">
+                        <p class="text-xs font-bold text-white/90">${node.name}</p>
+                        <p class="text-[10px] text-gray-500">${node.type}</p>
+                    </div>
+                `;
+
+                container.appendChild(nodeEl);
+
+                // Velocity Vector (risk trajectory)
+                if (node.velocity.x !== 0 || node.velocity.y !== 0) {
+                    const vectorLength = 60;
+                    const endX = node.x + node.velocity.x * vectorLength;
+                    const endY = node.y + node.velocity.y * vectorLength;
+                    const markerColor = node.risk_band === 'critical' ? 'red' : 'yellow';
+                    
+                    velocityGroup.innerHTML += `
+                        <line x1="${node.x}" y1="${node.y}" 
+                              x2="${endX}" y2="${endY}"
+                              stroke="${haloColor}" stroke-width="2"
+                              marker-end="url(#arrowhead-${markerColor})"
+                              class="velocity-line"
+                              filter="url(#glow)"/>
+                    `;
+                }
+            });
+
+            // Draw connections between related nodes
+            // (Student to Parent, Teacher to Student)
+            connectionGroup.innerHTML += `
+                <line x1="350" y1="280" x2="250" y2="180" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,3"/>
+                <line x1="550" y1="220" x2="500" y2="400" stroke="#22c55e" stroke-width="1" stroke-dasharray="3,3"/>
+            `;
+        }
+
+        function getRiskColor(band) {
+            // v2.0 - 채도 -12%, 명도 +6%
+            switch (band) {
+                case 'critical': return '#f25f5c';  // 부드러운 빨강
+                case 'high': return '#ffd54a';      // 부드러운 노랑
+                case 'medium': return '#1ae8ff';    // 부드러운 시안
+                case 'low': return '#22e38a';       // 부드러운 초록
+                default: return '#5a6370';          // 부드러운 회색
+            }
+        }
+
+        function getNodeClass(band) {
+            switch (band) {
+                case 'critical': return 'node-critical';
+                case 'high': return 'node-high';
+                case 'low': return 'node-low';
+                default: return '';
+            }
+        }
+
+        function getNodeIcon(type) {
+            switch (type) {
+                case 'student': return '👤';
+                case 'parent': return '👪';
+                case 'teacher': return '👨‍🏫';
+                default: return '●';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // INTERACTION FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function selectNode(node) {
+            selectedNode = node;
+            
+            // Update detail panel
+            document.getElementById('panel-empty').classList.add('hidden');
+            document.getElementById('panel-detail').classList.remove('hidden');
+            
+            document.getElementById('detail-type').textContent = node.type.toUpperCase();
+            document.getElementById('detail-name').textContent = node.name;
+            document.getElementById('detail-risk-score').textContent = node.risk_score;
+            document.getElementById('detail-risk-score').style.color = getRiskColor(node.risk_band);
+            document.getElementById('detail-risk-bar').style.width = `${(node.risk_score / 300) * 100}%`;
+            document.getElementById('detail-risk-bar').style.background = `linear-gradient(to right, ${getRiskColor(node.risk_band)}, ${getRiskColor(node.risk_band)}aa)`;
+            
+            const bandLabel = {
+                critical: 'CRITICAL',
+                high: 'HIGH',
+                medium: 'MEDIUM',
+                low: 'LOW'
+            };
+            document.getElementById('detail-risk-badge').textContent = bandLabel[node.risk_band];
+            document.getElementById('detail-risk-badge').className = `px-2 py-0.5 rounded text-xs font-bold`;
+            document.getElementById('detail-risk-badge').style.background = `${getRiskColor(node.risk_band)}30`;
+            document.getElementById('detail-risk-badge').style.color = getRiskColor(node.risk_band);
+            
+            document.getElementById('detail-confidence').textContent = `${node.confidence}%`;
+            document.getElementById('detail-confidence-bar').style.width = `${node.confidence}%`;
+            document.getElementById('detail-success-rate').textContent = `${Math.round(node.confidence * 0.85)}%`;
+            
+            // Update signals
+            const signalsEl = document.getElementById('detail-signals');
+            signalsEl.innerHTML = node.signals.map(s => `
+                <li class="flex items-center gap-2 text-sm">
+                    <span class="w-2 h-2 rounded-full bg-${s.color}-500"></span>
+                    <span class="text-gray-300">${s.label}</span>
+                    <span class="text-${s.color}-400 ml-auto">${s.value}</span>
+                </li>
+            `).join('');
+            
+            // Update state
+            if (node.risk_score > 200) {
+                setState('alert');
+                updateNextAction(`카드 생성: ${node.name} (EMERGENCY)`);
+            } else if (node.risk_score > 100) {
+                setState('watch');
+                updateNextAction(`카드 생성: ${node.name} (ATTENTION)`);
+            } else {
+                setState('plan_ready');
+                updateNextAction(`${node.name} 정상 모니터링 중`);
+            }
+            
+            updateConfidence(node.confidence);
+        }
+
+        function closePanel() {
+            document.getElementById('panel-empty').classList.remove('hidden');
+            document.getElementById('panel-detail').classList.add('hidden');
+            selectedNode = null;
+            setState('watch');
+            updateNextAction('노드를 선택하세요');
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // Update buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('mode-active', 'bg-gray-800/50', 'text-gray-400');
+                btn.classList.add('bg-gray-800/50', 'text-gray-400');
+            });
+            document.getElementById(`mode-${mode}`).classList.remove('bg-gray-800/50', 'text-gray-400');
+            document.getElementById(`mode-${mode}`).classList.add('mode-active', 'text-white');
+            
+            // Update state based on mode
+            if (mode === 'manual') {
+                updateNextAction('카드 승인 또는 거절');
+            } else if (mode === 'assisted') {
+                updateNextAction('1-클릭 빠른 승인 활성화');
+            } else if (mode === 'auto') {
+                updateNextAction('자동 발송 중 (Disengagement 가능)');
+                setState('executing');
+            }
+        }
+
+        function setState(state) {
+            currentState = state;
+            const stateEl = document.getElementById('state-text');
+            const stateIndicator = document.getElementById('state-indicator');
+            
+            // Remove all state classes
+            Object.values(STATE_COLORS).forEach(s => {
+                if (s.class) stateEl.classList.remove(s.class);
+            });
+            
+            // Add new state
+            stateEl.textContent = state.toUpperCase().replace('_', ' ');
+            stateEl.className = `text-4xl font-black tracking-[0.25em] ${STATE_COLORS[state].color} ${STATE_COLORS[state].class}`;
+            
+            // v2.0 - ALERT 상태 시 미세 진동 효과
+            if (state === 'alert') {
+                // CSS 애니메이션으로 화면 진동
+                stateIndicator.style.animation = 'none';
+                stateIndicator.offsetHeight; // Reflow 트리거
+                stateIndicator.style.animation = 'alert-shake 0.4s ease-in-out';
+                
+                // 모바일 진동 (지원 시)
+                if (navigator.vibrate) {
+                    navigator.vibrate([80, 40, 80, 40, 80]);
+                }
+            }
+            
+            // Update sub text
+            const subTexts = {
+                idle: '대기 중',
+                watch: `신호 감지 중 • ${nodes.length}개 노드 모니터링`,
+                alert: '⚠️ 위험 감지! 즉시 확인 필요',
+                plan_ready: '플랜 생성 완료 • 승인 대기',
+                executing: '🚀 자동 실행 중...',
+                verifying: '결과 검증 중...',
+                learning: '학습 중...',
+                failsafe: '⛔ 긴급 정지'
+            };
+            document.getElementById('state-sub').textContent = subTexts[state] || '';
+        }
+
+        function updateConfidence(value) {
+            currentConfidence = value;
+            const fill = document.getElementById('confidence-fill');
+            const text = document.getElementById('confidence-text');
+            
+            fill.style.width = `${value}%`;
+            text.textContent = `${value}%`;
+            
+            // v2.0 - 부드러운 색상 + font-semibold
+            if (value > 70) {
+                fill.className = 'h-full bg-emerald-500 transition-all duration-500 relative';
+                text.className = 'text-sm font-semibold num-display text-emerald-400';
+            } else if (value > 50) {
+                fill.className = 'h-full bg-amber-500 transition-all duration-500 relative';
+                text.className = 'text-sm font-semibold num-display text-amber-400';
+            } else {
+                fill.className = 'h-full bg-rose-500 transition-all duration-500 relative';
+                text.className = 'text-sm font-semibold num-display text-rose-400';
+            }
+        }
+
+        function updateNextAction(text) {
+            document.getElementById('next-action').innerHTML = `<span class="text-blue-400">▶</span> ${text}`;
+        }
+
+        function approveAction() {
+            if (!selectedNode) return;
+            
+            setState('executing');
+            updateNextAction(`${selectedNode.name}에게 카드 발송 중...`);
+            
+            setTimeout(() => {
+                setState('verifying');
+                updateNextAction('발송 완료! 결과 검증 중...');
+                document.getElementById('last-action').textContent = `카드 발송: ${selectedNode.name} (방금 전)`;
+                
+                setTimeout(() => {
+                    setState('learning');
+                    updateNextAction('가중치 업데이트 중...');
+                    
+                    setTimeout(() => {
+                        setState('watch');
+                        updateNextAction('다음 신호 대기 중...');
+                        closePanel();
+                    }, 1000);
+                }, 1500);
+            }, 1500);
+        }
+
+        function disengagement() {
+            setState('failsafe');
+            updateNextAction('⛔ 모든 자동 발송 중단됨');
+            document.getElementById('safety-indicator').innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center animate-pulse">
+                    <i data-lucide="alert-octagon" class="w-5 h-5 text-red-500"></i>
+                </div>
+                <span class="text-xs text-red-400 font-bold">STOPPED</span>
+            `;
+            lucide.createIcons();
+            
+            // Reset after 3 seconds
+            setTimeout(() => {
+                setState('idle');
+                updateNextAction('재시작 대기 중...');
+                document.getElementById('safety-indicator').innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-500"></i>
+                    </div>
+                    <span class="text-xs text-yellow-400 font-bold">PAUSED</span>
+                `;
+                lucide.createIcons();
+            }, 3000);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // REAL-TIME SIMULATION
+        // ═══════════════════════════════════════════════════════════════
+        
+        function simulateRealtime() {
+            // Slightly vary risk scores
+            nodes = nodes.map(node => ({
+                ...node,
+                risk_score: Math.max(0, Math.min(300, 
+                    node.risk_score + (Math.random() - 0.5) * 3
+                ))
+            }));
+            
+            // Update selected node if any
+            if (selectedNode) {
+                const updated = nodes.find(n => n.id === selectedNode.id);
+                if (updated) {
+                    document.getElementById('detail-risk-score').textContent = Math.round(updated.risk_score);
+                }
+            }
+            
+            renderNodes();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderNodes();
+            
+            // Start real-time simulation
+            setInterval(simulateRealtime, 2000);
+            
+            // Ticker animation
+            const ticker = document.getElementById('ticker');
+            setInterval(() => {
+                ticker.scrollLeft += 1;
+                if (ticker.scrollLeft >= ticker.scrollWidth - ticker.clientWidth) {
+                    ticker.scrollLeft = 0;
+                }
+            }, 50);
+        });
+    </script>
+</body>
+</html>

@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
     if (action === 'mark_read') {
       const { cardId } = payload;
       
-      const { supabaseAdmin } = await import('@/lib/supabase');
-      await supabaseAdmin
+      const { getSupabaseAdmin } = await import('@/lib/supabase');
+      await getSupabaseAdmin()
         .from('reward_cards')
         .update({ is_read: true })
         .eq('id', cardId);
@@ -110,8 +110,8 @@ export async function POST(request: NextRequest) {
     if (action === 'mark_acted') {
       const { cardId, actionType } = payload;
       
-      const { supabaseAdmin } = await import('@/lib/supabase');
-      await supabaseAdmin
+      const { getSupabaseAdmin } = await import('@/lib/supabase');
+      await getSupabaseAdmin()
         .from('reward_cards')
         .update({ is_acted: true })
         .eq('id', cardId);

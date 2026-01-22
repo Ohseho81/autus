@@ -62,23 +62,54 @@ export interface RewardCard {
   is_acted: boolean;
 }
 
+// Lazy initialization to avoid build-time errors
+let _supabaseAdmin: ReturnType<typeof createClient> | null = null;
+let _supabaseClient: ReturnType<typeof createClient> | null = null;
+
 // Client (Server-side with service role)
-export const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
+export const supabaseAdmin = (() => {
+  if (!_supabaseAdmin && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    _supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
   }
-);
+  return _supabaseAdmin;
+})();
 
 // Client (Client-side with anon key)
-export const supabaseClient = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+export const supabaseClient = (() => {
+  if (!_supabaseClient && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    _supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+  }
+  return _supabaseClient;
+})();
+
+// Helper to get admin client (throws at runtime if not configured)
+export function getSupabaseAdmin() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Supabase environment variables not configured');
+  }
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+}
 
 // ============================================
 // Database Functions
@@ -87,7 +118,8 @@ export const supabaseClient = createClient(
 export const db = {
   // Users
   async getUser(userId: string): Promise<User | null> {
-    const { data, error } = await supabaseAdmin
+    const client = getSupabaseAdmin();
+    const { data, error } = await client
       .from('users')
       .select('*')
       .eq('id', userId)
@@ -98,7 +130,8 @@ export const db = {
   },
 
   async updateUserKernel(userId: string, updates: Partial<User>): Promise<boolean> {
-    const { error } = await supabaseAdmin
+    const client = getSupabaseAdmin();
+    const { error } = await client
       .from('users')
       .update(updates)
       .eq('id', userId);
@@ -108,7 +141,8 @@ export const db = {
 
   // Organisms
   async getOrganisms(userId: string): Promise<Organism[]> {
-    const { data, error } = await supabaseAdmin
+    const client = getSupabaseAdmin();
+    const { data, error } = await client
       .from('organisms')
       .select('*')
       .eq('user_id', userId)
@@ -119,7 +153,8 @@ export const db = {
   },
 
   async getOrganism(organismId: string): Promise<Organism | null> {
-    const { data, error } = await supabaseAdmin
+    const client = getSupabaseAdmin();
+    const { data, error } = await client
       .from('organisms')
       .select('*')
       .eq('id', organismId)
@@ -130,7 +165,8 @@ export const db = {
   },
 
   async updateOrganism(organismId: string, updates: Partial<Organism>): Promise<boolean> {
-    const { error } = await supabaseAdmin
+    const client = getSupabaseAdmin();
+    const { error } = await client
       .from('organisms')
       .update(updates)
       .eq('id', organismId);
@@ -140,7 +176,8 @@ export const db = {
 
   // Usage Logs
   async createUsageLog(log: Omit<UsageLog, 'id'>): Promise<UsageLog | null> {
-    const { data, error } = await supabaseAdmin
+    const client = getSupabaseAdmin();
+    const { data, error } = await client
       .from('usage_logs')
       .insert(log)
       .select()
@@ -151,7 +188,8 @@ export const db = {
   },
 
   async getSolutionRanking(taskId?: string) {
-    let query = supabaseAdmin
+    const client = getSupabaseAdmin();
+    let query = client
       .from('solution_ranking')
       .select('*');
     
@@ -167,7 +205,8 @@ export const db = {
 
   // Reward Cards
   async createRewardCard(card: Omit<RewardCard, 'id'>): Promise<RewardCard | null> {
-    const { data, error } = await supabaseAdmin
+    const client = getSupabaseAdmin();
+    const { data, error } = await client
       .from('reward_cards')
       .insert(card)
       .select()
@@ -178,7 +217,8 @@ export const db = {
   },
 
   async getUnreadRewards(userId: string): Promise<RewardCard[]> {
-    const { data, error } = await supabaseAdmin
+    const client = getSupabaseAdmin();
+    const { data, error } = await client
       .from('reward_cards')
       .select('*')
       .eq('user_id', userId)
@@ -191,7 +231,8 @@ export const db = {
 
   // V Leaderboard
   async getLeaderboard(limit = 10) {
-    const { data, error } = await supabaseAdmin
+    const client = getSupabaseAdmin();
+    const { data, error } = await client
       .from('v_leaderboard')
       .select('*')
       .order('rank', { ascending: true })
@@ -203,7 +244,8 @@ export const db = {
 
   // Standards
   async getStandard(taskId: string) {
-    const { data, error } = await supabaseAdmin
+    const client = getSupabaseAdmin();
+    const { data, error } = await client
       .from('standards')
       .select('*, solutions(*)')
       .eq('task_id', taskId)

@@ -1,0 +1,138 @@
+{
+  "name": "AUTUS 커뮤니티 리드 어시스턴트",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 6 }]
+        }
+      },
+      "id": "schedule",
+      "name": "⏰ 6시간마다 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://search.naver.com/search.naver",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "where", "value": "article" },
+            { "name": "query", "value": "학원 퇴원 site:cafe.daum.net" }
+          ]
+        }
+      },
+      "id": "search-churn",
+      "name": "🔍 퇴원 키워드 검색",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [440, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://search.naver.com/search.naver",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "where", "value": "article" },
+            { "name": "query", "value": "학원 미수금 site:cafe.daum.net" }
+          ]
+        }
+      },
+      "id": "search-overdue",
+      "name": "🔍 미수금 키워드 검색",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// HTML에서 검색 결과 추출 (간소화)\nconst html = $input.first().json.data || '';\nconst results = [];\n\n// 제목과 링크 추출 패턴\nconst titleRegex = /<a[^>]*class=\"link_tit\"[^>]*href=\"([^\"]+)\"[^>]*>([^<]+)<\\/a>/gi;\nlet match;\n\nwhile ((match = titleRegex.exec(html)) !== null) {\n  results.push({\n    link: match[1],\n    title: match[2].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'),\n    source: 'daum_cafe',\n    keyword: '퇴원',\n    found_at: new Date().toISOString()\n  });\n}\n\nreturn results.slice(0, 5).map(r => ({ json: r }));"
+      },
+      "id": "extract-churn",
+      "name": "📄 퇴원 결과 추출",
+      "type": "n8n-nodes-base.code",
+      "position": [660, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.first().json.data || '';\nconst results = [];\n\nconst titleRegex = /<a[^>]*class=\"link_tit\"[^>]*href=\"([^\"]+)\"[^>]*>([^<]+)<\\/a>/gi;\nlet match;\n\nwhile ((match = titleRegex.exec(html)) !== null) {\n  results.push({\n    link: match[1],\n    title: match[2].replace(/&amp;/g, '&'),\n    source: 'daum_cafe',\n    keyword: '미수금',\n    found_at: new Date().toISOString()\n  });\n}\n\nreturn results.slice(0, 5).map(r => ({ json: r }));"
+      },
+      "id": "extract-overdue",
+      "name": "📄 미수금 결과 추출",
+      "type": "n8n-nodes-base.code",
+      "position": [660, 400]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [{ "field1": "link", "field2": "link" }]
+        },
+        "options": { "disableDotNotation": true }
+      },
+      "id": "merge",
+      "name": "🔗 결과 합치기",
+      "type": "n8n-nodes-base.merge",
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "tableId": "community_insights",
+        "filterByField": "link",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ $json.title }}",
+            "link": "={{ $json.link }}",
+            "source": "={{ $json.source }}",
+            "keyword": "={{ $json.keyword }}",
+            "status": "new",
+            "is_pilot_opportunity": true
+          }
+        }
+      },
+      "id": "supabase-save",
+      "name": "💾 Supabase 저장",
+      "type": "n8n-nodes-base.supabase",
+      "position": [1100, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#autus-leads",
+        "text": "🎯 *새로운 파일럿 기회 발견*\n\n*제목:* {{ $json.title }}\n*키워드:* {{ $json.keyword }}\n*링크:* {{ $json.link }}\n\n👉 확인 후 DM 템플릿으로 연락해보세요!",
+        "otherOptions": {}
+      },
+      "id": "slack-notify",
+      "name": "📢 Slack 알림",
+      "type": "n8n-nodes-base.slack",
+      "position": [1320, 300]
+    }
+  ],
+  "connections": {
+    "⏰ 6시간마다 실행": {
+      "main": [[
+        { "node": "🔍 퇴원 키워드 검색", "type": "main", "index": 0 },
+        { "node": "🔍 미수금 키워드 검색", "type": "main", "index": 0 }
+      ]]
+    },
+    "🔍 퇴원 키워드 검색": {
+      "main": [[{ "node": "📄 퇴원 결과 추출", "type": "main", "index": 0 }]]
+    },
+    "🔍 미수금 키워드 검색": {
+      "main": [[{ "node": "📄 미수금 결과 추출", "type": "main", "index": 0 }]]
+    },
+    "📄 퇴원 결과 추출": {
+      "main": [[{ "node": "🔗 결과 합치기", "type": "main", "index": 0 }]]
+    },
+    "📄 미수금 결과 추출": {
+      "main": [[{ "node": "🔗 결과 합치기", "type": "main", "index": 1 }]]
+    },
+    "🔗 결과 합치기": {
+      "main": [[{ "node": "💾 Supabase 저장", "type": "main", "index": 0 }]]
+    },
+    "💾 Supabase 저장": {
+      "main": [[{ "node": "📢 Slack 알림", "type": "main", "index": 0 }]]
+    }
+  }
+}

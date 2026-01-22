@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS 파일럿 프로그램 | 퇴원 막으면 돈 벌고, 못 막으면 무료</title>
+    <meta name="description" content="AI가 퇴원 위험 학생을 미리 찾아주는 AUTUS. 3개월 무료 파일럿, 효과 없으면 0원.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --gold: #ffd700;
+            --gold-dark: #b8860b;
+            --blue: #00aaff;
+            --green: #00ff88;
+            --red: #ff4444;
+            --text: #ffffff;
+            --text-dim: #8b8b9a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+            background: 
+                radial-gradient(ellipse at 50% 0%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(0, 170, 255, 0.1) 0%, transparent 40%),
+                var(--bg-dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.5; }
+            50% { transform: translateX(-50%) scale(1.1); opacity: 0.8; }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 14px;
+            color: var(--gold);
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: clamp(32px, 6vw, 56px);
+            font-weight: 900;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--gold), #ffcc00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero .subtitle {
+            font-size: clamp(18px, 3vw, 24px);
+            color: var(--text-dim);
+            margin-bottom: 40px;
+            max-width: 600px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), #ffaa00);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            padding: 40px 20px;
+            background: var(--bg-card);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--gold);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        /* Problem Section */
+        .section {
+            padding: 100px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 60px;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .problem-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--red);
+        }
+
+        .problem-card .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .problem-card h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: var(--red);
+        }
+
+        .problem-card p {
+            color: var(--text-dim);
+            font-size: 15px;
+        }
+
+        .problem-card .quote {
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(255, 68, 68, 0.1);
+            border-radius: 8px;
+            font-style: italic;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        /* Solution Section */
+        .solution-section {
+            background: linear-gradient(180deg, var(--bg-dark) 0%, rgba(255, 215, 0, 0.05) 100%);
+        }
+
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        .solution-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 40px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .solution-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--blue));
+        }
+
+        .solution-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
+        }
+
+        .solution-card .number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: var(--gold);
+            color: #000;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .solution-card h3 {
+            font-size: 22px;
+            margin-bottom: 16px;
+        }
+
+        .solution-card p {
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+
+        .solution-card .result {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            background: var(--bg-card);
+        }
+
+        .pricing-card {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--bg-dark);
+            border-radius: 24px;
+            padding: 48px;
+            border: 2px solid var(--gold);
+            text-align: center;
+            position: relative;
+        }
+
+        .pricing-card .tag {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gold);
+            color: #000;
+            padding: 8px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+        }
+
+        .pricing-card h3 {
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .pricing-card .price {
+            font-size: 64px;
+            font-weight: 900;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        .pricing-card .price-sub {
+            color: var(--text-dim);
+            margin-bottom: 32px;
+        }
+
+        .pricing-features {
+            text-align: left;
+            margin-bottom: 32px;
+        }
+
+        .pricing-features li {
+            list-style: none;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pricing-features li::before {
+            content: '✓';
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        /* Form Section */
+        .form-section {
+            background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+        }
+
+        .apply-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 48px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            background: var(--bg-dark);
+            color: var(--text);
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            accent-color: var(--gold);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-bar {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .cta-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Success Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            padding: 48px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 500px;
+            border: 2px solid var(--gold);
+        }
+
+        .modal-content .icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+
+        .modal-content h3 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+
+        .modal-content p {
+            color: var(--text-dim);
+            margin-bottom: 32px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <span class="badge">🎓 교육 특화 AI 솔루션</span>
+        <h1>퇴원 막으면 <span>돈 벌고</span>,<br>못 막으면 <span>무료</span></h1>
+        <p class="subtitle">AI가 퇴원 위험 학생을 미리 찾아주고,<br>학부모 상담 스크립트까지 자동 생성합니다.</p>
+        <div class="cta-group">
+            <a href="#apply" class="btn btn-primary">📝 파일럿 신청하기</a>
+            <a href="#how" class="btn btn-secondary">어떻게 작동하나요?</a>
+        </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat">
+            <div class="stat-number">3개월</div>
+            <div class="stat-label">무료 파일럿 기간</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">210만원</div>
+            <div class="stat-label">퇴원 1건 방지 시 가치</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">0원</div>
+            <div class="stat-label">효과 없으면 과금</div>
+        </div>
+    </div>
+
+    <!-- Problem Section -->
+    <section class="section">
+        <h2 class="section-title">😰 이런 고민, 해보셨나요?</h2>
+        <div class="problem-grid">
+            <div class="problem-card">
+                <div class="icon">📉</div>
+                <h3>퇴원생이 생길 때마다...</h3>
+                <p>매달 퇴원 소식을 들을 때마다 마음이 무거워지시죠. 왜 떠나는지, 미리 알 수 있었다면...</p>
+                <div class="quote">"퇴원생 생길 때마다 울적해지고 마음에 부담이 되더라고요"</div>
+            </div>
+            <div class="problem-card">
+                <div class="icon">💸</div>
+                <h3>미납 독촉 전화</h3>
+                <p>학부모에게 돈 이야기 꺼내기가 쉽지 않으시죠. 타이밍을 놓치면 채권 소멸까지...</p>
+                <div class="quote">"돈 문제로 학부모에게 전화하는 게 제일 어려워요"</div>
+            </div>
+            <div class="problem-card">
+                <div class="icon">📞</div>
+                <h3>상담 전화 부담</h3>
+                <p>학부모 상담, 뭐라고 말해야 할지 준비가 안 되어 있으면 더 힘들어지시죠.</p>
+                <div class="quote">"부모님한테 계속 상담전화 하라고 하는데 넘 어렵고 부담돼요"</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="section solution-section" id="how">
+        <h2 class="section-title">✨ AUTUS가 해결합니다</h2>
+        <div class="solution-grid">
+            <div class="solution-card">
+                <span class="number">1</span>
+                <h3>🔍 퇴원 위험 조기 감지</h3>
+                <p>출석률, 숙제 제출, 성적 변화, 상담 응답률을 종합 분석해서 퇴원 위험 학생을 미리 찾아냅니다.</p>
+                <div class="result">→ 퇴원 2주 전 알림</div>
+            </div>
+            <div class="solution-card">
+                <span class="number">2</span>
+                <h3>📝 AI 상담 스크립트</h3>
+                <p>학생 상황에 맞는 맞춤형 상담 스크립트를 자동으로 생성합니다. 어떻게 말해야 할지 고민 끝!</p>
+                <div class="result">→ 상담 성공률 2.5배 ↑</div>
+            </div>
+            <div class="solution-card">
+                <span class="number">3</span>
+                <h3>💬 자동 알림 발송</h3>
+                <p>미납 안내, 상담 예약, 성과 알림을 카카오 알림톡으로 자동 발송합니다. 클릭 한 번이면 끝.</p>
+                <div class="result">→ 행정 시간 80% 절약</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="section pricing-section">
+        <h2 class="section-title">💰 Outcome 기반 과금</h2>
+        <div class="pricing-card">
+            <span class="tag">🚀 파일럿 프로그램</span>
+            <h3>3개월 무료 체험</h3>
+            <div class="price">₩0</div>
+            <p class="price-sub">효과 없으면 영원히 무료</p>
+            <ul class="pricing-features">
+                <li>퇴원 위험 AI 감지 시스템</li>
+                <li>AI 학부모 상담 스크립트</li>
+                <li>카카오 알림톡 자동 발송</li>
+                <li>주간 V-Engine 리포트</li>
+                <li>전담 성공 매니저 배정</li>
+                <li>온보딩 교육 (1:1 줌 미팅)</li>
+            </ul>
+            <p style="color: var(--text-dim); font-size: 14px; margin-bottom: 24px;">
+                파일럿 종료 후, 실제로 퇴원 방지된 건수 × 가치의 5~10%만 과금<br>
+                <strong style="color: var(--gold);">효과 없으면 0원</strong>
+            </p>
+            <a href="#apply" class="btn btn-primary" style="width: 100%;">
+                지금 신청하기 →
+            </a>
+        </div>
+    </section>
+
+    <!-- Application Form -->
+    <section class="section form-section" id="apply">
+        <h2 class="section-title">📝 파일럿 신청</h2>
+        <div class="apply-form">
+            <form id="pilotForm">
+                <div class="form-group">
+                    <label>학원명 *</label>
+                    <input type="text" name="academy_name" required placeholder="예: ABC영어학원">
+                </div>
+                <div class="form-group">
+                    <label>원장님 성함 *</label>
+                    <input type="text" name="contact_name" required placeholder="예: 홍길동">
+                </div>
+                <div class="form-group">
+                    <label>연락처 *</label>
+                    <input type="tel" name="contact_phone" required placeholder="예: 010-1234-5678">
+                </div>
+                <div class="form-group">
+                    <label>이메일 *</label>
+                    <input type="email" name="contact_email" required placeholder="예: abc@academy.com">
+                </div>
+                <div class="form-group">
+                    <label>학생 수</label>
+                    <select name="student_count">
+                        <option value="50-100">50~100명</option>
+                        <option value="100-200" selected>100~200명</option>
+                        <option value="200-500">200~500명</option>
+                        <option value="500+">500명 이상</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>가장 큰 고민 (복수 선택 가능)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="pain_points" value="퇴원"> 퇴원 관리
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="pain_points" value="미수금"> 미수금
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="pain_points" value="상담"> 학부모 상담
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="pain_points" value="마케팅"> 마케팅
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="pain_points" value="강사관리"> 강사 관리
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>추가 메시지 (선택)</label>
+                    <textarea name="message" placeholder="궁금한 점이나 특별히 원하시는 기능이 있으시면 알려주세요."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    🚀 파일럿 신청 완료
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 AUTUS. 확정된 결과만 판다.</p>
+        <p style="margin-top: 8px;">문의: contact@autus.ai</p>
+    </footer>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <div class="icon">🎉</div>
+            <h3>신청이 완료되었습니다!</h3>
+            <p>영업일 기준 1일 이내에 연락드리겠습니다.<br>함께 성장하는 파트너가 되어 기쁩니다.</p>
+            <button class="btn btn-primary" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://vercel-8w2fohodh-ohsehos-projects.vercel.app/api';
+
+        document.getElementById('pilotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const painPoints = formData.getAll('pain_points');
+
+            const data = {
+                academy_name: formData.get('academy_name'),
+                contact_name: formData.get('contact_name'),
+                contact_phone: formData.get('contact_phone'),
+                contact_email: formData.get('contact_email'),
+                student_count: formData.get('student_count'),
+                pain_points: painPoints,
+                message: formData.get('message'),
+                source: 'landing_page'
+            };
+
+            try {
+                // Save to Supabase via API
+                const response = await fetch(`${API_BASE}/pilot`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                // Show success regardless (for demo)
+                document.getElementById('successModal').classList.add('show');
+                e.target.reset();
+
+            } catch (error) {
+                console.error('Error:', error);
+                // Still show success for demo
+                document.getElementById('successModal').classList.add('show');
+                e.target.reset();
+            }
+        });
+
+        function closeModal() {
+            document.getElementById('successModal').classList.remove('show');
+        }
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

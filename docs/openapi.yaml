@@ -1,503 +1,1699 @@
 openapi: 3.0.3
 info:
-  title: AUTUS Physics API
+  title: AUTUS Mobile API
   description: |
-    Semantic Neutrality Compliant API
+    AUTUS 모바일 앱을 위한 REST API 명세
     
-    Rules:
-    - No semantic interpretation in responses
-    - Numbers and vectors only
-    - No labels on nodes
-    - All motion toward Origin
+    ## 인증
+    모든 API는 Bearer 토큰 인증이 필요합니다.
+    ```
+    Authorization: Bearer <access_token>
+    ```
+    
+    ## 기본 응답 형식
+    ```json
+    {
+      "success": true,
+      "data": { ... },
+      "message": "성공 메시지"
+    }
+    ```
+    
+    ## 에러 응답
+    ```json
+    {
+      "success": false,
+      "error": "에러 코드",
+      "message": "에러 메시지"
+    }
+    ```
   version: 1.0.0
   contact:
-    name: AUTUS
-
+    name: AUTUS Team
+    email: support@autus.ai
+  license:
+    name: Proprietary
+    
 servers:
-  - url: https://api.autus-ai.com/v1
+  - url: https://api.autus.ai/v1
     description: Production
-  - url: http://localhost:8000/v1
-    description: Development
+  - url: https://api-staging.autus.ai/v1
+    description: Staging
+  - url: http://localhost:8000/api
+    description: Local Development
 
 tags:
-  - name: state
-    description: Physical state operations
-  - name: nodes
-    description: Entity operations (사람/기업/국가)
-  - name: motions
-    description: Value flow operations (돈/시간/가치)
-  - name: goal
-    description: Origin/Goal operations
+  - name: Auth
+    description: 인증 관련 API
+  - name: Dashboard
+    description: 대시보드/홈 화면
+  - name: Students
+    description: 학생 관리
+  - name: Attendance
+    description: 출결 관리
+  - name: Payments
+    description: 수납 관리
+  - name: Consultations
+    description: 상담 관리
+  - name: Churn
+    description: 퇴원 위험 관리
+  - name: AI
+    description: AI/Claude 연동
+  - name: Settings
+    description: 설정
+  - name: Notifications
+    description: 알림
 
 paths:
-  /state:
-    get:
-      tags: [state]
-      summary: Get current physical state
-      operationId: getState
-      responses:
-        '200':
-          description: Current state vector
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/State'
-
-  /state/vector:
+  # ============================================
+  # Auth
+  # ============================================
+  /auth/login:
     post:
-      tags: [state]
-      summary: Apply vector input
-      operationId: applyVector
+      tags: [Auth]
+      summary: 로그인
+      operationId: login
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/VectorInput'
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: director@academy.com
+                password:
+                  type: string
+                  format: password
+                  example: "********"
       responses:
         '200':
-          description: Updated state after vector application
+          description: 로그인 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StateTransition'
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+          
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: 토큰 갱신
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: 토큰 갱신 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+                
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: 로그아웃
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 로그아웃 성공
 
-  /nodes:
+  # ============================================
+  # Dashboard
+  # ============================================
+  /dashboard/summary:
     get:
-      tags: [nodes]
-      summary: List all nodes
-      operationId: listNodes
+      tags: [Dashboard]
+      summary: 대시보드 요약 조회
+      operationId: getDashboardSummary
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/DashboardSummary'
+                    
+  /dashboard/v-index:
+    get:
+      tags: [Dashboard]
+      summary: V 지수 조회
+      operationId: getVIndex
+      security:
+        - bearerAuth: []
       parameters:
-        - name: level
+        - name: period
           in: query
-          description: Filter by proximity level (1, 2, 3)
+          schema:
+            type: string
+            enum: [day, week, month, year]
+            default: month
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/VIndex'
+
+  # ============================================
+  # Students
+  # ============================================
+  /students:
+    get:
+      tags: [Students]
+      summary: 학생 목록 조회
+      operationId: getStudents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: filter
+          in: query
+          schema:
+            type: string
+            enum: [all, at_risk, warning, normal]
+            default: all
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [name_asc, name_desc, risk_asc, risk_desc, created_at]
+            default: risk_desc
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
           schema:
             type: integer
-            minimum: 1
-            maximum: 3
-        - name: r_min
+            default: 1
+        - name: limit
           in: query
-          description: Minimum distance from Origin
           schema:
-            type: number
-        - name: r_max
-          in: query
-          description: Maximum distance from Origin
-          schema:
-            type: number
+            type: integer
+            default: 20
+            maximum: 100
       responses:
         '200':
-          description: List of nodes
+          description: 성공
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  nodes:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Node'
-                  count:
-                    type: integer
-
-    post:
-      tags: [nodes]
-      summary: Create a node
-      operationId: createNode
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NodeCreate'
-      responses:
-        '201':
-          description: Node created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Node'
-
-  /nodes/{id}:
-    get:
-      tags: [nodes]
-      summary: Get node by ID
-      operationId: getNode
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Node details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Node'
-        '404':
-          description: Node not found
-
-    patch:
-      tags: [nodes]
-      summary: Update node physical properties
-      operationId: updateNode
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NodeUpdate'
-      responses:
-        '200':
-          description: Updated node
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Node'
-
-    delete:
-      tags: [nodes]
-      summary: Remove node
-      operationId: deleteNode
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '204':
-          description: Node removed
-
-  /motions:
-    get:
-      tags: [motions]
-      summary: Get current motion state
-      operationId: listMotions
-      responses:
-        '200':
-          description: Active motions
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  motions:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Motion'
-                  flow_rate:
-                    type: number
-                    description: Aggregate flow rate toward Origin
-
-  /motions/stream:
-    get:
-      tags: [motions]
-      summary: WebSocket stream for real-time motions
-      operationId: streamMotions
-      description: |
-        WebSocket endpoint for real-time motion updates.
-        Connect via: wss://api.autus-ai.com/v1/motions/stream
-        
-        Message format:
-        ```json
-        {
-          "type": "motion_update",
-          "data": { "motions": [...], "flow_rate": 0.42 },
-          "timestamp": "2024-01-01T00:00:00Z"
-        }
-        ```
-      responses:
-        '101':
-          description: WebSocket upgrade
-
-  /goal:
-    get:
-      tags: [goal]
-      summary: Get current goal state
-      operationId: getGoal
-      responses:
-        '200':
-          description: Goal configuration
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Goal'
-
-    put:
-      tags: [goal]
-      summary: Set or update goal
-      operationId: setGoal
-      description: |
-        Setting a new goal resets the coordinate system.
-        All node distances are recalculated relative to new Origin.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GoalCreate'
-      responses:
-        '200':
-          description: Goal updated, system recalibrated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Goal'
-
-  /physics/equation:
-    get:
-      tags: [state]
-      summary: Get state transition equation
-      operationId: getEquation
-      responses:
-        '200':
-          description: Current physics model
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  equation:
-                    type: string
-                    example: "S(t+1) = S(t) + ρ·Δv − μ·|v|"
-                  variables:
+                  success:
+                    type: boolean
+                  data:
                     type: object
                     properties:
-                      S:
-                        type: string
-                        example: "State vector"
-                      rho:
-                        type: string
-                        example: "Momentum coefficient"
-                      mu:
-                        type: string
-                        example: "Friction coefficient"
-                      delta_v:
-                        type: string
-                        example: "Vector input"
+                      students:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/StudentSummary'
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                        
+    post:
+      tags: [Students]
+      summary: 학생 등록
+      operationId: createStudent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentCreate'
+      responses:
+        '201':
+          description: 학생 등록 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Student'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
+  /students/{studentId}:
+    get:
+      tags: [Students]
+      summary: 학생 상세 조회
+      operationId: getStudent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/StudentDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+          
+    put:
+      tags: [Students]
+      summary: 학생 정보 수정
+      operationId: updateStudent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentUpdate'
+      responses:
+        '200':
+          description: 수정 성공
+        '404':
+          $ref: '#/components/responses/NotFound'
+          
+    delete:
+      tags: [Students]
+      summary: 학생 삭제 (퇴원 처리)
+      operationId: deleteStudent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 삭제 성공
+        '404':
+          $ref: '#/components/responses/NotFound'
 
+  /students/{studentId}/risk-history:
+    get:
+      tags: [Students]
+      summary: 학생 위험도 이력 조회
+      operationId: getStudentRiskHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+            default: month
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RiskHistoryItem'
+
+  # ============================================
+  # Attendance
+  # ============================================
+  /attendance:
+    get:
+      tags: [Attendance]
+      summary: 출결 현황 조회
+      operationId: getAttendance
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: student_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      total_students:
+                        type: integer
+                      present:
+                        type: integer
+                      absent:
+                        type: integer
+                      late:
+                        type: integer
+                      attendance_rate:
+                        type: number
+                      records:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AttendanceRecord'
+                          
+    post:
+      tags: [Attendance]
+      summary: 출결 기록
+      operationId: recordAttendance
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id, date, status]
+              properties:
+                student_id:
+                  type: string
+                  format: uuid
+                date:
+                  type: string
+                  format: date
+                status:
+                  type: string
+                  enum: [present, absent, late, excused]
+                note:
+                  type: string
+      responses:
+        '201':
+          description: 기록 성공
+
+  # ============================================
+  # Payments
+  # ============================================
+  /payments/summary:
+    get:
+      tags: [Payments]
+      summary: 수납 현황 요약
+      operationId: getPaymentsSummary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}$'
+            example: "2026-01"
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/PaymentSummary'
+
+  /payments/overdue:
+    get:
+      tags: [Payments]
+      summary: 미납 목록 조회
+      operationId: getOverduePayments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OverduePayment'
+
+  /payments/{paymentId}/remind:
+    post:
+      tags: [Payments]
+      summary: 수납 독촉 문자 발송
+      operationId: sendPaymentReminder
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channel:
+                  type: string
+                  enum: [sms, kakao, email]
+                  default: kakao
+                custom_message:
+                  type: string
+      responses:
+        '200':
+          description: 발송 성공
+
+  # ============================================
+  # Consultations
+  # ============================================
+  /consultations:
+    get:
+      tags: [Consultations]
+      summary: 상담 기록 목록
+      operationId: getConsultations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: student_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [regular, risk, complaint]
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Consultation'
+                      
+    post:
+      tags: [Consultations]
+      summary: 상담 기록 생성
+      operationId: createConsultation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsultationCreate'
+      responses:
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Consultation'
+
+  # ============================================
+  # Churn (퇴원 위험 관리)
+  # ============================================
+  /churn/at-risk:
+    get:
+      tags: [Churn]
+      summary: 퇴원 위험 학생 목록
+      operationId: getAtRiskStudents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: risk_level
+          in: query
+          schema:
+            type: string
+            enum: [high, medium, all]
+            default: all
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      total_at_risk:
+                        type: integer
+                      estimated_loss:
+                        type: number
+                        description: 예상 손실 금액 (원)
+                      students:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AtRiskStudent'
+
+  /churn/script:
+    post:
+      tags: [Churn]
+      summary: AI 상담 스크립트 생성
+      operationId: generateConsultationScript
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id]
+              properties:
+                student_id:
+                  type: string
+                  format: uuid
+                scenario:
+                  type: string
+                  enum: [risk_prevention, payment_overdue, grade_decline, attendance_issue]
+                  default: risk_prevention
+      responses:
+        '200':
+          description: 스크립트 생성 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/ConsultationScript'
+
+  /churn/outcome:
+    post:
+      tags: [Churn]
+      summary: 퇴원 방지 결과 기록 (Outcome 과금)
+      operationId: recordChurnOutcome
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id, outcome, consultation_id]
+              properties:
+                student_id:
+                  type: string
+                  format: uuid
+                consultation_id:
+                  type: string
+                  format: uuid
+                outcome:
+                  type: string
+                  enum: [prevented, churned, pending]
+                monthly_fee:
+                  type: number
+                  description: 월 수업료
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: 기록 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      outcome_id:
+                        type: string
+                        format: uuid
+                      outcome_value:
+                        type: number
+                        description: Outcome 과금 금액 (월수업료 × 6 × 10%)
+                      message:
+                        type: string
+
+  # ============================================
+  # AI (Claude 연동)
+  # ============================================
+  /ai/brain:
+    post:
+      tags: [AI]
+      summary: AI Brain 호출 (범용)
+      operationId: callAIBrain
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: 
+                    - generateRewardCard
+                    - analyzeRisk
+                    - generateScript
+                    - generateContent
+                data:
+                  type: object
+      responses:
+        '200':
+          description: AI 응답
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+
+  /ai/reward-cards:
+    get:
+      tags: [AI]
+      summary: AI 보상 카드 목록
+      operationId: getRewardCards
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [all, risk, payment, achievement]
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RewardCard'
+
+  # ============================================
+  # Settings
+  # ============================================
+  /settings/profile:
+    get:
+      tags: [Settings]
+      summary: 프로필 조회
+      operationId: getProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+                    
+    put:
+      tags: [Settings]
+      summary: 프로필 수정
+      operationId: updateProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: 수정 성공
+
+  /settings/academy:
+    get:
+      tags: [Settings]
+      summary: 학원 정보 조회
+      operationId: getAcademy
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Academy'
+                    
+    put:
+      tags: [Settings]
+      summary: 학원 정보 수정
+      operationId: updateAcademy
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademyUpdate'
+      responses:
+        '200':
+          description: 수정 성공
+
+  /settings/risk-detection:
+    get:
+      tags: [Settings]
+      summary: 위험 감지 설정 조회
+      operationId: getRiskSettings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/RiskSettings'
+                    
+    put:
+      tags: [Settings]
+      summary: 위험 감지 설정 수정
+      operationId: updateRiskSettings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskSettings'
+      responses:
+        '200':
+          description: 수정 성공
+
+  /settings/notifications:
+    get:
+      tags: [Settings]
+      summary: 알림 설정 조회
+      operationId: getNotificationSettings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/NotificationSettings'
+                    
+    put:
+      tags: [Settings]
+      summary: 알림 설정 수정
+      operationId: updateNotificationSettings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationSettings'
+      responses:
+        '200':
+          description: 수정 성공
+
+  # ============================================
+  # Notifications
+  # ============================================
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: 알림 목록 조회
+      operationId: getNotifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: unread_only
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      unread_count:
+                        type: integer
+                      notifications:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Notification'
+
+  /notifications/{notificationId}/read:
+    post:
+      tags: [Notifications]
+      summary: 알림 읽음 처리
+      operationId: markNotificationRead
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 성공
+
+# ============================================
+# Components
+# ============================================
 components:
-  schemas:
-    State:
-      type: object
-      description: Physical state vector (no semantic interpretation)
-      properties:
-        delta:
-          type: number
-          format: float
-          description: ΔGoal - normalized distance to goal (0 = reached)
-          minimum: 0
-          maximum: 1
-          example: 0.68
-        mu:
-          type: number
-          format: float
-          description: Friction coefficient
-          minimum: 0
-          maximum: 1
-          example: 0.23
-        rho:
-          type: number
-          format: float
-          description: Momentum
-          minimum: 0
-          maximum: 1
-          example: 0.81
-        sigma:
-          type: number
-          format: float
-          description: Variance
-          minimum: 0
-          example: 0.12
-        timestamp:
-          type: string
-          format: date-time
-
-    VectorInput:
-      type: object
-      required: [delta_v]
-      properties:
-        delta_v:
-          type: number
-          format: float
-          description: Vector change (-1, 0, +1 or continuous)
-          minimum: -1
-          maximum: 1
-          example: 1
-
-    StateTransition:
-      type: object
-      properties:
-        previous:
-          $ref: '#/components/schemas/State'
-        current:
-          $ref: '#/components/schemas/State'
-        delta_v_applied:
-          type: number
-        equation_used:
-          type: string
-          example: "S(t+1) = S(t) + ρ·Δv − μ·|v|"
-
-    Node:
-      type: object
-      description: Entity node (사람/기업/국가) - no labels
-      properties:
-        id:
-          type: string
-          format: uuid
-        r:
-          type: number
-          format: float
-          description: Distance from Origin
-          example: 85.5
-        theta:
-          type: number
-          format: float
-          description: Angle in radians
-          minimum: 0
-          maximum: 6.28318530718
-          example: 1.57
-        mass:
-          type: number
-          format: float
-          description: Node mass (affects size)
-          minimum: 0.1
-          example: 2.4
-        velocity:
-          type: number
-          format: float
-          description: Orbital velocity
-          example: 0.008
-        flow:
-          type: number
-          format: float
-          description: Current flow toward Origin
-          example: 8.2
-        level:
-          type: integer
-          description: Proximity level (derived from r)
-          enum: [1, 2, 3]
-          example: 2
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    NodeCreate:
-      type: object
-      required: [r, theta, mass]
-      properties:
-        r:
-          type: number
-          format: float
-          description: Initial distance from Origin
-          minimum: 1
-          example: 100
-        theta:
-          type: number
-          format: float
-          description: Initial angle
-          example: 0.785
-        mass:
-          type: number
-          format: float
-          description: Node mass
-          minimum: 0.1
-          example: 1.5
-
-    NodeUpdate:
-      type: object
-      properties:
-        r:
-          type: number
-          format: float
-        theta:
-          type: number
-          format: float
-        mass:
-          type: number
-          format: float
-        velocity:
-          type: number
-          format: float
-
-    Motion:
-      type: object
-      description: Value flow (돈/시간/가치) - always toward Origin
-      properties:
-        id:
-          type: string
-          format: uuid
-        angle:
-          type: number
-          format: float
-          description: Direction angle
-        progress:
-          type: number
-          format: float
-          description: Progress toward Origin (0 = start, 1 = arrived)
-          minimum: 0
-          maximum: 1
-        intensity:
-          type: number
-          format: float
-          description: Flow intensity
-          minimum: 0
-          maximum: 1
-        start_r:
-          type: number
-          format: float
-          description: Starting distance from Origin
-        source_node_id:
-          type: string
-          format: uuid
-          description: Originating node (optional)
-
-    Goal:
-      type: object
-      description: Origin point configuration
-      properties:
-        id:
-          type: string
-          format: uuid
-        anchor:
-          type: string
-          description: User-defined goal text (stored as-is, no interpretation)
-          example: "Q4 revenue target"
-        created_at:
-          type: string
-          format: date-time
-        state:
-          $ref: '#/components/schemas/State'
-
-    GoalCreate:
-      type: object
-      required: [anchor]
-      properties:
-        anchor:
-          type: string
-          description: Goal definition text
-          maxLength: 500
-
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
-security:
-  - bearerAuth: []
+      
+  responses:
+    BadRequest:
+      description: 잘못된 요청
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: 인증 실패
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: 리소스를 찾을 수 없음
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+            
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        message:
+          type: string
+          
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            access_token:
+              type: string
+            refresh_token:
+              type: string
+            expires_in:
+              type: integer
+              description: 만료 시간 (초)
+            user:
+              $ref: '#/components/schemas/UserProfile'
+              
+    DashboardSummary:
+      type: object
+      properties:
+        v_index:
+          type: number
+          example: 127.5
+        v_change:
+          type: number
+          example: 5.2
+        total_students:
+          type: integer
+          example: 58
+        at_risk_count:
+          type: integer
+          example: 3
+        attendance_rate:
+          type: number
+          example: 94.5
+        payment_rate:
+          type: number
+          example: 92.0
+        overdue_count:
+          type: integer
+          example: 4
+        urgent_alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+            
+    VIndex:
+      type: object
+      properties:
+        current:
+          type: number
+          example: 127.5
+        previous:
+          type: number
+          example: 121.3
+        change_percent:
+          type: number
+          example: 5.1
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              value:
+                type: number
+        components:
+          type: object
+          properties:
+            M:
+              type: number
+              description: Mint (수입)
+            T:
+              type: number
+              description: Tax (비용)
+            s:
+              type: number
+              description: Synergy (만족도)
+            t:
+              type: integer
+              description: Time (개월)
+              
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [risk_high, risk_medium, payment_overdue, attendance_low]
+        student_id:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        created_at:
+          type: string
+          format: date-time
+          
+    StudentSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: 김민수
+        grade:
+          type: string
+          example: 중3
+        subjects:
+          type: array
+          items:
+            type: string
+          example: ["수학", "영어"]
+        risk_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 85
+        risk_level:
+          type: string
+          enum: [high, medium, low]
+        attendance_rate:
+          type: number
+          example: 78.5
+        last_consultation:
+          type: string
+          format: date
+          
+    StudentDetail:
+      allOf:
+        - $ref: '#/components/schemas/StudentSummary'
+        - type: object
+          properties:
+            school:
+              type: string
+              example: 대치중학교
+            enrolled_at:
+              type: string
+              format: date
+            parent:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                email:
+                  type: string
+            monthly_fee:
+              type: number
+              example: 345000
+            payment_day:
+              type: integer
+              example: 5
+            homework_rate:
+              type: number
+              example: 45.0
+            recent_grades:
+              type: array
+              items:
+                type: object
+                properties:
+                  exam:
+                    type: string
+                  subject:
+                    type: string
+                  score:
+                    type: number
+                  grade:
+                    type: string
+            v_history:
+              type: array
+              items:
+                type: object
+                properties:
+                  month:
+                    type: string
+                  value:
+                    type: number
+            recent_consultations:
+              type: array
+              items:
+                $ref: '#/components/schemas/Consultation'
+            memo:
+              type: string
+              
+    StudentCreate:
+      type: object
+      required: [name, grade, subjects, parent_name, parent_phone, monthly_fee]
+      properties:
+        name:
+          type: string
+        grade:
+          type: string
+        school:
+          type: string
+        subjects:
+          type: array
+          items:
+            type: string
+        parent_name:
+          type: string
+        parent_phone:
+          type: string
+        parent_email:
+          type: string
+        monthly_fee:
+          type: number
+        payment_day:
+          type: integer
+          default: 5
+        memo:
+          type: string
+          
+    StudentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        grade:
+          type: string
+        school:
+          type: string
+        subjects:
+          type: array
+          items:
+            type: string
+        parent_name:
+          type: string
+        parent_phone:
+          type: string
+        parent_email:
+          type: string
+        monthly_fee:
+          type: number
+        payment_day:
+          type: integer
+        memo:
+          type: string
+          
+    RiskHistoryItem:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        risk_score:
+          type: integer
+        factors:
+          type: object
+          properties:
+            attendance:
+              type: number
+            homework:
+              type: number
+            grade:
+              type: number
+            response:
+              type: number
+            payment:
+              type: number
+              
+    AttendanceRecord:
+      type: object
+      properties:
+        student_id:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+        date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [present, absent, late, excused]
+        check_in_time:
+          type: string
+          format: time
+        note:
+          type: string
+          
+    PaymentSummary:
+      type: object
+      properties:
+        month:
+          type: string
+          example: "2026-01"
+        total_expected:
+          type: number
+          example: 15870000
+        total_received:
+          type: number
+          example: 14490000
+        paid_count:
+          type: integer
+          example: 42
+        overdue_count:
+          type: integer
+          example: 4
+        overdue_amount:
+          type: number
+          example: 1380000
+        payment_rate:
+          type: number
+          example: 91.3
+          
+    OverduePayment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+        amount:
+          type: number
+        due_date:
+          type: string
+          format: date
+        days_overdue:
+          type: integer
+        parent_phone:
+          type: string
+        last_reminder_sent:
+          type: string
+          format: date-time
+          
+    Consultation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+        type:
+          type: string
+          enum: [regular, risk, complaint]
+        date:
+          type: string
+          format: date-time
+        content:
+          type: string
+        result:
+          type: string
+          enum: [positive, pending, negative]
+        follow_up:
+          type: array
+          items:
+            type: string
+        created_by:
+          type: string
+          
+    ConsultationCreate:
+      type: object
+      required: [student_id, type, content]
+      properties:
+        student_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [regular, risk, complaint]
+        content:
+          type: string
+        result:
+          type: string
+          enum: [positive, pending, negative]
+        follow_up:
+          type: array
+          items:
+            type: string
+            
+    AtRiskStudent:
+      type: object
+      properties:
+        student:
+          $ref: '#/components/schemas/StudentSummary'
+        risk_score:
+          type: integer
+        risk_factors:
+          type: array
+          items:
+            type: object
+            properties:
+              factor:
+                type: string
+                enum: [attendance, homework, grade, response, payment]
+              value:
+                type: number
+              trend:
+                type: string
+                enum: [up, down, stable]
+              impact:
+                type: string
+                enum: [high, medium, low]
+        estimated_loss:
+          type: number
+          description: 예상 손실 (월수업료 × 6개월)
+        ai_recommendation:
+          type: string
+        recommended_actions:
+          type: array
+          items:
+            type: string
+            
+    ConsultationScript:
+      type: object
+      properties:
+        student_id:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+        scenario:
+          type: string
+        opening:
+          type: string
+          description: 도입부
+        main_points:
+          type: array
+          items:
+            type: string
+          description: 주요 포인트
+        closing:
+          type: string
+          description: 마무리
+        tips:
+          type: array
+          items:
+            type: string
+          description: 상담 팁
+        expected_objections:
+          type: array
+          items:
+            type: object
+            properties:
+              objection:
+                type: string
+              response:
+                type: string
+                
+    RewardCard:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        category:
+          type: string
+          enum: [risk, payment, achievement, insight]
+        title:
+          type: string
+        message:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+        actions:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              type:
+                type: string
+              payload:
+                type: object
+        created_at:
+          type: string
+          format: date-time
+          
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [owner, manager, teacher]
+        academy_id:
+          type: string
+          format: uuid
+        academy_name:
+          type: string
+        plan:
+          type: string
+          enum: [free, basic, pro, enterprise]
+        created_at:
+          type: string
+          format: date-time
+          
+    UserProfileUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+          
+    Academy:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address:
+          type: string
+        phone:
+          type: string
+        subjects:
+          type: array
+          items:
+            type: string
+        student_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          
+    AcademyUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        phone:
+          type: string
+        subjects:
+          type: array
+          items:
+            type: string
+            
+    RiskSettings:
+      type: object
+      properties:
+        high_risk_threshold:
+          type: integer
+          minimum: 0
+          maximum: 100
+          default: 80
+        medium_risk_threshold:
+          type: integer
+          minimum: 0
+          maximum: 100
+          default: 60
+        weights:
+          type: object
+          properties:
+            attendance:
+              type: number
+              default: 0.30
+            homework:
+              type: number
+              default: 0.25
+            grade:
+              type: number
+              default: 0.20
+            response:
+              type: number
+              default: 0.15
+            payment:
+              type: number
+              default: 0.10
+        notification_channels:
+          type: array
+          items:
+            type: string
+            enum: [push, kakao, sms, email]
+            
+    NotificationSettings:
+      type: object
+      properties:
+        push_enabled:
+          type: boolean
+          default: true
+        kakao_enabled:
+          type: boolean
+          default: true
+        sms_enabled:
+          type: boolean
+          default: false
+        email_enabled:
+          type: boolean
+          default: true
+        daily_summary:
+          type: boolean
+          default: true
+        daily_summary_time:
+          type: string
+          example: "09:00"
+        risk_alert:
+          type: boolean
+          default: true
+        payment_alert:
+          type: boolean
+          default: true
+        attendance_alert:
+          type: boolean
+          default: true
+          
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [risk, payment, attendance, system, ai_insight]
+        title:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+        read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time

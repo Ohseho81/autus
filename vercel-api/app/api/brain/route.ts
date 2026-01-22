@@ -91,6 +91,29 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      // 일일 카페 콘텐츠 생성
+      case 'generateDailyContent': {
+        const { type, topic, context } = payload || body.data || {};
+        result = await ai.generateDailyContent({
+          type: type || 'cafe_post',
+          topic,
+          context
+        });
+        break;
+      }
+
+      // 보상 카드 생성 (alternative name)
+      case 'generateRewardCard': {
+        const cardData = payload || body.data || {};
+        result = { reward_card: await ai.generateRewardCard({
+          role: cardData.role || 'owner',
+          pain_point: cardData.pain_point || 'cashflow',
+          orbit_distance: cardData.orbit_distance || 0.5,
+          context_data: cardData.context_data || {}
+        })};
+        break;
+      }
+
       default:
         return NextResponse.json(
           { success: false, error: `Unknown action: ${action}` },

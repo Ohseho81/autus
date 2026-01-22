@@ -1,0 +1,195 @@
+{
+  "name": "AUTUS 커뮤니티 모니터링",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "name": "6시간마다 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://openapi.naver.com/v1/search/cafearticle.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "naverApi",
+        "options": {},
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "학원 퇴원"
+            },
+            {
+              "name": "display",
+              "value": "20"
+            },
+            {
+              "name": "sort",
+              "value": "date"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Naver-Client-Id",
+              "value": "={{$env.NAVER_CLIENT_ID}}"
+            },
+            {
+              "name": "X-Naver-Client-Secret",
+              "value": "={{$env.NAVER_CLIENT_SECRET}}"
+            }
+          ]
+        }
+      },
+      "name": "네이버 카페 검색 - 퇴원",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://openapi.naver.com/v1/search/cafearticle.json",
+        "options": {},
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "학원 미수금"
+            },
+            {
+              "name": "display",
+              "value": "20"
+            },
+            {
+              "name": "sort",
+              "value": "date"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Naver-Client-Id",
+              "value": "={{$env.NAVER_CLIENT_ID}}"
+            },
+            {
+              "name": "X-Naver-Client-Secret",
+              "value": "={{$env.NAVER_CLIENT_SECRET}}"
+            }
+          ]
+        }
+      },
+      "name": "네이버 카페 검색 - 미수금",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "name": "결과 병합",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.cafename}}",
+              "operation": "contains",
+              "value2": "학원"
+            }
+          ]
+        }
+      },
+      "name": "학원 관련 카페 필터",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "community_insights",
+        "columns": "title, link, description, cafe_name, pub_date, keyword, source",
+        "additionalFields": {
+          "title": "={{$json.title}}",
+          "link": "={{$json.link}}",
+          "description": "={{$json.description}}",
+          "cafe_name": "={{$json.cafename}}",
+          "pub_date": "={{$json.postdate}}",
+          "keyword": "퇴원/미수금",
+          "source": "naver_cafe"
+        }
+      },
+      "name": "Supabase 저장",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "channel": "#autus-insights",
+        "text": "=🔔 새로운 학원 고민 글 발견!\n\n📝 제목: {{$json.title}}\n🏠 카페: {{$json.cafename}}\n🔗 링크: {{$json.link}}\n\n💡 파일럿 모집 기회!",
+        "otherOptions": {}
+      },
+      "name": "Slack 알림",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [1050, 400]
+    }
+  ],
+  "connections": {
+    "6시간마다 실행": {
+      "main": [
+        [
+          { "node": "네이버 카페 검색 - 퇴원", "type": "main", "index": 0 },
+          { "node": "네이버 카페 검색 - 미수금", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "네이버 카페 검색 - 퇴원": {
+      "main": [
+        [{ "node": "결과 병합", "type": "main", "index": 0 }]
+      ]
+    },
+    "네이버 카페 검색 - 미수금": {
+      "main": [
+        [{ "node": "결과 병합", "type": "main", "index": 1 }]
+      ]
+    },
+    "결과 병합": {
+      "main": [
+        [{ "node": "학원 관련 카페 필터", "type": "main", "index": 0 }]
+      ]
+    },
+    "학원 관련 카페 필터": {
+      "main": [
+        [
+          { "node": "Supabase 저장", "type": "main", "index": 0 },
+          { "node": "Slack 알림", "type": "main", "index": 0 }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

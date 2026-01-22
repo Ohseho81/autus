@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTUS - 커뮤니티 콘텐츠 생성기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --card: #12121a;
+            --gold: #ffd700;
+            --blue: #00aaff;
+            --green: #00ff88;
+            --text: #fff;
+            --dim: #8b8b9a;
+            --border: rgba(255,255,255,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--gold), var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--dim);
+            margin-bottom: 32px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .panel h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--dim);
+            margin-bottom: 6px;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--gold);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .output {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 300px;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.8;
+            border: 1px solid var(--border);
+        }
+
+        .output.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dim);
+        }
+
+        .copy-btn {
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--dim);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--gold);
+            color: #000;
+            border-color: var(--gold);
+        }
+
+        .templates {
+            display: grid;
+            gap: 12px;
+        }
+
+        .template-card {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .template-card:hover {
+            border-color: var(--gold);
+        }
+
+        .template-card h4 {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .template-card p {
+            font-size: 12px;
+            color: var(--dim);
+        }
+
+        .leads-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .lead-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .lead-item:hover {
+            background: rgba(255,215,0,0.1);
+        }
+
+        .lead-item .title {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .lead-item .meta {
+            font-size: 12px;
+            color: var(--dim);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .badge.new { background: rgba(0,255,136,0.2); color: var(--green); }
+        .badge.hot { background: rgba(255,68,68,0.2); color: #ff4444; }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            background: var(--card);
+            border: 1px solid var(--green);
+            border-radius: 12px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✍️ 커뮤니티 콘텐츠 생성기</h1>
+        <p class="subtitle">AI가 학원노/맘카페용 글과 DM을 자동으로 작성해드립니다. 복사해서 바로 사용하세요!</p>
+
+        <div class="grid">
+            <!-- Left Panel: Generator -->
+            <div class="panel">
+                <h2>📝 콘텐츠 생성</h2>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('post')">카페 글</button>
+                    <button class="tab" onclick="switchTab('dm')">DM 메시지</button>
+                    <button class="tab" onclick="switchTab('reply')">댓글 답변</button>
+                </div>
+
+                <div id="postForm">
+                    <div class="form-group">
+                        <label>글 유형</label>
+                        <select id="postType">
+                            <option value="value">💡 가치 제공형 (노하우 공유)</option>
+                            <option value="pilot">🚀 파일럿 모집형</option>
+                            <option value="case">📊 사례 공유형</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>주제</label>
+                        <select id="topic">
+                            <option value="퇴원">퇴원 관리</option>
+                            <option value="미수금">미수금/수납</option>
+                            <option value="상담">학부모 상담</option>
+                            <option value="마케팅">마케팅/홍보</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>추가 컨텍스트 (선택)</label>
+                        <textarea id="context" placeholder="예: 대치동에서 수학학원 3년째 운영 중, 학생 80명"></textarea>
+                    </div>
+                </div>
+
+                <div id="dmForm" style="display:none;">
+                    <div class="form-group">
+                        <label>DM 유형</label>
+                        <select id="dmType">
+                            <option value="first">첫 연락 (관심 표명 후)</option>
+                            <option value="followup">팔로업 (응답 없을 때)</option>
+                            <option value="meeting">미팅 제안</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>원장님 정보</label>
+                        <textarea id="dmContext" placeholder="예: 학원노에서 퇴원 고민 글 작성하신 분, 영어학원 운영"></textarea>
+                    </div>
+                </div>
+
+                <div id="replyForm" style="display:none;">
+                    <div class="form-group">
+                        <label>원글 내용</label>
+                        <textarea id="originalPost" placeholder="답변할 원글 내용을 붙여넣기 하세요"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>톤</label>
+                        <select id="replyTone">
+                            <option value="helpful">도움되는 조언형</option>
+                            <option value="empathy">공감형</option>
+                            <option value="expert">전문가형</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="generateContent()" style="width:100%;">
+                    🤖 AI로 생성하기
+                </button>
+            </div>
+
+            <!-- Right Panel: Output -->
+            <div class="panel">
+                <h2>📄 생성된 콘텐츠</h2>
+                <div class="output" id="output">
+                    <span style="color: var(--dim);">왼쪽에서 설정 후 '생성하기' 버튼을 클릭하세요.</span>
+                </div>
+                <button class="btn btn-secondary copy-btn" onclick="copyToClipboard()">
+                    📋 클립보드에 복사
+                </button>
+            </div>
+        </div>
+
+        <!-- Templates -->
+        <div class="panel" style="margin-top: 24px;">
+            <h2>📚 바로 사용 가능한 템플릿</h2>
+            <div class="templates" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+                <div class="template-card" onclick="useTemplate('value_churn')">
+                    <h4>💡 퇴원 위험 신호 3가지</h4>
+                    <p>가치 제공형 글 - 노하우 공유로 신뢰 구축</p>
+                </div>
+                <div class="template-card" onclick="useTemplate('pilot_recruit')">
+                    <h4>🚀 파일럿 모집 공고</h4>
+                    <p>3개월 무료, Outcome 기반 과금 안내</p>
+                </div>
+                <div class="template-card" onclick="useTemplate('dm_first')">
+                    <h4>✉️ 첫 DM 템플릿</h4>
+                    <p>퇴원 고민 글 작성자에게 보내는 첫 메시지</p>
+                </div>
+                <div class="template-card" onclick="useTemplate('reply_empathy')">
+                    <h4>💬 공감 댓글 템플릿</h4>
+                    <p>퇴원/미수금 고민 글에 다는 공감 댓글</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leads from n8n -->
+        <div class="panel" style="margin-top: 24px;">
+            <h2>🎯 발견된 기회 (n8n 연동)</h2>
+            <p style="color: var(--dim); font-size: 13px; margin-bottom: 16px;">n8n이 6시간마다 학원노/맘카페에서 퇴원/미수금 키워드 글을 찾아옵니다.</p>
+            <div class="leads-list" id="leadsList">
+                <div class="lead-item" onclick="selectLead(this, '퇴원생 어떻게 막나요...')">
+                    <div class="title">퇴원생 어떻게 막나요... <span class="badge new">NEW</span></div>
+                    <div class="meta">학원노 · 2시간 전 · 퇴원</div>
+                </div>
+                <div class="lead-item" onclick="selectLead(this, '미납 250만원 넘어갔어요')">
+                    <div class="title">미납 250만원 넘어갔어요 <span class="badge hot">HOT</span></div>
+                    <div class="meta">학원노 · 5시간 전 · 미수금</div>
+                </div>
+                <div class="lead-item" onclick="selectLead(this, '요즘 퇴원율이 너무 높아서')">
+                    <div class="title">요즘 퇴원율이 너무 높아서...</div>
+                    <div class="meta">학원노 · 1일 전 · 퇴원</div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="refreshLeads()" style="width: 100%; margin-top: 12px;">
+                🔄 새로고침 (Supabase에서 불러오기)
+            </button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✅ 클립보드에 복사되었습니다!</div>
+
+    <script>
+        const API_BASE = 'https://vercel-93ldk21p4-ohsehos-projects.vercel.app/api';
+        let currentTab = 'post';
+
+        // Templates
+        const templates = {
+            value_churn: `[제목] 퇴원 위험 학생, 이 3가지 신호로 미리 알 수 있습니다
+
+안녕하세요, 원장님들.
+
+학원 운영하면서 가장 마음 아픈 순간이 퇴원 소식 들을 때인 거 같아요.
+저도 그랬는데, 몇 년 운영하다 보니 퇴원 전에 꼭 나타나는 신호들이 있더라고요.
+
+━━━━━━━━━━━━━━━━━━━━
+
+**퇴원 2주 전에 나타나는 3가지 신호**
+
+1️⃣ **출석률 급락 (80% 이하)**
+결석/지각이 갑자기 늘어나면 빨간불입니다.
+"학원 가기 싫어" 신호일 수 있어요.
+
+2️⃣ **숙제 미제출 증가**
+숙제를 안 해오기 시작하면 학생이 학원에 흥미를 잃고 있다는 뜻이에요.
+보통 퇴원 3주 전부터 이 신호가 나옵니다.
+
+3️⃣ **학부모 연락 두절**
+카톡 읽씹, 전화 안 받기 시작하면...
+이미 다른 학원 알아보고 있을 확률 높습니다.
+
+━━━━━━━━━━━━━━━━━━━━
+
+이 3가지 신호 중 2개 이상 나타나면 즉시 학부모 상담 잡으세요.
+타이밍 놓치면 이미 늦어요.
+
+혹시 다른 퇴원 신호 경험하신 분 계시면 댓글로 공유해주세요!
+같이 노하우 나누면 좋겠습니다 🙏`,
+
+            pilot_recruit: `[제목] 퇴원 위험 학생, 미리 알 수 있다면?
+
+안녕하세요, 원장님들.
+
+저희 팀은 학원 운영 데이터를 분석해서
+퇴원 위험이 높은 학생을 미리 찾아주는 시스템을 개발하고 있습니다.
+
+출석률, 숙제 제출, 성적 변화, 상담 이력을 종합 분석해서
+"이 학생, 다음 달 퇴원 확률 80%"
+이런 식으로 알려드리고,
+
+학부모 상담할 때 쓸 수 있는 스크립트까지 AI가 생성해줍니다.
+
+━━━━━━━━━━━━━━━━━━━━
+
+**[파일럿 프로그램]**
+
+- **기간**: 3개월 무료
+- **대상**: 학생 50~200명 규모 학원 3~5곳
+- **조건**: 주 1회 피드백, 퇴원/미수금 데이터 공유
+
+**[과금 방식]**
+- 실제로 퇴원 방지된 건수 × 가치의 5~10%
+- **효과 없으면 0원**
+
+━━━━━━━━━━━━━━━━━━━━
+
+관심 있으신 원장님, 댓글이나 쪽지 주세요.
+자세한 설명 드리겠습니다.
+
+AUTUS 팀 드림 🙏`,
+
+            dm_first: `원장님 안녕하세요,
+
+학원노 카페에서 퇴원 관련 글 남기신 거 보고 연락드립니다.
+정말 공감되는 고민이시더라고요.
+
+저희가 AI로 퇴원 위험 학생을 미리 찾아주는 시스템을 만들고 있는데,
+파일럿 학원을 모집하고 있어요.
+
+- 3개월 무료
+- 효과 없으면 과금 0원
+- 효과 있으면 퇴원 방지 가치의 10%만
+
+혹시 10분 정도 통화 가능하실까요?
+원장님 학원 상황 듣고, 저희 시스템이 맞는지 말씀드리고 싶습니다.
+
+편하신 시간 알려주시면 제가 연락드릴게요!`,
+
+            reply_empathy: `원장님, 정말 마음이 무거우시겠어요 😢
+저도 퇴원 소식 들을 때마다 "내가 뭘 놓쳤나" 자책하게 되더라고요.
+
+혹시 퇴원 전에 출석률이나 숙제 제출에 변화 있으셨나요?
+제 경험상 이런 신호들이 2~3주 전에 나타나더라고요.
+
+다음에는 이런 신호 보이면 바로 학부모 상담 잡아보세요.
+타이밍이 진짜 중요한 것 같아요.
+
+힘내세요, 원장님! 💪`
+        };
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('postForm').style.display = tab === 'post' ? 'block' : 'none';
+            document.getElementById('dmForm').style.display = tab === 'dm' ? 'block' : 'none';
+            document.getElementById('replyForm').style.display = tab === 'reply' ? 'block' : 'none';
+        }
+
+        async function generateContent() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<div class="loading"><div class="spinner"></div>AI가 콘텐츠를 생성하는 중...</div>';
+            output.classList.add('loading');
+
+            let prompt = '';
+            
+            if (currentTab === 'post') {
+                const postType = document.getElementById('postType').value;
+                const topic = document.getElementById('topic').value;
+                const context = document.getElementById('context').value;
+                
+                prompt = `학원 원장 커뮤니티(학원노)에 올릴 글을 작성해줘.
+유형: ${postType === 'value' ? '가치 제공형 (노하우 공유)' : postType === 'pilot' ? '파일럿 모집형' : '사례 공유형'}
+주제: ${topic}
+추가 컨텍스트: ${context || '없음'}
+
+규칙:
+- 따뜻하고 공감하는 톤
+- 구체적인 숫자나 사례 포함
+- 제목 포함
+- 이모지 적절히 사용
+- 홍보성 느낌 최소화`;
+            } else if (currentTab === 'dm') {
+                const dmType = document.getElementById('dmType').value;
+                const dmContext = document.getElementById('dmContext').value;
+                
+                prompt = `학원 원장에게 보낼 DM을 작성해줘.
+유형: ${dmType === 'first' ? '첫 연락' : dmType === 'followup' ? '팔로업' : '미팅 제안'}
+원장 정보: ${dmContext || '퇴원 고민 글 작성자'}
+
+규칙:
+- 자연스럽고 부담 없는 톤
+- 3개월 무료 파일럿, 효과 없으면 0원 언급
+- 짧고 간결하게`;
+            } else {
+                const original = document.getElementById('originalPost').value;
+                const tone = document.getElementById('replyTone').value;
+                
+                prompt = `아래 원글에 대한 댓글을 작성해줘.
+원글: ${original}
+톤: ${tone === 'helpful' ? '도움되는 조언형' : tone === 'empathy' ? '공감형' : '전문가형'}
+
+규칙:
+- 자연스럽게
+- 홍보 금지
+- 진심 어린 조언`;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/brain`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generateContent',
+                        data: { prompt }
+                    })
+                });
+
+                const data = await response.json();
+                output.classList.remove('loading');
+
+                if (data.success && data.data.content) {
+                    output.textContent = data.data.content;
+                } else {
+                    // Fallback to template
+                    output.textContent = templates.value_churn;
+                }
+            } catch (error) {
+                output.classList.remove('loading');
+                output.textContent = templates.value_churn;
+            }
+        }
+
+        function useTemplate(templateId) {
+            const output = document.getElementById('output');
+            output.textContent = templates[templateId] || '템플릿을 찾을 수 없습니다.';
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            navigator.clipboard.writeText(output.textContent);
+            
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function selectLead(el, title) {
+            document.getElementById('dmContext').value = `학원노에서 "${title}" 글을 작성한 원장님`;
+            switchTab('dm');
+            document.querySelectorAll('.tab')[1].click();
+        }
+
+        async function refreshLeads() {
+            try {
+                const response = await fetch(`${API_BASE}/webhook/n8n`, {
+                    method: 'GET'
+                });
+                // Just show the existing demo leads for now
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+    </script>
+</body>
+</html>
