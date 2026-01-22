@@ -2,7 +2,7 @@
 # 🚀 AUTUS - GitHub Pages 자동 배포
 # ═══════════════════════════════════════════════════════════════════════════════
 # 
-# main 브랜치 push 시 자동으로 GitHub Pages에 배포
+# frontend/deploy 폴더를 정적 파일로 배포
 #
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -12,64 +12,22 @@ on:
   push:
     branches: [main]
     paths:
-      - 'frontend/**'
+      - 'frontend/deploy/**'
       - '.github/workflows/deploy-pages.yml'
-  workflow_dispatch:  # 수동 실행 가능
+  workflow_dispatch:
 
-# GitHub Pages 권한
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 동시 배포 방지
 concurrency:
   group: "pages"
   cancel-in-progress: true
 
-env:
-  NODE_VERSION: "20"
-
 jobs:
-  # ═══════════════════════════════════════════════════════════════════════════
-  # 빌드
-  # ═══════════════════════════════════════════════════════════════════════════
-  build:
-    name: Build Frontend
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v4
-
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: 📥 Install Dependencies
-        working-directory: frontend
-        run: npm ci
-
-      - name: 🔨 Build
-        working-directory: frontend
-        run: npm run build
-        env:
-          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://api.autus.app' }}
-
-      - name: 📤 Upload Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: frontend/dist
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # 배포
-  # ═══════════════════════════════════════════════════════════════════════════
   deploy:
-    name: Deploy to Pages
-    needs: build
+    name: Deploy Static Site
     runs-on: ubuntu-latest
     
     environment:
@@ -77,11 +35,22 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📤 Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/deploy
+
       - name: 🚀 Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: 📢 Notify Success
-        if: success()
+      - name: ✅ Deploy Complete
         run: |
-          echo "✅ 배포 완료: ${{ steps.deployment.outputs.page_url }}"
+          echo "═══════════════════════════════════════════════════════════"
+          echo "✅ AUTUS 배포 완료!"
+          echo "═══════════════════════════════════════════════════════════"
+          echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "═══════════════════════════════════════════════════════════"
