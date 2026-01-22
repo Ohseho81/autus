@@ -76,3 +76,4 @@ secrets/
 *.zip
 *.tar.gz
 *.rar
+.vercel

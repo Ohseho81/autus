@@ -455,21 +455,21 @@ async function processWebhookEvent(
     case 'attendance':
       if (data.status === 'absent' || data.rate < 80) {
         signalUpdate.attendance_drop = true;
-        signalUpdate.recent_signals = supabase.sql`array_append(recent_signals, ${`출석률 저하: ${data.rate}%`})`;
+        signalUpdate.last_signal = `출석률 저하: ${data.rate}%`;
       }
       break;
       
     case 'assignment':
       if (!data.submitted) {
-        signalUpdate.homework_missed = supabase.sql`homework_missed + 1`;
-        signalUpdate.recent_signals = supabase.sql`array_append(recent_signals, ${'과제 미제출'})`;
+        signalUpdate.homework_missed = true;
+        signalUpdate.last_signal = '과제 미제출';
       }
       break;
       
     case 'grade':
       if (data.change && data.change < -10) {
         signalUpdate.recent_score_change = data.change;
-        signalUpdate.recent_signals = supabase.sql`array_append(recent_signals, ${`성적 하락: ${data.change}점`})`;
+        signalUpdate.last_signal = `성적 하락: ${data.change}점`;
       }
       break;
   }
