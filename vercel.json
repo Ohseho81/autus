@@ -1,9 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
   "framework": "nextjs",
-  "buildCommand": "cd vercel-api && npm install && npm run build",
-  "outputDirectory": "vercel-api/.next",
-  "installCommand": "cd vercel-api && npm install",
+  "rootDirectory": "vercel-api",
   "regions": ["icn1"],
   "headers": [
     {
