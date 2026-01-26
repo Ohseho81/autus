@@ -1,16 +1,23 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "framework": "nextjs",
   "regions": ["icn1"],
-  "headers": [
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
-      ]
+      "src": "vercel-api/package.json",
+      "use": "@vercel/next"
+    },
+    {
+      "src": "kraton-v2/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
     }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/vercel-api/$1" },
+    { "src": "/assets/(.*)", "dest": "/kraton-v2/dist/assets/$1" },
+    { "src": "^/$", "dest": "/kraton-v2/dist/index.html" },
+    { "src": "/(.*\\.(js|css|ico|png|jpg|svg|woff|woff2|ttf|eot))", "dest": "/kraton-v2/dist/$1" },
+    { "src": "/(.*)", "dest": "/kraton-v2/dist/index.html" }
   ]
 }
