@@ -1,0 +1,55 @@
+{
+  "name": "KRATON 카드 발송 + 피드백 루프",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "hours", "triggerAtHour": 17 }] } },
+      "name": "매일 오후 5시",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [240, 300]
+    },
+    {
+      "parameters": { "url": "{{$env.SUPABASE_URL}}/rest/v1/students?state=lt.4&order=v_growth.desc&limit=10" },
+      "name": "성장 학생 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [460, 300]
+    },
+    {
+      "parameters": { "url": "{{$env.SUPABASE_URL}}/rest/v1/students?state=gte.5&order=state.desc" },
+      "name": "위험 학생 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [460, 480]
+    },
+    {
+      "parameters": {
+        "jsCode": "const students = $input.all();\nreturn students.map(item => {\n  const s = item.json;\n  const highlights = [];\n  if (s.attendance_streak >= 7) highlights.push(`🔥 ${s.attendance_streak}일 연속 출석!`);\n  if (s.score_improvement > 10) highlights.push(`📈 성적 ${s.score_improvement}점 향상!`);\n  return { json: { card_type: 'growth_highlight', student_id: s.id, student_name: s.name, parent_phone: s.parent_phone, card_data: { highlights: highlights.length > 0 ? highlights : ['꾸준히 성장하고 있어요! 💪'] }, kakao_vars: { student_name: s.name, feedback_url: `https://kraton.app/feedback/${s.id}?type=growth` } } };\n});"
+      },
+      "name": "성장 카드 생성",
+      "type": "n8n-nodes-base.code",
+      "position": [680, 300]
+    },
+    {
+      "parameters": { "url": "https://api.solapi.com/messages/v4/send", "method": "POST" },
+      "name": "알림톡 발송",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1120, 380]
+    },
+    {
+      "parameters": { "httpMethod": "POST", "path": "feedback-webhook" },
+      "name": "피드백 Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 700]
+    },
+    {
+      "parameters": { "operation": "insert", "tableId": "feedbacks" },
+      "name": "피드백 저장",
+      "type": "n8n-nodes-base.supabase",
+      "position": [680, 700]
+    },
+    {
+      "parameters": { "url": "{{$env.VERCEL_URL}}/api/ai/learn-feedback", "method": "POST" },
+      "name": "AI 학습 반영",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [900, 860]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+# ============================================
+# KRATON v2.0 환경 변수
+# .env 파일로 복사하여 사용하세요
+# ============================================
+
+# Supabase
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+
+# n8n Webhooks
+VITE_N8N_WEBHOOK_URL=https://your-n8n.cloud/webhook
+
+# Vercel API (Optional)
+VITE_VERCEL_URL=https://your-app.vercel.app

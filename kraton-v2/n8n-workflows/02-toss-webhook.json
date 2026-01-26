@@ -1,0 +1,45 @@
+{
+  "name": "KRATON 토스페이먼츠 Webhook",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "toss-webhook" },
+      "name": "토스 Webhook 수신",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const event = $input.first().json;\nconst data = event.data;\nconst statusMap = { 'DONE': 'success', 'CANCELED': 'canceled', 'ABORTED': 'failed', 'EXPIRED': 'expired' };\nlet riskLevel = 'none';\nlet signals = [];\nif (['ABORTED', 'EXPIRED'].includes(data.status)) {\n  riskLevel = 'high';\n  signals.push('결제 실패');\n  signals.push(`금액: ${data.totalAmount?.toLocaleString()}원`);\n}\nreturn [{ json: { payment_key: data.paymentKey, student_id: data.metadata?.student_id, amount: data.totalAmount, status: statusMap[data.status] || data.status, risk_level: riskLevel, signals: signals } }];"
+      },
+      "name": "Webhook 파싱",
+      "type": "n8n-nodes-base.code",
+      "position": [460, 400]
+    },
+    {
+      "parameters": { "operation": "upsert", "tableId": "payments", "conflictFields": "payment_key" },
+      "name": "결제 기록 저장",
+      "type": "n8n-nodes-base.supabase",
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "conditions": { "conditions": [{ "leftValue": "={{ $json.risk_level }}", "rightValue": "none", "operator": { "operation": "notEquals" } }] }
+      },
+      "name": "결제 실패 필터",
+      "type": "n8n-nodes-base.filter",
+      "position": [900, 400]
+    },
+    {
+      "parameters": { "operation": "insert", "tableId": "risks" },
+      "name": "Risk Queue 등록",
+      "type": "n8n-nodes-base.supabase",
+      "position": [1120, 400]
+    },
+    {
+      "parameters": { "url": "https://api.solapi.com/messages/v4/send", "method": "POST" },
+      "name": "학부모 알림톡",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1340, 500]
+    }
+  ]
+}

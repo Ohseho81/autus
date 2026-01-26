@@ -1,0 +1,66 @@
+{
+  "name": "KRATON 클래스팅 동기화",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "minutes", "minutesInterval": 5 }] }
+      },
+      "name": "5분마다 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.classting.com/v2/classes/{{$env.CLASSTING_CLASS_ID}}/attendance",
+        "authentication": "oAuth2"
+      },
+      "name": "클래스팅 출결 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [460, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://api.classting.com/v2/classes/{{$env.CLASSTING_CLASS_ID}}/grades",
+        "authentication": "oAuth2"
+      },
+      "name": "클래스팅 성적 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": { "values": [{ "field1": "student_id", "field2": "student_id" }] }
+      },
+      "name": "출결+성적 병합",
+      "type": "n8n-nodes-base.merge",
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst today = new Date().toISOString().split('T')[0];\nreturn items.map(item => {\n  const d = item.json;\n  const signals = [];\n  if (d.consecutive_absences >= 2) signals.push(`연속 결석 ${d.consecutive_absences}회`);\n  if (d.late_count >= 3) signals.push(`지각 ${d.late_count}회`);\n  if (d.grade_trend === 'declining') signals.push('성적 하락 추세');\n  let state = 2;\n  if (signals.length === 0) state = 1;\n  else if (signals.length === 1) state = 3;\n  else if (signals.length === 2) state = 4;\n  else if (signals.length >= 3) state = 5;\n  if (d.consecutive_absences >= 5) state = 6;\n  return { json: { attendance: { student_id: d.student_id, date: today, status: d.attendance_status }, student_update: { id: d.student_id, state: state }, risk: state >= 4 ? { student_id: d.student_id, severity: state >= 5 ? 'high' : 'medium', state: state, signals: signals, probability: Math.min(95, 50 + (signals.length * 15)) } : null } };\n});"
+      },
+      "name": "데이터 변환",
+      "type": "n8n-nodes-base.code",
+      "position": [900, 300]
+    },
+    {
+      "parameters": { "operation": "upsert", "tableId": "attendances", "conflictFields": "student_id,date" },
+      "name": "출결 저장",
+      "type": "n8n-nodes-base.supabase",
+      "position": [1120, 200]
+    },
+    {
+      "parameters": { "operation": "update", "tableId": "students" },
+      "name": "학생 상태 업데이트",
+      "type": "n8n-nodes-base.supabase",
+      "position": [1120, 300]
+    },
+    {
+      "parameters": { "operation": "insert", "tableId": "risks" },
+      "name": "Risk Queue 등록",
+      "type": "n8n-nodes-base.supabase",
+      "position": [1340, 420]
+    }
+  ]
+}
