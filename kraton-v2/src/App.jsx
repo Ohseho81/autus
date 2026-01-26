@@ -189,51 +189,68 @@ const ROLES = [...INTERNAL_ROLES, ...EXTERNAL_ROLES];
 // NAVIGATION ITEMS (AUTUS 역할별)
 // ============================================
 const NAV_ITEMS = {
-  // 내부 역할 - C-Level
+  // ═══════════════════════════════════════════════════════════════
+  // 👑 C-Level (결정자) - "결정만 한다. 과정·설계·자동화는 보이지 않는다."
+  // ═══════════════════════════════════════════════════════════════
   c_level: [
-    { id: 'autus', label: 'A=T^σ', icon: '🏛️', page: 'AutusDashboard' },
-    { id: 'goals', label: 'Goals', icon: '🎯', page: 'GoalEngine' },
-    { id: 'value', label: 'Value', icon: '💎', page: 'ValueDashboard' },
-    { id: 'global', label: 'Global', icon: '🌏', page: 'GlobalTelemetry' },
-    { id: 'analytics', label: 'Analytics', icon: '📈', page: 'PerformanceAnalytics' },
-    { id: 'settings', label: 'Settings', icon: '⚙️', page: 'SettingsPage' },
+    { id: 'monopoly', label: 'Monopoly', icon: '👑', page: 'KratonMonopoly', desc: '3대 독점 현황' },
+    { id: 'goals', label: '목표', icon: '🎯', page: 'GoalCascade', desc: '목표 캐스케이드' },
+    { id: 'value', label: 'V-Index', icon: '💎', page: 'ValueDashboard', desc: '자산 가치' },
+    { id: 'audit', label: '감사', icon: '📊', page: 'AuditDashboard', desc: '감사 로그' },
+    { id: 'settings', label: '설정', icon: '⚙️', page: 'SettingsPage', desc: '시스템 설정' },
   ],
-  // 내부 역할 - FSD
+  
+  // ═══════════════════════════════════════════════════════════════
+  // ⚙️ FSD (운영자) - "관리의 기준을 설명에서 증거로 바꾼다."
+  // ═══════════════════════════════════════════════════════════════
   fsd: [
-    { id: 'judgment', label: 'Judgment', icon: '🎯', page: 'FSDDashboard' },
-    { id: 'principal', label: 'Principal', icon: '👔', page: 'PrincipalConsole' },
-    { id: 'retention', label: 'Retention', icon: '🛡️', page: 'RetentionForce' },
-    { id: 'risk', label: 'Risk Queue', icon: '⚠️', page: 'RiskQueueManager' },
-    { id: 'chemistry', label: 'Chemistry', icon: '⚗️', page: 'ChemistryMatching' },
-    { id: 'mirror', label: 'Mirror', icon: '🪞', page: 'SafetyMirror' },
+    { id: 'risk', label: 'Risk Queue', icon: '🚨', page: 'RiskQueueManager', desc: '위험 학생 관리' },
+    { id: 'retention', label: '이탈 방지', icon: '🛡️', page: 'RetentionForce', desc: 'Active Shield' },
+    { id: 'chemistry', label: '케미 매칭', icon: '⚗️', page: 'ChemistryMatching', desc: '선생님-학생 매칭' },
+    { id: 'principal', label: '원장 콘솔', icon: '👔', page: 'PrincipalConsole', desc: '관리자 대시보드' },
+    { id: 'analytics', label: '분석', icon: '📈', page: 'PerformanceAnalytics', desc: '성과 분석' },
   ],
-  // 내부 역할 - Optimus
+  
+  // ═══════════════════════════════════════════════════════════════
+  // ⚡ Optimus (실행자) - "생각하지 않게 한다. 다음 행동만 보여준다."
+  // ═══════════════════════════════════════════════════════════════
   optimus: [
-    { id: 'execution', label: 'Execution', icon: '⚡', page: 'OptimusDashboard' },
-    { id: 'quicktag', label: 'Quick Tag', icon: '📝', page: 'QuickTagConsole' },
-    { id: 'script', label: 'Script AI', icon: '🤖', page: 'AutoScriptGenerator' },
-    { id: 'students', label: 'Students', icon: '👩‍🎓', page: 'StudentDetailPage' },
-    { id: 'attendance', label: 'Attendance', icon: '📋', page: 'AttendancePage' },
-    { id: 'calendar', label: 'Calendar', icon: '📅', page: 'CalendarPage' },
+    { id: 'quicktag', label: 'Quick Tag', icon: '⚡', page: 'QuickTagConsole', desc: '현장 데이터 입력' },
+    { id: 'students', label: '학생 관리', icon: '👩‍🎓', page: 'StudentDetailPage', desc: '학생 상세 정보' },
+    { id: 'attendance', label: '출석', icon: '📋', page: 'AttendancePage', desc: '출석 관리' },
+    { id: 'script', label: 'AI 스크립트', icon: '🤖', page: 'AutoScriptGenerator', desc: '상담 스크립트' },
+    { id: 'messages', label: '메시지', icon: '💬', page: 'MessageCenter', desc: '학부모 연락' },
+    { id: 'calendar', label: '일정', icon: '📅', page: 'CalendarPage', desc: '수업 일정' },
   ],
-  // 외부 역할 - Consumer
+  
+  // ═══════════════════════════════════════════════════════════════
+  // 👩‍🎓 Consumer (학부모/학생) - "신뢰와 에너지를 공급받는다."
+  // ═══════════════════════════════════════════════════════════════
   consumer: [
-    { id: 'portal', label: 'Portal', icon: '🌐', page: 'ExternalPortal' },
-    { id: 'garden', label: 'My Space', icon: '🌱', page: 'DopamineGarden' },
-    { id: 'feedback', label: 'Feedback', icon: '📝', page: 'FeedbackPage' },
-    { id: 'profile', label: 'Profile', icon: '👤', page: 'ProfilePage' },
+    { id: 'portal', label: '포털', icon: '🏠', page: 'ParentPortal', desc: '학부모 포털' },
+    { id: 'garden', label: '성장 가든', icon: '🌱', page: 'DopamineGarden', desc: '게이미피케이션' },
+    { id: 'rewards', label: 'V-포인트', icon: '🎁', page: 'RewardCards', desc: '포인트/리워드' },
+    { id: 'feedback', label: '피드백', icon: '📝', page: 'FeedbackPage', desc: '의견 제출' },
+    { id: 'profile', label: '프로필', icon: '👤', page: 'ProfilePage', desc: '내 정보' },
   ],
-  // 외부 역할 - Regulatory
+  
+  // ═══════════════════════════════════════════════════════════════
+  // 🏛️ Regulatory (승인자) - "책임 없는 승인을 가능하게 한다."
+  // ═══════════════════════════════════════════════════════════════
   regulatory: [
-    { id: 'portal', label: 'Portal', icon: '🌐', page: 'ExternalPortal' },
-    { id: 'reports', label: 'Reports', icon: '📄', page: 'LiveDashboard' },
-    { id: 'profile', label: 'Profile', icon: '👤', page: 'ProfilePage' },
+    { id: 'portal', label: '포털', icon: '🏛️', page: 'ExternalPortal', desc: '외부 포털' },
+    { id: 'audit', label: '감사 로그', icon: '📋', page: 'AuditDashboard', desc: '감사 내역' },
+    { id: 'reports', label: '리포트', icon: '📄', page: 'LiveDashboard', desc: '보고서' },
+    { id: 'profile', label: '프로필', icon: '👤', page: 'ProfilePage', desc: '내 정보' },
   ],
-  // 외부 역할 - Partner
+  
+  // ═══════════════════════════════════════════════════════════════
+  // 🤝 Partner (파트너) - "협력 생태계"
+  // ═══════════════════════════════════════════════════════════════
   partner: [
-    { id: 'portal', label: 'Portal', icon: '🌐', page: 'ExternalPortal' },
-    { id: 'orders', label: 'Orders', icon: '📦', page: 'LiveDashboard' },
-    { id: 'profile', label: 'Profile', icon: '👤', page: 'ProfilePage' },
+    { id: 'portal', label: '포털', icon: '🤝', page: 'ExternalPortal', desc: '파트너 포털' },
+    { id: 'dashboard', label: '대시보드', icon: '📊', page: 'LiveDashboard', desc: '공유 대시보드' },
+    { id: 'profile', label: '프로필', icon: '👤', page: 'ProfilePage', desc: '내 정보' },
   ],
 };
 
