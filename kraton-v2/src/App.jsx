@@ -879,12 +879,13 @@ const GlobalHUD = ({
             {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
           </span>
 
-          {/* Logout */}
+          {/* 역할 변경 버튼 */}
           <button 
             onClick={onLogout}
-            className="text-xs text-gray-500 hover:text-gray-300 px-2 py-1 rounded hover:bg-gray-800"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 rounded-lg hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-all"
           >
-            로그아웃
+            <span>🔄</span>
+            <span>역할 변경</span>
           </button>
         </div>
       </div>
