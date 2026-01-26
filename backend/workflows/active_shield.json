@@ -1,0 +1,83 @@
+{
+  "name": "AUTUS Active Shield",
+  "description": "위험 학생 감지 시 자동 방어 워크플로우",
+  "nodes": [
+    {
+      "id": "webhook-trigger",
+      "name": "Shield Webhook",
+      "type": "webhook",
+      "config": {
+        "method": "POST",
+        "path": "/autus-shield"
+      }
+    },
+    {
+      "id": "check-event",
+      "name": "Check Event Type",
+      "type": "condition",
+      "config": {
+        "conditions": [
+          { "field": "event", "operator": "equals", "value": "active_shield" },
+          { "field": "event", "operator": "equals", "value": "positive_report" }
+        ]
+      }
+    },
+    {
+      "id": "check-critical",
+      "name": "Is Critical?",
+      "type": "condition",
+      "config": {
+        "field": "risk_level",
+        "operator": "equals",
+        "value": "critical"
+      }
+    },
+    {
+      "id": "slack-alert",
+      "name": "Slack Alert",
+      "type": "slack",
+      "config": {
+        "channel": "#autus-alerts",
+        "template": "🛡️ *Active Shield 발동*\n\n학생: {{student_name}}\n위험 수준: {{risk_level}}\n감지 신호: {{risk_factors}}"
+      }
+    },
+    {
+      "id": "kakao-send",
+      "name": "Send Kakao AlimTalk",
+      "type": "http_request",
+      "config": {
+        "url": "https://alimtalk-api.kakao.com/send",
+        "method": "POST",
+        "template": "POSITIVE_REPORT"
+      }
+    },
+    {
+      "id": "supabase-log",
+      "name": "Log to Supabase",
+      "type": "supabase",
+      "config": {
+        "operation": "insert",
+        "table": "shield_logs"
+      }
+    }
+  ],
+  "connections": {
+    "webhook-trigger": ["check-event"],
+    "check-event": {
+      "active_shield": ["check-critical"],
+      "positive_report": ["kakao-send"]
+    },
+    "check-critical": {
+      "true": ["slack-alert"],
+      "false": ["slack-alert"]
+    },
+    "slack-alert": ["supabase-log"],
+    "kakao-send": ["supabase-log"]
+  },
+  "env_vars": [
+    "SLACK_WEBHOOK_URL",
+    "SUPABASE_URL",
+    "SUPABASE_KEY",
+    "KAKAO_API_KEY"
+  ]
+}

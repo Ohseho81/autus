@@ -64,6 +64,9 @@ const AutusDashboard = lazy(() => import('./components/autus/AutusDashboard'));
 
 // Components
 import { TruthModeProvider } from './components/ui/TruthModeToggle';
+import { NotificationBell, NotificationPanel, ToastContainer, useNotifications } from './components/notifications/NotificationCenter';
+import { useRealtimeRiskAlerts } from './lib/api/realtime';
+import notificationService, { TEMPLATES } from './lib/notifications';
 
 // ============================================
 // DESIGN TOKENS
@@ -772,6 +775,17 @@ const GlobalHUD = ({
   const [systemState, setSystemState] = useState(2);
   const [confidence, setConfidence] = useState(94.2);
   const [vIndex, setVIndex] = useState(847);
+  const [showNotifications, setShowNotifications] = useState(false);
+  
+  // 실시간 위험 알림 구독
+  const { alerts } = useRealtimeRiskAlerts((alert) => {
+    // 새 위험 알림 시 알림 센터에 추가
+    notificationService.add(TEMPLATES.riskAlert({
+      id: alert.id,
+      name: alert.student_name,
+      state: alert.state,
+    }));
+  });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -878,6 +892,15 @@ const GlobalHUD = ({
           <span className="text-xs text-gray-500">
             {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
           </span>
+
+          {/* 알림 버튼 */}
+          <div className="relative">
+            <NotificationBell onClick={() => setShowNotifications(!showNotifications)} />
+            <NotificationPanel 
+              isOpen={showNotifications} 
+              onClose={() => setShowNotifications(false)} 
+            />
+          </div>
 
           {/* 역할 변경 버튼 */}
           <button 
@@ -1034,6 +1057,9 @@ export default function KratonApp() {
             </motion.div>
           </AnimatePresence>
         </main>
+        
+        {/* 토스트 알림 컨테이너 */}
+        <ToastContainer />
       </div>
     </TruthModeProvider>
   );
