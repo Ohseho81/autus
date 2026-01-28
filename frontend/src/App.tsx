@@ -55,6 +55,25 @@ const SemanticZoomDemo = lazy(() => import('./pages/SemanticZoomDemo').then(m =>
 const AutomationPage = lazy(() => import('./pages/AutomationPage').then(m => ({ default: m.default })));
 const TasksPage = lazy(() => import('./pages/TasksPage').then(m => ({ default: m.default })));
 
+// L3: Admin & Settings Pages (관리/설정 페이지)
+const IntegrationsPage = lazy(() => import('./pages/settings/IntegrationsPage').then(m => ({ default: m.default })));
+const UserDashboard = lazy(() => import('./pages/dashboard/UserDashboard').then(m => ({ default: m.default })));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.default })));
+const MyPage = lazy(() => import('./pages/mypage/MyPage').then(m => ({ default: m.default })));
+const OnboardingFlow = lazy(() => import('./pages/onboarding/OnboardingFlow').then(m => ({ default: m.default })));
+
+// L4: Role-based Dashboard (역할 기반 대시보드) ✨ NEW!
+const RoleDashboard = lazy(() => import('./pages/RoleDashboard').then(m => ({ default: m.default })));
+
+// L5: Academy Dashboard (학원 관리 대시보드) ✨ NEW!
+const AcademyDashboard = lazy(() => import('./pages/AcademyDashboard').then(m => ({ default: m.default })));
+
+// L6: Demo Page (11개 뷰 데모) ✨ NEW!
+const DemoPage = lazy(() => import('./pages/DemoPage').then(m => ({ default: m.default })));
+
+// L7: AUTUS V2 (8개 뷰 시스템) ✨ NEW!
+const AUTUSV2 = lazy(() => import('./components/views/v2').then(m => ({ default: m.AUTUSV2Demo })));
+
 // ═══════════════════════════════════════════════════════════════════════════
 // View Types
 // ═══════════════════════════════════════════════════════════════════════════
@@ -96,7 +115,7 @@ const TasksPage = lazy(() => import('./pages/TasksPage').then(m => ({ default: m
 // 'logs'       = 내 로그 페이지
 // 'macro'      = 거시 흐름 페이지
 //
-type View = 'transform' | 'trinity' | 'matrix' | 'engine' | 'cube' | 'unified' | 'map' | 'quantum' | 'smb' | 'ontology' | 'graph' | 'hexagon' | 'dashboard' | 'prediction' | 'cube72' | 'matrix72' | 'stress' | 'pressure' | 'learning' | 'simulator' | 'data' | 'mylearning' | 'work' | 'goals' | 'future' | 'logs' | 'macro' | 'system' | 'process' | 'blackhole' | 'bpmn' | 'nervous' | 'workflow' | 'zoom' | 'automation' | 'tasks';
+type View = 'transform' | 'trinity' | 'matrix' | 'engine' | 'cube' | 'unified' | 'map' | 'quantum' | 'smb' | 'ontology' | 'graph' | 'hexagon' | 'dashboard' | 'prediction' | 'cube72' | 'matrix72' | 'stress' | 'pressure' | 'learning' | 'simulator' | 'data' | 'mylearning' | 'work' | 'goals' | 'future' | 'logs' | 'macro' | 'system' | 'process' | 'blackhole' | 'bpmn' | 'nervous' | 'workflow' | 'zoom' | 'automation' | 'tasks' | 'integrations' | 'user' | 'admin' | 'mypage' | 'onboarding' | 'role' | 'academy' | 'demo' | 'v2';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Loading Fallback
@@ -149,7 +168,7 @@ function parseDeepLink(hash: string): DeepLinkState {
     });
   }
   
-  const validViews: View[] = ['transform', 'trinity', 'matrix', 'engine', 'cube', 'unified', 'map', 'quantum', 'ontology', 'graph', 'smb', 'hexagon', 'dashboard', 'prediction', 'cube72', 'matrix72', 'pressure', 'learning', 'simulator', 'data', 'mylearning', 'work', 'goals', 'future', 'logs', 'macro', 'system', 'process', 'blackhole', 'bpmn', 'nervous', 'workflow', 'zoom', 'automation', 'tasks'];
+  const validViews: View[] = ['transform', 'trinity', 'matrix', 'engine', 'cube', 'unified', 'map', 'quantum', 'ontology', 'graph', 'smb', 'hexagon', 'dashboard', 'prediction', 'cube72', 'matrix72', 'pressure', 'learning', 'simulator', 'data', 'mylearning', 'work', 'goals', 'future', 'logs', 'macro', 'system', 'process', 'blackhole', 'bpmn', 'nervous', 'workflow', 'zoom', 'automation', 'tasks', 'integrations', 'user', 'admin', 'mypage', 'onboarding', 'role', 'academy', 'demo', 'v2'];
   const validView = validViews.includes(view as View) ? (view as View) : 'transform';
   
   return { view: validView, nodeId, params };
@@ -291,6 +310,34 @@ function App() {
       case 'tasks':
         return <PageWrapper><TasksPage /></PageWrapper>;
       
+      // L3: Admin & Settings
+      case 'integrations':
+        return <PageWrapper><IntegrationsPage /></PageWrapper>;
+      case 'user':
+        return <PageWrapper><UserDashboard /></PageWrapper>;
+      case 'admin':
+        return <PageWrapper><AdminDashboard /></PageWrapper>;
+      case 'mypage':
+        return <PageWrapper><MyPage /></PageWrapper>;
+      case 'onboarding':
+        return <PageWrapper><OnboardingFlow /></PageWrapper>;
+      
+      // L4: Role-based Dashboard (역할 기반 대시보드) ✨ NEW!
+      case 'role':
+        return <RoleDashboard />;
+      
+      // L5: Academy Dashboard (학원 관리 대시보드) ✨ NEW!
+      case 'academy':
+        return <AcademyDashboard />;
+      
+      // L6: Demo Page (11개 뷰 데모) ✨ NEW!
+      case 'demo':
+        return <DemoPage />;
+      
+      // L7: AUTUS V2 (8개 뷰 시스템) ✨ NEW!
+      case 'v2':
+        return <AUTUSV2 />;
+      
       default:
         return <PageWrapper><TransformDashboard /></PageWrapper>;
     }
@@ -343,8 +390,20 @@ function NavigationSidebar({
     // L0: Control Deck (홈)
     { id: 'transform', icon: '🎯', label: 'Control', color: '#06b6d4', isHome: true },
     
-    // Separator - Core Pages
+    // Separator - Role Dashboard ✨ NEW!
     { id: 'divider1', icon: '', label: '', color: '' },
+    
+    // L4: Role-based Dashboard (MVP 모드)
+    { id: 'role', icon: '🎭', label: 'Role', color: '#f59e0b' },
+    
+    // L5: Academy Dashboard (학원 관리 대시보드) ✨ NEW!
+    { id: 'academy', icon: '🏫', label: '학원', color: '#8b5cf6' },
+    
+    // L6: Demo Page (11개 뷰 데모) ✨ NEW!
+    { id: 'demo', icon: '🎪', label: 'Demo', color: '#ec4899' },
+    
+    // Separator - Core Pages
+    { id: 'divider1a', icon: '', label: '', color: '' },
     
     // L1: Core Pages (핵심 페이지)
     { id: 'mylearning', icon: '📚', label: '학습', color: '#22c55e' },
@@ -382,6 +441,15 @@ function NavigationSidebar({
     { id: 'trinity', icon: '👑', label: 'Trinity', color: '#fbbf24' },
     { id: 'dashboard', icon: '📊', label: 'Audit', color: '#64748b' },
     { id: 'unified', icon: '⚛️', label: 'Unified', color: '#06b6d4' },
+    
+    // Separator - Admin & Settings
+    { id: 'divider4', icon: '', label: '', color: '' },
+    
+    // L3: Admin & Settings
+    { id: 'mypage', icon: '👤', label: 'My', color: '#06b6d4' },
+    { id: 'integrations', icon: '🔗', label: '연동', color: '#22c55e' },
+    { id: 'user', icon: '📊', label: '대시보드', color: '#3b82f6' },
+    { id: 'admin', icon: '⚙️', label: '관리자', color: '#f59e0b' },
   ] as const;
 
   return (

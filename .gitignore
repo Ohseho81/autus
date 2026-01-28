@@ -65,6 +65,13 @@ Thumbs.db
 *.bak
 logs/
 
+# Dev logs (auto-generated)
+docs/dev-log/
+docs/reports/
+
+# Misc folders (local only)
+기타/
+
 # Build outputs
 dist/
 build/
