@@ -1,24 +1,38 @@
-# 🏛️ AUTUS v1.0
+# 🏛️ AUTUS 2.0
 
-> **Physics-Driven Decision System**
+> **관계 유지력 OS (Relationship Retention Operating System)**
 > 
-> *"v1.0의 세계는 물리로만 움직인다. 기록은 남고, 설명은 남지 않는다."*
+> *"A = R^σ — 유지력은 관계(R)의 환경(σ) 제곱이다"*
 
 ---
 
 ## 🎯 Overview
 
-AUTUS는 **의사결정 도구가 아니라, 의사결정이 닫히는 조건을 현실 위에 드러내는 시스템**입니다.
+AUTUS는 **관계 기반 비즈니스의 유지력을 물리 법칙으로 모델링**하는 시스템입니다.
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  AUTUS v1.0 RC                                  │
+│  AUTUS 2.0                                      │
 │  ─────────────────────────────────────────────  │
-│  User Pages:      2                             │
-│  User Functions:  3                             │
-│  Explanations:    0 (K10) / Min (K2)            │
-│  Decisions Given: 0                             │
+│  Core Views:        8개 (Cockpit, Pulse, etc.)  │
+│  Role Dashboards:   5개 (Owner, Manager, etc.)  │
+│  KRATON Components: 12 Cycles                   │
+│  API Endpoints:     50+                         │
 └─────────────────────────────────────────────────┘
+```
+
+### 핵심 공식
+
+```
+A = R^σ (유지력 = 관계^환경)
+
+R = TSEL 기반 관계지수
+  - T: Trust (신뢰)
+  - S: Satisfaction (만족)
+  - E: Engagement (참여)
+  - L: Loyalty (충성)
+
+σ = 환경지수 (Internal + Voice + External)
 ```
 
 ---
@@ -27,113 +41,122 @@ AUTUS는 **의사결정 도구가 아니라, 의사결정이 닫히는 조건을
 
 ### Prerequisites
 
-- Python 3.11+
 - Node.js 18+
-- PostgreSQL 15+
+- Python 3.11+
+- PostgreSQL 15+ (또는 Supabase)
 
 ### Installation
 
 ```bash
 # Clone
-git clone https://github.com/your-org/autus.git
+git clone https://github.com/Ohseho81/autus.git
 cd autus
-
-# Backend
-pip install -r requirements.txt
 
 # Frontend
 cd frontend && npm install
+
+# Backend (선택)
+pip install -r requirements.txt
 ```
 
 ### Run
 
 ```bash
-# Backend
-make dev
-# or
-uvicorn backend.main:app --reload
-
-# Frontend
+# Frontend (Vite)
 cd frontend && npm run dev
+# → http://localhost:3000
+
+# Backend (FastAPI)
+uvicorn backend.main:app --reload
+# → http://localhost:8000
+
+# Vercel API (Next.js)
+cd vercel-api && npm run dev
+# → http://localhost:3001
 ```
-
-### Access
-
-- **Portal**: http://localhost:3000/portal.html
-- **K2 (Operator)**: http://localhost:3000/k2-operator.html
-- **K10 (Observer)**: http://localhost:3000/k10-observer.html
-- **API Docs**: http://localhost:8000/docs
 
 ---
 
-## 📐 Core Principles
-
-### Physics-Only
-
-| Constant | Range | Description |
-|----------|-------|-------------|
-| M | 0.0-10.0 | Mass (질량) |
-| Ψ | 0.0-1.0 | Irreversibility (비가역성) |
-| R | 0.0-10.0 | Responsibility Radius (책임 반경) |
-| F₀ | 0.0-10.0 | Failure Floor (실패 바닥) |
-
-### Gate System
-
-```
-PASS:   S < 3.0   (통과)
-RING:   3.0 ≤ S < 5.0   (경고)
-BOUNCE: 5.0 ≤ S < 7.0   (반발)
-LOCK:   S ≥ 7.0   (잠금)
-```
-
-### K-Scale
-
-| Scale | Role | Phase |
-|-------|------|-------|
-| K2 | Operator (실행자) | Phase 2 |
-| K4-K6 | Manager (운영자) | Phase 2.5 |
-| K10 | Observer (관측자) | Phase 3 |
-
----
-
-## 📁 Structure
+## 📁 Project Structure
 
 ```
 autus/
-├── backend/           # FastAPI Backend
-│   ├── api/          # REST Endpoints (26)
-│   ├── physics/      # Physics Engine
-│   ├── core/         # Core Logic
-│   └── db/           # Database Schemas
+├── frontend/                 # React + Vite + TypeScript
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── views/v2/    # KRATON 12 Cycles UI ⭐
+│   │   │   │   ├── kraton/  # Premium Components
+│   │   │   │   └── design-system/
+│   │   │   ├── shell/       # Role-based Shell
+│   │   │   ├── Onboarding/  # 온보딩 시스템
+│   │   │   └── ...
+│   │   ├── hooks/           # Custom Hooks
+│   │   ├── pages/           # Page Components
+│   │   └── api/             # API Clients
+│   └── public/
 │
-├── frontend/          # Vite + React
-│   ├── portal.html   # Main Portal
-│   ├── k2-operator.html
-│   ├── k10-observer.html
-│   └── src/          # React Components
+├── backend/                  # FastAPI Backend
+│   ├── routers/             # API Routes
+│   ├── database/            # SQL Schemas
+│   └── workflows/           # JSON Workflows
 │
-├── docs/              # Documentation (28)
-│   ├── AUTUS_V1_FINAL.md
-│   ├── KSCALE_UI_POLICY.md
-│   └── LAUNCH_DAY_OPS.md
+├── vercel-api/              # Vercel Serverless API
+│   ├── app/api/             # API Routes
+│   └── lib/                 # Utilities
 │
-└── tests/             # Test Suite (19)
+├── docs/                    # Documentation (28 files)
+├── n8n/                     # N8N Workflows (20 files)
+├── scripts/                 # Automation Scripts
+└── tests/                   # Test Suite
 ```
 
 ---
 
-## 📊 RC Status
+## 🎨 KRATON 12 Cycles
 
-| Check | Status |
-|-------|--------|
-| Feature Freeze | ✅ |
-| UI Silence | ✅ |
-| Gate Physical Feel | ✅ |
-| K-Scale Routing | ✅ |
-| Auto Transition | ✅ |
-| Audit Integrity | ✅ |
-| Performance | ✅ |
-| Release Guard | ✅ |
+프리미엄 UI 컴포넌트 시스템:
+
+| Cycle | Component | Description |
+|-------|-----------|-------------|
+| 1 | NeonGauge3D | 3D 네온 게이지 |
+| 2 | Real-time Binding | 실시간 데이터 바인딩 |
+| 3 | ECGLine | 맥박 애니메이션 |
+| 4 | AlertCard | 위험 알림 효과 |
+| 5 | GlassCard | 글라스모피즘 카드 |
+| 6 | ForecastCard | 시간 기반 그라데이션 |
+| 7 | StudentCard | 프로필 카드 |
+| 8 | TimelineItem | 무한 타임라인 |
+| 9 | ActionCard | 드래그 앤 드롭 |
+| 10 | MiniHeatmap | 히트맵 시각화 |
+| 11 | Page Transitions | 페이지 전환 |
+| 12 | Responsive Polish | 반응형 마감 |
+
+---
+
+## 🖥️ Core Views
+
+| View | URL | Description |
+|------|-----|-------------|
+| Cockpit | `#cockpit` | 메인 대시보드 |
+| Pulse | `#pulse` | 실시간 상태 |
+| Microscope | `#microscope` | 개별 분석 |
+| Forecast | `#forecast` | 예측 |
+| Timeline | `#timeline` | 시간 흐름 |
+| Actions | `#actions` | 액션 관리 |
+| Map | `#map` | 지역 분포 |
+| Crystal | `#crystal` | 결정화 뷰 |
+
+---
+
+## 👥 Role-based System
+
+| Role | 권한 | First View |
+|------|------|------------|
+| Owner | 전체 접근 | Cockpit |
+| Manager | 운영 관리 | Pulse |
+| Teacher | 교육 관리 | Microscope |
+| Parent | 자녀 정보 | Timeline |
+| Student | 개인 정보 | Actions |
 
 ---
 
@@ -141,39 +164,62 @@ autus/
 
 ```bash
 # Development
-make dev          # Run backend
-make frontend     # Run frontend
-make test         # Run tests
+npm run dev           # Frontend dev server
+npm run lint          # ESLint check
+npm run build         # Production build
 
-# Build
-make build        # Build frontend
-make docker-up    # Start Docker
+# Backend
+make dev              # FastAPI server
+make test             # Run tests
 
-# Check
-make check        # Browser check
+# Docker
+make docker-up        # Start containers
+make docker-down      # Stop containers
 ```
+
+---
+
+## 📊 Tech Stack
+
+### Frontend
+- **Framework**: React 18 + TypeScript
+- **Build**: Vite 5
+- **Styling**: Tailwind CSS
+- **Animation**: Framer Motion
+- **Icons**: Lucide React
+
+### Backend
+- **API**: FastAPI (Python)
+- **Serverless**: Vercel (Next.js)
+- **Database**: Supabase (PostgreSQL)
+
+### Automation
+- **Workflows**: N8N
+- **CI/CD**: GitHub Actions
+- **Monitoring**: Prometheus + Grafana
 
 ---
 
 ## 📚 Documentation
 
-- [AUTUS V1 Final](docs/AUTUS_V1_FINAL.md)
-- [K-Scale UI Policy](docs/KSCALE_UI_POLICY.md)
-- [Launch Day Ops](docs/LAUNCH_DAY_OPS.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [API Reference](docs/API_REFERENCE.md)
+- [AUTUS Spec](docs/AUTUS_SPEC_v1.md)
+- [Architecture](docs/ARCHITECTURE_FINAL.md)
+- [API Reference](docs/API_SPEC.md)
+- [KRATON Spec](docs/KRATON_SPEC.md)
+- [User Guide](docs/USER_GUIDE.md)
 
 ---
 
 ## 🏛️ Philosophy
 
 ```
-AUTUS는 설명하지 않는다.
-AUTUS는 권고하지 않는다.
-AUTUS는 기록만 한다.
+"목표를 던지고, 예외만 승인하고, 결과를 확인한다."
 
-결정은 Gate와 환경에서 닫힌다.
-UI는 보여주고, 느끼게 할 뿐이다.
+AUTUS는 오너의 조종석이다.
+- 데이터는 Zero Meaning으로 변환
+- 돈의 흐름은 물리 법칙으로 모델링
+- 5-Tier 시스템으로 관계 분류
+- 관찰자 모드로 자연 흐름 관찰
 ```
 
 ---
@@ -184,5 +230,4 @@ MIT License
 
 ---
 
-> **AUTUS v1.0 — Release Ready**
-# Auto-deploy test Sat Jan 17 15:59:26 KST 2026
+> **AUTUS 2.0 — 관계 유지력의 물리학**
