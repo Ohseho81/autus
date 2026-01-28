@@ -3,7 +3,7 @@
 // "You do not need to manage the world. You need to align your true 12."
 // ═══════════════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { DailyNudgeToast } from './components/Quantum/MiracleNudge';
 import { OnboardingTutorial, HelpButton } from './components/Onboarding';
 
@@ -25,7 +25,8 @@ const MacroPage = lazy(() => import('./pages/MacroPage').then(m => ({ default: m
 // L2: Data Input Modules
 const UnifiedDashboard = lazy(() => import('./components/Unified/UnifiedDashboard'));
 const PhysicsMap = lazy(() => import('./components/Map/PhysicsMap').then(m => ({ default: m.PhysicsMap })));
-const ObservationDashboard = lazy(() => import('./components/Quantum/ObservationDashboard').then(m => ({ default: m.ObservationDashboard })));
+// ObservationDashboard - 사용 시 활성화
+// const ObservationDashboard = lazy(() => import('./components/Quantum/ObservationDashboard').then(m => ({ default: m.ObservationDashboard })));
 const HexagonMap = lazy(() => import('./components/Edge/HexagonMap').then(m => ({ default: m.default })));
 const OntologyView = lazy(() => import('./components/Ontology').then(m => ({ default: m.OntologyView })));
 const Node144Graph = lazy(() => import('./components/Ontology/Node144Graph').then(m => ({ default: m.Node144Graph })));
@@ -38,7 +39,8 @@ const TransformationEngine = lazy(() => import('./components/Trinity/Transformat
 const MoneyFlowCube = lazy(() => import('./components/Trinity/MoneyFlowCube').then(m => ({ default: m.default })));
 const AutusPrediction = lazy(() => import('./components/Prediction/AutusPrediction').then(m => ({ default: m.default })));
 const AutusCube72 = lazy(() => import('./components/Cube/AutusCube72').then(m => ({ default: m.default })));
-const Matrix72View = lazy(() => import('./components/Matrix72/Matrix72View').then(m => ({ default: m.default })));
+// Matrix72View - 사용 시 활성화
+// const Matrix72View = lazy(() => import('./components/Matrix72/Matrix72View').then(m => ({ default: m.default })));
 const AUTUSAppV3 = lazy(() => import('./components/AUTUSAppV3').then(m => ({ default: m.default })));
 const StressTest = lazy(() => import('./components/AUTUSAppV3/StressTest').then(m => ({ default: m.default })));
 const PressureMapView = lazy(() => import('./components/PressureMap/PressureMapView').then(m => ({ default: m.default })));
@@ -193,7 +195,8 @@ function buildDeepLink(state: DeepLinkState): string {
 function App() {
   // 기본 뷰를 'transform' (Control Deck)으로 설정
   const [currentView, setCurrentView] = useState<View>('transform');
-  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
   const [showDailyNudge, setShowDailyNudge] = useState(false);
   const [forceShowOnboarding, setForceShowOnboarding] = useState(false);
   const [navExpanded, setNavExpanded] = useState(false);
@@ -219,13 +222,14 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
   
-  // 뷰 변경 시 URL 업데이트
-  const navigateTo = useCallback((view: View, nodeId?: string) => {
+  // 뷰 변경 시 URL 업데이트 (향후 사용 예정)
+  const _navigateTo = (view: View, nodeId?: string) => {
     const newHash = buildDeepLink({ view, nodeId });
     window.location.hash = newHash;
     setCurrentView(view);
     setSelectedNodeId(nodeId);
-  }, []);
+  };
+  void _navigateTo; // ESLint: 의도적으로 보관
 
   // 뷰 렌더링 - 모든 페이지 동일한 폭 적용
   const renderView = () => {

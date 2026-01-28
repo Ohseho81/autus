@@ -67,6 +67,7 @@ export function useRealtimeOverlay(wsUrl: string = 'ws://localhost:8000/ws/bpmn'
   const [alerts, setAlerts] = useState<string[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const connectRef = useRef<() => void>(() => {});
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -84,20 +85,22 @@ export function useRealtimeOverlay(wsUrl: string = 'ws://localhost:8000/ws/bpmn'
           const data: RealtimeEvent = JSON.parse(event.data);
           
           switch (data.type) {
-            case 'metric_update':
+            case 'metric_update': {
               const metric = data.payload as RealtimeMetric;
               setMetrics(prev => ({
                 ...prev,
                 [metric.elementId]: metric,
               }));
               break;
+            }
               
-            case 'delete_triggered':
+            case 'delete_triggered': {
               const ids = data.payload as string[];
               setDeletedIds(prev => [...prev, ...ids]);
               break;
+            }
               
-            case 'loop_progress':
+            case 'loop_progress': {
               const progress = data.payload as LoopProgress;
               setLoopProgress(prev => {
                 const idx = prev.findIndex(p => p.loopId === progress.loopId);
@@ -109,6 +112,7 @@ export function useRealtimeOverlay(wsUrl: string = 'ws://localhost:8000/ws/bpmn'
                 return [...prev, progress];
               });
               break;
+            }
               
             case 'system_stats':
               setSystemStats(data.payload as SystemStats);
@@ -128,7 +132,7 @@ export function useRealtimeOverlay(wsUrl: string = 'ws://localhost:8000/ws/bpmn'
         setIsConnected(false);
         
         // 자동 재연결
-        reconnectTimeoutRef.current = setTimeout(connect, 3000);
+        reconnectTimeoutRef.current = setTimeout(() => connectRef.current(), 3000);
       };
 
       ws.onerror = (error) => {
@@ -138,12 +142,13 @@ export function useRealtimeOverlay(wsUrl: string = 'ws://localhost:8000/ws/bpmn'
       wsRef.current = ws;
     } catch (e) {
       console.error('Failed to connect WebSocket:', e);
-      reconnectTimeoutRef.current = setTimeout(connect, 3000);
+      reconnectTimeoutRef.current = setTimeout(() => connectRef.current(), 3000);
     }
   }, [wsUrl]);
 
   // 연결 시작
   useEffect(() => {
+    connectRef.current = connect;
     connect();
 
     return () => {

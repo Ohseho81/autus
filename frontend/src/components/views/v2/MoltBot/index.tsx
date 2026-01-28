@@ -501,7 +501,7 @@ const MessageBubble: React.FC<{
           <div className="whitespace-pre-wrap">
             {message.content.split('\n').map((line, i) => {
               // Bold
-              let formatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+              const formatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
               return (
                 <div key={i} dangerouslySetInnerHTML={{ __html: formatted }} />
               );
