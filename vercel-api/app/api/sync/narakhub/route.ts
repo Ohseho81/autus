@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../../../../lib/supabase';
 import { parse } from 'csv-parse/sync';
 import { DataMapper, hashStudentData, validateStudentData, calculateRiskScore, getRiskBand } from '@/lib/data-mapper';
 import { StudentData, NarakhubCSVRow, SyncResult } from '@/lib/types-erp';
@@ -13,9 +13,6 @@ import { StudentData, NarakhubCSVRow, SyncResult } from '@/lib/types-erp';
 // Supabase Client
 // -----------------------------------------------------------------------------
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 // -----------------------------------------------------------------------------
 // POST: Process CSV from n8n or direct upload
@@ -128,7 +125,7 @@ export async function GET(req: NextRequest) {
     }
     
     // Otherwise, return last sync status
-    const { data: lastSync } = await supabase
+    const { data: lastSync } = await getSupabaseAdmin()
       .from('sync_logs')
       .select('*')
       .eq('academy_id', academyId)
@@ -266,7 +263,7 @@ async function syncStudentsToSupabase(
       };
       
       // Check existing
-      const { data: existing } = await supabase
+      const { data: existing } = await getSupabaseAdmin()
         .from('students')
         .select('id, metadata')
         .eq('academy_id', academyId)
@@ -283,7 +280,7 @@ async function syncStudentsToSupabase(
         }
         
         // Update
-        await supabase
+        await getSupabaseAdmin()
           .from('students')
           .update({
             ...studentWithRisk,
@@ -294,7 +291,7 @@ async function syncStudentsToSupabase(
         updated++;
       } else {
         // Insert
-        await supabase
+        await getSupabaseAdmin()
           .from('students')
           .insert({
             ...studentWithRisk,
@@ -349,7 +346,7 @@ async function upsertStudentSignals(academyId: string, student: StudentData) {
     signals.push(`과제 완성도 저하: ${student.homework_completion}%`);
   }
   
-  await supabase
+  await getSupabaseAdmin()
     .from('student_signals')
     .upsert({
       student_id: student.external_id,
@@ -367,7 +364,7 @@ async function upsertStudentSignals(academyId: string, student: StudentData) {
  * Log sync result
  */
 async function logSync(academyId: string, provider: string, result: SyncResult) {
-  await supabase.from('sync_logs').insert({
+  await getSupabaseAdmin().from('sync_logs').insert({
     academy_id: academyId,
     provider,
     total_records: result.total_records,

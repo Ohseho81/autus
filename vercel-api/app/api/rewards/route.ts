@@ -50,11 +50,34 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Demo data
+const DEMO_REWARDS = [
+  { id: 'card-001', icon: '💰', title: '현금흐름 개선 기회', message: '이번 달 미납금 회수율 15% 향상 가능', type: 'opportunity', actions: ['미납자 목록 보기', '자동 알림 발송'] },
+  { id: 'card-002', icon: '⭐', title: '우수 학생 발견', message: '정수현 학생 성적 급상승 (상위 5%)', type: 'achievement', actions: ['칭찬 카드 발송', '장학금 안내'] },
+  { id: 'card-003', icon: '⚠️', title: '이탈 위험 감지', message: '박OO 학생 출석률 급감 (60%)', type: 'warning', actions: ['학부모 상담 예약', '동기부여 프로그램'] },
+];
+
 // POST /api/rewards (새 보상 카드 생성)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, userId, payload } = body;
+
+    // Demo mode
+    if (action === 'list' || userId === 'demo') {
+      return NextResponse.json({
+        success: true,
+        data: {
+          unread_count: DEMO_REWARDS.length,
+          cards: DEMO_REWARDS,
+          summary: {
+            opportunities: 1,
+            achievements: 1,
+            warnings: 1
+          }
+        }
+      }, { status: 200, headers: corsHeaders });
+    }
 
     if (action === 'generate') {
       // 사용자 정보 조회

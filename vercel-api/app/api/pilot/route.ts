@@ -3,7 +3,7 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../../../lib/supabase';
 
 export const runtime = 'edge';
 
@@ -13,8 +13,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 200, headers: corsHeaders });
@@ -25,7 +23,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return NextResponse.json({
       success: true,
       data: {
@@ -37,9 +35,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    
-    let query = supabase
+    const supabase = getSupabaseAdmin();
+    let query = getSupabaseAdmin()
       .from('pilot_academies')
       .select('*')
       .order('created_at', { ascending: false });
@@ -107,7 +104,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       // Simulation mode
       return NextResponse.json({
         success: true,
@@ -122,10 +119,9 @@ export async function POST(request: NextRequest) {
       }, { status: 200, headers: corsHeaders });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+    
     // Insert pilot application
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from('pilot_academies')
       .insert({
         name: academy_name,

@@ -1,0 +1,345 @@
+// ============================================
+// AUTUS API Utilities
+// 공통 API 응답 형식, CORS 헤더, 에러 처리
+// ============================================
+
+import { NextResponse } from 'next/server';
+
+// ============================================
+// 표준 API 응답 타입
+// ============================================
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+  meta?: {
+    timestamp: string;
+    version: string;
+    requestId?: string;
+  };
+}
+
+// ============================================
+// CORS 헤더 (공통)
+// ============================================
+export const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+  'Access-Control-Max-Age': '86400',
+};
+
+// ============================================
+// 환경변수 검증
+// ============================================
+export interface EnvConfig {
+  supabaseUrl: string;
+  supabaseServiceKey: string;
+  supabaseAnonKey?: string;
+  claudeApiKey?: string;
+}
+
+export function getEnvConfig(): EnvConfig {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const claudeApiKey = process.env.ANTHROPIC_API_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Required environment variables not configured: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY');
+  }
+
+  return {
+    supabaseUrl,
+    supabaseServiceKey,
+    supabaseAnonKey,
+    claudeApiKey,
+  };
+}
+
+export function isEnvConfigured(): boolean {
+  try {
+    getEnvConfig();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================
+// 표준 응답 헬퍼 함수
+// ============================================
+
+/**
+ * 성공 응답 생성
+ */
+export function successResponse<T>(
+  data: T,
+  message?: string,
+  status: number = 200
+): NextResponse<ApiResponse<T>> {
+  return NextResponse.json(
+    {
+      success: true,
+      data,
+      message,
+      meta: {
+        timestamp: new Date().toISOString(),
+        version: 'v1.0',
+      },
+    },
+    { status, headers: CORS_HEADERS }
+  );
+}
+
+/**
+ * 에러 응답 생성
+ */
+export function errorResponse(
+  error: string,
+  status: number = 400,
+  data?: unknown
+): NextResponse<ApiResponse> {
+  return NextResponse.json(
+    {
+      success: false,
+      error,
+      data,
+      meta: {
+        timestamp: new Date().toISOString(),
+        version: 'v1.0',
+      },
+    },
+    { status, headers: CORS_HEADERS }
+  );
+}
+
+/**
+ * 서버 에러 응답 생성
+ */
+export function serverErrorResponse(
+  error: unknown,
+  context?: string
+): NextResponse<ApiResponse> {
+  const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+  console.error(`[AUTUS API Error${context ? ` - ${context}` : ''}]`, error);
+  
+  return NextResponse.json(
+    {
+      success: false,
+      error: errorMessage,
+      meta: {
+        timestamp: new Date().toISOString(),
+        version: 'v1.0',
+      },
+    },
+    { status: 500, headers: CORS_HEADERS }
+  );
+}
+
+/**
+ * OPTIONS 요청 핸들러 (CORS preflight)
+ */
+export function optionsResponse(): NextResponse {
+  return new NextResponse(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+}
+
+/**
+ * 인증 실패 응답
+ */
+export function unauthorizedResponse(
+  message: string = 'Unauthorized'
+): NextResponse<ApiResponse> {
+  return errorResponse(message, 401);
+}
+
+/**
+ * Not Found 응답
+ */
+export function notFoundResponse(
+  resource: string = 'Resource'
+): NextResponse<ApiResponse> {
+  return errorResponse(`${resource} not found`, 404);
+}
+
+/**
+ * 유효성 검사 실패 응답
+ */
+export function validationErrorResponse(
+  errors: Record<string, string>
+): NextResponse<ApiResponse> {
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'Validation failed',
+      data: { errors },
+      meta: {
+        timestamp: new Date().toISOString(),
+        version: 'v1.0',
+      },
+    },
+    { status: 422, headers: CORS_HEADERS }
+  );
+}
+
+// ============================================
+// 요청 유효성 검사
+// ============================================
+
+export interface ValidationRule {
+  required?: boolean;
+  type?: 'string' | 'number' | 'boolean' | 'array' | 'object';
+  min?: number;
+  max?: number;
+  pattern?: RegExp;
+  custom?: (value: unknown) => boolean;
+  message?: string;
+}
+
+export interface ValidationSchema {
+  [key: string]: ValidationRule;
+}
+
+export function validateRequest(
+  data: Record<string, unknown>,
+  schema: ValidationSchema
+): { valid: boolean; errors: Record<string, string> } {
+  const errors: Record<string, string> = {};
+
+  for (const [field, rules] of Object.entries(schema)) {
+    const value = data[field];
+
+    // Required check
+    if (rules.required && (value === undefined || value === null || value === '')) {
+      errors[field] = rules.message || `${field} is required`;
+      continue;
+    }
+
+    if (value === undefined || value === null) continue;
+
+    // Type check
+    if (rules.type) {
+      const actualType = Array.isArray(value) ? 'array' : typeof value;
+      if (actualType !== rules.type) {
+        errors[field] = rules.message || `${field} must be a ${rules.type}`;
+        continue;
+      }
+    }
+
+    // Min/Max for numbers
+    if (rules.type === 'number' && typeof value === 'number') {
+      if (rules.min !== undefined && value < rules.min) {
+        errors[field] = rules.message || `${field} must be at least ${rules.min}`;
+      }
+      if (rules.max !== undefined && value > rules.max) {
+        errors[field] = rules.message || `${field} must be at most ${rules.max}`;
+      }
+    }
+
+    // Min/Max for strings (length)
+    if (rules.type === 'string' && typeof value === 'string') {
+      if (rules.min !== undefined && value.length < rules.min) {
+        errors[field] = rules.message || `${field} must be at least ${rules.min} characters`;
+      }
+      if (rules.max !== undefined && value.length > rules.max) {
+        errors[field] = rules.message || `${field} must be at most ${rules.max} characters`;
+      }
+    }
+
+    // Pattern check
+    if (rules.pattern && typeof value === 'string' && !rules.pattern.test(value)) {
+      errors[field] = rules.message || `${field} format is invalid`;
+    }
+
+    // Custom validation
+    if (rules.custom && !rules.custom(value)) {
+      errors[field] = rules.message || `${field} is invalid`;
+    }
+  }
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
+
+// ============================================
+// Mock 데이터 생성 헬퍼
+// ============================================
+export function generateMockId(): string {
+  return `mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+}
+
+export function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// ============================================
+// Rate Limiting (간단한 인메모리 구현)
+// ============================================
+const rateLimitStore: Map<string, { count: number; resetTime: number }> = new Map();
+
+export function checkRateLimit(
+  identifier: string,
+  limit: number = 100,
+  windowMs: number = 60000
+): { allowed: boolean; remaining: number; resetTime: number } {
+  const now = Date.now();
+  const record = rateLimitStore.get(identifier);
+
+  if (!record || record.resetTime < now) {
+    rateLimitStore.set(identifier, { count: 1, resetTime: now + windowMs });
+    return { allowed: true, remaining: limit - 1, resetTime: now + windowMs };
+  }
+
+  if (record.count >= limit) {
+    return { allowed: false, remaining: 0, resetTime: record.resetTime };
+  }
+
+  record.count++;
+  return { allowed: true, remaining: limit - record.count, resetTime: record.resetTime };
+}
+
+// ============================================
+// 로깅 유틸리티
+// ============================================
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+export function log(
+  level: LogLevel,
+  message: string,
+  context?: Record<string, unknown>
+): void {
+  const timestamp = new Date().toISOString();
+  const logEntry = {
+    timestamp,
+    level,
+    message,
+    ...context,
+  };
+
+  switch (level) {
+    case 'debug':
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug(JSON.stringify(logEntry));
+      }
+      break;
+    case 'info':
+      console.info(JSON.stringify(logEntry));
+      break;
+    case 'warn':
+      console.warn(JSON.stringify(logEntry));
+      break;
+    case 'error':
+      console.error(JSON.stringify(logEntry));
+      break;
+  }
+}

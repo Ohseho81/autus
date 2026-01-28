@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../../../../lib/supabase';
 import * as crypto from 'crypto';
 import { DataMapper, hashStudentData, validateStudentData } from '@/lib/data-mapper';
 import { 
@@ -19,9 +19,6 @@ import {
 // Supabase Client
 // -----------------------------------------------------------------------------
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 // -----------------------------------------------------------------------------
 // Classting API Config
@@ -45,7 +42,7 @@ export async function GET(req: NextRequest) {
     }
     
     // Get integration settings
-    const { data: integration, error: intError } = await supabase
+    const { data: integration, error: intError } = await getSupabaseAdmin()
       .from('academy_integrations')
       .select('*')
       .eq('academy_id', academyId)
@@ -118,7 +115,7 @@ export async function POST(req: NextRequest) {
         ? new Date(Date.now() + expires_in * 1000).toISOString()
         : null;
       
-      await supabase
+      await getSupabaseAdmin()
         .from('academy_integrations')
         .upsert({
           academy_id,
@@ -141,7 +138,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Otherwise, trigger sync
-    const { data: integration } = await supabase
+    const { data: integration } = await getSupabaseAdmin()
       .from('academy_integrations')
       .select('*')
       .eq('academy_id', academy_id)
@@ -198,7 +195,7 @@ export async function PUT(req: NextRequest) {
     console.log(`Classting webhook: ${event.event_type} for student ${event.student_id}`);
     
     // Get academy_id from school_id mapping
-    const { data: integration } = await supabase
+    const { data: integration } = await getSupabaseAdmin()
       .from('academy_integrations')
       .select('academy_id')
       .eq('provider_school_id', event.school_id)
@@ -305,7 +302,7 @@ async function syncStudentsToSupabase(
       }
       
       // Check existing
-      const { data: existing } = await supabase
+      const { data: existing } = await getSupabaseAdmin()
         .from('students')
         .select('id, metadata')
         .eq('academy_id', academyId)
@@ -322,7 +319,7 @@ async function syncStudentsToSupabase(
         }
         
         // Update
-        await supabase
+        await getSupabaseAdmin()
           .from('students')
           .update({
             ...student,
@@ -333,7 +330,7 @@ async function syncStudentsToSupabase(
         updated++;
       } else {
         // Insert
-        await supabase
+        await getSupabaseAdmin()
           .from('students')
           .insert({
             ...student,
@@ -367,7 +364,7 @@ async function syncStudentsToSupabase(
 }
 
 async function logSync(academyId: string, provider: string, result: SyncResult) {
-  await supabase.from('sync_logs').insert({
+  await getSupabaseAdmin().from('sync_logs').insert({
     academy_id: academyId,
     provider,
     total_records: result.total_records,
@@ -397,7 +394,7 @@ async function refreshAccessToken(
     
     const data = await response.json();
     
-    await supabase
+    await getSupabaseAdmin()
       .from('academy_integrations')
       .update({
         access_token: encryptToken(data.access_token),
@@ -475,7 +472,7 @@ async function processWebhookEvent(
   }
   
   // Upsert signals
-  await supabase
+  await getSupabaseAdmin()
     .from('student_signals')
     .upsert({
       student_id,

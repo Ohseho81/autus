@@ -7,15 +7,11 @@
  * 3. 구글드라이브 연동 (GET with folder_id)
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../../../../lib/supabase';
 
 export const runtime = 'edge';
 
 // Supabase 클라이언트
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
 
 // 스마트핏 CSV 필드 매핑
 interface SmartFitStudent {
@@ -197,7 +193,7 @@ export async function POST(req: Request) {
         const riskBand = getRiskBand(riskScore);
         
         // Supabase에 저장
-        const { error } = await supabase.from('students').upsert({
+        const { error } = await getSupabaseAdmin().from('students').upsert({
           academy_id: academyId,
           external_id: student.student_code,
           name: student.name,
@@ -233,7 +229,7 @@ export async function POST(req: Request) {
     }
     
     // 동기화 로그 저장
-    await supabase.from('sync_logs').insert({
+    await getSupabaseAdmin().from('sync_logs').insert({
       academy_id: academyId,
       erp_source: 'smartfit',
       total_records: results.total,
@@ -274,7 +270,7 @@ export async function GET(req: Request) {
   const academyId = url.searchParams.get('academy_id') || 'demo-academy';
   
   // 최근 동기화 로그 조회
-  const { data: logs, error: logsError } = await supabase
+  const { data: logs, error: logsError } = await getSupabaseAdmin()
     .from('sync_logs')
     .select('*')
     .eq('academy_id', academyId)
@@ -283,7 +279,7 @@ export async function GET(req: Request) {
     .limit(5);
   
   // 현재 학생 통계
-  const { data: students, error: studentsError } = await supabase
+  const { data: students, error: studentsError } = await getSupabaseAdmin()
     .from('students')
     .select('risk_band')
     .eq('academy_id', academyId)

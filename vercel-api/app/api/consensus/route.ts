@@ -52,11 +52,38 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Demo data
+const DEMO_CONSENSUS = {
+  solutions: [
+    { solution_id: 'sol-001', name: '출석 알림 자동화', effectiveness: 0.92, usage_count: 127, v_growth: 0.18 },
+    { solution_id: 'sol-002', name: '미납 관리 시스템', effectiveness: 0.87, usage_count: 89, v_growth: 0.15 },
+    { solution_id: 'sol-003', name: '학부모 상담 템플릿', effectiveness: 0.84, usage_count: 56, v_growth: 0.12 },
+  ]
+};
+
 // POST /api/consensus (활용 기록)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, payload } = body;
+
+    // Demo mode
+    if (action === 'status') {
+      return NextResponse.json({
+        success: true,
+        data: {
+          standard_solutions: DEMO_CONSENSUS.solutions.filter(s => s.effectiveness >= 0.80),
+          pending_solutions: DEMO_CONSENSUS.solutions.filter(s => s.effectiveness < 0.80),
+          criteria: {
+            effectiveness_threshold: 0.80,
+            usage_count_threshold: 50,
+            v_growth_threshold: 0.15
+          },
+          total_usage_logs: 1247,
+          consensus_rate: '87.3%'
+        }
+      }, { status: 200, headers: corsHeaders });
+    }
 
     if (action === 'log_usage') {
       const {

@@ -93,11 +93,41 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Demo data
+const DEMO_PHYSICS = {
+  organism: {
+    id: 'demo-001',
+    name: '강남점',
+    mint: 12750000,
+    tax: 9820000,
+    synergy: 0.892,
+    entropy: 0.12,
+    velocity: 0.08,
+    friction: 0.05
+  }
+};
+
 // POST /api/physics (Impulse 적용)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, organismId, impulseType, intensity } = body;
+
+    // Demo mode
+    if (action === 'calculate' || organismId === 'demo') {
+      const demo = DEMO_PHYSICS.organism;
+      const v = calculateV(demo.mint, demo.tax, demo.synergy);
+      return NextResponse.json({
+        success: true,
+        data: {
+          organism: demo,
+          computed_v: v,
+          formula: `V = (${(demo.mint/1000000).toFixed(1)}M - ${(demo.tax/1000000).toFixed(1)}M) × (1 + ${demo.synergy})^1 = ${(v/1000000).toFixed(2)}M`,
+          summary: summarizeState(demo),
+          recommended_impulse: recommendImpulse(demo)
+        }
+      }, { status: 200, headers: corsHeaders });
+    }
 
     if (action === 'apply_impulse') {
       if (!organismId || !impulseType) {

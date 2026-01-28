@@ -7,7 +7,7 @@
 //
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../../../../lib/supabase';
 
 export const runtime = 'edge';
 
@@ -19,8 +19,6 @@ const corsHeaders = {
 
 // Environment variables
 const N8N_WEBHOOK_SECRET = process.env.N8N_WEBHOOK_SECRET || 'autus-n8n-secret-2026';
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Webhook event types
 type WebhookEventType = 
@@ -229,16 +227,15 @@ async function processWebhookEvent(payload: WebhookPayload): Promise<any> {
 
 // ERP 데이터 동기화
 async function handleErpSync(data: any): Promise<any> {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
-  
+    
   // 학생 데이터 업데이트
   if (data.students) {
     for (const student of data.students) {
-      await supabase
+      await getSupabaseAdmin()
         .from('students')
         .upsert({
           id: student.id,
@@ -253,7 +250,7 @@ async function handleErpSync(data: any): Promise<any> {
 
   // 학원 메트릭 업데이트
   if (data.academy_metrics) {
-    await supabase
+    await getSupabaseAdmin()
       .from('organisms')
       .update({
         mint: data.academy_metrics.revenue,
@@ -273,21 +270,20 @@ async function handleErpSync(data: any): Promise<any> {
 
 // 결제 완료 처리
 async function handlePaymentReceived(data: any): Promise<any> {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
+  
   // Mint 증가 기록
-  const { data: organism } = await supabase
+  const { data: organism } = await getSupabaseAdmin()
     .from('organisms')
     .select('mint')
     .eq('id', data.academy_id)
     .single();
 
   if (organism) {
-    await supabase
+    await getSupabaseAdmin()
       .from('organisms')
       .update({
         mint: parseFloat(organism.mint) + parseFloat(data.amount),
@@ -298,7 +294,7 @@ async function handlePaymentReceived(data: any): Promise<any> {
 
   // 학생 납부 상태 업데이트
   if (data.student_id) {
-    await supabase
+    await getSupabaseAdmin()
       .from('students')
       .update({ payment_status: 'paid' })
       .eq('id', data.student_id);
@@ -313,14 +309,13 @@ async function handlePaymentReceived(data: any): Promise<any> {
 
 // 미납 발생 처리
 async function handlePaymentOverdue(data: any): Promise<any> {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
+  
   // 학생 납부 상태 업데이트
-  await supabase
+  await getSupabaseAdmin()
     .from('students')
     .update({ 
       payment_status: data.days_overdue > 30 ? 'delinquent' : 'overdue',
@@ -329,7 +324,7 @@ async function handlePaymentOverdue(data: any): Promise<any> {
     .eq('id', data.student_id);
 
   // 퇴원 위험 이벤트 기록
-  await supabase
+  await getSupabaseAdmin()
     .from('churn_risk_events')
     .insert({
       student_id: data.student_id,
@@ -349,13 +344,12 @@ async function handlePaymentOverdue(data: any): Promise<any> {
 
 // 출결 업데이트
 async function handleAttendanceUpdate(data: any): Promise<any> {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  await supabase
+  
+  await getSupabaseAdmin()
     .from('students')
     .update({
       attendance_rate: data.attendance_rate,
@@ -365,7 +359,7 @@ async function handleAttendanceUpdate(data: any): Promise<any> {
 
   // 출석률 급락 시 위험 이벤트 기록
   if (data.attendance_rate < 70) {
-    await supabase
+    await getSupabaseAdmin()
       .from('churn_risk_events')
       .insert({
         student_id: data.student_id,
@@ -385,13 +379,12 @@ async function handleAttendanceUpdate(data: any): Promise<any> {
 
 // 성적 업데이트
 async function handleGradeUpdate(data: any): Promise<any> {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  await supabase
+  
+  await getSupabaseAdmin()
     .from('students')
     .update({
       grade_trend: data.grade_trend,
@@ -401,7 +394,7 @@ async function handleGradeUpdate(data: any): Promise<any> {
 
   // 성적 급락 시 위험 이벤트 기록
   if (data.grade_trend < -15) {
-    await supabase
+    await getSupabaseAdmin()
       .from('churn_risk_events')
       .insert({
         student_id: data.student_id,
@@ -449,13 +442,12 @@ async function handleChurnAlert(data: any): Promise<any> {
 
 // 경쟁사 변화
 async function handleCompetitorChange(data: any): Promise<any> {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  await supabase
+  
+  await getSupabaseAdmin()
     .from('competitors')
     .upsert({
       name: data.name,
@@ -477,13 +469,12 @@ async function handleCompetitorChange(data: any): Promise<any> {
 
 // 뉴스 알림
 async function handleNewsAlert(data: any): Promise<any> {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  await supabase
+  
+  await getSupabaseAdmin()
     .from('edu_news')
     .insert({
       title: data.title,
@@ -514,15 +505,14 @@ async function handleCustomEvent(data: any, source: string): Promise<any> {
 
 // Dead Letter Queue 저장
 async function saveToDeadLetterQueue(payload: WebhookPayload, errorMessage: string): Promise<void> {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     console.error('Cannot save to DLQ: Supabase not configured');
     return;
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    
-    await supabase
+        
+    await getSupabaseAdmin()
       .from('dead_letter_queue')
       .insert({
         event_type: payload.event_type,

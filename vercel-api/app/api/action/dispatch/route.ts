@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../../../../lib/supabase';
 import Anthropic from '@anthropic-ai/sdk';
 import { CardType, CardTone, CardDispatch, CardOutcome } from '@/lib/types-erp';
 
@@ -12,13 +12,12 @@ import { CardType, CardTone, CardDispatch, CardOutcome } from '@/lib/types-erp';
 // Clients
 // -----------------------------------------------------------------------------
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
+
+// Lazy getSupabaseAdmin() getter
+const getSupabase = () => getSupabaseAdmin();
 
 // -----------------------------------------------------------------------------
 // POST: Dispatch a card to parent
@@ -44,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Fetch student data
-    const { data: student, error: studentError } = await supabase
+    const { data: student, error: studentError } = await getSupabase()
       .from('students')
       .select('*')
       .eq('external_id', student_id)
@@ -59,7 +58,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Fetch signals for context
-    const { data: signals } = await supabase
+    const { data: signals } = await getSupabase()
       .from('student_signals')
       .select('*')
       .eq('student_id', student_id)
@@ -87,7 +86,7 @@ export async function POST(req: NextRequest) {
       created_at: new Date().toISOString(),
     };
     
-    const { data: dispatchRecord, error: dispatchError } = await supabase
+    const { data: dispatchRecord, error: dispatchError } = await getSupabase()
       .from('card_dispatches')
       .insert(dispatch)
       .select()
@@ -117,7 +116,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Update dispatch status
-    await supabase
+    await getSupabase()
       .from('card_dispatches')
       .update({
         status: sendResult.success ? 'sent' : 'failed',
@@ -170,7 +169,7 @@ export async function PUT(req: NextRequest) {
     // Get dispatch info if provided
     let cardType: CardType = 'ATTENTION';
     if (dispatch_id) {
-      const { data: dispatch } = await supabase
+      const { data: dispatch } = await getSupabase()
         .from('card_dispatches')
         .select('card_type')
         .eq('id', dispatch_id)
@@ -193,7 +192,7 @@ export async function PUT(req: NextRequest) {
       recorded_at: new Date().toISOString(),
     };
     
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('card_outcomes')
       .insert(outcomeRecord)
       .select()
@@ -363,7 +362,7 @@ async function updateFeatureWeights(
 ) {
   try {
     // Get current weights
-    const { data: settings } = await supabase
+    const { data: settings } = await getSupabase()
       .from('academy_settings')
       .select('feature_weights')
       .eq('academy_id', academyId)
@@ -413,7 +412,7 @@ async function updateFeatureWeights(
     weights.updated_at = new Date().toISOString();
     
     // Save updated weights
-    await supabase
+    await getSupabase()
       .from('academy_settings')
       .upsert({
         academy_id: academyId,

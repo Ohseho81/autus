@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../../../../lib/supabase';
 import {
   VPulseInput,
   VPulseOutput,
@@ -15,12 +15,8 @@ import {
 } from '@/lib/types-erp';
 
 // -----------------------------------------------------------------------------
-// Supabase Client
+// Supabase Client - Uses getSupabaseAdmin from lib/getSupabaseAdmin()
 // -----------------------------------------------------------------------------
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 // -----------------------------------------------------------------------------
 // POST: Calculate Risk for Student
@@ -39,7 +35,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Fetch student data
-    const { data: student, error: studentError } = await supabase
+    const { data: student, error: studentError } = await getSupabaseAdmin()
       .from('students')
       .select('*')
       .eq('external_id', student_id)
@@ -54,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Fetch student signals
-    const { data: signals } = await supabase
+    const { data: signals } = await getSupabaseAdmin()
       .from('student_signals')
       .select('*')
       .eq('student_id', student_id)
@@ -68,7 +64,7 @@ export async function POST(req: NextRequest) {
     const result = calculateVPulse(student, signals, weights);
     
     // Update student with new risk score
-    await supabase
+    await getSupabaseAdmin()
       .from('students')
       .update({
         risk_score: result.risk_score,
@@ -105,7 +101,7 @@ export async function GET(req: NextRequest) {
     }
     
     // Fetch all students
-    let query = supabase
+    let query = getSupabaseAdmin()
       .from('students')
       .select('*')
       .eq('academy_id', academyId);
@@ -127,7 +123,7 @@ export async function GET(req: NextRequest) {
     const results: VPulseOutput[] = [];
     
     for (const student of students || []) {
-      const { data: signals } = await supabase
+      const { data: signals } = await getSupabaseAdmin()
         .from('student_signals')
         .select('*')
         .eq('student_id', student.external_id)
@@ -138,7 +134,7 @@ export async function GET(req: NextRequest) {
       results.push(result);
       
       // Update student
-      await supabase
+      await getSupabaseAdmin()
         .from('students')
         .update({
           risk_score: result.risk_score,
@@ -333,7 +329,7 @@ function getSuggestedCard(
 
 async function getFeatureWeights(academyId: string): Promise<FeatureWeights> {
   try {
-    const { data } = await supabase
+    const { data } = await getSupabaseAdmin()
       .from('academy_settings')
       .select('feature_weights')
       .eq('academy_id', academyId)

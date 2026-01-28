@@ -82,11 +82,39 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Demo data
+const DEMO_ORGANISMS = [
+  { id: 'org-001', name: '김민수 선생님', type: 'teacher', emoji: '👨‍🏫', mint: 8500000, tax: 6200000, synergy: 0.85, status: 'stable', urgency: 0.2 },
+  { id: 'org-002', name: '박철수 학생', type: 'student', emoji: '👨‍🎓', mint: 1200000, tax: 800000, synergy: 0.72, status: 'warning', urgency: 0.6 },
+  { id: 'org-003', name: '이영희 학부모', type: 'parent', emoji: '👩', mint: 500000, tax: 200000, synergy: 0.91, status: 'opportunity', urgency: 0.1 },
+  { id: 'org-004', name: '강남 1반', type: 'class', emoji: '📚', mint: 15000000, tax: 11000000, synergy: 0.78, status: 'stable', urgency: 0.3 },
+];
+
 // POST /api/organisms (생성)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, name, type, emoji, mint, tax, synergy } = body;
+    const { action, userId, name, type, emoji, mint, tax, synergy } = body;
+
+    // Demo mode
+    if (action === 'list' || userId === 'demo') {
+      return NextResponse.json({
+        success: true,
+        data: {
+          organisms: DEMO_ORGANISMS.map(org => ({
+            ...org,
+            computed_v: calculateV(org.mint, org.tax, org.synergy),
+            summary: summarizeState({ ...org, entropy: 0.2, velocity: 0.05, friction: 0.1 })
+          })),
+          total_count: DEMO_ORGANISMS.length,
+          by_status: {
+            stable: 2,
+            warning: 1,
+            opportunity: 1
+          }
+        }
+      }, { status: 200, headers: corsHeaders });
+    }
 
     if (!userId || !name || !type) {
       return NextResponse.json(

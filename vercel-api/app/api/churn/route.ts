@@ -7,7 +7,7 @@
 //
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../../../lib/supabase';
 
 export const runtime = 'edge';
 
@@ -17,8 +17,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+// Supabase credentials check for demo mode fallback
+const supabaseConfigured = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // 위험 레벨별 권장 조치
 const RISK_ACTIONS = {
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     const riskLevel = searchParams.get('riskLevel'); // critical, high, medium, low
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseConfigured) {
       // Demo 모드
       return NextResponse.json({
         success: true,
@@ -65,9 +65,9 @@ export async function GET(request: NextRequest) {
       }, { status: 200, headers: corsHeaders });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = getSupabaseAdmin();
 
-    let query = supabase
+    let query = getSupabaseAdmin()
       .from('students')
       .select('*')
       .eq('status', 'active')
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { studentId, action } = body;
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseConfigured) {
       // Demo 모드
       return NextResponse.json({
         success: true,
@@ -148,11 +148,11 @@ export async function POST(request: NextRequest) {
       }, { status: 200, headers: corsHeaders });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = getSupabaseAdmin();
 
     if (action === 'generate_script') {
       // 학생 정보 조회
-      const { data: student, error } = await supabase
+      const { data: student, error } = await getSupabaseAdmin()
         .from('students')
         .select('*')
         .eq('id', studentId)
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
       // 상담 결과 기록
       const { outcome, notes, duration } = body;
 
-      const { data: consultation, error } = await supabase
+      const { data: consultation, error } = await getSupabaseAdmin()
         .from('consultations')
         .insert({
           student_id: studentId,
@@ -195,14 +195,14 @@ export async function POST(request: NextRequest) {
 
       // 퇴원 방지 성공 시 Outcome Ledger에 기록
       if (outcome === 'retained') {
-        const { data: student } = await supabase
+        const { data: student } = await getSupabaseAdmin()
           .from('students')
           .select('monthly_fee, academy_id')
           .eq('id', studentId)
           .single();
 
         if (student) {
-          await supabase
+          await getSupabaseAdmin()
             .from('outcome_ledger')
             .insert({
               academy_id: student.academy_id,
@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
             });
 
           // 학생 상태 업데이트
-          await supabase
+          await getSupabaseAdmin()
             .from('students')
             .update({ 
               status: 'active',
