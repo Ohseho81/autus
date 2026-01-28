@@ -42,8 +42,18 @@ playwright-report/
 # IDE
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
+
+# Separate Projects / Submodules
+clawdbot/
+kraton-unified/
+kraton-v2/
+
+# AI Generated (local only)
+ai-generated/
+.kraton/
 
 # OS
 .DS_Store
@@ -59,6 +69,13 @@ logs/
 dist/
 build/
 *.egg-info/
+
+# Next.js build
+**/.next/
+**/out/
+
+# Vite build
+**/dist/
 
 # Node.js (전역)
 **/node_modules/
@@ -77,3 +94,6 @@ secrets/
 *.tar.gz
 *.rar
 .vercel
+
+# 🔐 키 보관함
+.env.keys
