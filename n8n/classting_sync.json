@@ -1,0 +1,82 @@
+{
+  "name": "KRATON 클래스팅 동기화",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "minutes", "minutesInterval": 5 }] }
+      },
+      "id": "trigger",
+      "name": "5분마다 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 300],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.classting.com/v2/attendance",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": { "timeout": 30000 }
+      },
+      "id": "get_attendance",
+      "name": "클래스팅 출결 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 300],
+      "typeVersion": 4.1
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst transformed = [];\n\nfor (const item of items) {\n  const data = item.json;\n  let state = 2;\n  const attendanceRate = data.attendance_rate || 100;\n  const homeworkRate = data.homework_rate || 100;\n  \n  if (attendanceRate < 50 || homeworkRate < 40) state = 6;\n  else if (attendanceRate < 60 || homeworkRate < 50) state = 5;\n  else if (attendanceRate < 70 || homeworkRate < 60) state = 4;\n  else if (attendanceRate < 80 || homeworkRate < 70) state = 3;\n  else if (attendanceRate >= 90 && homeworkRate >= 90) state = 1;\n  \n  transformed.push({\n    json: {\n      external_id: data.student_id,\n      name: data.student_name,\n      grade: data.grade,\n      attendance_rate: attendanceRate,\n      homework_rate: homeworkRate,\n      state: state,\n      churn_risk_level: state >= 5 ? 'critical' : state >= 4 ? 'high' : state >= 3 ? 'medium' : 'low',\n      synced_at: new Date().toISOString(),\n      provider: 'classting'\n    }\n  });\n}\n\nreturn transformed;"
+      },
+      "id": "transform",
+      "name": "데이터 변환 + State 계산",
+      "type": "n8n-nodes-base.code",
+      "position": [500, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "table": "students",
+        "columns": "external_id,name,grade,attendance_rate,homework_rate,churn_risk_level,synced_at,provider",
+        "conflictColumn": "external_id"
+      },
+      "id": "save_supabase",
+      "name": "Supabase 저장",
+      "type": "n8n-nodes-base.supabase",
+      "position": [700, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": { "number": [{ "value1": "={{ $json.state }}", "operation": "gte", "value2": 4 }] }
+      },
+      "id": "filter_risk",
+      "name": "State >= 4 필터",
+      "type": "n8n-nodes-base.filter",
+      "position": [900, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "channel": "#risk-alerts",
+        "text": "🚨 퇴원 위험 감지\n학생: {{ $json.name }}\nState: {{ $json.state }}\n출석률: {{ $json.attendance_rate }}%"
+      },
+      "id": "slack_alert",
+      "name": "Slack 알림",
+      "type": "n8n-nodes-base.slack",
+      "position": [1100, 300],
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "trigger": { "main": [[{ "node": "get_attendance", "type": "main", "index": 0 }]] },
+    "get_attendance": { "main": [[{ "node": "transform", "type": "main", "index": 0 }]] },
+    "transform": { "main": [[{ "node": "save_supabase", "type": "main", "index": 0 }]] },
+    "save_supabase": { "main": [[{ "node": "filter_risk", "type": "main", "index": 0 }]] },
+    "filter_risk": { "main": [[{ "node": "slack_alert", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "클래스팅 출결/성적 동기화 + State 계산 + Risk Alert", "effect": "T↓40%, M↑20%" }
+}

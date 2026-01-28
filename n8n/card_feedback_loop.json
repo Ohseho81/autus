@@ -1,0 +1,159 @@
+{
+  "name": "KRATON 카드 피드백 루프",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 17 * * *" }] } },
+      "id": "trigger",
+      "name": "매일 오후 5시",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [100, 300],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": "students",
+        "filters": { "filter": [{ "field": "churn_risk_level", "condition": "in", "value": "critical,high" }] }
+      },
+      "id": "get_risk_students",
+      "name": "위험 학생 조회",
+      "type": "n8n-nodes-base.supabase",
+      "position": [300, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": "students",
+        "filters": { "filter": [{ "field": "attendance_rate", "condition": "gte", "value": "90" }, { "field": "homework_rate", "condition": "gte", "value": "90" }] }
+      },
+      "id": "get_growth_students",
+      "name": "성장 학생 조회",
+      "type": "n8n-nodes-base.supabase",
+      "position": [300, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst cards = [];\n\nfor (const item of items) {\n  const s = item.json;\n  const isRisk = ['critical', 'high'].includes(s.churn_risk_level);\n  \n  cards.push({\n    json: {\n      student_id: s.id,\n      student_name: s.name,\n      parent_phone: s.parent_phone,\n      parent_name: s.parent_name,\n      card_type: isRisk ? 'care' : 'growth',\n      title: isRisk \n        ? s.name + ' 학생에게 관심이 필요합니다' \n        : s.name + ' 학생이 성장하고 있습니다!',\n      message: isRisk\n        ? '최근 ' + s.name + ' 학생의 출석률이 ' + s.attendance_rate + '%입니다. 함께 응원해주세요.'\n        : s.name + ' 학생이 출석률 ' + s.attendance_rate + '%, 숙제 완료율 ' + s.homework_rate + '%를 달성했습니다!',\n      cta: isRisk ? '상담 예약하기' : '칭찬 메시지 보내기',\n      feedback_url: 'https://kraton.app/feedback/' + s.id,\n      created_at: new Date().toISOString()\n    }\n  });\n}\n\nreturn cards;"
+      },
+      "id": "generate_cards",
+      "name": "카드 데이터 생성",
+      "type": "n8n-nodes-base.code",
+      "position": [500, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://api.solapi.com/messages/v4/send-many",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "send_alimtalk",
+      "name": "알림톡 발송",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [700, 300],
+      "typeVersion": 4.1
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "notifications",
+        "columns": "student_id,card_type,title,message,sent_at,status"
+      },
+      "id": "save_notification",
+      "name": "알림 기록 저장",
+      "type": "n8n-nodes-base.supabase",
+      "position": [900, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": { "httpMethod": "POST", "path": "card-feedback", "responseMode": "responseNode" },
+      "id": "feedback_webhook",
+      "name": "피드백 Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [100, 550],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "jsCode": "const feedback = $input.first().json.body;\n\nreturn [{\n  json: {\n    student_id: feedback.student_id,\n    feedback_type: feedback.type,\n    content: feedback.content,\n    received_at: new Date().toISOString(),\n    risk_update_needed: feedback.type === 'consultation_request'\n  }\n}];"
+      },
+      "id": "process_feedback",
+      "name": "피드백 처리",
+      "type": "n8n-nodes-base.code",
+      "position": [300, 550],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "feedback_logs",
+        "columns": "student_id,feedback_type,content,received_at"
+      },
+      "id": "save_feedback",
+      "name": "피드백 저장",
+      "type": "n8n-nodes-base.supabase",
+      "position": [500, 550],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": { "boolean": [{ "value1": "={{ $json.risk_update_needed }}", "value2": true }] }
+      },
+      "id": "check_consultation",
+      "name": "상담 요청 확인",
+      "type": "n8n-nodes-base.if",
+      "position": [700, 550],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "churn_risk_events",
+        "filters": { "filter": [{ "field": "student_id", "condition": "eq", "value": "={{ $json.student_id }}" }] },
+        "columns": "status,consultation_requested_at"
+      },
+      "id": "update_risk",
+      "name": "Risk Queue 업데이트",
+      "type": "n8n-nodes-base.supabase",
+      "position": [900, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "channel": "#feedback",
+        "text": "📝 피드백 수신\n학생: {{ $json.student_name }}\n유형: {{ $json.feedback_type }}\n내용: {{ $json.content }}"
+      },
+      "id": "slack_feedback",
+      "name": "Slack 알림",
+      "type": "n8n-nodes-base.slack",
+      "position": [900, 600],
+      "typeVersion": 2
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "{ \"success\": true }" },
+      "id": "respond_feedback",
+      "name": "응답",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1100, 550],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "trigger": { "main": [[{ "node": "get_risk_students", "type": "main", "index": 0 }, { "node": "get_growth_students", "type": "main", "index": 0 }]] },
+    "get_risk_students": { "main": [[{ "node": "generate_cards", "type": "main", "index": 0 }]] },
+    "get_growth_students": { "main": [[{ "node": "generate_cards", "type": "main", "index": 0 }]] },
+    "generate_cards": { "main": [[{ "node": "send_alimtalk", "type": "main", "index": 0 }]] },
+    "send_alimtalk": { "main": [[{ "node": "save_notification", "type": "main", "index": 0 }]] },
+    "feedback_webhook": { "main": [[{ "node": "process_feedback", "type": "main", "index": 0 }]] },
+    "process_feedback": { "main": [[{ "node": "save_feedback", "type": "main", "index": 0 }]] },
+    "save_feedback": { "main": [[{ "node": "check_consultation", "type": "main", "index": 0 }]] },
+    "check_consultation": { "main": [[{ "node": "update_risk", "type": "main", "index": 0 }], [{ "node": "slack_feedback", "type": "main", "index": 0 }]] },
+    "update_risk": { "main": [[{ "node": "slack_feedback", "type": "main", "index": 0 }]] },
+    "slack_feedback": { "main": [[{ "node": "respond_feedback", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "매일 오후 5시 카드 발송 + 피드백 수신 + Risk Queue 업데이트", "effect": "T↓50%, s↑0.3" }
+}

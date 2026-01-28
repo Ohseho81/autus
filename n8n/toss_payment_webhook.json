@@ -1,0 +1,98 @@
+{
+  "name": "KRATON 토스페이먼츠 결제 Webhook",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "toss-payment-webhook", "responseMode": "responseNode" },
+      "id": "webhook",
+      "name": "토스 Webhook 수신",
+      "type": "n8n-nodes-base.webhook",
+      "position": [100, 300],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst statusMap = { 'DONE': 'completed', 'CANCELED': 'canceled', 'ABORTED': 'failed', 'EXPIRED': 'expired', 'WAITING_FOR_DEPOSIT': 'pending' };\nconst payment = {\n  payment_key: body.paymentKey,\n  order_id: body.orderId,\n  amount: body.totalAmount,\n  status: statusMap[body.status] || body.status,\n  method: body.method,\n  requested_at: body.requestedAt,\n  approved_at: body.approvedAt\n};\nconst isFailed = ['canceled', 'failed', 'expired'].includes(payment.status);\nreturn [{ json: { ...payment, is_failed: isFailed, risk_action_needed: isFailed } }];"
+      },
+      "id": "parse",
+      "name": "결제 상태 파싱",
+      "type": "n8n-nodes-base.code",
+      "position": [300, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "payments",
+        "columns": "payment_key,order_id,amount,status,method,requested_at,approved_at"
+      },
+      "id": "save_payment",
+      "name": "결제 정보 저장",
+      "type": "n8n-nodes-base.supabase",
+      "position": [500, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": { "boolean": [{ "value1": "={{ $json.is_failed }}", "value2": true }] }
+      },
+      "id": "check_failed",
+      "name": "결제 실패 확인",
+      "type": "n8n-nodes-base.if",
+      "position": [700, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "churn_risk_events",
+        "columns": "order_id,risk_type,risk_level,detected_at,source"
+      },
+      "id": "save_risk",
+      "name": "Risk Queue 등록",
+      "type": "n8n-nodes-base.supabase",
+      "position": [900, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "channel": "#payment-alerts",
+        "text": "💰 결제 실패\n주문ID: {{ $json.order_id }}\n금액: {{ $json.amount }}원\n상태: {{ $json.status }}"
+      },
+      "id": "slack_failed",
+      "name": "Slack 알림 (실패)",
+      "type": "n8n-nodes-base.slack",
+      "position": [1100, 200],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "channel": "#payments",
+        "text": "✅ 결제 완료\n주문ID: {{ $json.order_id }}\n금액: {{ $json.amount }}원"
+      },
+      "id": "slack_success",
+      "name": "Slack 알림 (성공)",
+      "type": "n8n-nodes-base.slack",
+      "position": [900, 400],
+      "typeVersion": 2
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "{ \"success\": true }" },
+      "id": "respond",
+      "name": "응답",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1300, 300],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "webhook": { "main": [[{ "node": "parse", "type": "main", "index": 0 }]] },
+    "parse": { "main": [[{ "node": "save_payment", "type": "main", "index": 0 }]] },
+    "save_payment": { "main": [[{ "node": "check_failed", "type": "main", "index": 0 }]] },
+    "check_failed": { "main": [[{ "node": "save_risk", "type": "main", "index": 0 }], [{ "node": "slack_success", "type": "main", "index": 0 }]] },
+    "save_risk": { "main": [[{ "node": "slack_failed", "type": "main", "index": 0 }]] },
+    "slack_failed": { "main": [[{ "node": "respond", "type": "main", "index": 0 }]] },
+    "slack_success": { "main": [[{ "node": "respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "토스페이먼츠 결제 Webhook + 실패 시 Risk Queue + 알림", "effect": "T↓30%, 미납 회수율 ↑" }
+}
