@@ -9,7 +9,7 @@
  */
 
 import React, { useState } from 'react';
-import CelebrationPopup, { useCelebration } from '../common/CelebrationPopup';
+import CelebrationPopup, { useCelebration } from '../Common/CelebrationPopup';
 import TeacherDashboard from './TeacherDashboard';
 import ManagerDashboard from './ManagerDashboard';
 import OwnerDashboard from './OwnerDashboard';

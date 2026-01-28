@@ -13,9 +13,9 @@
 
 import { useState, useEffect } from "react";
 import { useTheme, useGraphWebSocket } from "@/hooks";
-import { ThemeToggle } from "@/components/Theme";
-import { FSDNavigation } from "@/components/FSD";
-import { RelationshipGraph, generateSampleGraphData } from "@/components/Graph";
+import { ThemeToggle } from "@/components/_legacy/Theme";
+import { FSDNavigation } from "@/components/_legacy/FSD";
+import { RelationshipGraph, generateSampleGraphData } from "@/components/_legacy/Graph";
 
 // 사용자 데이터 타입
 interface UserData {

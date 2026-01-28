@@ -126,8 +126,18 @@ type View = 'transform' | 'trinity' | 'matrix' | 'engine' | 'cube' | 'unified' |
 const LoadingFallback = () => (
   <div className="w-full h-full bg-slate-900 flex items-center justify-center">
     <div className="text-center">
-      <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-      <div className="text-slate-400 text-sm">AUTUS 로딩 중...</div>
+      {/* 로고 애니메이션 */}
+      <div className="relative w-20 h-20 mx-auto mb-6">
+        <div className="absolute inset-0 border-4 border-cyan-500/20 rounded-full" />
+        <div className="absolute inset-0 border-4 border-transparent border-t-cyan-500 rounded-full animate-spin" />
+        <div className="absolute inset-2 border-4 border-transparent border-b-cyan-400/50 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-2xl">⚡</span>
+        </div>
+      </div>
+      {/* 텍스트 */}
+      <div className="text-cyan-400 font-semibold text-lg mb-2">AUTUS</div>
+      <div className="text-slate-500 text-sm">시스템을 준비하고 있습니다...</div>
     </div>
   </div>
 );
@@ -390,69 +400,31 @@ function NavigationSidebar({
   isExpanded: boolean;
   setIsExpanded: (v: boolean) => void;
 }) {
+  // MVP 네비게이션 - 핵심 기능만 표시 (시제품용 간소화)
   const navItems = [
-    // L0: Control Deck (홈)
+    // 🏠 홈
     { id: 'transform', icon: '🎯', label: 'Control', color: '#06b6d4', isHome: true },
-    
-    // Separator - Role Dashboard ✨ NEW!
+
+    // 📊 핵심 대시보드
     { id: 'divider1', icon: '', label: '', color: '' },
-    
-    // L4: Role-based Dashboard (MVP 모드)
-    { id: 'role', icon: '🎭', label: 'Role', color: '#f59e0b' },
-    
-    // L5: Academy Dashboard (학원 관리 대시보드) ✨ NEW!
-    { id: 'academy', icon: '🏫', label: '학원', color: '#8b5cf6' },
-    
-    // L6: Demo Page (11개 뷰 데모) ✨ NEW!
-    { id: 'demo', icon: '🎪', label: 'Demo', color: '#ec4899' },
-    
-    // Separator - Core Pages
-    { id: 'divider1a', icon: '', label: '', color: '' },
-    
-    // L1: Core Pages (핵심 페이지)
-    { id: 'mylearning', icon: '📚', label: '학습', color: '#22c55e' },
-    { id: 'work', icon: '📋', label: '업무', color: '#3b82f6' },
-    { id: 'goals', icon: '🎯', label: '목표', color: '#f59e0b' },
-    { id: 'future', icon: '🔮', label: '예측', color: '#a855f7' },
-    { id: 'logs', icon: '📊', label: '로그', color: '#06b6d4' },
-    { id: 'macro', icon: '🌍', label: '거시', color: '#ec4899' },
-    
-    // Separator - Tools
+    { id: 'academy', icon: '🏫', label: '학원관리', color: '#8b5cf6' },
+    { id: 'role', icon: '🎭', label: '역할별', color: '#f59e0b' },
+
+    // 📈 주요 기능
     { id: 'divider2', icon: '', label: '', color: '' },
-    
-    // L2: Input Modules
-    { id: 'data', icon: '📥', label: 'Data', color: '#06b6d4' },
-    { id: 'pressure', icon: '⚡', label: 'Pressure', color: '#ef4444' },
-    { id: 'learning', icon: '🔄', label: 'ML Loop', color: '#22c55e' },
-    { id: 'simulator', icon: '🧪', label: 'Simulator', color: '#8b5cf6' },
-    { id: 'map', icon: '🗺️', label: 'Map', color: '#10b981' },
-    { id: 'matrix72', icon: '⚖️', label: '72 Matrix', color: '#3b82f6' },
-    { id: 'prediction', icon: '📈', label: 'Physics', color: '#a855f7' },
-    { id: 'cube72', icon: '🧊', label: '72³ Cube', color: '#06b6d4' },
-    
-    // Separator - Legacy
+    { id: 'work', icon: '📋', label: '업무', color: '#3b82f6' },
+    { id: 'future', icon: '🔮', label: '예측', color: '#a855f7' },
+    { id: 'pressure', icon: '⚡', label: '긴급', color: '#ef4444' },
+    { id: 'map', icon: '🗺️', label: '지도', color: '#10b981' },
+
+    // ⚙️ 설정
     { id: 'divider3', icon: '', label: '', color: '' },
-    
-    // Process & System
-    { id: 'tasks', icon: '📋', label: '업무등록', color: '#3b82f6' },
-    { id: 'automation', icon: '⚡', label: '자동화', color: '#22c55e' },
-    { id: 'zoom', icon: '🔭', label: 'Zoom', color: '#a855f7' },
-    { id: 'workflow', icon: '🔀', label: 'Workflow', color: '#00d4ff' },
-    { id: 'nervous', icon: '⚡', label: 'Nervous', color: '#22d3ee' },
-    { id: 'bpmn', icon: '📋', label: 'BPMN', color: '#f59e0b' },
-    { id: 'process', icon: '🔄', label: 'Process', color: '#8b5cf6' },
-    { id: 'system', icon: '🖥️', label: 'System', color: '#22c55e' },
-    { id: 'trinity', icon: '👑', label: 'Trinity', color: '#fbbf24' },
-    { id: 'dashboard', icon: '📊', label: 'Audit', color: '#64748b' },
-    { id: 'unified', icon: '⚛️', label: 'Unified', color: '#06b6d4' },
-    
-    // Separator - Admin & Settings
-    { id: 'divider4', icon: '', label: '', color: '' },
-    
-    // L3: Admin & Settings
-    { id: 'mypage', icon: '👤', label: 'My', color: '#06b6d4' },
+    { id: 'mypage', icon: '👤', label: '마이', color: '#06b6d4' },
     { id: 'integrations', icon: '🔗', label: '연동', color: '#22c55e' },
-    { id: 'user', icon: '📊', label: '대시보드', color: '#3b82f6' },
+
+    // 🔧 개발자 도구 (접힌 상태로 표시)
+    { id: 'divider4', icon: '', label: '', color: '' },
+    { id: 'demo', icon: '🎪', label: 'Demo', color: '#ec4899' },
     { id: 'admin', icon: '⚙️', label: '관리자', color: '#f59e0b' },
   ] as const;
 
@@ -514,7 +486,7 @@ function NavigationSidebar({
       {/* 하단 정보 */}
       <div className={`px-3 pt-4 border-t border-white/10 mt-auto ${isExpanded ? 'text-left' : 'text-center'}`}>
         <span className={`text-xs text-slate-500 transition-all duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
-          v2.1
+          v2.2 MVP
         </span>
       </div>
     </nav>
