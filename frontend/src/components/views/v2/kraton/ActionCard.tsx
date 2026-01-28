@@ -24,18 +24,17 @@ interface ActionCardProps {
   onComplete?: (id: number) => void;
 }
 
-const getTypeIcon = (type: string) => {
+const TypeIcon: React.FC<{ type: string; color: string }> = ({ type, color }) => {
   switch (type) {
-    case 'call': return Phone;
-    case 'message': return MessageSquare;
-    case 'report': return BarChart3;
-    default: return Zap;
+    case 'call': return <Phone size={18} color={color} />;
+    case 'message': return <MessageSquare size={18} color={color} />;
+    case 'report': return <BarChart3 size={18} color={color} />;
+    default: return <Zap size={18} color={color} />;
   }
 };
 
 export const ActionCard: React.FC<ActionCardProps> = ({ action, onComplete }) => {
   const style = getPriorityStyle(action.priority);
-  const Icon = getTypeIcon(action.type);
   
   return (
     <GlassCard className="p-4 cursor-grab active:cursor-grabbing">
@@ -51,7 +50,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ action, onComplete }) =>
           className="p-2 rounded-lg shrink-0"
           style={{ background: style.color.bg }}
         >
-          <Icon size={18} color={style.color.primary} />
+          <TypeIcon type={action.type} color={style.color.primary} />
         </div>
         
         {/* Content */}

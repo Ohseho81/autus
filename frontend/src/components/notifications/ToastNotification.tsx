@@ -6,7 +6,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import type { NotificationType, NotificationPriority } from '../../core/notifications/notification-config';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -44,6 +44,13 @@ export default function ToastNotification({
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
+  const handleDismiss = useCallback(() => {
+    setIsExiting(true);
+    setTimeout(() => {
+      onDismiss(toast.id);
+    }, 300);
+  }, [onDismiss, toast.id]);
+
   useEffect(() => {
     // 등장 애니메이션
     setTimeout(() => setIsVisible(true), 10);
@@ -56,14 +63,7 @@ export default function ToastNotification({
       }, duration);
       return () => clearTimeout(timer);
     }
-  }, [toast]);
-
-  const handleDismiss = () => {
-    setIsExiting(true);
-    setTimeout(() => {
-      onDismiss(toast.id);
-    }, 300);
-  };
+  }, [toast, handleDismiss]);
 
   const getPriorityStyles = () => {
     switch (toast.priority) {

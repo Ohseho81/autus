@@ -12,7 +12,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // =============================================================================
@@ -259,6 +259,14 @@ export default function AdminDashboard() {
   const [groupFilter, setGroupFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
+  // Functions (moved before useEffect)
+  const addLog = useCallback((type: Log['type'], message: string) => {
+    setLogs((prev) => [
+      { id: Math.random().toString(36).slice(2), type, message, timestamp: new Date() },
+      ...prev.slice(0, 49),
+    ]);
+  }, []);
+
   // Initialize
   useEffect(() => {
     const generatedTasks = generateTasks();
@@ -267,7 +275,7 @@ export default function AdminDashboard() {
     addLog('success', '시스템 시작됨');
     addLog('info', `570개 업무 로드 완료`);
     addLog('info', `8개 그룹 초기화 완료`);
-  }, []);
+  }, [addLog]);
 
   // Computed values
   const filteredTasks = useMemo(() => {
@@ -301,13 +309,6 @@ export default function AdminDashboard() {
   }, [tasks]);
 
   // Functions
-  function addLog(type: Log['type'], message: string) {
-    setLogs((prev) => [
-      { id: Math.random().toString(36).slice(2), type, message, timestamp: new Date() },
-      ...prev.slice(0, 49),
-    ]);
-  }
-
   function runEliminationCycle() {
     const candidates = tasks.filter((t) => (t.k < 0.5 || t.omega > 0.7) && t.status !== 'eliminated');
 

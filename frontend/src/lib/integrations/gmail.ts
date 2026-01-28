@@ -383,7 +383,9 @@ export class GmailClient {
       
       if (hoursSince > 24) urgency -= 10;
       if (hoursSince > 72) urgency -= 20;
-    } catch {}
+    } catch {
+      // Date parsing error - ignore silently
+    }
     
     return Math.max(0, Math.min(100, urgency));
   }

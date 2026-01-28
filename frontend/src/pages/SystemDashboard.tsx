@@ -3,7 +3,7 @@
  * 전체 시스템 상태 통합 뷰
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { systemApi, autusApi, edgeApi, auditApi, refApi } from '../api/autus';
 
 interface SystemHealth {
@@ -24,11 +24,7 @@ export function SystemDashboard() {
   const [apiStatuses, setApiStatuses] = useState<ApiStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadSystemStatus();
-  }, []);
-
-  const loadSystemStatus = async () => {
+  const loadSystemStatus = useCallback(async () => {
     setLoading(true);
 
     // Health Check
@@ -75,7 +71,11 @@ export function SystemDashboard() {
     }
 
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSystemStatus();
+  }, [loadSystemStatus]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
