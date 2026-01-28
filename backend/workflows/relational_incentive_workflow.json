@@ -1,0 +1,119 @@
+{
+  "name": "KRATON - Relational Incentive Loop",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "weekly-cron",
+      "name": "Every Sunday Midnight",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH teacher_relations AS (\n  SELECT \n    rn.source_id as teacher_id,\n    u.name as teacher_name,\n    AVG(pm.s_index) as avg_s_index,\n    AVG(pm.m_score) as avg_m_score,\n    COUNT(*) as total_relations,\n    SUM(CASE WHEN pm.s_index >= 0.7 THEN 1 ELSE 0 END) as high_satisfaction_count\n  FROM relational_nodes rn\n  JOIN physics_metrics pm ON rn.id = pm.node_id\n  JOIN users u ON rn.source_id = u.id\n  WHERE rn.relation_type IN ('T-S', 'T-P')\n    AND rn.organization_id = '{{ $json.organization_id }}'\n    AND pm.calculated_at > NOW() - INTERVAL '7 days'\n  GROUP BY rn.source_id, u.name\n),\nprevious_week AS (\n  SELECT \n    rn.source_id as teacher_id,\n    AVG(pm.s_index) as prev_avg_s_index\n  FROM relational_nodes rn\n  JOIN physics_metrics pm ON rn.id = pm.node_id\n  WHERE rn.relation_type IN ('T-S', 'T-P')\n    AND pm.calculated_at BETWEEN NOW() - INTERVAL '14 days' AND NOW() - INTERVAL '7 days'\n  GROUP BY rn.source_id\n)\nSELECT \n  tr.*,\n  pw.prev_avg_s_index,\n  (tr.avg_s_index - COALESCE(pw.prev_avg_s_index, tr.avg_s_index)) as s_index_change,\n  CASE \n    WHEN (tr.avg_s_index - COALESCE(pw.prev_avg_s_index, tr.avg_s_index)) >= 0.1 THEN 'STAR'\n    WHEN (tr.avg_s_index - COALESCE(pw.prev_avg_s_index, tr.avg_s_index)) >= 0.05 THEN 'RISING'\n    WHEN tr.avg_s_index >= 0.8 THEN 'EXCELLENT'\n    ELSE 'NORMAL'\n  END as performance_tier\nFROM teacher_relations tr\nLEFT JOIN previous_week pw ON tr.teacher_id = pw.teacher_id\nORDER BY s_index_change DESC, avg_s_index DESC"
+      },
+      "id": "fetch-teacher-stats",
+      "name": "Fetch Teacher Relation Stats",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// KRATON Relational Incentive Calculator\nconst items = $input.all();\nconst incentives = [];\n\nconst BONUS_POINTS = {\n  STAR: 500,      // 관계 지수 10%+ 상승\n  RISING: 200,    // 관계 지수 5%+ 상승  \n  EXCELLENT: 300, // 80%+ 유지\n  NORMAL: 0\n};\n\nconst BADGE_TITLES = {\n  STAR: '🌟 이번 주의 관계 스타',\n  RISING: '📈 떠오르는 케어 전문가',\n  EXCELLENT: '💎 관계 마스터',\n  NORMAL: null\n};\n\nfor (const item of items) {\n  const {\n    teacher_id,\n    teacher_name,\n    avg_s_index,\n    s_index_change,\n    performance_tier,\n    total_relations,\n    high_satisfaction_count\n  } = item.json;\n  \n  const bonusPoints = BONUS_POINTS[performance_tier];\n  const badgeTitle = BADGE_TITLES[performance_tier];\n  \n  if (bonusPoints > 0) {\n    incentives.push({\n      teacher_id,\n      teacher_name,\n      performance_tier,\n      bonus_points: bonusPoints,\n      badge_title: badgeTitle,\n      stats: {\n        avg_s_index: (avg_s_index * 100).toFixed(1) + '%',\n        change: s_index_change > 0 \n          ? '+' + (s_index_change * 100).toFixed(1) + '%'\n          : (s_index_change * 100).toFixed(1) + '%',\n        total_relations,\n        satisfaction_rate: ((high_satisfaction_count / total_relations) * 100).toFixed(0) + '%'\n      },\n      message: performance_tier === 'STAR'\n        ? `축하합니다! ${teacher_name}님의 관계 지수가 이번 주 ${(s_index_change * 100).toFixed(1)}% 상승했습니다!`\n        : performance_tier === 'RISING'\n        ? `${teacher_name}님의 관계 지수가 꾸준히 상승 중입니다!`\n        : `${teacher_name}님, 뛰어난 관계 관리 능력을 유지하고 계십니다!`\n    });\n  }\n}\n\n// 상위 3명만 특별 인센티브\nconst topPerformers = incentives\n  .sort((a, b) => b.bonus_points - a.bonus_points)\n  .slice(0, 3)\n  .map((item, idx) => ({\n    ...item,\n    rank: idx + 1,\n    bonus_points: item.bonus_points + (3 - idx) * 100 // 순위 보너스\n  }));\n\nreturn topPerformers.map(item => ({ json: item }));"
+      },
+      "id": "calculate-incentives",
+      "name": "Calculate Incentives",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "asset_valuation",
+        "columns": "organization_id, node_id, node_type, node_name, relational_bonus_points, bonus_reason, valuation_date"
+      },
+      "id": "insert-bonus",
+      "name": "Record Bonus Points",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [960, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.KRATON_API_URL }}/api/notifications/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"type\": \"incentive_reward\",\n  \"recipient_id\": \"{{ $json.teacher_id }}\",\n  \"title\": \"🎉 {{ $json.badge_title }}\",\n  \"message\": \"{{ $json.message }}\",\n  \"bonus_points\": {{ $json.bonus_points }},\n  \"rank\": {{ $json.rank }},\n  \"stats\": {{ JSON.stringify($json.stats) }}\n}"
+      },
+      "id": "send-reward-notification",
+      "name": "Send Reward Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [960, 400]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE users SET \n  metadata = jsonb_set(\n    COALESCE(metadata, '{}'),\n    '{relational_badges}',\n    COALESCE(metadata->'relational_badges', '[]') || '[{\"badge\": \"{{ $json.badge_title }}\", \"date\": \"{{ $now.format('YYYY-MM-DD') }}\", \"points\": {{ $json.bonus_points }}}]'::jsonb\n  )\nWHERE id = '{{ $json.teacher_id }}'"
+      },
+      "id": "update-user-badges",
+      "name": "Update User Badges",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.KRATON_API_URL }}/api/owner/update-cohesion",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"type\": \"weekly_incentive_summary\",\n  \"top_performers\": {{ JSON.stringify($json) }},\n  \"total_bonus_distributed\": {{ $json.bonus_points }},\n  \"timestamp\": \"{{ $now.toISO() }}\"\n}"
+      },
+      "id": "update-owner-console",
+      "name": "Update Owner Console",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1200, 500]
+    }
+  ],
+  "connections": {
+    "Every Sunday Midnight": {
+      "main": [[{ "node": "Fetch Teacher Relation Stats", "type": "main", "index": 0 }]]
+    },
+    "Fetch Teacher Relation Stats": {
+      "main": [[{ "node": "Calculate Incentives", "type": "main", "index": 0 }]]
+    },
+    "Calculate Incentives": {
+      "main": [
+        [
+          { "node": "Record Bonus Points", "type": "main", "index": 0 },
+          { "node": "Send Reward Notification", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Record Bonus Points": {
+      "main": [[{ "node": "Update User Badges", "type": "main", "index": 0 }]]
+    },
+    "Send Reward Notification": {
+      "main": [[{ "node": "Update Owner Console", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["KRATON", "Incentive", "Weekly"]
+}

@@ -302,6 +302,15 @@ for api_name in ["sovereign_api", "injection_api", "pipeline_api", "autus_unifie
     except ImportError:
         pass
 
+# ─────────────────────────────────────────────────────────────
+# AUTUS 2.0 Views API (11개 뷰)
+# ─────────────────────────────────────────────────────────────
+try:
+    from routers import views_api
+    app.include_router(views_api.router)
+    logger.info("  ✅ Views API (11개 뷰) 등록 완료")
+except ImportError as e:
+    logger.warning(f"  ⚠️ Views API 로드 실패: {e}")
 
 # ─────────────────────────────────────────────────────────────
 # K/I Physics Routers (v4.x)
@@ -460,6 +469,47 @@ try:
     logger.info("  ✅ sync_router (v14.0 - 자동 동기화 + AI 분석)")
 except ImportError as e:
     logger.debug(f"  ⏭️ sync_router: {e}")
+
+# ─────────────────────────────────────────────────────────────
+# v15.0 Core Physics & Monitoring (핵심 기능 활성화)
+# ─────────────────────────────────────────────────────────────
+try:
+    from routers.v_router import router as v_router
+    app.include_router(v_router)
+    logger.info("  ✅ v_router (v15.0 - V 공식 계산 엔진)")
+except ImportError as e:
+    logger.debug(f"  ⏭️ v_router: {e}")
+
+try:
+    from routers.monitoring_router import router as monitoring_router
+    app.include_router(monitoring_router)
+    logger.info("  ✅ monitoring_router (v15.0 - 시스템 모니터링)")
+except ImportError as e:
+    logger.debug(f"  ⏭️ monitoring_router: {e}")
+
+try:
+    from routers.typedb_router import router as typedb_router
+    app.include_router(typedb_router)
+    logger.info("  ✅ typedb_router (v15.0 - TypeDB 통합)")
+except ImportError as e:
+    logger.debug(f"  ⏭️ typedb_router: {e}")
+
+try:
+    from routers.automation_router import router as automation_router
+    app.include_router(automation_router)
+    logger.info("  ✅ automation_router (v15.0 - 업무 자동화)")
+except ImportError as e:
+    logger.debug(f"  ⏭️ automation_router: {e}")
+
+# ─────────────────────────────────────────────────────────────
+# Extended API Modules (추가 API 모듈)
+# ─────────────────────────────────────────────────────────────
+for api_name in ["solution_api", "modules_api", "readonly_api"]:
+    try:
+        module = __import__(f"api.{api_name}", fromlist=[api_name])
+        _include_router_safe(app, module, api_name)
+    except ImportError:
+        pass
 
 
 # Portal API (Frontend 연동)

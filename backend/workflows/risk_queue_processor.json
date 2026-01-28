@@ -1,0 +1,491 @@
+{
+  "name": "AUTUS Risk Queue Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "15분마다 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "risk-queue-process",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 500]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT rq.*, rn.name as node_name, rn.node_type, rn.contact_info\nFROM risk_queue rq\nJOIN relational_nodes rn ON rq.target_node = rn.id\nWHERE rq.status = 'pending'\nAND rq.priority >= 50\nORDER BY rq.priority DESC, rq.risk_score DESC\nLIMIT 20",
+        "additionalFields": {}
+      },
+      "id": "fetch-pending-risks",
+      "name": "Pending Risks 조회",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [500, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.length }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "check-has-items",
+      "name": "처리할 항목 있음?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [700, 400]
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "id": "batch-items",
+      "name": "배치 처리 (5개씩)",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Risk 항목 분류 및 액션 결정\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const riskScore = parseFloat(item.json.risk_score);\n  const riskType = item.json.risk_type;\n  const priority = item.json.priority;\n  \n  let action = 'monitor';\n  let escalate = false;\n  let sendNotification = false;\n  let generateReport = false;\n  \n  // Risk Score 기반 액션 결정\n  if (riskScore >= 0.7) {\n    // Critical Risk\n    action = 'immediate_intervention';\n    escalate = true;\n    sendNotification = true;\n    generateReport = true;\n  } else if (riskScore >= 0.5) {\n    // High Risk\n    action = 'active_outreach';\n    sendNotification = true;\n    generateReport = true;\n  } else if (riskScore >= 0.3) {\n    // Medium Risk\n    action = 'schedule_contact';\n    sendNotification = priority >= 70;\n  } else {\n    // Low Risk\n    action = 'monitor';\n  }\n  \n  // Risk Type별 추가 액션\n  if (riskType === 'payment') {\n    sendNotification = true; // 결제 문제는 항상 알림\n  } else if (riskType === 'churn' && riskScore >= 0.5) {\n    generateReport = true; // 이탈 위험은 리포트 생성\n  }\n  \n  results.push({\n    json: {\n      ...item.json,\n      determined_action: action,\n      should_escalate: escalate,\n      send_notification: sendNotification,\n      generate_report: generateReport,\n      processed_at: new Date().toISOString()\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "classify-risks",
+      "name": "Risk 분류 및 액션 결정",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.send_notification }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-notification",
+      "name": "알림 필요?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1300, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.generate_report }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-report",
+      "name": "리포트 필요?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AUTUS_API_URL }}/api/notify",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.AUTUS_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"type\": \"risk_alert\",\n  \"target\": \"{{ $json.node_name }}\",\n  \"risk_type\": \"{{ $json.risk_type }}\",\n  \"risk_score\": {{ $json.risk_score }},\n  \"action\": \"{{ $json.determined_action }}\",\n  \"contact_info\": {{ JSON.stringify($json.contact_info) }},\n  \"priority\": {{ $json.priority }}\n}",
+        "options": {}
+      },
+      "id": "send-notification",
+      "name": "알림 발송",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1500, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AUTUS_API_URL }}/api/shield/activate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.AUTUS_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"node_id\": \"{{ $json.target_node }}\",\n  \"risk_queue_id\": \"{{ $json.id }}\",\n  \"trigger_type\": \"auto\",\n  \"risk_score\": {{ $json.risk_score }},\n  \"generate_report\": true\n}",
+        "options": {}
+      },
+      "id": "trigger-shield",
+      "name": "Active Shield 트리거",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1500, 400]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE risk_queue\nSET \n  status = CASE \n    WHEN {{ $json.should_escalate }} THEN 'escalated'\n    ELSE 'in_progress'\n  END,\n  auto_actions_taken = auto_actions_taken || $1::jsonb,\n  updated_at = NOW()\nWHERE id = '{{ $json.id }}'",
+        "additionalFields": {
+          "queryParams": "[{\"name\":\"action_log\",\"value\":\"{{ JSON.stringify({action: $json.determined_action, notification_sent: $json.send_notification, report_generated: $json.generate_report, processed_at: $json.processed_at}) }}\"}]"
+        }
+      },
+      "id": "update-risk-status",
+      "name": "Risk 상태 업데이트",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [1700, 300],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.should_escalate }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-escalate",
+      "name": "에스컬레이션 필요?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1900, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AUTUS_API_URL }}/api/notify",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.AUTUS_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"type\": \"escalation\",\n  \"target_role\": \"fsd\",\n  \"subject\": \"긴급: {{ $json.node_name }} 위험 에스컬레이션\",\n  \"body\": \"Risk Score: {{ $json.risk_score }}\\nType: {{ $json.risk_type }}\\nAction Required: {{ $json.determined_action }}\",\n  \"priority\": \"urgent\"\n}",
+        "options": {}
+      },
+      "id": "notify-fsd",
+      "name": "FSD 에스컬레이션 알림",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2100, 100]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO workflow_execution_logs (org_id, workflow_name, workflow_id, trigger_type, status, output_data, completed_at)\nVALUES (\n  (SELECT org_id FROM risk_queue LIMIT 1),\n  'Risk Queue Processor',\n  'risk-queue-processor',\n  '{{ $('15분마다 실행').isExecuted ? 'schedule' : 'webhook' }}',\n  'completed',\n  $1::jsonb,\n  NOW()\n)",
+        "additionalFields": {
+          "queryParams": "[{\"name\":\"output\",\"value\":\"{{ JSON.stringify({processed_count: $input.length, timestamp: new Date().toISOString()}) }}\"}]"
+        }
+      },
+      "id": "log-execution",
+      "name": "실행 로그 저장",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [2100, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({success: true, message: 'Risk queue processed', count: $input.length}) }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2300, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 처리할 항목 없음 - 로그만 남김\nreturn [{\n  json: {\n    message: 'No pending risk items to process',\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "no-items-log",
+      "name": "처리할 항목 없음",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 500]
+    }
+  ],
+  "connections": {
+    "15분마다 실행": {
+      "main": [
+        [
+          {
+            "node": "Pending Risks 조회",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pending Risks 조회",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pending Risks 조회": {
+      "main": [
+        [
+          {
+            "node": "처리할 항목 있음?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "처리할 항목 있음?": {
+      "main": [
+        [
+          {
+            "node": "배치 처리 (5개씩)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "처리할 항목 없음",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "배치 처리 (5개씩)": {
+      "main": [
+        [
+          {
+            "node": "Risk 분류 및 액션 결정",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Risk 분류 및 액션 결정": {
+      "main": [
+        [
+          {
+            "node": "알림 필요?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "리포트 필요?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "알림 필요?": {
+      "main": [
+        [
+          {
+            "node": "알림 발송",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Risk 상태 업데이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "리포트 필요?": {
+      "main": [
+        [
+          {
+            "node": "Active Shield 트리거",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "알림 발송": {
+      "main": [
+        [
+          {
+            "node": "Risk 상태 업데이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Active Shield 트리거": {
+      "main": [
+        [
+          {
+            "node": "Risk 상태 업데이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Risk 상태 업데이트": {
+      "main": [
+        [
+          {
+            "node": "에스컬레이션 필요?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "에스컬레이션 필요?": {
+      "main": [
+        [
+          {
+            "node": "FSD 에스컬레이션 알림",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "실행 로그 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FSD 에스컬레이션 알림": {
+      "main": [
+        [
+          {
+            "node": "실행 로그 저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "실행 로그 저장": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "처리할 항목 없음": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "description": "Risk Queue 항목을 자동으로 처리하고 적절한 액션을 수행합니다.\n\n주요 기능:\n1. 15분마다 pending 상태의 Risk 항목 조회\n2. Risk Score 기반 액션 결정 (monitor, schedule_contact, active_outreach, immediate_intervention)\n3. 알림 발송 (고위험 항목)\n4. Active Shield 트리거 (리포트 생성 필요 시)\n5. FSD 에스컬레이션 (Critical 위험)\n6. 실행 로그 저장",
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "tags": [
+    {
+      "name": "AUTUS",
+      "createdAt": "2026-01-24T00:00:00.000Z",
+      "updatedAt": "2026-01-24T00:00:00.000Z"
+    },
+    {
+      "name": "Risk Management",
+      "createdAt": "2026-01-24T00:00:00.000Z",
+      "updatedAt": "2026-01-24T00:00:00.000Z"
+    }
+  ]
+}

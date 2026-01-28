@@ -1,0 +1,140 @@
+{
+  "name": "KRATON - Churn Detection Loop",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kraton/interaction",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Interaction Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "webhookId": "kraton-interaction-webhook"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Scheduled Check (15min)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 500]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  pm.node_id,\n  pm.s_index,\n  pm.m_score,\n  pm.churn_probability,\n  pm.days_since_contact,\n  pm.s_index_trend,\n  pm.m_score_trend,\n  rn.source_id,\n  rn.target_id,\n  rn.relation_type\nFROM physics_metrics pm\nJOIN relational_nodes rn ON pm.node_id = rn.id\nWHERE pm.node_type = 'relation'\n  AND pm.organization_id = '{{ $json.organization_id }}'\n  AND pm.calculated_at > NOW() - INTERVAL '24 hours'\nORDER BY pm.churn_probability DESC\nLIMIT 100",
+        "options": {}
+      },
+      "id": "fetch-metrics",
+      "name": "Fetch Recent Metrics",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [480, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// KRATON Churn Detection Logic\nconst items = $input.all();\nconst riskyNodes = [];\n\nfor (const item of items) {\n  const { \n    node_id, s_index, m_score, churn_probability,\n    days_since_contact, s_index_trend, m_score_trend \n  } = item.json;\n  \n  // Rule 1: s_index 평균이 40% 이하\n  const sIndexLow = s_index < 0.4;\n  \n  // Rule 2: m_score 2회 연속 하락\n  const mScoreDecline = m_score_trend === 'down';\n  \n  // Rule 3: 이탈 확률 임계치\n  const highChurnRisk = churn_probability >= 0.4;\n  \n  // Rule 4: 접촉 없는 기간\n  const noContact = days_since_contact > 14;\n  \n  // 위험 등급 판정\n  let priority = null;\n  let trigger_reason = [];\n  \n  if (sIndexLow && mScoreDecline) {\n    priority = 'CRITICAL';\n    trigger_reason.push('만족도 저조 + 성과 하락 동시 발생');\n  } else if (highChurnRisk && sIndexLow) {\n    priority = 'HIGH';\n    trigger_reason.push(`이탈 확률 ${(churn_probability * 100).toFixed(1)}% 감지`);\n  } else if (noContact && sIndexLow) {\n    priority = 'MEDIUM';\n    trigger_reason.push(`${days_since_contact}일간 접촉 없음 + 만족도 저조`);\n  }\n  \n  if (priority) {\n    riskyNodes.push({\n      node_id,\n      priority,\n      risk_type: 'churn_imminent',\n      trigger_reason: trigger_reason.join('; '),\n      trigger_metrics: {\n        s_index,\n        m_score,\n        churn_probability,\n        days_since_contact\n      },\n      recommended_action: priority === 'CRITICAL' \n        ? '48시간 내 긴급 상담 필요'\n        : priority === 'HIGH'\n        ? '이번 주 내 케어 콜 진행'\n        : '모니터링 강화'\n    });\n  }\n}\n\nreturn riskyNodes.map(node => ({ json: node }));"
+      },
+      "id": "churn-analysis",
+      "name": "Churn Risk Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.node_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "risk-filter",
+      "name": "Has Risky Nodes?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [960, 400]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "risk_queue",
+        "columns": "organization_id, target_node_id, target_node_type, risk_type, priority, trigger_reason, trigger_metrics, recommended_action, status"
+      },
+      "id": "insert-risk",
+      "name": "Insert to Risk Queue",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.KRATON_API_URL }}/api/notifications/push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.KRATON_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"type\": \"risk_alert\",\n  \"priority\": \"{{ $json.priority }}\",\n  \"title\": \"⚠️ 이탈 위험 감지\",\n  \"message\": \"{{ $json.trigger_reason }}\",\n  \"target_roles\": [\"principal\", \"teacher\"],\n  \"action_url\": \"/risk-queue/{{ $json.node_id }}\"\n}"
+      },
+      "id": "send-notification",
+      "name": "Send Push Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1200, 500]
+    }
+  ],
+  "connections": {
+    "Interaction Webhook": {
+      "main": [[{ "node": "Fetch Recent Metrics", "type": "main", "index": 0 }]]
+    },
+    "Scheduled Check (15min)": {
+      "main": [[{ "node": "Fetch Recent Metrics", "type": "main", "index": 0 }]]
+    },
+    "Fetch Recent Metrics": {
+      "main": [[{ "node": "Churn Risk Analysis", "type": "main", "index": 0 }]]
+    },
+    "Churn Risk Analysis": {
+      "main": [[{ "node": "Has Risky Nodes?", "type": "main", "index": 0 }]]
+    },
+    "Has Risky Nodes?": {
+      "main": [
+        [
+          { "node": "Insert to Risk Queue", "type": "main", "index": 0 },
+          { "node": "Send Push Notification", "type": "main", "index": 0 }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["KRATON", "FSD", "Churn Detection"]
+}

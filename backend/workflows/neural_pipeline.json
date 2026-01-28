@@ -1,0 +1,179 @@
+{
+  "name": "KRATON Neural Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neural-input",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "id": "webhook-input",
+      "name": "Quick-Tag Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "neural-input"
+    },
+    {
+      "parameters": {
+        "functionCode": "// 입력 데이터 정규화\nconst input = items[0].json;\n\n// 컨텍스트 텍스트 조합\nlet contextParts = [];\n\nif (input.interaction_type) {\n  contextParts.push(`[상호작용 유형] ${input.interaction_type}`);\n}\n\nif (input.sentiment_emoji) {\n  const emojiMap = {\n    '😊': '매우 만족 (+20)',\n    '🙂': '만족 (+10)',\n    '😐': '불만족 (-10)',\n    '😟': '매우 불만 (-20)'\n  };\n  contextParts.push(`[감정 상태] ${emojiMap[input.sentiment_emoji] || input.sentiment_emoji}`);\n}\n\nif (input.bond_tag) {\n  contextParts.push(`[유대 강도] ${input.bond_tag}`);\n}\n\nif (input.issue_triggers && input.issue_triggers.length) {\n  contextParts.push(`[이슈 트리거] ${input.issue_triggers.join(', ')}`);\n}\n\nif (input.tags && input.tags.length) {\n  contextParts.push(`[태그] ${input.tags.join(', ')}`);\n}\n\nif (input.raw_text) {\n  contextParts.push(`[메모] ${input.raw_text}`);\n}\n\nif (input.voice_transcript) {\n  contextParts.push(`[음성 기록] ${input.voice_transcript}`);\n}\n\nreturn [{\n  json: {\n    ...input,\n    context_text: contextParts.join('\\n'),\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "prepare-context",
+      "name": "Prepare Context",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "requestMethod": "POST",
+        "jsonParameters": true,
+        "options": {
+          "bodyParameters": {
+            "parameters": []
+          }
+        },
+        "bodyParametersJson": "={{ JSON.stringify({ model: 'claude-3-5-sonnet-20241022', max_tokens: 1024, messages: [{ role: 'user', content: `당신은 KRATON Physics Engine의 데이터 벡터화 전문가입니다. 다음 상호작용 데이터를 분석하여 JSON으로 응답하세요.\n\n추출할 변수:\n1. s_delta (만족도 변화): -100 ~ +100\n2. m_delta (성과 변화): -100 ~ +100\n3. bond_strength (유대 강도): 0 ~ 100\n4. risk_indicators (위험 신호): string[]\n5. psychological_triggers (심리적 트리거): string[]\n6. analysis_summary (분석 요약): string\n7. recommended_action (권장 조치): string\n\n데이터:\n${$json.context_text}\n\nJSON 형식으로만 응답:` }] }) }}"
+      },
+      "id": "claude-vectorize",
+      "name": "Claude Vectorization",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 300],
+      "credentials": {
+        "anthropicApi": {
+          "id": "anthropic-cred",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Claude 응답에서 JSON 추출\nconst response = items[0].json;\nconst input = $('Prepare Context').first().json;\n\nlet physicsVector;\ntry {\n  const content = response.content[0].text;\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  physicsVector = jsonMatch ? JSON.parse(jsonMatch[0]) : null;\n} catch (e) {\n  physicsVector = {\n    s_delta: 0,\n    m_delta: 0,\n    bond_strength: 50,\n    risk_indicators: [],\n    psychological_triggers: [],\n    analysis_summary: '분석 실패',\n    recommended_action: '수동 검토 필요'\n  };\n}\n\n// Risk Score 계산: R(t) = Σ(risk) + |min(0, s_delta)|\nconst riskScore = (physicsVector.risk_indicators?.length || 0) * 10 + \n                  Math.abs(Math.min(0, physicsVector.s_delta || 0));\n\nreturn [{\n  json: {\n    node_id: input.node_id,\n    target_id: input.target_id,\n    context_text: input.context_text,\n    physics_vector: physicsVector,\n    risk_score: riskScore,\n    risk_triggered: riskScore > 30,\n    priority: riskScore > 60 ? 'CRITICAL' : riskScore > 40 ? 'HIGH' : 'MEDIUM',\n    timestamp: input.timestamp\n  }\n}];"
+      },
+      "id": "parse-vector",
+      "name": "Parse Physics Vector",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "interaction_logs",
+        "columns": "node_pair_id,source_node,target_node,raw_content,sentiment_score,vectorized_data,created_at",
+        "additionalFields": {}
+      },
+      "id": "save-log",
+      "name": "Save Interaction Log",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1050, 200],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-pg",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": "public",
+        "table": "physics_metrics",
+        "columns": "node_id,s_index,m_score,bond_strength,risk_indicators,last_interaction,updated_at",
+        "conflictColumns": "node_id",
+        "additionalFields": {}
+      },
+      "id": "update-metrics",
+      "name": "Update Physics Metrics",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1050, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-pg",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.risk_triggered }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-risk",
+      "name": "Risk Threshold Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.ACTIVE_SHIELD_WEBHOOK }}",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{ JSON.stringify({ node_id: $json.target_id, risk_score: $json.risk_score, priority: $json.priority, physics_vector: $json.physics_vector, triggered_at: $json.timestamp }) }}"
+      },
+      "id": "trigger-shield",
+      "name": "Trigger Active Shield",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {},
+      "id": "no-risk",
+      "name": "No Risk Action",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1450, 400]
+    }
+  ],
+  "connections": {
+    "Quick-Tag Webhook": {
+      "main": [
+        [{ "node": "Prepare Context", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Context": {
+      "main": [
+        [{ "node": "Claude Vectorization", "type": "main", "index": 0 }]
+      ]
+    },
+    "Claude Vectorization": {
+      "main": [
+        [{ "node": "Parse Physics Vector", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parse Physics Vector": {
+      "main": [
+        [
+          { "node": "Save Interaction Log", "type": "main", "index": 0 },
+          { "node": "Update Physics Metrics", "type": "main", "index": 0 },
+          { "node": "Risk Threshold Check", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Risk Threshold Check": {
+      "main": [
+        [{ "node": "Trigger Active Shield", "type": "main", "index": 0 }],
+        [{ "node": "No Risk Action", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

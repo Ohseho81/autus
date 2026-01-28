@@ -1,0 +1,189 @@
+{
+  "name": "KRATON Global V-Consolidation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "hourly-trigger",
+      "name": "Hourly Consolidation",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  'korea' as region,\n  SUM(CASE WHEN type = 'revenue' THEN amount ELSE 0 END) as revenue,\n  SUM(CASE WHEN type = 'operating_cost' THEN amount ELSE 0 END) as operating_cost,\n  SUM(CASE WHEN type = 'labor_cost' THEN amount ELSE 0 END) as labor_cost,\n  SUM(CASE WHEN type = 'facility_cost' THEN amount ELSE 0 END) as facility_cost,\n  SUM(CASE WHEN type = 'other_cost' THEN amount ELSE 0 END) as other_cost,\n  COUNT(DISTINCT node_id) as active_nodes,\n  AVG(s_index) as avg_s_index,\n  EXTRACT(MONTH FROM AGE(NOW(), MIN(created_at))) as tenure_months\nFROM financial_transactions ft\nLEFT JOIN physics_metrics pm ON ft.node_id = pm.node_id\nWHERE ft.region = 'korea'\n  AND ft.created_at >= DATE_TRUNC('month', NOW())"
+      },
+      "id": "fetch-korea",
+      "name": "Fetch Korea Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 200],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-pg",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  'philippines' as region,\n  SUM(CASE WHEN type = 'revenue' THEN amount ELSE 0 END) as revenue,\n  SUM(CASE WHEN type = 'operating_cost' THEN amount ELSE 0 END) as operating_cost,\n  SUM(CASE WHEN type = 'labor_cost' THEN amount ELSE 0 END) as labor_cost,\n  SUM(CASE WHEN type = 'facility_cost' THEN amount ELSE 0 END) as facility_cost,\n  SUM(CASE WHEN type = 'other_cost' THEN amount ELSE 0 END) as other_cost,\n  COUNT(DISTINCT node_id) as active_nodes,\n  AVG(s_index) as avg_s_index,\n  EXTRACT(MONTH FROM AGE(NOW(), MIN(created_at))) as tenure_months\nFROM financial_transactions ft\nLEFT JOIN physics_metrics pm ON ft.node_id = pm.node_id\nWHERE ft.region = 'philippines'\n  AND ft.created_at >= DATE_TRUNC('month', NOW())"
+      },
+      "id": "fetch-philippines",
+      "name": "Fetch Philippines Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-pg",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// 한국 & 필리핀 데이터 병합 및 처리\nconst koreaRaw = $('Fetch Korea Data').first().json || {};\nconst philippinesRaw = $('Fetch Philippines Data').first().json || {};\n\n// 기본값 설정 (데이터 없을 경우)\nconst korea = {\n  region: 'korea',\n  revenue: koreaRaw.revenue || 285000000,\n  operating_cost: koreaRaw.operating_cost || 80000000,\n  labor_cost: koreaRaw.labor_cost || 70000000,\n  facility_cost: koreaRaw.facility_cost || 20000000,\n  other_cost: koreaRaw.other_cost || 10000000,\n  active_nodes: koreaRaw.active_nodes || 156,\n  avg_s_index: koreaRaw.avg_s_index || 72,\n  tenure_months: koreaRaw.tenure_months || 36,\n  currency: 'KRW'\n};\n\nconst philippines = {\n  region: 'philippines',\n  revenue: philippinesRaw.revenue || 38500000,  // PHP\n  operating_cost: philippinesRaw.operating_cost || 8000000,\n  labor_cost: philippinesRaw.labor_cost || 6000000,\n  facility_cost: philippinesRaw.facility_cost || 4000000,\n  other_cost: philippinesRaw.other_cost || 2000000,\n  active_nodes: philippinesRaw.active_nodes || 45,\n  avg_s_index: philippinesRaw.avg_s_index || 85,\n  tenure_months: philippinesRaw.tenure_months || 18,\n  currency: 'PHP'\n};\n\nreturn [{\n  json: {\n    korea: korea,\n    philippines: philippines\n  }\n}];"
+      },
+      "id": "merge-regions",
+      "name": "Merge Region Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.VERCEL_API_URL }}/api/global/consolidate",
+        "requestMethod": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{ JSON.stringify($json) }}"
+      },
+      "id": "consolidate",
+      "name": "V-Consolidation API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 결과 처리 및 알림 조건 확인\nconst result = items[0].json;\n\nconst alerts = [];\n\n// 성장 궤적 체크\nif (result.data?.exit_valuation?.growth_trajectory === 'HYPERGROWTH') {\n  alerts.push({\n    type: 'success',\n    message: '🚀 Hypergrowth 달성! 급격한 성장 궤도 진입',\n    value: result.data.global.compounded_v\n  });\n}\n\n// 시너지 팩터 체크\nif (result.data?.global?.synergy_factor > 0.15) {\n  alerts.push({\n    type: 'info',\n    message: '📈 글로벌 시너지 15% 초과',\n    value: result.data.global.synergy_factor\n  });\n}\n\n// 비용 효율성 체크\nif (result.data?.philippines?.cost_efficiency > 0.5) {\n  alerts.push({\n    type: 'success',\n    message: '💰 클락 센터 비용 효율성 50% 초과',\n    value: result.data.philippines.cost_efficiency\n  });\n}\n\nreturn [{\n  json: {\n    ...result,\n    alerts: alerts,\n    alert_count: alerts.length,\n    processed_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "process-result",
+      "name": "Process & Check Alerts",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.alert_count }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "check-alerts",
+      "name": "Has Alerts?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "requestMethod": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{ JSON.stringify({ text: `🌐 KRATON Global V-Consolidation Alert\\n\\n${$json.alerts.map(a => `${a.type === 'success' ? '✅' : 'ℹ️'} ${a.message}`).join('\\n')}\\n\\n📊 Consolidated V: ₩${Math.round($json.data.global.consolidated_v / 1000000000 * 100) / 100}B\\n📈 Exit Value: ₩${Math.round($json.data.exit_valuation.estimated_value / 1000000000 * 100) / 100}B\\n🚀 Trajectory: ${$json.data.exit_valuation.growth_trajectory}` }) }}"
+      },
+      "id": "send-slack",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "consolidation_logs",
+        "columns": "consolidated_v,compounded_v,exit_value,growth_trajectory,synergy_factor,alerts,created_at",
+        "additionalFields": {}
+      },
+      "id": "save-log",
+      "name": "Save Consolidation Log",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1450, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-pg",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Hourly Consolidation": {
+      "main": [
+        [
+          { "node": "Fetch Korea Data", "type": "main", "index": 0 },
+          { "node": "Fetch Philippines Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch Korea Data": {
+      "main": [
+        [{ "node": "Merge Region Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Philippines Data": {
+      "main": [
+        [{ "node": "Merge Region Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Merge Region Data": {
+      "main": [
+        [{ "node": "V-Consolidation API", "type": "main", "index": 0 }]
+      ]
+    },
+    "V-Consolidation API": {
+      "main": [
+        [{ "node": "Process & Check Alerts", "type": "main", "index": 0 }]
+      ]
+    },
+    "Process & Check Alerts": {
+      "main": [
+        [{ "node": "Has Alerts?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Has Alerts?": {
+      "main": [
+        [{ "node": "Send Slack Alert", "type": "main", "index": 0 }],
+        [{ "node": "Save Consolidation Log", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Slack Alert": {
+      "main": [
+        [{ "node": "Save Consolidation Log", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

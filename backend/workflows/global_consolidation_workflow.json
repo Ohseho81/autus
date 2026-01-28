@@ -1,0 +1,163 @@
+{
+  "name": "KRATON - Global V-Consolidation Loop",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "50 23 * * *"
+            }
+          ]
+        }
+      },
+      "id": "daily-cron",
+      "name": "Daily 23:50 KST",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  'KR' as region,\n  SUM(vn.mint_total) as total_mint,\n  SUM(vn.burn_total) as total_burn,\n  SUM(vn.v_index) as total_v_index,\n  COUNT(*) as total_nodes,\n  AVG(pm.s_index) as avg_satisfaction,\n  0 as tax_credit,\n  'KRW' as currency,\n  1.0 as exchange_rate\nFROM v_nodes vn\nLEFT JOIN physics_metrics pm ON vn.id = pm.node_id\nWHERE vn.organization_id = '{{ $json.organization_id }}'\n  AND vn.metadata->>'region' IS NULL OR vn.metadata->>'region' = 'KR'\nGROUP BY 1"
+      },
+      "id": "fetch-kr-data",
+      "name": "Fetch Korea Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [440, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  'PH' as region,\n  SUM(vn.mint_total) as total_mint,\n  SUM(vn.burn_total) as total_burn,\n  SUM(vn.v_index) as total_v_index,\n  COUNT(*) as total_nodes,\n  AVG(pm.s_index) as avg_satisfaction,\n  -- PEZA Tax Credit (4년간 소득세 면제)\n  SUM(vn.mint_total) * 0.25 as tax_credit,\n  'PHP' as currency,\n  -- PHP to KRW exchange rate\n  24.5 as exchange_rate\nFROM v_nodes vn\nLEFT JOIN physics_metrics pm ON vn.id = pm.node_id\nWHERE vn.organization_id = '{{ $json.organization_id }}'\n  AND vn.metadata->>'region' = 'PH'\nGROUP BY 1"
+      },
+      "id": "fetch-ph-data",
+      "name": "Fetch Philippines Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// KRATON Global V-Consolidation Engine\nconst krData = $('Fetch Korea Data').first().json;\nconst phData = $('Fetch Philippines Data').first().json;\n\n// 환율 적용하여 KRW로 통일\nconst krMint = parseFloat(krData.total_mint) || 0;\nconst krBurn = parseFloat(krData.total_burn) || 0;\nconst krV = parseFloat(krData.total_v_index) || 0;\n\nconst phMint = (parseFloat(phData.total_mint) || 0) * parseFloat(phData.exchange_rate);\nconst phBurn = (parseFloat(phData.total_burn) || 0) * parseFloat(phData.exchange_rate);\nconst phV = (parseFloat(phData.total_v_index) || 0) * parseFloat(phData.exchange_rate);\nconst phTaxCredit = (parseFloat(phData.tax_credit) || 0) * parseFloat(phData.exchange_rate);\n\n// 글로벌 합산\nconst globalMint = krMint + phMint;\nconst globalBurn = krBurn + phBurn;\nconst globalV = krV + phV;\n\n// 복리 계산: V = (M - T) × (1 + s)^t\nconst netValue = globalMint - globalBurn;\nconst synergyFactor = 0.05; // 5% 시너지\nconst daysActive = 365; // 1년 기준\nconst compoundedV = netValue * Math.pow(1 + synergyFactor, daysActive / 365);\n\n// 세무 최적화 효과\nconst taxSavings = phTaxCredit;\nconst effectiveV = compoundedV + taxSavings;\n\n// 내일 예측\nconst avgGrowthRate = 0.002; // 일평균 0.2% 성장\nconst tomorrowPrediction = effectiveV * (1 + avgGrowthRate);\n\n// 지역별 기여도\nconst krContribution = ((krV / globalV) * 100).toFixed(1);\nconst phContribution = ((phV / globalV) * 100).toFixed(1);\n\nreturn [{\n  json: {\n    consolidation_date: new Date().toISOString().split('T')[0],\n    \n    // 지역별 데이터\n    korea: {\n      mint: krMint,\n      burn: krBurn,\n      v_index: krV,\n      nodes: krData.total_nodes,\n      satisfaction: (parseFloat(krData.avg_satisfaction) * 100).toFixed(1) + '%'\n    },\n    philippines: {\n      mint: phMint,\n      burn: phBurn,\n      v_index: phV,\n      nodes: phData.total_nodes,\n      satisfaction: (parseFloat(phData.avg_satisfaction) * 100).toFixed(1) + '%',\n      tax_credit: phTaxCredit\n    },\n    \n    // 글로벌 통합\n    global: {\n      total_mint: globalMint,\n      total_burn: globalBurn,\n      net_value: netValue,\n      base_v: globalV,\n      compounded_v: compoundedV,\n      tax_savings: taxSavings,\n      effective_v: effectiveV,\n      tomorrow_prediction: tomorrowPrediction\n    },\n    \n    // 분석\n    analysis: {\n      kr_contribution: krContribution + '%',\n      ph_contribution: phContribution + '%',\n      synergy_factor: (synergyFactor * 100) + '%',\n      compound_growth: ((compoundedV / netValue - 1) * 100).toFixed(2) + '%',\n      tax_optimization: ((taxSavings / effectiveV) * 100).toFixed(2) + '%'\n    },\n    \n    // V-Curve 업데이트용\n    v_curve_point: {\n      timestamp: new Date().toISOString(),\n      value: effectiveV,\n      prediction: tomorrowPrediction\n    }\n  }\n}];"
+      },
+      "id": "consolidate-data",
+      "name": "Global V-Consolidation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "v_snapshots",
+        "columns": "organization_id, snapshot_date, total_v_index, total_mint, total_burn, sq_value, tier_distribution, metrics"
+      },
+      "id": "save-snapshot",
+      "name": "Save Daily Snapshot",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [960, 200]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "asset_valuation",
+        "columns": "organization_id, node_id, node_type, node_name, base_v, compounded_v, synergy_factor, valuation_date, region, tax_credit, currency"
+      },
+      "id": "save-global-valuation",
+      "name": "Save Global Valuation",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [960, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.KRATON_API_URL }}/api/owner/v-curve/update",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"type\": \"daily_consolidation\",\n  \"data\": {{ JSON.stringify($json) }}\n}"
+      },
+      "id": "update-v-curve",
+      "name": "Update Owner V-Curve",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.global.effective_v }}",
+              "rightValue": "={{ $json.global.base_v * 0.95 }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ]
+        }
+      },
+      "id": "check-decline",
+      "name": "V Declined > 5%?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1200, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.KRATON_API_URL }}/api/notifications/push",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"type\": \"v_decline_alert\",\n  \"priority\": \"HIGH\",\n  \"title\": \"📉 글로벌 V 지수 하락 감지\",\n  \"message\": \"오늘 V 지수가 5% 이상 하락했습니다. 즉시 확인이 필요합니다.\",\n  \"target_roles\": [\"c_level\"],\n  \"data\": {{ JSON.stringify($json.analysis) }}\n}"
+      },
+      "id": "alert-c-level",
+      "name": "Alert C-Level",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1440, 500]
+    }
+  ],
+  "connections": {
+    "Daily 23:50 KST": {
+      "main": [
+        [
+          { "node": "Fetch Korea Data", "type": "main", "index": 0 },
+          { "node": "Fetch Philippines Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch Korea Data": {
+      "main": [[{ "node": "Global V-Consolidation", "type": "main", "index": 0 }]]
+    },
+    "Fetch Philippines Data": {
+      "main": [[{ "node": "Global V-Consolidation", "type": "main", "index": 0 }]]
+    },
+    "Global V-Consolidation": {
+      "main": [
+        [
+          { "node": "Save Daily Snapshot", "type": "main", "index": 0 },
+          { "node": "Save Global Valuation", "type": "main", "index": 0 },
+          { "node": "Update Owner V-Curve", "type": "main", "index": 0 },
+          { "node": "V Declined > 5%?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "V Declined > 5%?": {
+      "main": [
+        [{ "node": "Alert C-Level", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["KRATON", "Global", "V-Consolidation", "Daily"]
+}
