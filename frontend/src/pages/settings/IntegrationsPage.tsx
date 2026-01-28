@@ -15,6 +15,7 @@ import {
   useMutation, 
   useQueryClient 
 } from '@tanstack/react-query';
+import { API_BASE } from '@/config/api';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // 타입 정의
@@ -95,8 +96,6 @@ const DATA_SOURCES: DataSourceConfig[] = [
     nodes: ['KNOW_A', 'KNOW_D', 'WORK_A'],
   },
 ];
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // API 함수

@@ -1,154 +1,28 @@
 /**
- * AUTUS 반응형 Hook
- * - 현재 브레이크포인트 감지
- * - 미디어 쿼리 매칭
- * - SSR 안전
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * AUTUS Responsive Hooks
+ * 반응형 디자인 React 훅
+ * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  BREAKPOINTS,
+  Breakpoint,
+  DeviceType,
+  Orientation,
+  getDeviceType,
+  getOrientation,
+  LAYOUT,
+  SPACING,
+  TYPOGRAPHY,
+  mediaQueries,
+} from '../lib/responsive';
 
-// Tailwind 브레이크포인트 (pixels)
-const BREAKPOINTS = {
-  xs: 475,
-  sm: 640,
-  md: 768,
-  lg: 1024,
-  xl: 1280,
-  '2xl': 1536,
-  '3xl': 1920,
-} as const;
+// ─────────────────────────────────────────────────────────────────────────────
+// useMediaQuery - Match CSS media queries
+// ─────────────────────────────────────────────────────────────────────────────
 
-type Breakpoint = keyof typeof BREAKPOINTS;
-
-interface UseResponsiveReturn {
-  // 현재 브레이크포인트
-  breakpoint: Breakpoint;
-  
-  // 브레이크포인트 체크
-  isXs: boolean;
-  isSm: boolean;
-  isMd: boolean;
-  isLg: boolean;
-  isXl: boolean;
-  is2xl: boolean;
-  is3xl: boolean;
-  
-  // 최소 브레이크포인트 체크
-  isSmUp: boolean;
-  isMdUp: boolean;
-  isLgUp: boolean;
-  isXlUp: boolean;
-  is2xlUp: boolean;
-  
-  // 최대 브레이크포인트 체크
-  isSmDown: boolean;
-  isMdDown: boolean;
-  isLgDown: boolean;
-  isXlDown: boolean;
-  
-  // 화면 크기
-  width: number;
-  height: number;
-  
-  // 디바이스 타입
-  isMobile: boolean;
-  isTablet: boolean;
-  isDesktop: boolean;
-  
-  // 유틸리티
-  matches: (query: string) => boolean;
-}
-
-export function useResponsive(): UseResponsiveReturn {
-  const [dimensions, setDimensions] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
-    height: typeof window !== 'undefined' ? window.innerHeight : 768,
-  });
-
-  // 리사이즈 핸들러 (debounced)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    let timeoutId: NodeJS.Timeout;
-    
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        setDimensions({
-          width: window.innerWidth,
-          height: window.innerHeight,
-        });
-      }, 100);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  // 현재 브레이크포인트 계산
-  const getBreakpoint = useCallback((width: number): Breakpoint => {
-    if (width >= BREAKPOINTS['3xl']) return '3xl';
-    if (width >= BREAKPOINTS['2xl']) return '2xl';
-    if (width >= BREAKPOINTS.xl) return 'xl';
-    if (width >= BREAKPOINTS.lg) return 'lg';
-    if (width >= BREAKPOINTS.md) return 'md';
-    if (width >= BREAKPOINTS.sm) return 'sm';
-    if (width >= BREAKPOINTS.xs) return 'xs';
-    return 'xs';
-  }, []);
-
-  // 미디어 쿼리 매칭
-  const matches = useCallback((query: string): boolean => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia(query).matches;
-  }, []);
-
-  const { width, height } = dimensions;
-  const breakpoint = getBreakpoint(width);
-
-  return {
-    breakpoint,
-    
-    // 정확한 브레이크포인트
-    isXs: breakpoint === 'xs',
-    isSm: breakpoint === 'sm',
-    isMd: breakpoint === 'md',
-    isLg: breakpoint === 'lg',
-    isXl: breakpoint === 'xl',
-    is2xl: breakpoint === '2xl',
-    is3xl: breakpoint === '3xl',
-    
-    // 최소 브레이크포인트 (>= breakpoint)
-    isSmUp: width >= BREAKPOINTS.sm,
-    isMdUp: width >= BREAKPOINTS.md,
-    isLgUp: width >= BREAKPOINTS.lg,
-    isXlUp: width >= BREAKPOINTS.xl,
-    is2xlUp: width >= BREAKPOINTS['2xl'],
-    
-    // 최대 브레이크포인트 (< breakpoint)
-    isSmDown: width < BREAKPOINTS.sm,
-    isMdDown: width < BREAKPOINTS.md,
-    isLgDown: width < BREAKPOINTS.lg,
-    isXlDown: width < BREAKPOINTS.xl,
-    
-    // 화면 크기
-    width,
-    height,
-    
-    // 디바이스 타입
-    isMobile: width < BREAKPOINTS.md,
-    isTablet: width >= BREAKPOINTS.md && width < BREAKPOINTS.lg,
-    isDesktop: width >= BREAKPOINTS.lg,
-    
-    // 유틸리티
-    matches,
-  };
-}
-
-// 특정 브레이크포인트 체크 Hook
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -158,53 +32,349 @@ export function useMediaQuery(query: string): boolean {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const mediaQuery = window.matchMedia(query);
-    
-    const handler = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
-    };
+    const mediaQueryList = window.matchMedia(query);
+    const listener = (event: MediaQueryListEvent) => setMatches(event.matches);
 
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
+    // Modern browsers
+    if (mediaQueryList.addEventListener) {
+      mediaQueryList.addEventListener('change', listener);
+      return () => mediaQueryList.removeEventListener('change', listener);
+    }
+    // Legacy browsers
+    mediaQueryList.addListener(listener);
+    return () => mediaQueryList.removeListener(listener);
   }, [query]);
 
   return matches;
 }
 
-// 모바일 여부 체크 Hook
-export function useIsMobile(): boolean {
-  return useMediaQuery('(max-width: 767px)');
+// ─────────────────────────────────────────────────────────────────────────────
+// useBreakpoint - Current breakpoint detection
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface BreakpointState {
+  breakpoint: Breakpoint;
+  width: number;
+  height: number;
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+  isXs: boolean;
+  isSm: boolean;
+  isMd: boolean;
+  isLg: boolean;
+  isXl: boolean;
+  is2xl: boolean;
 }
 
-// 터치 디바이스 여부 체크 Hook
-export function useIsTouchDevice(): boolean {
+export function useBreakpoint(): BreakpointState {
+  const [state, setState] = useState<BreakpointState>(() => {
+    if (typeof window === 'undefined') {
+      return {
+        breakpoint: 'lg',
+        width: 1024,
+        height: 768,
+        isMobile: false,
+        isTablet: false,
+        isDesktop: true,
+        isXs: false,
+        isSm: false,
+        isMd: false,
+        isLg: true,
+        isXl: false,
+        is2xl: false,
+      };
+    }
+    return calculateBreakpointState(window.innerWidth, window.innerHeight);
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleResize = () => {
+      setState(calculateBreakpointState(window.innerWidth, window.innerHeight));
+    };
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return state;
+}
+
+function calculateBreakpointState(width: number, height: number): BreakpointState {
+  let breakpoint: Breakpoint = 'xs';
+  
+  if (width >= BREAKPOINTS['2xl']) breakpoint = '2xl';
+  else if (width >= BREAKPOINTS.xl) breakpoint = 'xl';
+  else if (width >= BREAKPOINTS.lg) breakpoint = 'lg';
+  else if (width >= BREAKPOINTS.md) breakpoint = 'md';
+  else if (width >= BREAKPOINTS.sm) breakpoint = 'sm';
+
+  return {
+    breakpoint,
+    width,
+    height,
+    isMobile: width < BREAKPOINTS.md,
+    isTablet: width >= BREAKPOINTS.md && width < BREAKPOINTS.lg,
+    isDesktop: width >= BREAKPOINTS.lg,
+    isXs: width < BREAKPOINTS.sm,
+    isSm: width >= BREAKPOINTS.sm && width < BREAKPOINTS.md,
+    isMd: width >= BREAKPOINTS.md && width < BREAKPOINTS.lg,
+    isLg: width >= BREAKPOINTS.lg && width < BREAKPOINTS.xl,
+    isXl: width >= BREAKPOINTS.xl && width < BREAKPOINTS['2xl'],
+    is2xl: width >= BREAKPOINTS['2xl'],
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// useDeviceType - Current device type
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useDeviceType(): DeviceType {
+  const { width } = useBreakpoint();
+  return useMemo(() => getDeviceType(width), [width]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// useOrientation - Device orientation
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useOrientation(): Orientation {
+  const { width, height } = useBreakpoint();
+  return useMemo(() => getOrientation(width, height), [width, height]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// useResponsiveValue - Get value based on current breakpoint
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ResponsiveValues<T> {
+  xs?: T;
+  sm?: T;
+  md?: T;
+  lg?: T;
+  xl?: T;
+  '2xl'?: T;
+}
+
+export function useResponsiveValue<T>(values: ResponsiveValues<T>, defaultValue: T): T {
+  const { breakpoint } = useBreakpoint();
+  
+  return useMemo(() => {
+    const breakpoints: Breakpoint[] = ['2xl', 'xl', 'lg', 'md', 'sm', 'xs'];
+    const currentIndex = breakpoints.indexOf(breakpoint);
+    
+    for (let i = currentIndex; i < breakpoints.length; i++) {
+      const bp = breakpoints[i];
+      if (values[bp] !== undefined) {
+        return values[bp]!;
+      }
+    }
+    return defaultValue;
+  }, [values, breakpoint, defaultValue]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// useLayout - Device-specific layout config
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useLayout() {
+  const deviceType = useDeviceType();
+  
+  return useMemo(() => ({
+    ...LAYOUT[deviceType],
+    spacing: SPACING[deviceType],
+    typography: TYPOGRAPHY[deviceType],
+  }), [deviceType]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// useTouchDevice - Detect touch capability
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useTouchDevice(): boolean {
   const [isTouch, setIsTouch] = useState(false);
 
   useEffect(() => {
-    setIsTouch(
+    if (typeof window === 'undefined') return;
+
+    const isTouchDevice =
       'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0
-    );
+      navigator.maxTouchPoints > 0 ||
+      // @ts-ignore - Legacy check
+      navigator.msMaxTouchPoints > 0;
+
+    setIsTouch(isTouchDevice);
   }, []);
 
   return isTouch;
 }
 
-// 가로/세로 모드 체크 Hook
-export function useOrientation(): 'portrait' | 'landscape' {
-  const isPortrait = useMediaQuery('(orientation: portrait)');
-  return isPortrait ? 'portrait' : 'landscape';
+// ─────────────────────────────────────────────────────────────────────────────
+// useScrollDirection - Detect scroll direction for hiding/showing elements
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type ScrollDirection = 'up' | 'down' | null;
+
+export function useScrollDirection(threshold: number = 10): ScrollDirection {
+  const [scrollDirection, setScrollDirection] = useState<ScrollDirection>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const updateScrollDirection = () => {
+      const scrollY = window.scrollY;
+      const diff = scrollY - lastScrollY;
+
+      if (Math.abs(diff) > threshold) {
+        setScrollDirection(diff > 0 ? 'down' : 'up');
+        lastScrollY = scrollY;
+      }
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScrollDirection);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [threshold]);
+
+  return scrollDirection;
 }
 
-// 선호 컬러 스킴 체크 Hook
-export function usePrefersColorScheme(): 'light' | 'dark' {
-  const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
-  return prefersDark ? 'dark' : 'light';
+// ─────────────────────────────────────────────────────────────────────────────
+// useViewportSize - Get viewport dimensions
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ViewportSize {
+  width: number;
+  height: number;
+  vw: number; // 1vw in pixels
+  vh: number; // 1vh in pixels
 }
 
-// 선호 애니메이션 감소 체크 Hook
-export function usePrefersReducedMotion(): boolean {
-  return useMediaQuery('(prefers-reduced-motion: reduce)');
+export function useViewportSize(): ViewportSize {
+  const [size, setSize] = useState<ViewportSize>(() => {
+    if (typeof window === 'undefined') {
+      return { width: 1024, height: 768, vw: 10.24, vh: 7.68 };
+    }
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      vw: window.innerWidth / 100,
+      vh: window.innerHeight / 100,
+    };
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleResize = () => {
+      setSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        vw: window.innerWidth / 100,
+        vh: window.innerHeight / 100,
+      });
+    };
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return size;
 }
 
-export default useResponsive;
+// ─────────────────────────────────────────────────────────────────────────────
+// useSafeAreaInsets - Get safe area insets (for mobile notches)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface SafeAreaInsets {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export function useSafeAreaInsets(): SafeAreaInsets {
+  const [insets, setInsets] = useState<SafeAreaInsets>({
+    top: 0, right: 0, bottom: 0, left: 0,
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof getComputedStyle === 'undefined') return;
+
+    const updateInsets = () => {
+      const computedStyle = getComputedStyle(document.documentElement);
+      setInsets({
+        top: parseInt(computedStyle.getPropertyValue('--sat') || '0', 10),
+        right: parseInt(computedStyle.getPropertyValue('--sar') || '0', 10),
+        bottom: parseInt(computedStyle.getPropertyValue('--sab') || '0', 10),
+        left: parseInt(computedStyle.getPropertyValue('--sal') || '0', 10),
+      });
+    };
+
+    // Set CSS variables for safe area
+    document.documentElement.style.setProperty('--sat', 'env(safe-area-inset-top)');
+    document.documentElement.style.setProperty('--sar', 'env(safe-area-inset-right)');
+    document.documentElement.style.setProperty('--sab', 'env(safe-area-inset-bottom)');
+    document.documentElement.style.setProperty('--sal', 'env(safe-area-inset-left)');
+
+    updateInsets();
+    window.addEventListener('resize', updateInsets, { passive: true });
+    return () => window.removeEventListener('resize', updateInsets);
+  }, []);
+
+  return insets;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Responsive Container Hook
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ResponsiveContainerConfig {
+  padding: string;
+  maxWidth: string;
+  gridCols: number;
+  gap: string;
+}
+
+export function useResponsiveContainer(): ResponsiveContainerConfig {
+  const deviceType = useDeviceType();
+  
+  return useMemo(() => {
+    switch (deviceType) {
+      case 'mobile':
+        return {
+          padding: 'px-4',
+          maxWidth: 'max-w-md',
+          gridCols: 1,
+          gap: 'gap-3',
+        };
+      case 'tablet':
+        return {
+          padding: 'px-6',
+          maxWidth: 'max-w-3xl',
+          gridCols: 2,
+          gap: 'gap-4',
+        };
+      case 'desktop':
+      default:
+        return {
+          padding: 'px-8',
+          maxWidth: 'max-w-7xl',
+          gridCols: 3,
+          gap: 'gap-6',
+        };
+    }
+  }, [deviceType]);
+}

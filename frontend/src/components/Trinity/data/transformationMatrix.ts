@@ -222,7 +222,7 @@ export function calculateTransformation(
   
   // 2. 주요 결과 타입 결정
   let primaryTarget = sourceTypeId; // 기본: 변화 없음
-  let possibleEvolutions = EVOLUTION_PATHS[sourceTypeId] || [];
+  const possibleEvolutions = EVOLUTION_PATHS[sourceTypeId] || [];
   
   // 증폭/업그레이드 계열 Force는 상향 진화
   if (['AMPLIFY', 'UPGRADE', 'INJECT'].includes(forceAction)) {

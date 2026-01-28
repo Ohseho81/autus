@@ -21,6 +21,7 @@ import {
   UseMutationOptions 
 } from '@tanstack/react-query';
 import { useEffect, useRef, useCallback, useState } from 'react';
+import { API_BASE } from '@/config/api';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // 타입 정의
@@ -137,8 +138,6 @@ export interface Alert {
 // ═══════════════════════════════════════════════════════════════════════════════
 // API 클라이언트
 // ═══════════════════════════════════════════════════════════════════════════════
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {

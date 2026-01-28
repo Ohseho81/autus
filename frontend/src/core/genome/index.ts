@@ -73,7 +73,7 @@ export function evolveGenome(
   const mutationOccurred = Math.random() < genome.mutationRate;
   
   let newMass = genome.mass;
-  let newIrreversibility = genome.irreversibility;
+  const newIrreversibility = genome.irreversibility;
   let newFailureCost = genome.failureCost;
   
   if (mutationOccurred) {
@@ -155,7 +155,7 @@ export function evolveState(
 ): GenomeState {
   const inputMap = new Map(inputs.map(i => [i.genomeId, i]));
   
-  let newGenomes: WorkGenome[] = [];
+  const newGenomes: WorkGenome[] = [];
   const toProliferate: WorkGenome[] = [];
   
   for (const genome of state.genomes) {

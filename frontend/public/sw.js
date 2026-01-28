@@ -1,178 +1,289 @@
 /**
+ * ═══════════════════════════════════════════════════════════════════════════════
  * AUTUS Service Worker
- * PWA 오프라인 지원 및 캐싱
+ * PWA 오프라인 지원
+ * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-const CACHE_NAME = 'autus-v2.0.0';
-const STATIC_CACHE = 'autus-static-v2.0.0';
-const DYNAMIC_CACHE = 'autus-dynamic-v2.0.0';
+const CACHE_NAME = 'autus-v1';
+const OFFLINE_URL = '/offline.html';
 
-// 정적 리소스 (빌드 시 캐시)
-const STATIC_ASSETS = [
+// Resources to cache immediately on install
+const PRECACHE_RESOURCES = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icons/icon.svg',
+  '/offline.html',
 ];
 
-// 캐시 전략
+// Cache strategies
 const CACHE_STRATEGIES = {
-  // 네트워크 우선 (API)
-  networkFirst: ['/api/', '/health', '/state'],
-  // 캐시 우선 (정적 리소스)
-  cacheFirst: ['/assets/', '/icons/', '.js', '.css', '.png', '.svg'],
-  // 네트워크만 (실시간 데이터)
-  networkOnly: ['/ws/', '/webhook'],
+  // Cache first for static assets
+  cacheFirst: [
+    /\.(?:js|css|woff2?|ttf|eot|svg|png|jpg|jpeg|gif|ico)$/,
+    /^\/icons\//,
+    /^\/fonts\//,
+  ],
+  // Network first for API calls
+  networkFirst: [
+    /^\/api\//,
+    /supabase\.co/,
+  ],
+  // Stale while revalidate for pages
+  staleWhileRevalidate: [
+    /^\/(?!api).*$/,
+  ],
 };
 
-// 설치
+// ─────────────────────────────────────────────────────────────────────────────
+// Install Event
+// ─────────────────────────────────────────────────────────────────────────────
+
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing AUTUS Service Worker...');
-  
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => {
-      console.log('[SW] Caching static assets');
-      return cache.addAll(STATIC_ASSETS);
-    })
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      
+      // Precache essential resources
+      await cache.addAll(PRECACHE_RESOURCES);
+      
+      // Immediately activate new service worker
+      self.skipWaiting();
+    })()
   );
-  
-  // 즉시 활성화
-  self.skipWaiting();
 });
 
-// 활성화
+// ─────────────────────────────────────────────────────────────────────────────
+// Activate Event
+// ─────────────────────────────────────────────────────────────────────────────
+
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating AUTUS Service Worker...');
-  
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    (async () => {
+      // Clean up old caches
+      const cacheNames = await caches.keys();
+      await Promise.all(
         cacheNames
-          .filter((name) => name !== STATIC_CACHE && name !== DYNAMIC_CACHE)
-          .map((name) => {
-            console.log('[SW] Deleting old cache:', name);
-            return caches.delete(name);
-          })
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
       );
-    })
+      
+      // Take control of all clients immediately
+      self.clients.claim();
+    })()
   );
-  
-  // 모든 클라이언트 제어
-  self.clients.claim();
 });
 
-// Fetch 이벤트
+// ─────────────────────────────────────────────────────────────────────────────
+// Fetch Event
+// ─────────────────────────────────────────────────────────────────────────────
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  
-  // 같은 origin만 처리
-  if (url.origin !== location.origin) {
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
     return;
   }
-  
-  // WebSocket은 무시
-  if (request.url.includes('/ws/')) {
+
+  // Skip cross-origin requests (except for allowed domains)
+  if (url.origin !== location.origin && !url.hostname.includes('supabase.co')) {
     return;
   }
+
+  // Determine cache strategy
+  const strategy = getCacheStrategy(url);
   
-  // 캐시 전략 결정
-  const strategy = getStrategy(url.pathname);
-  
-  switch (strategy) {
-    case 'networkFirst':
-      event.respondWith(networkFirst(request));
-      break;
-    case 'cacheFirst':
-      event.respondWith(cacheFirst(request));
-      break;
-    case 'networkOnly':
-      event.respondWith(fetch(request));
-      break;
-    default:
-      event.respondWith(networkFirst(request));
-  }
+  event.respondWith(
+    (async () => {
+      try {
+        switch (strategy) {
+          case 'cacheFirst':
+            return await cacheFirst(request);
+          case 'networkFirst':
+            return await networkFirst(request);
+          case 'staleWhileRevalidate':
+          default:
+            return await staleWhileRevalidate(request);
+        }
+      } catch (error) {
+        // If all else fails, return offline page for navigation requests
+        if (request.mode === 'navigate') {
+          const cache = await caches.open(CACHE_NAME);
+          return cache.match(OFFLINE_URL);
+        }
+        throw error;
+      }
+    })()
+  );
 });
 
-// 전략 결정
-function getStrategy(pathname) {
-  for (const [strategy, patterns] of Object.entries(CACHE_STRATEGIES)) {
-    if (patterns.some((pattern) => pathname.includes(pattern))) {
-      return strategy;
+// ─────────────────────────────────────────────────────────────────────────────
+// Cache Strategies Implementation
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getCacheStrategy(url) {
+  const pathname = url.pathname;
+  const href = url.href;
+  
+  for (const pattern of CACHE_STRATEGIES.cacheFirst) {
+    if (pattern.test(pathname) || pattern.test(href)) {
+      return 'cacheFirst';
     }
   }
-  return 'networkFirst';
-}
-
-// 네트워크 우선 전략
-async function networkFirst(request) {
-  try {
-    const response = await fetch(request);
-    
-    // 성공하면 캐시에 저장
-    if (response.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, response.clone());
+  
+  for (const pattern of CACHE_STRATEGIES.networkFirst) {
+    if (pattern.test(pathname) || pattern.test(href)) {
+      return 'networkFirst';
     }
-    
-    return response;
-  } catch (error) {
-    // 네트워크 실패 시 캐시에서 반환
-    const cached = await caches.match(request);
-    if (cached) {
-      return cached;
-    }
-    
-    // 오프라인 페이지 반환
-    if (request.destination === 'document') {
-      return caches.match('/');
-    }
-    
-    throw error;
   }
+  
+  return 'staleWhileRevalidate';
 }
 
-// 캐시 우선 전략
 async function cacheFirst(request) {
-  const cached = await caches.match(request);
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
   
   if (cached) {
     return cached;
   }
   
+  const response = await fetch(request);
+  
+  if (response.ok) {
+    cache.put(request, response.clone());
+  }
+  
+  return response;
+}
+
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  
   try {
     const response = await fetch(request);
     
     if (response.ok) {
-      const cache = await caches.open(STATIC_CACHE);
       cache.put(request, response.clone());
     }
     
     return response;
   } catch (error) {
-    console.error('[SW] Fetch failed:', error);
+    const cached = await cache.match(request);
+    
+    if (cached) {
+      return cached;
+    }
+    
     throw error;
   }
 }
 
-// 푸시 알림
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+  
+  const fetchPromise = fetch(request).then((response) => {
+    if (response.ok) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  });
+  
+  return cached || fetchPromise;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Background Sync for Offline Actions
+// ─────────────────────────────────────────────────────────────────────────────
+
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-pending-actions') {
+    event.waitUntil(syncPendingActions());
+  }
+});
+
+async function syncPendingActions() {
+  // This would sync any queued actions when back online
+  // Implementation depends on your backend API
+  const db = await openDB();
+  const pendingActions = await db.getAll('pendingActions');
+  
+  for (const action of pendingActions) {
+    try {
+      await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(action),
+      });
+      
+      await db.delete('pendingActions', action.id);
+    } catch (error) {
+      console.error('Failed to sync action:', action.id, error);
+    }
+  }
+}
+
+// Simple IndexedDB wrapper (for pending actions)
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('autus-offline', 1);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      resolve({
+        getAll: (store) => {
+          return new Promise((res, rej) => {
+            const tx = db.transaction(store, 'readonly');
+            const req = tx.objectStore(store).getAll();
+            req.onsuccess = () => res(req.result);
+            req.onerror = () => rej(req.error);
+          });
+        },
+        delete: (store, id) => {
+          return new Promise((res, rej) => {
+            const tx = db.transaction(store, 'readwrite');
+            const req = tx.objectStore(store).delete(id);
+            req.onsuccess = () => res();
+            req.onerror = () => rej(req.error);
+          });
+        },
+      });
+    };
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('pendingActions')) {
+        db.createObjectStore('pendingActions', { keyPath: 'id' });
+      }
+    };
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Push Notifications
+// ─────────────────────────────────────────────────────────────────────────────
+
 self.addEventListener('push', (event) => {
   if (!event.data) return;
   
   const data = event.data.json();
   
   const options = {
-    body: data.body || 'AUTUS 알림',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-72.png',
+    body: data.body || '새로운 알림이 있습니다.',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
     vibrate: [100, 50, 100],
     data: {
       url: data.url || '/',
+      ...data,
     },
-    actions: [
-      { action: 'open', title: '열기' },
-      { action: 'close', title: '닫기' },
-    ],
+    actions: data.actions || [],
+    tag: data.tag || 'autus-notification',
+    renotify: true,
   };
   
   event.waitUntil(
@@ -180,39 +291,27 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// 알림 클릭
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
-  if (event.action === 'close') return;
   
   const url = event.notification.data?.url || '/';
   
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then((windowClients) => {
-      // 이미 열린 창이 있으면 포커스
-      for (const client of windowClients) {
-        if (client.url === url && 'focus' in client) {
-          return client.focus();
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        // Try to focus existing window
+        for (const client of clientList) {
+          if (client.url.includes(self.registration.scope) && 'focus' in client) {
+            client.navigate(url);
+            return client.focus();
+          }
         }
-      }
-      // 없으면 새 창 열기
-      return clients.openWindow(url);
-    })
+        // Open new window if no existing one
+        if (clients.openWindow) {
+          return clients.openWindow(url);
+        }
+      })
   );
 });
-
-// 백그라운드 동기화
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'autus-sync') {
-    event.waitUntil(syncData());
-  }
-});
-
-async function syncData() {
-  console.log('[SW] Background sync triggered');
-  // 오프라인 동안 쌓인 데이터 동기화
-  // TODO: IndexedDB에서 pending 데이터 가져와서 서버로 전송
-}
 
 console.log('[SW] AUTUS Service Worker loaded');

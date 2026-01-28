@@ -131,7 +131,7 @@ function updatePhysics(deltaTime: number): NodePosition[] {
     // 기본 궤도 위치
     const x = cluster.centerX + Math.cos(node.orbitPhase) * orbitRadius;
     const z = cluster.centerZ + Math.sin(node.orbitPhase) * orbitRadius;
-    let y = cluster.centerY + Math.sin(node.orbitPhase * 0.5) * 0.5;
+    const y = cluster.centerY + Math.sin(node.orbitPhase * 0.5) * 0.5;
     
     // 떨림 추가
     const [jx, jy, jz] = calculateJitter(node.interaction_i, node.entropy_omega, time);

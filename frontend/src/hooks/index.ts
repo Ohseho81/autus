@@ -23,14 +23,47 @@ export { useTheme } from './useTheme';
 
 // Responsive & Form (v8.0)
 export {
-  useResponsive,
   useMediaQuery,
-  useIsMobile,
-  useIsTouchDevice,
+  useBreakpoint,
+  useDeviceType,
   useOrientation,
-  usePrefersColorScheme,
-  usePrefersReducedMotion,
+  useResponsiveValue,
+  useLayout,
+  useTouchDevice,
+  useScrollDirection,
+  useViewportSize,
+  useSafeAreaInsets,
+  useResponsiveContainer,
 } from './useResponsive';
+
+// Accessibility Hooks (v9.0 - Role-Based UI)
+export {
+  useReducedMotion,
+  useFocusTrap,
+  useFocusReturn,
+  useAnnounce,
+  useKeyboardNavigation,
+  useRovingTabIndex,
+  useEscapeKey,
+  useHighContrast,
+  useFontScale,
+  useSetFontScale,
+  useRoleAccessibility,
+  useSkipLink,
+  useLiveRegion,
+  useAccessibleDialog,
+  useAccessibleTabs,
+} from './useAccessibility';
+
+// Academy Data Hooks (autus-ai.com 연동)
+export {
+  useAcademyData,
+  useStudents,
+  useRisks,
+  useGoals,
+  useLeaderboard,
+  useRewards,
+} from './useAcademyData';
 
 export {
   useForm,

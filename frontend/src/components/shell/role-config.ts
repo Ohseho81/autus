@@ -225,17 +225,19 @@ export function getRoleByKLevel(kLevel: number): RoleType {
 }
 
 export function canSwitchRole(currentRole: RoleType, targetRole: RoleType): boolean {
-  // 역할 전환 권한 로직
-  const roleHierarchy: Record<RoleType, number> = {
-    CONSUMER: 0,
-    EXECUTOR: 1,
-    OPERATOR: 2,
-    DECIDER: 3,
-    APPROVER: 4,
-  };
+  // MVP 단계: 모든 역할 전환 허용 (테스트/점검 용)
+  // TODO: Production에서는 역할 계층 제한 적용
+  return true;
   
-  // 상위 역할로는 전환 불가 (시스템 설정 필요)
-  return roleHierarchy[targetRole] <= roleHierarchy[currentRole];
+  // Production용 역할 전환 권한 로직 (나중에 활성화)
+  // const roleHierarchy: Record<RoleType, number> = {
+  //   CONSUMER: 0,
+  //   EXECUTOR: 1,
+  //   OPERATOR: 2,
+  //   DECIDER: 3,
+  //   APPROVER: 4,
+  // };
+  // return roleHierarchy[targetRole] <= roleHierarchy[currentRole];
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

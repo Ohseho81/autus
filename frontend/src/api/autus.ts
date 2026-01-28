@@ -245,6 +245,240 @@ export const refApi = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Quick Tag API (Optimus - 현장 데이터 입력)
+// ═══════════════════════════════════════════════════════════════════════════
+
+const VERCEL_API = import.meta.env.VITE_AUTUS_API_URL || import.meta.env.VITE_VERCEL_API_URL || 'https://autus-ai.com';
+
+export const quickTagApi = {
+  /** Quick Tag 등록 */
+  create: async (data: {
+    org_id: string;
+    tagger_id: string;
+    target_id: string;
+    target_type: 'student' | 'parent' | 'teacher';
+    emotion_delta: number; // -20 ~ +20
+    bond_strength: 'strong' | 'normal' | 'cold';
+    issue_triggers?: string[];
+    voice_insight?: string;
+  }) => {
+    const response = await fetch(`${VERCEL_API}/api/quick-tag`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+
+  /** 최근 태그 조회 */
+  getRecent: async (orgId: string, limit = 20) => {
+    const response = await fetch(`${VERCEL_API}/api/quick-tag?org_id=${orgId}&limit=${limit}`);
+    return response.json();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Risk Queue API (FSD - 이탈 위험 관리)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const riskApi = {
+  /** 위험 목록 조회 */
+  getList: async (orgId: string, status = 'open', minPriority = 'LOW') => {
+    const response = await fetch(
+      `${VERCEL_API}/api/risks?org_id=${orgId}&status=${status}&min_priority=${minPriority}`
+    );
+    return response.json();
+  },
+
+  /** 위험도 재계산 */
+  recalculate: async (orgId: string, alpha = 1.5) => {
+    const response = await fetch(`${VERCEL_API}/api/risks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ org_id: orgId, recalculate: true, alpha }),
+    });
+    return response.json();
+  },
+
+  /** 위험 상태 업데이트 */
+  updateStatus: async (
+    riskId: string,
+    action: 'resolve' | 'escalate' | 'assign' | 'dismiss',
+    options?: { notes?: string; assigned_to?: string }
+  ) => {
+    const response = await fetch(`${VERCEL_API}/api/risks`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ risk_id: riskId, action, ...options }),
+    });
+    return response.json();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Goals API (전체 역할 - 목표 관리)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const goalsApi = {
+  /** 목표 목록 조회 */
+  getList: async (orgId: string, filters?: { type?: string; status?: string; timeframe?: string }) => {
+    const params = new URLSearchParams({ org_id: orgId, ...filters });
+    const response = await fetch(`${VERCEL_API}/api/goals?${params}`);
+    return response.json();
+  },
+
+  /** 목표 생성 */
+  create: async (data: {
+    org_id: string;
+    type: string;
+    title: string;
+    target: number | string;
+    start_date: string;
+    end_date: string;
+    description?: string;
+    unit?: string;
+    timeframe?: string;
+    milestones?: any[];
+    strategies?: string[];
+    kpis?: any[];
+  }) => {
+    const response = await fetch(`${VERCEL_API}/api/goals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create', ...data }),
+    });
+    return response.json();
+  },
+
+  /** 목표 업데이트 */
+  update: async (goalId: string, updates: Record<string, any>) => {
+    const response = await fetch(`${VERCEL_API}/api/goals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update', goal_id: goalId, ...updates }),
+    });
+    return response.json();
+  },
+
+  /** 진행률 업데이트 */
+  updateProgress: async (goalId: string, current: number, milestoneUpdates?: any[]) => {
+    const response = await fetch(`${VERCEL_API}/api/goals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'update_progress',
+        goal_id: goalId,
+        current,
+        milestone_updates: milestoneUpdates,
+      }),
+    });
+    return response.json();
+  },
+
+  /** 자동 계획 생성 (AI) */
+  generatePlan: async (goalId: string) => {
+    const response = await fetch(`${VERCEL_API}/api/goals/auto-plan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ goal_id: goalId }),
+    });
+    return response.json();
+  },
+
+  /** 목표 궤적 분석 */
+  getTrajectory: async (goalId: string) => {
+    const response = await fetch(`${VERCEL_API}/api/goals/trajectory?goal_id=${goalId}`);
+    return response.json();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Monopoly API (C-Level - 독점 체제 모니터링)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const monopolyApi = {
+  /** 독점 현황 조회 */
+  getStatus: async (orgId: string) => {
+    const response = await fetch(`${VERCEL_API}/api/monopoly?org_id=${orgId}`);
+    return response.json();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Churn API (FSD - 이탈 분석)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const churnApi = {
+  /** 이탈 위험 분석 */
+  analyze: async (orgId: string) => {
+    const response = await fetch(`${VERCEL_API}/api/churn?org_id=${orgId}`);
+    return response.json();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Rewards API (Consumer - V-포인트)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const rewardsApi = {
+  /** 리워드 현황 조회 */
+  getStatus: async (nodeId: string) => {
+    const response = await fetch(`${VERCEL_API}/api/rewards?node_id=${nodeId}`);
+    return response.json();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Notify API (전체 - 알림 시스템)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const notifyApi = {
+  /** 알림 발송 */
+  send: async (data: {
+    org_id: string;
+    type: 'risk_alert' | 'goal_update' | 'system';
+    recipients: string[];
+    message: string;
+    priority?: 'low' | 'normal' | 'high' | 'critical';
+  }) => {
+    const response = await fetch(`${VERCEL_API}/api/notify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Shield API (FSD - 방어 시스템)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const shieldApi = {
+  /** Active Shield 활성화 */
+  activate: async (orgId: string, targetId: string, actions: string[]) => {
+    const response = await fetch(`${VERCEL_API}/api/shield/activate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ org_id: orgId, target_id: targetId, actions }),
+    });
+    return response.json();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Time Value API (Core - A = T^σ)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const timeValueApi = {
+  /** 시간 가치 계산 */
+  calculate: async (nodeId: string) => {
+    const response = await fetch(`${VERCEL_API}/api/time-value?node_id=${nodeId}`);
+    return response.json();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Export
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -257,4 +491,14 @@ export default {
   audit: auditApi,
   oauth: oauthApi,
   ref: refApi,
+  // 새로 추가된 API
+  quickTag: quickTagApi,
+  risk: riskApi,
+  goals: goalsApi,
+  monopoly: monopolyApi,
+  churn: churnApi,
+  rewards: rewardsApi,
+  notify: notifyApi,
+  shield: shieldApi,
+  timeValue: timeValueApi,
 };

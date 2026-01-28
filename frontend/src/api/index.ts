@@ -5,6 +5,13 @@
 export * from './physics';
 export * from './trinity';
 
+// AUTUS Cloud API (autus-ai.com)
+export * from './autus-cloud';
+export { default as autusCloud } from './autus-cloud';
+
+// Legacy AUTUS API
+export { default as autusApi } from './autus';
+
 // Stub exports for missing modules
 export const scaleApi = {};
 export const sovereignApi = {};

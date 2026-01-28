@@ -2,9 +2,11 @@
  * AUTUS Goals Page
  * ==================
  * 목표 설정 및 추세선 예측
+ * API 연동: /api/goals
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { goalsApi } from '../api/autus';
 
 // ============================================
 // Types

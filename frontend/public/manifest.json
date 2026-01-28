@@ -1,55 +1,94 @@
 {
-  "name": "AUTUS - 물리 기반 의사결정 자동화",
+  "name": "AUTUS 학원 관리 시스템",
   "short_name": "AUTUS",
-  "description": "Money Physics 엔진 기반 통합 비즈니스 자동화 플랫폼",
+  "description": "Money Physics 엔진 기반의 통합 학원 관리 플랫폼",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#030712",
-  "theme_color": "#6366f1",
   "orientation": "any",
-  "scope": "/",
-  "lang": "ko",
-  "categories": ["business", "productivity", "utilities"],
+  "background_color": "#0a0a0f",
+  "theme_color": "#fbbf24",
+  "categories": ["education", "business", "productivity"],
+  "lang": "ko-KR",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshot-wide.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/screenshot-narrow.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ],
   "shortcuts": [
     {
-      "name": "대시보드",
-      "short_name": "Dashboard",
-      "url": "/dashboard.html",
-      "icons": [{ "src": "/icon-dashboard.png", "sizes": "96x96" }]
+      "name": "학생 현황",
+      "short_name": "학생",
+      "description": "학생 목록 보기",
+      "url": "/#students",
+      "icons": [{ "src": "/icons/shortcut-students.png", "sizes": "96x96" }]
     },
     {
-      "name": "자동화",
-      "short_name": "Automation",
-      "url": "/automation.html",
-      "icons": [{ "src": "/icon-automation.png", "sizes": "96x96" }]
+      "name": "오늘 할 일",
+      "short_name": "할 일",
+      "description": "오늘의 태스크 확인",
+      "url": "/#tasks",
+      "icons": [{ "src": "/icons/shortcut-tasks.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "오너 대시보드"
+    },
+    {
+      "src": "/screenshots/mobile-1.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "학생 게임화 화면"
     }
   ],
   "related_applications": [],

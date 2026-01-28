@@ -1,19 +1,98 @@
 /**
- * AUTUS 반응형 유틸리티
- * - clsx/tailwind-merge 대체
- * - 조건부 클래스
- * - 반응형 값
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * AUTUS Responsive Design System
+ * 반응형 브레이크포인트 및 유틸리티
+ * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { clsx, type ClassValue } from 'clsx';
+// ─────────────────────────────────────────────────────────────────────────────
+// Breakpoint Definitions
+// ─────────────────────────────────────────────────────────────────────────────
 
-// 클래스 병합 유틸리티
-export function cn(...inputs: ClassValue[]): string {
-  return clsx(inputs);
+export const BREAKPOINTS = {
+  xs: 320,   // Small mobile
+  sm: 480,   // Mobile
+  md: 768,   // Tablet
+  lg: 1024,  // Desktop
+  xl: 1280,  // Large desktop
+  '2xl': 1536, // Extra large
+} as const;
+
+export type Breakpoint = keyof typeof BREAKPOINTS;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Device Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type DeviceType = 'mobile' | 'tablet' | 'desktop';
+
+export function getDeviceType(width: number): DeviceType {
+  if (width < BREAKPOINTS.md) return 'mobile';
+  if (width < BREAKPOINTS.lg) return 'tablet';
+  return 'desktop';
 }
 
-// 반응형 값 타입
-type ResponsiveValue<T> = T | {
+// ─────────────────────────────────────────────────────────────────────────────
+// Orientation
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type Orientation = 'portrait' | 'landscape';
+
+export function getOrientation(width: number, height: number): Orientation {
+  return height > width ? 'portrait' : 'landscape';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Role-specific Device Priorities
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { RoleId } from '../types/roles';
+
+export const ROLE_DEVICE_PRIORITY: Record<RoleId, DeviceType> = {
+  owner: 'desktop',
+  manager: 'desktop',
+  teacher: 'tablet',
+  parent: 'mobile',
+  student: 'mobile',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CSS Media Query Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const mediaQueries = {
+  mobile: `(max-width: ${BREAKPOINTS.md - 1}px)`,
+  tablet: `(min-width: ${BREAKPOINTS.md}px) and (max-width: ${BREAKPOINTS.lg - 1}px)`,
+  desktop: `(min-width: ${BREAKPOINTS.lg}px)`,
+  
+  // Min-width queries
+  sm: `(min-width: ${BREAKPOINTS.sm}px)`,
+  md: `(min-width: ${BREAKPOINTS.md}px)`,
+  lg: `(min-width: ${BREAKPOINTS.lg}px)`,
+  xl: `(min-width: ${BREAKPOINTS.xl}px)`,
+  '2xl': `(min-width: ${BREAKPOINTS['2xl']}px)`,
+  
+  // Touch/pointer queries
+  touch: '(hover: none) and (pointer: coarse)',
+  fine: '(hover: hover) and (pointer: fine)',
+  
+  // Reduced motion
+  reducedMotion: '(prefers-reduced-motion: reduce)',
+  
+  // Color scheme
+  darkMode: '(prefers-color-scheme: dark)',
+  lightMode: '(prefers-color-scheme: light)',
+  
+  // Orientation
+  portrait: '(orientation: portrait)',
+  landscape: '(orientation: landscape)',
+} as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tailwind Responsive Classes Generator
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ResponsiveValue<T> {
   base?: T;
   xs?: T;
   sm?: T;
@@ -21,170 +100,168 @@ type ResponsiveValue<T> = T | {
   lg?: T;
   xl?: T;
   '2xl'?: T;
-};
-
-// 반응형 프롭 변환
-export function getResponsiveValue<T>(
-  value: ResponsiveValue<T>,
-  breakpoint: string
-): T | undefined {
-  if (typeof value !== 'object' || value === null) {
-    return value as T;
-  }
-
-  const obj = value as Record<string, T>;
-  
-  // 현재 브레이크포인트부터 base까지 탐색
-  const order = ['2xl', 'xl', 'lg', 'md', 'sm', 'xs', 'base'];
-  const startIndex = order.indexOf(breakpoint);
-  
-  for (let i = startIndex; i < order.length; i++) {
-    const key = order[i];
-    if (obj[key] !== undefined) {
-      return obj[key];
-    }
-  }
-  
-  return undefined;
 }
 
-// 반응형 간격 맵
-export const spacing = {
-  // 패딩
-  p: {
-    none: 'p-0',
-    xs: 'p-1',
-    sm: 'p-2',
-    md: 'p-4',
-    lg: 'p-6',
-    xl: 'p-8',
+export function responsiveClass<T extends string>(
+  values: ResponsiveValue<T>,
+  prefix: string = ''
+): string {
+  const classes: string[] = [];
+  
+  if (values.base) classes.push(`${prefix}${values.base}`);
+  if (values.xs) classes.push(`xs:${prefix}${values.xs}`);
+  if (values.sm) classes.push(`sm:${prefix}${values.sm}`);
+  if (values.md) classes.push(`md:${prefix}${values.md}`);
+  if (values.lg) classes.push(`lg:${prefix}${values.lg}`);
+  if (values.xl) classes.push(`xl:${prefix}${values.xl}`);
+  if (values['2xl']) classes.push(`2xl:${prefix}${values['2xl']}`);
+  
+  return classes.join(' ');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Touch Target Utilities
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const TOUCH_TARGET = {
+  minSize: 44, // Minimum 44x44px for accessibility
+  minSpacing: 8, // Minimum spacing between targets
+  comfortableSize: 48,
+  largeSize: 56,
+} as const;
+
+export function getTouchTargetClass(size: 'min' | 'comfortable' | 'large' = 'comfortable'): string {
+  switch (size) {
+    case 'min':
+      return 'min-w-[44px] min-h-[44px]';
+    case 'comfortable':
+      return 'min-w-[48px] min-h-[48px]';
+    case 'large':
+      return 'min-w-[56px] min-h-[56px]';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Spacing Scale
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const SPACING = {
+  // Mobile-first spacing
+  mobile: {
+    page: 16, // px padding
+    card: 12,
+    section: 24,
+    element: 8,
   },
-  px: {
-    none: 'px-0',
-    xs: 'px-1',
-    sm: 'px-2',
-    md: 'px-4',
-    lg: 'px-6',
-    xl: 'px-8',
+  // Tablet spacing
+  tablet: {
+    page: 24,
+    card: 16,
+    section: 32,
+    element: 12,
   },
-  py: {
-    none: 'py-0',
-    xs: 'py-1',
-    sm: 'py-2',
-    md: 'py-4',
-    lg: 'py-6',
-    xl: 'py-8',
-  },
-  // 마진
-  m: {
-    none: 'm-0',
-    xs: 'm-1',
-    sm: 'm-2',
-    md: 'm-4',
-    lg: 'm-6',
-    xl: 'm-8',
-  },
-  // 갭
-  gap: {
-    none: 'gap-0',
-    xs: 'gap-1',
-    sm: 'gap-2',
-    md: 'gap-4',
-    lg: 'gap-6',
-    xl: 'gap-8',
+  // Desktop spacing
+  desktop: {
+    page: 32,
+    card: 20,
+    section: 48,
+    element: 16,
   },
 } as const;
 
-// 반응형 레이아웃 유틸리티
-export const layout = {
-  container: cn(
-    'w-full mx-auto px-4',
-    'sm:px-6',
-    'lg:px-8',
-    'max-w-7xl'
-  ),
-  
-  containerNarrow: cn(
-    'w-full mx-auto px-4',
-    'sm:px-6',
-    'max-w-3xl'
-  ),
-  
-  containerWide: cn(
-    'w-full mx-auto px-4',
-    'sm:px-6',
-    'lg:px-8',
-    'max-w-[1920px]'
-  ),
-  
-  // 반응형 그리드
+// ─────────────────────────────────────────────────────────────────────────────
+// Typography Scale
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const TYPOGRAPHY = {
+  mobile: {
+    h1: { size: 24, lineHeight: 1.2, weight: 700 },
+    h2: { size: 20, lineHeight: 1.3, weight: 600 },
+    h3: { size: 18, lineHeight: 1.4, weight: 600 },
+    body: { size: 16, lineHeight: 1.5, weight: 400 },
+    small: { size: 14, lineHeight: 1.5, weight: 400 },
+    caption: { size: 12, lineHeight: 1.4, weight: 400 },
+  },
+  tablet: {
+    h1: { size: 28, lineHeight: 1.2, weight: 700 },
+    h2: { size: 24, lineHeight: 1.3, weight: 600 },
+    h3: { size: 20, lineHeight: 1.4, weight: 600 },
+    body: { size: 16, lineHeight: 1.5, weight: 400 },
+    small: { size: 14, lineHeight: 1.5, weight: 400 },
+    caption: { size: 12, lineHeight: 1.4, weight: 400 },
+  },
+  desktop: {
+    h1: { size: 32, lineHeight: 1.2, weight: 700 },
+    h2: { size: 28, lineHeight: 1.3, weight: 600 },
+    h3: { size: 24, lineHeight: 1.4, weight: 600 },
+    body: { size: 16, lineHeight: 1.6, weight: 400 },
+    small: { size: 14, lineHeight: 1.5, weight: 400 },
+    caption: { size: 12, lineHeight: 1.4, weight: 400 },
+  },
+} as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Layout Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface LayoutConfig {
+  columns: number;
+  gap: number;
+  padding: number;
+  maxWidth?: number;
+}
+
+export const LAYOUT: Record<DeviceType, LayoutConfig> = {
+  mobile: {
+    columns: 1,
+    gap: 12,
+    padding: 16,
+    maxWidth: 480,
+  },
+  tablet: {
+    columns: 2,
+    gap: 16,
+    padding: 24,
+    maxWidth: 768,
+  },
+  desktop: {
+    columns: 3,
+    gap: 24,
+    padding: 32,
+    maxWidth: 1280,
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Container Classes
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const containerClasses = {
+  page: 'px-4 md:px-6 lg:px-8 mx-auto max-w-7xl',
+  section: 'py-6 md:py-8 lg:py-12',
+  card: 'p-3 md:p-4 lg:p-5',
   grid: {
-    cols1: 'grid grid-cols-1',
-    cols2: 'grid grid-cols-1 sm:grid-cols-2',
-    cols3: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-    cols4: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-    auto: 'grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))]',
+    1: 'grid grid-cols-1',
+    2: 'grid grid-cols-1 md:grid-cols-2',
+    3: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+    4: 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+    auto: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
   },
-  
-  // 반응형 플렉스
-  flex: {
-    row: 'flex flex-col sm:flex-row',
-    col: 'flex flex-col',
-    center: 'flex items-center justify-center',
-    between: 'flex items-center justify-between',
-    wrap: 'flex flex-wrap',
-  },
-  
-  // 반응형 스택
-  stack: {
-    sm: 'flex flex-col gap-2 sm:gap-3',
-    md: 'flex flex-col gap-3 sm:gap-4',
-    lg: 'flex flex-col gap-4 sm:gap-6',
+  gap: {
+    sm: 'gap-2 md:gap-3 lg:gap-4',
+    md: 'gap-3 md:gap-4 lg:gap-6',
+    lg: 'gap-4 md:gap-6 lg:gap-8',
   },
 } as const;
 
-// 반응형 텍스트
-export const text = {
-  // 제목
-  h1: 'text-2xl sm:text-3xl lg:text-4xl font-bold',
-  h2: 'text-xl sm:text-2xl lg:text-3xl font-bold',
-  h3: 'text-lg sm:text-xl font-semibold',
-  h4: 'text-base sm:text-lg font-semibold',
-  
-  // 본문
-  body: 'text-sm sm:text-base',
-  bodyLg: 'text-base sm:text-lg',
-  bodySm: 'text-xs sm:text-sm',
-  
-  // 캡션
-  caption: 'text-xs text-slate-400',
-  
-  // 라벨
-  label: 'text-sm font-medium text-slate-300',
+// ─────────────────────────────────────────────────────────────────────────────
+// Safe Area Insets (for mobile notches/home indicators)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const safeAreaClasses = {
+  top: 'pt-[env(safe-area-inset-top)]',
+  bottom: 'pb-[env(safe-area-inset-bottom)]',
+  left: 'pl-[env(safe-area-inset-left)]',
+  right: 'pr-[env(safe-area-inset-right)]',
+  all: 'p-[env(safe-area-inset-top)] p-[env(safe-area-inset-right)] p-[env(safe-area-inset-bottom)] p-[env(safe-area-inset-left)]',
 } as const;
-
-// 반응형 숨김/표시
-export const visibility = {
-  hiddenMobile: 'hidden sm:block',
-  hiddenTablet: 'block sm:hidden lg:block',
-  hiddenDesktop: 'block lg:hidden',
-  showMobile: 'block sm:hidden',
-  showTablet: 'hidden sm:block lg:hidden',
-  showDesktop: 'hidden lg:block',
-} as const;
-
-// 터치 타겟 유틸리티
-export const touchTarget = cn(
-  'min-h-[44px] min-w-[44px]',
-  'sm:min-h-[36px] sm:min-w-[36px]'
-);
-
-// 접근성 유틸리티
-export const a11y = {
-  srOnly: 'sr-only',
-  notSrOnly: 'not-sr-only',
-  focusVisible: 'focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2',
-  focusWithin: 'focus-within:ring-2 focus-within:ring-cyan-500',
-} as const;
-
-export default { cn, spacing, layout, text, visibility, touchTarget, a11y };

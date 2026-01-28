@@ -94,7 +94,6 @@ export default defineConfig({
       // 단일 진입점 (최적화됨)
       input: {
         main: path.resolve(__dirname, 'index.html'),
-        portal: path.resolve(__dirname, 'portal.html'),
       },
       output: {
         manualChunks: {

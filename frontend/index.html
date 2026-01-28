@@ -1,621 +1,142 @@
 <!DOCTYPE html>
 <html lang="ko">
   <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>AUTUS — Business Automation Platform</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary: #00D4AA;
-      --primary-end: #00B4D8;
-      --neon-cyan: #00F5FF;
-      --bg-dark: #0a0e1a;
-      --bg-panel: rgba(15, 20, 35, 0.95);
-      --glass-bg: rgba(20, 30, 50, 0.8);
-      --glass-border: rgba(0, 212, 255, 0.2);
-      --text-primary: #ffffff;
-      --text-secondary: #a0aec0;
-      --text-muted: #718096;
-      --success: #00D4AA;
-      --warning: #FFB800;
-      --danger: #FF4757;
-      --radius: 12px;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>AUTUS — Business Automation Platform</title>
+    <meta name="description" content="AUTUS - Money Physics 기반 통합 비즈니스 자동화 플랫폼" />
+    <meta name="theme-color" content="#0a0e1a" />
     
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AUTUS" />
     
-    body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: var(--bg-dark);
-      color: var(--text-primary);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+    <!-- Safe Area Support for Notched Devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     
-    /* === 3단 레이아웃 === */
-    .app-container {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      grid-template-rows: 60px 1fr;
-      min-height: 100vh;
-    }
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      /* Critical CSS - 초기 로딩 최적화 */
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html, body, #root {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #0f172a;
+        color: #fff;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      /* 초기 로딩 스피너 */
+      #initial-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        z-index: 9999;
+        transition: opacity 0.3s ease-out;
+      }
+      #initial-loader.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .loader-spinner {
+        width: 48px;
+        height: 48px;
+        border: 3px solid rgba(6, 182, 212, 0.2);
+        border-top-color: #06b6d4;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      .loader-text {
+        margin-top: 16px;
+        font-size: 14px;
+        color: #64748b;
+        letter-spacing: 0.05em;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 초기 로딩 화면 -->
+    <div id="initial-loader">
+      <div class="loader-spinner"></div>
+      <div class="loader-text">AUTUS 로딩 중...</div>
+    </div>
     
-    /* === 상단 헤더 === */
-    .top-header {
-      grid-column: 1 / -1;
-      background: var(--bg-panel);
-      border-bottom: 1px solid var(--glass-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      backdrop-filter: blur(20px);
-    }
+    <!-- React 앱 마운트 포인트 -->
+    <div id="root"></div>
     
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-    }
+    <!-- React 앱 로드 -->
+    <script type="module" src="/src/main.tsx"></script>
     
-    .logo-icon {
-      width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-end));
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-    }
-    
-    .header-center {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    
-    .search-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 8px;
-      padding: 8px 16px;
-      width: 320px;
-      transition: all 0.3s;
-    }
-    
-    .search-box:focus-within {
-      border-color: var(--primary);
-      box-shadow: 0 0 20px rgba(0, 212, 170, 0.2);
-    }
-    
-    .search-box input {
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      font-size: 13px;
-      width: 100%;
-      outline: none;
-    }
-    
-    .search-box input::placeholder { color: var(--text-muted); }
-    
-    .search-shortcut {
-      background: rgba(255,255,255,0.1);
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-    
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    
-    .status-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      background: rgba(0, 212, 170, 0.15);
-      border: 1px solid var(--success);
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--success);
-    }
-    
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success);
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    
-    .icon-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: var(--text-secondary);
-    }
-    
-    .icon-btn:hover {
-      background: rgba(0, 212, 255, 0.1);
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-    
-    /* === 좌측 네비게이션 === */
-    .sidebar {
-      background: var(--bg-panel);
-      border-right: 1px solid var(--glass-border);
-      padding: 20px 12px;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .nav-section {
-      margin-bottom: 24px;
-    }
-    
-    .nav-label {
-      font-size: 10px;
-      letter-spacing: 0.15em;
-      color: var(--text-muted);
-      padding: 0 12px;
-      margin-bottom: 10px;
-    }
-    
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: 10px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.2s;
-      margin-bottom: 4px;
-    }
-    
-    .nav-item:hover {
-      background: rgba(0, 212, 255, 0.08);
-      color: var(--text-primary);
-    }
-    
-    .nav-item.active {
-      background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(0, 180, 216, 0.1));
-      color: var(--primary);
-      border: 1px solid rgba(0, 212, 170, 0.3);
-    }
-    
-    .nav-icon {
-      font-size: 18px;
-      width: 24px;
-      text-align: center;
-    }
-    
-    .nav-badge {
-      margin-left: auto;
-      background: var(--danger);
-      color: white;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 10px;
-    }
-    
-    .sidebar-footer {
-      margin-top: auto;
-      padding: 16px;
-      background: var(--glass-bg);
-      border-radius: 12px;
-      border: 1px solid var(--glass-border);
-    }
-    
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .user-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-end));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    
-    .user-name {
-      font-size: 13px;
-      font-weight: 600;
-    }
-    
-    .user-role {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-    
-    /* === 메인 콘텐츠 === */
-    .main-content {
-      padding: 24px;
-      overflow-y: auto;
-    }
-    
-    /* === 히어로 카드 === */
-    .hero-section {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-    
-    .hero-card {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
-      padding: 24px;
-      transition: all 0.3s;
-    }
-    
-    .hero-card:hover {
-      border-color: rgba(0, 212, 255, 0.4);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-    }
-    
-    .hero-card.primary {
-      background: linear-gradient(135deg, rgba(0, 212, 170, 0.15), rgba(0, 180, 216, 0.1));
-      border-color: rgba(0, 212, 170, 0.3);
-    }
-    
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 16px;
-    }
-    
-    .card-title {
-      font-size: 12px;
-      color: var(--text-muted);
-      letter-spacing: 0.05em;
-    }
-    
-    .card-icon {
-      font-size: 20px;
-    }
-    
-    .card-value {
-      font-size: 32px;
-      font-weight: 300;
-      color: var(--neon-cyan);
-      text-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
-    }
-    
-    .card-value.success { color: var(--success); }
-    .card-value.warning { color: var(--warning); }
-    .card-value.danger { color: var(--danger); }
-    
-    .card-change {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 10px;
-      font-size: 12px;
-    }
-    
-    .change-positive { color: var(--success); }
-    .change-negative { color: var(--danger); }
-    
-    .sparkline {
-      height: 30px;
-      margin-top: 12px;
-      background: linear-gradient(to right, 
-        rgba(0, 212, 170, 0.1) 0%, 
-        rgba(0, 212, 170, 0.3) 50%, 
-        rgba(0, 212, 170, 0.1) 100%);
-      border-radius: 4px;
-    }
-    
-    /* === 링크 카드 그리드 === */
-    .link-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-    
-    .link-card {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
-      padding: 28px;
-      text-decoration: none;
-      color: inherit;
-      transition: all 0.3s;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .link-card:hover {
-      border-color: var(--primary);
-      transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 212, 170, 0.1);
-    }
-    
-    .link-card-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-    }
-    
-    .link-card-icon.solar { background: linear-gradient(135deg, #1a1a3e, #2d2d5a); }
-    .link-card-icon.dash { background: linear-gradient(135deg, #0d3320, #1a5c3a); }
-    .link-card-icon.heat { background: linear-gradient(135deg, #3d2810, #5c3a15); }
-    .link-card-icon.time { background: linear-gradient(135deg, #2d1a3e, #4a2d5c); }
-    
-    .link-card-title {
-      font-size: 18px;
-      font-weight: 600;
-    }
-    
-    .link-card-desc {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-    
-    .link-card-action {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--primary);
-      font-size: 13px;
-      font-weight: 500;
-      margin-top: auto;
-    }
-    
-    /* === 푸터 === */
-    .app-footer {
-      padding: 20px 24px;
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-muted);
-      border-top: 1px solid var(--glass-border);
-    }
-  </style>
-</head>
-<body>
-  <div class="app-container">
-    <!-- 상단 헤더 -->
-    <header class="top-header">
-      <div class="logo">
-        <div class="logo-icon">A</div>
-        <span>AUTUS</span>
-      </div>
-      
-      <div class="header-center">
-        <div class="search-box">
-          <span>🔍</span>
-          <input type="text" placeholder="Search commands, actions...">
-          <span class="search-shortcut">⌘K</span>
-        </div>
-      </div>
-      
-      <div class="header-right">
-        <div class="status-badge">
-          <span class="status-dot"></span>
-          <span>KERNEL v2.2</span>
-        </div>
-        <button class="icon-btn">🔔</button>
-        <button class="icon-btn">⚙️</button>
-      </div>
-    </header>
-    
-    <!-- 좌측 네비게이션 -->
-    <nav class="sidebar">
-      <div class="nav-section">
-        <div class="nav-label">MAIN</div>
-        <a href="index.html" class="nav-item active">
-          <span class="nav-icon">🏠</span>
-          <span>Home</span>
-        </a>
-        <a href="solar.html" class="nav-item">
-          <span class="nav-icon">🌐</span>
-          <span>Solar HQ</span>
-        </a>
-        <a href="dashboard.html" class="nav-item">
-          <span class="nav-icon">📊</span>
-          <span>Dashboard</span>
-        </a>
-      </div>
-      
-      <div class="nav-section">
-        <div class="nav-label">ANALYTICS</div>
-        <a href="heatmap.html" class="nav-item">
-          <span class="nav-icon">🗓️</span>
-          <span>Heatmap</span>
-        </a>
-        <a href="timeline.html" class="nav-item">
-          <span class="nav-icon">⏱️</span>
-          <span>Timeline</span>
-        </a>
-      </div>
-      
-      <div class="nav-section">
-        <div class="nav-label">SYSTEM</div>
-        <a href="#" class="nav-item">
-          <span class="nav-icon">⚡</span>
-          <span>Impulses</span>
-          <span class="nav-badge">3</span>
-        </a>
-        <a href="#" class="nav-item">
-          <span class="nav-icon">📜</span>
-          <span>Action Log</span>
-        </a>
-        <a href="#" class="nav-item">
-          <span class="nav-icon">⚙️</span>
-          <span>Settings</span>
-        </a>
-      </div>
-      
-      <div class="sidebar-footer">
-        <div class="user-info">
-          <div class="user-avatar">U</div>
-          <div>
-            <div class="user-name">User</div>
-            <div class="user-role">Administrator</div>
-          </div>
-        </div>
-      </div>
-    </nav>
-    
-    <!-- 메인 콘텐츠 -->
-    <main class="main-content">
-      <!-- KPI 카드 -->
-      <section class="hero-section">
-        <div class="hero-card primary">
-          <div class="card-header">
-            <span class="card-title">RISK INDEX</span>
-            <span class="card-icon">📉</span>
-          </div>
-          <div class="card-value success">0.42</div>
-          <div class="card-change change-positive">
-            <span>↓</span>
-            <span>12% from last week</span>
-          </div>
-          <div class="sparkline"></div>
-        </div>
+    <!-- 로더 페이드아웃 및 Service Worker 등록 -->
+    <script>
+      window.addEventListener('load', function() {
+        // React 앱이 로드되면 초기 로더 제거
+        setTimeout(function() {
+          var loader = document.getElementById('initial-loader');
+          if (loader) {
+            loader.classList.add('fade-out');
+            setTimeout(function() {
+              loader.remove();
+            }, 300);
+          }
+        }, 100);
         
-        <div class="hero-card">
-          <div class="card-header">
-            <span class="card-title">ENTROPY</span>
-            <span class="card-icon">🌀</span>
-          </div>
-          <div class="card-value">0.38</div>
-          <div class="card-change change-positive">
-            <span>↓</span>
-            <span>5% from last week</span>
-          </div>
-          <div class="sparkline"></div>
-        </div>
-        
-        <div class="hero-card">
-          <div class="card-header">
-            <span class="card-title">PRESSURE</span>
-            <span class="card-icon">⚡</span>
-          </div>
-          <div class="card-value warning">0.61</div>
-          <div class="card-change change-negative">
-            <span>↑</span>
-            <span>8% from last week</span>
-          </div>
-          <div class="sparkline"></div>
-        </div>
-        
-        <div class="hero-card">
-          <div class="card-header">
-            <span class="card-title">FLOW</span>
-            <span class="card-icon">💧</span>
-          </div>
-          <div class="card-value">0.75</div>
-          <div class="card-change change-positive">
-            <span>↑</span>
-            <span>3% from last week</span>
-          </div>
-          <div class="sparkline"></div>
-        </div>
-      </section>
+        // Service Worker 등록
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+              console.log('[SW] Service Worker 등록 성공:', registration.scope);
+              
+              // 업데이트 확인
+              registration.addEventListener('updatefound', function() {
+                var newWorker = registration.installing;
+                newWorker.addEventListener('statechange', function() {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // 새 버전 사용 가능 알림
+                    if (confirm('새 버전이 있습니다. 새로고침 하시겠습니까?')) {
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
+            })
+            .catch(function(error) {
+              console.error('[SW] Service Worker 등록 실패:', error);
+            });
+        }
+      });
       
-      <!-- 페이지 링크 -->
-      <section class="link-grid">
-        <a href="solar.html" class="link-card">
-          <div class="link-card-icon solar">🌐</div>
-          <div class="link-card-title">Solar HQ</div>
-          <div class="link-card-desc">
-            실시간 3D 태양계 시각화. 9행성 상태와 Physics Kernel 모니터링.
-          </div>
-          <div class="link-card-action">
-            <span>Open Solar HQ</span>
-            <span>→</span>
-          </div>
-        </a>
-        
-        <a href="dashboard.html" class="link-card">
-          <div class="link-card-icon dash">📊</div>
-          <div class="link-card-title">Dashboard</div>
-          <div class="link-card-desc">
-            KPI 요약, 차트, 트렌드 분석. 전체 시스템 상태 한눈에 확인.
-          </div>
-          <div class="link-card-action">
-            <span>View Dashboard</span>
-            <span>→</span>
-          </div>
-        </a>
-        
-        <a href="heatmap.html" class="link-card">
-          <div class="link-card-icon heat">🗓️</div>
-          <div class="link-card-title">Heatmap</div>
-          <div class="link-card-desc">
-            9행성 연간 상태 히트맵. 패턴 분석 및 이상 탐지.
-          </div>
-          <div class="link-card-action">
-            <span>View Heatmap</span>
-            <span>→</span>
-          </div>
-        </a>
-        
-        <a href="timeline.html" class="link-card">
-          <div class="link-card-icon time">⏱️</div>
-          <div class="link-card-title">Timeline</div>
-          <div class="link-card-desc">
-            Impulse 작업 타임라인. 간트 차트로 작업 흐름 시각화.
-          </div>
-          <div class="link-card-action">
-            <span>View Timeline</span>
-            <span>→</span>
-          </div>
-        </a>
-      </section>
-    </main>
-  </div>
-  
-  <footer class="app-footer">
-    AUTUS © 2026 · Physics Kernel v2.2 FROZEN · Business Automation Platform
-  </footer>
+      // Online/Offline 이벤트 처리
+      window.addEventListener('online', function() {
+        console.log('[Network] 온라인 상태');
+        document.body.classList.remove('offline');
+      });
+      
+      window.addEventListener('offline', function() {
+        console.log('[Network] 오프라인 상태');
+        document.body.classList.add('offline');
+      });
+    </script>
   </body>
 </html>
