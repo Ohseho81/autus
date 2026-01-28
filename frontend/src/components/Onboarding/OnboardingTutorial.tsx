@@ -207,22 +207,23 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({
         onClick={skip}
       />
       
-      {/* 메인 카드 */}
+      {/* 메인 카드 - 고정 크기 */}
       <div 
         className={`relative bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl 
                    max-w-xl w-full mx-4 overflow-hidden transition-all duration-300
+                   h-[520px] flex flex-col
                    ${isAnimating ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}
       >
         {/* 진행 바 */}
-        <div className="h-1 bg-slate-700">
+        <div className="h-1 bg-slate-700 flex-shrink-0">
           <div 
             className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
         
-        {/* 헤더 */}
-        <div className="p-6 pb-4 flex items-center justify-between">
+        {/* 헤더 - 고정 */}
+        <div className="p-6 pb-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2 text-sm text-slate-400">
             <span>{currentStep + 1}</span>
             <span>/</span>
@@ -236,8 +237,8 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({
           </button>
         </div>
         
-        {/* 콘텐츠 */}
-        <div className="px-6 pb-6">
+        {/* 콘텐츠 - 가운데 정렬, flex-grow */}
+        <div className="px-6 flex-1 flex flex-col justify-center">
           {/* 아이콘 */}
           <div className="flex justify-center mb-6">
             <div className="w-20 h-20 rounded-2xl bg-slate-700/50 flex items-center justify-center">
@@ -245,66 +246,72 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({
             </div>
           </div>
           
-          {/* 제목 */}
-          <h2 className="text-2xl font-bold text-center mb-4">
-            {step.title}
-          </h2>
+          {/* 제목 - 고정 높이 */}
+          <div className="h-16 flex items-center justify-center">
+            <h2 className="text-2xl font-bold text-center">
+              {step.title}
+            </h2>
+          </div>
           
-          {/* 설명 */}
-          <div className="text-slate-300 text-center whitespace-pre-line leading-relaxed">
-            {step.description}
+          {/* 설명 - 고정 높이 */}
+          <div className="h-32 flex items-center justify-center overflow-hidden">
+            <div className="text-slate-300 text-center whitespace-pre-line leading-relaxed text-sm">
+              {step.description}
+            </div>
           </div>
         </div>
         
-        {/* 푸터 - 네비게이션 */}
-        <div className="p-6 pt-4 border-t border-slate-700 flex items-center justify-between">
-          {/* 이전 버튼 */}
-          <button
-            onClick={prevStep}
-            disabled={currentStep === 0}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all
-                       ${currentStep === 0 
-                         ? 'text-slate-600 cursor-not-allowed' 
-                         : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
-          >
-            <ChevronLeft size={20} />
-            이전
-          </button>
-          
-          {/* 건너뛰기 */}
-          <button
-            onClick={skip}
-            className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
-          >
-            건너뛰기
-          </button>
-          
-          {/* 다음/완료 버튼 */}
-          <button
-            onClick={nextStep}
-            className="flex items-center gap-2 px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-600 to-purple-600 
-                      text-white font-medium hover:brightness-110 transition-all"
-          >
-            {currentStep === TUTORIAL_STEPS.length - 1 ? '시작하기' : '다음'}
-            <ChevronRight size={20} />
-          </button>
-        </div>
-        
-        {/* 진행 점들 */}
-        <div className="pb-6 flex justify-center gap-2">
-          {TUTORIAL_STEPS.map((_, index) => (
+        {/* 푸터 - 네비게이션 (고정 위치) */}
+        <div className="p-6 pt-4 border-t border-slate-700 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            {/* 이전 버튼 - 항상 동일한 공간 */}
             <button
-              key={index}
-              onClick={() => setCurrentStep(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentStep 
-                  ? 'w-6 bg-cyan-400' 
-                  : index < currentStep 
-                    ? 'bg-slate-500' 
-                    : 'bg-slate-700'
-              }`}
-            />
-          ))}
+              onClick={prevStep}
+              disabled={currentStep === 0}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all w-24
+                         ${currentStep === 0 
+                           ? 'text-transparent cursor-default' 
+                           : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+            >
+              <ChevronLeft size={20} />
+              이전
+            </button>
+            
+            {/* 건너뛰기 */}
+            <button
+              onClick={skip}
+              className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              건너뛰기
+            </button>
+            
+            {/* 다음/완료 버튼 - 고정 너비 */}
+            <button
+              onClick={nextStep}
+              className="flex items-center gap-2 px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-600 to-purple-600 
+                        text-white font-medium hover:brightness-110 transition-all w-28 justify-center"
+            >
+              {currentStep === TUTORIAL_STEPS.length - 1 ? '시작하기' : '다음'}
+              <ChevronRight size={20} />
+            </button>
+          </div>
+          
+          {/* 진행 점들 */}
+          <div className="mt-4 flex justify-center gap-2">
+            {TUTORIAL_STEPS.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentStep(index)}
+                className={`h-2 rounded-full transition-all ${
+                  index === currentStep 
+                    ? 'w-6 bg-cyan-400' 
+                    : index < currentStep 
+                      ? 'w-2 bg-slate-500' 
+                      : 'w-2 bg-slate-700'
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
