@@ -1,9 +1,16 @@
 """
 ═══════════════════════════════════════════════════════════════════════════════
-🧮 AUTUS V Router — V 공식 API
+🧮 AUTUS V Router v2.3 — V 공식 API
 ═══════════════════════════════════════════════════════════════════════════════
 
-V = (M - T) × (1 + s)^t 계산 및 예측 API
+V = (Motions - Threats) × (1 + InteractionExponent × Relations)^t × Base
+
+용어 (v2.3):
+- Motions (M): 생성 가치 (구: Mint)
+- Threats (T): 비용/위험 (구: Tax)
+- Relations (s): 관계 계수 (구: Synergy)
+- Base: 기본 상수값
+- InteractionExponent: 상호작용 지수
 
 Endpoints:
 - POST /v/calculate  - V 계산
@@ -29,66 +36,144 @@ router = APIRouter(prefix="/v", tags=["V Formula"])
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class VCalculateRequest(BaseModel):
-    M: float = Field(..., ge=0, description="Mint (생성 가치)")
-    T: float = Field(..., ge=0, description="Tax (비용)")
-    s: float = Field(..., ge=0, le=1, description="Synergy (협업 계수)")
+    # v2.3 terminology (primary)
+    motions: float = Field(None, ge=0, description="Motions - 생성 가치 (구: Mint)")
+    threats: float = Field(None, ge=0, description="Threats - 비용/위험 (구: Tax)")
+    relations: float = Field(None, ge=0, le=1, description="Relations - 관계 계수 (구: Synergy)")
+    # Legacy aliases
+    M: float = Field(None, ge=0, description="[Legacy] Mint → Motions")
+    T: float = Field(None, ge=0, description="[Legacy] Tax → Threats")
+    s: float = Field(None, ge=0, le=1, description="[Legacy] Synergy → Relations")
+    # Common fields
     t: int = Field(..., ge=0, le=120, description="Time (기간, 월)")
     user_type: str = Field("balanced", description="사용자 타입")
     age: int = Field(30, ge=1, le=100, description="나이")
     location_factor: float = Field(1.0, ge=0.1, le=2.0, description="지역 계수")
-    network_12: int = Field(0, ge=0, le=12, description="핵심 관계 수")
-    network_144: int = Field(0, ge=0, le=144, description="확장 관계 수")
+    network_12: int = Field(0, ge=0, le=12, description="핵심 관계 수 (1-12-144)")
+    network_144: int = Field(0, ge=0, le=144, description="확장 관계 수 (1-12-144)")
 
     class Config:
         json_schema_extra = {
             "example": {
-                "M": 100,
-                "T": 40,
-                "s": 0.3,
+                "motions": 100,
+                "threats": 40,
+                "relations": 0.3,
                 "t": 12,
                 "user_type": "ambitious",
                 "network_12": 5,
                 "network_144": 20
             }
         }
+    
+    def get_motions(self) -> float:
+        return self.motions if self.motions is not None else (self.M or 0)
+    
+    def get_threats(self) -> float:
+        return self.threats if self.threats is not None else (self.T or 0)
+    
+    def get_relations(self) -> float:
+        return self.relations if self.relations is not None else (self.s or 0)
 
 
 class VPredictRequest(BaseModel):
-    M: float = Field(..., ge=0)
-    T: float = Field(..., ge=0)
-    s: float = Field(..., ge=0, le=1)
+    # v2.3 terminology
+    motions: float = Field(None, ge=0, description="Motions - 생성 가치")
+    threats: float = Field(None, ge=0, description="Threats - 비용/위험")
+    relations: float = Field(None, ge=0, le=1, description="Relations - 관계 계수")
+    # Legacy aliases
+    M: float = Field(None, ge=0)
+    T: float = Field(None, ge=0)
+    s: float = Field(None, ge=0, le=1)
+    # Common
     t: int = Field(12, ge=1, le=60, description="예측 기간 (월)")
     uncertainty: float = Field(0.1, ge=0, le=0.5, description="불확실성 계수")
+    
+    def get_motions(self) -> float:
+        return self.motions if self.motions is not None else (self.M or 0)
+    
+    def get_threats(self) -> float:
+        return self.threats if self.threats is not None else (self.T or 0)
+    
+    def get_relations(self) -> float:
+        return self.relations if self.relations is not None else (self.s or 0)
 
 
 class VSimulateRequest(BaseModel):
-    M: float = Field(..., ge=0)
-    T: float = Field(..., ge=0)
-    s: float = Field(..., ge=0, le=1)
+    # v2.3 terminology
+    motions: float = Field(None, ge=0)
+    threats: float = Field(None, ge=0)
+    relations: float = Field(None, ge=0, le=1)
+    # Legacy aliases
+    M: float = Field(None, ge=0)
+    T: float = Field(None, ge=0)
+    s: float = Field(None, ge=0, le=1)
+    # Common
     t: int = Field(12, ge=1)
-    s_variations: List[float] = Field([-0.1, 0, 0.1, 0.2], description="Synergy 변화량")
+    relations_variations: List[float] = Field([-0.1, 0, 0.1, 0.2], description="Relations 변화량")
+    s_variations: List[float] = Field(None, description="[Legacy] Synergy 변화량")
     t_variations: List[int] = Field([6, 12, 24, 36], description="시간 변화량")
+    
+    def get_motions(self) -> float:
+        return self.motions if self.motions is not None else (self.M or 0)
+    
+    def get_threats(self) -> float:
+        return self.threats if self.threats is not None else (self.T or 0)
+    
+    def get_relations(self) -> float:
+        return self.relations if self.relations is not None else (self.s or 0)
+    
+    def get_relations_variations(self) -> List[float]:
+        return self.s_variations if self.s_variations is not None else self.relations_variations
 
 
 class DecisionOption(BaseModel):
     label: str = Field(..., description="결정 라벨")
-    M: float = Field(0, description="Mint 변화량")
-    T: float = Field(0, description="Tax 변화량")
-    s_boost: float = Field(0, ge=-0.5, le=0.5, description="Synergy 부스트")
+    # v2.3 terminology
+    motions_delta: float = Field(None, description="Motions 변화량")
+    threats_delta: float = Field(None, description="Threats 변화량")
+    relations_boost: float = Field(None, ge=-0.5, le=0.5, description="Relations 부스트")
+    # Legacy aliases
+    M: float = Field(None, description="[Legacy] Mint 변화량 → motions_delta")
+    T: float = Field(None, description="[Legacy] Tax 변화량 → threats_delta")
+    s_boost: float = Field(None, ge=-0.5, le=0.5, description="[Legacy] Synergy 부스트 → relations_boost")
+    
+    def get_motions_delta(self) -> float:
+        return self.motions_delta if self.motions_delta is not None else (self.M or 0)
+    
+    def get_threats_delta(self) -> float:
+        return self.threats_delta if self.threats_delta is not None else (self.T or 0)
+    
+    def get_relations_boost(self) -> float:
+        return self.relations_boost if self.relations_boost is not None else (self.s_boost or 0)
 
 
 class WhatIfRequest(BaseModel):
-    current_M: float = Field(..., ge=0)
-    current_T: float = Field(..., ge=0)
-    current_s: float = Field(..., ge=0, le=1)
+    # v2.3 terminology
+    current_motions: float = Field(None, ge=0)
+    current_threats: float = Field(None, ge=0)
+    current_relations: float = Field(None, ge=0, le=1)
+    # Legacy aliases
+    current_M: float = Field(None, ge=0)
+    current_T: float = Field(None, ge=0)
+    current_s: float = Field(None, ge=0, le=1)
+    # Common
     t: int = Field(12, ge=1)
     options: List[DecisionOption]
+    
+    def get_current_motions(self) -> float:
+        return self.current_motions if self.current_motions is not None else (self.current_M or 0)
+    
+    def get_current_threats(self) -> float:
+        return self.current_threats if self.current_threats is not None else (self.current_T or 0)
+    
+    def get_current_relations(self) -> float:
+        return self.current_relations if self.current_relations is not None else (self.current_s or 0)
 
 
 class TrainRequest(BaseModel):
     history: List[Dict[str, float]] = Field(
         ...,
-        description="[{M, T, s, V, network_density}, ...]",
+        description="[{motions, threats, relations, V, network_density}, ...] (Legacy: M, T, s 도 지원)",
         min_length=3
     )
 
@@ -100,21 +185,21 @@ class TrainRequest(BaseModel):
 @router.post("/calculate")
 async def calculate_v(req: VCalculateRequest):
     """
-    V 계산
+    V 계산 (v2.3 용어)
     
-    V = (M - T) × (1 + s)^t × type_factor × constant_adj
+    V = (Motions - Threats) × (1 + InteractionExponent × Relations)^t × Base × type_factor
     
     - type_factor: 사용자 타입 승수 (ambitious=1.2, cautious=0.8 등)
     - constant_adj: 나이/위치 조정
-    - adjusted_s: 네트워크 밀도 반영
+    - adjusted_relations: 네트워크 밀도 반영
     """
     try:
         from physics.v_engine import calculate_v as v_calc
         
         result = v_calc(
-            M=req.M,
-            T=req.T,
-            s=req.s,
+            M=req.get_motions(),  # Support both v2.3 and legacy
+            T=req.get_threats(),
+            s=req.get_relations(),
             t=req.t,
             user_type=req.user_type,
             age=req.age,
@@ -125,8 +210,14 @@ async def calculate_v(req: VCalculateRequest):
         
         return {
             "success": True,
-            "formula": "V = (M - T) × (1 + s)^t × type × const",
-            "input": req.model_dump(),
+            "formula": "V = (Motions - Threats) × (1 + Relations)^t × type × const",
+            "formula_v2.3": "V = (M - T) × (1 + IE × R)^t × Base",
+            "input": {
+                "motions": req.get_motions(),
+                "threats": req.get_threats(),
+                "relations": req.get_relations(),
+                "t": req.t
+            },
             "result": result
         }
         
@@ -428,16 +519,24 @@ async def transformer_predict(
 @router.get("/formula")
 async def get_formula():
     """
-    V 공식 레퍼런스
+    V 공식 레퍼런스 (v2.3 용어)
     """
     return {
-        "formula": "V = (M - T) × (1 + s)^t",
+        "formula": "V = (Motions - Threats) × (1 + InteractionExponent × Relations)^t × Base",
+        "formula_legacy": "V = (M - T) × (1 + s)^t",
         "variables": {
-            "V": "자산 (Value) - 최종 계산 결과",
-            "M": "Mint - 생성된 가치",
-            "T": "Tax - 소모된 비용",
-            "s": "Synergy - 협업 계수 (0~1)",
+            "V": "V-Index - 유지력 지수 (최종 계산 결과)",
+            "Motions (M)": "생성된 가치 (구: Mint)",
+            "Threats (T)": "비용/위험 (구: Tax)",
+            "Relations (s)": "관계 계수 0~1 (구: Synergy)",
+            "InteractionExponent": "상호작용 지수 (기본 1.0)",
+            "Base": "기본 상수값 (기본 1.0)",
             "t": "Time - 기간 (월 단위)"
+        },
+        "terminology_v2.3": {
+            "Mint": "→ Motions",
+            "Tax": "→ Threats",
+            "Synergy": "→ Relations"
         },
         "adjustments": {
             "type_factor": {
@@ -448,7 +547,12 @@ async def get_formula():
                 "conservative": 0.6
             },
             "constant_adj": "(1 - age/100) × location_factor",
-            "network_boost": "s += growth_rate × network_density"
+            "network_boost": "relations += growth_rate × network_density"
+        },
+        "principles": {
+            "1-12-144": "1명의 오너, 12명의 직접 영향, 144명의 간접 영향",
+            "passive_god_mode": "00:00/12:00/18:00 자동 실행",
+            "fraud_detection": "불일치 감지 시 Threats +0.35"
         },
         "models": {
             "laplace_demon": "결정론적 예측 (모든 초기 조건 반영)",
@@ -458,7 +562,7 @@ async def get_formula():
         },
         "examples": [
             {
-                "input": {"M": 100, "T": 40, "s": 0.3, "t": 12},
+                "input": {"motions": 100, "threats": 40, "relations": 0.3, "t": 12},
                 "calculation": "(100-40) × (1.3)^12 ≈ 1,320",
                 "note": "타입/상수 조정 전 값"
             }

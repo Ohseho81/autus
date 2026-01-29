@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATB Hub - 오너 대시보드 (Premium Executive)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1a1a24;
+      --bg-glass: rgba(255,255,255,0.03);
+      --orange-primary: #FF6B35;
+      --orange-light: #FF8C5A;
+      --orange-glow: rgba(255,107,53,0.3);
+      --gold: #FFD700;
+      --gold-dark: #DAA520;
+      --green: #00D68F;
+      --green-dark: #00B377;
+      --red: #FF4D6A;
+      --blue: #4DA6FF;
+      --purple: #9D7AFF;
+      --text-primary: #FFFFFF;
+      --text-secondary: #8A8A9A;
+      --text-muted: #5A5A6A;
+      --border: rgba(255,255,255,0.08);
+      --gradient-gold: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+      --gradient-dark: linear-gradient(180deg, #12121a 0%, #0a0a0f 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background Effects */
+    .bg-effects {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.15;
+    }
+
+    .glow-orb.gold {
+      width: 600px;
+      height: 600px;
+      background: var(--gold);
+      top: -200px;
+      right: -100px;
+    }
+
+    .glow-orb.orange {
+      width: 400px;
+      height: 400px;
+      background: var(--orange-primary);
+      bottom: -100px;
+      left: -100px;
+    }
+
+    /* Main Container */
+    .dashboard {
+      position: relative;
+      z-index: 1;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 40px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 48px;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      background: var(--gradient-gold);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 32px rgba(255,215,0,0.3);
+    }
+
+    .brand h1 {
+      font-size: 28px;
+      font-weight: 800;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .date-display {
+      text-align: right;
+    }
+
+    .date-display .date {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .date-display .time {
+      font-size: 24px;
+      font-weight: 300;
+      color: var(--text-secondary);
+    }
+
+    .owner-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--gradient-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      border: 2px solid rgba(255,215,0,0.3);
+      box-shadow: 0 4px 20px rgba(255,215,0,0.2);
+    }
+
+    /* Welcome Section */
+    .welcome-section {
+      margin-bottom: 48px;
+    }
+
+    .welcome-text {
+      font-size: 48px;
+      font-weight: 300;
+      line-height: 1.2;
+    }
+
+    .welcome-text strong {
+      font-weight: 800;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .welcome-sub {
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+    }
+
+    /* Main KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,215,0,0.2);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .kpi-card.featured {
+      background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,140,0,0.05) 100%);
+      border-color: rgba(255,215,0,0.2);
+    }
+
+    .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-value {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .kpi-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .kpi-change.up {
+      background: rgba(0,214,143,0.15);
+      color: var(--green);
+    }
+
+    .kpi-change.down {
+      background: rgba(255,77,106,0.15);
+      color: var(--red);
+    }
+
+    /* Target Progress */
+    .target-section {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .target-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px;
+    }
+
+    .target-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .target-title h3 {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .target-title p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .target-percentage {
+      font-size: 64px;
+      font-weight: 900;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .progress-container {
+      margin-bottom: 32px;
+    }
+
+    .progress-bar {
+      height: 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-gold);
+      border-radius: 10px;
+      position: relative;
+      transition: width 1s ease;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .target-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .target-metric {
+      background: var(--bg-glass);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .target-metric-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .target-metric-value {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .target-metric-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Revenue Chart */
+    .chart-section {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .chart-title h3 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .chart-title p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 20px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* Custom Chart */
+    .chart-container {
+      height: 280px;
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      padding: 20px 0;
+    }
+
+    .chart-bar-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 200px;
+    }
+
+    .chart-bar {
+      width: 24px;
+      border-radius: 6px 6px 0 0;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .chart-bar.current {
+      background: var(--gradient-gold);
+    }
+
+    .chart-bar.previous {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .chart-bar:hover {
+      opacity: 0.8;
+      transform: scaleY(1.05);
+      transform-origin: bottom;
+    }
+
+    .chart-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ROI Card */
+    .roi-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(255,215,0,0.08) 0%, rgba(157,122,255,0.08) 100%);
+    }
+
+    .roi-circle {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--gold) 0deg,
+        var(--orange-primary) 280deg,
+        rgba(255,255,255,0.1) 280deg
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .roi-inner {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .roi-value {
+      font-size: 48px;
+      font-weight: 900;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .roi-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .roi-change {
+      font-size: 16px;
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    /* Branch Overview */
+    .branch-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .branch-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .branch-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+    }
+
+    .branch-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .branch-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .branch-status {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .branch-status.excellent { background: var(--green); box-shadow: 0 0 10px var(--green); }
+    .branch-status.good { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+    .branch-status.warning { background: var(--orange-primary); box-shadow: 0 0 10px var(--orange-primary); }
+    .branch-status.critical { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+    .branch-revenue {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .branch-change {
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .branch-change.up { color: var(--green); }
+    .branch-change.down { color: var(--red); }
+
+    .branch-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .branch-stat {
+      text-align: center;
+    }
+
+    .branch-stat-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .branch-stat-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+      margin-top: 48px;
+    }
+
+    .footer p {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .last-updated {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .chart-section {
+        grid-template-columns: 1fr;
+      }
+
+      .branch-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard {
+        padding: 20px;
+      }
+
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .branch-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .target-metrics {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Effects -->
+  <div class="bg-effects">
+    <div class="glow-orb gold"></div>
+    <div class="glow-orb orange"></div>
+  </div>
+
+  <div class="dashboard">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-section">
+        <div class="logo">👑</div>
+        <div class="brand">
+          <h1>ATB Hub</h1>
+          <p>Owner Dashboard</p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="date-display">
+          <div class="date" id="currentDate">2025년 1월 29일 수요일</div>
+          <div class="time" id="currentTime">14:32</div>
+        </div>
+        <div class="owner-avatar">👑</div>
+      </div>
+    </header>
+
+    <!-- Welcome -->
+    <div class="welcome-section">
+      <h2 class="welcome-text">
+        안녕하세요, <strong>김대표님</strong>
+      </h2>
+      <p class="welcome-sub">오늘도 ATB Hub가 성장하고 있습니다. 핵심 지표를 확인해 보세요.</p>
+    </div>
+
+    <!-- Main KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card featured">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,140,0,0.2));">💰</div>
+        <div class="kpi-label">이번 달 총 매출</div>
+        <div class="kpi-value" style="background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">₩2.4억</div>
+        <div class="kpi-change up">↑ 12.3% 전월 대비</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(0,214,143,0.15);">👨‍👩‍👧‍👦</div>
+        <div class="kpi-label">총 등록 학생</div>
+        <div class="kpi-value" style="color: var(--green);">847명</div>
+        <div class="kpi-change up">↑ 23명 신규 등록</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(77,166,255,0.15);">📊</div>
+        <div class="kpi-label">수납률</div>
+        <div class="kpi-value" style="color: var(--blue);">94.2%</div>
+        <div class="kpi-change up">↑ 2.1% 개선</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(157,122,255,0.15);">🏢</div>
+        <div class="kpi-label">운영 지점</div>
+        <div class="kpi-value" style="color: var(--purple);">4개</div>
+        <div class="kpi-change up">+1 확장 예정</div>
+      </div>
+    </div>
+
+    <!-- Target Progress -->
+    <div class="target-section">
+      <h3 class="section-title">🎯 Q1 목표 달성 현황</h3>
+      <div class="target-card">
+        <div class="target-header">
+          <div class="target-title">
+            <h3>2025년 1분기 성장 목표</h3>
+            <p>1월 1일 ~ 3월 31일 • D-62</p>
+          </div>
+          <div class="target-percentage">78%</div>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 78%;"></div>
+          </div>
+          <div class="progress-labels">
+            <span>달성: ₩7.8억</span>
+            <span>목표: ₩10억</span>
+          </div>
+        </div>
+
+        <div class="target-metrics">
+          <div class="target-metric">
+            <div class="target-metric-icon">💵</div>
+            <div class="target-metric-value" style="color: var(--green);">✓</div>
+            <div class="target-metric-label">매출 목표 달성</div>
+          </div>
+          <div class="target-metric">
+            <div class="target-metric-icon">👥</div>
+            <div class="target-metric-value" style="color: var(--gold);">75%</div>
+            <div class="target-metric-label">신규 회원 목표</div>
+          </div>
+          <div class="target-metric">
+            <div class="target-metric-icon">⭐</div>
+            <div class="target-metric-value" style="color: var(--blue);">92%</div>
+            <div class="target-metric-label">만족도 목표</div>
+          </div>
+          <div class="target-metric">
+            <div class="target-metric-icon">🏆</div>
+            <div class="target-metric-value" style="color: var(--purple);">진행중</div>
+            <div class="target-metric-label">지점 확장</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revenue Chart & ROI -->
+    <div class="chart-section">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <h3>📈 월별 매출 추이</h3>
+            <p>최근 7개월 비교</p>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background: var(--gradient-gold);"></div>
+              <span>2025년</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background: rgba(255,255,255,0.2);"></div>
+              <span>2024년</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-bar-group">
+            <div class="chart-bars">
+              <div class="chart-bar previous" style="height: 120px;"></div>
+              <div class="chart-bar current" style="height: 140px;"></div>
+            </div>
+            <div class="chart-label">7월</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bars">
+              <div class="chart-bar previous" style="height: 140px;"></div>
+              <div class="chart-bar current" style="height: 155px;"></div>
+            </div>
+            <div class="chart-label">8월</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bars">
+              <div class="chart-bar previous" style="height: 130px;"></div>
+              <div class="chart-bar current" style="height: 160px;"></div>
+            </div>
+            <div class="chart-label">9월</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bars">
+              <div class="chart-bar previous" style="height: 150px;"></div>
+              <div class="chart-bar current" style="height: 175px;"></div>
+            </div>
+            <div class="chart-label">10월</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bars">
+              <div class="chart-bar previous" style="height: 145px;"></div>
+              <div class="chart-bar current" style="height: 180px;"></div>
+            </div>
+            <div class="chart-label">11월</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bars">
+              <div class="chart-bar previous" style="height: 160px;"></div>
+              <div class="chart-bar current" style="height: 190px;"></div>
+            </div>
+            <div class="chart-label">12월</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bars">
+              <div class="chart-bar previous" style="height: 155px;"></div>
+              <div class="chart-bar current" style="height: 200px;"></div>
+            </div>
+            <div class="chart-label">1월</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card roi-card">
+        <div class="roi-circle">
+          <div class="roi-inner">
+            <div class="roi-value">127%</div>
+            <div class="roi-label">ROI</div>
+          </div>
+        </div>
+        <div class="roi-change">↑ 15% YoY 성장</div>
+        <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">투자 대비 수익률</p>
+      </div>
+    </div>
+
+    <!-- Branch Overview -->
+    <div class="target-section">
+      <h3 class="section-title">🏢 지점별 현황</h3>
+      <div class="branch-grid">
+        <div class="branch-card">
+          <div class="branch-header">
+            <div class="branch-name">강남본점</div>
+            <div class="branch-status excellent"></div>
+          </div>
+          <div class="branch-revenue">₩8,200만</div>
+          <div class="branch-change up">↑ 8.5%</div>
+          <div class="branch-stats">
+            <div class="branch-stat">
+              <div class="branch-stat-value">312명</div>
+              <div class="branch-stat-label">학생 수</div>
+            </div>
+            <div class="branch-stat">
+              <div class="branch-stat-value">94%</div>
+              <div class="branch-stat-label">출석률</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch-card">
+          <div class="branch-header">
+            <div class="branch-name">일산점</div>
+            <div class="branch-status good"></div>
+          </div>
+          <div class="branch-revenue">₩5,400만</div>
+          <div class="branch-change up">↑ 5.2%</div>
+          <div class="branch-stats">
+            <div class="branch-stat">
+              <div class="branch-stat-value">198명</div>
+              <div class="branch-stat-label">학생 수</div>
+            </div>
+            <div class="branch-stat">
+              <div class="branch-stat-value">91%</div>
+              <div class="branch-stat-label">출석률</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch-card">
+          <div class="branch-header">
+            <div class="branch-name">수원점</div>
+            <div class="branch-status good"></div>
+          </div>
+          <div class="branch-revenue">₩4,800만</div>
+          <div class="branch-change up">↑ 3.8%</div>
+          <div class="branch-stats">
+            <div class="branch-stat">
+              <div class="branch-stat-value">186명</div>
+              <div class="branch-stat-label">학생 수</div>
+            </div>
+            <div class="branch-stat">
+              <div class="branch-stat-value">85%</div>
+              <div class="branch-stat-label">출석률</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch-card">
+          <div class="branch-header">
+            <div class="branch-name">분당점</div>
+            <div class="branch-status critical"></div>
+          </div>
+          <div class="branch-revenue">₩3,100만</div>
+          <div class="branch-change down">↓ 2.1%</div>
+          <div class="branch-stats">
+            <div class="branch-stat">
+              <div class="branch-stat-value">151명</div>
+              <div class="branch-stat-label">학생 수</div>
+            </div>
+            <div class="branch-stat">
+              <div class="branch-stat-value" style="color: var(--red);">78%</div>
+              <div class="branch-stat-label">출석률</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>ATB Hub Owner Dashboard • Premium Executive View</p>
+      <div class="last-updated">
+        <div class="pulse"></div>
+        실시간 업데이트 • 마지막 갱신: 방금 전
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Update time
+    function updateTime() {
+      const now = new Date();
+      const timeEl = document.getElementById('currentTime');
+      const dateEl = document.getElementById('currentDate');
+
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      timeEl.textContent = `${hours}:${minutes}`;
+
+      const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+      dateEl.textContent = now.toLocaleDateString('ko-KR', options);
+    }
+
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // Animate numbers on load
+    function animateValue(element, start, end, duration) {
+      const startTime = performance.now();
+      const isPercentage = element.textContent.includes('%');
+      const isCurrency = element.textContent.includes('₩') || element.textContent.includes('억');
+
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+        const current = Math.floor(start + (end - start) * easeOutQuart);
+
+        if (isCurrency) {
+          if (end >= 10000) {
+            element.textContent = `₩${(current / 10000).toFixed(1)}억`;
+          } else {
+            element.textContent = `₩${current.toLocaleString()}만`;
+          }
+        } else if (isPercentage) {
+          element.textContent = `${current}%`;
+        } else {
+          element.textContent = current.toLocaleString();
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    // Intersection Observer for animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.kpi-card, .target-card, .chart-card, .branch-card').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>

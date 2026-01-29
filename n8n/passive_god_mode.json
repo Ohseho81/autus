@@ -1,0 +1,106 @@
+{
+  "name": "AUTUS Passive God Mode - V-Index Auto Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {"triggerAtHour": 0, "triggerAtMinute": 0},
+            {"triggerAtHour": 12, "triggerAtMinute": 0},
+            {"triggerAtHour": 18, "triggerAtMinute": 0}
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "패시브 스케줄 (00:00, 12:00, 18:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.AUTUS_API_URL }}/api/v/consolidate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth"
+      },
+      "id": "get-v-data",
+      "name": "V-Index 통합 데이터 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.data.urgent_count }}",
+              "rightValue": 0,
+              "operator": {"type": "number", "operation": "gt"}
+            }
+          ]
+        }
+      },
+      "id": "check-urgent",
+      "name": "긴급 상황 체크",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json.data;\nconst now = new Date();\nconst timeSlot = now.getHours() === 0 ? '자정' : now.getHours() === 12 ? '정오' : '저녁';\n\nlet msg = '🏛️ *AUTUS V-Index ' + timeSlot + ' 리포트*\\n━━━━━━━━━━━━━━━━━━━━\\n\\n';\nmsg += '📈 *전체 현황*\\n';\nmsg += '• 총 V-Index: ' + (data.global?.total_v || 0).toLocaleString() + '\\n';\nmsg += '• 조직 수: ' + (data.global?.total_orgs || 0) + '개\\n';\nmsg += '• 관리 대상: ' + (data.global?.total_entities || 0) + '명\\n\\n';\n\nif (data.urgent_count > 0) msg += '🚨 긴급: ' + data.urgent_count + '건\\n';\nif (data.warning_count > 0) msg += '⚡ 경고: ' + data.warning_count + '건\\n';\n\nmsg += '\\n🤖 _패시브 신 모드 자동 생성_';\n\nreturn { telegramMessage: msg };"
+      },
+      "id": "generate-report",
+      "name": "리포트 생성",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_OWNER_CHAT_ID }}",
+        "text": "={{ $json.telegramMessage }}",
+        "additionalFields": {"parse_mode": "Markdown"}
+      },
+      "id": "send-telegram",
+      "name": "텔레그램 전송",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.AUTUS_API_URL }}/api/v/recalculate",
+        "method": "POST"
+      },
+      "id": "recalculate-v",
+      "name": "V-Index 재계산",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.AUTUS_API_URL }}/api/churn/detect",
+        "method": "POST"
+      },
+      "id": "detect-churn",
+      "name": "이탈 위험 감지",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 300]
+    }
+  ],
+  "connections": {
+    "패시브 스케줄 (00:00, 12:00, 18:00)": {"main": [[{"node": "V-Index 통합 데이터 조회", "type": "main", "index": 0}]]},
+    "V-Index 통합 데이터 조회": {"main": [[{"node": "긴급 상황 체크", "type": "main", "index": 0}]]},
+    "긴급 상황 체크": {"main": [[{"node": "리포트 생성", "type": "main", "index": 0}], [{"node": "리포트 생성", "type": "main", "index": 0}]]},
+    "리포트 생성": {"main": [[{"node": "텔레그램 전송", "type": "main", "index": 0}]]},
+    "텔레그램 전송": {"main": [[{"node": "V-Index 재계산", "type": "main", "index": 0}]]},
+    "V-Index 재계산": {"main": [[{"node": "이탈 위험 감지", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"},
+  "meta": {"instanceId": "autus-kraton"},
+  "tags": [{"name": "passive"}, {"name": "v-index"}, {"name": "auto-report"}]
+}

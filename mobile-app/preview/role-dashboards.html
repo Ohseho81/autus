@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATB Hub - 역할별 대시보드</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #fff;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      background: linear-gradient(135deg, #FFD700, #FF6B35, #2ED573, #74B9FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    /* Hierarchy Diagram */
+    .hierarchy {
+      max-width: 900px;
+      margin: 0 auto 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .hierarchy-level {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .level-badge {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .level-badge.owner { background: linear-gradient(135deg, #FFD700, #FFA500); }
+    .level-badge.director { background: linear-gradient(135deg, #FF6B35, #FF8C42); }
+    .level-badge.manager { background: linear-gradient(135deg, #2ED573, #7BED9F); color: #0D1117; }
+    .level-badge.coach { background: linear-gradient(135deg, #74B9FF, #0984E3); }
+
+    .level-content {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 16px 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .level-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .level-title.owner { color: #FFD700; }
+    .level-title.director { color: #FF8C42; }
+    .level-title.manager { color: #2ED573; }
+    .level-title.coach { color: #74B9FF; }
+
+    .level-focus {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .level-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4px;
+    }
+
+    .hierarchy-arrow {
+      width: 2px;
+      height: 30px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+      margin-left: 29px;
+    }
+
+    /* Dashboard Cards */
+    .dashboards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .dashboard-card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .dashboard-header {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .dashboard-header.owner { background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,165,0,0.1)); border-bottom: 2px solid #FFD700; }
+    .dashboard-header.director { background: linear-gradient(135deg, rgba(255,107,53,0.2), rgba(255,140,66,0.1)); border-bottom: 2px solid #FF8C42; }
+    .dashboard-header.manager { background: linear-gradient(135deg, rgba(46,213,115,0.2), rgba(123,237,159,0.1)); border-bottom: 2px solid #2ED573; }
+    .dashboard-header.coach { background: linear-gradient(135deg, rgba(116,185,255,0.2), rgba(9,132,227,0.1)); border-bottom: 2px solid #74B9FF; }
+
+    .dashboard-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .dashboard-icon.owner { background: linear-gradient(135deg, #FFD700, #FFA500); }
+    .dashboard-icon.director { background: linear-gradient(135deg, #FF6B35, #FF8C42); }
+    .dashboard-icon.manager { background: linear-gradient(135deg, #2ED573, #7BED9F); color: #0D1117; }
+    .dashboard-icon.coach { background: linear-gradient(135deg, #74B9FF, #0984E3); }
+
+    .dashboard-title-area h3 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .dashboard-title-area h3.owner { color: #FFD700; }
+    .dashboard-title-area h3.director { color: #FF8C42; }
+    .dashboard-title-area h3.manager { color: #2ED573; }
+    .dashboard-title-area h3.coach { color: #74B9FF; }
+
+    .dashboard-title-area p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+
+    .dashboard-body {
+      padding: 24px;
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .kpi-value.gold { color: #FFD700; }
+    .kpi-value.orange { color: #FF8C42; }
+    .kpi-value.green { color: #2ED573; }
+    .kpi-value.blue { color: #74B9FF; }
+    .kpi-value.red { color: #FF6B6B; }
+
+    .kpi-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4px;
+    }
+
+    .kpi-trend {
+      font-size: 10px;
+      margin-top: 4px;
+    }
+
+    .kpi-trend.up { color: #2ED573; }
+    .kpi-trend.down { color: #FF6B6B; }
+
+    /* Section Title */
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* List Items */
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .list-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .list-icon.gold { background: rgba(255,215,0,0.2); color: #FFD700; }
+    .list-icon.orange { background: rgba(255,107,53,0.2); color: #FF8C42; }
+    .list-icon.green { background: rgba(46,213,115,0.2); color: #2ED573; }
+    .list-icon.blue { background: rgba(116,185,255,0.2); color: #74B9FF; }
+    .list-icon.red { background: rgba(255,107,107,0.2); color: #FF6B6B; }
+
+    .list-content {
+      flex: 1;
+    }
+
+    .list-content h4 {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .list-content p {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+
+    .list-value {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .list-value.gold { color: #FFD700; }
+    .list-value.green { color: #2ED573; }
+    .list-value.red { color: #FF6B6B; }
+
+    /* Action Buttons */
+    .action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .action-btn.owner { background: linear-gradient(135deg, #FFD700, #FFA500); color: #0D1117; }
+    .action-btn.director { background: linear-gradient(135deg, #FF6B35, #FF8C42); color: #fff; }
+    .action-btn.manager { background: linear-gradient(135deg, #2ED573, #7BED9F); color: #0D1117; }
+    .action-btn.coach { background: linear-gradient(135deg, #74B9FF, #0984E3); color: #fff; }
+
+    /* Progress Bar */
+    .progress-container {
+      margin-bottom: 16px;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .progress-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .progress-value {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .progress-fill.gold { background: linear-gradient(90deg, #FFD700, #FFA500); }
+    .progress-fill.orange { background: linear-gradient(90deg, #FF6B35, #FF8C42); }
+    .progress-fill.green { background: linear-gradient(90deg, #2ED573, #7BED9F); }
+    .progress-fill.blue { background: linear-gradient(90deg, #74B9FF, #0984E3); }
+
+    /* Coach Scanner Preview */
+    .scanner-preview {
+      background: #000;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .scanner-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      color: #74B9FF;
+    }
+
+    .scanner-text {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Today Schedule */
+    .schedule-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .schedule-time {
+      font-size: 13px;
+      font-weight: 700;
+      color: #74B9FF;
+      min-width: 50px;
+    }
+
+    .schedule-name {
+      flex: 1;
+      font-size: 13px;
+    }
+
+    .schedule-count {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    @media (max-width: 1200px) {
+      .dashboards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>역할별 대시보드</h1>
+    <p>오너 → 원장 → 관리 → 강사 | 목표 → 전략 → 미션 → 실행</p>
+  </div>
+
+  <!-- Hierarchy Diagram -->
+  <div class="hierarchy">
+    <div class="hierarchy-level">
+      <div class="level-badge owner"><i class="fas fa-crown"></i></div>
+      <div class="level-content">
+        <div class="level-title owner">오너 (Owner)</div>
+        <div class="level-focus">🎯 목표</div>
+        <div class="level-desc">월 매출 5억, 지점 확장, 브랜드 가치</div>
+      </div>
+    </div>
+    <div class="hierarchy-arrow"></div>
+    <div class="hierarchy-level">
+      <div class="level-badge director"><i class="fas fa-chess-king"></i></div>
+      <div class="level-content">
+        <div class="level-title director">원장 (Director)</div>
+        <div class="level-focus">📋 전략</div>
+        <div class="level-desc">커리큘럼 설계, 코치 배치, 마케팅 채널</div>
+      </div>
+    </div>
+    <div class="hierarchy-arrow"></div>
+    <div class="hierarchy-level">
+      <div class="level-badge manager"><i class="fas fa-tasks"></i></div>
+      <div class="level-content">
+        <div class="level-title manager">관리 (Manager)</div>
+        <div class="level-focus">✅ 미션</div>
+        <div class="level-desc">일일 운영, 수납 관리, 학부모 응대</div>
+      </div>
+    </div>
+    <div class="hierarchy-arrow"></div>
+    <div class="hierarchy-level">
+      <div class="level-badge coach"><i class="fas fa-running"></i></div>
+      <div class="level-content">
+        <div class="level-title coach">강사 (Coach)</div>
+        <div class="level-focus">⚡ 실행</div>
+        <div class="level-desc">레슨 진행, 피드백, 학생 성장 기록</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Cards -->
+  <div class="dashboards">
+    <!-- OWNER Dashboard -->
+    <div class="dashboard-card">
+      <div class="dashboard-header owner">
+        <div class="dashboard-icon owner"><i class="fas fa-crown"></i></div>
+        <div class="dashboard-title-area">
+          <h3 class="owner">오너 대시보드</h3>
+          <p>목표 달성률 & 핵심 지표</p>
+        </div>
+      </div>
+      <div class="dashboard-body">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-value gold">4.2억</div>
+            <div class="kpi-label">이번 달 매출</div>
+            <div class="kpi-trend up">▲ 12% vs 지난달</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value green">84%</div>
+            <div class="kpi-label">목표 달성률</div>
+            <div class="kpi-trend up">▲ 5%</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value orange">1,247</div>
+            <div class="kpi-label">총 회원수</div>
+            <div class="kpi-trend up">▲ 48명</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value blue">4</div>
+            <div class="kpi-label">운영 지점</div>
+            <div class="kpi-trend">+1 예정</div>
+          </div>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-header">
+            <span class="progress-label">🎯 월 매출 목표 (5억)</span>
+            <span class="progress-value" style="color: #FFD700;">84%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill gold" style="width: 84%;"></div>
+          </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-building"></i> 지점별 성과</div>
+        <div class="list-item">
+          <div class="list-icon gold"><i class="fas fa-trophy"></i></div>
+          <div class="list-content">
+            <h4>대치점</h4>
+            <p>회원 412명 • 매출 1.8억</p>
+          </div>
+          <div class="list-value gold">TOP</div>
+        </div>
+        <div class="list-item">
+          <div class="list-icon green"><i class="fas fa-chart-line"></i></div>
+          <div class="list-content">
+            <h4>압구정점</h4>
+            <p>회원 328명 • 매출 1.2억</p>
+          </div>
+          <div class="list-value green">▲18%</div>
+        </div>
+        <div class="list-item">
+          <div class="list-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="list-content">
+            <h4>송파점</h4>
+            <p>회원 245명 • 매출 0.7억</p>
+          </div>
+          <div class="list-value red">▼5%</div>
+        </div>
+
+        <button class="action-btn owner">
+          <i class="fas fa-chart-pie"></i> 전체 분석 리포트
+        </button>
+      </div>
+    </div>
+
+    <!-- DIRECTOR Dashboard -->
+    <div class="dashboard-card">
+      <div class="dashboard-header director">
+        <div class="dashboard-icon director"><i class="fas fa-chess-king"></i></div>
+        <div class="dashboard-title-area">
+          <h3 class="director">원장 대시보드</h3>
+          <p>전략 지표 & 코치 관리</p>
+        </div>
+      </div>
+      <div class="dashboard-body">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-value orange">92%</div>
+            <div class="kpi-label">재등록률</div>
+            <div class="kpi-trend up">▲ 3%</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value green">4.8</div>
+            <div class="kpi-label">학부모 만족도</div>
+            <div class="kpi-trend up">▲ 0.2</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value blue">12</div>
+            <div class="kpi-label">코치 인원</div>
+            <div class="kpi-trend">정원</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value red">3</div>
+            <div class="kpi-label">위험 학생</div>
+            <div class="kpi-trend down">관리 필요</div>
+          </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-user-tie"></i> 코치 성과 TOP 3</div>
+        <div class="list-item">
+          <div class="list-icon gold"><i class="fas fa-medal"></i></div>
+          <div class="list-content">
+            <h4>박진호 코치</h4>
+            <p>출석률 98% • 만족도 4.9</p>
+          </div>
+          <div class="list-value gold">MVP</div>
+        </div>
+        <div class="list-item">
+          <div class="list-icon orange"><i class="fas fa-award"></i></div>
+          <div class="list-content">
+            <h4>이준석 코치</h4>
+            <p>출석률 96% • 만족도 4.7</p>
+          </div>
+          <div class="list-value" style="color: #C0C0C0;">2nd</div>
+        </div>
+        <div class="list-item">
+          <div class="list-icon orange"><i class="fas fa-star"></i></div>
+          <div class="list-content">
+            <h4>김수현 코치</h4>
+            <p>출석률 94% • 만족도 4.6</p>
+          </div>
+          <div class="list-value" style="color: #CD7F32;">3rd</div>
+        </div>
+
+        <div class="section-title" style="margin-top: 16px;"><i class="fas fa-exclamation-circle"></i> 이탈 위험 학생</div>
+        <div class="list-item">
+          <div class="list-icon red"><i class="fas fa-user-times"></i></div>
+          <div class="list-content">
+            <h4>홍길동 (U-12)</h4>
+            <p>3주 연속 결석 • 미납 2개월</p>
+          </div>
+          <div class="list-value red">HIGH</div>
+        </div>
+
+        <button class="action-btn director">
+          <i class="fas fa-clipboard-list"></i> 전략 회의 준비
+        </button>
+      </div>
+    </div>
+
+    <!-- MANAGER Dashboard -->
+    <div class="dashboard-card">
+      <div class="dashboard-header manager">
+        <div class="dashboard-icon manager"><i class="fas fa-tasks"></i></div>
+        <div class="dashboard-title-area">
+          <h3 class="manager">관리자 대시보드</h3>
+          <p>오늘의 미션 & 운영 현황</p>
+        </div>
+      </div>
+      <div class="dashboard-body">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-value green">87%</div>
+            <div class="kpi-label">오늘 출석률</div>
+            <div class="kpi-trend up">정상</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value orange">12</div>
+            <div class="kpi-label">미납 건수</div>
+            <div class="kpi-trend down">처리 필요</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value blue">8</div>
+            <div class="kpi-label">오늘 레슨</div>
+            <div class="kpi-trend">진행중 3</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value green">5</div>
+            <div class="kpi-label">신규 문의</div>
+            <div class="kpi-trend up">응대 필요</div>
+          </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-bell"></i> 오늘 미션</div>
+        <div class="list-item">
+          <div class="list-icon red"><i class="fas fa-won-sign"></i></div>
+          <div class="list-content">
+            <h4>미납 알림 발송</h4>
+            <p>12명 대상 • 총 1,800,000원</p>
+          </div>
+          <div class="list-value red">긴급</div>
+        </div>
+        <div class="list-item">
+          <div class="list-icon orange"><i class="fas fa-phone"></i></div>
+          <div class="list-content">
+            <h4>학부모 상담 예약</h4>
+            <p>오후 2시 김민서 엄마</p>
+          </div>
+          <div class="list-value orange">예정</div>
+        </div>
+        <div class="list-item">
+          <div class="list-icon blue"><i class="fas fa-user-plus"></i></div>
+          <div class="list-content">
+            <h4>신규 등록 상담</h4>
+            <p>오후 4시 체험 레슨 후</p>
+          </div>
+          <div class="list-value blue">예정</div>
+        </div>
+        <div class="list-item">
+          <div class="list-icon green"><i class="fas fa-clipboard-check"></i></div>
+          <div class="list-content">
+            <h4>시설 점검 완료</h4>
+            <p>코트 A, B 점검 완료</p>
+          </div>
+          <div class="list-value green">완료</div>
+        </div>
+
+        <button class="action-btn manager">
+          <i class="fas fa-check-double"></i> 미션 처리하기
+        </button>
+      </div>
+    </div>
+
+    <!-- COACH Dashboard -->
+    <div class="dashboard-card">
+      <div class="dashboard-header coach">
+        <div class="dashboard-icon coach"><i class="fas fa-running"></i></div>
+        <div class="dashboard-title-area">
+          <h3 class="coach">코치 대시보드</h3>
+          <p>오늘의 실행 & QR 스캐너</p>
+        </div>
+      </div>
+      <div class="dashboard-body">
+        <div class="scanner-preview">
+          <div class="scanner-icon"><i class="fas fa-qrcode"></i></div>
+          <div class="scanner-text">QR 스캔으로 출근/학생 출석/퇴근</div>
+        </div>
+
+        <div class="kpi-grid" style="margin-top: 16px;">
+          <div class="kpi-card">
+            <div class="kpi-value blue">3</div>
+            <div class="kpi-label">오늘 레슨</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value green">24</div>
+            <div class="kpi-label">예정 학생</div>
+          </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-calendar-day"></i> 오늘 일정</div>
+        <div class="schedule-item">
+          <div class="schedule-time">10:00</div>
+          <div class="schedule-name">U-10 초급반</div>
+          <div class="schedule-count">8명</div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">14:00</div>
+          <div class="schedule-name">U-12 중급반</div>
+          <div class="schedule-count">10명</div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">18:00</div>
+          <div class="schedule-name">성인 입문반</div>
+          <div class="schedule-count">6명</div>
+        </div>
+
+        <div class="progress-container" style="margin-top: 16px;">
+          <div class="progress-header">
+            <span class="progress-label">💰 이번 달 예상 급여</span>
+            <span class="progress-value" style="color: #74B9FF;">₩2,450,000</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill blue" style="width: 75%;"></div>
+          </div>
+        </div>
+
+        <button class="action-btn coach">
+          <i class="fas fa-qrcode"></i> QR 스캐너 열기
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

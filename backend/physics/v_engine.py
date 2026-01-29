@@ -1,15 +1,18 @@
 """
 ═══════════════════════════════════════════════════════════════════════════════
-🧮 AUTUS V Engine v1.0 — 가치 계산 핵심 엔진
+🧮 AUTUS V Engine v2.3 — 가치 계산 핵심 엔진
 ═══════════════════════════════════════════════════════════════════════════════
 
-V = (M - T) × (1 + s)^t
+V = (Motions - Threats) × (1 + InteractionExponent × Relations)^t × Base
 
-- V: 자산 (Value)
-- M: Mint (생성된 가치)
-- T: Tax (소모된 비용)
-- s: Synergy (협업 계수, 0 ≤ s ≤ 1)
-- t: Time (시간)
+용어 통일 (v2.3):
+- Mint → Motions (M: 생성 가치)
+- Tax → Threats (T: 비용/위험)
+- Synergy → Relations (s: 관계 계수)
+
+추가 요소:
+- Base: 패시브 상수 (기본값 1.0)
+- InteractionExponent: 상호지수 (기본값 0.10, 범위 0.05~0.50)
 
 통합 요소:
 - 타입 계수 (MBTI/성향 기반)
@@ -77,14 +80,36 @@ class NetworkState:
 
 @dataclass
 class VInput:
-    """V 계산 입력"""
-    M: float                      # Mint (생성 가치)
-    T: float                      # Tax (비용)
-    s: float                      # Synergy (협업 계수)
-    t: int                        # Time (기간, 월 단위)
+    """V 계산 입력 (v2.3: 용어 통일)"""
+    # v2.3 새로운 용어 (권장)
+    motions: float = 0.0          # Motions (생성 가치, 이전: M/Mint)
+    threats: float = 0.0          # Threats (비용/위험, 이전: T/Tax)
+    relations: float = 0.5        # Relations (협업 계수, 이전: s/Synergy)
+    t: int = 1                    # Time (기간, 월 단위)
+    base: float = 1.0             # Base 상수 (패시브 변화)
+    interaction_exponent: float = 0.10  # 상호지수 (0.05~0.50)
+    
     user_type: UserType = UserType.BALANCED
     constants: UserConstants = field(default_factory=UserConstants)
     network: NetworkState = field(default_factory=NetworkState)
+    
+    # Legacy aliases (하위 호환성)
+    M: float = field(default=0.0, repr=False)  # Mint → Motions
+    T: float = field(default=0.0, repr=False)  # Tax → Threats
+    s: float = field(default=0.5, repr=False)  # Synergy → Relations
+    
+    def __post_init__(self):
+        """레거시 값이 제공되면 새 필드로 복사"""
+        if self.M > 0 and self.motions == 0:
+            self.motions = self.M
+        if self.T > 0 and self.threats == 0:
+            self.threats = self.T
+        if self.s != 0.5 and self.relations == 0.5:
+            self.relations = self.s
+        # 역방향 동기화 (새 값 → 레거시)
+        self.M = self.motions
+        self.T = self.threats
+        self.s = self.relations
 
 
 @dataclass
@@ -122,21 +147,22 @@ class VResult:
 
 class VEngine:
     """
-    V 공식 계산 엔진
+    V 공식 계산 엔진 (v2.3)
     
-    V = (M - T) × (1 + s)^t × type_factor × constant_adj
+    V = (Motions - Threats) × (1 + IE × Relations)^t × Base × type_factor × constant_adj
     
     여기서:
-    - adjusted_s = s + (growth_rate × network_density)
+    - adjusted_relations = relations + (growth_rate × network_density)
     - type_factor = TYPE_MULTIPLIERS[user_type]
     - constant_adj = (1 - age/100) × location_factor
+    - IE = InteractionExponent (상호지수)
     """
     
     def __init__(self):
         self.history: List[Tuple[datetime, VInput, VResult]] = []
     
     def calculate(self, input: VInput) -> VResult:
-        """V 계산 실행"""
+        """V 계산 실행 (v2.3: 용어 통일)"""
         
         # 1. 타입 승수
         type_factor = TYPE_MULTIPLIERS.get(input.user_type, 1.0)
@@ -148,29 +174,33 @@ class VEngine:
         # 3. 네트워크 밀도 계산
         network_density = input.network.calculate_density()
         
-        # 4. Synergy 조정 (지수 가속 적용)
+        # 4. Relations 조정 (지수 가속 적용) - v2.3: synergy → relations
         growth_contribution = input.network.growth_rate * network_density
-        adjusted_s = min(1.0, input.s + growth_contribution)
+        adjusted_relations = min(1.0, input.relations + growth_contribution)
         
-        # 5. 기본 계산
-        base_value = input.M - input.T
+        # 5. 기본 계산 - v2.3: M/T → motions/threats
+        net_value = input.motions - input.threats
         
-        # 6. 복리 계산 (월별 추적)
+        # 6. 복리 계산 (월별 추적) - v2.3: 상호지수 적용
         monthly_values = []
         for month in range(input.t + 1):
-            v_at_month = base_value * ((1 + adjusted_s) ** month)
+            # V = (M - T) × (1 + IE × R)^t × Base
+            multiplier = (1 + input.interaction_exponent * adjusted_relations) ** month
+            v_at_month = net_value * multiplier * input.base
             monthly_values.append(v_at_month)
         
         # 7. 원시 V (타입/상수 적용 전)
-        raw_V = base_value * ((1 + adjusted_s) ** input.t)
+        raw_multiplier = (1 + input.interaction_exponent * adjusted_relations) ** input.t
+        raw_V = net_value * raw_multiplier * input.base
         
         # 8. 최종 V
         V = raw_V * type_factor * constant_adj
         
         # 9. 2배 달성 기간 계산
         doubling_time = None
-        if adjusted_s > 0:
-            doubling_time = int(math.log(2) / math.log(1 + adjusted_s))
+        effective_rate = input.interaction_exponent * adjusted_relations
+        if effective_rate > 0:
+            doubling_time = int(math.log(2) / math.log(1 + effective_rate))
         
         result = VResult(
             V=V,

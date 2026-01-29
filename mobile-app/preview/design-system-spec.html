@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATB Hub - Design System Spec</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0D1117;
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 50%, #FFB347 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: rgba(255,255,255,0.6);
+      font-size: 16px;
+    }
+
+    .section {
+      margin-bottom: 60px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title i {
+      color: #FF8C42;
+    }
+
+    /* Color Palette */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .color-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .color-preview {
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .color-info {
+      padding: 16px;
+    }
+
+    .color-info h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .color-info p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      font-family: monospace;
+    }
+
+    /* Gradient Cards */
+    .gradient-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .gradient-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .gradient-preview {
+      height: 80px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .gradient-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .gradient-card code {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      word-break: break-all;
+    }
+
+    /* Typography */
+    .type-scale {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .type-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+    }
+
+    .type-label {
+      width: 100px;
+      font-size: 12px;
+      color: #FF8C42;
+      font-weight: 600;
+    }
+
+    .type-sample {
+      flex: 1;
+    }
+
+    .type-spec {
+      width: 200px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      text-align: right;
+      font-family: monospace;
+    }
+
+    /* Spacing */
+    .spacing-grid {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .spacing-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .spacing-box {
+      background: rgba(255,107,53,0.3);
+      border: 1px solid #FF8C42;
+    }
+
+    .spacing-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .spacing-value {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      font-family: monospace;
+    }
+
+    /* Border Radius */
+    .radius-grid {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .radius-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .radius-box {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+    }
+
+    .radius-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .radius-value {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      font-family: monospace;
+    }
+
+    /* Components */
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .component-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .component-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #FF8C42;
+    }
+
+    /* Button Examples */
+    .btn-primary {
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      border: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(255,107,53,0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 14px 28px;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid #FF8C42;
+      padding: 14px 28px;
+      border-radius: 12px;
+      color: #FF8C42;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Card Examples */
+    .card-example {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .card-featured {
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+      border-radius: 20px;
+      padding: 20px;
+      margin-top: 16px;
+      box-shadow: 0 8px 24px rgba(255,107,53,0.3);
+    }
+
+    /* Tab Examples */
+    .tabs-example {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .tab-item {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.5);
+    }
+
+    .tab-item.active {
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      color: #fff;
+    }
+
+    /* Icon Grid */
+    .icon-grid {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      padding: 20px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+    }
+
+    .icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 70px;
+    }
+
+    .icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .icon-box.orange { background: rgba(255,107,53,0.2); color: #FF8C42; }
+    .icon-box.green { background: rgba(46,213,115,0.2); color: #2ED573; }
+    .icon-box.blue { background: rgba(116,185,255,0.2); color: #74B9FF; }
+    .icon-box.red { background: rgba(255,107,107,0.2); color: #FF6B6B; }
+    .icon-box.purple { background: rgba(162,155,254,0.2); color: #A29BFE; }
+
+    .icon-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+    }
+
+    /* Figma Link */
+    .figma-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 12px 20px;
+      border-radius: 12px;
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      margin-top: 16px;
+    }
+
+    .figma-link:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* Code Block */
+    .code-block {
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      overflow-x: auto;
+    }
+
+    .code-block pre {
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.6;
+    }
+
+    .code-comment {
+      color: rgba(255,255,255,0.4);
+    }
+
+    .code-key {
+      color: #FF8C42;
+    }
+
+    .code-value {
+      color: #2ED573;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-header">
+      <h1>ATB Hub Design System</h1>
+      <p>Sport Mobile APP UI Kit 기반 • Orange Theme Specification</p>
+    </div>
+
+    <!-- Color Palette -->
+    <div class="section">
+      <h2 class="section-title"><i class="fas fa-palette"></i> Color Palette</h2>
+
+      <h3 style="font-size: 16px; margin-bottom: 16px; color: rgba(255,255,255,0.7);">Primary Colors (Orange)</h3>
+      <div class="color-grid" style="margin-bottom: 24px;">
+        <div class="color-card">
+          <div class="color-preview" style="background: #FF6B35;">#FF6B35</div>
+          <div class="color-info">
+            <h4>Primary</h4>
+            <p>rgb(255, 107, 53)</p>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-preview" style="background: #FF8C42;">#FF8C42</div>
+          <div class="color-info">
+            <h4>Primary Light</h4>
+            <p>rgb(255, 140, 66)</p>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-preview" style="background: #FFB347;">#FFB347</div>
+          <div class="color-info">
+            <h4>Primary Highlight</h4>
+            <p>rgb(255, 179, 71)</p>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-preview" style="background: rgba(255,107,53,0.2); color: #FF8C42;">20%</div>
+          <div class="color-info">
+            <h4>Primary BG</h4>
+            <p>rgba(255, 107, 53, 0.2)</p>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size: 16px; margin-bottom: 16px; color: rgba(255,255,255,0.7);">Background Colors</h3>
+      <div class="color-grid" style="margin-bottom: 24px;">
+        <div class="color-card">
+          <div class="color-preview" style="background: #0D1117; border-bottom: 1px solid rgba(255,255,255,0.1);">#0D1117</div>
+          <div class="color-info">
+            <h4>Background</h4>
+            <p>rgb(13, 17, 23)</p>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-preview" style="background: #161B22; border-bottom: 1px solid rgba(255,255,255,0.1);">#161B22</div>
+          <div class="color-info">
+            <h4>Surface</h4>
+            <p>rgb(22, 27, 34)</p>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-preview" style="background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1);">5%</div>
+          <div class="color-info">
+            <h4>Card BG</h4>
+            <p>rgba(255, 255, 255, 0.05)</p>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-preview" style="background: rgba(255,255,255,0.08); border-bottom: 1px solid rgba(255,255,255,0.1);">8%</div>
+          <div class="color-info">
+            <h4>Border</h4>
+            <p>rgba(255, 255, 255, 0.08)</p>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size: 16px; margin-bottom: 16px; color: rgba(255,255,255,0.7);">Semantic Colors</h3>
+      <div class="color-grid">
+        <div class="color-card">
+          <div class="color-preview" style="background: #2ED573;">#2ED573</div>
+          <div class="color-info">
+            <h4>Success</h4>
+            <p>rgb(46, 213, 115)</p>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-preview" style="background: #FF6B6B;">#FF6B6B</div>
+          <div class="color-info">
+            <h4>Error / Danger</h4>
+            <p>rgb(255, 107, 107)</p>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-preview" style="background: #74B9FF;">#74B9FF</div>
+          <div class="color-info">
+            <h4>Info</h4>
+            <p>rgb(116, 185, 255)</p>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-preview" style="background: #A29BFE;">#A29BFE</div>
+          <div class="color-info">
+            <h4>Purple Accent</h4>
+            <p>rgb(162, 155, 254)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gradients -->
+    <div class="section">
+      <h2 class="section-title"><i class="fas fa-fill-drip"></i> Gradients</h2>
+      <div class="gradient-grid">
+        <div class="gradient-card">
+          <div class="gradient-preview" style="background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);"></div>
+          <h4>Primary Gradient</h4>
+          <code>linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%)</code>
+        </div>
+        <div class="gradient-card">
+          <div class="gradient-preview" style="background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 50%, #FFB347 100%);"></div>
+          <h4>Extended Gradient</h4>
+          <code>linear-gradient(135deg, #FF6B35 0%, #FF8C42 50%, #FFB347 100%)</code>
+        </div>
+        <div class="gradient-card">
+          <div class="gradient-preview" style="background: linear-gradient(180deg, #0D1117 0%, #161B22 100%);"></div>
+          <h4>Background Gradient</h4>
+          <code>linear-gradient(180deg, #0D1117 0%, #161B22 100%)</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typography -->
+    <div class="section">
+      <h2 class="section-title"><i class="fas fa-font"></i> Typography</h2>
+      <div class="type-scale">
+        <div class="type-row">
+          <div class="type-label">Display</div>
+          <div class="type-sample" style="font-size: 36px; font-weight: 800;">김민서의 성장 리포트</div>
+          <div class="type-spec">36px / 800 / -0.5px</div>
+        </div>
+        <div class="type-row">
+          <div class="type-label">H1</div>
+          <div class="type-sample" style="font-size: 24px; font-weight: 700;">오늘의 레슨 일정</div>
+          <div class="type-spec">24px / 700 / -0.3px</div>
+        </div>
+        <div class="type-row">
+          <div class="type-label">H2</div>
+          <div class="type-sample" style="font-size: 18px; font-weight: 700;">김민서</div>
+          <div class="type-spec">18px / 700 / 0</div>
+        </div>
+        <div class="type-row">
+          <div class="type-label">H3</div>
+          <div class="type-sample" style="font-size: 16px; font-weight: 600;">드리블 기초반</div>
+          <div class="type-spec">16px / 600 / 0</div>
+        </div>
+        <div class="type-row">
+          <div class="type-label">Body</div>
+          <div class="type-sample" style="font-size: 14px; font-weight: 400;">오늘 민서가 드리블 돌파에서 큰 발전을 보였어요!</div>
+          <div class="type-spec">14px / 400 / 0</div>
+        </div>
+        <div class="type-row">
+          <div class="type-label">Caption</div>
+          <div class="type-sample" style="font-size: 12px; font-weight: 400; color: rgba(255,255,255,0.6);">2025.01.29 16:00 • 코치 박진호</div>
+          <div class="type-spec">12px / 400 / 0 / 60% opacity</div>
+        </div>
+        <div class="type-row">
+          <div class="type-label">Small</div>
+          <div class="type-sample" style="font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.5);">잔여 레슨</div>
+          <div class="type-spec">10px / 500 / 0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spacing -->
+    <div class="section">
+      <h2 class="section-title"><i class="fas fa-ruler-combined"></i> Spacing Scale</h2>
+      <div class="spacing-grid">
+        <div class="spacing-item">
+          <div class="spacing-box" style="width: 4px; height: 40px;"></div>
+          <span class="spacing-label">4px</span>
+          <span class="spacing-value">spacing-1</span>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-box" style="width: 8px; height: 40px;"></div>
+          <span class="spacing-label">8px</span>
+          <span class="spacing-value">spacing-2</span>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-box" style="width: 12px; height: 40px;"></div>
+          <span class="spacing-label">12px</span>
+          <span class="spacing-value">spacing-3</span>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-box" style="width: 16px; height: 40px;"></div>
+          <span class="spacing-label">16px</span>
+          <span class="spacing-value">spacing-4</span>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-box" style="width: 20px; height: 40px;"></div>
+          <span class="spacing-label">20px</span>
+          <span class="spacing-value">spacing-5</span>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-box" style="width: 24px; height: 40px;"></div>
+          <span class="spacing-label">24px</span>
+          <span class="spacing-value">spacing-6</span>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-box" style="width: 32px; height: 40px;"></div>
+          <span class="spacing-label">32px</span>
+          <span class="spacing-value">spacing-8</span>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-box" style="width: 40px; height: 40px;"></div>
+          <span class="spacing-label">40px</span>
+          <span class="spacing-value">spacing-10</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Border Radius -->
+    <div class="section">
+      <h2 class="section-title"><i class="fas fa-square"></i> Border Radius</h2>
+      <div class="radius-grid">
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: 8px;"></div>
+          <span class="radius-label">Small</span>
+          <span class="radius-value">8px</span>
+        </div>
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: 12px;"></div>
+          <span class="radius-label">Medium</span>
+          <span class="radius-value">12px</span>
+        </div>
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: 16px;"></div>
+          <span class="radius-label">Large</span>
+          <span class="radius-value">16px</span>
+        </div>
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: 20px;"></div>
+          <span class="radius-label">XL</span>
+          <span class="radius-value">20px</span>
+        </div>
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: 24px;"></div>
+          <span class="radius-label">2XL</span>
+          <span class="radius-value">24px</span>
+        </div>
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: 50%;"></div>
+          <span class="radius-label">Full</span>
+          <span class="radius-value">50%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Components -->
+    <div class="section">
+      <h2 class="section-title"><i class="fas fa-cubes"></i> Components</h2>
+      <div class="component-grid">
+        <div class="component-card">
+          <h4>Buttons</h4>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn-primary">Primary Button</button>
+            <button class="btn-secondary">Secondary Button</button>
+            <button class="btn-ghost">Ghost Button</button>
+          </div>
+        </div>
+
+        <div class="component-card">
+          <h4>Cards</h4>
+          <div class="card-example">
+            <div style="font-size: 14px; font-weight: 600;">Standard Card</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px;">rgba(255,255,255,0.05) + 1px border</div>
+          </div>
+          <div class="card-featured">
+            <div style="font-size: 14px; font-weight: 600;">Featured Card</div>
+            <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Gradient background + shadow</div>
+          </div>
+        </div>
+
+        <div class="component-card">
+          <h4>Tabs</h4>
+          <div class="tabs-example">
+            <div class="tab-item active">기술</div>
+            <div class="tab-item">체력</div>
+            <div class="tab-item">태도</div>
+          </div>
+        </div>
+
+        <div class="component-card">
+          <h4>Icon Containers</h4>
+          <div class="icon-grid">
+            <div class="icon-item">
+              <div class="icon-box orange"><i class="fas fa-futbol"></i></div>
+              <span class="icon-label">Orange</span>
+            </div>
+            <div class="icon-item">
+              <div class="icon-box green"><i class="fas fa-check"></i></div>
+              <span class="icon-label">Green</span>
+            </div>
+            <div class="icon-item">
+              <div class="icon-box blue"><i class="fas fa-chart-line"></i></div>
+              <span class="icon-label">Blue</span>
+            </div>
+            <div class="icon-item">
+              <div class="icon-box red"><i class="fas fa-exclamation"></i></div>
+              <span class="icon-label">Red</span>
+            </div>
+            <div class="icon-item">
+              <div class="icon-box purple"><i class="fas fa-star"></i></div>
+              <span class="icon-label">Purple</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shadow Specs -->
+    <div class="section">
+      <h2 class="section-title"><i class="fas fa-cloud"></i> Shadows</h2>
+      <div class="code-block">
+        <pre><span class="code-comment">/* Featured Card Shadow */</span>
+<span class="code-key">box-shadow</span>: <span class="code-value">0 8px 24px rgba(255, 107, 53, 0.3)</span>;
+
+<span class="code-comment">/* Large Card Shadow */</span>
+<span class="code-key">box-shadow</span>: <span class="code-value">0 12px 32px rgba(255, 107, 53, 0.4)</span>;
+
+<span class="code-comment">/* Button Shadow */</span>
+<span class="code-key">box-shadow</span>: <span class="code-value">0 4px 16px rgba(255, 107, 53, 0.3)</span>;
+
+<span class="code-comment">/* Phone Frame Shadow */</span>
+<span class="code-key">box-shadow</span>: <span class="code-value">0 25px 50px rgba(0, 0, 0, 0.5),
+            0 0 0 2px rgba(255, 107, 53, 0.3),
+            inset 0 0 30px rgba(255, 140, 66, 0.05)</span>;</pre>
+      </div>
+    </div>
+
+    <!-- Figma Resources -->
+    <div class="section">
+      <h2 class="section-title"><i class="fab fa-figma"></i> Figma Resources</h2>
+      <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px;">
+        Sport Mobile APP UI Kit을 기반으로 커스터마이징 시 참고하세요.
+      </p>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="https://www.figma.com/community/file/1263649635231956025" target="_blank" class="figma-link">
+          <i class="fab fa-figma"></i> Sport Mobile APP UI Kit
+        </a>
+        <a href="https://www.figma.com/community/file/1090236266295905479" target="_blank" class="figma-link">
+          <i class="fab fa-figma"></i> Sport Basketball UI Kit
+        </a>
+      </div>
+
+      <div style="margin-top: 24px; padding: 20px; background: rgba(255,107,53,0.1); border-radius: 12px; border-left: 3px solid #FF8C42;">
+        <h4 style="font-size: 14px; margin-bottom: 12px; color: #FF8C42;">🎨 Figma 커스터마이징 가이드</h4>
+        <ol style="font-size: 13px; line-height: 1.8; color: rgba(255,255,255,0.8); padding-left: 20px;">
+          <li><strong>Primary Color 변경:</strong> #FF6B35 → 모든 컬러 스타일에 적용</li>
+          <li><strong>Background:</strong> Dark theme 유지 (#0D1117)</li>
+          <li><strong>컴포넌트 복사:</strong> Cards, Buttons, Tabs 복사 후 색상 변경</li>
+          <li><strong>아이콘:</strong> Ionicons 또는 FontAwesome 사용</li>
+          <li><strong>폰트:</strong> SF Pro (iOS) 또는 Pretendard (한글)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,117 +1,126 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
-const Cockpit = () => {
-  const [selectedYear, setSelectedYear] = useState(2024);
-  const [prediction, setPrediction] = useState('');
-
-  const years = [2024, 2025, 2026, 2027, 2028];
-  const predictions = {
-    2024: "AI 기술의 혁신적 발전",
-    2025: "자율주행차 상용화 확대", 
-    2026: "우주 관광 시대 개막",
-    2027: "신재생 에너지 전환 가속화",
-    2028: "양자 컴퓨터 상용화"
-  };
+export default function Cockpit() {
+  const [predictValue, setPredictValue] = useState(75);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 p-8">
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="max-w-4xl mx-auto"
-      >
-        <h1 className="text-4xl font-bold text-blue-400 mb-8 text-center">
-          Future Vision Console
-        </h1>
-
-        {/* Time Selection */}
-        <div className="flex justify-center gap-4 mb-12">
-          {years.map(year => (
-            <motion.button
-              key={year}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setSelectedYear(year);
-                setPrediction(predictions[year as keyof typeof predictions]);
-              }}
-              className={`px-6 py-3 rounded-lg ${
-                selectedYear === year 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-700 text-gray-300'
-              } hover:bg-blue-400 transition-colors`}
-            >
-              {year}
-            </motion.button>
-          ))}
-        </div>
-
-        {/* Prediction Display */}
+    <div className="min-h-screen bg-black p-8">
+      <div className="max-w-4xl mx-auto">
+        
+        {/* Header */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="bg-gray-800 p-8 rounded-2xl shadow-2xl"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
         >
-          <div className="flex items-center mb-6">
-            <div className="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"/>
-            <span className="text-green-500 text-sm">ANALYZING FUTURE DATA</span>
-          </div>
-
-          <div className="space-y-6">
-            <div className="flex justify-between text-gray-400">
-              <span>Timeline:</span>
-              <span>{selectedYear}</span>
-            </div>
-
-            <motion.div
-              key={prediction}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-2xl font-semibold text-blue-300"
-            >
-              {prediction}
-            </motion.div>
-
-            <div className="grid grid-cols-3 gap-4">
-              {[1,2,3].map(i => (
-                <motion.div
-                  key={i}
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  className="h-2 bg-blue-500/30 rounded-full"
-                  style={{
-                    animationDelay: `${i * 0.2}s`
-                  }}
-                />
-              ))}
-            </div>
-          </div>
+          <h1 className="text-4xl font-bold text-blue-400 mb-2">Future Prediction System</h1>
+          <p className="text-gray-400">Advanced AI-powered prediction interface</p>
         </motion.div>
 
-        {/* Additional Stats */}
-        <div className="grid grid-cols-3 gap-6 mt-8">
-          {[
-            { label: 'Confidence', value: '89%' },
-            { label: 'Data Points', value: '1.2M' },
-            { label: 'AI Models', value: '5' }
-          ].map((stat, i) => (
-            <motion.div
-              key={i}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 * i }}
-              className="bg-gray-800 p-4 rounded-xl"
-            >
-              <div className="text-gray-400 text-sm">{stat.label}</div>
-              <div className="text-blue-400 text-xl font-bold">{stat.value}</div>
-            </motion.div>
-          ))}
+        {/* Main Display */}
+        <div className="bg-gray-900 rounded-2xl p-8 mb-8">
+          <motion.div 
+            className="flex justify-between items-center"
+            animate={{ scale: isAnalyzing ? 1.02 : 1 }}
+            transition={{ duration: 0.5, repeat: isAnalyzing ? Infinity : 0, repeatType: "reverse" }}
+          >
+            {/* Prediction Gauge */}
+            <div className="relative w-64 h-64">
+              <svg className="transform -rotate-90 w-full h-full">
+                <circle
+                  className="text-gray-700"
+                  strokeWidth="12"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="100"
+                  cx="128"
+                  cy="128"
+                />
+                <motion.circle
+                  className="text-blue-500"
+                  strokeWidth="12"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="100"
+                  cx="128"
+                  cy="128"
+                  initial={{ strokeDasharray: "0 628" }}
+                  animate={{ 
+                    strokeDasharray: `${predictValue * 6.28} 628`
+                  }}
+                  transition={{ duration: 1 }}
+                />
+              </svg>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                <motion.div 
+                  className="text-4xl font-bold text-blue-400"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {predictValue}%
+                </motion.div>
+                <div className="text-gray-400">Probability</div>
+              </div>
+            </div>
+
+            {/* Prediction Details */}
+            <div className="flex-1 ml-8">
+              <motion.div 
+                className="space-y-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <h3 className="text-blue-400 font-semibold">Current Status</h3>
+                  <p className="text-gray-300">System is {isAnalyzing ? "analyzing" : "ready"}</p>
+                </div>
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <h3 className="text-blue-400 font-semibold">Prediction Confidence</h3>
+                  <div className="w-full bg-gray-700 rounded-full h-2.5 mt-2">
+                    <motion.div 
+                      className="bg-blue-500 h-2.5 rounded-full"
+                      initial={{ width: "0%" }}
+                      animate={{ width: `${predictValue}%` }}
+                      transition={{ duration: 1 }}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
+
+        {/* Controls */}
+        <div className="flex justify-center gap-4">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold"
+            onClick={() => {
+              setIsAnalyzing(true);
+              setTimeout(() => {
+                setPredictValue(Math.floor(Math.random() * 100));
+                setIsAnalyzing(false);
+              }, 2000);
+            }}
+          >
+            Generate Prediction
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold"
+            onClick={() => setPredictValue(75)}
+          >
+            Reset
+          </motion.button>
+        </div>
+        
+      </div>
     </div>
   );
-};
-
-export default Cockpit;
+}

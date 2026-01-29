@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATB Hub - MoltBot 슈퍼앱</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #fff;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      background: linear-gradient(135deg, #A29BFE, #6C5CE7, #74B9FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .page-header p {
+      color: rgba(255,255,255,0.6);
+      font-size: 16px;
+    }
+
+    /* Architecture Diagram */
+    .architecture {
+      max-width: 1200px;
+      margin: 0 auto 60px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 24px;
+      padding: 40px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .arch-title {
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 40px;
+      color: #A29BFE;
+    }
+
+    /* Parent Input */
+    .parent-layer {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .parent-box {
+      background: linear-gradient(135deg, rgba(162,155,254,0.2), rgba(108,92,231,0.1));
+      border: 2px solid #A29BFE;
+      border-radius: 20px;
+      padding: 20px 40px;
+      text-align: center;
+    }
+
+    .parent-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #A29BFE, #6C5CE7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 12px;
+    }
+
+    .parent-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #A29BFE;
+      margin-bottom: 4px;
+    }
+
+    .parent-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    /* Arrow Down */
+    .arrow-down {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px 0;
+    }
+
+    .arrow-line {
+      width: 3px;
+      height: 40px;
+      background: linear-gradient(180deg, #A29BFE, #6C5CE7);
+    }
+
+    .arrow-icon {
+      font-size: 20px;
+      color: #A29BFE;
+    }
+
+    .arrow-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4px;
+    }
+
+    /* MoltBot Hub */
+    .moltbot-hub {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .moltbot-box {
+      background: linear-gradient(135deg, #6C5CE7, #A29BFE);
+      border-radius: 24px;
+      padding: 30px 50px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(108,92,231,0.4);
+      position: relative;
+    }
+
+    .moltbot-glow {
+      position: absolute;
+      inset: -3px;
+      background: linear-gradient(135deg, #A29BFE, #6C5CE7, #74B9FF);
+      border-radius: 26px;
+      z-index: -1;
+      animation: glow 3s infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    .moltbot-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .moltbot-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .moltbot-subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Branches */
+    .branches {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .branch-line {
+      width: 3px;
+      height: 60px;
+      border-radius: 2px;
+    }
+
+    .branch-line.gold { background: linear-gradient(180deg, #6C5CE7, #FFD700); }
+    .branch-line.orange { background: linear-gradient(180deg, #6C5CE7, #FF8C42); }
+    .branch-line.green { background: linear-gradient(180deg, #6C5CE7, #2ED573); }
+    .branch-line.blue { background: linear-gradient(180deg, #6C5CE7, #74B9FF); }
+
+    /* Role Boxes */
+    .roles-layer {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .role-box {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+
+    .role-box.owner { border-color: rgba(255,215,0,0.3); }
+    .role-box.director { border-color: rgba(255,140,66,0.3); }
+    .role-box.manager { border-color: rgba(46,213,115,0.3); }
+    .role-box.coach { border-color: rgba(116,185,255,0.3); }
+
+    .role-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin: 0 auto 10px;
+    }
+
+    .role-icon.owner { background: linear-gradient(135deg, #FFD700, #FFA500); }
+    .role-icon.director { background: linear-gradient(135deg, #FF6B35, #FF8C42); }
+    .role-icon.manager { background: linear-gradient(135deg, #2ED573, #7BED9F); color: #0D1117; }
+    .role-icon.coach { background: linear-gradient(135deg, #74B9FF, #0984E3); }
+
+    .role-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .role-title.owner { color: #FFD700; }
+    .role-title.director { color: #FF8C42; }
+    .role-title.manager { color: #2ED573; }
+    .role-title.coach { color: #74B9FF; }
+
+    .role-focus {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .role-tasks {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.5;
+    }
+
+    /* QR Connection */
+    .qr-layer {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .qr-connection {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      padding: 16px 30px;
+      border: 1px dashed rgba(255,255,255,0.2);
+    }
+
+    .qr-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .qr-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .qr-dot.orange { background: #FF8C42; }
+    .qr-dot.blue { background: #74B9FF; }
+    .qr-dot.green { background: #2ED573; }
+
+    .qr-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .qr-center {
+      font-size: 24px;
+      color: #A29BFE;
+    }
+
+    /* Phone Mockups */
+    .phones-section {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 30px;
+      color: #A29BFE;
+    }
+
+    .phones-row {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .phone-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .phone-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #A29BFE;
+    }
+
+    .phone {
+      width: 300px;
+      height: 620px;
+      background: #0D1117;
+      border-radius: 36px;
+      padding: 10px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 2px rgba(162,155,254,0.3);
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #0D1117 0%, #161B22 100%);
+      border-radius: 28px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .dynamic-island {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90px;
+      height: 26px;
+      background: #000;
+      border-radius: 16px;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 20px 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Chat Screen */
+    .chat-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .bot-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #A29BFE, #6C5CE7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .bot-info h3 {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .bot-info p {
+      font-size: 11px;
+      color: #2ED573;
+    }
+
+    .chat-body {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      height: 380px;
+    }
+
+    .message {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message.bot {
+      align-items: flex-start;
+    }
+
+    .message.user {
+      align-items: flex-end;
+    }
+
+    .message-bubble {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .message.bot .message-bubble {
+      background: rgba(255,255,255,0.08);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.user .message-bubble {
+      background: linear-gradient(135deg, #A29BFE, #6C5CE7);
+      border-bottom-right-radius: 4px;
+    }
+
+    .message-time {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 4px;
+      padding: 0 8px;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .quick-btn {
+      padding: 8px 14px;
+      background: rgba(162,155,254,0.2);
+      border: 1px solid rgba(162,155,254,0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      color: #A29BFE;
+    }
+
+    /* Status Card in Chat */
+    .status-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 14px;
+      padding: 14px;
+      margin-top: 8px;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .status-row:last-child {
+      border-bottom: none;
+    }
+
+    .status-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .status-value {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .status-value.green { color: #2ED573; }
+    .status-value.orange { color: #FF8C42; }
+    .status-value.blue { color: #74B9FF; }
+
+    /* Chat Input */
+    .chat-input {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .input-field {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: none;
+      border-radius: 20px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .input-field::placeholder {
+      color: rgba(255,255,255,0.4);
+    }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #A29BFE, #6C5CE7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    /* Routing Indicator */
+    .routing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(255,215,0,0.1);
+      border-radius: 12px;
+      margin-top: 8px;
+      font-size: 11px;
+    }
+
+    .routing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .routing-dot.gold { background: #FFD700; }
+    .routing-dot.orange { background: #FF8C42; }
+    .routing-dot.green { background: #2ED573; }
+    .routing-dot.blue { background: #74B9FF; }
+
+    .routing-text {
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Integration Cards */
+    .integrations {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .int-card {
+      flex: 1;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .int-icon {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .int-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .int-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .phone-desc {
+      max-width: 280px;
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+      .roles-layer {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>MoltBot 슈퍼앱 아키텍처</h1>
+    <p>부모 → MoltBot → 4단계 역할 자동 라우팅 → QR 연동</p>
+  </div>
+
+  <!-- Architecture Diagram -->
+  <div class="architecture">
+    <h2 class="arch-title">🧠 시스템 아키텍처</h2>
+
+    <!-- Parent Layer -->
+    <div class="parent-layer">
+      <div class="parent-box">
+        <div class="parent-icon">👨‍👩‍👧</div>
+        <div class="parent-title">부모님</div>
+        <div class="parent-desc">"민준이 오늘 현황 어때?" (자연어 입력)</div>
+      </div>
+    </div>
+
+    <div class="arrow-down">
+      <div class="arrow-line"></div>
+      <i class="fas fa-chevron-down arrow-icon"></i>
+      <span class="arrow-label">자연어 처리</span>
+    </div>
+
+    <!-- MoltBot Hub -->
+    <div class="moltbot-hub">
+      <div class="moltbot-box">
+        <div class="moltbot-glow"></div>
+        <div class="moltbot-icon">🤖</div>
+        <div class="moltbot-title">MoltBot AI</div>
+        <div class="moltbot-subtitle">의도 파악 → 자동 라우팅 → 결과 통합</div>
+      </div>
+    </div>
+
+    <div class="branches">
+      <div class="branch-line gold"></div>
+      <div class="branch-line orange"></div>
+      <div class="branch-line green"></div>
+      <div class="branch-line blue"></div>
+    </div>
+
+    <!-- Roles Layer -->
+    <div class="roles-layer">
+      <div class="role-box owner">
+        <div class="role-icon owner"><i class="fas fa-crown"></i></div>
+        <div class="role-title owner">오너</div>
+        <div class="role-focus">🎯 목표</div>
+        <div class="role-tasks">매출·확장·브랜드<br>전략 승인</div>
+      </div>
+      <div class="role-box director">
+        <div class="role-icon director"><i class="fas fa-chess-king"></i></div>
+        <div class="role-title director">원장</div>
+        <div class="role-focus">📋 전략</div>
+        <div class="role-tasks">커리큘럼·코치배치<br>재등록률 관리</div>
+      </div>
+      <div class="role-box manager">
+        <div class="role-icon manager"><i class="fas fa-tasks"></i></div>
+        <div class="role-title manager">관리</div>
+        <div class="role-focus">✅ 미션</div>
+        <div class="role-tasks">수납·스케줄·상담<br>일일 운영</div>
+      </div>
+      <div class="role-box coach">
+        <div class="role-icon coach"><i class="fas fa-running"></i></div>
+        <div class="role-title coach">강사</div>
+        <div class="role-focus">⚡ 실행</div>
+        <div class="role-tasks">레슨·피드백·QR<br>영상 업로드</div>
+      </div>
+    </div>
+
+    <!-- QR Connection -->
+    <div class="qr-layer">
+      <div class="qr-connection">
+        <div class="qr-item">
+          <div class="qr-dot orange"></div>
+          <span class="qr-label">수납</span>
+        </div>
+        <div class="qr-item">
+          <div class="qr-dot blue"></div>
+          <span class="qr-label">스케줄</span>
+        </div>
+        <div class="qr-center"><i class="fas fa-qrcode"></i></div>
+        <div class="qr-item">
+          <div class="qr-dot green"></div>
+          <span class="qr-label">결과물</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phone Mockups -->
+  <div class="phones-section">
+    <h2 class="section-title">📱 MoltBot 챗봇 화면</h2>
+
+    <div class="phones-row">
+      <!-- Chat 1: Status Check -->
+      <div class="phone-wrapper">
+        <div class="phone-label">현황 확인</div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="dynamic-island"></div>
+            <div class="status-bar">
+              <span>9:41</span>
+              <span><i class="fas fa-signal"></i> <i class="fas fa-wifi"></i> <i class="fas fa-battery-full"></i></span>
+            </div>
+
+            <div class="chat-header">
+              <div class="bot-avatar">🤖</div>
+              <div class="bot-info">
+                <h3>MoltBot</h3>
+                <p>● 온라인</p>
+              </div>
+            </div>
+
+            <div class="chat-body">
+              <div class="message user">
+                <div class="message-bubble">민준이 오늘 현황 어때?</div>
+                <div class="message-time">오전 9:41</div>
+              </div>
+
+              <div class="message bot">
+                <div class="message-bubble">
+                  안녕하세요! 민준이 현황 바로 확인해드릴게요 😊
+
+                  <div class="status-card">
+                    <div class="status-row">
+                      <span class="status-label">출석</span>
+                      <span class="status-value green">✓ 18:02 완료</span>
+                    </div>
+                    <div class="status-row">
+                      <span class="status-label">오늘 레슨</span>
+                      <span class="status-value blue">드리블 기초반</span>
+                    </div>
+                    <div class="status-row">
+                      <span class="status-label">슛 성공률</span>
+                      <span class="status-value orange">78% (+5%)</span>
+                    </div>
+                    <div class="status-row">
+                      <span class="status-label">코치 피드백</span>
+                      <span class="status-value green">도착!</span>
+                    </div>
+                  </div>
+
+                  <div class="integrations">
+                    <div class="int-card">
+                      <div class="int-icon">🎬</div>
+                      <div class="int-label">영상</div>
+                      <div class="int-value">업로드됨</div>
+                    </div>
+                    <div class="int-card">
+                      <div class="int-icon">💰</div>
+                      <div class="int-label">잔여</div>
+                      <div class="int-value">12회</div>
+                    </div>
+                    <div class="int-card">
+                      <div class="int-icon">📊</div>
+                      <div class="int-label">순위</div>
+                      <div class="int-value">상위 15%</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="message-time">오전 9:41</div>
+              </div>
+
+              <div class="message bot">
+                <div class="message-bubble">
+                  <div class="quick-actions">
+                    <span class="quick-btn">📹 영상 보기</span>
+                    <span class="quick-btn">💬 코치 피드백</span>
+                    <span class="quick-btn">📊 성장 그래프</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input">
+              <input class="input-field" placeholder="메시지를 입력하세요..." />
+              <div class="send-btn"><i class="fas fa-paper-plane"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-desc">
+          "현황 어때?" 한마디로<br>
+          출석+성적+영상+피드백 통합 확인
+        </div>
+      </div>
+
+      <!-- Chat 2: Request to Coach -->
+      <div class="phone-wrapper">
+        <div class="phone-label">코치 요청 → 자동 라우팅</div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="dynamic-island"></div>
+            <div class="status-bar">
+              <span>9:45</span>
+              <span><i class="fas fa-signal"></i> <i class="fas fa-wifi"></i> <i class="fas fa-battery-full"></i></span>
+            </div>
+
+            <div class="chat-header">
+              <div class="bot-avatar">🤖</div>
+              <div class="bot-info">
+                <h3>MoltBot</h3>
+                <p>● 온라인</p>
+              </div>
+            </div>
+
+            <div class="chat-body">
+              <div class="message user">
+                <div class="message-bubble">코치님께 전달해주세요. 민준이 3점슛 연습 더 시켜주세요!</div>
+                <div class="message-time">오전 9:45</div>
+              </div>
+
+              <div class="message bot">
+                <div class="message-bubble">
+                  네, 박진호 코치님께 바로 전달드릴게요! 📨
+
+                  <div class="routing-indicator">
+                    <div class="routing-dot blue"></div>
+                    <span class="routing-text">강사(실행) 레벨로 라우팅 중...</span>
+                  </div>
+                </div>
+                <div class="message-time">오전 9:45</div>
+              </div>
+
+              <div class="message bot">
+                <div class="message-bubble">
+                  ✅ 전달 완료!
+
+                  <div class="status-card">
+                    <div class="status-row">
+                      <span class="status-label">수신자</span>
+                      <span class="status-value blue">박진호 코치</span>
+                    </div>
+                    <div class="status-row">
+                      <span class="status-label">상태</span>
+                      <span class="status-value orange">확인 대기</span>
+                    </div>
+                    <div class="status-row">
+                      <span class="status-label">예상 답변</span>
+                      <span class="status-value">~30분 내</span>
+                    </div>
+                  </div>
+
+                  답변 오는 대로 바로 알려드릴게요!
+                </div>
+                <div class="message-time">오전 9:45</div>
+              </div>
+
+              <div class="message bot" style="margin-top: 30px;">
+                <div class="message-bubble">
+                  🔔 코치님 답변 도착!
+
+                  <div class="status-card" style="background: rgba(46,213,115,0.1); border: 1px solid rgba(46,213,115,0.3);">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                      <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #74B9FF, #0984E3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">박</div>
+                      <div>
+                        <div style="font-size: 12px; font-weight: 600;">박진호 코치</div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.5);">방금 전</div>
+                      </div>
+                    </div>
+                    <div style="font-size: 13px; line-height: 1.5;">
+                      "네 알겠습니다! 다음 수업 때 3점슛 드릴 10개 추가로 진행할게요. 민준이 요즘 슛 폼이 좋아지고 있어요 👍"
+                    </div>
+                  </div>
+                </div>
+                <div class="message-time">오전 10:12</div>
+              </div>
+            </div>
+
+            <div class="chat-input">
+              <input class="input-field" placeholder="메시지를 입력하세요..." />
+              <div class="send-btn"><i class="fas fa-paper-plane"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-desc">
+          부모 요청 → MoltBot 자동 분류 →<br>
+          강사에게 전달 → 답변 자동 리턴
+        </div>
+      </div>
+
+      <!-- Chat 3: Payment -->
+      <div class="phone-wrapper">
+        <div class="phone-label">수납 문의 → 관리 라우팅</div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="dynamic-island"></div>
+            <div class="status-bar">
+              <span>9:50</span>
+              <span><i class="fas fa-signal"></i> <i class="fas fa-wifi"></i> <i class="fas fa-battery-full"></i></span>
+            </div>
+
+            <div class="chat-header">
+              <div class="bot-avatar">🤖</div>
+              <div class="bot-info">
+                <h3>MoltBot</h3>
+                <p>● 온라인</p>
+              </div>
+            </div>
+
+            <div class="chat-body">
+              <div class="message user">
+                <div class="message-bubble">이번 달 레슨비 언제까지야?</div>
+                <div class="message-time">오전 9:50</div>
+              </div>
+
+              <div class="message bot">
+                <div class="message-bubble">
+                  수납 현황 확인해드릴게요! 💰
+
+                  <div class="routing-indicator">
+                    <div class="routing-dot green"></div>
+                    <span class="routing-text">관리(미션) 레벨 조회 중...</span>
+                  </div>
+                </div>
+                <div class="message-time">오전 9:50</div>
+              </div>
+
+              <div class="message bot">
+                <div class="message-bubble">
+                  <div class="status-card">
+                    <div class="status-row">
+                      <span class="status-label">이번 달</span>
+                      <span class="status-value" style="color: #FF6B6B;">미납 150,000원</span>
+                    </div>
+                    <div class="status-row">
+                      <span class="status-label">납부 기한</span>
+                      <span class="status-value orange">2월 5일</span>
+                    </div>
+                    <div class="status-row">
+                      <span class="status-label">잔여 레슨</span>
+                      <span class="status-value">0회 (충전 필요)</span>
+                    </div>
+                  </div>
+
+                  지금 바로 결제하시겠어요?
+
+                  <div class="quick-actions">
+                    <span class="quick-btn" style="background: rgba(255,232,18,0.2); border-color: rgba(255,232,18,0.5); color: #FFE812;">💳 카카오페이 결제</span>
+                    <span class="quick-btn">📞 상담 연결</span>
+                  </div>
+                </div>
+                <div class="message-time">오전 9:50</div>
+              </div>
+
+              <div class="message user">
+                <div class="message-bubble">카카오페이로 할게</div>
+                <div class="message-time">오전 9:51</div>
+              </div>
+
+              <div class="message bot">
+                <div class="message-bubble">
+                  결제 링크 준비됐어요! 👇
+
+                  <div style="background: linear-gradient(135deg, #FFE812, #FFC800); border-radius: 14px; padding: 16px; margin-top: 10px; text-align: center;">
+                    <div style="font-size: 14px; color: #3C1E1E; font-weight: 600;">카카오페이 결제</div>
+                    <div style="font-size: 24px; color: #3C1E1E; font-weight: 800; margin: 8px 0;">₩150,000</div>
+                    <div style="font-size: 12px; color: rgba(60,30,30,0.7);">터치하여 결제하기</div>
+                  </div>
+                </div>
+                <div class="message-time">오전 9:51</div>
+              </div>
+            </div>
+
+            <div class="chat-input">
+              <input class="input-field" placeholder="메시지를 입력하세요..." />
+              <div class="send-btn"><i class="fas fa-paper-plane"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-desc">
+          수납 문의 → 관리 레벨 자동 연결 →<br>
+          카카오페이 1클릭 결제
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

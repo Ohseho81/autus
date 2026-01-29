@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATB Hub - 관리자 대시보드 (Operations Control)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0F0F12;
+      --bg-secondary: #18181B;
+      --bg-card: #1F1F23;
+      --bg-hover: #27272A;
+      --purple-primary: #8B5CF6;
+      --purple-light: #A78BFA;
+      --purple-dark: #7C3AED;
+      --orange: #FF6B35;
+      --green: #22C55E;
+      --yellow: #EAB308;
+      --red: #EF4444;
+      --blue: #3B82F6;
+      --cyan: #06B6D4;
+      --text-primary: #FAFAFA;
+      --text-secondary: #A1A1AA;
+      --text-muted: #71717A;
+      --border: rgba(255,255,255,0.08);
+      --gradient-purple: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* Layout */
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      min-height: 100vh;
+    }
+
+    /* Main Area */
+    .main-area {
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--gradient-purple);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .header-title h1 {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .header-title p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .header-btn {
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-btn.primary {
+      background: var(--gradient-purple);
+      border: none;
+      color: white;
+    }
+
+    .header-btn.secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .header-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Quick Stats */
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .stat-info {
+      flex: 1;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .stat-change {
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    .stat-change.up { color: var(--green); }
+    .stat-change.down { color: var(--red); }
+
+    /* Kanban Board */
+    .kanban-section {
+      margin-bottom: 28px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .filter-btn.active {
+      background: var(--purple-primary);
+      border-color: var(--purple-primary);
+      color: white;
+    }
+
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .kanban-column {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .column-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .column-count {
+      background: var(--bg-hover);
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 200px;
+    }
+
+    .task-card {
+      background: var(--bg-hover);
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+
+    .task-card:hover {
+      transform: translateX(4px);
+      background: rgba(139,92,246,0.1);
+    }
+
+    .task-card.urgent {
+      border-left-color: var(--red);
+    }
+
+    .task-card.normal {
+      border-left-color: var(--purple-primary);
+    }
+
+    .task-card.low {
+      border-left-color: var(--text-muted);
+    }
+
+    .task-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .task-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .task-assignee {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .task-assignee-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+
+    .task-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .task-tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 500;
+      margin-top: 8px;
+    }
+
+    .task-tag.urgent {
+      background: rgba(239,68,68,0.15);
+      color: var(--red);
+    }
+
+    .task-tag.payment {
+      background: rgba(34,197,94,0.15);
+      color: var(--green);
+    }
+
+    .task-tag.schedule {
+      background: rgba(59,130,246,0.15);
+      color: var(--blue);
+    }
+
+    /* Attendance Monitor */
+    .attendance-section {
+      margin-bottom: 28px;
+    }
+
+    .attendance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .class-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+
+    .class-card:hover {
+      border-color: var(--purple-primary);
+    }
+
+    .class-card.active {
+      border-color: var(--orange);
+      background: linear-gradient(135deg, rgba(255,107,53,0.05) 0%, rgba(255,107,53,0.02) 100%);
+    }
+
+    .class-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .class-time {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .class-status {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .class-status.waiting {
+      background: rgba(113,113,122,0.2);
+      color: var(--text-muted);
+    }
+
+    .class-status.active {
+      background: rgba(255,107,53,0.2);
+      color: var(--orange);
+    }
+
+    .class-status.completed {
+      background: rgba(34,197,94,0.2);
+      color: var(--green);
+    }
+
+    .class-info {
+      margin-bottom: 16px;
+    }
+
+    .class-name {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .class-coach {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .class-attendance {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .attendance-bar {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .attendance-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .attendance-count {
+      font-size: 14px;
+      font-weight: 600;
+      min-width: 50px;
+      text-align: right;
+    }
+
+    /* Right Panel */
+    .right-panel {
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .panel-section {
+      margin-bottom: 28px;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Staff Status */
+    .staff-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .staff-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .staff-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .staff-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg-hover);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      position: relative;
+    }
+
+    .staff-status {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--bg-card);
+    }
+
+    .staff-status.online { background: var(--green); }
+    .staff-status.busy { background: var(--yellow); }
+    .staff-status.offline { background: var(--text-muted); }
+
+    .staff-info {
+      flex: 1;
+    }
+
+    .staff-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .staff-task {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .staff-hours {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* Alerts */
+    .alert-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .alert-item {
+      padding: 14px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border-left: 3px solid;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .alert-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .alert-item.critical { border-left-color: var(--red); }
+    .alert-item.warning { border-left-color: var(--yellow); }
+    .alert-item.info { border-left-color: var(--blue); }
+
+    .alert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .alert-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .alert-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .alert-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .quick-action {
+      padding: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-action:hover {
+      border-color: var(--purple-primary);
+      background: rgba(139,92,246,0.1);
+    }
+
+    .quick-action-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .quick-action-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* Missing Students Alert */
+    .missing-alert {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 28px;
+    }
+
+    .missing-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .missing-icon {
+      font-size: 20px;
+    }
+
+    .missing-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--red);
+    }
+
+    .missing-students {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .missing-student {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .missing-student-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--bg-hover);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .call-btn {
+      margin-left: 8px;
+      padding: 4px 8px;
+      background: var(--purple-primary);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .right-panel {
+        display: none;
+      }
+
+      .quick-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .kanban-board {
+        grid-template-columns: 1fr;
+      }
+
+      .attendance-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Main Area -->
+    <div class="main-area">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <div class="header-icon">📋</div>
+          <div class="header-title">
+            <h1>관리자 대시보드</h1>
+            <p>강남본점 • 2025년 1월 29일 수요일</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="header-btn secondary">
+            <span>📊</span> 리포트
+          </button>
+          <button class="header-btn primary">
+            <span>➕</span> 새 미션
+          </button>
+        </div>
+      </header>
+
+      <!-- Quick Stats -->
+      <div class="quick-stats">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(34,197,94,0.15);">✅</div>
+          <div class="stat-info">
+            <div class="stat-value" style="color: var(--green);">12</div>
+            <div class="stat-label">완료된 미션</div>
+            <div class="stat-change up">↑ 3 오늘</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(139,92,246,0.15);">⏳</div>
+          <div class="stat-info">
+            <div class="stat-value" style="color: var(--purple-light);">5</div>
+            <div class="stat-label">진행 중</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(255,107,53,0.15);">👦</div>
+          <div class="stat-info">
+            <div class="stat-value" style="color: var(--orange);">48/52</div>
+            <div class="stat-label">오늘 출석</div>
+            <div class="stat-change up">92%</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(239,68,68,0.15);">⚠️</div>
+          <div class="stat-info">
+            <div class="stat-value" style="color: var(--red);">2</div>
+            <div class="stat-label">긴급 이슈</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Missing Students Alert -->
+      <div class="missing-alert">
+        <div class="missing-header">
+          <span class="missing-icon">🚨</span>
+          <span class="missing-title">미출석 학생 알림 (4명) - 15:00 중급반</span>
+        </div>
+        <div class="missing-students">
+          <div class="missing-student">
+            <div class="missing-student-avatar">👦</div>
+            <span>홍길동</span>
+            <button class="call-btn">📞 연락</button>
+          </div>
+          <div class="missing-student">
+            <div class="missing-student-avatar">👧</div>
+            <span>김민수</span>
+            <button class="call-btn">📞 연락</button>
+          </div>
+          <div class="missing-student">
+            <div class="missing-student-avatar">👦</div>
+            <span>이서연</span>
+            <button class="call-btn">📞 연락</button>
+          </div>
+          <div class="missing-student">
+            <div class="missing-student-avatar">👧</div>
+            <span>박지우</span>
+            <button class="call-btn">📞 연락</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kanban Board -->
+      <div class="kanban-section">
+        <div class="section-header">
+          <h2 class="section-title">📋 오늘의 미션</h2>
+          <div class="section-actions">
+            <button class="filter-btn active">전체</button>
+            <button class="filter-btn">긴급</button>
+            <button class="filter-btn">수납</button>
+            <button class="filter-btn">레슨</button>
+          </div>
+        </div>
+
+        <div class="kanban-board">
+          <!-- To Do -->
+          <div class="kanban-column">
+            <div class="column-header">
+              <div class="column-title">
+                <span style="color: var(--text-muted);">○</span>
+                대기중
+              </div>
+              <span class="column-count">4</span>
+            </div>
+            <div class="task-list">
+              <div class="task-card urgent">
+                <div class="task-title">수납 미완료 학부모 연락</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">👩</div>
+                    김주임
+                  </div>
+                  <div class="task-time">5명</div>
+                </div>
+                <span class="task-tag urgent">🔴 긴급</span>
+              </div>
+
+              <div class="task-card normal">
+                <div class="task-title">신규 학생 OT 준비</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">👨</div>
+                    박관리
+                  </div>
+                  <div class="task-time">3시 예정</div>
+                </div>
+                <span class="task-tag schedule">📅 스케줄</span>
+              </div>
+
+              <div class="task-card low">
+                <div class="task-title">레슨 장비 점검</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">🧑</div>
+                    이담당
+                  </div>
+                  <div class="task-time">오후</div>
+                </div>
+              </div>
+
+              <div class="task-card normal">
+                <div class="task-title">다음 주 시간표 확정</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">👩</div>
+                    김주임
+                  </div>
+                  <div class="task-time">금요일까지</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- In Progress -->
+          <div class="kanban-column">
+            <div class="column-header">
+              <div class="column-title">
+                <span style="color: var(--purple-primary);">◐</span>
+                진행중
+              </div>
+              <span class="column-count">3</span>
+            </div>
+            <div class="task-list">
+              <div class="task-card urgent">
+                <div class="task-title">15:00 중급반 출석 확인</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">👨</div>
+                    박관리
+                  </div>
+                  <div class="task-time">진행중</div>
+                </div>
+                <span class="task-tag urgent">🔴 긴급</span>
+              </div>
+
+              <div class="task-card normal">
+                <div class="task-title">피드백 영상 업로드 확인</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">🧑</div>
+                    이담당
+                  </div>
+                  <div class="task-time">8/12 완료</div>
+                </div>
+              </div>
+
+              <div class="task-card normal">
+                <div class="task-title">학부모 문의 응대</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">👩</div>
+                    김주임
+                  </div>
+                  <div class="task-time">2건 처리중</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Done -->
+          <div class="kanban-column">
+            <div class="column-header">
+              <div class="column-title">
+                <span style="color: var(--green);">●</span>
+                완료
+              </div>
+              <span class="column-count">5</span>
+            </div>
+            <div class="task-list">
+              <div class="task-card low" style="opacity: 0.7;">
+                <div class="task-title">오전 레슨 출석 확인</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">👨</div>
+                    박관리
+                  </div>
+                  <div class="task-time">10:30</div>
+                </div>
+              </div>
+
+              <div class="task-card low" style="opacity: 0.7;">
+                <div class="task-title">코치 출근 확인</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">🧑</div>
+                    이담당
+                  </div>
+                  <div class="task-time">09:00</div>
+                </div>
+              </div>
+
+              <div class="task-card low" style="opacity: 0.7;">
+                <div class="task-title">시설 점검 완료</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">👩</div>
+                    김주임
+                  </div>
+                  <div class="task-time">08:30</div>
+                </div>
+              </div>
+
+              <div class="task-card low" style="opacity: 0.7;">
+                <div class="task-title">수납 3건 처리</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">👩</div>
+                    김주임
+                  </div>
+                  <div class="task-time">11:20</div>
+                </div>
+                <span class="task-tag payment">💰 수납</span>
+              </div>
+
+              <div class="task-card low" style="opacity: 0.7;">
+                <div class="task-title">14:00 초급반 완료</div>
+                <div class="task-meta">
+                  <div class="task-assignee">
+                    <div class="task-assignee-avatar">👨</div>
+                    박관리
+                  </div>
+                  <div class="task-time">15:00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attendance Monitor -->
+      <div class="attendance-section">
+        <div class="section-header">
+          <h2 class="section-title">📊 실시간 레슨 현황</h2>
+        </div>
+
+        <div class="attendance-grid">
+          <div class="class-card" style="opacity: 0.6;">
+            <div class="class-header">
+              <div class="class-time">14:00</div>
+              <span class="class-status completed">완료</span>
+            </div>
+            <div class="class-info">
+              <div class="class-name">초급반 A</div>
+              <div class="class-coach">김민수 코치 • A코트</div>
+            </div>
+            <div class="class-attendance">
+              <div class="attendance-bar">
+                <div class="attendance-fill" style="width: 100%; background: var(--green);"></div>
+              </div>
+              <div class="attendance-count">8/8</div>
+            </div>
+          </div>
+
+          <div class="class-card active">
+            <div class="class-header">
+              <div class="class-time">15:00</div>
+              <span class="class-status active">진행중</span>
+            </div>
+            <div class="class-info">
+              <div class="class-name">중급반</div>
+              <div class="class-coach">이영희 코치 • B코트</div>
+            </div>
+            <div class="class-attendance">
+              <div class="attendance-bar">
+                <div class="attendance-fill" style="width: 60%; background: var(--orange);"></div>
+              </div>
+              <div class="attendance-count" style="color: var(--orange);">6/10</div>
+            </div>
+          </div>
+
+          <div class="class-card">
+            <div class="class-header">
+              <div class="class-time">16:00</div>
+              <span class="class-status waiting">대기</span>
+            </div>
+            <div class="class-info">
+              <div class="class-name">고급반</div>
+              <div class="class-coach">박준혁 코치 • A코트</div>
+            </div>
+            <div class="class-attendance">
+              <div class="attendance-bar">
+                <div class="attendance-fill" style="width: 0%;"></div>
+              </div>
+              <div class="attendance-count" style="color: var(--text-muted);">0/12</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <!-- Staff Status -->
+      <div class="panel-section">
+        <h3 class="panel-title">👥 코치 현황</h3>
+        <div class="staff-list">
+          <div class="staff-item">
+            <div class="staff-avatar">
+              🧑‍🏫
+              <div class="staff-status online"></div>
+            </div>
+            <div class="staff-info">
+              <div class="staff-name">김민수</div>
+              <div class="staff-task">14:00 초급반 완료</div>
+            </div>
+            <div class="staff-hours">4.5h</div>
+          </div>
+
+          <div class="staff-item">
+            <div class="staff-avatar">
+              👨‍🏫
+              <div class="staff-status busy"></div>
+            </div>
+            <div class="staff-info">
+              <div class="staff-name">이영희</div>
+              <div class="staff-task">15:00 중급반 진행중</div>
+            </div>
+            <div class="staff-hours">3.2h</div>
+          </div>
+
+          <div class="staff-item">
+            <div class="staff-avatar">
+              👩‍🏫
+              <div class="staff-status online"></div>
+            </div>
+            <div class="staff-info">
+              <div class="staff-name">박준혁</div>
+              <div class="staff-task">16:00 고급반 대기</div>
+            </div>
+            <div class="staff-hours">2.0h</div>
+          </div>
+
+          <div class="staff-item">
+            <div class="staff-avatar">
+              🧑‍🏫
+              <div class="staff-status offline"></div>
+            </div>
+            <div class="staff-info">
+              <div class="staff-name">최서현</div>
+              <div class="staff-task">오후 5시 출근 예정</div>
+            </div>
+            <div class="staff-hours">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      <div class="panel-section">
+        <h3 class="panel-title">🔔 알림</h3>
+        <div class="alert-list">
+          <div class="alert-item critical">
+            <div class="alert-header">
+              <span class="alert-title">미출석 학생 4명</span>
+              <span class="alert-time">5분 전</span>
+            </div>
+            <div class="alert-desc">15:00 중급반 - 학부모 연락 필요</div>
+          </div>
+
+          <div class="alert-item warning">
+            <div class="alert-header">
+              <span class="alert-title">수납 미완료</span>
+              <span class="alert-time">1시간 전</span>
+            </div>
+            <div class="alert-desc">홍길동 학부모 - 2회차 미수납</div>
+          </div>
+
+          <div class="alert-item info">
+            <div class="alert-header">
+              <span class="alert-title">피드백 업로드 알림</span>
+              <span class="alert-time">2시간 전</span>
+            </div>
+            <div class="alert-desc">김민수 코치 - 8명 피드백 완료</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <div class="quick-action">
+          <div class="quick-action-icon">📞</div>
+          <div class="quick-action-label">학부모 연락</div>
+        </div>
+        <div class="quick-action">
+          <div class="quick-action-icon">📷</div>
+          <div class="quick-action-label">QR 스캔</div>
+        </div>
+        <div class="quick-action">
+          <div class="quick-action-icon">💰</div>
+          <div class="quick-action-label">수납 처리</div>
+        </div>
+        <div class="quick-action">
+          <div class="quick-action-icon">📅</div>
+          <div class="quick-action-label">스케줄</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Filter button toggle
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // Drag and drop simulation
+    document.querySelectorAll('.task-card').forEach(card => {
+      card.addEventListener('mousedown', () => {
+        card.style.cursor = 'grabbing';
+      });
+      card.addEventListener('mouseup', () => {
+        card.style.cursor = 'pointer';
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATB Hub - QR 출석 + 수납 일체화 Flow</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #fff;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+      font-size: 32px;
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 50%, #2ED573 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+    }
+
+    /* Flow Diagram */
+    .flow-section {
+      max-width: 1400px;
+      margin: 0 auto 60px;
+    }
+
+    .flow-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #FF8C42;
+    }
+
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 30px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .flow-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .flow-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+
+    .flow-icon.orange { background: linear-gradient(135deg, #FF6B35, #FF8C42); }
+    .flow-icon.green { background: linear-gradient(135deg, #2ED573, #7BED9F); color: #0D1117; }
+    .flow-icon.blue { background: linear-gradient(135deg, #74B9FF, #0984E3); }
+    .flow-icon.purple { background: linear-gradient(135deg, #A29BFE, #6C5CE7); }
+    .flow-icon.red { background: linear-gradient(135deg, #FF6B6B, #EE5A24); }
+
+    .flow-label {
+      font-size: 13px;
+      font-weight: 600;
+      max-width: 90px;
+    }
+
+    .flow-arrow {
+      font-size: 24px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .flow-time {
+      font-size: 10px;
+      color: #2ED573;
+      background: rgba(46,213,115,0.1);
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
+    /* Phone Screens */
+    .screens-row {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .screen-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .screen-label {
+      color: #FF8C42;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .phone {
+      width: 300px;
+      height: 620px;
+      background: #0D1117;
+      border-radius: 36px;
+      padding: 10px;
+      box-shadow:
+        0 25px 50px rgba(0,0,0,0.5),
+        0 0 0 2px rgba(255,107,53,0.3),
+        inset 0 0 30px rgba(255,140,66,0.03);
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #0D1117 0%, #161B22 100%);
+      border-radius: 28px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Tablet (Kiosk) */
+    .tablet {
+      width: 480px;
+      height: 620px;
+      background: #0D1117;
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow:
+        0 25px 50px rgba(0,0,0,0.5),
+        0 0 0 3px rgba(46,213,115,0.3);
+    }
+
+    .tablet-screen {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #0D1117 0%, #161B22 100%);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .dynamic-island {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90px;
+      height: 26px;
+      background: #000;
+      border-radius: 20px;
+    }
+
+    /* =============== PARENT APP - UNPAID STATE =============== */
+    .unpaid-card {
+      margin: 16px;
+      background: linear-gradient(135deg, rgba(255,107,107,0.2) 0%, rgba(238,90,36,0.2) 100%);
+      border: 2px solid #FF6B6B;
+      border-radius: 20px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .unpaid-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #FF6B6B;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+
+    .unpaid-icon {
+      width: 56px;
+      height: 56px;
+      background: rgba(255,107,107,0.3);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .unpaid-amount {
+      font-size: 28px;
+      font-weight: 800;
+      color: #FF6B6B;
+      margin-bottom: 4px;
+    }
+
+    .unpaid-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 16px;
+    }
+
+    .qr-blocked {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .qr-blocked i {
+      color: #FF6B6B;
+    }
+
+    .qr-blocked span {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .pay-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #FFE812, #FFC800);
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #3C1E1E;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 16px rgba(255,232,18,0.3);
+    }
+
+    .pay-btn i {
+      font-size: 20px;
+    }
+
+    /* =============== PARENT APP - PAID STATE =============== */
+    .paid-card {
+      margin: 16px;
+      background: linear-gradient(135deg, rgba(46,213,115,0.2) 0%, rgba(123,237,159,0.1) 100%);
+      border: 2px solid #2ED573;
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .paid-checkmark {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #2ED573, #7BED9F);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: #0D1117;
+      margin: 0 auto 16px;
+      animation: bounceIn 0.5s ease;
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .paid-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2ED573;
+      margin-bottom: 8px;
+    }
+
+    .paid-points {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,215,0,0.2);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #FFD700;
+      margin-bottom: 20px;
+    }
+
+    /* QR Code Display */
+    .qr-display {
+      background: #fff;
+      padding: 20px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .qr-code {
+      width: 160px;
+      height: 160px;
+      background:
+        linear-gradient(90deg, #0D1117 50%, transparent 50%),
+        linear-gradient(90deg, transparent 50%, #0D1117 50%),
+        linear-gradient(0deg, #0D1117 50%, transparent 50%),
+        linear-gradient(0deg, transparent 50%, #0D1117 50%);
+      background-size: 20px 20px;
+      background-position: 0 0, 20px 0, 0 20px, 20px 20px;
+      margin: 0 auto;
+      border-radius: 12px;
+      position: relative;
+    }
+
+    .qr-code::after {
+      content: '⚽';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      background: #fff;
+      padding: 8px;
+      border-radius: 8px;
+    }
+
+    .qr-timer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #0D1117;
+      margin-top: 12px;
+    }
+
+    .go-lesson-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 16px rgba(255,107,53,0.4);
+    }
+
+    /* =============== KIOSK SCREEN =============== */
+    .kiosk-header {
+      padding: 24px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .kiosk-logo {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .kiosk-location {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .kiosk-main {
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .scan-area {
+      width: 280px;
+      height: 280px;
+      border: 4px solid #FF8C42;
+      border-radius: 24px;
+      position: relative;
+      background: rgba(255,107,53,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .scan-corners {
+      position: absolute;
+      inset: -4px;
+    }
+
+    .scan-corner {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #2ED573;
+    }
+
+    .scan-corner.tl { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 12px 0 0 0; }
+    .scan-corner.tr { top: 0; right: 0; border-left: none; border-bottom: none; border-radius: 0 12px 0 0; }
+    .scan-corner.bl { bottom: 0; left: 0; border-right: none; border-top: none; border-radius: 0 0 0 12px; }
+    .scan-corner.br { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 12px 0; }
+
+    .scan-line {
+      position: absolute;
+      width: 90%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #2ED573, transparent);
+      animation: scanMove 2s infinite ease-in-out;
+    }
+
+    @keyframes scanMove {
+      0%, 100% { top: 10%; opacity: 0.5; }
+      50% { top: 85%; opacity: 1; }
+    }
+
+    .scan-icon {
+      font-size: 48px;
+      color: rgba(255,255,255,0.2);
+    }
+
+    .kiosk-instruction {
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .kiosk-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    /* Today's Schedule */
+    .kiosk-schedule {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .kiosk-schedule h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kiosk-schedule h4 i {
+      color: #FF8C42;
+    }
+
+    .lesson-slot {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .lesson-slot:last-child {
+      margin-bottom: 0;
+    }
+
+    .slot-time {
+      font-size: 14px;
+      font-weight: 700;
+      color: #FF8C42;
+      min-width: 50px;
+    }
+
+    .slot-name {
+      flex: 1;
+      font-size: 13px;
+    }
+
+    .slot-count {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .slot-status {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .slot-status.now {
+      background: rgba(46,213,115,0.2);
+      color: #2ED573;
+      animation: pulse 1.5s infinite;
+    }
+
+    .slot-status.next {
+      background: rgba(255,107,53,0.2);
+      color: #FF8C42;
+    }
+
+    /* =============== SUCCESS SCREEN =============== */
+    .success-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(13,17,23,0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .success-avatar {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      margin-bottom: 20px;
+      animation: bounceIn 0.6s ease;
+    }
+
+    .success-name {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .success-class {
+      font-size: 16px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 24px;
+    }
+
+    .success-check {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #2ED573, #7BED9F);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: #0D1117;
+      margin-bottom: 16px;
+    }
+
+    .success-msg {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2ED573;
+      margin-bottom: 8px;
+    }
+
+    .success-time {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 24px;
+    }
+
+    .success-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .success-btn {
+      padding: 14px 24px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .success-btn.primary {
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      color: #fff;
+    }
+
+    .success-btn.secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    /* Chain Reaction */
+    .chain-section {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .chain-title {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .chain-items {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chain-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      font-size: 11px;
+    }
+
+    .chain-item i {
+      font-size: 12px;
+    }
+
+    .chain-item.done {
+      background: rgba(46,213,115,0.15);
+      color: #2ED573;
+    }
+
+    .chain-item.pending {
+      background: rgba(255,107,53,0.15);
+      color: #FF8C42;
+    }
+
+    /* Description */
+    .screen-description {
+      max-width: 320px;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>QR 출석 + 수납 일체화</h1>
+    <p>스캔 1초 → 수납 체크 → 출석 → 알림 → 성장 기록 자동화</p>
+  </div>
+
+  <!-- Flow Diagram -->
+  <div class="flow-section">
+    <h2 class="flow-title"><i class="fas fa-project-diagram"></i> 자동화 체인 반응</h2>
+    <div class="flow-diagram">
+      <div class="flow-step">
+        <div class="flow-icon orange"><i class="fas fa-credit-card"></i></div>
+        <div class="flow-label">카카오페이 결제</div>
+        <div class="flow-time">10초</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-icon blue"><i class="fas fa-qrcode"></i></div>
+        <div class="flow-label">QR 활성화</div>
+        <div class="flow-time">즉시</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-icon green"><i class="fas fa-check-circle"></i></div>
+        <div class="flow-label">출석 스캔</div>
+        <div class="flow-time">1초</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-icon purple"><i class="fas fa-bell"></i></div>
+        <div class="flow-label">부모 알림톡</div>
+        <div class="flow-time">자동</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-icon orange"><i class="fas fa-chart-line"></i></div>
+        <div class="flow-label">성장 기록</div>
+        <div class="flow-time">자동</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 1: Parent App - Unpaid -->
+  <div class="flow-section">
+    <h2 class="flow-title"><i class="fas fa-mobile-alt"></i> 학부모 앱 Flow</h2>
+    <div class="screens-row">
+      <div class="screen-wrapper">
+        <div class="screen-label">미납 상태</div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="dynamic-island"></div>
+            <div class="status-bar">
+              <span>9:41</span>
+              <div class="status-icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+              </div>
+            </div>
+
+            <div class="unpaid-card">
+              <div class="unpaid-badge">미납</div>
+              <div class="unpaid-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="unpaid-amount">150,000원</div>
+              <div class="unpaid-desc">2월 레슨비 (5회) • 납부기한 2/5</div>
+
+              <div class="qr-blocked">
+                <i class="fas fa-lock"></i>
+                <span>출석 QR 비활성 상태입니다</span>
+              </div>
+
+              <button class="pay-btn">
+                <i class="fas fa-comment"></i>
+                카카오페이로 결제하기
+              </button>
+            </div>
+
+            <div style="padding: 0 16px;">
+              <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 14px; margin-bottom: 12px;">
+                <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 8px;">다음 레슨</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 600;">드리블 기초반</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.5);">오늘 16:00 • 대치 Red Court</div>
+                  </div>
+                  <div style="padding: 6px 12px; background: rgba(255,107,107,0.2); color: #FF6B6B; border-radius: 8px; font-size: 11px; font-weight: 600;">
+                    QR 불가
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-description">
+          미납 시 QR 자동 블록<br>
+          카카오페이 1클릭 결제 유도
+        </div>
+      </div>
+
+      <!-- Screen 2: Parent App - Paid -->
+      <div class="screen-wrapper">
+        <div class="screen-label">결제 완료</div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="dynamic-island"></div>
+            <div class="status-bar">
+              <span>9:42</span>
+              <div class="status-icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+              </div>
+            </div>
+
+            <div class="paid-card">
+              <div class="paid-checkmark">
+                <i class="fas fa-check"></i>
+              </div>
+              <div class="paid-title">납부 완료!</div>
+              <div class="paid-points">
+                <i class="fas fa-star"></i>
+                7,500P 적립
+              </div>
+
+              <div class="qr-display">
+                <div class="qr-code"></div>
+                <div class="qr-timer">
+                  <i class="fas fa-clock" style="color: #666;"></i>
+                  <span>오늘 23:59까지 유효</span>
+                </div>
+              </div>
+
+              <button class="go-lesson-btn">
+                <i class="fas fa-basketball-ball"></i>
+                레슨 참여하기
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="screen-description">
+          결제 즉시 QR 활성화<br>
+          포인트 자동 적립
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kiosk Screens -->
+  <div class="flow-section">
+    <h2 class="flow-title"><i class="fas fa-tablet-alt"></i> 코트 키오스크 (태블릿)</h2>
+    <div class="screens-row">
+      <div class="screen-wrapper">
+        <div class="screen-label">QR 스캔 대기</div>
+        <div class="tablet">
+          <div class="tablet-screen">
+            <div class="kiosk-header">
+              <div class="kiosk-logo">ATB Hub</div>
+              <div class="kiosk-location">📍 대치 Red Court</div>
+            </div>
+
+            <div class="kiosk-main">
+              <div class="scan-area">
+                <div class="scan-corners">
+                  <div class="scan-corner tl"></div>
+                  <div class="scan-corner tr"></div>
+                  <div class="scan-corner bl"></div>
+                  <div class="scan-corner br"></div>
+                </div>
+                <div class="scan-line"></div>
+                <div class="scan-icon">
+                  <i class="fas fa-qrcode"></i>
+                </div>
+              </div>
+
+              <div class="kiosk-instruction">QR 코드를 스캔하세요</div>
+              <div class="kiosk-sub">앱에서 QR 코드를 띄워주세요</div>
+
+              <div class="kiosk-schedule">
+                <h4><i class="fas fa-calendar-day"></i> 오늘 레슨</h4>
+                <div class="lesson-slot">
+                  <div class="slot-time">16:00</div>
+                  <div class="slot-name">드리블 기초반</div>
+                  <div class="slot-count">8/12</div>
+                  <div class="slot-status now">진행중</div>
+                </div>
+                <div class="lesson-slot">
+                  <div class="slot-time">18:00</div>
+                  <div class="slot-name">슈팅 클리닉</div>
+                  <div class="slot-count">5/10</div>
+                  <div class="slot-status next">다음</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-description">
+          실시간 레슨 현황 표시<br>
+          GPS + 시간 자동 검증
+        </div>
+      </div>
+
+      <div class="screen-wrapper">
+        <div class="screen-label">출석 완료!</div>
+        <div class="tablet">
+          <div class="tablet-screen">
+            <div class="success-overlay">
+              <div class="success-avatar">⚽</div>
+              <div class="success-name">김민서</div>
+              <div class="success-class">드리블 기초반 • U-10</div>
+
+              <div class="success-check">
+                <i class="fas fa-check"></i>
+              </div>
+              <div class="success-msg">출석 완료!</div>
+              <div class="success-time">16:02 입장 • 코치 박진호</div>
+
+              <div class="success-actions">
+                <button class="success-btn primary">
+                  <i class="fas fa-play"></i>
+                  레슨 시작
+                </button>
+                <button class="success-btn secondary">
+                  <i class="fas fa-video"></i>
+                  영상 촬영
+                </button>
+              </div>
+
+              <div class="chain-section">
+                <div class="chain-title">자동 처리 완료</div>
+                <div class="chain-items">
+                  <div class="chain-item done">
+                    <i class="fas fa-check"></i> 출석 기록
+                  </div>
+                  <div class="chain-item done">
+                    <i class="fas fa-check"></i> 레슨 -1회
+                  </div>
+                  <div class="chain-item done">
+                    <i class="fas fa-check"></i> 부모 알림
+                  </div>
+                  <div class="chain-item pending">
+                    <i class="fas fa-clock"></i> 피드백 대기
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-description">
+          출석 즉시 체인 반응 시작<br>
+          레슨 차감 + 알림 + 성장 기록
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

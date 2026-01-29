@@ -1,9 +1,19 @@
 """
 ═══════════════════════════════════════════════════════════════════════════════
-🧠 AUTUS V Predictor v1.0 — AI 기반 V 예측
+🧠 AUTUS V Predictor v2.3 — AI 기반 V 예측
 ═══════════════════════════════════════════════════════════════════════════════
 
-V 공식의 AI 통합:
+V 공식 (v2.3 용어):
+V = (Motions - Threats) × (1 + InteractionExponent × Relations)^t × Base
+
+용어 정의:
+- Motions (M): 생성 가치 (구: Mint)
+- Threats (T): 비용/위험 (구: Tax)
+- Relations (s): 관계 계수 (구: Synergy)
+- Base: 기본 상수값
+- InteractionExponent: 상호작용 지수
+
+AI 통합:
 - LSTM/GRU 시계열 예측
 - 로그 변환으로 복리 선형화
 - 연속 학습 (Continual Learning)
@@ -45,14 +55,28 @@ except ImportError:
 
 @dataclass
 class VTimePoint:
-    """V 시계열 데이터 포인트"""
+    """V 시계열 데이터 포인트 (v2.3 용어)"""
     timestamp: datetime
-    M: float
-    T: float
-    s: float
-    V: float
+    # Primary fields (v2.3 terminology)
+    motions: float = 0.0           # 생성 가치 (구: Mint)
+    threats: float = 0.0           # 비용/위험 (구: Tax)
+    relations: float = 0.0         # 관계 계수 (구: Synergy)
+    V: float = 0.0
     network_density: float = 0.0
     decision_type: str = "accept"  # accept, reject, sync
+    
+    # Legacy aliases for backward compatibility
+    @property
+    def M(self) -> float:
+        return self.motions
+    
+    @property
+    def T(self) -> float:
+        return self.threats
+    
+    @property
+    def s(self) -> float:
+        return self.relations
 
 
 @dataclass
@@ -77,9 +101,9 @@ class VHistory:
         return sequences
     
     def to_features(self) -> List[List[float]]:
-        """특징 벡터로 변환 [M, T, s, network_density]"""
+        """특징 벡터로 변환 [motions, threats, relations, network_density]"""
         return [
-            [p.M, p.T, p.s, p.network_density]
+            [p.motions, p.threats, p.relations, p.network_density]
             for p in self.points
         ]
     
@@ -96,8 +120,8 @@ class LogLinearPredictor:
     """
     로그 변환 선형 예측기
     
-    복리 공식의 로그 변환:
-    log(V) = log(M-T) + t × log(1+s)
+    복리 공식의 로그 변환 (v2.3 용어):
+    log(V) = log(Motions - Threats) + t × log(1 + Relations)
     
     이를 선형 회귀로 학습:
     y = a + b×t  (여기서 y = log(V))
@@ -153,14 +177,15 @@ class LogLinearPredictor:
         
         self.trained = True
         
-        # 추정 synergy 계산: b ≈ log(1+s) → s ≈ exp(b) - 1
-        estimated_s = math.exp(self.b) - 1 if self.b > -1 else 0
+        # 추정 relations 계산: b ≈ log(1+relations) → relations ≈ exp(b) - 1
+        estimated_relations = math.exp(self.b) - 1 if self.b > -1 else 0
         
         return {
             "a": round(self.a, 4),
             "b": round(self.b, 4),
             "r_squared": round(self.r_squared, 4),
-            "estimated_s": round(estimated_s, 4),
+            "estimated_relations": round(estimated_relations, 4),
+            "estimated_s": round(estimated_relations, 4),  # Legacy alias
             "data_points": len(points)
         }
     
@@ -187,10 +212,12 @@ class LogLinearPredictor:
         self.a = (sum_log_v - self.b * sum_t) / n
         self.trained = True
         
+        estimated_relations = round(math.exp(self.b) - 1, 4) if self.b > -1 else 0
         return {
             "a": round(self.a, 4),
             "b": round(self.b, 4),
-            "estimated_s": round(math.exp(self.b) - 1, 4) if self.b > -1 else 0
+            "estimated_relations": estimated_relations,
+            "estimated_s": estimated_relations  # Legacy alias
         }
     
     def predict(self, future_t: int) -> Dict[str, float]:
@@ -264,8 +291,8 @@ class LSTMPredictor:
     """
     LSTM 기반 V 예측기
     
-    시계열 패턴 학습:
-    - 입력: [M, T, s, network_density] 시퀀스
+    시계열 패턴 학습 (v2.3 용어):
+    - 입력: [motions, threats, relations, network_density] 시퀀스
     - 출력: 미래 V
     """
     
@@ -453,10 +480,11 @@ def get_ensemble_predictor() -> EnsemblePredictor:
 
 def train_predictor(v_history: List[Dict]) -> Dict:
     """
-    히스토리 데이터로 예측기 학습
+    히스토리 데이터로 예측기 학습 (v2.3 용어 지원)
     
     Args:
-        v_history: [{"M": 100, "T": 40, "s": 0.3, "V": 60, "network_density": 0.1}, ...]
+        v_history: [{"motions": 100, "threats": 40, "relations": 0.3, "V": 60, "network_density": 0.1}, ...]
+                   Legacy format also supported: {"M": 100, "T": 40, "s": 0.3, ...}
     
     Returns:
         학습 결과
@@ -464,11 +492,12 @@ def train_predictor(v_history: List[Dict]) -> Dict:
     history = VHistory()
     
     for i, point in enumerate(v_history):
+        # Support both new (motions/threats/relations) and legacy (M/T/s) terminology
         history.add(VTimePoint(
             timestamp=datetime.now(),
-            M=point.get("M", 0),
-            T=point.get("T", 0),
-            s=point.get("s", 0),
+            motions=point.get("motions", point.get("M", 0)),
+            threats=point.get("threats", point.get("T", 0)),
+            relations=point.get("relations", point.get("s", 0)),
             V=point.get("V", 0),
             network_density=point.get("network_density", 0)
         ))
@@ -479,11 +508,11 @@ def train_predictor(v_history: List[Dict]) -> Dict:
 
 def predict_future_v(future_months: int, recent_data: List[Dict] = None) -> Dict:
     """
-    미래 V 예측
+    미래 V 예측 (v2.3 용어 지원)
     
     Args:
         future_months: 예측할 미래 기간 (월)
-        recent_data: 최근 데이터 (LSTM용)
+        recent_data: 최근 데이터 (LSTM용) - motions/threats/relations 또는 M/T/s 모두 지원
     
     Returns:
         예측 결과
@@ -492,8 +521,14 @@ def predict_future_v(future_months: int, recent_data: List[Dict] = None) -> Dict
     
     recent_features = None
     if recent_data:
+        # Support both new and legacy terminology
         recent_features = [
-            [d.get("M", 0), d.get("T", 0), d.get("s", 0), d.get("network_density", 0)]
+            [
+                d.get("motions", d.get("M", 0)), 
+                d.get("threats", d.get("T", 0)), 
+                d.get("relations", d.get("s", 0)), 
+                d.get("network_density", 0)
+            ]
             for d in recent_data
         ]
     
@@ -530,7 +565,7 @@ if __name__ == "__main__":
     train_result = train_predictor(test_history)
     print("\n학습 결과:")
     print(f"  LogLinear R²: {train_result.get('log_linear', {}).get('r_squared', 'N/A')}")
-    print(f"  추정 Synergy: {train_result.get('log_linear', {}).get('estimated_s', 'N/A')}")
+    print(f"  추정 Relations: {train_result.get('log_linear', {}).get('estimated_relations', 'N/A')}")
     
     # 예측
     pred = predict_future_v(24, test_history[-7:])

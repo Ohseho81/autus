@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🏀 올댓바스켓 - 학부모 앱</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    :root {
+      --primary-start: #667eea;
+      --primary-end: #764ba2;
+      --bg-gray: #F5F6F8;
+      --white: #FFFFFF;
+      --text-dark: #333333;
+      --text-gray: #888888;
+      --text-light: #AAAAAA;
+      --border: #EEEEEE;
+
+      /* 학원 컬러 */
+      --basketball: #FF8C42;
+      --basketball-bg: #FF8C4215;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gray);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-gray);
+      position: relative;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════ */
+    /* 상단 헤더 */
+    /* ═══════════════════════════════════════════════════════════════ */
+    .header {
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary-start) 0%, var(--primary-end) 100%);
+      padding: 16px 20px;
+      padding-top: 48px;
+      border-radius: 0 0 28px 28px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .header-subtitle {
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .header-title {
+      color: #FFF;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .notification-btn {
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 18px;
+      height: 18px;
+      background: #FF4757;
+      border-radius: 50%;
+      font-size: 10px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    /* 자녀 선택 */
+    .children-selector {
+      display: flex;
+      gap: 10px;
+    }
+
+    .child-btn {
+      flex: 1;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 14px;
+      padding: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .child-btn.active {
+      background: rgba(255,255,255,0.95);
+    }
+
+    .child-btn .avatar {
+      font-size: 26px;
+    }
+
+    .child-btn .info {
+      text-align: left;
+    }
+
+    .child-btn .name {
+      font-weight: 700;
+      font-size: 14px;
+      color: #FFF;
+    }
+
+    .child-btn.active .name {
+      color: var(--text-dark);
+    }
+
+    .child-btn .grade {
+      font-size: 11px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .child-btn.active .grade {
+      color: var(--text-gray);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════ */
+    /* 메인 콘텐츠 */
+    /* ═══════════════════════════════════════════════════════════════ */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      padding-bottom: 100px;
+    }
+
+    /* 탭 컨텐츠 */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 카드 스타일 */
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .card-date {
+      font-size: 12px;
+      color: var(--text-gray);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    /* 토글 버튼 그룹 */
+    .toggle-group {
+      display: flex;
+      background: #F5F5F5;
+      border-radius: 10px;
+      padding: 3px;
+    }
+
+    .toggle-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-gray);
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      background: var(--white);
+      color: var(--text-dark);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    /* 주간 미니 캘린더 */
+    .week-calendar {
+      display: flex;
+      gap: 6px;
+    }
+
+    .week-day {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      border-radius: 10px;
+      background: #F8F9FA;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .week-day.today {
+      background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+      color: #FFF;
+    }
+
+    .week-day .day-label {
+      font-size: 10px;
+      opacity: 0.7;
+      margin-bottom: 2px;
+    }
+
+    .week-day .day-count {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* 스케줄 아이템 */
+    .schedule-item {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      border-left: 4px solid var(--basketball);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .schedule-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--basketball-bg);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .schedule-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .schedule-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .schedule-meta {
+      font-size: 12px;
+      color: var(--text-gray);
+    }
+
+    .schedule-time {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .schedule-time .start {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--basketball);
+    }
+
+    .schedule-time .end {
+      font-size: 11px;
+      color: var(--text-light);
+    }
+
+    /* 퀵 액션 그리드 */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .quick-action-btn {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+
+    .quick-action-btn:hover {
+      border-color: var(--primary-start);
+      background: linear-gradient(135deg, rgba(102,126,234,0.05), rgba(118,75,162,0.05));
+    }
+
+    .quick-action-btn .icon {
+      font-size: 20px;
+    }
+
+    .quick-action-btn .label {
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 13px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════ */
+    /* 수납 탭 */
+    /* ═══════════════════════════════════════════════════════════════ */
+    .payment-summary {
+      background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      color: #FFF;
+    }
+
+    .payment-summary .label {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 6px;
+    }
+
+    .payment-summary .amount {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .payment-summary .buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .payment-summary .btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .payment-summary .btn.outline {
+      background: rgba(255,255,255,0.2);
+      color: #FFF;
+    }
+
+    .payment-summary .btn.solid {
+      background: rgba(255,255,255,0.95);
+      color: var(--primary-start);
+    }
+
+    /* QR 상태 배너 */
+    .qr-status-banner {
+      background: #E8F5E9;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .qr-status-banner .icon {
+      font-size: 20px;
+    }
+
+    .qr-status-banner .info {
+      flex: 1;
+    }
+
+    .qr-status-banner .title {
+      font-weight: 700;
+      color: #2E7D32;
+      font-size: 13px;
+    }
+
+    .qr-status-banner .subtitle {
+      font-size: 11px;
+      color: #4CAF50;
+    }
+
+    .qr-status-banner .btn {
+      background: var(--white);
+      border: none;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #2E7D32;
+      cursor: pointer;
+    }
+
+    /* 결제 아이템 */
+    .payment-item {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .payment-item .icon-box {
+      width: 42px;
+      height: 42px;
+      background: var(--basketball-bg);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .payment-item .info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .payment-item .name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .payment-item .name {
+      font-weight: 700;
+      color: var(--text-dark);
+      font-size: 14px;
+    }
+
+    .payment-item .auto-badge {
+      font-size: 9px;
+      background: #E3F2FD;
+      color: #1976D2;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .payment-item .due {
+      font-size: 11px;
+      color: var(--text-gray);
+    }
+
+    .payment-item .right {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .payment-item .price {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+
+    .payment-item .price.paid {
+      color: #4CAF50;
+    }
+
+    .status-badge {
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .status-badge.paid {
+      background: #E8F5E9;
+      color: #4CAF50;
+    }
+
+    .status-badge.pending {
+      background: var(--basketball);
+      color: #FFF;
+      cursor: pointer;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════ */
+    /* 챗봇 탭 */
+    /* ═══════════════════════════════════════════════════════════════ */
+    .chatbot-header {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+
+    .chatbot-header .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chatbot-header .avatar {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .chatbot-header .info {
+      flex: 1;
+    }
+
+    .chatbot-header .name {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-dark);
+    }
+
+    .chatbot-header .status {
+      font-size: 11px;
+      color: #4CAF50;
+    }
+
+    /* 채팅 메시지 */
+    .chat-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .chat-message {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-message.user {
+      flex-direction: row-reverse;
+    }
+
+    .chat-message .avatar {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .chat-message .content {
+      max-width: 75%;
+    }
+
+    .chat-message .bubble {
+      padding: 12px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-line;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .chat-message.bot .bubble {
+      background: var(--white);
+      color: var(--text-dark);
+      border-radius: 16px 16px 16px 4px;
+    }
+
+    .chat-message.user .bubble {
+      background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+      color: #FFF;
+      border-radius: 16px 16px 4px 16px;
+    }
+
+    .chat-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chat-action-btn {
+      background: var(--white);
+      border: 1px solid var(--primary-start);
+      border-radius: 16px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary-start);
+      cursor: pointer;
+    }
+
+    .chat-time {
+      font-size: 10px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    .chat-message.user .chat-time {
+      text-align: right;
+    }
+
+    /* 빠른 액션 */
+    .chat-quick-actions {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .chat-quick-btn {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    /* 입력창 */
+    .chat-input-area {
+      display: flex;
+      gap: 8px;
+      background: var(--white);
+      border-radius: 20px;
+      padding: 6px 6px 6px 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      color: var(--text-dark);
+      background: transparent;
+    }
+
+    .chat-send-btn {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+      border: none;
+      border-radius: 50%;
+      color: #FFF;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* 영상 카드 */
+    .video-card {
+      background: var(--white);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+    }
+
+    .video-thumbnail {
+      height: 180px;
+      background: linear-gradient(135deg, var(--basketball), #FFB347);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .video-thumbnail .play-btn {
+      width: 60px;
+      height: 60px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .video-duration {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .video-info {
+      padding: 14px;
+    }
+
+    .video-info .title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+
+    .video-info .meta {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-bottom: 10px;
+    }
+
+    .video-info .skill-tags {
+      display: flex;
+      gap: 6px;
+    }
+
+    .video-info .skill-tag {
+      padding: 4px 10px;
+      background: var(--basketball-bg);
+      color: var(--basketball);
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════ */
+    /* 하단 네비게이션 */
+    /* ═══════════════════════════════════════════════════════════════ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 0;
+      padding-bottom: 24px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+      z-index: 100;
+    }
+
+    .nav-item {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 28px;
+      border-radius: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+    }
+
+    .nav-item .icon {
+      font-size: 24px;
+      filter: grayscale(1);
+      opacity: 0.5;
+      transition: all 0.2s;
+    }
+
+    .nav-item.active .icon {
+      filter: none;
+      opacity: 1;
+    }
+
+    .nav-item .label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #999;
+    }
+
+    .nav-item.active .label {
+      font-weight: 700;
+      color: var(--primary-start);
+    }
+
+    /* 섹션 타이틀 */
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text-dark);
+    }
+
+    /* 영상 알림 배너 */
+    .video-alert-banner {
+      background: linear-gradient(135deg, var(--basketball), #FFB347);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .video-alert-banner .icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .video-alert-banner .info {
+      flex: 1;
+    }
+
+    .video-alert-banner .title {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .video-alert-banner .subtitle {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .video-alert-banner .arrow {
+      font-size: 20px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 상단 헤더 -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <header class="header">
+      <div class="header-top">
+        <div>
+          <div class="header-subtitle">올댓바스켓</div>
+          <div class="header-title">안녕하세요, 김민지님 👋</div>
+        </div>
+        <div class="notification-btn">
+          🔔
+          <div class="notification-badge">2</div>
+        </div>
+      </div>
+
+      <div class="children-selector">
+        <button class="child-btn active" onclick="selectChild(this)">
+          <span class="avatar">👦</span>
+          <div class="info">
+            <div class="name">민준</div>
+            <div class="grade">초4 · 중급반</div>
+          </div>
+        </button>
+        <button class="child-btn" onclick="selectChild(this)">
+          <span class="avatar">👧</span>
+          <div class="info">
+            <div class="name">서연</div>
+            <div class="grade">초2 · 초급반</div>
+          </div>
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 메인 콘텐츠 -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <main class="main-content">
+      <!-- 스케줄 탭 -->
+      <div class="tab-content active" id="tab-schedule">
+        <!-- 새 영상 알림 -->
+        <div class="video-alert-banner" onclick="showTab('videos')">
+          <div class="icon">🎬</div>
+          <div class="info">
+            <div class="title">새 영상 2개가 도착했어요!</div>
+            <div class="subtitle">오늘 레슨 영상을 확인해보세요</div>
+          </div>
+          <span class="arrow">→</span>
+        </div>
+
+        <!-- 오늘 요약 카드 -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-date">2026년 1월 29일 수요일</div>
+              <div class="card-title">이번 주 3회 수업</div>
+            </div>
+            <div class="toggle-group">
+              <button class="toggle-btn active">일간</button>
+              <button class="toggle-btn">주간</button>
+            </div>
+          </div>
+
+          <div class="week-calendar">
+            <div class="week-day">
+              <div class="day-label">월</div>
+              <div class="day-count">1</div>
+            </div>
+            <div class="week-day">
+              <div class="day-label">화</div>
+              <div class="day-count">0</div>
+            </div>
+            <div class="week-day today">
+              <div class="day-label">수</div>
+              <div class="day-count">1</div>
+            </div>
+            <div class="week-day">
+              <div class="day-label">목</div>
+              <div class="day-count">0</div>
+            </div>
+            <div class="week-day">
+              <div class="day-label">금</div>
+              <div class="day-count">1</div>
+            </div>
+            <div class="week-day">
+              <div class="day-label">토</div>
+              <div class="day-count">0</div>
+            </div>
+            <div class="week-day">
+              <div class="day-label">일</div>
+              <div class="day-count">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 오늘의 수업 -->
+        <h3 class="section-title">오늘의 수업</h3>
+        <div class="schedule-item">
+          <div class="schedule-icon">🏀</div>
+          <div class="schedule-info">
+            <div class="schedule-title">주니어 드리블 중급반</div>
+            <div class="schedule-meta">박민수 코치 · A코트</div>
+          </div>
+          <div class="schedule-time">
+            <div class="start">16:00</div>
+            <div class="end">~17:30</div>
+          </div>
+        </div>
+
+        <!-- 빠른 액션 -->
+        <div class="quick-actions">
+          <button class="quick-action-btn">
+            <span class="icon">🚫</span>
+            <span class="label">결석 신고</span>
+          </button>
+          <button class="quick-action-btn">
+            <span class="icon">🔄</span>
+            <span class="label">보강 신청</span>
+          </button>
+          <button class="quick-action-btn">
+            <span class="icon">📱</span>
+            <span class="label">QR 코드</span>
+          </button>
+          <button class="quick-action-btn">
+            <span class="icon">📊</span>
+            <span class="label">성장 리포트</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 수납 탭 -->
+      <div class="tab-content" id="tab-payment">
+        <div class="payment-summary">
+          <div class="label">2월 납부 예정액</div>
+          <div class="amount">₩220,000</div>
+          <div class="buttons">
+            <button class="btn outline">💳 카카오페이 결제</button>
+            <button class="btn solid">📋 납부 내역</button>
+          </div>
+        </div>
+
+        <div class="qr-status-banner">
+          <span class="icon">✅</span>
+          <div class="info">
+            <div class="title">QR 활성화됨</div>
+            <div class="subtitle">남은 횟수 6회 · 2/28까지</div>
+          </div>
+          <button class="btn">QR 보기</button>
+        </div>
+
+        <h3 class="section-title">수강권 현황</h3>
+
+        <div class="payment-item">
+          <div class="icon-box">🏀</div>
+          <div class="info">
+            <div class="name-row">
+              <span class="name">8회권 (민준)</span>
+              <span class="auto-badge">자동결제</span>
+            </div>
+            <div class="due">다음 결제: 2월 5일</div>
+          </div>
+          <div class="right">
+            <div class="price">₩220,000</div>
+            <span class="status-badge pending">결제</span>
+          </div>
+        </div>
+
+        <div class="payment-item">
+          <div class="icon-box">🏀</div>
+          <div class="info">
+            <div class="name-row">
+              <span class="name">4회권 (서연)</span>
+            </div>
+            <div class="due">1월 15일 결제</div>
+          </div>
+          <div class="right">
+            <div class="price paid">₩120,000</div>
+            <span class="status-badge paid">완료</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 챗봇 탭 -->
+      <div class="tab-content" id="tab-chat">
+        <div class="chatbot-header">
+          <div class="row">
+            <div class="avatar">🤖</div>
+            <div class="info">
+              <div class="name">MoltBot 어시스턴트</div>
+              <div class="status">● 박민수 코치 연결됨</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-area">
+          <div class="chat-message bot">
+            <div class="avatar">🤖</div>
+            <div class="content">
+              <div class="bubble">안녕하세요! 민준이의 농구 레슨을 도와드릴 MoltBot입니다 🏀
+
+오늘 레슨 결과가 도착했어요!</div>
+              <div class="chat-time">오후 5:35</div>
+            </div>
+          </div>
+
+          <div class="chat-message user">
+            <div class="content">
+              <div class="bubble">오늘 수업 어땠어요?</div>
+              <div class="chat-time">오후 5:36</div>
+            </div>
+          </div>
+
+          <div class="chat-message bot">
+            <div class="avatar">🤖</div>
+            <div class="content">
+              <div class="bubble">박민수 코치님 피드백입니다 📝
+
+✨ 잘한 점: 크로스오버 동작이 자연스러워졌어요!
+📈 개선할 점: 고개를 더 들고 전방을 봐주세요
+🏠 숙제: 제자리 크로스오버 50회
+
+영상도 함께 확인해보세요!</div>
+              <div class="chat-actions">
+                <button class="chat-action-btn">🎬 영상 보기</button>
+                <button class="chat-action-btn">📅 다음 스케줄</button>
+              </div>
+              <div class="chat-time">오후 5:36</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-quick-actions">
+          <button class="chat-quick-btn">📊 오늘 리포트</button>
+          <button class="chat-quick-btn">🚫 결석 신고</button>
+          <button class="chat-quick-btn">🔄 보강 신청</button>
+          <button class="chat-quick-btn">💬 코치 상담</button>
+        </div>
+
+        <div class="chat-input-area">
+          <input type="text" placeholder="무엇이든 물어보세요...">
+          <button class="chat-send-btn">↑</button>
+        </div>
+      </div>
+
+      <!-- 영상 탭 -->
+      <div class="tab-content" id="tab-videos">
+        <h3 class="section-title">📹 오늘의 레슨 영상</h3>
+
+        <div class="video-card">
+          <div class="video-thumbnail">
+            <div class="play-btn">▶️</div>
+            <div class="video-duration">0:32</div>
+          </div>
+          <div class="video-info">
+            <div class="title">민준이 크로스오버 드리블 연습</div>
+            <div class="meta">박민수 코치 · 방금 전</div>
+            <div class="skill-tags">
+              <span class="skill-tag">⛹️ 드리블</span>
+              <span class="skill-tag">⚡ 스피드</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="video-card">
+          <div class="video-thumbnail">
+            <div class="play-btn">▶️</div>
+            <div class="video-duration">0:45</div>
+          </div>
+          <div class="video-info">
+            <div class="title">레이업 슈팅 연습</div>
+            <div class="meta">박민수 코치 · 30분 전</div>
+            <div class="skill-tags">
+              <span class="skill-tag">🏀 슈팅</span>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="section-title" style="margin-top: 24px;">📁 지난 영상</h3>
+        <div class="video-card" style="opacity: 0.7;">
+          <div class="video-thumbnail" style="height: 120px;">
+            <div class="play-btn" style="width: 48px; height: 48px; font-size: 18px;">▶️</div>
+            <div class="video-duration">1:12</div>
+          </div>
+          <div class="video-info">
+            <div class="title">1월 27일 수비 연습</div>
+            <div class="meta">2일 전</div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 하단 네비게이션 -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="showTab('schedule')">
+        <span class="icon">📅</span>
+        <span class="label">스케줄</span>
+      </button>
+      <button class="nav-item" onclick="showTab('payment')">
+        <span class="icon">💳</span>
+        <span class="label">수납</span>
+      </button>
+      <button class="nav-item" onclick="showTab('videos')">
+        <span class="icon">🎬</span>
+        <span class="label">영상</span>
+      </button>
+      <button class="nav-item" onclick="showTab('chat')">
+        <span class="icon">💬</span>
+        <span class="label">챗봇</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    function showTab(tabId) {
+      // 탭 컨텐츠 전환
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.getElementById('tab-' + tabId).classList.add('active');
+
+      // 네비게이션 활성화
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.currentTarget.classList.add('active');
+    }
+
+    function selectChild(btn) {
+      document.querySelectorAll('.child-btn').forEach(b => {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>

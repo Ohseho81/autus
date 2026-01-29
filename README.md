@@ -104,11 +104,43 @@ autus/
 │   ├── app/api/             # API Routes
 │   └── lib/                 # Utilities
 │
+├── mobile-app/              # React Native Mobile App
+│   ├── src/                 # Source Code
+│   └── supabase/            # Supabase Migrations
+│
+├── allthatbasket/           # 🏀 농구 아카데미 특화 솔루션
+│   ├── src/                 # 역할별 대시보드
+│   ├── supabase/            # 스킬 트래킹, 게이미피케이션
+│   └── preview/             # UI 프리뷰
+│
+├── kraton-v2/               # KRATON Design System v2
 ├── docs/                    # Documentation (28 files)
 ├── n8n/                     # N8N Workflows (20 files)
 ├── scripts/                 # Automation Scripts
 └── tests/                   # Test Suite
 ```
+
+---
+
+## 🏀 Vertical Solutions
+
+AUTUS 플랫폼 기반 산업별 특화 솔루션:
+
+| 솔루션 | 대상 | 특화 기능 |
+|--------|------|----------|
+| **올댓바스켓** | 농구 아카데미 | 스킬 트래킹, 게이미피케이션, QR 출석 |
+
+### 올댓바스켓 (AllThatBasket)
+
+```bash
+cd allthatbasket
+npm install && npm run dev
+```
+
+- 4-Tier 역할: 오너 → 원장 → 관리자 → 강사
+- 8가지 농구 스킬 트래킹
+- 포인트/배지 시스템
+- 상세 정보: [allthatbasket/README.md](./allthatbasket/README.md)
 
 ---
 

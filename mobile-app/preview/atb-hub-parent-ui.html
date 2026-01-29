@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATB Hub - Parent App UI (Sport UI Kit Style)</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #fff;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+      font-size: 32px;
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 50%, #FFB347 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+    }
+
+    .screens-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      justify-content: center;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .screen-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .screen-label {
+      color: #FF8C42;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Phone Frame */
+    .phone {
+      width: 320px;
+      height: 680px;
+      background: #0D1117;
+      border-radius: 40px;
+      padding: 12px;
+      box-shadow:
+        0 25px 50px rgba(0,0,0,0.5),
+        0 0 0 2px rgba(255,107,53,0.3),
+        inset 0 0 30px rgba(255,140,66,0.05);
+      position: relative;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #0D1117 0%, #161B22 100%);
+      border-radius: 32px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-icons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* Dynamic Island */
+    .dynamic-island {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 28px;
+      background: #000;
+      border-radius: 20px;
+    }
+
+    /* ===================== HOME SCREEN ===================== */
+    .home-header {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .home-greeting {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .home-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .home-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    /* Child Selector Card */
+    .child-selector {
+      margin: 0 16px 16px;
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 8px 24px rgba(255,107,53,0.3);
+    }
+
+    .child-photo {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .child-info h3 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .child-info p {
+      font-size: 12px;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    .child-arrow {
+      margin-left: auto;
+      width: 32px;
+      height: 32px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Stats Cards Row */
+    .stats-row {
+      display: flex;
+      gap: 10px;
+      padding: 0 16px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      margin: 0 auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .stat-icon.orange { background: rgba(255,107,53,0.2); color: #FF8C42; }
+    .stat-icon.green { background: rgba(46,213,115,0.2); color: #2ED573; }
+    .stat-icon.blue { background: rgba(116,185,255,0.2); color: #74B9FF; }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+
+    /* Section Title */
+    .section-title {
+      padding: 0 20px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-title h4 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .section-title a {
+      font-size: 12px;
+      color: #FF8C42;
+      text-decoration: none;
+    }
+
+    /* Today Schedule */
+    .schedule-card {
+      margin: 0 16px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .schedule-time {
+      text-align: center;
+      min-width: 50px;
+    }
+
+    .schedule-time .hour {
+      font-size: 18px;
+      font-weight: 700;
+      color: #FF8C42;
+    }
+
+    .schedule-time .ampm {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .schedule-divider {
+      width: 3px;
+      height: 40px;
+      background: linear-gradient(180deg, #FF6B35, #FF8C42);
+      border-radius: 2px;
+    }
+
+    .schedule-info h5 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .schedule-info p {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+
+    .schedule-status {
+      margin-left: auto;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .schedule-status.upcoming {
+      background: rgba(255,107,53,0.2);
+      color: #FF8C42;
+    }
+
+    /* Bottom Tab Bar */
+    .tab-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: rgba(13,17,23,0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: 16px;
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: rgba(255,255,255,0.4);
+      font-size: 10px;
+    }
+
+    .tab-item.active {
+      color: #FF8C42;
+    }
+
+    .tab-item i {
+      font-size: 20px;
+    }
+
+    /* ===================== PAYMENT SCREEN ===================== */
+    .payment-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .payment-balance {
+      margin: 0 16px 20px;
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 50%, #FFB347 100%);
+      border-radius: 24px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 12px 32px rgba(255,107,53,0.4);
+    }
+
+    .balance-label {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
+    .balance-amount {
+      font-size: 36px;
+      font-weight: 800;
+      margin: 8px 0;
+    }
+
+    .balance-unit {
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .balance-detail {
+      font-size: 12px;
+      opacity: 0.75;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    /* Payment History */
+    .payment-item {
+      margin: 0 16px 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .payment-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .payment-icon.lesson {
+      background: rgba(255,107,53,0.2);
+      color: #FF8C42;
+    }
+
+    .payment-icon.charge {
+      background: rgba(46,213,115,0.2);
+      color: #2ED573;
+    }
+
+    .payment-info {
+      flex: 1;
+    }
+
+    .payment-info h5 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .payment-info p {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+
+    .payment-amount {
+      text-align: right;
+    }
+
+    .payment-amount.minus {
+      color: #FF6B6B;
+    }
+
+    .payment-amount.plus {
+      color: #2ED573;
+    }
+
+    .payment-amount .value {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .payment-amount .remain {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* ===================== GROWTH SCREEN ===================== */
+    .growth-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 0 16px;
+      margin-bottom: 16px;
+    }
+
+    .growth-tab {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.5);
+    }
+
+    .growth-tab.active {
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      color: #fff;
+    }
+
+    /* Skill Chart */
+    .skill-chart {
+      margin: 0 16px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .skill-chart h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .skill-chart h4 i {
+      color: #FF8C42;
+    }
+
+    .radar-placeholder {
+      width: 180px;
+      height: 180px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .radar-bg {
+      position: absolute;
+      inset: 0;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+
+    .radar-bg:nth-child(2) {
+      inset: 20%;
+    }
+
+    .radar-bg:nth-child(3) {
+      inset: 40%;
+    }
+
+    .radar-shape {
+      position: absolute;
+      inset: 15%;
+      background: rgba(255,107,53,0.2);
+      border: 2px solid #FF8C42;
+      clip-path: polygon(50% 10%, 90% 35%, 80% 85%, 20% 85%, 10% 35%);
+    }
+
+    .radar-labels {
+      position: absolute;
+      inset: 0;
+    }
+
+    .radar-label {
+      position: absolute;
+      font-size: 10px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .radar-label:nth-child(1) { top: -5px; left: 50%; transform: translateX(-50%); }
+    .radar-label:nth-child(2) { top: 25%; right: -10px; }
+    .radar-label:nth-child(3) { bottom: 10%; right: 5px; }
+    .radar-label:nth-child(4) { bottom: 10%; left: 5px; }
+    .radar-label:nth-child(5) { top: 25%; left: -15px; }
+
+    /* Growth Timeline */
+    .growth-timeline {
+      margin: 0 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 16px;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .timeline-item:last-child {
+      border-bottom: none;
+    }
+
+    .timeline-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #FF8C42;
+      margin-top: 4px;
+      position: relative;
+    }
+
+    .timeline-dot::after {
+      content: '';
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 40px;
+      background: rgba(255,107,53,0.3);
+    }
+
+    .timeline-item:last-child .timeline-dot::after {
+      display: none;
+    }
+
+    .timeline-content h5 {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .timeline-content p {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4px;
+    }
+
+    .timeline-badge {
+      margin-left: auto;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      background: rgba(255,107,53,0.2);
+      color: #FF8C42;
+    }
+
+    /* ===================== FEEDBACK SCREEN ===================== */
+    .feedback-video {
+      margin: 0 16px 16px;
+      background: #000;
+      border-radius: 20px;
+      height: 200px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-play {
+      width: 60px;
+      height: 60px;
+      background: rgba(255,107,53,0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .video-duration {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(0,0,0,0.7);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+    }
+
+    .feedback-card {
+      margin: 0 16px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .feedback-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .feedback-header h5 {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feedback-header h5 i {
+      color: #FF8C42;
+    }
+
+    .feedback-date {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .skill-bars .skill-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .skill-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .skill-name {
+      width: 60px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .skill-bar {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .skill-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #FF6B35, #FF8C42);
+    }
+
+    .skill-value {
+      width: 30px;
+      text-align: right;
+      font-size: 11px;
+      font-weight: 600;
+      color: #FF8C42;
+    }
+
+    .coach-comment {
+      margin-top: 16px;
+      padding: 14px;
+      background: rgba(255,107,53,0.1);
+      border-radius: 12px;
+      border-left: 3px solid #FF8C42;
+    }
+
+    .coach-comment .label {
+      font-size: 10px;
+      color: #FF8C42;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .coach-comment p {
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.85);
+    }
+
+    /* Description */
+    .screen-description {
+      max-width: 300px;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .screens-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>ATB Hub - 학부모 앱 UI</h1>
+    <p>Sport Mobile APP UI Kit 스타일 적용 • Orange Theme</p>
+  </div>
+
+  <div class="screens-container">
+    <!-- Screen 1: Home -->
+    <div class="screen-wrapper">
+      <div class="screen-label">홈 화면</div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="dynamic-island"></div>
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="status-icons">
+              <i class="fas fa-signal"></i>
+              <i class="fas fa-wifi"></i>
+              <i class="fas fa-battery-full"></i>
+            </div>
+          </div>
+
+          <div class="home-header">
+            <div>
+              <div class="home-greeting">안녕하세요 👋</div>
+              <div class="home-title">김민서 엄마</div>
+            </div>
+            <div class="home-avatar">김</div>
+          </div>
+
+          <div class="child-selector">
+            <div class="child-photo">⚽</div>
+            <div class="child-info">
+              <h3>김민서</h3>
+              <p>초등 4학년 • ATB FC U-10</p>
+            </div>
+            <div class="child-arrow">
+              <i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-icon orange">
+                <i class="fas fa-futbol"></i>
+              </div>
+              <div class="stat-value">12</div>
+              <div class="stat-label">잔여 레슨</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="stat-value">96%</div>
+              <div class="stat-label">출석률</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon blue">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <div class="stat-value">A</div>
+              <div class="stat-label">성장 등급</div>
+            </div>
+          </div>
+
+          <div class="section-title">
+            <h4>오늘의 일정</h4>
+            <a href="#">전체보기</a>
+          </div>
+
+          <div class="schedule-card">
+            <div class="schedule-time">
+              <div class="hour">4:00</div>
+              <div class="ampm">PM</div>
+            </div>
+            <div class="schedule-divider"></div>
+            <div class="schedule-info">
+              <h5>드리블 기초반</h5>
+              <p>코치 박진호 • A 구장</p>
+            </div>
+            <div class="schedule-status upcoming">예정</div>
+          </div>
+
+          <div class="schedule-card">
+            <div class="schedule-time">
+              <div class="hour">6:00</div>
+              <div class="ampm">PM</div>
+            </div>
+            <div class="schedule-divider"></div>
+            <div class="schedule-info">
+              <h5>슈팅 클리닉</h5>
+              <p>코치 이준석 • B 구장</p>
+            </div>
+            <div class="schedule-status upcoming">예정</div>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item active">
+              <i class="fas fa-home"></i>
+              <span>홈</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-calendar"></i>
+              <span>일정</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-credit-card"></i>
+              <span>수납</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-chart-bar"></i>
+              <span>성장</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-ellipsis-h"></i>
+              <span>더보기</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-description">
+        아이 선택 카드 + 핵심 통계 3종<br>
+        오늘의 레슨 일정 한눈에
+      </div>
+    </div>
+
+    <!-- Screen 2: Payment (수납 카드) -->
+    <div class="screen-wrapper">
+      <div class="screen-label">수납 카드</div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="dynamic-island"></div>
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="status-icons">
+              <i class="fas fa-signal"></i>
+              <i class="fas fa-wifi"></i>
+              <i class="fas fa-battery-full"></i>
+            </div>
+          </div>
+
+          <div class="payment-header">
+            <div class="back-btn">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <h3 style="font-size: 17px; font-weight: 600;">레슨 수납</h3>
+          </div>
+
+          <div class="payment-balance">
+            <div class="balance-label">잔여 레슨</div>
+            <div class="balance-amount">12<span class="balance-unit">회</span></div>
+            <div class="balance-detail">
+              <span>💰 360,000원</span>
+              <span>📅 ~3/15 예상</span>
+            </div>
+          </div>
+
+          <div class="section-title">
+            <h4>최근 내역</h4>
+            <a href="#">전체보기</a>
+          </div>
+
+          <div class="payment-item">
+            <div class="payment-icon lesson">
+              <i class="fas fa-futbol"></i>
+            </div>
+            <div class="payment-info">
+              <h5>드리블 기초반</h5>
+              <p>2025.01.29 16:00 • 출석</p>
+            </div>
+            <div class="payment-amount minus">
+              <div class="value">-1회</div>
+              <div class="remain">잔여 12회</div>
+            </div>
+          </div>
+
+          <div class="payment-item">
+            <div class="payment-icon lesson">
+              <i class="fas fa-futbol"></i>
+            </div>
+            <div class="payment-info">
+              <h5>슈팅 클리닉</h5>
+              <p>2025.01.28 18:00 • 출석</p>
+            </div>
+            <div class="payment-amount minus">
+              <div class="value">-1회</div>
+              <div class="remain">잔여 13회</div>
+            </div>
+          </div>
+
+          <div class="payment-item">
+            <div class="payment-icon charge">
+              <i class="fas fa-plus"></i>
+            </div>
+            <div class="payment-info">
+              <h5>레슨 패키지 충전</h5>
+              <p>2025.01.20 • 카드결제</p>
+            </div>
+            <div class="payment-amount plus">
+              <div class="value">+20회</div>
+              <div class="remain">600,000원</div>
+            </div>
+          </div>
+
+          <div class="payment-item">
+            <div class="payment-icon lesson">
+              <i class="fas fa-futbol"></i>
+            </div>
+            <div class="payment-info">
+              <h5>드리블 기초반</h5>
+              <p>2025.01.27 16:00 • 출석</p>
+            </div>
+            <div class="payment-amount minus">
+              <div class="value">-1회</div>
+              <div class="remain">잔여 14회</div>
+            </div>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item">
+              <i class="fas fa-home"></i>
+              <span>홈</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-calendar"></i>
+              <span>일정</span>
+            </div>
+            <div class="tab-item active">
+              <i class="fas fa-credit-card"></i>
+              <span>수납</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-chart-bar"></i>
+              <span>성장</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-ellipsis-h"></i>
+              <span>더보기</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-description">
+        레슨권 잔여 현황 + 예상 소진일<br>
+        출석 시 자동 차감 내역 표시
+      </div>
+    </div>
+
+    <!-- Screen 3: Growth (성장 그래프) -->
+    <div class="screen-wrapper">
+      <div class="screen-label">성장 그래프</div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="dynamic-island"></div>
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="status-icons">
+              <i class="fas fa-signal"></i>
+              <i class="fas fa-wifi"></i>
+              <i class="fas fa-battery-full"></i>
+            </div>
+          </div>
+
+          <div class="payment-header">
+            <div class="back-btn">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <h3 style="font-size: 17px; font-weight: 600;">성장 리포트</h3>
+          </div>
+
+          <div class="growth-tabs">
+            <div class="growth-tab active">기술</div>
+            <div class="growth-tab">체력</div>
+            <div class="growth-tab">태도</div>
+          </div>
+
+          <div class="skill-chart">
+            <h4><i class="fas fa-spider"></i> 기술 레이더</h4>
+            <div class="radar-placeholder">
+              <div class="radar-bg"></div>
+              <div class="radar-bg"></div>
+              <div class="radar-bg"></div>
+              <div class="radar-shape"></div>
+              <div class="radar-labels">
+                <span class="radar-label">드리블</span>
+                <span class="radar-label">슈팅</span>
+                <span class="radar-label">패스</span>
+                <span class="radar-label">수비</span>
+                <span class="radar-label">체력</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="growth-timeline">
+            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+              <i class="fas fa-history" style="color: #FF8C42;"></i> 성장 히스토리
+            </h4>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                <h5>드리블 돌파력 향상</h5>
+                <p>1월 4주차 • 코치 박진호</p>
+              </div>
+              <div class="timeline-badge">+12%</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                <h5>슈팅 정확도 개선</h5>
+                <p>1월 3주차 • 코치 이준석</p>
+              </div>
+              <div class="timeline-badge">+8%</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                <h5>체력 테스트 통과</h5>
+                <p>1월 2주차 • 월간 측정</p>
+              </div>
+              <div class="timeline-badge">A등급</div>
+            </div>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item">
+              <i class="fas fa-home"></i>
+              <span>홈</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-calendar"></i>
+              <span>일정</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-credit-card"></i>
+              <span>수납</span>
+            </div>
+            <div class="tab-item active">
+              <i class="fas fa-chart-bar"></i>
+              <span>성장</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-ellipsis-h"></i>
+              <span>더보기</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-description">
+        5각형 레이더 차트로 기술 시각화<br>
+        타임라인으로 성장 과정 기록
+      </div>
+    </div>
+
+    <!-- Screen 4: Feedback (영상 피드백) -->
+    <div class="screen-wrapper">
+      <div class="screen-label">영상 피드백</div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="dynamic-island"></div>
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="status-icons">
+              <i class="fas fa-signal"></i>
+              <i class="fas fa-wifi"></i>
+              <i class="fas fa-battery-full"></i>
+            </div>
+          </div>
+
+          <div class="payment-header">
+            <div class="back-btn">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <h3 style="font-size: 17px; font-weight: 600;">레슨 피드백</h3>
+          </div>
+
+          <div class="feedback-video">
+            <div class="video-play">
+              <i class="fas fa-play" style="margin-left: 4px;"></i>
+            </div>
+            <div class="video-duration">02:34</div>
+          </div>
+
+          <div class="feedback-card">
+            <div class="feedback-header">
+              <h5><i class="fas fa-chart-bar"></i> 기술 평가</h5>
+              <span class="feedback-date">2025.01.29</span>
+            </div>
+            <div class="skill-bars">
+              <div class="skill-row">
+                <span class="skill-name">드리블</span>
+                <div class="skill-bar"><div class="skill-fill" style="width: 85%;"></div></div>
+                <span class="skill-value">4.5</span>
+              </div>
+              <div class="skill-row">
+                <span class="skill-name">슈팅</span>
+                <div class="skill-bar"><div class="skill-fill" style="width: 70%;"></div></div>
+                <span class="skill-value">3.5</span>
+              </div>
+              <div class="skill-row">
+                <span class="skill-name">패스</span>
+                <div class="skill-bar"><div class="skill-fill" style="width: 80%;"></div></div>
+                <span class="skill-value">4.0</span>
+              </div>
+              <div class="skill-row">
+                <span class="skill-name">수비</span>
+                <div class="skill-bar"><div class="skill-fill" style="width: 65%;"></div></div>
+                <span class="skill-value">3.0</span>
+              </div>
+            </div>
+            <div class="coach-comment">
+              <div class="label">👨‍🏫 코치 코멘트</div>
+              <p>오늘 민서가 드리블 돌파에서 큰 발전을 보였어요! 왼발 사용도 점점 자연스러워지고 있습니다. 다음 시간에는 슈팅 연결 연습을 해볼게요 ⚽</p>
+            </div>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item">
+              <i class="fas fa-home"></i>
+              <span>홈</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-calendar"></i>
+              <span>일정</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-credit-card"></i>
+              <span>수납</span>
+            </div>
+            <div class="tab-item">
+              <i class="fas fa-chart-bar"></i>
+              <span>성장</span>
+            </div>
+            <div class="tab-item active">
+              <i class="fas fa-ellipsis-h"></i>
+              <span>더보기</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-description">
+        레슨 영상 + AI 분석 결과<br>
+        코치 코멘트로 학부모 소통
+      </div>
+    </div>
+  </div>
+</body>
+</html>

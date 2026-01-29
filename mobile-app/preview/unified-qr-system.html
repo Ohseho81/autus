@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATB Hub - 수납/스케줄/결과물 QR 일체화</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #fff;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      background: linear-gradient(135deg, #FF6B35, #2ED573, #74B9FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .page-header p {
+      color: rgba(255,255,255,0.6);
+      font-size: 16px;
+    }
+
+    /* Master Flow Diagram */
+    .master-flow {
+      max-width: 1200px;
+      margin: 0 auto 60px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 24px;
+      padding: 40px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .flow-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .flow-title span {
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Three Pillars */
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .pillar {
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      border: 2px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .pillar:hover {
+      transform: translateY(-4px);
+    }
+
+    .pillar.payment {
+      border-color: rgba(255,107,53,0.3);
+      background: linear-gradient(180deg, rgba(255,107,53,0.1) 0%, transparent 100%);
+    }
+
+    .pillar.schedule {
+      border-color: rgba(116,185,255,0.3);
+      background: linear-gradient(180deg, rgba(116,185,255,0.1) 0%, transparent 100%);
+    }
+
+    .pillar.result {
+      border-color: rgba(46,213,115,0.3);
+      background: linear-gradient(180deg, rgba(46,213,115,0.1) 0%, transparent 100%);
+    }
+
+    .pillar-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 20px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+
+    .pillar.payment .pillar-icon {
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+    }
+
+    .pillar.schedule .pillar-icon {
+      background: linear-gradient(135deg, #74B9FF, #0984E3);
+    }
+
+    .pillar.result .pillar-icon {
+      background: linear-gradient(135deg, #2ED573, #7BED9F);
+      color: #0D1117;
+    }
+
+    .pillar h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .pillar.payment h3 { color: #FF8C42; }
+    .pillar.schedule h3 { color: #74B9FF; }
+    .pillar.result h3 { color: #2ED573; }
+
+    .pillar p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 16px;
+    }
+
+    .pillar-items {
+      text-align: left;
+    }
+
+    .pillar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .pillar-item i {
+      width: 20px;
+      text-align: center;
+    }
+
+    .pillar.payment .pillar-item i { color: #FF8C42; }
+    .pillar.schedule .pillar-item i { color: #74B9FF; }
+    .pillar.result .pillar-item i { color: #2ED573; }
+
+    /* QR Center Hub */
+    .qr-hub {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 40px 0;
+    }
+
+    .qr-hub-icon {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #FF6B35, #2ED573);
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+      color: #fff;
+      box-shadow: 0 20px 60px rgba(255,107,53,0.3), 0 20px 60px rgba(46,213,115,0.3);
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 20px 60px rgba(255,107,53,0.3), 0 20px 60px rgba(46,213,115,0.3); }
+      50% { transform: scale(1.05); box-shadow: 0 30px 80px rgba(255,107,53,0.4), 0 30px 80px rgba(46,213,115,0.4); }
+    }
+
+    .qr-hub h2 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .qr-hub p {
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+    }
+
+    /* Arrows */
+    .arrows-container {
+      display: flex;
+      justify-content: center;
+      gap: 100px;
+      margin: 30px 0;
+    }
+
+    .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .arrow-line {
+      width: 3px;
+      height: 60px;
+      border-radius: 2px;
+    }
+
+    .arrow.up .arrow-line {
+      background: linear-gradient(180deg, transparent, #FF8C42);
+    }
+
+    .arrow.down .arrow-line {
+      background: linear-gradient(180deg, #2ED573, transparent);
+    }
+
+    .arrow i {
+      font-size: 20px;
+    }
+
+    .arrow.up i { color: #FF8C42; }
+    .arrow.down i { color: #2ED573; }
+
+    .arrow span {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    /* Complete Flow Steps */
+    .complete-flow {
+      max-width: 1200px;
+      margin: 0 auto 60px;
+    }
+
+    .flow-section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .flow-section-title i {
+      color: #FF8C42;
+    }
+
+    .flow-steps {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 20px;
+    }
+
+    .flow-step {
+      min-width: 220px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+      position: relative;
+    }
+
+    .flow-step::after {
+      content: '→';
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .flow-step:last-child::after {
+      display: none;
+    }
+
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .step-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .flow-step h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .flow-step p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.5;
+    }
+
+    .step-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .step-tag.auto {
+      background: rgba(46,213,115,0.2);
+      color: #2ED573;
+    }
+
+    .step-tag.qr {
+      background: rgba(255,107,53,0.2);
+      color: #FF8C42;
+    }
+
+    .step-tag.notify {
+      background: rgba(116,185,255,0.2);
+      color: #74B9FF;
+    }
+
+    /* Database Schema Preview */
+    .schema-section {
+      max-width: 1200px;
+      margin: 0 auto 60px;
+    }
+
+    .schema-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .schema-card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .schema-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .schema-card h4 i {
+      color: #FF8C42;
+    }
+
+    .schema-field {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 12px;
+    }
+
+    .schema-field:last-child {
+      border-bottom: none;
+    }
+
+    .field-name {
+      color: #74B9FF;
+      font-family: monospace;
+    }
+
+    .field-type {
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* API Endpoints */
+    .api-section {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .api-endpoint {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .api-method {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 50px;
+      text-align: center;
+    }
+
+    .api-method.post {
+      background: rgba(46,213,115,0.2);
+      color: #2ED573;
+    }
+
+    .api-method.get {
+      background: rgba(116,185,255,0.2);
+      color: #74B9FF;
+    }
+
+    .api-path {
+      font-family: monospace;
+      font-size: 13px;
+      color: #fff;
+      flex: 1;
+    }
+
+    .api-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    @media (max-width: 768px) {
+      .pillars {
+        grid-template-columns: 1fr;
+      }
+
+      .arrows-container {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .flow-steps {
+        flex-direction: column;
+      }
+
+      .flow-step::after {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>수납 / 스케줄 / 결과물 QR 일체화</h1>
+    <p>QR 하나로 모든 것이 연결되는 완전 자동화 시스템</p>
+  </div>
+
+  <!-- Master Flow -->
+  <div class="master-flow">
+    <h2 class="flow-title">🎯 <span>3대 핵심</span>이 QR로 연결된다</h2>
+
+    <div class="pillars">
+      <!-- 수납 Pillar -->
+      <div class="pillar payment">
+        <div class="pillar-icon">
+          <i class="fas fa-credit-card"></i>
+        </div>
+        <h3>수납 (Payment)</h3>
+        <p>결제 상태가 QR 활성화를 결정</p>
+        <div class="pillar-items">
+          <div class="pillar-item">
+            <i class="fas fa-check"></i>
+            <span>납부 완료 → QR 활성</span>
+          </div>
+          <div class="pillar-item">
+            <i class="fas fa-times"></i>
+            <span>미납 → QR 블록</span>
+          </div>
+          <div class="pillar-item">
+            <i class="fas fa-minus"></i>
+            <span>출석 시 자동 차감</span>
+          </div>
+          <div class="pillar-item">
+            <i class="fas fa-bell"></i>
+            <span>잔여 3회 시 알림</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 스케줄 Pillar -->
+      <div class="pillar schedule">
+        <div class="pillar-icon">
+          <i class="fas fa-calendar-alt"></i>
+        </div>
+        <h3>스케줄 (Schedule)</h3>
+        <p>등록된 시간표대로 QR 검증</p>
+        <div class="pillar-items">
+          <div class="pillar-item">
+            <i class="fas fa-clock"></i>
+            <span>레슨 30분 전부터 QR 가능</span>
+          </div>
+          <div class="pillar-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>GPS로 지점 자동 확인</span>
+          </div>
+          <div class="pillar-item">
+            <i class="fas fa-user-tie"></i>
+            <span>담당 코치 자동 매칭</span>
+          </div>
+          <div class="pillar-item">
+            <i class="fas fa-users"></i>
+            <span>정원 실시간 체크</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 결과물 Pillar -->
+      <div class="pillar result">
+        <div class="pillar-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>결과물 (Output)</h3>
+        <p>QR 출석 후 자동 생성</p>
+        <div class="pillar-items">
+          <div class="pillar-item">
+            <i class="fas fa-video"></i>
+            <span>레슨 영상 자동 업로드</span>
+          </div>
+          <div class="pillar-item">
+            <i class="fas fa-microphone"></i>
+            <span>코치 음성 피드백</span>
+          </div>
+          <div class="pillar-item">
+            <i class="fas fa-star"></i>
+            <span>기술 평가 5점 척도</span>
+          </div>
+          <div class="pillar-item">
+            <i class="fas fa-trophy"></i>
+            <span>성장 그래프 누적</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrows Up -->
+    <div class="arrows-container">
+      <div class="arrow up">
+        <span>결제 확인</span>
+        <i class="fas fa-arrow-up"></i>
+        <div class="arrow-line"></div>
+      </div>
+      <div class="arrow up">
+        <span>시간 검증</span>
+        <i class="fas fa-arrow-up"></i>
+        <div class="arrow-line"></div>
+      </div>
+      <div class="arrow up">
+        <span>GPS 확인</span>
+        <i class="fas fa-arrow-up"></i>
+        <div class="arrow-line"></div>
+      </div>
+    </div>
+
+    <!-- QR Hub -->
+    <div class="qr-hub">
+      <div class="qr-hub-icon">
+        <i class="fas fa-qrcode"></i>
+      </div>
+      <h2>QR 스캔 1초</h2>
+      <p>모든 검증 + 기록 + 트리거가 동시에 발생</p>
+    </div>
+
+    <!-- Arrows Down -->
+    <div class="arrows-container">
+      <div class="arrow down">
+        <div class="arrow-line"></div>
+        <i class="fas fa-arrow-down"></i>
+        <span>레슨 -1</span>
+      </div>
+      <div class="arrow down">
+        <div class="arrow-line"></div>
+        <i class="fas fa-arrow-down"></i>
+        <span>출석 기록</span>
+      </div>
+      <div class="arrow down">
+        <div class="arrow-line"></div>
+        <i class="fas fa-arrow-down"></i>
+        <span>피드백 준비</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complete Flow Steps -->
+  <div class="complete-flow">
+    <h3 class="flow-section-title">
+      <i class="fas fa-stream"></i> 전체 자동화 플로우 (학생 1명 기준)
+    </h3>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-number">1</div>
+        <div class="step-icon">💳</div>
+        <h4>수납 등록</h4>
+        <p>레슨 패키지 구매<br>카카오페이 결제 완료</p>
+        <span class="step-tag notify">알림톡 발송</span>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">2</div>
+        <div class="step-icon">📅</div>
+        <h4>스케줄 배정</h4>
+        <p>요일/시간 선택<br>담당 코치 자동 매칭</p>
+        <span class="step-tag auto">자동 생성</span>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">3</div>
+        <div class="step-icon">📱</div>
+        <h4>QR 활성화</h4>
+        <p>개인 QR 코드 발급<br>앱에서 확인 가능</p>
+        <span class="step-tag qr">QR 연동</span>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">4</div>
+        <div class="step-icon">📍</div>
+        <h4>코트 도착</h4>
+        <p>GPS로 위치 확인<br>레슨 시간 체크</p>
+        <span class="step-tag auto">자동 검증</span>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">5</div>
+        <div class="step-icon">✅</div>
+        <h4>QR 출석</h4>
+        <p>태블릿/코치 앱 스캔<br>1초 내 검증 완료</p>
+        <span class="step-tag qr">QR 스캔</span>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">6</div>
+        <div class="step-icon">➖</div>
+        <h4>레슨 차감</h4>
+        <p>잔여 레슨 -1 자동<br>DB 실시간 업데이트</p>
+        <span class="step-tag auto">자동</span>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">7</div>
+        <div class="step-icon">📱</div>
+        <h4>학부모 알림</h4>
+        <p>"출석 완료!" 푸시<br>카카오 알림톡 발송</p>
+        <span class="step-tag notify">알림</span>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">8</div>
+        <div class="step-icon">🏀</div>
+        <h4>레슨 진행</h4>
+        <p>코치 영상 촬영<br>음성 메모 녹음</p>
+        <span class="step-tag qr">코치 액션</span>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">9</div>
+        <div class="step-icon">⭐</div>
+        <h4>피드백 생성</h4>
+        <p>기술 평가 입력<br>코치 코멘트 작성</p>
+        <span class="step-tag auto">자동 준비</span>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-number">10</div>
+        <div class="step-icon">📊</div>
+        <h4>성장 기록</h4>
+        <p>레이더 차트 업데이트<br>히스토리 누적</p>
+        <span class="step-tag auto">자동</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Database Schema -->
+  <div class="schema-section">
+    <h3 class="flow-section-title">
+      <i class="fas fa-database"></i> 데이터 연결 구조
+    </h3>
+
+    <div class="schema-grid">
+      <div class="schema-card">
+        <h4><i class="fas fa-table"></i> student_payments</h4>
+        <div class="schema-field">
+          <span class="field-name">student_id</span>
+          <span class="field-type">UUID FK</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">remaining_lessons</span>
+          <span class="field-type">INT</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">paid</span>
+          <span class="field-type">BOOLEAN</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">qr_active</span>
+          <span class="field-type">BOOLEAN</span>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <h4><i class="fas fa-table"></i> lesson_slots</h4>
+        <div class="schema-field">
+          <span class="field-name">coach_id</span>
+          <span class="field-type">UUID FK</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">date</span>
+          <span class="field-type">DATE</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">start_time</span>
+          <span class="field-type">TIME</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">location</span>
+          <span class="field-type">TEXT</span>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <h4><i class="fas fa-table"></i> attendance_records</h4>
+        <div class="schema-field">
+          <span class="field-name">student_id</span>
+          <span class="field-type">UUID FK</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">lesson_slot_id</span>
+          <span class="field-type">UUID FK</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">check_in_time</span>
+          <span class="field-type">TIMESTAMPTZ</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">verified_by</span>
+          <span class="field-type">'qr_scan'</span>
+        </div>
+      </div>
+
+      <div class="schema-card">
+        <h4><i class="fas fa-table"></i> growth_logs</h4>
+        <div class="schema-field">
+          <span class="field-name">attendance_id</span>
+          <span class="field-type">UUID FK</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">skill_ratings</span>
+          <span class="field-type">JSONB</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">coach_comment</span>
+          <span class="field-type">TEXT</span>
+        </div>
+        <div class="schema-field">
+          <span class="field-name">video_url</span>
+          <span class="field-type">TEXT</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Endpoints -->
+  <div class="api-section">
+    <h3 class="flow-section-title">
+      <i class="fas fa-code"></i> QR 관련 API
+    </h3>
+
+    <div class="api-endpoint">
+      <span class="api-method post">POST</span>
+      <span class="api-path">/functions/v1/qr-attendance</span>
+      <span class="api-desc">QR 스캔 → 출석 기록 + 차감 + 알림</span>
+    </div>
+
+    <div class="api-endpoint">
+      <span class="api-method post">POST</span>
+      <span class="api-path">/functions/v1/attendance-chain-reaction</span>
+      <span class="api-desc">체인 반응 트리거 (피드백, 영상, 포인트)</span>
+    </div>
+
+    <div class="api-endpoint">
+      <span class="api-method post">POST</span>
+      <span class="api-path">/functions/v1/payment-webhook</span>
+      <span class="api-desc">결제 완료 → QR 활성화</span>
+    </div>
+
+    <div class="api-endpoint">
+      <span class="api-method get">GET</span>
+      <span class="api-path">/rest/v1/rpc/get_student_qr_status</span>
+      <span class="api-desc">학생 QR 상태 조회 (수납+스케줄)</span>
+    </div>
+
+    <div class="api-endpoint">
+      <span class="api-method get">GET</span>
+      <span class="api-path">/rest/v1/v_student_growth_summary</span>
+      <span class="api-desc">학생 성장 요약 (피드백+평가 통합)</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,10 +1,17 @@
 """
 ═══════════════════════════════════════════════════════════════════════════════
-😈 AUTUS Laplace's Demon v2.0 — 결정론적 미래 예측
+😈 AUTUS Laplace's Demon v2.3 — 결정론적 미래 예측
 ═══════════════════════════════════════════════════════════════════════════════
 
 "우주의 모든 원자의 위치와 속도를 안다면, 미래를 완벽히 예측할 수 있다"
 - Pierre-Simon Laplace
+
+V = (Motions - Threats) × (1 + InteractionExponent × Relations)^t × Base
+
+용어 (v2.3):
+- Motions (M): 생성 가치 (구: Mint)
+- Threats (T): 비용/위험 (구: Tax)
+- Relations (s): 관계 계수 (구: Synergy)
 
 AUTUS 적용:
 - 모든 초기 조건 (타입, 상수, 지수, 네트워크)을 반영
@@ -79,10 +86,15 @@ class ExponentialGrowth:
     """지수 성장 요소"""
     growth_rate: float = 0.05       # 기본 성장률 5%
     network_effect: float = 0.0     # 네트워크 효과 (동적 계산)
+    interaction_exponent: float = 1.0  # 상호작용 지수 (v2.3)
+    
+    def apply_to_relations(self, base_relations: float) -> float:
+        """Relations에 지수 성장 적용 (v2.3)"""
+        return base_relations + (self.growth_rate * base_relations) + self.network_effect
     
     def apply_to_synergy(self, base_s: float) -> float:
-        """Synergy에 지수 성장 적용"""
-        return base_s + (self.growth_rate * base_s) + self.network_effect
+        """[Legacy] Synergy에 지수 성장 적용"""
+        return self.apply_to_relations(base_s)
 
 
 @dataclass
@@ -117,9 +129,9 @@ class Network1_12_144:
         self._graph = G
         return G
     
-    def calculate_synergy(self) -> float:
+    def calculate_relations(self) -> float:
         """
-        네트워크 밀도 기반 Synergy 계산
+        네트워크 밀도 기반 Relations 계산 (v2.3)
         
         실제 AUTUS에서는 Ledger 상호작용 데이터로 대체 가능
         """
@@ -138,39 +150,61 @@ class Network1_12_144:
         total_connections = self.core_12 + self.extended_144
         max_connections = 12 + 144
         return min(1.0, total_connections / max_connections * 0.5)
+    
+    def calculate_synergy(self) -> float:
+        """[Legacy] Synergy 계산 → calculate_relations"""
+        return self.calculate_relations()
 
 
 @dataclass
 class Decision:
-    """결정 데이터"""
-    M: float                        # Mint (생성 가치)
-    T: float                        # Tax (비용)
-    t: int                          # Time (기간, 월)
+    """결정 데이터 (v2.3 용어)"""
+    # v2.3 terminology
+    motions: float = 0.0            # Motions - 생성 가치 (구: Mint)
+    threats: float = 0.0            # Threats - 비용/위험 (구: Tax)
+    t: int = 12                     # Time (기간, 월)
     label: str = ""                 # 결정 라벨
+    
+    # Legacy property aliases
+    @property
+    def M(self) -> float:
+        return self.motions
+    
+    @property
+    def T(self) -> float:
+        return self.threats
 
 
 @dataclass
 class DemonPrediction:
-    """라플라스 악마 예측 결과"""
+    """라플라스 악마 예측 결과 (v2.3)"""
     V: float                        # 예측 V
     V_lower: float                  # 하한 (비관)
     V_upper: float                  # 상한 (낙관)
-    adjusted_s: float               # 조정된 Synergy
+    adjusted_relations: float       # 조정된 Relations (v2.3)
     type_factor: float              # 타입 승수
     constant_adj: float             # 상수 조정
     decision: Decision              # 원본 결정
+    
+    # Legacy alias
+    @property
+    def adjusted_s(self) -> float:
+        return self.adjusted_relations
     
     def to_dict(self) -> dict:
         return {
             "V": round(self.V, 2),
             "V_range": [round(self.V_lower, 2), round(self.V_upper, 2)],
             "uncertainty": f"±{round((self.V_upper - self.V_lower) / 2 / self.V * 100, 1)}%",
-            "adjusted_s": round(self.adjusted_s, 4),
+            "adjusted_relations": round(self.adjusted_relations, 4),
+            "adjusted_s": round(self.adjusted_relations, 4),  # Legacy
             "type_factor": self.type_factor,
             "constant_adj": round(self.constant_adj, 4),
             "decision": {
-                "M": self.decision.M,
-                "T": self.decision.T,
+                "motions": self.decision.motions,
+                "threats": self.decision.threats,
+                "M": self.decision.motions,  # Legacy
+                "T": self.decision.threats,  # Legacy
                 "t": self.decision.t,
                 "label": self.decision.label
             }
@@ -183,9 +217,9 @@ class DemonPrediction:
 
 class LaplaceDemon:
     """
-    라플라스 악마: 모든 초기 조건을 기반으로 결정론적 미래 예측
+    라플라스 악마: 모든 초기 조건을 기반으로 결정론적 미래 예측 (v2.3)
     
-    V = (M - T) × (1 + s)^t × type_factor × constant_adj
+    V = (Motions - Threats) × (1 + InteractionExponent × Relations)^t × Base × type_factor
     
     불확정성: ±uncertainty (기본 15%)로 양자역학 존중
     """
@@ -196,41 +230,44 @@ class LaplaceDemon:
         constants: Constants = None,
         exponential: ExponentialGrowth = None,
         network: Network1_12_144 = None,
-        uncertainty: float = 0.15
+        uncertainty: float = 0.15,
+        base: float = 1.0  # v2.3: Base 상수
     ):
         self.user_type = user_type
         self.constants = constants or Constants()
         self.exponential = exponential or ExponentialGrowth()
         self.network = network or Network1_12_144()
         self.uncertainty = uncertainty
+        self.base = base
         
         # 캐시
         self._type_factor = TYPE_MULTIPLIERS.get(user_type, 1.0)
         self._constant_adj = self.constants.calculate_adjustment()
-        self._network_synergy = self.network.calculate_synergy()
+        self._network_relations = self.network.calculate_relations()
     
     def summon(self, decisions: List[Decision]) -> List[DemonPrediction]:
         """
-        라플라스 악마 소환: 결정 리스트에 대한 미래 V 예측
+        라플라스 악마 소환: 결정 리스트에 대한 미래 V 예측 (v2.3)
         
         "우주의 모든 초기 조건을 알고 있으므로, 미래를 예측합니다."
         """
         predictions = []
         
         for decision in decisions:
-            # Synergy 계산 (네트워크 + 지수 성장)
-            base_s = self._network_synergy
-            adjusted_s = self.exponential.apply_to_synergy(base_s)
-            adjusted_s = min(1.0, adjusted_s)  # 상한 1.0
+            # Relations 계산 (네트워크 + 지수 성장)
+            base_relations = self._network_relations
+            adjusted_relations = self.exponential.apply_to_relations(base_relations)
+            adjusted_relations = min(1.0, adjusted_relations)  # 상한 1.0
             
-            # 순가치
-            base_value = decision.M - decision.T
+            # 순가치: Motions - Threats
+            base_value = decision.motions - decision.threats
             
-            # 복리 성장
-            compound = (1 + adjusted_s) ** decision.t
+            # 복리 성장 (v2.3): (1 + InteractionExponent × Relations)^t
+            interaction_exp = self.exponential.interaction_exponent
+            compound = (1 + interaction_exp * adjusted_relations) ** decision.t
             
-            # 최종 V
-            V = base_value * compound * self._type_factor * self._constant_adj
+            # 최종 V: base_value × compound × Base × type_factor × constant_adj
+            V = base_value * compound * self.base * self._type_factor * self._constant_adj
             
             # 불확정성 구간
             V_lower = V * (1 - self.uncertainty)
@@ -240,7 +277,7 @@ class LaplaceDemon:
                 V=V,
                 V_lower=V_lower,
                 V_upper=V_upper,
-                adjusted_s=adjusted_s,
+                adjusted_relations=adjusted_relations,
                 type_factor=self._type_factor,
                 constant_adj=self._constant_adj,
                 decision=decision
@@ -322,34 +359,45 @@ class LaplaceDemon:
         
         return trajectory
     
+    def what_if_relations(
+        self,
+        decision: Decision,
+        relations_changes: List[float] = [-0.1, -0.05, 0, 0.05, 0.1, 0.2]
+    ) -> List[Dict[str, float]]:
+        """
+        Relations 변화에 따른 What-If 분석 (v2.3)
+        """
+        results = []
+        base_relations = self._network_relations
+        
+        for delta_r in relations_changes:
+            # 임시 Relations 조정
+            temp_r = max(0, min(1, base_relations + delta_r))
+            adjusted_r = self.exponential.apply_to_relations(temp_r)
+            
+            base_value = decision.motions - decision.threats
+            interaction_exp = self.exponential.interaction_exponent
+            compound = (1 + interaction_exp * adjusted_r) ** decision.t
+            V = base_value * compound * self.base * self._type_factor * self._constant_adj
+            
+            results.append({
+                "delta_relations": delta_r,
+                "delta_s": delta_r,  # Legacy alias
+                "relations": round(adjusted_r, 4),
+                "synergy": round(adjusted_r, 4),  # Legacy alias
+                "V": round(V, 2),
+                "label": f"r{'+' if delta_r >= 0 else ''}{delta_r}"
+            })
+        
+        return results
+    
     def what_if_synergy(
         self,
         decision: Decision,
         s_changes: List[float] = [-0.1, -0.05, 0, 0.05, 0.1, 0.2]
     ) -> List[Dict[str, float]]:
-        """
-        Synergy 변화에 따른 What-If 분석
-        """
-        results = []
-        base_s = self._network_synergy
-        
-        for delta_s in s_changes:
-            # 임시 Synergy 조정
-            temp_s = max(0, min(1, base_s + delta_s))
-            adjusted_s = self.exponential.apply_to_synergy(temp_s)
-            
-            base_value = decision.M - decision.T
-            compound = (1 + adjusted_s) ** decision.t
-            V = base_value * compound * self._type_factor * self._constant_adj
-            
-            results.append({
-                "delta_s": delta_s,
-                "synergy": round(adjusted_s, 4),
-                "V": round(V, 2),
-                "label": f"s{'+' if delta_s >= 0 else ''}{delta_s}"
-            })
-        
-        return results
+        """[Legacy] Synergy What-If → what_if_relations"""
+        return self.what_if_relations(decision, s_changes)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -395,11 +443,11 @@ def summon_demon(
         uncertainty=uncertainty
     )
     
-    # 결정 변환
+    # 결정 변환 (v2.3 + Legacy 지원)
     decision_list = [
         Decision(
-            M=d.get("M", 0),
-            T=d.get("T", 0),
+            motions=d.get("motions", d.get("M", 0)),
+            threats=d.get("threats", d.get("T", 0)),
             t=d.get("t", 12),
             label=d.get("label", f"Decision {i+1}")
         )
@@ -407,7 +455,7 @@ def summon_demon(
     ]
     
     if not decision_list:
-        decision_list = [Decision(M=100, T=40, t=12, label="기본 결정")]
+        decision_list = [Decision(motions=100, threats=40, t=12, label="기본 결정")]
     
     # 예측
     predictions = demon.summon(decision_list)
@@ -432,13 +480,13 @@ def summon_demon(
 
 if __name__ == "__main__":
     print("═" * 70)
-    print("  😈 AUTUS Laplace's Demon Test")
+    print("  😈 AUTUS Laplace's Demon v2.3 Test")
     print("═" * 70)
     print(f"  NumPy: {'✅' if NUMPY_AVAILABLE else '❌'}")
     print(f"  NetworkX: {'✅' if NETWORKX_AVAILABLE else '❌'}")
     print("─" * 70)
     
-    # 악마 소환
+    # 악마 소환 (v2.3 용어)
     result = summon_demon(
         user_type="ambitious",
         age=30,
@@ -447,8 +495,8 @@ if __name__ == "__main__":
         core_12=5,
         extended_144=20,
         decisions=[
-            {"M": 100, "T": 40, "t": 12, "label": "결정1: 안정적 투자"},
-            {"M": 150, "T": 60, "t": 6, "label": "결정2: 공격적 투자"}
+            {"motions": 100, "threats": 40, "t": 12, "label": "결정1: 안정적 투자"},
+            {"motions": 150, "threats": 60, "t": 6, "label": "결정2: 공격적 투자"}
         ]
     )
     
@@ -457,7 +505,7 @@ if __name__ == "__main__":
         print(f"\n  [{pred['decision']['label']}]")
         print(f"    V = {pred['V']} ({pred['uncertainty']})")
         print(f"    범위: {pred['V_range'][0]} ~ {pred['V_range'][1]}")
-        print(f"    Synergy: {pred['adjusted_s']}")
+        print(f"    Relations: {pred['adjusted_relations']}")
     
     if result["recommendation"]:
         print(f"\n🎯 추천: {result['recommendation']['recommended']}")

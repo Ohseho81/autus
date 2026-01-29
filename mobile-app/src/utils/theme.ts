@@ -1,59 +1,86 @@
 /**
- * AUTUS Design System - Theme
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * 🎨 KRATON DESIGN SYSTEM - Mobile Theme
+ * AUTUS 2.0 - Glassmorphism + Neon
+ * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+export interface ColorState {
+  primary: string;
+  glow: string;
+  bg: string;
+}
+
+// KRATON Color Palette
 export const colors = {
-  // Primary Blue
+  // Temperature States (온도 상태)
+  safe: {
+    primary: '#00D4FF',
+    glow: 'rgba(0, 212, 255, 0.5)',
+    bg: 'rgba(0, 212, 255, 0.08)',
+  } as ColorState,
+
+  caution: {
+    primary: '#FF6B35',
+    glow: 'rgba(255, 107, 53, 0.5)',
+    bg: 'rgba(255, 107, 53, 0.08)',
+  } as ColorState,
+
+  danger: {
+    primary: '#FF2E63',
+    glow: 'rgba(255, 46, 99, 0.5)',
+    bg: 'rgba(255, 46, 99, 0.08)',
+  } as ColorState,
+
+  success: {
+    primary: '#00F5A0',
+    glow: 'rgba(0, 245, 160, 0.5)',
+    bg: 'rgba(0, 245, 160, 0.08)',
+  } as ColorState,
+
+  // UI Colors
+  background: '#0A0E17',
+  surface: '#111827',
+  surfaceLight: '#1F2937',
+  card: 'rgba(17, 24, 39, 0.8)',
+
+  // Border
+  border: 'rgba(255, 255, 255, 0.08)',
+  borderLight: 'rgba(255, 255, 255, 0.15)',
+
+  // Text
+  text: '#FFFFFF',
+  textMuted: 'rgba(255, 255, 255, 0.6)',
+  textDim: 'rgba(255, 255, 255, 0.4)',
+
+  // Legacy compatibility
   primary: {
     100: '#E3F2FD',
     300: '#90CAF9',
-    500: '#3B5998',
-    700: '#2B4978',
-    900: '#1A2F58',
+    500: '#00D4FF',
+    700: '#0099CC',
+    900: '#006688',
   },
-  
-  // Semantic Colors
-  danger: {
-    100: '#FFEBEE',
-    500: '#E53935',
-    700: '#C62828',
-  },
-  warning: {
-    100: '#FFF3E0',
-    500: '#FB8C00',
-    700: '#EF6C00',
-  },
-  success: {
-    100: '#E8F5E9',
-    500: '#43A047',
-    700: '#2E7D32',
-  },
-  info: {
-    100: '#E3F2FD',
-    500: '#2196F3',
-    700: '#1976D2',
-  },
-  
-  // Grayscale
+
   gray: {
-    50: '#FAFAFA',
-    100: '#F5F5F5',
-    200: '#EEEEEE',
-    300: '#E0E0E0',
-    400: '#BDBDBD',
-    500: '#9E9E9E',
-    600: '#757575',
-    700: '#616161',
-    800: '#424242',
-    900: '#212121',
+    50: '#0A0E17',
+    100: '#111827',
+    200: '#1F2937',
+    300: '#374151',
+    400: '#4B5563',
+    500: 'rgba(255, 255, 255, 0.4)',
+    600: 'rgba(255, 255, 255, 0.6)',
+    700: 'rgba(255, 255, 255, 0.8)',
+    800: 'rgba(255, 255, 255, 0.9)',
+    900: '#FFFFFF',
   },
-  
-  // Base
+
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
 };
 
+// Spacing System
 export const spacing = {
   0: 0,
   1: 4,
@@ -68,21 +95,25 @@ export const spacing = {
   16: 64,
 };
 
+// Border Radius
 export const borderRadius = {
   none: 0,
   sm: 4,
   md: 8,
   lg: 12,
   xl: 16,
+  '2xl': 20,
+  '3xl': 24,
   full: 9999,
 };
 
+// Typography
 export const typography = {
   fontFamily: {
-    regular: 'Pretendard-Regular',
-    medium: 'Pretendard-Medium',
-    semiBold: 'Pretendard-SemiBold',
-    bold: 'Pretendard-Bold',
+    regular: 'System',
+    medium: 'System',
+    semiBold: 'System',
+    bold: 'System',
   },
   fontSize: {
     xs: 10,
@@ -94,6 +125,7 @@ export const typography = {
     '2xl': 24,
     '3xl': 28,
     '4xl': 32,
+    '5xl': 40,
   },
   lineHeight: {
     tight: 1.2,
@@ -102,55 +134,70 @@ export const typography = {
   },
 };
 
+// Shadows (for iOS)
 export const shadows = {
   sm: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
   },
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   lg: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 8,
   },
+  glow: (color: string) => ({
+    shadowColor: color,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 6,
+  }),
+};
+
+// Glassmorphism Style
+export const glassStyle = {
+  backgroundColor: 'rgba(17, 24, 39, 0.6)',
+  borderWidth: 1,
+  borderColor: 'rgba(255, 255, 255, 0.1)',
+  borderRadius: borderRadius['2xl'],
 };
 
 // Common Styles
 export const commonStyles = {
   container: {
     flex: 1,
-    backgroundColor: colors.gray[50],
+    backgroundColor: colors.background,
   },
   card: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
+    ...glassStyle,
     padding: spacing[4],
-    ...shadows.sm,
+    ...shadows.md,
   },
   header: {
     height: 56,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     paddingHorizontal: spacing[4],
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
+    borderBottomColor: colors.border,
   },
   button: {
     primary: {
-      backgroundColor: colors.primary[500],
-      borderRadius: borderRadius.md,
+      backgroundColor: colors.safe.primary,
+      borderRadius: borderRadius.lg,
       height: 48,
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
@@ -158,9 +205,9 @@ export const commonStyles = {
     },
     secondary: {
       backgroundColor: colors.transparent,
-      borderRadius: borderRadius.md,
+      borderRadius: borderRadius.lg,
       borderWidth: 1,
-      borderColor: colors.primary[500],
+      borderColor: colors.safe.primary,
       height: 48,
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
@@ -170,23 +217,33 @@ export const commonStyles = {
   input: {
     height: 48,
     borderWidth: 1,
-    borderColor: colors.gray[300],
-    borderRadius: borderRadius.md,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
     paddingHorizontal: spacing[4],
     fontSize: typography.fontSize.base,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
+    color: colors.text,
   },
+};
+
+// Temperature-based color selection
+export const getTemperatureColor = (temp: number): ColorState => {
+  if (temp < 60) return colors.safe;
+  if (temp < 80) return colors.caution;
+  return colors.danger;
 };
 
 // Risk Level Colors
 export const riskColors = {
-  high: colors.danger[500],
-  medium: colors.warning[500],
-  low: colors.success[500],
+  high: colors.danger.primary,
+  medium: colors.caution.primary,
+  low: colors.success.primary,
 };
 
 export const riskBackgrounds = {
-  high: colors.danger[100],
-  medium: colors.warning[100],
-  low: colors.success[100],
+  high: colors.danger.bg,
+  medium: colors.caution.bg,
+  low: colors.success.bg,
 };
+
+export default colors;

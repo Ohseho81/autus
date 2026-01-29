@@ -1,6 +1,11 @@
 // ============================================
-// AUTUS Physics Engine v2.2 (TypeScript)
-// V = (M - T) × (1 + s)^t
+// AUTUS Physics Engine v2.3 (TypeScript)
+// V = (Motions - Threats) × (1 + Relations)^t × Base × InteractionExponent
+// 
+// 용어 통일 (v2.3):
+// - Mint → Motions (M: 생성 가치)
+// - Tax → Threats (T: 비용/위험)
+// - Synergy → Relations (s: 관계 계수)
 // ============================================
 
 // Constants
@@ -12,53 +17,79 @@ export const PHYSICS = {
   V_GROWTH_THRESHOLD: 0.15,
   STANDARD_EFFECTIVENESS: 0.80,
   STANDARD_USAGE_COUNT: 50,
+  DEFAULT_BASE: 1.0,
+  DEFAULT_INTERACTION_EXPONENT: 0.10,
 };
 
 // Impulse Profiles
 export type ImpulseType = 'RECOVER' | 'DEFRICTION' | 'SHOCK_DAMP';
 
 export const IMPULSE_PROFILES: Record<ImpulseType, {
-  dMint: number;
-  dTax: number;
-  dSynergy: number;
+  dMotions: number;
+  dThreats: number;
+  dRelations: number;
   dEntropy: number;
   tau: number;
   description: string;
+  // Legacy aliases for backward compatibility
+  dMint?: number;
+  dTax?: number;
+  dSynergy?: number;
 }> = {
   RECOVER: {
+    dMotions: 0.15,
+    dThreats: -0.05,
+    dRelations: 0.02,
+    dEntropy: -0.1,
+    tau: PHYSICS.TAU_FAST,
+    description: '긴급 회복: 빠른 가치 상승 + 엔트로피 감소',
+    // Legacy
     dMint: 0.15,
     dTax: -0.05,
     dSynergy: 0.02,
-    dEntropy: -0.1,
-    tau: PHYSICS.TAU_FAST,
-    description: '긴급 회복: 빠른 가치 상승 + 엔트로피 감소'
   },
   DEFRICTION: {
+    dMotions: 0.05,
+    dThreats: -0.15,
+    dRelations: 0.05,
+    dEntropy: -0.05,
+    tau: PHYSICS.TAU_SLOW,
+    description: '마찰 제거: 비용 대폭 감소 + 관계 상승',
+    // Legacy
     dMint: 0.05,
     dTax: -0.15,
     dSynergy: 0.05,
-    dEntropy: -0.05,
-    tau: PHYSICS.TAU_SLOW,
-    description: '마찰 제거: 비용 대폭 감소 + 시너지 상승'
   },
   SHOCK_DAMP: {
+    dMotions: 0,
+    dThreats: 0.05,
+    dRelations: -0.02,
+    dEntropy: -0.2,
+    tau: PHYSICS.TAU_FAST,
+    description: '충격 흡수: 비용 투입으로 엔트로피 급감',
+    // Legacy
     dMint: 0,
     dTax: 0.05,
     dSynergy: -0.02,
-    dEntropy: -0.2,
-    tau: PHYSICS.TAU_FAST,
-    description: '충격 흡수: 비용 투입으로 엔트로피 급감'
   }
 };
 
 // Types
 export interface OrganismState {
-  mint: number;      // M (Output Value)
-  tax: number;       // T (Input Cost)
-  synergy: number;   // s (Connection Coefficient)
-  entropy: number;   // Entropy (Disorder)
-  velocity: number;  // V Growth Rate
-  friction: number;  // Friction (Resistance)
+  // 새로운 용어 (v2.3)
+  motions: number;     // M (Output Value, 생성 가치)
+  threats: number;     // T (Input Cost, 비용/위험)
+  relations: number;   // s (Connection Coefficient, 관계 계수)
+  entropy: number;     // Entropy (Disorder)
+  velocity: number;    // V Growth Rate
+  friction: number;    // Friction (Resistance)
+  // V2.3 추가 필드
+  base?: number;       // Base value (패시브 상수)
+  interactionExponent?: number; // 상호지수
+  // Legacy aliases (하위 호환성)
+  mint?: number;
+  tax?: number;
+  synergy?: number;
 }
 
 export interface VResult {
@@ -69,33 +100,63 @@ export interface VResult {
 }
 
 // ============================================
-// Core Functions
+// Core Functions (v2.3 - 용어 통일)
 // ============================================
 
 /**
- * V = (M - T) × (1 + s)^t 계산
+ * V = (Motions - Threats) × (1 + InteractionExponent × Relations)^t × Base
+ * 
+ * @param motions - M: 생성 가치 (이전: mint)
+ * @param threats - T: 비용/위험 (이전: tax)
+ * @param relations - s: 관계 계수 (이전: synergy)
+ * @param time - t: 시간 (기본값: 1)
+ * @param base - Base 상수 (기본값: 1.0)
+ * @param interactionExponent - 상호지수 (기본값: 0.10)
  */
 export function calculateV(
+  motions: number,
+  threats: number,
+  relations: number,
+  time: number = 1,
+  base: number = PHYSICS.DEFAULT_BASE,
+  interactionExponent: number = PHYSICS.DEFAULT_INTERACTION_EXPONENT
+): number {
+  const netValue = motions - threats;
+  const multiplier = Math.pow(1 + (interactionExponent * relations), time);
+  return netValue * multiplier * base;
+}
+
+/**
+ * Legacy calculateV for backward compatibility
+ * @deprecated Use calculateV with new parameter names
+ */
+export function calculateVLegacy(
   mint: number,
   tax: number,
   synergy: number,
   time: number = 1
 ): number {
-  const base = mint - tax;
-  const multiplier = Math.pow(1 + synergy, time);
-  return base * multiplier;
+  return calculateV(mint, tax, synergy, time, 1.0, 1.0);
 }
 
 /**
  * V 성장률 계산
  */
 export function calculateVGrowth(
-  before: { mint: number; tax: number; synergy: number },
-  after: { mint: number; tax: number; synergy: number },
+  before: { motions: number; threats: number; relations: number; base?: number; interactionExponent?: number },
+  after: { motions: number; threats: number; relations: number; base?: number; interactionExponent?: number },
   time: number = 1
 ): number {
-  const vBefore = calculateV(before.mint, before.tax, before.synergy, time);
-  const vAfter = calculateV(after.mint, after.tax, after.synergy, time);
+  const vBefore = calculateV(
+    before.motions, before.threats, before.relations, time,
+    before.base ?? PHYSICS.DEFAULT_BASE,
+    before.interactionExponent ?? PHYSICS.DEFAULT_INTERACTION_EXPONENT
+  );
+  const vAfter = calculateV(
+    after.motions, after.threats, after.relations, time,
+    after.base ?? PHYSICS.DEFAULT_BASE,
+    after.interactionExponent ?? PHYSICS.DEFAULT_INTERACTION_EXPONENT
+  );
   
   if (vBefore === 0) return vAfter > 0 ? 1 : 0;
   return (vAfter - vBefore) / Math.abs(vBefore);
@@ -105,7 +166,13 @@ export function calculateVGrowth(
  * 상태 판정
  */
 export function determineStatus(state: OrganismState): VResult['status'] {
-  const v = calculateV(state.mint, state.tax, state.synergy);
+  const motions = state.motions ?? state.mint ?? 0;
+  const threats = state.threats ?? state.tax ?? 0;
+  const relations = state.relations ?? state.synergy ?? 0.5;
+  const base = state.base ?? PHYSICS.DEFAULT_BASE;
+  const interactionExponent = state.interactionExponent ?? PHYSICS.DEFAULT_INTERACTION_EXPONENT;
+  
+  const v = calculateV(motions, threats, relations, 1, base, interactionExponent);
   
   if (state.entropy > PHYSICS.ENTROPY_THRESHOLD || v < 0) {
     return 'urgent';
@@ -113,7 +180,7 @@ export function determineStatus(state: OrganismState): VResult['status'] {
   if (state.entropy > 0.5 || state.velocity < 0) {
     return 'warning';
   }
-  if (state.velocity > 0.1 && state.synergy > 0.3) {
+  if (state.velocity > 0.1 && relations > 0.3) {
     return 'opportunity';
   }
   return 'stable';
@@ -123,7 +190,13 @@ export function determineStatus(state: OrganismState): VResult['status'] {
  * 긴급도 계산 (0~1)
  */
 export function calculateUrgency(state: OrganismState): number {
-  const v = calculateV(state.mint, state.tax, state.synergy);
+  const motions = state.motions ?? state.mint ?? 0;
+  const threats = state.threats ?? state.tax ?? 0;
+  const relations = state.relations ?? state.synergy ?? 0.5;
+  const base = state.base ?? PHYSICS.DEFAULT_BASE;
+  const interactionExponent = state.interactionExponent ?? PHYSICS.DEFAULT_INTERACTION_EXPONENT;
+  
+  const v = calculateV(motions, threats, relations, 1, base, interactionExponent);
   const vComponent = v < 0 ? 1 : Math.max(0, 1 - v / 100000);
   const entropyComponent = state.entropy;
   const velocityComponent = state.velocity < 0 ? Math.abs(state.velocity) : 0;
@@ -140,14 +213,28 @@ export function applyImpulse(
   intensity: number = 1.0
 ): OrganismState {
   const profile = IMPULSE_PROFILES[impulseType];
+  const motions = state.motions ?? state.mint ?? 0;
+  const threats = state.threats ?? state.tax ?? 0;
+  const relations = state.relations ?? state.synergy ?? 0.5;
+  
+  const newMotions = Math.max(0, motions * (1 + profile.dMotions * intensity));
+  const newThreats = Math.max(0, threats * (1 + profile.dThreats * intensity));
+  const newRelations = Math.max(0, Math.min(1, relations + profile.dRelations * intensity));
   
   return {
-    mint: Math.max(0, state.mint * (1 + profile.dMint * intensity)),
-    tax: Math.max(0, state.tax * (1 + profile.dTax * intensity)),
-    synergy: Math.max(0, Math.min(1, state.synergy + profile.dSynergy * intensity)),
+    // 새로운 용어 (v2.3)
+    motions: newMotions,
+    threats: newThreats,
+    relations: newRelations,
     entropy: Math.max(0, Math.min(1, state.entropy + profile.dEntropy * intensity)),
-    velocity: state.velocity + (profile.dMint - profile.dTax) * intensity * 0.1,
-    friction: Math.max(0, state.friction + profile.dTax * intensity * 0.5)
+    velocity: state.velocity + (profile.dMotions - profile.dThreats) * intensity * 0.1,
+    friction: Math.max(0, state.friction + profile.dThreats * intensity * 0.5),
+    base: state.base ?? PHYSICS.DEFAULT_BASE,
+    interactionExponent: state.interactionExponent ?? PHYSICS.DEFAULT_INTERACTION_EXPONENT,
+    // Legacy aliases
+    mint: newMotions,
+    tax: newThreats,
+    synergy: newRelations,
   };
 }
 
@@ -155,15 +242,21 @@ export function applyImpulse(
  * 최적 Impulse 추천
  */
 export function recommendImpulse(state: OrganismState): ImpulseType {
-  const v = calculateV(state.mint, state.tax, state.synergy);
+  const motions = state.motions ?? state.mint ?? 0;
+  const threats = state.threats ?? state.tax ?? 0;
+  const relations = state.relations ?? state.synergy ?? 0.5;
+  const base = state.base ?? PHYSICS.DEFAULT_BASE;
+  const interactionExponent = state.interactionExponent ?? PHYSICS.DEFAULT_INTERACTION_EXPONENT;
+  
+  const v = calculateV(motions, threats, relations, 1, base, interactionExponent);
   
   // 긴급 상황: 엔트로피 급등 또는 V 음수
   if (state.entropy > PHYSICS.ENTROPY_THRESHOLD || v < 0) {
     return 'SHOCK_DAMP';
   }
   
-  // 비용 과다: T가 M의 80% 이상
-  if (state.tax > state.mint * 0.8) {
+  // 비용 과다: Threats가 Motions의 80% 이상
+  if (threats > motions * 0.8) {
     return 'DEFRICTION';
   }
   
@@ -173,24 +266,29 @@ export function recommendImpulse(state: OrganismState): ImpulseType {
 
 /**
  * 실효성 점수 계산 (합의 엔진용)
+ * 
+ * @param deltaMotions - Motions 증가율 (이전: deltaM)
+ * @param deltaThreats - Threats 감소율 (이전: deltaT)
+ * @param usageNorm - 사용 빈도 정규화 (0~1)
+ * @param deltaRelations - Relations 증가율 (이전: deltaS)
  */
 export function calculateEffectiveness(
-  deltaM: number,     // M 증가율
-  deltaT: number,     // T 감소율
-  usageNorm: number,  // 사용 빈도 정규화 (0~1)
-  deltaS: number      // s 증가율
+  deltaMotions: number,     // Motions 증가율
+  deltaThreats: number,     // Threats 감소율
+  usageNorm: number,        // 사용 빈도 정규화 (0~1)
+  deltaRelations: number    // Relations 증가율
 ): number {
   // 정규화
-  const deltaMNorm = Math.min(2.0, Math.max(0, deltaM));
-  const deltaTNorm = Math.min(0.95, Math.max(0, deltaT));
-  const deltaSNorm = Math.min(1.0, Math.max(0, deltaS));
+  const deltaMotionsNorm = Math.min(2.0, Math.max(0, deltaMotions));
+  const deltaThreatsNorm = Math.min(0.95, Math.max(0, deltaThreats));
+  const deltaRelationsNorm = Math.min(1.0, Math.max(0, deltaRelations));
   
   // 가중 합산
   return (
-    0.40 * deltaMNorm +
-    0.40 * deltaTNorm +
+    0.40 * deltaMotionsNorm +
+    0.40 * deltaThreatsNorm +
     0.10 * usageNorm +
-    0.10 * deltaSNorm
+    0.10 * deltaRelationsNorm
   );
 }
 
@@ -213,7 +311,13 @@ export function checkStandardQualification(
  * 물리 상태 요약
  */
 export function summarizeState(state: OrganismState): VResult {
-  const value = calculateV(state.mint, state.tax, state.synergy);
+  const motions = state.motions ?? state.mint ?? 0;
+  const threats = state.threats ?? state.tax ?? 0;
+  const relations = state.relations ?? state.synergy ?? 0.5;
+  const base = state.base ?? PHYSICS.DEFAULT_BASE;
+  const interactionExponent = state.interactionExponent ?? PHYSICS.DEFAULT_INTERACTION_EXPONENT;
+  
+  const value = calculateV(motions, threats, relations, 1, base, interactionExponent);
   const status = determineStatus(state);
   const urgency = calculateUrgency(state);
   
