@@ -1,120 +1,117 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
-export default function Cockpit() {
-  const [predictValue, setPredictValue] = useState(85);
+const Cockpit = () => {
+  const [selectedYear, setSelectedYear] = useState(2024);
+  const [prediction, setPrediction] = useState('');
+
+  const years = [2024, 2025, 2026, 2027, 2028];
+  const predictions = {
+    2024: "AI 기술의 혁신적 발전",
+    2025: "자율주행차 상용화 확대", 
+    2026: "우주 관광 시대 개막",
+    2027: "신재생 에너지 전환 가속화",
+    2028: "양자 컴퓨터 상용화"
+  };
 
   return (
-    <div className="w-full h-screen bg-gradient-to-b from-gray-900 to-black p-8">
-      <div className="max-w-4xl mx-auto">
-        
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-4xl font-bold text-blue-400">미래 예측 시스템</h1>
-          <p className="text-gray-400 mt-2">AI 기반 예측 인터페이스</p>
-        </motion.div>
+    <div className="w-full min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 p-8">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="max-w-4xl mx-auto"
+      >
+        <h1 className="text-4xl font-bold text-blue-400 mb-8 text-center">
+          Future Vision Console
+        </h1>
 
-        {/* Main Display */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          
-          {/* Left Panel - Prediction Meter */}
-          <motion.div 
-            className="bg-gray-800 rounded-xl p-6"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <div className="relative h-64">
-              <motion.div 
-                className="absolute bottom-0 w-full bg-blue-500 rounded-t-lg"
-                initial={{ height: 0 }}
-                animate={{ height: `${predictValue}%` }}
-                transition={{ duration: 1 }}
-              />
-              <motion.div 
-                className="absolute bottom-0 w-full flex justify-center"
-                initial={{ y: 20 }}
-                animate={{ y: 0 }}
-              >
-                <span className="text-5xl font-bold text-white">
-                  {predictValue}%
-                </span>
-              </motion.div>
-            </div>
-            <div className="mt-4">
-              <input 
-                type="range"
-                min="0"
-                max="100"
-                value={predictValue}
-                onChange={(e) => setPredictValue(parseInt(e.target.value))}
-                className="w-full"
-              />
-            </div>
-          </motion.div>
-
-          {/* Right Panel - Stats */}
-          <motion.div 
-            className="space-y-4"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <div className="bg-gray-800 rounded-xl p-6">
-              <h3 className="text-xl text-blue-400 mb-3">신뢰도 지표</h3>
-              <motion.div 
-                className="h-2 bg-blue-500 rounded"
-                initial={{ width: 0 }}
-                animate={{ width: `${predictValue * 0.8}%` }}
-                transition={{ duration: 0.8 }}
-              />
-            </div>
-
-            <div className="bg-gray-800 rounded-xl p-6">
-              <h3 className="text-xl text-blue-400 mb-3">예측 정확도</h3>
-              <div className="grid grid-cols-3 gap-4">
-                {[1,2,3].map((i) => (
-                  <motion.div
-                    key={i}
-                    className="h-20 bg-gray-700 rounded-lg flex items-center justify-center"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <span className="text-2xl text-white">{predictValue - i * 5}%</span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
+        {/* Time Selection */}
+        <div className="flex justify-center gap-4 mb-12">
+          {years.map(year => (
+            <motion.button
+              key={year}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                setSelectedYear(year);
+                setPrediction(predictions[year as keyof typeof predictions]);
+              }}
+              className={`px-6 py-3 rounded-lg ${
+                selectedYear === year 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-700 text-gray-300'
+              } hover:bg-blue-400 transition-colors`}
+            >
+              {year}
+            </motion.button>
+          ))}
         </div>
 
-        {/* Bottom Panel */}
-        <motion.div 
-          className="mt-8 bg-gray-800 rounded-xl p-6"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
+        {/* Prediction Display */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="bg-gray-800 p-8 rounded-2xl shadow-2xl"
         >
-          <div className="flex justify-between items-center">
-            <h3 className="text-xl text-blue-400">실시간 데이터</h3>
-            <motion.div 
-              className="w-3 h-3 bg-green-500 rounded-full"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-            />
+          <div className="flex items-center mb-6">
+            <div className="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"/>
+            <span className="text-green-500 text-sm">ANALYZING FUTURE DATA</span>
           </div>
-          <div className="mt-4 grid grid-cols-4 gap-4">
-            {[1,2,3,4].map((i) => (
-              <motion.div
-                key={i}
-                className="h-16 bg-gray-700 rounded-lg"
-                whileHover={{ scale: 1.05 }}
-              />
-            ))}
+
+          <div className="space-y-6">
+            <div className="flex justify-between text-gray-400">
+              <span>Timeline:</span>
+              <span>{selectedYear}</span>
+            </div>
+
+            <motion.div
+              key={prediction}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-2xl font-semibold text-blue-300"
+            >
+              {prediction}
+            </motion.div>
+
+            <div className="grid grid-cols-3 gap-4">
+              {[1,2,3].map(i => (
+                <motion.div
+                  key={i}
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  className="h-2 bg-blue-500/30 rounded-full"
+                  style={{
+                    animationDelay: `${i * 0.2}s`
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </motion.div>
 
-      </div>
+        {/* Additional Stats */}
+        <div className="grid grid-cols-3 gap-6 mt-8">
+          {[
+            { label: 'Confidence', value: '89%' },
+            { label: 'Data Points', value: '1.2M' },
+            { label: 'AI Models', value: '5' }
+          ].map((stat, i) => (
+            <motion.div
+              key={i}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 * i }}
+              className="bg-gray-800 p-4 rounded-xl"
+            >
+              <div className="text-gray-400 text-sm">{stat.label}</div>
+              <div className="text-blue-400 text-xl font-bold">{stat.value}</div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
-}
+};
+
+export default Cockpit;
