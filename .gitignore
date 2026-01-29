@@ -49,7 +49,7 @@ playwright-report/
 # Separate Projects / Submodules
 clawdbot/
 kraton-unified/
-kraton-v2/
+# kraton-v2/  # 배포에 필요하여 제거
 
 # AI Generated (local only)
 ai-generated/

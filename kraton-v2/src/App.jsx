@@ -61,6 +61,7 @@ const OwnerGoals = lazy(() => import('./components/owner/OwnerGoals'));
 const GoalCascade = lazy(() => import('./components/owner/GoalCascade'));
 const GoalEngine = lazy(() => import('./components/owner/GoalEngine'));
 const AutusDashboard = lazy(() => import('./components/autus/AutusDashboard'));
+const AllThatBasketApp = lazy(() => import('./pages/allthatbasket/AllThatBasketApp'));
 
 // Components
 import { TruthModeProvider } from './components/ui/TruthModeToggle';
@@ -232,6 +233,7 @@ const NAV_ITEMS = {
     { id: 'rewards', label: 'V-포인트', icon: '🎁', page: 'RewardCards', desc: '포인트/리워드' },
     { id: 'feedback', label: '피드백', icon: '📝', page: 'FeedbackPage', desc: '의견 제출' },
     { id: 'profile', label: '프로필', icon: '👤', page: 'ProfilePage', desc: '내 정보' },
+    { id: 'allthatbasket', label: '올댓바스켓', icon: '🏀', page: 'AllThatBasketApp', desc: '농구 아카데미' },
   ],
   
   // ═══════════════════════════════════════════════════════════════
@@ -981,6 +983,7 @@ const PageRenderer = ({ page, truthMode }) => {
     GoalCascade,
     GoalEngine,
     AutusDashboard,
+    AllThatBasketApp,
   };
 
   const Component = pageComponents[page];
@@ -1001,6 +1004,15 @@ const PageRenderer = ({ page, truthMode }) => {
 };
 
 // ============================================
+// HASH ROUTE MAP - URL 해시 → 페이지 매핑
+// ============================================
+const HASH_ROUTES = {
+  '#allthatbasket': { page: 'AllThatBasketApp', role: 'consumer' },
+  '#monopoly': { page: 'KratonMonopoly', role: 'c_level' },
+  '#dashboard': { page: 'LiveDashboard', role: 'consumer' },
+};
+
+// ============================================
 // MAIN APP (useAuth 통합)
 // ============================================
 export default function KratonApp() {
@@ -1010,6 +1022,31 @@ export default function KratonApp() {
 
   // Auth Hook 사용
   const { role: currentRole, isAuthenticated, selectRole, signOut, loading: authLoading } = useAuth();
+
+  // URL 해시 기반 라우팅 처리
+  useEffect(() => {
+    const handleHashRoute = () => {
+      const hash = window.location.hash.toLowerCase();
+      const route = HASH_ROUTES[hash];
+
+      if (route) {
+        // 해시 라우트가 있으면 해당 역할과 페이지로 설정
+        if (!currentRole || currentRole.id !== route.role) {
+          selectRole(route.role);
+        }
+        setCurrentPage(route.page);
+      }
+    };
+
+    // 초기 로드 시 해시 확인
+    if (!authLoading) {
+      handleHashRoute();
+    }
+
+    // 해시 변경 감지
+    window.addEventListener('hashchange', handleHashRoute);
+    return () => window.removeEventListener('hashchange', handleHashRoute);
+  }, [authLoading, selectRole, currentRole]);
 
   // 역할 변경 시 기본 페이지 설정
   useEffect(() => {
