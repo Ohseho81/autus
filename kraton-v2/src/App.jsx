@@ -1014,6 +1014,18 @@ const HASH_ROUTES = {
 };
 
 // ============================================
+// Standalone 모드 체크 (렌더링 전 즉시 확인)
+// ============================================
+function getStandaloneConfig() {
+  const hash = window.location.hash.toLowerCase();
+  const route = HASH_ROUTES[hash];
+  if (route && route.standalone) {
+    return { isStandalone: true, page: route.page, role: route.role };
+  }
+  return { isStandalone: false, page: null, role: null };
+}
+
+// ============================================
 // MAIN APP (useAuth 통합)
 // ============================================
 export default function KratonApp() {
@@ -1021,12 +1033,14 @@ export default function KratonApp() {
   const [currentPage, setCurrentPage] = useState(null);
   const [truthMode, setTruthMode] = useState(false);
   const [hashRouteApplied, setHashRouteApplied] = useState(false);
-  const [standaloneMode, setStandaloneMode] = useState(false);
+
+  // 🚀 Standalone 모드: 렌더링 직전에 즉시 확인 (state 의존 안 함)
+  const standaloneConfig = getStandaloneConfig();
 
   // Auth Hook 사용
   const { role: currentRole, isAuthenticated, selectRole, signOut, loading: authLoading } = useAuth();
 
-  // URL 해시 기반 라우팅 처리 (최우선)
+  // URL 해시 기반 라우팅 처리 (일반 해시 라우트)
   useEffect(() => {
     const handleHashRoute = () => {
       const hash = window.location.hash.toLowerCase();
@@ -1035,28 +1049,31 @@ export default function KratonApp() {
       if (route) {
         // 해시 라우트가 있으면 해당 역할과 페이지로 설정
         console.log('[KRATON] Hash route detected:', hash, '→', route.page, route.standalone ? '(standalone)' : '');
-        selectRole(route.role);
+        if (!route.standalone) {
+          selectRole(route.role);
+        }
         setCurrentPage(route.page);
         setHashRouteApplied(true);
-        setStandaloneMode(route.standalone || false);
         return true;
       }
-      setStandaloneMode(false);
       return false;
     };
 
-    // 초기 로드 시 해시 확인
-    if (!authLoading) {
+    // 초기 로드 시 해시 확인 (standalone이 아닌 경우만)
+    if (!authLoading && !standaloneConfig.isStandalone) {
       handleHashRoute();
     }
 
     // 해시 변경 감지
     window.addEventListener('hashchange', handleHashRoute);
     return () => window.removeEventListener('hashchange', handleHashRoute);
-  }, [authLoading, selectRole]);
+  }, [authLoading, selectRole, standaloneConfig.isStandalone]);
 
   // 역할 변경 시 기본 페이지 설정 (해시 라우트가 없을 때만)
   useEffect(() => {
+    // Standalone 모드면 건너뛰기
+    if (standaloneConfig.isStandalone) return;
+
     // 해시 라우트가 적용되었으면 기본 페이지 설정 건너뛰기
     const hash = window.location.hash.toLowerCase();
     const hasHashRoute = HASH_ROUTES[hash];
@@ -1066,9 +1083,21 @@ export default function KratonApp() {
       console.log('[KRATON] Setting default page:', defaultPage);
       setCurrentPage(defaultPage);
     }
-  }, [currentRole, currentPage]);
+  }, [currentRole, currentPage, standaloneConfig.isStandalone]);
 
-  // Loading screen (최초 로딩)
+  // ⚡ STANDALONE 모드: 최우선 처리 (로딩 스크린도 건너뜀)
+  if (standaloneConfig.isStandalone) {
+    console.log('[KRATON] 🚀 Standalone mode active:', standaloneConfig.page);
+    return (
+      <div className="min-h-screen bg-gray-950">
+        <Suspense fallback={<PageLoader />}>
+          <PageRenderer page={standaloneConfig.page} truthMode={truthMode} />
+        </Suspense>
+      </div>
+    );
+  }
+
+  // Loading screen (최초 로딩) - standalone이 아닐 때만
   if (isLoading) {
     return <LoadingScreen onComplete={() => setIsLoading(false)} />;
   }
@@ -1085,23 +1114,14 @@ export default function KratonApp() {
     );
   }
 
-  // 역할이 없으면 로그인 화면 (최초 1회만) - standalone 모드가 아닐 때만
-  if (!currentRole && !standaloneMode) {
+  // 역할이 없으면 로그인 화면 (최초 1회만)
+  if (!currentRole) {
     return (
       <LoginScreen
         onLogin={(roleId) => {
           selectRole(roleId);
         }}
       />
-    );
-  }
-
-  // Standalone 모드: KRATON 헤더 없이 페이지만 표시
-  if (standaloneMode && currentPage) {
-    return (
-      <Suspense fallback={<PageLoader />}>
-        <PageRenderer page={currentPage} truthMode={truthMode} />
-      </Suspense>
     );
   }
 
