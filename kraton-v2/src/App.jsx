@@ -1019,11 +1019,12 @@ export default function KratonApp() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(null);
   const [truthMode, setTruthMode] = useState(false);
+  const [hashRouteApplied, setHashRouteApplied] = useState(false);
 
   // Auth Hook 사용
   const { role: currentRole, isAuthenticated, selectRole, signOut, loading: authLoading } = useAuth();
 
-  // URL 해시 기반 라우팅 처리
+  // URL 해시 기반 라우팅 처리 (최우선)
   useEffect(() => {
     const handleHashRoute = () => {
       const hash = window.location.hash.toLowerCase();
@@ -1031,11 +1032,13 @@ export default function KratonApp() {
 
       if (route) {
         // 해시 라우트가 있으면 해당 역할과 페이지로 설정
-        if (!currentRole || currentRole.id !== route.role) {
-          selectRole(route.role);
-        }
+        console.log('[KRATON] Hash route detected:', hash, '→', route.page);
+        selectRole(route.role);
         setCurrentPage(route.page);
+        setHashRouteApplied(true);
+        return true;
       }
+      return false;
     };
 
     // 초기 로드 시 해시 확인
@@ -1046,12 +1049,17 @@ export default function KratonApp() {
     // 해시 변경 감지
     window.addEventListener('hashchange', handleHashRoute);
     return () => window.removeEventListener('hashchange', handleHashRoute);
-  }, [authLoading, selectRole, currentRole]);
+  }, [authLoading, selectRole]);
 
-  // 역할 변경 시 기본 페이지 설정
+  // 역할 변경 시 기본 페이지 설정 (해시 라우트가 없을 때만)
   useEffect(() => {
-    if (currentRole && !currentPage) {
+    // 해시 라우트가 적용되었으면 기본 페이지 설정 건너뛰기
+    const hash = window.location.hash.toLowerCase();
+    const hasHashRoute = HASH_ROUTES[hash];
+
+    if (currentRole && !currentPage && !hasHashRoute) {
       const defaultPage = NAV_ITEMS[currentRole.id]?.[0]?.page || 'LiveDashboard';
+      console.log('[KRATON] Setting default page:', defaultPage);
       setCurrentPage(defaultPage);
     }
   }, [currentRole, currentPage]);
