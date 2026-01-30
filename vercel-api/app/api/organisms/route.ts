@@ -36,9 +36,15 @@ export async function GET(request: NextRequest) {
       }
 
       const state = {
+        // New terms
+        motions: organism.mint,
+        threats: organism.tax,
+        relations: organism.synergy,
+        // Legacy terms (for backward compatibility)
         mint: organism.mint,
         tax: organism.tax,
         synergy: organism.synergy,
+        // Common
         entropy: organism.entropy,
         velocity: organism.velocity,
         friction: organism.friction
@@ -104,7 +110,15 @@ export async function POST(request: NextRequest) {
           organisms: DEMO_ORGANISMS.map(org => ({
             ...org,
             computed_v: calculateV(org.mint, org.tax, org.synergy),
-            summary: summarizeState({ ...org, entropy: 0.2, velocity: 0.05, friction: 0.1 })
+            summary: summarizeState({ 
+              ...org, 
+              motions: org.mint, 
+              threats: org.tax, 
+              relations: org.synergy, 
+              entropy: 0.2, 
+              velocity: 0.05, 
+              friction: 0.1 
+            })
           })),
           total_count: DEMO_ORGANISMS.length,
           by_status: {

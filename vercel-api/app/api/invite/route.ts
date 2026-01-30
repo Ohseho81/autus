@@ -248,11 +248,11 @@ export async function POST(request: NextRequest) {
         data: {
           inviterRole: inviter.role,
           targetRole: targetRole,
-          allowedRoles: {
+          allowedRoles: ({
             'c_level': ['fsd', 'optimus', 'consumer'],
             'fsd': ['optimus', 'consumer'],
             'optimus': ['consumer']
-          }[inviter.role] || []
+          } as Record<string, string[]>)[inviter.role as string] || []
         }
       }, { status: 403 });
     }
@@ -399,20 +399,22 @@ export async function PUT(request: NextRequest) {
       .eq('id', invite.id);
 
     // 6. 초대자의 카운트 업데이트
-    await supabase.rpc('increment_user_counts', {
+    const { error: rpcError } = await supabase.rpc('increment_user_counts', {
       p_user_id: invite.issued_by,
       p_direct_delta: 1,
       p_influence_delta: 1
-    }).catch(() => {
-      // 함수 없으면 직접 업데이트
-      supabase
+    });
+    
+    // 함수 없으면 직접 업데이트
+    if (rpcError) {
+      await supabase
         .from('users')
         .update({
           current_direct_count: limitCheck.direct.current + 1,
           current_influence_count: limitCheck.influence.current + 1
         })
         .eq('id', invite.issued_by);
-    });
+    }
 
     // 7. 성공 응답
     return NextResponse.json({

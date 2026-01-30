@@ -22,9 +22,18 @@ export interface Organism {
   name: string;
   type: 'teacher' | 'student' | 'parent' | 'branch' | 'class';
   emoji: string;
+  // Legacy terms
   mint: number;
   tax: number;
   synergy: number;
+  // New terms (v2.3) - optional for backward compatibility
+  motions?: number;
+  threats?: number;
+  relations?: number;
+  base?: number;
+  interactionExponent?: number;
+  interaction_exponent?: number; // snake_case version
+  // Common fields
   value_v: number;
   entropy: number;
   velocity: number;
