@@ -1005,9 +1005,10 @@ const PageRenderer = ({ page, truthMode }) => {
 
 // ============================================
 // HASH ROUTE MAP - URL 해시 → 페이지 매핑
+// standalone: true → KRATON 헤더 없이 단독 표시
 // ============================================
 const HASH_ROUTES = {
-  '#allthatbasket': { page: 'AllThatBasketApp', role: 'consumer' },
+  '#allthatbasket': { page: 'AllThatBasketApp', role: 'consumer', standalone: true },
   '#monopoly': { page: 'KratonMonopoly', role: 'c_level' },
   '#dashboard': { page: 'LiveDashboard', role: 'consumer' },
 };
@@ -1020,6 +1021,7 @@ export default function KratonApp() {
   const [currentPage, setCurrentPage] = useState(null);
   const [truthMode, setTruthMode] = useState(false);
   const [hashRouteApplied, setHashRouteApplied] = useState(false);
+  const [standaloneMode, setStandaloneMode] = useState(false);
 
   // Auth Hook 사용
   const { role: currentRole, isAuthenticated, selectRole, signOut, loading: authLoading } = useAuth();
@@ -1032,12 +1034,14 @@ export default function KratonApp() {
 
       if (route) {
         // 해시 라우트가 있으면 해당 역할과 페이지로 설정
-        console.log('[KRATON] Hash route detected:', hash, '→', route.page);
+        console.log('[KRATON] Hash route detected:', hash, '→', route.page, route.standalone ? '(standalone)' : '');
         selectRole(route.role);
         setCurrentPage(route.page);
         setHashRouteApplied(true);
+        setStandaloneMode(route.standalone || false);
         return true;
       }
+      setStandaloneMode(false);
       return false;
     };
 
@@ -1081,14 +1085,23 @@ export default function KratonApp() {
     );
   }
 
-  // 역할이 없으면 로그인 화면 (최초 1회만)
-  if (!currentRole) {
+  // 역할이 없으면 로그인 화면 (최초 1회만) - standalone 모드가 아닐 때만
+  if (!currentRole && !standaloneMode) {
     return (
-      <LoginScreen 
+      <LoginScreen
         onLogin={(roleId) => {
           selectRole(roleId);
-        }} 
+        }}
       />
+    );
+  }
+
+  // Standalone 모드: KRATON 헤더 없이 페이지만 표시
+  if (standaloneMode && currentPage) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <PageRenderer page={currentPage} truthMode={truthMode} />
+      </Suspense>
     );
   }
 
@@ -1105,7 +1118,7 @@ export default function KratonApp() {
             signOut();
           }}
         />
-        
+
         <main className="pt-4">
           <AnimatePresence mode="wait">
             <motion.div
