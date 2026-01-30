@@ -115,8 +115,8 @@ export async function POST(request: NextRequest) {
       
       // V 성장률
       const vGrowth = calculateVGrowth(
-        { mint: before.m, tax: before.t, synergy: before.s },
-        { mint: after.m, tax: after.t, synergy: after.s }
+        { motions: before.m, threats: before.t, relations: before.s },
+        { motions: after.m, threats: after.t, relations: after.s }
       );
 
       // 로그 저장
