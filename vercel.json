@@ -10,14 +10,16 @@
     {
       "src": "kraton-v2/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "config": { 
+        "distDir": "dist",
+        "outputDirectory": "dist"
+      }
     }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/vercel-api/$1" },
-    { "src": "/assets/(.*)", "dest": "/kraton-v2/dist/assets/$1" },
-    { "src": "^/$", "dest": "/kraton-v2/dist/index.html" },
-    { "src": "/(.*\\.(js|css|ico|png|jpg|svg|woff|woff2|ttf|eot))", "dest": "/kraton-v2/dist/$1" },
-    { "src": "/(.*)", "dest": "/kraton-v2/dist/index.html" }
+    { "src": "/api/(.*)", "dest": "vercel-api/$1" },
+    { "src": "/assets/(.*)", "dest": "kraton-v2/assets/$1" },
+    { "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|json))", "dest": "kraton-v2/$1" },
+    { "src": "/(.*)", "dest": "kraton-v2/index.html" }
   ]
 }
