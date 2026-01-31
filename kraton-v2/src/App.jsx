@@ -62,6 +62,7 @@ const GoalCascade = lazy(() => import('./components/owner/GoalCascade'));
 const GoalEngine = lazy(() => import('./components/owner/GoalEngine'));
 const AutusDashboard = lazy(() => import('./components/autus/AutusDashboard'));
 const AllThatBasketApp = lazy(() => import('./pages/allthatbasket/AllThatBasketApp'));
+const AutusAIPortal = lazy(() => import('./pages/autus-ai/index'));
 
 // Components
 import { TruthModeProvider } from './components/ui/TruthModeToggle';
@@ -984,6 +985,7 @@ const PageRenderer = ({ page, truthMode }) => {
     GoalEngine,
     AutusDashboard,
     AllThatBasketApp,
+    AutusAIPortal,
   };
 
   const Component = pageComponents[page];
@@ -1009,6 +1011,7 @@ const PageRenderer = ({ page, truthMode }) => {
 // ============================================
 const HASH_ROUTES = {
   '#allthatbasket': { page: 'AllThatBasketApp', role: 'consumer', standalone: true },
+  '#autus-ai': { page: 'AutusAIPortal', role: 'c_level', standalone: true },
   '#monopoly': { page: 'KratonMonopoly', role: 'c_level' },
   '#dashboard': { page: 'LiveDashboard', role: 'consumer' },
 };

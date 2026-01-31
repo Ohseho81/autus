@@ -31,3 +31,6 @@ export { default as AgentDashboard } from './agent/AgentDashboard';
 
 // Solar
 export { default as SolarView } from './solar/SolarView';
+
+// AUTUS AI Portal
+export { default as AutusAIPortal } from './autus-ai/index';
