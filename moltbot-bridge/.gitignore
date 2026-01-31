@@ -1,0 +1,5 @@
+.env
+node_modules/
+commands.json
+moltbot.log
+*.log

@@ -1,0 +1,15 @@
+{
+  "name": "moltbot-bridge",
+  "version": "1.0.0",
+  "description": "Telegram MoltBot → Mac Bridge for AUTUS Development",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "node-telegram-bot-api": "^0.64.0"
+  }
+}
