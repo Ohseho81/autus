@@ -20,6 +20,8 @@ import useAllThatBasket from './lib/useAllThatBasket';
 import StudentsView from './views/StudentsView';
 import AttendanceView from './views/AttendanceView';
 import PaymentsView from './views/PaymentsView';
+import QuickSetupView from './views/QuickSetupView';
+import QRAttendanceView from './views/QRAttendanceView';
 
 // ============================================
 // V-Index 게이지 (AUTUS 스타일)
@@ -347,13 +349,12 @@ export default function AllThatBasketApp() {
 
   const navItems = [
     { id: 'home', icon: Home, label: '홈' },
+    { id: 'qr-check', icon: QrCode, label: 'QR체크', highlight: true },
     { id: 'students', icon: Users, label: '선수' },
     { id: 'attendance', icon: Calendar, label: '출석' },
     { id: 'payments', icon: CreditCard, label: '수납' },
     { id: 'chat', icon: MessageCircle, label: '소통' },
-    { id: 'videos', icon: Youtube, label: '영상' },
     { id: 'parent-app', icon: Smartphone, label: '학부모앱' },
-    { id: 'coach-video', icon: QrCode, label: '강사세션' },
   ];
 
   const renderView = () => {
@@ -379,6 +380,8 @@ export default function AllThatBasketApp() {
         return <StudentsView data={basketData} />;
       case 'attendance':
         return <AttendanceView data={basketData} />;
+      case 'qr-check':
+        return <QRAttendanceView data={basketData} />;
       case 'payments':
         return <PaymentsView data={basketData} />;
       case 'chat':
@@ -387,6 +390,8 @@ export default function AllThatBasketApp() {
         return <ParentAppDaechi onBack={() => setCurrentView('home')} />;
       case 'coach-video':
         return <CoachVideoFlow onBack={() => setCurrentView('home')} data={basketData} />;
+      case 'setup':
+        return <QuickSetupView onComplete={() => setCurrentView('home')} />;
       default:
         return <HomeView onNavigate={setCurrentView} data={basketData} />;
     }
