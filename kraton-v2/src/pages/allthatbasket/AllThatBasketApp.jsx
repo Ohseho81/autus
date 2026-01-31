@@ -8,12 +8,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home, Users, Calendar, Trophy, MessageCircle,
   Bell, ChevronRight, TrendingUp, TrendingDown,
-  User, Menu, X, Zap, Youtube,
+  User, Menu, X, Zap, Youtube, CreditCard,
   Smartphone, QrCode, AlertTriangle, Shield
 } from 'lucide-react';
 import ParentAppDaechi from './components/ParentAppDaechi';
 import CoachVideoFlow from './components/CoachVideoFlow';
+import MoltBotChat from './components/MoltBotChat';
 import useAllThatBasket from './lib/useAllThatBasket';
+
+// Views
+import StudentsView from './views/StudentsView';
+import AttendanceView from './views/AttendanceView';
+import PaymentsView from './views/PaymentsView';
 
 // ============================================
 // V-Index 게이지 (AUTUS 스타일)
@@ -342,10 +348,10 @@ export default function AllThatBasketApp() {
   const navItems = [
     { id: 'home', icon: Home, label: '홈' },
     { id: 'students', icon: Users, label: '선수' },
-    { id: 'classes', icon: Calendar, label: '수업' },
-    { id: 'missions', icon: Trophy, label: '미션' },
-    { id: 'videos', icon: Youtube, label: '영상' },
+    { id: 'attendance', icon: Calendar, label: '출석' },
+    { id: 'payments', icon: CreditCard, label: '수납' },
     { id: 'chat', icon: MessageCircle, label: '소통' },
+    { id: 'videos', icon: Youtube, label: '영상' },
     { id: 'parent-app', icon: Smartphone, label: '학부모앱' },
     { id: 'coach-video', icon: QrCode, label: '강사세션' },
   ];
@@ -369,6 +375,14 @@ export default function AllThatBasketApp() {
     switch (currentView) {
       case 'home':
         return <HomeView onNavigate={setCurrentView} data={basketData} />;
+      case 'students':
+        return <StudentsView data={basketData} />;
+      case 'attendance':
+        return <AttendanceView data={basketData} />;
+      case 'payments':
+        return <PaymentsView data={basketData} />;
+      case 'chat':
+        return <MoltBotChat onBack={() => setCurrentView('home')} />;
       case 'parent-app':
         return <ParentAppDaechi onBack={() => setCurrentView('home')} />;
       case 'coach-video':
