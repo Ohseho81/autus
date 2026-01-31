@@ -1,0 +1,12 @@
+{
+  "name": "moltbot-brain",
+  "version": "1.0.0",
+  "description": "MoltBot Brain - LLM + Rule Engine + State Graph + Outcome Evaluator",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "author": "AUTUS",
+  "license": "MIT"
+}
