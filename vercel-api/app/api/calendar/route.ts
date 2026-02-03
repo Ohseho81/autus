@@ -5,11 +5,17 @@ import { google } from 'googleapis';
 // 서비스 계정 인증
 function getAuthClient() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  let key = process.env.GOOGLE_PRIVATE_KEY;
 
   if (!email || !key) {
     return null;
   }
+
+  // Private Key 줄바꿈 처리 (다양한 형식 지원)
+  // 1. 리터럴 \n 문자열을 실제 줄바꿈으로 변환
+  key = key.replace(/\\n/g, '\n');
+  // 2. 이스케이프된 \\n도 처리
+  key = key.split('\\n').join('\n');
 
   const auth = new google.auth.JWT({
     email,
