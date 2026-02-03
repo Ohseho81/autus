@@ -2,11 +2,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 
-// CORS 헤더 설정
-const corsHeaders = {
+// Edge Runtime 비활성화 (googleapis가 Node.js 런타임 필요)
+// export const runtime = 'edge';
+
+// 동적 렌더링 강제 (캐시 비활성화)
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+// CORS 헤더 설정 (최대한 열림)
+const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-Api-Key',
+  'Access-Control-Allow-Credentials': 'true',
+  'Access-Control-Max-Age': '86400',
+  'Access-Control-Expose-Headers': 'Content-Length, X-Request-Id',
+  'Cache-Control': 'no-store, no-cache, must-revalidate',
+  'Vary': 'Origin',
 };
 
 // CORS 지원 JSON 응답 헬퍼
@@ -14,9 +26,18 @@ function jsonResponse(data: any, status = 200) {
   return NextResponse.json(data, { status, headers: corsHeaders });
 }
 
-// CORS preflight 요청 처리
-export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
+// CORS preflight 요청 처리 (모든 요청 허용)
+export async function OPTIONS(request: NextRequest) {
+  // Origin 헤더가 있으면 해당 Origin으로 응답
+  const origin = request.headers.get('origin') || '*';
+  
+  return new NextResponse(null, {
+    status: 204, // No Content (preflight 표준)
+    headers: {
+      ...corsHeaders,
+      'Access-Control-Allow-Origin': origin,
+    },
+  });
 }
 
 // 서비스 계정 인증
@@ -53,6 +74,16 @@ export async function GET(request: NextRequest) {
   const date = searchParams.get('date');
   const timeMin = searchParams.get('timeMin');
   const timeMax = searchParams.get('timeMax');
+
+  // 간단한 ping 테스트 (CORS 확인용)
+  if (action === 'ping') {
+    return jsonResponse({
+      success: true,
+      message: 'pong',
+      timestamp: new Date().toISOString(),
+      cors: 'enabled',
+    });
+  }
 
   const auth = getAuthClient();
 
