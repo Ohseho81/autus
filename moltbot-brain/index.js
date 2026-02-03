@@ -15,6 +15,7 @@ import { InterventionLogger, logIntervention, resolveIntervention, ACTION_CODES,
 import { RuleEngine, ruleEngine, DEFAULT_RULES } from './core/rule-engine.js';
 import { StateGraph, stateGraph, NODE_TYPES, RELATION_TYPES, STATE_LEVELS } from './core/state-graph.js';
 import { OutcomeEvaluator, outcomeEvaluator, KPI } from './core/outcome-evaluator.js';
+import { InterventionDetector, MANUAL_ACTIONS, ACTION_RISK_LEVEL } from './core/intervention-detector.js';
 
 // ============================================
 // MoltBot Brain (통합 인터페이스)
@@ -26,12 +27,16 @@ export class MoltBotBrain {
     this.stateGraph = stateGraph;
     this.outcomeEvaluator = outcomeEvaluator;
 
+    // PHASE 1 핵심: 수동 개입 감지기
+    this.interventionDetector = new InterventionDetector(this.interventionLogger);
+
     console.log(`
 ╔═══════════════════════════════════════════╗
 ║        🧠 MoltBot Brain Initialized       ║
 ╠═══════════════════════════════════════════╣
 ║  Rules: ${this.ruleEngine.rules.length} loaded                        ║
 ║  Graph: ${this.stateGraph.nodes.size} nodes, ${this.stateGraph.edges.length} edges             ║
+║  Detector: PHASE 1 (Human → Log)          ║
 ║  Mode: Shadow + Auto                      ║
 ╚═══════════════════════════════════════════╝
     `);
@@ -286,6 +291,58 @@ export class MoltBotBrain {
   setRuleMode(ruleId, mode) {
     return this.ruleEngine.setRuleMode(ruleId, mode);
   }
+
+  // ============================================
+  // 4️⃣ PHASE 1: 수동 개입 감지 (Human → Log)
+  // ============================================
+
+  /**
+   * 수동 개입 감지 (PHASE 1 핵심)
+   */
+  detectManualAction(action, actor, target, context = {}) {
+    return this.interventionDetector.detect(action, actor, target, context);
+  }
+
+  /**
+   * 학생 상태 변경 감지
+   */
+  detectStatusChange(actor, studentId, fromStatus, toStatus, reason = '') {
+    return this.interventionDetector.detectStatusChange(
+      actor, studentId, fromStatus, toStatus, reason
+    );
+  }
+
+  /**
+   * 반 변경 감지
+   */
+  detectClassChange(actor, studentId, fromClassId, toClassId, reason = '') {
+    return this.interventionDetector.detectClassChange(
+      actor, studentId, fromClassId, toClassId, reason
+    );
+  }
+
+  /**
+   * 수동 메시지 발송 감지
+   */
+  detectManualMessage(actor, studentId, messageType, channel) {
+    return this.interventionDetector.detectManualMessage(
+      actor, studentId, messageType, channel
+    );
+  }
+
+  /**
+   * 일일 개입 리포트
+   */
+  getDailyInterventionReport() {
+    return this.interventionDetector.getDailyReport();
+  }
+
+  /**
+   * Telegram용 개입 리포트
+   */
+  getTelegramInterventionReport() {
+    return this.interventionDetector.getTelegramReport();
+  }
 }
 
 // ============================================
@@ -297,6 +354,7 @@ export {
   RuleEngine,
   StateGraph,
   OutcomeEvaluator,
+  InterventionDetector,
 
   // Singletons
   ruleEngine,
@@ -311,6 +369,8 @@ export {
   STATE_LEVELS,
   KPI,
   DEFAULT_RULES,
+  MANUAL_ACTIONS,
+  ACTION_RISK_LEVEL,
 
   // Utilities
   logIntervention,

@@ -1,0 +1,101 @@
+{
+  "$schema": "AUTUS Brand Config v2.0",
+  "brand_id": "allthatbasket",
+  "brand_name": "올댓바스켓",
+  "industry": "교육/체육",
+
+  "theme": {
+    "primary": "#F97316",
+    "secondary": "#1F2937",
+    "success": "#10B981",
+    "warning": "#F59E0B",
+    "danger": "#EF4444",
+    "background": "#F9FAFB"
+  },
+
+  "ui_labels": {
+    "vv": {
+      "internal": "Value Velocity",
+      "display": "효율 점수",
+      "format": "color_only"
+    },
+    "clf": {
+      "internal": "Court Load Factor",
+      "display": "복잡도",
+      "format": "text"
+    },
+    "ce": {
+      "internal": "Coach Efficiency",
+      "display": "강사 점수",
+      "format": "stars"
+    },
+    "oy": {
+      "internal": "Outcome Yield",
+      "display": "결과율",
+      "format": "percentage"
+    }
+  },
+
+  "outcome_labels": {
+    "renewal.failed": "재등록 실패",
+    "renewal.succeeded": "재등록 성공",
+    "attendance.drop": "출석 경고",
+    "attendance.normal": "정상 출석",
+    "notification.ignored": "알림 무응답",
+    "notification.read": "알림 확인",
+    "churn.finalized": "계약 종료",
+    "teacher.changed": "강사 변경 완료"
+  },
+
+  "shadow_labels": {
+    "makeup.requested": "보강 요청",
+    "schedule.change_requested": "시간 변경 요청",
+    "teacher.change_requested": "강사 변경 요청",
+    "discount.requested": "할인 요청",
+    "refund.requested": "환불 요청",
+    "complaint.general": "문의/불만"
+  },
+
+  "status_labels": {
+    "green": "확장 가능",
+    "yellow": "유지",
+    "red": "개선 필요"
+  },
+
+  "roles": {
+    "owner": {
+      "label": "원장님",
+      "emoji": "👔",
+      "permissions": ["approve_all", "kill", "view_vv", "view_shadow"]
+    },
+    "admin": {
+      "label": "관리자",
+      "emoji": "💼",
+      "permissions": ["approve_medium", "escalate", "view_clf"]
+    },
+    "coach": {
+      "label": "코치",
+      "emoji": "🏃",
+      "permissions": ["view_session", "record_attendance"]
+    },
+    "parent": {
+      "label": "학부모",
+      "emoji": "👨‍👩‍👧",
+      "permissions": ["view_child", "request_shadow"]
+    }
+  },
+
+  "ui_rules": {
+    "max_buttons": 3,
+    "input_fields": 0,
+    "settings_exposed": 0,
+    "autus_branding": false,
+    "show_internal_metrics": false
+  },
+
+  "notifications": {
+    "renewal_warning_template": "{child_name} 수강권이 {days}일 후 만료됩니다.",
+    "attendance_warning_template": "{child_name}이(가) {count}회 연속 결석했습니다.",
+    "renewal_success_template": "{child_name} 재등록이 완료되었습니다. 감사합니다!"
+  }
+}

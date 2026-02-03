@@ -1,0 +1,343 @@
+{
+  "spec_version": "autus-ui-spec.v1",
+  "brand_id": "allthatbasket",
+  "principles": {
+    "no_free_text": true,
+    "decision_first": true,
+    "exception_first": true,
+    "outcome_fact_only_triggers_process": true,
+    "forces_influence_outcomes_only": true
+  },
+
+  "roles": {
+    "owner": {
+      "label": "원장",
+      "permissions": ["view_all", "approve", "kill", "reassign", "change_policy", "view_logs"]
+    },
+    "manager": {
+      "label": "관리자",
+      "permissions": ["view_all", "propose", "notify", "view_logs"]
+    },
+    "coach": {
+      "label": "강사",
+      "permissions": ["view_assigned", "mark_attendance", "propose", "notify_limited"]
+    },
+    "parent": {
+      "label": "학부모",
+      "permissions": ["view_child_status", "respond_notifications"]
+    }
+  },
+
+  "ontology": {
+    "object_types": {
+      "Customer": {
+        "label": "고객",
+        "subtypes": ["Parent", "Student"],
+        "key_fields": ["customer_id"],
+        "properties": {
+          "display_name": { "type": "string" },
+          "segment": { "type": "enum", "values": ["standard", "premium", "at_risk"] }
+        }
+      },
+      "Producer": {
+        "label": "생산자",
+        "subtypes": ["Coach", "Branch"],
+        "key_fields": ["producer_id"],
+        "properties": {
+          "ce_star": { "type": "number", "range": [0, 5] },
+          "vv_score": { "type": "enum", "values": ["green", "yellow", "red", "gray"] }
+        }
+      },
+      "TimeSlot": {
+        "label": "시간대",
+        "key_fields": ["slot_id"],
+        "properties": {
+          "start_time": { "type": "string" },
+          "end_time": { "type": "string" },
+          "clf_level": { "type": "enum", "values": ["low", "mid", "high"] },
+          "adjusted_vv": { "type": "number" }
+        }
+      },
+      "Contract": {
+        "label": "계약",
+        "key_fields": ["contract_id"],
+        "properties": {
+          "state": { "type": "enum", "values": ["S0", "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"] },
+          "vv_7d": { "type": "number" }
+        }
+      },
+      "OutcomeFact": {
+        "label": "결과 사실",
+        "key_fields": ["fact_id"],
+        "properties": {
+          "type": {
+            "type": "enum",
+            "values": [
+              "renewal.failed",
+              "attendance.drop",
+              "notification.ignored",
+              "renewal.succeeded",
+              "attendance.normal",
+              "notification.read",
+              "teacher.changed",
+              "churn.finalized"
+            ]
+          },
+          "tier": { "type": "enum", "values": ["S", "A", "Terminal"] },
+          "ts": { "type": "string" }
+        }
+      },
+      "Policy": {
+        "label": "정책",
+        "key_fields": ["policy_id"],
+        "properties": {
+          "category": { "type": "enum", "values": ["makeup", "teacher_change", "discount", "complaint"] },
+          "mode": { "type": "enum", "values": ["shadow", "promoted"] },
+          "ttl_hours": { "type": "number" }
+        }
+      },
+      "ExternalForce": {
+        "label": "외부압력",
+        "key_fields": ["force_id"],
+        "properties": {
+          "type": { "type": "enum", "values": ["demand", "competition", "regulation", "cost", "sentiment", "technology"] },
+          "level": { "type": "enum", "values": ["low", "mid", "high"] }
+        }
+      }
+    },
+
+    "relations": [
+      { "name": "parent_of", "from": "Customer:Parent", "to": "Customer:Student" },
+      { "name": "enrolled_in", "from": "Customer:Student", "to": "Contract" },
+      { "name": "bound_to_slot", "from": "Contract", "to": "TimeSlot" },
+      { "name": "taught_by", "from": "TimeSlot", "to": "Producer:Coach" },
+      { "name": "has_outcome", "from": "Contract", "to": "OutcomeFact" },
+      { "name": "governed_by", "from": "Contract", "to": "Policy" },
+      { "name": "pressure_on", "from": "ExternalForce", "to": "TimeSlot" }
+    ]
+  },
+
+  "outcome_tiers": {
+    "S": ["renewal.failed", "attendance.drop", "notification.ignored"],
+    "A": ["renewal.succeeded", "attendance.normal", "notification.read", "teacher.changed"],
+    "Terminal": ["churn.finalized"]
+  },
+
+  "metrics": {
+    "vv_7d": {
+      "window_days": 7,
+      "min_samples": 10,
+      "weights": {
+        "renewal.succeeded": 1.0,
+        "renewal.failed": -1.0,
+        "churn.finalized": -2.0
+      },
+      "thresholds": {
+        "green": 0.5,
+        "yellow_low": -0.2,
+        "yellow_high": 0.5,
+        "red": -0.2
+      },
+      "display_map": {
+        "green": "🟢",
+        "yellow": "🟡",
+        "red": "🔴",
+        "gray": "⚪"
+      }
+    }
+  },
+
+  "state_machine": {
+    "states": {
+      "S0": "idle",
+      "S1": "intake",
+      "S2": "eligible",
+      "S3": "approval",
+      "S4": "intervention",
+      "S5": "monitor",
+      "S6": "stable",
+      "S7": "shadow",
+      "S8": "liability",
+      "S9": "closed"
+    },
+    "transitions": [
+      {
+        "trigger_tier": "S",
+        "from": ["S0", "S6", "S5"],
+        "to": "S1",
+        "action": "create_decision_card"
+      },
+      {
+        "from": ["S1"],
+        "to": "S2",
+        "action": "evaluate_eligibility"
+      },
+      {
+        "from": ["S2"],
+        "to": "S3",
+        "when": { "requires_approval": true },
+        "action": "open_transition_modal"
+      },
+      {
+        "from": ["S2"],
+        "to": "S4",
+        "when": { "requires_approval": false },
+        "action": "apply_policy"
+      },
+      {
+        "from": ["S4"],
+        "to": "S5",
+        "action": "start_monitoring"
+      },
+      {
+        "from": ["S5"],
+        "to": "S6",
+        "when": { "recovered": true },
+        "action": "close_card"
+      },
+      {
+        "from": ["S5"],
+        "to": "S7",
+        "when": { "needs_shadow": true },
+        "action": "enqueue_shadow"
+      },
+      {
+        "from": ["S3"],
+        "to": "S4",
+        "when": { "approved": true },
+        "action": "apply_policy"
+      },
+      {
+        "from": ["S3"],
+        "to": "S1",
+        "when": { "deferred": true },
+        "action": "set_ttl"
+      },
+      {
+        "from": ["S6", "S5", "S4"],
+        "to": "S0",
+        "when": { "killed": true },
+        "action": "kill_switch"
+      },
+      {
+        "trigger_tier": "Terminal",
+        "from": ["S0","S1","S2","S3","S4","S5","S6","S7","S8"],
+        "to": "S9",
+        "action": "close_contract"
+      }
+    ]
+  },
+
+  "decision_cards": {
+    "card_types": [
+      {
+        "id": "D_ATTENDANCE_DROP",
+        "when": { "outcome_fact": "attendance.drop" },
+        "owner_role": "owner",
+        "deadline_hours": 48,
+        "options": ["reassign_coach", "reduce_capacity", "apply_makeup_policy", "kill_slot"]
+      },
+      {
+        "id": "D_RENEWAL_FAILED",
+        "when": { "outcome_fact": "renewal.failed" },
+        "owner_role": "owner",
+        "deadline_hours": 72,
+        "options": ["notify_parent", "apply_discount_policy", "change_timeslot", "kill_contract"]
+      },
+      {
+        "id": "D_NOTIFICATION_IGNORED",
+        "when": { "outcome_fact": "notification.ignored" },
+        "owner_role": "manager",
+        "deadline_hours": 24,
+        "options": ["change_channel", "reduce_frequency", "notify_parent"]
+      }
+    ]
+  },
+
+  "ui_components": {
+    "pages": [
+      {
+        "id": "world_map",
+        "label": "World Map",
+        "visible_to_roles": ["owner", "manager"],
+        "layout": ["object_graph", "object_panel", "decision_inbox", "log_viewer"]
+      },
+      {
+        "id": "owner_dashboard",
+        "label": "원장 보드",
+        "visible_to_roles": ["owner"],
+        "layout": ["timeslot_heatmap", "decision_inbox", "kpi_minimal"]
+      },
+      {
+        "id": "coach_view",
+        "label": "강사 화면",
+        "visible_to_roles": ["coach"],
+        "layout": ["slot_status", "action_buttons"]
+      },
+      {
+        "id": "parent_view",
+        "label": "학부모 화면",
+        "visible_to_roles": ["parent"],
+        "layout": ["child_status", "notification_center"]
+      }
+    ],
+
+    "widgets": {
+      "object_graph": {
+        "type": "graph",
+        "click_behavior": "open_object_panel"
+      },
+      "object_panel": {
+        "type": "panel",
+        "sections": ["properties", "relations", "actions"],
+        "actions_from": ["decision_cards.options", "state_machine.transitions"]
+      },
+      "decision_inbox": {
+        "type": "list",
+        "item_type": "decision_card",
+        "sort": ["severity", "deadline"]
+      },
+      "transition_modal": {
+        "type": "modal",
+        "required_fields": ["expected_impact_7d", "blast_radius", "ttl_hours"],
+        "buttons": ["approve", "cancel", "defer", "kill"]
+      },
+      "log_viewer": {
+        "type": "immutable_log",
+        "filters": ["object_id", "time_range", "decision_id"]
+      },
+      "timeslot_heatmap": {
+        "type": "heatmap",
+        "value": "TimeSlot.adjusted_vv",
+        "buckets": { "green": 3.0, "yellow": 2.3, "red": 2.3 }
+      },
+      "kpi_minimal": {
+        "type": "summary",
+        "fields": ["metrics.vv_7d", "ExternalForce.level"]
+      },
+      "slot_status": {
+        "type": "summary",
+        "fields": ["TimeSlot.clf_level", "Producer.vv_score", "metrics.vv_7d"]
+      },
+      "action_buttons": {
+        "type": "buttons",
+        "buttons": ["mark_attendance", "notify_limited", "propose_action"]
+      },
+      "child_status": {
+        "type": "summary",
+        "fields": ["Contract.state", "metrics.vv_7d"]
+      },
+      "notification_center": {
+        "type": "list",
+        "item_type": "notification",
+        "no_free_text_reply": true,
+        "reply_options": ["ack", "confirm_makeup", "request_call"]
+      }
+    }
+  },
+
+  "immutability": {
+    "append_only": ["OutcomeFact", "DecisionLog"],
+    "log_fields": ["timestamp", "actor_role", "actor_id", "decision_id", "action", "basis_fact_ids"]
+  }
+}

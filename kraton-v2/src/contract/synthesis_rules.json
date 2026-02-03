@@ -1,0 +1,252 @@
+{
+  "$schema": "AUTUS Synthesis Rules v1.0 - LOCKED",
+  "$description": "OutcomeFact → StateMachine 전이 + Process Synthesis 매핑",
+  "$lock": true,
+
+  "synthesis_loops": {
+    "A": { "id": "Attendance", "name": "출석 루프", "description": "출석/결석/보충 관련 프로세스" },
+    "P": { "id": "Payment", "name": "결제 루프", "description": "결제/환불/할인 관련 프로세스" },
+    "Ap": { "id": "Approval", "name": "승인 루프", "description": "의사결정/승인 게이트" },
+    "N": { "id": "Notification", "name": "알림 루프", "description": "알림/연락/커뮤니케이션" },
+    "F": { "id": "Feedback", "name": "피드백 루프", "description": "피드백/불만/개선 수집" }
+  },
+
+  "state_machine": {
+    "states": {
+      "S0": { "name": "Idle", "description": "대기/정상 상태" },
+      "S1": { "name": "Detect", "description": "OutcomeFact 감지됨" },
+      "S2": { "name": "Evaluate", "description": "평가/분류 진행 중" },
+      "S3": { "name": "Approval", "description": "승인 게이트 (TTL/Cost/Long-term 필수)" },
+      "S4": { "name": "Execute", "description": "실행 중" },
+      "S5": { "name": "Monitor", "description": "모니터링/관찰" },
+      "S6": { "name": "Complete", "description": "완료/안정" },
+      "S7": { "name": "Shadow", "description": "격리/관찰 (승격 전)" }
+    },
+    "global_rules": {
+      "s3_mandatory_fields": ["ttl", "decision_cost", "long_term_impact"],
+      "shadow_escalation_threshold": 2,
+      "max_ttl_hours": 168
+    }
+  },
+
+  "mappings": {
+    "inquiry.created": {
+      "outcome_id": "OF01",
+      "transition": {
+        "from": ["S0", "S6"],
+        "path": ["S1", "S2"],
+        "to": "S3",
+        "approval_required": "OPTIONAL"
+      },
+      "synthesis": ["F", "N", "Ap"],
+      "synthesis_description": "피드백 수집 + 알림 + 승인(필요시)",
+      "auto_actions": [
+        { "type": "create_feedback_card", "priority": "normal" },
+        { "type": "notify_admin", "channel": "app" }
+      ],
+      "kill_candidate": false
+    },
+
+    "renewal.failed": {
+      "outcome_id": "OF02",
+      "transition": {
+        "from": ["S0", "S6"],
+        "path": ["S1", "S2"],
+        "to": "S3",
+        "approval_required": "HIGH"
+      },
+      "synthesis": ["F", "N"],
+      "synthesis_conditional": {
+        "if_reason_attendance": ["A"],
+        "if_reason_payment": ["P"]
+      },
+      "synthesis_description": "피드백 + 알림 + (원인별 출석/결제 루프)",
+      "auto_actions": [
+        { "type": "create_kill_candidate", "priority": "high" },
+        { "type": "require_long_term_decision", "mandatory": true }
+      ],
+      "kill_candidate": true
+    },
+
+    "renewal.succeeded": {
+      "outcome_id": "OF03",
+      "transition": {
+        "from": ["S0", "S6"],
+        "path": ["S1", "S2"],
+        "to": "S6",
+        "approval_required": "NONE"
+      },
+      "synthesis": ["N"],
+      "synthesis_description": "감사/확인 알림만 (최소)",
+      "auto_actions": [
+        { "type": "send_thank_you", "channel": "auto" }
+      ],
+      "expansion_trigger": false,
+      "rule": "성공은 조용함 유지, 확장 트리거 아님"
+    },
+
+    "attendance.drop": {
+      "outcome_id": "OF04",
+      "transition": {
+        "from": ["S0", "S6"],
+        "path": ["S1", "S2"],
+        "through": ["S4", "S5"],
+        "to": "S6",
+        "approval_required": "NONE"
+      },
+      "synthesis": ["A", "N"],
+      "synthesis_description": "출석 정책 자동 적용 + 알림",
+      "auto_actions": [
+        { "type": "apply_attendance_policy", "priority": "normal" },
+        { "type": "notify_parent", "channel": "kakao" }
+      ],
+      "rule": "코치 압박 금지, 정책으로 처리"
+    },
+
+    "payment.friction": {
+      "outcome_id": "OF05",
+      "transition": {
+        "from": ["S0", "S6"],
+        "path": ["S1", "S2"],
+        "to": "S3",
+        "approval_required": "FINANCIAL"
+      },
+      "synthesis": ["P", "N", "Ap"],
+      "synthesis_description": "결제 루프 + 알림 + 승인 게이트",
+      "auto_actions": [
+        { "type": "block_auto_refund", "mandatory": true },
+        { "type": "block_auto_discount", "mandatory": true },
+        { "type": "create_financial_decision_card", "priority": "high" }
+      ],
+      "gate": {
+        "type": "FINANCIAL",
+        "auto_actions_blocked": ["refund", "discount", "credit"]
+      }
+    },
+
+    "makeup.requested": {
+      "outcome_id": "OF06",
+      "transition": {
+        "from": ["S0", "S6"],
+        "path": ["S1", "S2"],
+        "to": "S3",
+        "approval_required": "MEDIUM"
+      },
+      "synthesis": ["A", "Ap", "N"],
+      "synthesis_description": "출석(보충) + 승인 + 알림",
+      "auto_actions": [
+        { "type": "check_eligibility", "priority": "normal" },
+        { "type": "create_makeup_card", "ttl_hours": 48 }
+      ],
+      "gate": {
+        "type": "POLICY",
+        "ttl": { "min": 24, "max": 72, "unit": "hours" }
+      },
+      "rule": "사람이 일정 잡기 금지, 정책으로 처리"
+    },
+
+    "discount.requested": {
+      "outcome_id": "OF07",
+      "transition": {
+        "from": ["S0", "S6"],
+        "path": ["S1", "S2"],
+        "to": "S3",
+        "approval_required": "HIGH"
+      },
+      "synthesis": ["P", "Ap", "N"],
+      "synthesis_description": "결제 루프 + 승인 게이트 + 알림",
+      "auto_actions": [
+        { "type": "create_contract_decision_card", "priority": "high" },
+        { "type": "calculate_budget_impact", "mandatory": true }
+      ],
+      "gate": {
+        "type": "CONTRACT",
+        "budget_cap": true,
+        "decision_cost_required": true
+      }
+    },
+
+    "teacher.change_requested": {
+      "outcome_id": "OF08",
+      "transition": {
+        "from": ["S0", "S6"],
+        "path": ["S1", "S2"],
+        "to": "S3",
+        "approval_required": "RELATION"
+      },
+      "synthesis": ["F", "Ap", "N"],
+      "synthesis_description": "피드백 + 승인(관계 리스크) + 알림",
+      "auto_actions": [
+        { "type": "create_relation_risk_card", "priority": "high" },
+        { "type": "block_emotional_response", "mandatory": true }
+      ],
+      "gate": {
+        "type": "RELATION",
+        "emotional_block": true
+      },
+      "rule": "감정 대응 금지, 관계 리스크 카드로 강제"
+    },
+
+    "complaint.mismatch": {
+      "outcome_id": "OF09",
+      "transition": {
+        "from": ["S0", "S6"],
+        "path": ["S1", "S2"],
+        "to": "S7",
+        "escalation_to": "S3",
+        "escalation_condition": "repeat_count >= 2 OR intensity == 'severe'"
+      },
+      "synthesis": ["F", "N"],
+      "synthesis_conditional": {
+        "if_escalated": ["Ap"]
+      },
+      "synthesis_description": "피드백 + 알림 (+ 승인 if 승격)",
+      "auto_actions": [
+        { "type": "create_shadow_card", "priority": "normal" },
+        { "type": "block_immediate_action", "mandatory": true }
+      ],
+      "shadow": {
+        "default": true,
+        "escalation_threshold": 2,
+        "escalation_on_severity": "severe"
+      },
+      "rule": "즉시 반영 금지, Shadow 격리 후 반복만 승격"
+    },
+
+    "notification.ignored": {
+      "outcome_id": "OF10",
+      "transition": {
+        "from": ["S0", "S6"],
+        "path": ["S1", "S2"],
+        "through": ["S4"],
+        "to": "S6",
+        "approval_required": "NONE"
+      },
+      "synthesis": ["N"],
+      "synthesis_description": "알림 채널/타이밍/빈도 조정만",
+      "auto_actions": [
+        { "type": "optimize_notification_channel", "priority": "low" },
+        { "type": "block_feature_addition", "mandatory": true }
+      ],
+      "rule": "기능 추가 금지, 연락 성공률 최소 변경만"
+    }
+  },
+
+  "global_constraints": {
+    "force_cannot_create_outcome": true,
+    "force_affects_delta_only": true,
+    "process_generation_source": "OutcomeFact_ONLY",
+    "max_synthesis_loops_per_outcome": 4,
+    "approval_states_require": ["ttl", "decision_cost", "long_term"]
+  },
+
+  "replay_validation": {
+    "required_scenarios": 30,
+    "categories": [
+      "inquiry", "renewal", "attendance", "payment",
+      "makeup", "discount", "teacher_change", "complaint", "notification"
+    ],
+    "p95_target_seconds": 10,
+    "shadow_promotion_rate_max": 0.05
+  }
+}

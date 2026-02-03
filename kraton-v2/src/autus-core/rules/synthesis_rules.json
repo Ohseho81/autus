@@ -1,0 +1,94 @@
+{
+  "$schema": "AUTUS Synthesis Rules v2.0",
+  "$lock": true,
+  "$description": "닫힌 순환 4개 정의. 측정 가능한 것만.",
+
+  "closed_loops": {
+    "attendance_loop": {
+      "id": "L1",
+      "name": "출석 순환",
+      "description": "수업예정 → 출석 → 다음수업예정",
+      "states": ["scheduled", "attended", "next_scheduled"],
+      "close_condition": "attendance.normal",
+      "open_condition": null,
+      "timeout_days": null,
+      "value": 0.3
+    },
+
+    "recovery_loop": {
+      "id": "L2",
+      "name": "결석 복귀 순환",
+      "description": "결석 → 알림 → 복귀출석",
+      "states": ["absent", "notified", "recovered"],
+      "close_condition": "attendance.normal",
+      "open_condition": "attendance.drop",
+      "timeout_days": 14,
+      "value": 0.5
+    },
+
+    "notification_loop": {
+      "id": "L3",
+      "name": "알림 반응 순환",
+      "description": "알림발송 → 확인 → 반응",
+      "states": ["sent", "read", "responded"],
+      "close_condition": "notification.read",
+      "open_condition": "notification.ignored",
+      "timeout_days": 7,
+      "value": 0.2
+    },
+
+    "renewal_loop": {
+      "id": "L4",
+      "name": "재등록 순환",
+      "description": "만료예정 → 안내 → 결제",
+      "states": ["expiring", "notified", "renewed"],
+      "close_condition": "renewal.succeeded",
+      "open_condition": "renewal.failed",
+      "timeout_days": 30,
+      "value": 1.0
+    }
+  },
+
+  "loop_metrics": {
+    "closed_value": "순환 닫힘 시 value 합산",
+    "open_penalty": "순환 열림 시 해당 outcome weight 적용",
+    "timeout_penalty": "timeout 초과 시 -0.1 추가"
+  },
+
+  "processes": {
+    "retention_process": {
+      "trigger": "renewal.failed",
+      "steps": [
+        { "action": "send_reminder", "delay": 0 },
+        { "action": "call_attempt", "delay": 3 },
+        { "action": "escalate_owner", "delay": 7 }
+      ],
+      "success_outcome": "renewal.succeeded",
+      "fail_outcome": "churn.finalized",
+      "max_days": 14
+    },
+
+    "recovery_process": {
+      "trigger": "attendance.drop",
+      "steps": [
+        { "action": "send_concern", "delay": 0 },
+        { "action": "coach_contact", "delay": 1 },
+        { "action": "offer_makeup", "delay": 3 }
+      ],
+      "success_outcome": "attendance.normal",
+      "fail_outcome": "renewal.failed",
+      "max_days": 14
+    },
+
+    "engagement_process": {
+      "trigger": "notification.ignored",
+      "steps": [
+        { "action": "channel_switch", "delay": 0 },
+        { "action": "personal_contact", "delay": 3 }
+      ],
+      "success_outcome": "notification.read",
+      "fail_outcome": "attendance.drop",
+      "max_days": 7
+    }
+  }
+}

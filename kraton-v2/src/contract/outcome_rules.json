@@ -1,0 +1,200 @@
+{
+  "$schema": "AUTUS OutcomeFact Rules v1.0 - LOCKED",
+  "$description": "고객 로그가 모든 것을 만든다. 이 10개 외 추가 금지.",
+  "$lock": true,
+
+  "common_fields": {
+    "consumer_id": { "type": "string", "required": true, "description": "소비자(학부모/학생) 식별자" },
+    "subject_id": { "type": "string", "required": true, "description": "대상(학생/수업/결제 등) 식별자" },
+    "outcome_type": { "type": "string", "required": true, "description": "OutcomeFact 타입 (10개 중 1)" },
+    "value": { "type": "object", "required": true, "description": "타입별 상세 값" },
+    "timestamp": { "type": "datetime", "required": true, "description": "발생 시점" },
+    "channel": { "type": "string", "required": true, "enum": ["app", "call", "kakao", "visit", "system"] },
+    "context": { "type": "object", "required": false, "description": "추가 맥락" }
+  },
+
+  "outcome_facts": {
+    "inquiry.created": {
+      "id": "OF01",
+      "name": "문의 발생",
+      "description": "시스템 외 질문 포함, 모든 문의",
+      "severity": "LOW",
+      "triggers_state": ["S0", "S6"],
+      "target_state": "S1",
+      "value_schema": {
+        "topic": { "enum": ["schedule", "payment", "curriculum", "teacher", "facility", "other"] },
+        "urgency": { "enum": ["low", "medium", "high"] }
+      },
+      "rule": "문의는 '해결'이 아니라 원인 루프를 생성한다(재발 방지)"
+    },
+
+    "renewal.failed": {
+      "id": "OF02",
+      "name": "재등록 실패/이탈",
+      "description": "재등록 기간 내 미등록 또는 명시적 이탈",
+      "severity": "CRITICAL",
+      "triggers_state": ["S0", "S6"],
+      "target_state": "S1",
+      "requires_approval": true,
+      "approval_level": "HIGH",
+      "value_schema": {
+        "reason": { "enum": ["price", "schedule", "teacher", "quality", "competition", "moving", "unknown"] },
+        "retention_attempted": { "type": "boolean" }
+      },
+      "rule": "이탈은 즉시 Kill 후보를 만든다(불필요 기능/규칙 제거)"
+    },
+
+    "renewal.succeeded": {
+      "id": "OF03",
+      "name": "재등록 성공",
+      "description": "정상 재등록 완료",
+      "severity": "POSITIVE",
+      "triggers_state": ["S0", "S6"],
+      "target_state": "S6",
+      "requires_approval": false,
+      "value_schema": {
+        "period_months": { "type": "integer", "min": 1, "max": 12 },
+        "discount_applied": { "type": "boolean" }
+      },
+      "rule": "성공은 확장 트리거가 아님('조용함 유지')"
+    },
+
+    "attendance.drop": {
+      "id": "OF04",
+      "name": "출석률 하락",
+      "description": "출석률 하락 또는 연속 결석 감지",
+      "severity": "MEDIUM",
+      "triggers_state": ["S0", "S6"],
+      "target_state": "S1",
+      "value_schema": {
+        "drop_rate": { "type": "number", "description": "하락률 %" },
+        "consecutive_absences": { "type": "integer" },
+        "period_days": { "type": "integer" }
+      },
+      "rule": "출석 하락은 '코치 압박'이 아니라 알림/보충 정책을 자동 생성"
+    },
+
+    "payment.friction": {
+      "id": "OF05",
+      "name": "결제 마찰",
+      "description": "결제 실패, 미수금 지속, 결제 관련 불만",
+      "severity": "HIGH",
+      "triggers_state": ["S0", "S6"],
+      "target_state": "S1",
+      "requires_approval": true,
+      "approval_level": "FINANCIAL",
+      "value_schema": {
+        "type": { "enum": ["failed", "overdue", "complaint", "refund_request"] },
+        "amount": { "type": "number" },
+        "overdue_days": { "type": "integer" }
+      },
+      "rule": "금전은 무조건 승인 게이트(자동 환불/자동 할인 금지)"
+    },
+
+    "makeup.requested": {
+      "id": "OF06",
+      "name": "보충 요구",
+      "description": "보충 수업 요청 발생",
+      "severity": "LOW",
+      "triggers_state": ["S0", "S6"],
+      "target_state": "S1",
+      "requires_approval": true,
+      "approval_level": "MEDIUM",
+      "ttl_hours": { "min": 24, "max": 72 },
+      "value_schema": {
+        "reason": { "enum": ["absence", "makeup_owed", "special_request"] },
+        "preferred_times": { "type": "array" }
+      },
+      "rule": "보충은 '사람이 잡는 일정'이 아니라 정책(Eligibility)으로 처리"
+    },
+
+    "discount.requested": {
+      "id": "OF07",
+      "name": "할인/환불 요구",
+      "description": "할인 또는 환불 요청 발생",
+      "severity": "HIGH",
+      "triggers_state": ["S0", "S6"],
+      "target_state": "S1",
+      "requires_approval": true,
+      "approval_level": "HIGH",
+      "budget_impact": true,
+      "value_schema": {
+        "type": { "enum": ["discount", "refund", "credit"] },
+        "amount": { "type": "number" },
+        "reason": { "type": "string" }
+      },
+      "rule": "할인/환불은 계약 행위(결정 비용/상한 필수)"
+    },
+
+    "teacher.change_requested": {
+      "id": "OF08",
+      "name": "강사 변경 요구",
+      "description": "강사 변경 요청 발생",
+      "severity": "HIGH",
+      "triggers_state": ["S0", "S6"],
+      "target_state": "S1",
+      "requires_approval": true,
+      "approval_level": "RELATION",
+      "value_schema": {
+        "current_teacher_id": { "type": "string" },
+        "reason": { "enum": ["schedule", "style", "conflict", "preference", "other"] },
+        "urgency": { "enum": ["low", "medium", "high"] }
+      },
+      "rule": "강사 변경은 '감정 대응'이 아니라 관계 리스크 카드로 강제"
+    },
+
+    "complaint.mismatch": {
+      "id": "OF09",
+      "name": "불만/안맞음 표출",
+      "description": "'안맞음/불만' 표출 (이탈 전조)",
+      "severity": "MEDIUM",
+      "triggers_state": ["S0", "S6"],
+      "target_state": "S7",
+      "shadow_first": true,
+      "escalation_threshold": 2,
+      "value_schema": {
+        "category": { "enum": ["curriculum", "teacher", "schedule", "facility", "communication", "other"] },
+        "intensity": { "enum": ["mild", "moderate", "severe"] },
+        "expressed_via": { "type": "string" }
+      },
+      "rule": "불만은 즉시 반영 금지. Shadow로 격리 후 반복만 승격"
+    },
+
+    "notification.ignored": {
+      "id": "OF10",
+      "name": "알림 무응답",
+      "description": "알림 무응답/미열람 지속 (커뮤니케이션 실패)",
+      "severity": "LOW",
+      "triggers_state": ["S0", "S6"],
+      "target_state": "S1",
+      "value_schema": {
+        "notification_type": { "type": "string" },
+        "consecutive_ignores": { "type": "integer" },
+        "channels_tried": { "type": "array" }
+      },
+      "rule": "무응답은 기능추가가 아니라 연락 성공률을 높이는 최소 변경"
+    }
+  },
+
+  "gate_rules": {
+    "always_approval": [
+      "discount.requested",
+      "payment.friction",
+      "teacher.change_requested"
+    ],
+    "shadow_first": [
+      "complaint.mismatch"
+    ],
+    "s3_requirements": {
+      "ttl": { "required": true, "description": "Time To Live (결정 기한)" },
+      "decision_cost": { "required": true, "description": "결정 비용 명시" },
+      "long_term": { "required": true, "enum": ["UP", "DOWN", "UNK"], "description": "장기 영향" }
+    }
+  },
+
+  "constraints": {
+    "max_outcome_types": 10,
+    "addition_policy": "FORBIDDEN",
+    "modification_policy": "REVIEW_REQUIRED"
+  }
+}

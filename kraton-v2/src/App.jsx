@@ -61,8 +61,10 @@ const OwnerGoals = lazy(() => import('./components/owner/OwnerGoals'));
 const GoalCascade = lazy(() => import('./components/owner/GoalCascade'));
 const GoalEngine = lazy(() => import('./components/owner/GoalEngine'));
 const AutusDashboard = lazy(() => import('./components/autus/AutusDashboard'));
-const AllThatBasketApp = lazy(() => import('./pages/allthatbasket/AllThatBasketApp'));
+const AllThatBasketApp = lazy(() => import('./pages/allthatbasket/AllThatBasketAppV2'));
 const AutusAIPortal = lazy(() => import('./pages/autus-ai/index'));
+const ProcessMap = lazy(() => import('./pages/allthatbasket/ProcessMap'));
+const AUTUSUniversal = lazy(() => import('./pages/allthatbasket/AUTUSUniversal'));
 
 // Components
 import { TruthModeProvider } from './components/ui/TruthModeToggle';
@@ -986,6 +988,8 @@ const PageRenderer = ({ page, truthMode }) => {
     AutusDashboard,
     AllThatBasketApp,
     AutusAIPortal,
+    ProcessMap,
+    AUTUSUniversal,
   };
 
   const Component = pageComponents[page];
@@ -1014,6 +1018,8 @@ const HASH_ROUTES = {
   '#autus-ai': { page: 'AutusAIPortal', role: 'c_level', standalone: true },
   '#monopoly': { page: 'KratonMonopoly', role: 'c_level' },
   '#dashboard': { page: 'LiveDashboard', role: 'consumer' },
+  '#process': { page: 'ProcessMap', role: 'consumer', standalone: true },
+  '#universal': { page: 'AUTUSUniversal', role: 'c_level', standalone: true },
 };
 
 // ============================================

@@ -1,0 +1,89 @@
+{
+  "$schema": "AUTUS Shadow Policy v2.0",
+  "$lock": true,
+  "$description": "요청은 즉시 반영 금지. 카테고리별 승격률 적용.",
+
+  "principle": "요청(Request)은 OutcomeFact가 아님. Shadow에 적재 후 조건부 승격.",
+
+  "categories": {
+    "makeup.requested": {
+      "label": "보강 요청",
+      "approval_rate": 70,
+      "auto_approve_condition": "available_slot_exists",
+      "auto_reject_condition": null,
+      "approval_authority": "admin",
+      "description": "가용 시간대 있으면 자동 승인"
+    },
+
+    "schedule.change_requested": {
+      "label": "시간 변경 요청",
+      "approval_rate": 50,
+      "auto_approve_condition": "target_slot_available",
+      "auto_reject_condition": "target_slot_full",
+      "approval_authority": "admin",
+      "description": "목표 시간대 가용 여부에 따라"
+    },
+
+    "teacher.change_requested": {
+      "label": "강사 변경 요청",
+      "approval_rate": 30,
+      "auto_approve_condition": null,
+      "auto_reject_condition": null,
+      "approval_authority": "owner",
+      "description": "원장 직접 판단 필요"
+    },
+
+    "discount.requested": {
+      "label": "할인 요청",
+      "approval_rate": 15,
+      "auto_approve_condition": "first_time_request",
+      "auto_reject_condition": "already_discounted",
+      "approval_authority": "owner",
+      "description": "이미 할인 중이면 자동 거절"
+    },
+
+    "refund.requested": {
+      "label": "환불 요청",
+      "approval_rate": 100,
+      "auto_approve_condition": null,
+      "auto_reject_condition": null,
+      "approval_authority": "owner",
+      "description": "반드시 처리 (법적 의무), 승인 후 churn.finalized"
+    },
+
+    "complaint.general": {
+      "label": "일반 불만",
+      "approval_rate": 5,
+      "auto_approve_condition": null,
+      "auto_reject_condition": null,
+      "approval_authority": "owner",
+      "description": "불만 기반 요구는 신중하게"
+    }
+  },
+
+  "shadow_flow": {
+    "1_receive": "요청 발생 → Shadow 적재",
+    "2_classify": "카테고리 분류",
+    "3_auto_check": "자동 승인/거절 조건 확인",
+    "4_route": {
+      "auto_approved": "즉시 실행",
+      "auto_rejected": "거절 통보",
+      "pending": "approval_authority에게 전달"
+    },
+    "5_decide": "수동 승인/거절/보류",
+    "6_execute_or_archive": "실행 또는 아카이브"
+  },
+
+  "escalation": {
+    "admin_to_owner_threshold": 3,
+    "description": "admin이 3건 이상 보류 시 owner에게 일괄 에스컬레이션"
+  },
+
+  "metrics": {
+    "shadow_total": "전체 Shadow 적재 수",
+    "shadow_approved": "승격 수",
+    "shadow_rejected": "거절 수",
+    "shadow_pending": "대기 수",
+    "approval_rate_actual": "shadow_approved / shadow_total"
+  }
+}

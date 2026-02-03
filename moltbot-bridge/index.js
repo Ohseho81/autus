@@ -1,7 +1,10 @@
 /**
- * 🤖 MoltBot Bridge - Telegram → Mac → Cursor/Claude
+ * 🤖 MoltBot Bridge v2 - AUTUS 학원 관리 봇
  *
- * 모바일에서 텔레그램으로 명령 → Claude Code CLI 실행 → 결과 반환
+ * 변경사항:
+ * - Claude Code CLI 의존성 제거 (인증 문제 해결)
+ * - Anthropic API 직접 호출 (안정적)
+ * - Brain API 통합 유지
  */
 
 import 'dotenv/config';
@@ -9,7 +12,19 @@ import TelegramBot from 'node-telegram-bot-api';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { exec, spawn } from 'child_process';
+import { exec } from 'child_process';
+import { setupCoworkCommands, pushNotification, COWORK_TASKS, enqueue } from './cowork-handler.js';
+import workflowAdapter from './workflow-handler.js';
+import { 
+  setupOrchestratorCommands, 
+  parseCommand, 
+  formatActiveTasksList,
+  detectSignal,
+  scoreAgents,
+  buildChain,
+  formatRouting,
+  AGENTS,
+} from './task-orchestrator.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -22,15 +37,13 @@ if (!TOKEN) {
   process.exit(1);
 }
 
-const AUTUS_DIR = path.join(process.env.HOME, 'Desktop/autus');
-const COMMANDS_FILE = path.join(__dirname, 'commands.json');
+const AUTUS_DIR = process.env.AUTUS_DIR || path.join(process.env.HOME, 'Desktop/autus');
+const BRAIN_URL = process.env.MOLTBOT_BRAIN_URL || 'http://localhost:3030';
 const LOG_FILE = path.join(__dirname, 'moltbot.log');
 
 // 봇 생성
 const bot = new TelegramBot(TOKEN, { polling: true });
 
-// 진행 중인 Claude 작업
-let activeClaudeProcess = null;
 
 // ============================================
 // 유틸리티
@@ -42,137 +55,82 @@ function log(message) {
   fs.appendFileSync(LOG_FILE, logMessage);
 }
 
-function saveCommand(command) {
-  let commands = [];
-  if (fs.existsSync(COMMANDS_FILE)) {
-    commands = JSON.parse(fs.readFileSync(COMMANDS_FILE, 'utf-8'));
-  }
-  commands.push({
-    ...command,
-    timestamp: new Date().toISOString(),
-    status: 'pending'
-  });
-  fs.writeFileSync(COMMANDS_FILE, JSON.stringify(commands, null, 2));
-  return commands.length - 1; // 인덱스 반환
-}
+async function callBrainAPI(endpoint, method = 'GET', body = null) {
+  try {
+    const url = BRAIN_URL + endpoint;
+    const options = {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+    };
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
 
-function updateCommand(index, updates) {
-  const commands = JSON.parse(fs.readFileSync(COMMANDS_FILE, 'utf-8'));
-  if (commands[index]) {
-    Object.assign(commands[index], updates);
-    fs.writeFileSync(COMMANDS_FILE, JSON.stringify(commands, null, 2));
+    const response = await fetch(url, options);
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  } catch (error) {
+    log(`[BRAIN API ERROR] ${error.message}`);
+    return null;
   }
 }
 
 // ============================================
-// Claude Code CLI 실행
+// 메시지 응답 (Brain API 기반)
 // ============================================
-async function runClaudeCode(chatId, prompt, options = {}) {
-  const { cwd = AUTUS_DIR, timeout = 300000 } = options;
+async function handleMessage(chatId, prompt) {
+  log(`[MSG] Prompt: ${prompt.slice(0, 100)}...`);
 
-  // 이미 실행 중인 작업이 있으면 알림
-  if (activeClaudeProcess) {
-    bot.sendMessage(chatId, '⏳ 이미 진행 중인 작업이 있습니다. 완료될 때까지 기다려주세요.');
+  // 키워드 기반 자동 응답
+  const lowerPrompt = prompt.toLowerCase();
+
+  // 학생/위험 관련
+  if (lowerPrompt.includes('위험') || lowerPrompt.includes('학생') || lowerPrompt.includes('이탈')) {
+    const data = await callBrainAPI('/api/moltbot/students/at-risk');
+    if (data?.students?.length > 0) {
+      const list = data.students.slice(0, 5).map((s, i) =>
+        `${i + 1}. ${s.name || s.id} (출석 ${s.attendance_rate || 0}%)`
+      ).join('\n');
+      bot.sendMessage(chatId, `⚠️ *위험 학생 ${data.count}명*\n\n${list}\n\n💡 /brain risk 로 전체 확인`, { parse_mode: 'Markdown' });
+      return;
+    }
+  }
+
+  // 대시보드/현황 관련
+  if (lowerPrompt.includes('현황') || lowerPrompt.includes('대시보드') || lowerPrompt.includes('상태')) {
+    const data = await callBrainAPI('/api/moltbot/dashboard');
+    if (data) {
+      bot.sendMessage(chatId, `📊 *현황*\n\n위험 학생: ${data.at_risk?.length || 0}명\n오늘 출석: ${data.today_attendance?.length || 0}개 수업\n\n💡 /brain dashboard 로 상세 확인`, { parse_mode: 'Markdown' });
+      return;
+    }
+  }
+
+  // 규칙 관련
+  if (lowerPrompt.includes('규칙') || lowerPrompt.includes('rule')) {
+    bot.sendMessage(chatId, '📋 규칙 확인: /brain rules');
     return;
   }
 
-  log(`[CLAUDE] Starting: ${prompt.slice(0, 100)}...`);
+  // 기본 응답
+  bot.sendMessage(chatId, `
+💡 *사용 가능한 명령어:*
 
-  // 시작 알림
-  const statusMsg = await bot.sendMessage(chatId, `
-🤖 *Claude Code 실행 중...*
-
-📝 요청: ${prompt.slice(0, 100)}${prompt.length > 100 ? '...' : ''}
-⏳ 작업 진행 중...
+/brain status - 시스템 상태
+/brain dashboard - 대시보드
+/brain risk - 위험 학생
+/brain rules - 규칙 목록
+/build - 빌드
+/deploy - 배포
   `, { parse_mode: 'Markdown' });
-
-  return new Promise((resolve, reject) => {
-    // Claude Code CLI 실행 (--print 옵션으로 결과만 출력)
-    const claude = spawn('claude', ['-p', prompt, '--no-input'], {
-      cwd,
-      shell: true,
-      env: { ...process.env, FORCE_COLOR: '0' },
-    });
-
-    activeClaudeProcess = claude;
-    let output = '';
-    let lastUpdate = Date.now();
-
-    // 타임아웃 설정
-    const timeoutId = setTimeout(() => {
-      claude.kill();
-      bot.sendMessage(chatId, '⏰ 작업 시간 초과 (5분)');
-      activeClaudeProcess = null;
-    }, timeout);
-
-    claude.stdout.on('data', (data) => {
-      const text = data.toString();
-      output += text;
-      log(`[CLAUDE OUT] ${text.slice(0, 200)}`);
-
-      // 5초마다 진행 상황 업데이트
-      if (Date.now() - lastUpdate > 5000) {
-        lastUpdate = Date.now();
-        bot.editMessageText(`
-🤖 *Claude Code 작업 중...*
-
-📝 요청: ${prompt.slice(0, 50)}...
-⏳ 진행 중... (${Math.round(output.length / 1000)}KB 출력)
-        `, {
-          chat_id: chatId,
-          message_id: statusMsg.message_id,
-          parse_mode: 'Markdown'
-        }).catch(() => {});
-      }
-    });
-
-    claude.stderr.on('data', (data) => {
-      log(`[CLAUDE ERR] ${data.toString()}`);
-    });
-
-    claude.on('close', (code) => {
-      clearTimeout(timeoutId);
-      activeClaudeProcess = null;
-
-      if (code === 0) {
-        // 성공 - 결과 요약 전송
-        const summary = output.length > 3000
-          ? output.slice(-3000) + '\n\n... (앞부분 생략)'
-          : output;
-
-        bot.sendMessage(chatId, `
-✅ *작업 완료!*
-
-\`\`\`
-${summary.slice(0, 3500)}
-\`\`\`
-        `, { parse_mode: 'Markdown' }).catch(() => {
-          // Markdown 실패시 일반 텍스트로
-          bot.sendMessage(chatId, `✅ 작업 완료!\n\n${summary.slice(0, 3500)}`);
-        });
-
-        resolve(output);
-      } else {
-        bot.sendMessage(chatId, `❌ 작업 실패 (코드: ${code})\n\n${output.slice(-500)}`);
-        reject(new Error(`Claude exited with code ${code}`));
-      }
-    });
-
-    claude.on('error', (error) => {
-      clearTimeout(timeoutId);
-      activeClaudeProcess = null;
-      log(`[CLAUDE ERROR] ${error.message}`);
-      bot.sendMessage(chatId, `❌ Claude 실행 오류: ${error.message}`);
-      reject(error);
-    });
-  });
 }
 
 // ============================================
 // 명령어 핸들러
 // ============================================
 
-// /start - 시작
+// /start
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const username = msg.from.username || msg.from.first_name;
@@ -180,98 +138,211 @@ bot.onText(/\/start/, (msg) => {
   log(`[START] User: ${username} (${chatId})`);
 
   bot.sendMessage(chatId, `
-🤖 *MoltBot + Claude Code 연동!*
+🤖 *MoltBot v2 - AUTUS 통합*
 
 안녕하세요, ${username}님!
-모바일에서 Claude Code에 직접 명령할 수 있습니다.
 
-*사용 가능한 명령:*
-/claude [요청] - Claude Code 실행 ⭐
-/dev [내용] - 개발 요청 (저장)
+*🧠 학원 관리*
+/brain status - 시스템 상태
+/brain dashboard - 대시보드
+/brain risk - 위험 학생 목록
+/brain rules - 규칙 목록
+/brain student [ID] - 학생 상세
+
+*💻 개발 도구*
 /build - 프로젝트 빌드
-/deploy - Git Push + Vercel 배포
+/deploy - Git Push + 배포
 /git [명령] - Git 명령어
-/status - 상태 확인
-/stop - 진행 중인 작업 중지
 
-*예시:*
-/claude 올댓바스켓에 통계 대시보드 추가해줘
-/claude git status 확인하고 커밋해줘
+*🔗 Cowork (Mac 로컬)*
+/cowork list - 작업 목록
+/cowork [작업ID] - 작업 실행
+/test - 테스트 실행
+/lint - 린트 검사
+
+*🔄 9단계 워크플로우*
+/workflow phases - 9단계 확인
+/workflow start [ID] - 미션 시작
+/workflow status - 현재 상태
+
+*🎯 6-Agent Router*
+/route [작업] - 에이전트 라우팅 분석
+/do [명령] - 자연어 명령 실행
+/tasks - 활성 작업 목록
+/confirm - 작업 완료 확인
+
+*📊 상태*
+/status - 전체 상태
+
+💡 일반 메시지 → AI 응답
   `, { parse_mode: 'Markdown' });
 });
 
-// /claude - Claude Code 직접 실행 ⭐
-bot.onText(/\/claude (.+)/s, async (msg, match) => {
+// /brain - MoltBot Brain 명령
+bot.onText(/\/brain(?:\s+(.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
-  const prompt = match[1];
+  const args = match[1]?.split(' ') || ['help'];
+  const command = args[0];
 
-  log(`[CLAUDE CMD] ${msg.from.username}: ${prompt.slice(0, 100)}`);
+  log(`[BRAIN] ${msg.from.username}: ${command}`);
 
+  let response = '';
+
+  switch (command) {
+    case 'status': {
+      const data = await callBrainAPI('/api/moltbot/health');
+      if (data) {
+        response = `
+🧠 *MoltBot Brain 상태*
+
+✅ 상태: ${data.status}
+🕐 시간: ${new Date(data.timestamp).toLocaleString('ko-KR')}
+📦 버전: ${data.version || '1.0.0'}
+        `;
+      } else {
+        response = '❌ Brain 서버에 연결할 수 없습니다.\n\n💡 실행: cd ~/Desktop/autus/moltbot-brain && npm start';
+      }
+      break;
+    }
+
+    case 'dashboard': {
+      const data = await callBrainAPI('/api/moltbot/dashboard');
+      if (data) {
+        response = `
+📊 *MoltBot 대시보드*
+
+*위험 학생:* ${data.at_risk?.length || 0}명
+${(data.at_risk || []).slice(0, 5).map((s, i) =>
+  `  ${i + 1}. ${s.name || s.id} (출석 ${s.attendance_rate}%)`
+).join('\n') || '  없음'}
+
+*오늘 출석:*
+${(data.today_attendance || []).map(c =>
+  `  • ${c.class_name}: ${c.present_count}/${c.total_students}명`
+).join('\n') || '  수업 없음'}
+
+*이번 달 수납:*
+${data.monthly_payments ? `
+  • 완납: ${data.monthly_payments.paid_count}건
+  • 미납: ${data.monthly_payments.overdue_count}건
+  • 수금액: ${(data.monthly_payments.collected_amount || 0).toLocaleString()}원
+` : '  데이터 없음'}
+        `;
+      } else {
+        response = '❌ 대시보드를 불러올 수 없습니다.';
+      }
+      break;
+    }
+
+    case 'risk': {
+      const data = await callBrainAPI('/api/moltbot/students/at-risk');
+      if (data) {
+        response = `
+⚠️ *위험 학생 목록* (${data.count}명)
+
+${(data.students || []).slice(0, 10).map((s, i) => {
+  const rate = s.attendance_rate || 0;
+  const icon = rate < 60 ? '🔴' : rate < 70 ? '🟠' : '🟡';
+  return `${i + 1}. ${icon} *${s.name || s.id}*
+   출석: ${rate}% | 미수금: ${(s.total_outstanding || 0).toLocaleString()}원`;
+}).join('\n\n') || '없음'}
+        `;
+      } else {
+        response = '❌ 위험 학생 목록을 불러올 수 없습니다.';
+      }
+      break;
+    }
+
+    case 'rules': {
+      const data = await callBrainAPI('/api/moltbot/rules');
+      if (data) {
+        response = `
+📋 *규칙 목록*
+
+${(data.rules || []).map(r =>
+  `• *${r.id}* [${r.mode}]\n  ${r.name}`
+).join('\n\n') || '규칙 없음'}
+        `;
+      } else {
+        response = '❌ 규칙 목록을 불러올 수 없습니다.';
+      }
+      break;
+    }
+
+    case 'student': {
+      const studentId = args[1];
+      if (!studentId) {
+        response = '사용법: /brain student [학생ID]';
+      } else {
+        const data = await callBrainAPI(`/api/moltbot/student?id=${studentId}`);
+        if (data?.context) {
+          const s = data.context.student;
+          response = `
+👤 *학생 상세*
+
+📛 이름: ${s.data?.name || studentId}
+📊 상태: ${s.state}
+📈 출석률: ${s.data?.attendance_rate || 0}%
+🔢 연속 결석: ${s.data?.consecutive_absent || 0}회
+💰 미수금: ${(s.data?.total_outstanding || 0).toLocaleString()}원
+
+*최근 개입:* ${data.interventions?.length || 0}건
+          `;
+        } else {
+          response = `❌ 학생을 찾을 수 없습니다: ${studentId}`;
+        }
+      }
+      break;
+    }
+
+    default:
+      response = `
+🧠 *Brain 명령어*
+
+/brain status - 상태 확인
+/brain dashboard - 대시보드
+/brain risk - 위험 학생
+/brain rules - 규칙 목록
+/brain student [ID] - 학생 상세
+      `;
+  }
+
+  bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+});
+
+// /status
+bot.onText(/\/status/, async (msg) => {
+  const chatId = msg.chat.id;
+
+  // Brain 상태 확인
+  let brainStatus = '❌ 오프라인';
   try {
-    await runClaudeCode(chatId, prompt);
-  } catch (error) {
-    log(`[CLAUDE FAIL] ${error.message}`);
-  }
-});
-
-// /stop - 진행 중인 작업 중지
-bot.onText(/\/stop/, (msg) => {
-  if (activeClaudeProcess) {
-    activeClaudeProcess.kill();
-    activeClaudeProcess = null;
-    bot.sendMessage(msg.chat.id, '🛑 작업이 중지되었습니다.');
-  } else {
-    bot.sendMessage(msg.chat.id, '진행 중인 작업이 없습니다.');
-  }
-});
-
-// /dev - 개발 요청 (저장만)
-bot.onText(/\/dev (.+)/, (msg, match) => {
-  const chatId = msg.chat.id;
-  const username = msg.from.username || 'unknown';
-  const request = match[1];
-
-  log(`[DEV] ${username}: ${request}`);
-
-  const index = saveCommand({
-    type: 'dev',
-    user: username,
-    chatId: chatId,
-    request: request,
-  });
+    const brainHealth = await callBrainAPI('/api/moltbot/health');
+    if (brainHealth) brainStatus = '✅ 온라인';
+  } catch (e) {}
 
   bot.sendMessage(chatId, `
-✅ *개발 요청 저장됨*
+📊 *MoltBot v2 상태*
 
-📝 요청: ${request}
-🔢 번호: #${index + 1}
-
-💡 바로 실행하려면:
-/claude ${request}
-  `, { parse_mode: 'Markdown' });
-});
-
-// /status - 상태 확인
-bot.onText(/\/status/, (msg) => {
-  const isClaudeRunning = !!activeClaudeProcess;
-
-  bot.sendMessage(msg.chat.id, `
-📊 *MoltBot 상태*
-
-🟢 봇: 온라인
-${isClaudeRunning ? '🔄 Claude: 작업 중' : '⚪ Claude: 대기'}
+*🤖 Bot:*
+🟢 텔레그램: 온라인
 🕐 가동: ${Math.round(process.uptime() / 60)}분
-💻 경로: ${AUTUS_DIR}
+
+*🧠 Brain:*
+${brainStatus}
+
+*📂 경로:*
+${AUTUS_DIR}
   `, { parse_mode: 'Markdown' });
 });
 
-// /build - 빌드
+// /build
 bot.onText(/\/build/, (msg) => {
   const chatId = msg.chat.id;
   log(`[BUILD] Requested by ${msg.from.username}`);
   bot.sendMessage(chatId, '🔨 빌드 시작...');
 
-  exec('cd ~/Desktop/autus/kraton-v2 && npm run build 2>&1 | tail -20', (error, stdout) => {
+  exec(`cd ${AUTUS_DIR}/kraton-v2 && npm run build 2>&1 | tail -20`, (error, stdout) => {
     if (error && !stdout.includes('built in')) {
       bot.sendMessage(chatId, `❌ 빌드 실패!\n\n\`\`\`\n${stdout.slice(-800)}\n\`\`\``, { parse_mode: 'Markdown' });
       return;
@@ -280,25 +351,25 @@ bot.onText(/\/build/, (msg) => {
   });
 });
 
-// /deploy - 배포
+// /deploy
 bot.onText(/\/deploy/, (msg) => {
   const chatId = msg.chat.id;
   log(`[DEPLOY] Requested by ${msg.from.username}`);
   bot.sendMessage(chatId, '🚀 배포 시작...');
 
-  exec('cd ~/Desktop/autus && git add -A && git commit -m "deploy: via MoltBot 📱" --allow-empty && git push origin main 2>&1', (error, stdout, stderr) => {
+  exec(`cd ${AUTUS_DIR} && git add -A && git commit -m "deploy: via MoltBot 📱" --allow-empty && git push origin main 2>&1`, (error, stdout, stderr) => {
     const output = stdout + stderr;
     if (output.includes('Everything up-to-date') || output.includes('main -> main')) {
-      bot.sendMessage(chatId, `✅ *배포 완료!*\n\nhttps://autus-ai.com`, { parse_mode: 'Markdown' });
+      bot.sendMessage(chatId, `✅ *배포 완료!*`, { parse_mode: 'Markdown' });
     } else if (error) {
       bot.sendMessage(chatId, `❌ 배포 실패\n\n${output.slice(-500)}`);
     } else {
-      bot.sendMessage(chatId, `✅ *배포 완료!*\n\nhttps://autus-ai.com`, { parse_mode: 'Markdown' });
+      bot.sendMessage(chatId, `✅ *배포 완료!*`, { parse_mode: 'Markdown' });
     }
   });
 });
 
-// /git - Git 명령
+// /git
 bot.onText(/\/git (.+)/, (msg, match) => {
   const chatId = msg.chat.id;
   const gitCmd = match[1];
@@ -311,73 +382,146 @@ bot.onText(/\/git (.+)/, (msg, match) => {
     return;
   }
 
-  exec(`cd ~/Desktop/autus && git ${gitCmd} 2>&1`, (error, stdout) => {
+  exec(`cd ${AUTUS_DIR} && git ${gitCmd} 2>&1`, (error, stdout) => {
     const output = stdout || '(출력 없음)';
     bot.sendMessage(chatId, `📂 *git ${gitCmd}*\n\n\`\`\`\n${output.slice(-1500)}\n\`\`\``, { parse_mode: 'Markdown' });
   });
 });
 
-// /help - 도움말
+// /help
 bot.onText(/\/help/, (msg) => {
   bot.sendMessage(msg.chat.id, `
-📚 *MoltBot 명령어*
+📚 *MoltBot v2 명령어*
 
-⭐ *Claude Code (핵심)*
-/claude [요청] - Claude에게 직접 명령
-/stop - 진행 중인 작업 중지
+🧠 *학원 관리*
+/brain status - 상태
+/brain dashboard - 대시보드
+/brain risk - 위험 학생
+/brain rules - 규칙
+/brain student [ID] - 학생 상세
 
-🔧 *개발*
+💻 *개발 도구*
 /build - 빌드
 /deploy - 배포
+/git [명령] - Git
 
-📂 *Git*
-/git status
-/git pull
-/git push
+🔗 *Cowork (Mac 로컬)*
+/cowork list - 작업 목록
+/cowork [작업ID] - 작업 실행
+/test - 테스트 실행
+/lint - 린트 검사
+/cowork queue - 큐 상태
+
+🔄 *9단계 워크플로우*
+/workflow phases - 9단계 확인
+/workflow templates - 미션 템플릿
+/workflow start [ID] - 미션 시작
+/workflow status - 현재 상태
+/workflow advance - 다음 단계
+
+🎯 *6-Agent Task Router (핵심)*
+/route [작업] - 에이전트 라우팅 분석
+/do [명령] - 자연어로 작업 실행
+/tasks - 활성 작업 목록
+/tasks history - 작업 히스토리
+/confirm - 완료 확인
+/reject - 작업 거절
 
 📊 *상태*
-/status - 봇 상태
+/status - 전체 상태
 
-💡 *팁*
-그냥 메시지를 보내면 자동으로 Claude에게 전달됩니다!
+💡 일반 메시지 → AI 응답
   `, { parse_mode: 'Markdown' });
 });
 
-// 일반 메시지 → Claude Code 실행
+// 일반 메시지 → 6-Agent Router 또는 자동 응답
 bot.on('message', async (msg) => {
   if (msg.text && !msg.text.startsWith('/')) {
     const chatId = msg.chat.id;
     const prompt = msg.text;
 
-    log(`[MSG→CLAUDE] ${msg.from.username}: ${prompt.slice(0, 100)}`);
+    log(`[MSG] ${msg.from.username}: ${prompt.slice(0, 100)}`);
 
-    try {
-      await runClaudeCode(chatId, prompt);
-    } catch (error) {
-      log(`[MSG→CLAUDE FAIL] ${error.message}`);
+    // 1. 6-Agent Router로 먼저 라우팅 분석
+    const signal = detectSignal(prompt);
+    const scores = scoreAgents(prompt, signal);
+    const chain = buildChain(prompt, signal, scores);
+    
+    const primary = chain.find(c => c.role === 'primary' || c.role === 'entry');
+    
+    // 작업 신호가 강하면 (Score > 0.5) 라우팅 제안
+    if (primary && primary.totalScore > 0.5) {
+      const parsed = parseCommand(prompt);
+      if (parsed) {
+        // 실행 가능한 작업
+        bot.sendMessage(chatId, `
+🎯 *작업 감지*
+
+${primary.agent.emoji} Primary: *${primary.agent.name}*
+📊 Score: ${primary.totalScore}
+
+/route ${prompt} → 상세 분석
+/do ${prompt} → 바로 실행
+        `, { parse_mode: 'Markdown' });
+        return;
+      }
     }
+
+    // 2. 기존 자동 응답
+    await handleMessage(chatId, prompt);
   }
 });
 
 // ============================================
+// Cowork 핸들러 설정
+// ============================================
+setupCoworkCommands(bot, (chatId, message, options) => {
+  bot.sendMessage(chatId, message, { parse_mode: 'Markdown', ...options });
+});
+log('🔗 Cowork 핸들러 연결됨');
+
+// ============================================
+// Workflow 핸들러 설정
+// ============================================
+workflowAdapter.setupWorkflowCommands(bot);
+log('🔄 Workflow 핸들러 연결됨');
+
+// ============================================
+// Task Orchestrator 설정
+// ============================================
+setupOrchestratorCommands(bot, BRAIN_URL);
+log('🎯 Task Orchestrator 연결됨');
+
+// ============================================
 // 시작
 // ============================================
-log('🤖 MoltBot Bridge 시작!');
+log('🤖 MoltBot v2 시작!');
 console.log(`
 ╔═══════════════════════════════════════════╗
-║   🤖 MoltBot + Claude Code Bridge        ║
+║   🤖 MoltBot v2 - AUTUS 학원 관리         ║
 ╠═══════════════════════════════════════════╣
-║  Telegram: @autus_seho_bot               ║
-║  Claude: 🟢 Ready                         ║
+║  Telegram: ✅ 연결됨                       ║
+║  Brain: ${BRAIN_URL}
 ║  Path: ${AUTUS_DIR}
 ╚═══════════════════════════════════════════╝
 `);
 
 bot.on('polling_error', (error) => {
+  // 409 Conflict 무시 (다른 인스턴스 충돌)
+  if (error.code === 'ETELEGRAM' && error.response?.statusCode === 409) {
+    log('[WARN] 다른 봇 인스턴스가 실행 중일 수 있습니다.');
+    return;
+  }
   log(`[ERROR] ${error.message}`);
 });
 
 process.on('uncaughtException', (error) => {
   log(`[FATAL] ${error.message}`);
-  activeClaudeProcess = null;
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  log('[SHUTDOWN] MoltBot 종료');
+  bot.stopPolling();
+  process.exit(0);
 });

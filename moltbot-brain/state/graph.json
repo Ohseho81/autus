@@ -1,0 +1,84 @@
+{
+  "nodes": [
+    [
+      "student:test_student_001",
+      {
+        "id": "student:test_student_001",
+        "type": "student",
+        "entity_id": "test_student_001",
+        "data": {
+          "total_sessions": 12,
+          "present_count": 3,
+          "attendance_rate": 25,
+          "consecutive_absent": 3,
+          "last_attendance": "2026-01-31T10:33:58.411Z",
+          "last_status": "absent",
+          "state": "critical",
+          "total_outstanding": 100000,
+          "payment_status": "overdue",
+          "last_payment": "2026-01-31T10:33:58.418Z",
+          "days_until_due": null,
+          "days_overdue": -4
+        },
+        "state": "critical",
+        "updated_at": "2026-01-31T10:33:58.422Z",
+        "created_at": "2026-01-31T10:00:25.508Z"
+      }
+    ],
+    [
+      "student:adapter_test_001",
+      {
+        "id": "student:adapter_test_001",
+        "type": "student",
+        "entity_id": "adapter_test_001",
+        "data": {
+          "total_sessions": 3,
+          "present_count": 3,
+          "attendance_rate": 100,
+          "consecutive_absent": 0,
+          "last_attendance": "2026-01-31T10:33:58.423Z",
+          "last_status": "present",
+          "state": "stable",
+          "total_outstanding": 0,
+          "payment_status": "paid",
+          "last_payment": "2026-01-31T10:33:58.423Z",
+          "days_until_due": null,
+          "days_overdue": 0
+        },
+        "state": "stable",
+        "updated_at": "2026-01-31T10:33:58.425Z",
+        "created_at": "2026-01-31T10:00:25.536Z"
+      }
+    ],
+    [
+      "student:api_test_001",
+      {
+        "id": "student:api_test_001",
+        "type": "student",
+        "entity_id": "api_test_001",
+        "data": {
+          "total_sessions": 3,
+          "present_count": 3,
+          "attendance_rate": 100,
+          "consecutive_absent": 0,
+          "last_attendance": "2026-01-31T10:33:58.464Z",
+          "last_status": "present",
+          "state": "stable"
+        },
+        "state": "stable",
+        "updated_at": "2026-01-31T10:33:58.464Z",
+        "created_at": "2026-01-31T10:00:25.577Z"
+      }
+    ]
+  ],
+  "edges": [],
+  "stateHistory": [
+    {
+      "node_id": "student:test_student_001",
+      "from": "stable",
+      "to": "critical",
+      "timestamp": "2026-01-31T10:00:25.520Z"
+    }
+  ],
+  "saved_at": "2026-01-31T10:33:58.464Z"
+}

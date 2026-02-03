@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "moltbot-brain/**/*.js",
+    "moltbot-bridge/**/*.js",
+    "kraton-v2/**/*.js",
+    "kraton-v2/**/*.jsx",
+    "kraton-v2/**/*.ts",
+    "kraton-v2/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/node_modules",
+    "supabase/functions/**/*"
+  ]
+}

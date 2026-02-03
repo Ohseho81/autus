@@ -1,0 +1,105 @@
+{
+  "$schema": "AUTUS OutcomeFact Rules v2.0",
+  "$lock": true,
+  "$description": "고객의 비가역 행동만 트리거. 요청은 Shadow.",
+
+  "tiers": {
+    "S": {
+      "description": "즉시 프로세스 생성",
+      "trigger": true
+    },
+    "A": {
+      "description": "기록만, 트리거 아님",
+      "trigger": false
+    },
+    "TERMINAL": {
+      "description": "최종 상태, 더 이상 액션 없음",
+      "trigger": false
+    }
+  },
+
+  "outcomes": {
+    "renewal.failed": {
+      "tier": "S",
+      "label": "재등록 실패",
+      "weight": -1.0,
+      "description": "재등록 결제 미완료",
+      "process": "retention_process",
+      "urgency": "critical",
+      "notify": ["owner", "admin"]
+    },
+
+    "attendance.drop": {
+      "tier": "S",
+      "label": "출석률 하락",
+      "weight": -0.5,
+      "description": "연속 결석 임계치 초과",
+      "threshold_key": "consecutive_absence",
+      "process": "recovery_process",
+      "urgency": "high",
+      "notify": ["coach", "admin"]
+    },
+
+    "notification.ignored": {
+      "tier": "S",
+      "label": "알림 무응답",
+      "weight": -0.3,
+      "description": "알림 무응답 기간 초과",
+      "threshold_key": "notification_ignore_days",
+      "process": "engagement_process",
+      "urgency": "medium",
+      "notify": ["admin"]
+    },
+
+    "renewal.succeeded": {
+      "tier": "A",
+      "label": "재등록 성공",
+      "weight": +1.0,
+      "description": "재등록 결제 완료",
+      "log_only": true
+    },
+
+    "attendance.normal": {
+      "tier": "A",
+      "label": "정상 출석",
+      "weight": +0.3,
+      "description": "예정된 수업 출석 완료",
+      "log_only": true
+    },
+
+    "notification.read": {
+      "tier": "A",
+      "label": "알림 확인",
+      "weight": +0.2,
+      "description": "알림 확인 및 반응",
+      "log_only": true
+    },
+
+    "churn.finalized": {
+      "tier": "TERMINAL",
+      "label": "계약 종료",
+      "weight": -2.0,
+      "description": "환불 완료 또는 계약 만료",
+      "terminal": true
+    },
+
+    "teacher.changed": {
+      "tier": "TERMINAL",
+      "label": "강사 변경 완료",
+      "weight": 0,
+      "description": "강사 변경 처리 완료",
+      "terminal": true
+    }
+  },
+
+  "routing": {
+    "renewal.failed": { "screen": "dashboard", "role": "owner", "priority": "critical" },
+    "attendance.drop": { "screen": "classes", "role": "coach", "priority": "high" },
+    "notification.ignored": { "screen": "students", "role": "admin", "priority": "medium" },
+    "renewal.succeeded": { "screen": null, "role": null, "priority": "none" },
+    "attendance.normal": { "screen": null, "role": null, "priority": "none" },
+    "notification.read": { "screen": null, "role": null, "priority": "none" },
+    "churn.finalized": { "screen": "dashboard", "role": "owner", "priority": "info" },
+    "teacher.changed": { "screen": null, "role": null, "priority": "none" }
+  }
+}

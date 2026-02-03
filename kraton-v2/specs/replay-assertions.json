@@ -1,0 +1,291 @@
+{
+  "assertion_version": "1.0",
+  "brand_id": "allthatbasket",
+  "spec_ref": "./autus-ui-spec.v1.json",
+
+  "global_invariants": [
+    {
+      "id": "INV001",
+      "name": "로그 불변성",
+      "rule": "OutcomeFact and DecisionLog are append-only",
+      "check": "no DELETE or UPDATE operations on append_only entities"
+    },
+    {
+      "id": "INV002",
+      "name": "상태 전이 유효성",
+      "rule": "Contract state transitions must follow state_machine.transitions",
+      "check": "transition.from includes current_state AND transition.to equals new_state"
+    },
+    {
+      "id": "INV003",
+      "name": "S-Tier 트리거 필수 응답",
+      "rule": "S-Tier OutcomeFact must create decision_card within 1 tick",
+      "check": "if fact.tier === 'S' then decision_card.created_at <= fact.ts + 1"
+    },
+    {
+      "id": "INV004",
+      "name": "Terminal 상태 종결성",
+      "rule": "Terminal tier leads to S9 closed state",
+      "check": "if fact.tier === 'Terminal' then contract.state === 'S9'"
+    },
+    {
+      "id": "INV005",
+      "name": "권한 검증",
+      "rule": "Actions must be performed by roles with matching permissions",
+      "check": "action in roles[actor_role].permissions"
+    }
+  ],
+
+  "state_transition_rules": [
+    {
+      "id": "STR001",
+      "from": ["S0", "S5", "S6"],
+      "to": "S1",
+      "trigger": "S-Tier OutcomeFact",
+      "action_required": "create_decision_card",
+      "assertion": "decision_inbox.length increases by 1"
+    },
+    {
+      "id": "STR002",
+      "from": ["S1"],
+      "to": "S2",
+      "trigger": "eligibility_evaluated",
+      "assertion": "contract.eligible === true"
+    },
+    {
+      "id": "STR003",
+      "from": ["S2"],
+      "to": "S3",
+      "condition": "requires_approval === true",
+      "action_required": "open_transition_modal",
+      "assertion": "modal.visible === true AND modal.type === 'transition_modal'"
+    },
+    {
+      "id": "STR004",
+      "from": ["S2"],
+      "to": "S4",
+      "condition": "requires_approval === false",
+      "action_required": "apply_policy",
+      "assertion": "policy.applied === true"
+    },
+    {
+      "id": "STR005",
+      "from": ["S3"],
+      "to": "S4",
+      "condition": "approved === true",
+      "assertion": "decision_log contains approval entry"
+    },
+    {
+      "id": "STR006",
+      "from": ["S3"],
+      "to": "S1",
+      "condition": "deferred === true",
+      "assertion": "contract.ttl_hours > 0"
+    },
+    {
+      "id": "STR007",
+      "from": ["S4"],
+      "to": "S5",
+      "action_required": "start_monitoring",
+      "assertion": "contract.monitoring === true"
+    },
+    {
+      "id": "STR008",
+      "from": ["S5"],
+      "to": "S6",
+      "condition": "recovered === true",
+      "assertion": "vv_7d >= thresholds.green"
+    },
+    {
+      "id": "STR009",
+      "from": ["S5"],
+      "to": "S7",
+      "condition": "needs_shadow === true",
+      "assertion": "policy.mode === 'shadow'"
+    },
+    {
+      "id": "STR010",
+      "from": ["S6", "S5", "S4"],
+      "to": "S0",
+      "condition": "killed === true",
+      "actor_required": "owner",
+      "assertion": "decision_log contains kill_switch entry"
+    },
+    {
+      "id": "STR011",
+      "from": ["S0", "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"],
+      "to": "S9",
+      "trigger": "Terminal OutcomeFact",
+      "assertion": "contract.state === 'S9' AND contract.closed === true"
+    }
+  ],
+
+  "decision_card_rules": [
+    {
+      "id": "DCR001",
+      "card_type": "D_ATTENDANCE_DROP",
+      "trigger": "attendance.drop",
+      "owner_role": "owner",
+      "deadline_hours": 48,
+      "valid_options": ["reassign_coach", "reduce_capacity", "apply_makeup_policy", "kill_slot"],
+      "assertion": "chosen_option in valid_options"
+    },
+    {
+      "id": "DCR002",
+      "card_type": "D_RENEWAL_FAILED",
+      "trigger": "renewal.failed",
+      "owner_role": "owner",
+      "deadline_hours": 72,
+      "valid_options": ["notify_parent", "apply_discount_policy", "change_timeslot", "kill_contract"],
+      "assertion": "chosen_option in valid_options"
+    },
+    {
+      "id": "DCR003",
+      "card_type": "D_NOTIFICATION_IGNORED",
+      "trigger": "notification.ignored",
+      "owner_role": "manager",
+      "deadline_hours": 24,
+      "valid_options": ["change_channel", "reduce_frequency", "notify_parent"],
+      "assertion": "chosen_option in valid_options"
+    }
+  ],
+
+  "metrics_rules": [
+    {
+      "id": "MET001",
+      "metric": "vv_7d",
+      "window": 7,
+      "min_samples": 10,
+      "thresholds": {
+        "green": "value >= 0.5",
+        "yellow": "-0.2 <= value < 0.5",
+        "red": "value < -0.2",
+        "gray": "samples < min_samples"
+      },
+      "assertion": "display matches threshold bucket"
+    },
+    {
+      "id": "MET002",
+      "metric": "vv_7d",
+      "on_event": "renewal.succeeded",
+      "weight_change": 1.0,
+      "assertion": "vv_7d increases by weight"
+    },
+    {
+      "id": "MET003",
+      "metric": "vv_7d",
+      "on_event": "renewal.failed",
+      "weight_change": -1.0,
+      "assertion": "vv_7d decreases by weight"
+    },
+    {
+      "id": "MET004",
+      "metric": "vv_7d",
+      "on_event": "churn.finalized",
+      "weight_change": -2.0,
+      "assertion": "vv_7d decreases by weight"
+    }
+  ],
+
+  "permission_rules": [
+    {
+      "id": "PER001",
+      "role": "owner",
+      "allowed": ["view_all", "approve", "kill", "reassign", "change_policy", "view_logs"],
+      "assertion": "action in allowed returns success"
+    },
+    {
+      "id": "PER002",
+      "role": "manager",
+      "allowed": ["view_all", "propose", "notify", "view_logs"],
+      "denied": ["approve", "kill", "reassign", "change_policy"],
+      "assertion": "action in denied returns permission_denied"
+    },
+    {
+      "id": "PER003",
+      "role": "coach",
+      "allowed": ["view_assigned", "mark_attendance", "propose", "notify_limited"],
+      "denied": ["view_all", "approve", "kill"],
+      "assertion": "action in denied returns permission_denied"
+    },
+    {
+      "id": "PER004",
+      "role": "parent",
+      "allowed": ["view_child_status", "respond_notifications"],
+      "reply_options": ["ack", "confirm_makeup", "request_call"],
+      "assertion": "no_free_text_reply === true"
+    }
+  ],
+
+  "ui_visibility_rules": [
+    {
+      "id": "UIV001",
+      "page": "world_map",
+      "visible_to": ["owner", "manager"],
+      "assertion": "role in visible_to ? page.accessible : page.hidden"
+    },
+    {
+      "id": "UIV002",
+      "page": "owner_dashboard",
+      "visible_to": ["owner"],
+      "assertion": "role === 'owner' ? page.accessible : page.hidden"
+    },
+    {
+      "id": "UIV003",
+      "page": "coach_view",
+      "visible_to": ["coach"],
+      "assertion": "role === 'coach' ? page.accessible : page.hidden"
+    },
+    {
+      "id": "UIV004",
+      "page": "parent_view",
+      "visible_to": ["parent"],
+      "assertion": "role === 'parent' ? page.accessible : page.hidden"
+    }
+  ],
+
+  "blast_radius_rules": [
+    {
+      "id": "BLR001",
+      "trigger": "policy change",
+      "calculation": "count contracts affected by policy",
+      "modal_required": true,
+      "assertion": "transition_modal.blast_radius displayed before approval"
+    },
+    {
+      "id": "BLR002",
+      "trigger": "coach reassignment",
+      "calculation": "count students in affected timeslots",
+      "assertion": "affected_count shown in decision context"
+    }
+  ],
+
+  "shadow_learning_rules": [
+    {
+      "id": "SHL001",
+      "mode": "shadow",
+      "execution": false,
+      "logging": true,
+      "assertion": "shadow policy does not modify state, only logs predictions"
+    },
+    {
+      "id": "SHL002",
+      "promotion_threshold": 0.9,
+      "min_observations": 50,
+      "assertion": "mode changes to promoted only when confidence >= threshold AND observations >= min"
+    }
+  ],
+
+  "replay_runner_config": {
+    "input_file": "./allthatbasket_30.jsonl",
+    "output_format": "tap",
+    "parallel": false,
+    "stop_on_failure": false,
+    "verbose": true,
+    "hooks": {
+      "before_scenario": "reset_state",
+      "after_scenario": "snapshot_state",
+      "on_assertion_fail": "log_diff"
+    }
+  }
+}

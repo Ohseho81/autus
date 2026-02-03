@@ -1,0 +1,79 @@
+{
+  "$schema": "AUTUS Thresholds v2.0",
+  "$lock": true,
+  "$description": "모든 임계치 명시. 매직넘버 금지.",
+
+  "outcome_thresholds": {
+    "consecutive_absence": {
+      "value": 3,
+      "unit": "회",
+      "description": "연속 결석 3회 → attendance.drop 트리거"
+    },
+    "notification_ignore_days": {
+      "value": 7,
+      "unit": "일",
+      "description": "알림 무응답 7일 → notification.ignored 트리거"
+    },
+    "renewal_warning_days": {
+      "value": 30,
+      "unit": "일",
+      "description": "만료 30일 전 → 재등록 안내 시작"
+    },
+    "renewal_critical_days": {
+      "value": 7,
+      "unit": "일",
+      "description": "만료 7일 전 → 긴급 알림"
+    }
+  },
+
+  "velocity_thresholds": {
+    "green": {
+      "min": 0.5,
+      "action": "확장 가능",
+      "color": "#10B981"
+    },
+    "yellow": {
+      "min": -0.2,
+      "max": 0.5,
+      "action": "유지",
+      "color": "#F59E0B"
+    },
+    "red": {
+      "max": -0.2,
+      "action": "개선 또는 Kill",
+      "color": "#EF4444"
+    }
+  },
+
+  "clf_thresholds": {
+    "low": {
+      "max": 15,
+      "label": "낮음",
+      "description": "학생 ≤8, 연령대 1개, 프로그램 1개"
+    },
+    "medium": {
+      "min": 15,
+      "max": 40,
+      "label": "보통",
+      "description": "학생 9-15, 연령대 2개, 프로그램 2개"
+    },
+    "high": {
+      "min": 40,
+      "label": "높음",
+      "description": "학생 >15 또는 연령대 3개 이상"
+    }
+  },
+
+  "loop_timeouts": {
+    "attendance_loop": null,
+    "recovery_loop": 14,
+    "notification_loop": 7,
+    "renewal_loop": 30
+  },
+
+  "shadow_limits": {
+    "max_pending_per_category": 10,
+    "auto_archive_days": 30,
+    "escalation_threshold": 3
+  }
+}

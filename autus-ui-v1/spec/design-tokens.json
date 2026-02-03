@@ -1,0 +1,67 @@
+{
+  "$schema": "AUTUS_DESIGN_TOKEN_LOCK_v1",
+  "$description": "LOCKED: No new tokens without LOCK review. Ban any custom CSS.",
+  
+  "colors": {
+    "neutral": {
+      "bg": "#0a0a0a",
+      "surface": "#141414",
+      "border": "#262626",
+      "text": "#fafafa",
+      "textMuted": "#a1a1a1"
+    },
+    "warn": {
+      "bg": "#422006",
+      "border": "#854d0e",
+      "text": "#fbbf24"
+    },
+    "danger": {
+      "bg": "#450a0a",
+      "border": "#991b1b",
+      "text": "#f87171"
+    },
+    "success": {
+      "bg": "#052e16",
+      "border": "#166534",
+      "text": "#4ade80"
+    }
+  },
+  
+  "typography": {
+    "title": {
+      "fontSize": "1.5rem",
+      "fontWeight": "700",
+      "lineHeight": "1.2"
+    },
+    "body": {
+      "fontSize": "1rem",
+      "fontWeight": "400",
+      "lineHeight": "1.5"
+    },
+    "mono": {
+      "fontFamily": "JetBrains Mono, monospace",
+      "fontSize": "0.875rem"
+    }
+  },
+  
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "12px",
+    "lg": "16px",
+    "xl": "24px",
+    "xxl": "32px"
+  },
+  
+  "radius": "8px",
+  
+  "components": {
+    "allowed": ["Card", "Button", "List", "Strip", "Badge", "Toggle"],
+    "banned": ["*"]
+  },
+  
+  "transitions": {
+    "fast": "150ms ease",
+    "normal": "250ms ease"
+  }
+}
