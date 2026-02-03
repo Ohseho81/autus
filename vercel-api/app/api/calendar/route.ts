@@ -2,6 +2,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 
+// CORS 헤더 설정
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// CORS 지원 JSON 응답 헬퍼
+function jsonResponse(data: any, status = 200) {
+  return NextResponse.json(data, { status, headers: corsHeaders });
+}
+
+// CORS preflight 요청 처리
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 // 서비스 계정 인증
 function getAuthClient() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -12,9 +29,7 @@ function getAuthClient() {
   }
 
   // Private Key 줄바꿈 처리 (다양한 형식 지원)
-  // 1. 리터럴 \n 문자열을 실제 줄바꿈으로 변환
   key = key.replace(/\\n/g, '\n');
-  // 2. 이스케이프된 \\n도 처리
   key = key.split('\\n').join('\n');
 
   const auth = new google.auth.JWT({
@@ -26,9 +41,9 @@ function getAuthClient() {
   return auth;
 }
 
-// 캘린더 ID
+// 캘린더 ID (줄바꿈 제거)
 function getCalendarId() {
-  return process.env.GOOGLE_CALENDAR_ID || 'primary';
+  return (process.env.GOOGLE_CALENDAR_ID || 'primary').trim();
 }
 
 // GET: 일정 조회 또는 상태 확인
@@ -42,7 +57,7 @@ export async function GET(request: NextRequest) {
   const auth = getAuthClient();
 
   if (!auth) {
-    return NextResponse.json({
+    return jsonResponse({
       success: false,
       demo: true,
       message: 'Google Calendar API not configured - running in demo mode',
@@ -57,14 +72,14 @@ export async function GET(request: NextRequest) {
     if (action === 'status') {
       try {
         await calendar.calendarList.list({ maxResults: 1 });
-        return NextResponse.json({
+        return jsonResponse({
           success: true,
           connected: true,
           calendarId,
           message: 'Google Calendar API connected',
         });
       } catch (error: any) {
-        return NextResponse.json({
+        return jsonResponse({
           success: false,
           connected: false,
           message: error.message,
@@ -87,7 +102,7 @@ export async function GET(request: NextRequest) {
         orderBy: 'startTime',
       });
 
-      return NextResponse.json({
+      return jsonResponse({
         success: true,
         events: response.data.items || [],
       });
@@ -140,7 +155,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      return NextResponse.json({
+      return jsonResponse({
         success: true,
         date: targetDate.toISOString().split('T')[0],
         busySlots,
@@ -148,15 +163,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    return jsonResponse({ error: 'Invalid action' }, 400);
 
   } catch (error: any) {
     console.error('Calendar API Error:', error);
-    return NextResponse.json({
+    return jsonResponse({
       success: false,
       error: error.message,
       details: error.errors || null,
-    }, { status: 500 });
+    }, 500);
   }
 }
 
@@ -165,7 +180,7 @@ export async function POST(request: NextRequest) {
   const auth = getAuthClient();
 
   if (!auth) {
-    return NextResponse.json({
+    return jsonResponse({
       success: false,
       demo: true,
       message: 'Google Calendar API not configured - running in demo mode',
@@ -180,10 +195,10 @@ export async function POST(request: NextRequest) {
     const { summary, description, startTime, endTime, attendees } = body;
 
     if (!summary || !startTime || !endTime) {
-      return NextResponse.json({
+      return jsonResponse({
         success: false,
         error: 'Missing required fields: summary, startTime, endTime',
-      }, { status: 400 });
+      }, 400);
     }
 
     const event: any = {
@@ -210,7 +225,7 @@ export async function POST(request: NextRequest) {
       sendUpdates: attendees ? 'all' : 'none',
     });
 
-    return NextResponse.json({
+    return jsonResponse({
       success: true,
       event: response.data,
       message: '일정이 생성되었습니다',
@@ -218,10 +233,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Calendar API Error:', error);
-    return NextResponse.json({
+    return jsonResponse({
       success: false,
       error: error.message,
       details: error.errors || null,
-    }, { status: 500 });
+    }, 500);
   }
 }
