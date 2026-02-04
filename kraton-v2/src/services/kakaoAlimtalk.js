@@ -388,6 +388,78 @@ export function calculateCost(count) {
   };
 }
 
+/**
+ * 결석 알림 발송
+ */
+export async function sendAbsentAlert({
+  studentName,
+  parentPhone,
+  className,
+  date = null,
+  withMakeupButton = false,
+  makeupLink = null,
+}) {
+  const templateCode = withMakeupButton ? 'ATB_ATTEND_002' : 'ATB_ATTEND_001';
+  const dateStr = date || new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+
+  return sendAlimtalk({
+    templateCode,
+    phone: parentPhone,
+    variables: {
+      학생명: studentName,
+      날짜: dateStr,
+      수업명: className,
+      보충링크: makeupLink || '',
+    },
+  });
+}
+
+/**
+ * 보충 승인 알림 발송
+ */
+export async function sendMakeupApproved({
+  studentName,
+  parentPhone,
+  className,
+  originalDate,
+  originalTime,
+  newDate,
+  newTime,
+}) {
+  return sendAlimtalk({
+    templateCode: 'ATB_MAKEUP_001',
+    phone: parentPhone,
+    variables: {
+      학생명: studentName,
+      수업명: className,
+      기존날짜: originalDate,
+      기존시간: originalTime,
+      새날짜: newDate,
+      새시간: newTime,
+    },
+  });
+}
+
+/**
+ * 보충 거절 알림 발송
+ */
+export async function sendMakeupRejected({
+  studentName,
+  parentPhone,
+  reason,
+  makeupLink,
+}) {
+  return sendAlimtalk({
+    templateCode: 'ATB_MAKEUP_002',
+    phone: parentPhone,
+    variables: {
+      학생명: studentName,
+      거절사유: reason,
+      보충링크: makeupLink,
+    },
+  });
+}
+
 export default {
   TEMPLATES,
   sendAlimtalk,
@@ -395,6 +467,9 @@ export default {
   sendPaymentReminder,
   sendPaymentComplete,
   sendBulkPaymentRequest,
+  sendAbsentAlert,
+  sendMakeupApproved,
+  sendMakeupRejected,
   getMessageHistory,
   getTodaySentCount,
   calculateCost,

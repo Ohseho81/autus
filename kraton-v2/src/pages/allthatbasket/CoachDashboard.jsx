@@ -10,144 +10,26 @@
  * ═══════════════════════════════════════════════════════════════
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import sessionService, { SESSION_STATUS } from '../../services/sessionService.js';
 
 // ============================================
-// SESSION 상태 정의
+// 세션 데이터 변환 (API → UI)
 // ============================================
-const SESSION_STATUS = {
-  SCHEDULED: 'scheduled',    // 예정
-  IN_PROGRESS: 'in_progress', // 진행중
-  COMPLETED: 'completed',    // 완료
-  FLAGGED: 'flagged',        // 이상 보고됨
-};
-
-// ============================================
-// 오늘의 SESSION 데이터
-// ============================================
-const getTodaySessions = () => {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-
-  // 월수금 (1, 3, 5) or 화목 (2, 4)
-  const isMWF = [1, 3, 5].includes(dayOfWeek);
-  const isTT = [2, 4].includes(dayOfWeek);
-
-  const baseSessions = [
-    {
-      id: 'session_1',
-      className: '유아 기초반',
-      time: '15:00',
-      duration: 50,
-      students: [
-        { id: 101, name: '김민서' },
-        { id: 102, name: '이서준' },
-        { id: 103, name: '박지안' },
-        { id: 104, name: '최예린' },
-        { id: 105, name: '정하윤' },
-        { id: 106, name: '강민준' },
-        { id: 107, name: '조서연' },
-        { id: 108, name: '윤지호' },
-      ],
-      days: '월수금',
-    },
-    {
-      id: 'session_2',
-      className: '초저 기초반',
-      time: '16:00',
-      duration: 60,
-      students: [
-        { id: 201, name: '최여찬' },
-        { id: 202, name: '송은호' },
-        { id: 203, name: '김한준' },
-        { id: 204, name: '이선우' },
-        { id: 205, name: '최원준' },
-        { id: 206, name: '안도윤' },
-        { id: 207, name: '박서현' },
-        { id: 208, name: '정재원' },
-        { id: 209, name: '황시우' },
-        { id: 210, name: '임하린' },
-      ],
-      days: '월수금',
-    },
-    {
-      id: 'session_3',
-      className: '초고 심화반',
-      time: '17:00',
-      duration: 60,
-      students: [
-        { id: 301, name: '김태현' },
-        { id: 302, name: '이준혁' },
-        { id: 303, name: '박민재' },
-        { id: 304, name: '정우진' },
-        { id: 305, name: '최성민' },
-        { id: 306, name: '강지훈' },
-        { id: 307, name: '조현우' },
-        { id: 308, name: '윤서진' },
-      ],
-      days: '월수금',
-    },
-    {
-      id: 'session_4',
-      className: '중등 기초반',
-      time: '18:00',
-      duration: 90,
-      students: [
-        { id: 401, name: '김지효' },
-        { id: 402, name: '박서연' },
-        { id: 403, name: '이도현' },
-        { id: 404, name: '정민규' },
-        { id: 405, name: '최서윤' },
-        { id: 406, name: '강현서' },
-      ],
-      days: '월수금',
-    },
-    {
-      id: 'session_5',
-      className: '유아 심화반',
-      time: '15:00',
-      duration: 50,
-      students: [
-        { id: 501, name: '오예준' },
-        { id: 502, name: '신지우' },
-        { id: 503, name: '유하은' },
-        { id: 504, name: '노시현' },
-        { id: 505, name: '문도윤' },
-      ],
-      days: '화목',
-    },
-    {
-      id: 'session_6',
-      className: '걸스 클럽',
-      time: '16:00',
-      duration: 60,
-      students: [
-        { id: 601, name: '한소율' },
-        { id: 602, name: '백지민' },
-        { id: 603, name: '임서아' },
-        { id: 604, name: '양하린' },
-        { id: 605, name: '권수빈' },
-        { id: 606, name: '조은서' },
-      ],
-      days: '화목',
-    },
-  ];
-
-  // 오늘 요일에 맞는 세션만 필터링
-  return baseSessions.filter(s => {
-    if (s.days === '월수금') return isMWF;
-    if (s.days === '화목') return isTT;
-    return false;
-  }).map(s => ({
-    ...s,
-    status: SESSION_STATUS.SCHEDULED,
-    startedAt: null,
-    endedAt: null,
-    flags: [],
-    presentStudents: [],
-  }));
-};
+const transformSession = (session) => ({
+  id: session.id,
+  className: session.class_name || session.className,
+  time: session.start_time || session.time,
+  duration: session.duration_minutes || session.duration,
+  students: session.students || [],
+  status: session.status || SESSION_STATUS.SCHEDULED,
+  startedAt: session.started_at || session.startedAt,
+  endedAt: session.ended_at || session.endedAt,
+  flags: session.flags || [],
+  presentStudents: session.students?.filter(s => s.attendance_status === 'present').map(s => s.student_id || s.id) || [],
+  recording_status: session.recording_status,
+});
 
 // ============================================
 // 메인 컴포넌트
@@ -159,10 +41,57 @@ export default function CoachDashboard() {
   const [showFlagModal, setShowFlagModal] = useState(false);
   const [showVideoPrompt, setShowVideoPrompt] = useState(false);
   const [completedSession, setCompletedSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [offlineCount, setOfflineCount] = useState(0);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  useEffect(() => {
-    setSessions(getTodaySessions());
+  // 세션 데이터 로드
+  const loadSessions = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await sessionService.getTodaySessions();
+      if (error) console.warn('[Coach] 세션 로드 경고:', error);
+      setSessions((data || []).map(transformSession));
+      
+      // 오프라인 큐 상태 확인
+      const queueStatus = sessionService.getOfflineQueueStatus();
+      setOfflineCount(queueStatus.count);
+    } catch (e) {
+      console.error('[Coach] 세션 로드 실패:', e);
+    }
+    setLoading(false);
   }, []);
+
+  // 초기 로드 및 온라인 상태 감지
+  useEffect(() => {
+    loadSessions();
+
+    // 온라인/오프라인 감지
+    const handleOnline = async () => {
+      setIsOnline(true);
+      showToast('온라인 연결됨', 'success');
+      // 오프라인 큐 동기화
+      const result = await sessionService.syncOfflineQueue();
+      if (result.synced > 0) {
+        showToast(`${result.synced}개 이벤트 동기화 완료`);
+        loadSessions();
+      }
+      setOfflineCount(result.pending);
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      showToast('오프라인 모드', 'warning');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [loadSessions]);
 
   const today = new Date().toLocaleDateString('ko-KR', {
     month: 'long',
@@ -178,25 +107,34 @@ export default function CoachDashboard() {
   // ============================================
   // 핵심 액션: 시작
   // ============================================
-  const handleStart = (session) => {
+  const handleStart = async (session) => {
+    // Optimistic UI 업데이트
     setSessions(prev => prev.map(s =>
       s.id === session.id
         ? {
             ...s,
             status: SESSION_STATUS.IN_PROGRESS,
             startedAt: new Date().toISOString(),
-            presentStudents: s.students.map(st => st.id), // 전체 출석 처리
+            presentStudents: s.students.map(st => st.id || st.student_id),
           }
         : s
     ));
     setActiveSession(session.id);
     showToast(`${session.className} 수업 시작! (전원 출석)`);
+
+    // API 호출
+    const result = await sessionService.startSession(session.id, '강사');
+    if (result.offline) {
+      setOfflineCount(prev => prev + 1);
+      showToast('오프라인 저장됨', 'warning');
+    }
   };
 
   // ============================================
   // 핵심 액션: 종료
   // ============================================
-  const handleEnd = (session) => {
+  const handleEnd = async (session) => {
+    // Optimistic UI 업데이트
     setSessions(prev => prev.map(s =>
       s.id === session.id
         ? {
@@ -210,6 +148,13 @@ export default function CoachDashboard() {
     setCompletedSession(session);
     setShowVideoPrompt(true);
     showToast(`${session.className} 수업 종료!`);
+
+    // API 호출
+    const result = await sessionService.endSession(session.id, '강사');
+    if (result.offline) {
+      setOfflineCount(prev => prev + 1);
+      showToast('오프라인 저장됨', 'warning');
+    }
   };
 
   // ============================================
@@ -220,7 +165,8 @@ export default function CoachDashboard() {
     setShowFlagModal(true);
   };
 
-  const submitFlag = (session, flagData) => {
+  const submitFlag = async (session, flagData) => {
+    // Optimistic UI 업데이트
     setSessions(prev => prev.map(s =>
       s.id === session.id
         ? {
@@ -233,8 +179,23 @@ export default function CoachDashboard() {
     ));
     setShowFlagModal(false);
 
-    // 결석자 알림톡 발송 (시뮬레이션)
-    if (flagData.absentIds.length > 0) {
+    // API 호출
+    const result = await sessionService.reportFlag(session.id, {
+      flagType: flagData.type === '결석' ? 'absent' : 
+                flagData.type === '조퇴' ? 'early_leave' :
+                flagData.type === '지각' ? 'late' :
+                flagData.type === '부상' ? 'injury' : 'other',
+      studentIds: flagData.affectedIds || flagData.absentIds,
+      note: flagData.note,
+    }, '강사');
+
+    if (result.offline) {
+      setOfflineCount(prev => prev + 1);
+      showToast('오프라인 저장됨', 'warning');
+    }
+
+    // 결석자 알림톡 발송
+    if (flagData.absentIds && flagData.absentIds.length > 0) {
       showToast(`결석 ${flagData.absentIds.length}명 → 학부모 알림 발송`);
     }
   };
@@ -249,16 +210,48 @@ export default function CoachDashboard() {
     flagged: sessions.filter(s => s.status === SESSION_STATUS.FLAGGED).length,
   };
 
+  // 로딩 화면
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">수업 정보 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header - 심플하게 */}
+      {/* Header */}
       <header className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-5 sticky top-0 z-50">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">오늘의 수업</h1>
             <p className="text-sm text-orange-100 mt-0.5">{today}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* 오프라인 상태 표시 */}
+            {!isOnline && (
+              <span className="px-2 py-1 bg-yellow-500 rounded-full text-xs font-medium">
+                오프라인
+              </span>
+            )}
+            {/* 오프라인 큐 카운트 */}
+            {offlineCount > 0 && (
+              <span className="px-2 py-1 bg-orange-700 rounded-full text-xs font-medium">
+                대기 {offlineCount}
+              </span>
+            )}
+            {/* 새로고침 */}
+            <button 
+              onClick={loadSessions}
+              className="p-2 bg-white/20 rounded-lg active:bg-white/30"
+            >
+              🔄
+            </button>
+            {/* 완료 통계 */}
             <div className="text-right">
               <p className="text-2xl font-bold">{stats.completed}/{stats.total}</p>
               <p className="text-xs text-orange-100">완료</p>
