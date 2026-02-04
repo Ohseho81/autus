@@ -1,47 +1,119 @@
 /**
- * 🏀 올댓바스켓 코치 대시보드
+ * 🏀 올댓바스켓 강사 대시보드
  *
- * 최소개발 최대효율 - 3가지 핵심 기능만
+ * 강사 핵심 업무: 수업 진행
+ * 프로세스: 상담 → 스케줄 → 수납 → [수업] → 성장 → 재등록
+ *
+ * 주요 기능:
  * 1. 출석 체크
- * 2. 결석 알림 (학부모 푸시)
- * 3. 영상 → 유튜브 업로드
+ * 2. 결석 알림 (학부모 알림톡)
+ * 3. 보충 승인
+ * 4. 영상 업로드
  */
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { makeupRequestService, REQUEST_STATUS } from '../../services/makeupRequest.js';
+import { googleCalendarService } from '../../services/googleCalendar.js';
 
 // ============================================
-// 데모 데이터 (SmartFit 연동 시 대체)
+// 데모 데이터
 // ============================================
 const DEMO_CLASSES = [
-  { id: 1, name: '초등 A반', time: '16:00-17:00', day: '월수금' },
-  { id: 2, name: '초등 B반', time: '17:00-18:00', day: '월수금' },
-  { id: 3, name: '중등반', time: '18:00-19:30', day: '화목' },
+  { id: 1, name: '유아부 A', time: '15:00-16:00', days: '월수금', students: 8 },
+  { id: 2, name: '초등저 A', time: '16:00-17:00', days: '월수금', students: 12 },
+  { id: 3, name: '초등고 A', time: '17:00-18:00', days: '월수금', students: 11 },
+  { id: 4, name: '중등부', time: '18:00-19:30', days: '월수금', students: 8 },
 ];
 
-const DEMO_STUDENTS = [
-  { id: 1, name: '최여찬', classId: 1, phone: '010-2278-6129', parentPhone: '010-1111-2222' },
-  { id: 2, name: '송은호', classId: 1, phone: '010-3456-7890', parentPhone: '010-2222-3333' },
-  { id: 3, name: '김한준', classId: 1, phone: '010-9876-5432', parentPhone: '010-3333-4444' },
-  { id: 4, name: '이선우', classId: 2, phone: '010-1234-5678', parentPhone: '010-4444-5555' },
-  { id: 5, name: '최원준', classId: 2, phone: '010-5678-9012', parentPhone: '010-5555-6666' },
-  { id: 6, name: '안도윤', classId: 2, phone: '010-6789-0123', parentPhone: '010-6666-7777' },
-  { id: 7, name: '김지효', classId: 3, phone: '010-7890-1234', parentPhone: '010-7777-8888' },
-  { id: 8, name: '박서연', classId: 3, phone: '010-8901-2345', parentPhone: '010-8888-9999' },
-];
+const DEMO_STUDENTS = {
+  1: [
+    { id: 101, name: '김민서', age: 6 },
+    { id: 102, name: '이서준', age: 6 },
+    { id: 103, name: '박지안', age: 7 },
+    { id: 104, name: '최예린', age: 6 },
+    { id: 105, name: '정하윤', age: 7 },
+    { id: 106, name: '강민준', age: 6 },
+    { id: 107, name: '조서연', age: 7 },
+    { id: 108, name: '윤지호', age: 6 },
+  ],
+  2: [
+    { id: 201, name: '최여찬', age: 9 },
+    { id: 202, name: '송은호', age: 8 },
+    { id: 203, name: '김한준', age: 9 },
+    { id: 204, name: '이선우', age: 8 },
+    { id: 205, name: '최원준', age: 9 },
+    { id: 206, name: '안도윤', age: 8 },
+    { id: 207, name: '박서현', age: 9 },
+    { id: 208, name: '정재원', age: 8 },
+    { id: 209, name: '황시우', age: 9 },
+    { id: 210, name: '임하린', age: 8 },
+    { id: 211, name: '서지민', age: 9 },
+    { id: 212, name: '배승우', age: 8 },
+  ],
+  3: [
+    { id: 301, name: '김태현', age: 11 },
+    { id: 302, name: '이준혁', age: 12 },
+    { id: 303, name: '박민재', age: 11 },
+    { id: 304, name: '정우진', age: 12 },
+    { id: 305, name: '최성민', age: 11 },
+    { id: 306, name: '강지훈', age: 12 },
+    { id: 307, name: '조현우', age: 11 },
+    { id: 308, name: '윤서진', age: 12 },
+    { id: 309, name: '장민호', age: 11 },
+    { id: 310, name: '한예준', age: 12 },
+    { id: 311, name: '오승현', age: 11 },
+  ],
+  4: [
+    { id: 401, name: '김지효', age: 14 },
+    { id: 402, name: '박서연', age: 13 },
+    { id: 403, name: '이도현', age: 14 },
+    { id: 404, name: '정민규', age: 13 },
+    { id: 405, name: '최서윤', age: 14 },
+    { id: 406, name: '강현서', age: 13 },
+    { id: 407, name: '조윤서', age: 14 },
+    { id: 408, name: '임태양', age: 13 },
+  ],
+};
 
 // ============================================
 // 메인 컴포넌트
 // ============================================
 export default function CoachDashboard() {
-  const [activeTab, setActiveTab] = useState('attendance');
+  const [activeTab, setActiveTab] = useState('class');
   const [selectedClass, setSelectedClass] = useState(DEMO_CLASSES[0]);
   const [attendance, setAttendance] = useState({});
   const [toast, setToast] = useState(null);
+  const [makeupRequests, setMakeupRequests] = useState([]);
+  const [calendarStatus, setCalendarStatus] = useState({ connected: false, loading: true });
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [makeupResult, calendarResult] = await Promise.all([
+        makeupRequestService.getRequests({ status: REQUEST_STATUS.REQUESTED }),
+        googleCalendarService.checkConnection(),
+      ]);
+
+      if (makeupResult.success) {
+        setMakeupRequests(makeupResult.data);
+      }
+      setCalendarStatus({
+        connected: calendarResult.connected,
+        calendarId: calendarResult.calendarId,
+        loading: false
+      });
+    } catch (e) {
+      setCalendarStatus({ connected: false, loading: false });
+    }
+  };
 
   const tabs = [
-    { id: 'attendance', label: '출석', icon: '✅' },
-    { id: 'notify', label: '결석알림', icon: '📢' },
+    { id: 'class', label: '수업', icon: '🏀' },
+    { id: 'makeup', label: '보충', icon: '📅', badge: makeupRequests.length },
     { id: 'video', label: '영상', icon: '🎬' },
   ];
 
@@ -57,24 +129,64 @@ export default function CoachDashboard() {
     weekday: 'short',
   });
 
+  // 현재 시간 기준 오늘 수업 찾기
+  const getCurrentClass = () => {
+    const hour = new Date().getHours();
+    if (hour >= 15 && hour < 16) return DEMO_CLASSES[0];
+    if (hour >= 16 && hour < 17) return DEMO_CLASSES[1];
+    if (hour >= 17 && hour < 18) return DEMO_CLASSES[2];
+    if (hour >= 18 && hour < 20) return DEMO_CLASSES[3];
+    return DEMO_CLASSES[0];
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-orange-500 text-white px-4 py-4 sticky top-0 z-50">
+      <header className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🏀</span>
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <span className="text-xl">🏀</span>
+            </div>
             <div>
-              <h1 className="text-lg font-bold">코치 대시보드</h1>
-              <p className="text-xs text-orange-100">{today}</p>
+              <h1 className="text-lg font-bold">올댓바스켓</h1>
+              <p className="text-xs text-orange-100">강사 · {today}</p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-medium">박코치</p>
-            <p className="text-xs text-orange-100">올댓바스켓</p>
+          <div className="flex items-center gap-2">
+            {/* Calendar Status */}
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+              calendarStatus.connected ? 'bg-green-600' : 'bg-orange-400'
+            }`}>
+              <span>📅</span>
+              <span className={`w-2 h-2 rounded-full ${calendarStatus.connected ? 'bg-green-300 animate-pulse' : 'bg-orange-200'}`} />
+            </div>
+            <button
+              onClick={loadData}
+              className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
+            >
+              🔄
+            </button>
           </div>
         </div>
       </header>
+
+      {/* Process Flow - 강사 담당 영역 강조 */}
+      <div className="bg-white border-b px-4 py-3">
+        <div className="flex items-center justify-between text-xs">
+          {['상담', '스케줄', '수납', '수업', '성장', '재등록'].map((step, idx) => (
+            <div key={step} className="flex items-center">
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${
+                idx === 3 || idx === 4 ? 'bg-orange-500 text-white font-bold' : 'bg-gray-100 text-gray-400'
+              }`}>
+                <span>{['💬', '📅', '💰', '🏀', '📈', '🔄'][idx]}</span>
+                <span>{step}</span>
+              </div>
+              {idx < 5 && <span className="mx-1 text-gray-300">→</span>}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Tab Navigation */}
       <nav className="bg-white border-b sticky top-[72px] z-40">
@@ -83,14 +195,19 @@ export default function CoachDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3 text-center font-medium transition-colors relative ${
+              className={`flex-1 py-4 text-center font-medium transition-colors relative ${
                 activeTab === tab.id
                   ? 'text-orange-600'
                   : 'text-gray-500'
               }`}
             >
-              <span className="mr-1">{tab.icon}</span>
+              <span className="mr-2">{tab.icon}</span>
               {tab.label}
+              {tab.badge > 0 && (
+                <span className="absolute top-2 right-4 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {tab.badge}
+                </span>
+              )}
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="coach-tab"
@@ -105,9 +222,9 @@ export default function CoachDashboard() {
       {/* Content */}
       <main className="p-4 pb-24">
         <AnimatePresence mode="wait">
-          {activeTab === 'attendance' && (
-            <AttendanceTab
-              key="attendance"
+          {activeTab === 'class' && (
+            <ClassTab
+              key="class"
               classes={DEMO_CLASSES}
               students={DEMO_STUDENTS}
               selectedClass={selectedClass}
@@ -117,15 +234,13 @@ export default function CoachDashboard() {
               showToast={showToast}
             />
           )}
-          {activeTab === 'notify' && (
-            <NotifyTab
-              key="notify"
-              classes={DEMO_CLASSES}
-              students={DEMO_STUDENTS}
-              selectedClass={selectedClass}
-              setSelectedClass={setSelectedClass}
-              attendance={attendance}
+          {activeTab === 'makeup' && (
+            <MakeupTab
+              key="makeup"
+              requests={makeupRequests}
+              onRefresh={loadData}
               showToast={showToast}
+              calendarStatus={calendarStatus}
             />
           )}
           {activeTab === 'video' && (
@@ -158,11 +273,14 @@ export default function CoachDashboard() {
 }
 
 // ============================================
-// 1. 출석 체크 탭
+// 수업 탭 (출석 + 결석알림 통합)
 // ============================================
-function AttendanceTab({ classes, students, selectedClass, setSelectedClass, attendance, setAttendance, showToast }) {
-  const classStudents = students.filter(s => s.classId === selectedClass.id);
+function ClassTab({ classes, students, selectedClass, setSelectedClass, attendance, setAttendance, showToast }) {
+  const [sending, setSending] = useState(false);
+  const [sentList, setSentList] = useState([]);
   const todayKey = new Date().toISOString().slice(0, 10);
+
+  const classStudents = students[selectedClass.id] || [];
 
   const getAttendanceStatus = (studentId) => {
     return attendance[`${todayKey}-${studentId}`] || null;
@@ -184,8 +302,22 @@ function AttendanceTab({ classes, students, selectedClass, setSelectedClass, att
     showToast(`${classStudents.length}명 전체 출석 처리!`);
   };
 
+  const absentStudents = classStudents.filter(s => getAttendanceStatus(s.id) === 'absent');
+
+  const handleSendAbsentNotify = async () => {
+    if (absentStudents.length === 0) {
+      showToast('결석 학생이 없습니다', 'warning');
+      return;
+    }
+    setSending(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setSentList(absentStudents.map(s => s.id));
+    showToast(`${absentStudents.length}명 학부모님께 결석 알림 발송!`);
+    setSending(false);
+  };
+
   const presentCount = classStudents.filter(s => getAttendanceStatus(s.id) === 'present').length;
-  const absentCount = classStudents.filter(s => getAttendanceStatus(s.id) === 'absent').length;
+  const absentCount = absentStudents.length;
 
   return (
     <motion.div
@@ -194,6 +326,23 @@ function AttendanceTab({ classes, students, selectedClass, setSelectedClass, att
       exit={{ opacity: 0, x: -20 }}
       className="space-y-4"
     >
+      {/* 수업 정보 헤더 */}
+      <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-4 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-lg">🏀 {selectedClass.name}</h3>
+            <p className="text-sm text-orange-100 mt-1">{selectedClass.time} · {selectedClass.days}</p>
+          </div>
+          <div className="text-right">
+            <div className="flex gap-2 text-sm">
+              <span className="px-2 py-1 bg-white/20 rounded-full">✓ {presentCount}</span>
+              <span className="px-2 py-1 bg-red-600/50 rounded-full">✗ {absentCount}</span>
+            </div>
+            <p className="text-sm text-orange-100 mt-1">{classStudents.length}명</p>
+          </div>
+        </div>
+      </div>
+
       {/* 반 선택 */}
       <div className="flex gap-2 overflow-x-auto pb-2">
         {classes.map(cls => (
@@ -211,36 +360,43 @@ function AttendanceTab({ classes, students, selectedClass, setSelectedClass, att
         ))}
       </div>
 
-      {/* 출석 현황 */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="font-bold text-gray-900">{selectedClass.name}</h3>
-            <p className="text-sm text-gray-500">{selectedClass.time} · {selectedClass.day}</p>
-          </div>
-          <div className="flex gap-2 text-sm">
-            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">출석 {presentCount}</span>
-            <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full">결석 {absentCount}</span>
-          </div>
-        </div>
-
+      {/* 액션 버튼 */}
+      <div className="grid grid-cols-2 gap-3">
         <button
           onClick={handleAllPresent}
-          className="w-full py-3 bg-orange-500 text-white rounded-xl font-semibold mb-4 active:scale-[0.98] transition-transform"
+          className="py-3 bg-green-500 text-white rounded-xl font-semibold active:scale-[0.98] transition-transform"
         >
           ✅ 전체 출석
         </button>
+        <button
+          onClick={handleSendAbsentNotify}
+          disabled={sending || absentCount === 0}
+          className={`py-3 rounded-xl font-semibold active:scale-[0.98] transition-transform ${
+            absentCount > 0
+              ? 'bg-red-500 text-white'
+              : 'bg-gray-100 text-gray-400'
+          }`}
+        >
+          {sending ? '발송 중...' : `📢 결석 알림 (${absentCount}명)`}
+        </button>
+      </div>
 
-        {/* 학생 목록 */}
-        <div className="space-y-2">
+      {/* 학생 목록 */}
+      <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+        <div className="p-3 bg-gray-50 border-b">
+          <p className="font-semibold text-gray-900 text-sm">출석 체크</p>
+        </div>
+        <div className="divide-y">
           {classStudents.map(student => {
             const status = getAttendanceStatus(student.id);
+            const isSent = sentList.includes(student.id);
+
             return (
               <div
                 key={student.id}
-                className={`flex items-center justify-between p-3 rounded-xl transition-colors ${
+                className={`flex items-center justify-between p-3 transition-colors ${
                   status === 'present' ? 'bg-green-50' :
-                  status === 'absent' ? 'bg-red-50' : 'bg-gray-50'
+                  status === 'absent' ? 'bg-red-50' : ''
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -250,28 +406,34 @@ function AttendanceTab({ classes, students, selectedClass, setSelectedClass, att
                   }`}>
                     {status === 'present' ? '✓' : status === 'absent' ? '✗' : student.name[0]}
                   </div>
-                  <span className="font-medium">{student.name}</span>
+                  <div>
+                    <p className="font-medium text-gray-900">{student.name}</p>
+                    <p className="text-xs text-gray-500">{student.age}세</p>
+                  </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
+                  {status === 'absent' && isSent && (
+                    <span className="px-2 py-1 bg-green-100 text-green-600 rounded text-xs">알림 발송</span>
+                  )}
                   <button
                     onClick={() => handleAttendance(student.id, 'present')}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
                       status === 'present'
                         ? 'bg-green-500 text-white'
-                        : 'bg-gray-100 text-gray-600'
+                        : 'bg-gray-100 text-gray-400 hover:bg-green-100'
                     }`}
                   >
-                    출석
+                    ✓
                   </button>
                   <button
                     onClick={() => handleAttendance(student.id, 'absent')}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
                       status === 'absent'
                         ? 'bg-red-500 text-white'
-                        : 'bg-gray-100 text-gray-600'
+                        : 'bg-gray-100 text-gray-400 hover:bg-red-100'
                     }`}
                   >
-                    결석
+                    ✗
                   </button>
                 </div>
               </div>
@@ -280,14 +442,14 @@ function AttendanceTab({ classes, students, selectedClass, setSelectedClass, att
         </div>
       </div>
 
-      {/* SmartFit 동기화 안내 */}
+      {/* 안내 */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
         <div className="flex items-start gap-3">
           <span className="text-xl">💡</span>
           <div>
-            <p className="font-medium text-blue-800">SmartFit 동기화</p>
+            <p className="font-medium text-blue-800">수업 진행</p>
             <p className="text-sm text-blue-600 mt-1">
-              출석 체크 후 SmartFit에서 동일하게 입력해주세요.
+              출석 체크 → 결석자 알림 발송 → 수업 진행 → 영상 촬영
             </p>
           </div>
         </div>
@@ -297,38 +459,48 @@ function AttendanceTab({ classes, students, selectedClass, setSelectedClass, att
 }
 
 // ============================================
-// 2. 결석 알림 탭
+// 보충 승인 탭
 // ============================================
-function NotifyTab({ classes, students, selectedClass, setSelectedClass, attendance, showToast }) {
-  const [sending, setSending] = useState(false);
-  const [sentList, setSentList] = useState([]);
-  const todayKey = new Date().toISOString().slice(0, 10);
+function MakeupTab({ requests, onRefresh, showToast, calendarStatus }) {
+  const [processing, setProcessing] = useState(false);
 
-  const classStudents = students.filter(s => s.classId === selectedClass.id);
-  const absentStudents = classStudents.filter(s => attendance[`${todayKey}-${s.id}`] === 'absent');
-
-  const handleSendNotification = async (student) => {
-    setSending(true);
-    // 실제로는 카카오 알림톡 API 호출
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setSentList(prev => [...prev, student.id]);
-    showToast(`${student.name} 학부모님께 결석 알림 발송!`);
-    setSending(false);
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
+    return `${month}/${day}(${dayOfWeek})`;
   };
 
-  const handleSendAll = async () => {
-    if (absentStudents.length === 0) {
-      showToast('결석 학생이 없습니다', 'warning');
-      return;
+  const handleApprove = async (requestId) => {
+    setProcessing(true);
+    try {
+      const result = await makeupRequestService.approveByCoach(requestId, 'coach_1');
+      if (result.success) {
+        showToast('보충 동의 완료! 관리자 승인 대기');
+        onRefresh();
+      } else {
+        showToast(result.error || '처리 중 오류', 'error');
+      }
+    } catch (error) {
+      showToast('처리 중 오류가 발생했습니다', 'error');
     }
-    setSending(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setSentList(prev => [...prev, ...absentStudents.map(s => s.id)]);
-    showToast(`${absentStudents.length}명 학부모님께 알림 발송 완료!`);
-    setSending(false);
+    setProcessing(false);
   };
 
-  const isSent = (studentId) => sentList.includes(studentId);
+  const handleReject = async (requestId) => {
+    setProcessing(true);
+    try {
+      const result = await makeupRequestService.reject(requestId, '해당 시간대에 수업이 어렵습니다.', 'coach_1');
+      if (result.success) {
+        showToast('보충 요청을 거절했습니다.');
+        onRefresh();
+      }
+    } catch (error) {
+      showToast('처리 중 오류가 발생했습니다', 'error');
+    }
+    setProcessing(false);
+  };
 
   return (
     <motion.div
@@ -337,102 +509,114 @@ function NotifyTab({ classes, students, selectedClass, setSelectedClass, attenda
       exit={{ opacity: 0, x: -20 }}
       className="space-y-4"
     >
-      {/* 반 선택 */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {classes.map(cls => (
-          <button
-            key={cls.id}
-            onClick={() => setSelectedClass(cls)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              selectedClass.id === cls.id
-                ? 'bg-orange-500 text-white'
-                : 'bg-white text-gray-600 border'
-            }`}
-          >
-            {cls.name}
-          </button>
-        ))}
+      {/* 캘린더 상태 */}
+      <div className={`rounded-xl p-3 flex items-center justify-between ${
+        calendarStatus?.connected
+          ? 'bg-green-50 border border-green-200'
+          : 'bg-yellow-50 border border-yellow-200'
+      }`}>
+        <div className="flex items-center gap-2">
+          <span>📅</span>
+          <span className="text-sm font-medium text-gray-700">
+            {calendarStatus?.connected ? 'Google Calendar 연결됨' : '캘린더 데모 모드'}
+          </span>
+        </div>
+        <div className={`w-2 h-2 rounded-full ${calendarStatus?.connected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`} />
       </div>
 
-      {/* 결석 현황 */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
+      {/* 헤더 */}
+      <div className="bg-gradient-to-r from-purple-500 to-indigo-500 rounded-2xl p-4 text-white">
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-gray-900">결석 알림 발송</h3>
-            <p className="text-sm text-gray-500">{selectedClass.name} · 결석 {absentStudents.length}명</p>
+            <h3 className="font-bold text-lg">📅 보충 요청</h3>
+            <p className="text-sm text-purple-100 mt-1">학부모 요청 → 강사 동의 → 관리자 승인</p>
           </div>
+          <div className="text-3xl font-bold">{requests.length}건</div>
         </div>
+      </div>
 
-        {absentStudents.length > 0 ? (
-          <>
-            <button
-              onClick={handleSendAll}
-              disabled={sending}
-              className="w-full py-3 bg-red-500 text-white rounded-xl font-semibold mb-4 disabled:opacity-50 active:scale-[0.98] transition-transform"
-            >
-              {sending ? '발송 중...' : `📢 전체 알림 발송 (${absentStudents.length}명)`}
-            </button>
-
-            <div className="space-y-2">
-              {absentStudents.map(student => (
-                <div
-                  key={student.id}
-                  className={`flex items-center justify-between p-3 rounded-xl ${
-                    isSent(student.id) ? 'bg-green-50' : 'bg-red-50'
-                  }`}
-                >
-                  <div>
-                    <p className="font-medium text-gray-900">{student.name}</p>
-                    <p className="text-sm text-gray-500">{student.parentPhone}</p>
+      {/* 요청 목록 */}
+      {requests.length > 0 ? (
+        <div className="space-y-3">
+          {requests.map(request => (
+            <div key={request.id} className="bg-white rounded-xl p-4 shadow-sm border">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                    <span className="text-xl">🏀</span>
                   </div>
-                  {isSent(student.id) ? (
-                    <span className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium">
-                      ✓ 발송됨
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => handleSendNotification(student)}
-                      disabled={sending}
-                      className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium disabled:opacity-50"
-                    >
-                      발송
-                    </button>
-                  )}
+                  <div>
+                    <p className="font-bold text-gray-900">{request.studentName}</p>
+                    <p className="text-sm text-gray-500">{request.originalClassName}</p>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-8 text-gray-400">
-            <span className="text-4xl block mb-2">🎉</span>
-            결석 학생이 없습니다!
-            <p className="text-sm mt-2">출석 탭에서 먼저 출석 체크를 해주세요.</p>
-          </div>
-        )}
-      </div>
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                  승인 대기
+                </span>
+              </div>
 
-      {/* 알림 메시지 미리보기 */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-        <p className="font-medium text-yellow-800 mb-2">📱 알림 메시지 미리보기</p>
-        <div className="bg-white rounded-lg p-3 text-sm text-gray-700">
-          [올댓바스켓]<br />
-          안녕하세요, OOO 학생 학부모님.<br />
-          오늘 수업에 출석하지 않았습니다.<br />
-          확인 부탁드립니다.
+              <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-red-500">❌</span>
+                  <span className="text-sm text-gray-500">결석:</span>
+                  <span className="text-sm font-medium">{formatDate(request.originalDate)} {request.originalTime}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-500">✅</span>
+                  <span className="text-sm text-gray-500">희망:</span>
+                  <span className="text-sm font-medium">{formatDate(request.targetDate)} {request.targetTime}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleApprove(request.id)}
+                  disabled={processing}
+                  className="flex-1 py-3 bg-green-500 text-white rounded-xl font-semibold disabled:opacity-50"
+                >
+                  ✓ 동의
+                </button>
+                <button
+                  onClick={() => handleReject(request.id)}
+                  disabled={processing}
+                  className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold disabled:opacity-50"
+                >
+                  ✗ 거절
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      ) : (
+        <div className="bg-white rounded-xl p-8 text-center shadow-sm border">
+          <span className="text-5xl block mb-4">🎉</span>
+          <p className="text-gray-500 font-medium">대기 중인 보충 요청이 없습니다</p>
+        </div>
+      )}
+
+      {/* 데모 버튼 */}
+      <button
+        onClick={() => {
+          makeupRequestService.initDemoData();
+          onRefresh();
+          showToast('데모 데이터 생성');
+        }}
+        className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl text-sm"
+      >
+        🔄 데모 데이터 생성
+      </button>
     </motion.div>
   );
 }
 
 // ============================================
-// 3. 영상 업로드 탭
+// 영상 업로드 탭
 // ============================================
 function VideoTab({ showToast }) {
   const [videos, setVideos] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  const handleFileSelect = async (e) => {
+  const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -441,41 +625,32 @@ function VideoTab({ showToast }) {
       return;
     }
 
-    // 미리보기용 추가
     const newVideo = {
       id: Date.now(),
       name: file.name,
       size: (file.size / 1024 / 1024).toFixed(1) + 'MB',
-      file: file,
       thumbnail: URL.createObjectURL(file),
-      status: 'ready', // ready, uploading, done
+      status: 'ready',
     };
 
     setVideos(prev => [...prev, newVideo]);
-    showToast('영상이 추가되었습니다');
+    showToast('영상 추가됨');
   };
 
-  const handleUploadToYouTube = async (video) => {
+  const handleUpload = async (video) => {
     setUploading(true);
     setVideos(prev => prev.map(v =>
       v.id === video.id ? { ...v, status: 'uploading' } : v
     ));
 
-    // 유튜브 업로드 페이지로 이동 (실제 API 연동 시 대체)
     await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // YouTube Studio 열기
     window.open('https://studio.youtube.com/channel/upload', '_blank');
 
     setVideos(prev => prev.map(v =>
       v.id === video.id ? { ...v, status: 'done' } : v
     ));
     setUploading(false);
-    showToast('YouTube Studio가 열렸습니다. 영상을 업로드해주세요!');
-  };
-
-  const handleRemove = (videoId) => {
-    setVideos(prev => prev.filter(v => v.id !== videoId));
+    showToast('YouTube Studio 열림');
   };
 
   return (
@@ -485,75 +660,60 @@ function VideoTab({ showToast }) {
       exit={{ opacity: 0, x: -20 }}
       className="space-y-4"
     >
-      {/* 영상 추가 */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <h3 className="font-bold text-gray-900 mb-4">🎬 영상 → 유튜브 업로드</h3>
-
-        <label className="block">
-          <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-orange-400 transition-colors">
-            <span className="text-4xl block mb-2">📹</span>
-            <p className="font-medium text-gray-700">영상 파일 선택</p>
-            <p className="text-sm text-gray-400 mt-1">탭하여 촬영 영상을 선택하세요</p>
+      {/* 헤더 */}
+      <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl p-4 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-lg">🎬 영상 업로드</h3>
+            <p className="text-sm text-red-100 mt-1">수업 영상 → YouTube 업로드</p>
           </div>
-          <input
-            type="file"
-            accept="video/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-        </label>
+          <span className="text-3xl">📹</span>
+        </div>
       </div>
+
+      {/* 파일 선택 */}
+      <label className="block">
+        <div className="bg-white rounded-xl p-8 text-center border-2 border-dashed border-gray-300 cursor-pointer hover:border-orange-400 transition-colors">
+          <span className="text-4xl block mb-2">📹</span>
+          <p className="font-medium text-gray-700">영상 파일 선택</p>
+          <p className="text-sm text-gray-400 mt-1">탭하여 촬영 영상 선택</p>
+        </div>
+        <input
+          type="file"
+          accept="video/*"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+      </label>
 
       {/* 영상 목록 */}
       {videos.length > 0 && (
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <h3 className="font-bold text-gray-900 mb-4">업로드 대기</h3>
-          <div className="space-y-3">
-            {videos.map(video => (
-              <div
-                key={video.id}
-                className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
-              >
-                <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                  <video
-                    src={video.thumbnail}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{video.name}</p>
-                  <p className="text-sm text-gray-500">{video.size}</p>
-                  {video.status === 'uploading' && (
-                    <div className="w-full h-1 bg-gray-200 rounded-full mt-2">
-                      <div className="h-full bg-orange-500 rounded-full animate-pulse" style={{ width: '60%' }} />
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  {video.status === 'ready' && (
-                    <button
-                      onClick={() => handleUploadToYouTube(video)}
-                      disabled={uploading}
-                      className="px-3 py-2 bg-red-500 text-white rounded-lg text-sm font-medium disabled:opacity-50"
-                    >
-                      📺 업로드
-                    </button>
-                  )}
-                  {video.status === 'done' && (
-                    <span className="px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
-                      ✓ 완료
-                    </span>
-                  )}
-                  <button
-                    onClick={() => handleRemove(video.id)}
-                    className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm"
-                  >
-                    삭제
-                  </button>
-                </div>
+        <div className="space-y-3">
+          {videos.map(video => (
+            <div key={video.id} className="bg-white rounded-xl p-4 shadow-sm border flex items-center gap-3">
+              <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                <video src={video.thumbnail} className="w-full h-full object-cover" />
               </div>
-            ))}
-          </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900 truncate">{video.name}</p>
+                <p className="text-sm text-gray-500">{video.size}</p>
+              </div>
+              {video.status === 'ready' && (
+                <button
+                  onClick={() => handleUpload(video)}
+                  disabled={uploading}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium"
+                >
+                  📺 업로드
+                </button>
+              )}
+              {video.status === 'done' && (
+                <span className="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
+                  ✓ 완료
+                </span>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
