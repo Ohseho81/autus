@@ -1,0 +1,669 @@
+# AUTUS API Contract v1.0 (FREEZE)
+# Generated: 2026-02-04
+# 이 파일은 외주/내부 구현의 기준 문서입니다. 변경 시 PR Gate 필수.
+
+openapi: 3.1.0
+info:
+  title: AUTUS API
+  version: 1.0.0
+  description: |
+    AUTUS 강사 앱 + 관리자 웹 백엔드 API
+
+    ## 핵심 원칙
+    - Coach App은 판단 입력 UI 금지 (텍스트/체크/평가/사유/메모 전부 금지)
+    - 모든 쓰기 작업은 idempotency_key 필수
+    - Admin Web은 자유 입력 최소 (장문 메모 금지, 코드/라벨만)
+
+servers:
+  - url: https://api.autus.io/v1
+    description: Production
+  - url: https://api-staging.autus.io/v1
+    description: Staging
+
+tags:
+  - name: Auth
+    description: 인증
+  - name: Coach
+    description: 강사 앱 API (read-only + event ingest)
+  - name: Admin
+    description: 관리자 웹 API
+  - name: Events
+    description: 이벤트 수집
+
+paths:
+  # ============================================
+  # AUTH
+  # ============================================
+  /auth/coach/code:
+    post:
+      tags: [Auth]
+      summary: 강사 인증 (코드 기반)
+      operationId: authCoachCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, device_id]
+              properties:
+                code:
+                  type: string
+                  description: 강사 인증 코드
+                device_id:
+                  type: string
+      responses:
+        '200':
+          description: 인증 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+
+  /auth/admin/login:
+    post:
+      tags: [Auth]
+      summary: 관리자 로그인
+      operationId: authAdminLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: 로그인 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+
+  # ============================================
+  # COACH API (Read-only + Event Ingest)
+  # ============================================
+  /coach/today:
+    get:
+      tags: [Coach]
+      summary: 오늘 수업 목록
+      operationId: getCoachToday
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2026-02-04"
+      responses:
+        '200':
+          description: 오늘 수업 목록
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CoachSession'
+
+  /coach/sessions/{session_id}/roster:
+    get:
+      tags: [Coach]
+      summary: 수업 학생 명단
+      description: |
+        **금지 필드**: parent_contact, payment, absence_reason, memo, makeup_status
+        이 필드들은 Contract 레벨에서 제거됨
+      operationId: getSessionRoster
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 학생 명단
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterResponse'
+
+  # ============================================
+  # EVENT INGEST (Idempotent)
+  # ============================================
+  /events/ingest:
+    post:
+      tags: [Events]
+      summary: 이벤트 수집 (idempotent)
+      description: |
+        Coach App에서 발생한 이벤트를 서버로 전송.
+        idempotency_key로 중복 요청 방지.
+      operationId: ingestEvent
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventIngestRequest'
+      responses:
+        '200':
+          description: 이벤트 수신 완료
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: boolean
+                    example: true
+                  server_received_at:
+                    type: string
+                    format: date-time
+
+  # ============================================
+  # ADMIN API
+  # ============================================
+  /admin/today/summary:
+    get:
+      tags: [Admin]
+      summary: LOD1 - 오늘 요약 대시보드
+      operationId: getAdminTodaySummary
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 오늘 요약
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodaySummary'
+
+  /admin/queue:
+    get:
+      tags: [Admin]
+      summary: LOD2 - 예외 큐 목록
+      operationId: getAdminQueue
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [OPEN, RESOLVED]
+            default: OPEN
+      responses:
+        '200':
+          description: 예외 큐
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QueueItem'
+
+  /admin/queue/{queue_item_id}/resolve:
+    post:
+      tags: [Admin]
+      summary: 예외 큐 아이템 처리
+      description: |
+        action_code 기반 처리. **자유 입력 금지**.
+        사전 정의된 action_code만 허용.
+      operationId: resolveQueueItem
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: queue_item_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action_code, idempotency_key]
+              properties:
+                action_code:
+                  type: string
+                  enum:
+                    - ACKNOWLEDGE
+                    - GRANT_MAKEUP
+                    - NOTIFY_PARENT
+                    - ESCALATE
+                    - DISMISS
+                  description: 사전 정의된 액션 코드만 허용
+                idempotency_key:
+                  type: string
+      responses:
+        '200':
+          description: 처리 완료
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resolved: { type: boolean }
+                  resolved_at: { type: string, format: date-time }
+
+  /admin/cases/{case_id}:
+    get:
+      tags: [Admin]
+      summary: LOD3 - 케이스 상세
+      operationId: getCase
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 케이스 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseDetail'
+
+  /admin/cases/{case_id}/policy:
+    get:
+      tags: [Admin]
+      summary: LOD4 - 정책 근거
+      operationId: getCasePolicy
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 정책 정보
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyInfo'
+
+  /admin/cases/{case_id}/timeline:
+    get:
+      tags: [Admin]
+      summary: LOD5 - 타임라인
+      operationId: getCaseTimeline
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 타임라인
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeline'
+
+  /admin/cases/{case_id}/proofpack:
+    post:
+      tags: [Admin]
+      summary: LOD6 - Proof Pack 생성
+      operationId: generateProofPack
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '202':
+          description: 생성 시작
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  proofpack_id: { type: string, format: uuid }
+                  status: { type: string, example: "GENERATING" }
+
+  /admin/proofpacks/{proofpack_id}/download:
+    get:
+      tags: [Admin]
+      summary: Proof Pack 다운로드
+      operationId: downloadProofPack
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: proofpack_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [pdf, json]
+            default: pdf
+      responses:
+        '200':
+          description: Proof Pack 파일
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProofPackJson'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ============================================
+    # AUTH
+    # ============================================
+    AuthToken:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: "Bearer"
+        expires_in:
+          type: integer
+          example: 3600
+        scope:
+          type: string
+          example: "coach:read coach:event"
+
+    # ============================================
+    # COACH
+    # ============================================
+    CoachSession:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        time_range:
+          type: string
+          example: "16:00 - 17:30"
+        group_label:
+          type: string
+          example: "농구 U12"
+        location_label:
+          type: string
+          example: "코트 A"
+        session_state:
+          type: string
+          enum: [SCHEDULED, IN_PROGRESS, COMPLETED]
+        can_start:
+          type: boolean
+        can_end:
+          type: boolean
+        can_incident:
+          type: boolean
+
+    RosterResponse:
+      type: object
+      properties:
+        roster_version:
+          type: string
+        cache_ttl_seconds:
+          type: integer
+          example: 86400
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RosterItem'
+
+    RosterItem:
+      type: object
+      description: |
+        **금지 필드 (Contract 레벨 제거)**:
+        - parent_contact
+        - payment
+        - absence_reason
+        - memo
+        - makeup_status
+      properties:
+        student_id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+          example: "김민준"
+        photo_url:
+          type: string
+          format: uri
+          nullable: true
+        badges:
+          type: array
+          items:
+            type: string
+          example: ["신규", "주의"]
+        safety_flags:
+          type: array
+          items:
+            type: string
+          example: ["천식", "물 무서움"]
+
+    # ============================================
+    # EVENTS
+    # ============================================
+    EventIngestRequest:
+      type: object
+      required:
+        - event_id
+        - event_type
+        - occurred_at
+        - actor_type
+        - actor_id
+        - org_id
+        - academy_id
+        - session_id
+        - idempotency_key
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+          enum:
+            - SESSION_START
+            - SESSION_END
+            - INCIDENT_FLAG
+            - ATTENDANCE_SIGNAL_NONE
+            - ATTENDANCE_RESULT_COMPUTED
+            - MAKEUP_CREDIT_GRANTED
+            - UNAUTHORIZED_ATTENDANCE_SUSPECTED
+            - KAKAO_REPORT_ENQUEUED
+            - KAKAO_REPORT_LOGGED
+            - KAKAO_DELIVERY_FAILED
+        occurred_at:
+          type: string
+          format: date-time
+        actor_type:
+          type: string
+          enum: [COACH, ADMIN, SYSTEM]
+        actor_id:
+          type: string
+        org_id:
+          type: string
+        academy_id:
+          type: string
+        session_id:
+          type: string
+          format: uuid
+        incident_id:
+          type: string
+          format: uuid
+          nullable: true
+        student_id:
+          type: string
+          format: uuid
+          nullable: true
+        idempotency_key:
+          type: string
+          description: 중복 방지 키 (필수)
+
+    # ============================================
+    # ADMIN
+    # ============================================
+    TodaySummary:
+      type: object
+      description: LOD1 - 최소 데이터만
+      properties:
+        total_sessions:
+          type: integer
+        absence_suspected:
+          type: integer
+        incidents:
+          type: integer
+        kakao_failures:
+          type: integer
+        makeup_delayed:
+          type: integer
+
+    QueueItem:
+      type: object
+      properties:
+        queue_item_id:
+          type: string
+          format: uuid
+        queue_type:
+          type: string
+          enum:
+            - INCIDENT
+            - MAKEUP_DELAY
+            - UNAUTHORIZED
+            - KAKAO_FAIL
+            - ABSENCE_SUSPECTED
+        severity:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        age_minutes:
+          type: integer
+        sla_minutes:
+          type: integer
+        next_action_code:
+          type: string
+
+    CaseDetail:
+      type: object
+      properties:
+        case_id:
+          type: string
+          format: uuid
+        case_type:
+          type: string
+        facts:
+          type: object
+          description: 케이스 관련 사실 정보
+        policy_suggestion:
+          type: string
+          description: 정책 기반 권장 액션
+        primary_action_code:
+          type: string
+
+    PolicyInfo:
+      type: object
+      properties:
+        policy_id:
+          type: string
+        version:
+          type: string
+        trigger_event:
+          type: string
+        guard_condition:
+          type: string
+        timeout_seconds:
+          type: integer
+        remediation_id:
+          type: string
+
+    Timeline:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              entry_type:
+                type: string
+                enum: [EVENT, DELIVERY_ATTEMPT]
+              event_type:
+                type: string
+              description:
+                type: string
+
+    ProofPackJson:
+      type: object
+      properties:
+        proofpack_id:
+          type: string
+          format: uuid
+        case_id:
+          type: string
+          format: uuid
+        generated_at:
+          type: string
+          format: date-time
+        hash:
+          type: string
+          description: SHA-256 무결성 해시
+        policy_snapshot:
+          type: object
+        timeline:
+          type: array
+          items:
+            type: object
+        delivery_logs:
+          type: array
+          items:
+            type: object
