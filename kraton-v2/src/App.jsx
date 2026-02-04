@@ -68,6 +68,7 @@ const AUTUSUniversal = lazy(() => import('./pages/allthatbasket/AUTUSUniversal')
 const ProcessMapV13 = lazy(() => import('./ProcessMapV13'));
 const CoachUI = lazy(() => import('./pages/allthatbasket/CoachUI'));
 const CoachDashboard = lazy(() => import('./pages/allthatbasket/CoachDashboard'));
+const CoachAppV2 = lazy(() => import('./pages/allthatbasket/CoachAppV2'));
 
 // Components
 import { TruthModeProvider } from './components/ui/TruthModeToggle';
@@ -997,6 +998,7 @@ const PageRenderer = ({ page, truthMode }) => {
     ProcessMapV13,
     CoachUI,
     CoachDashboard,
+    CoachAppV2,
   };
 
   const Component = pageComponents[page];
@@ -1028,7 +1030,8 @@ const HASH_ROUTES = {
   '#process': { page: 'ProcessMap', role: 'consumer', standalone: true },
   '#universal': { page: 'AUTUSUniversal', role: 'c_level', standalone: true },
   '#worldmap': { page: 'ProcessMapV13', role: 'c_level', standalone: true },
-  '#coach': { page: 'CoachDashboard', role: 'optimus', standalone: true },
+  '#coach': { page: 'CoachAppV2', role: 'optimus', standalone: true },
+  '#coach-old': { page: 'CoachDashboard', role: 'optimus', standalone: true },
 };
 
 // ============================================
