@@ -66,6 +66,7 @@ const AutusAIPortal = lazy(() => import('./pages/autus-ai/index'));
 const ProcessMap = lazy(() => import('./pages/allthatbasket/ProcessMap'));
 const AUTUSUniversal = lazy(() => import('./pages/allthatbasket/AUTUSUniversal'));
 const ProcessMapV13 = lazy(() => import('./ProcessMapV13'));
+const CoachUI = lazy(() => import('./pages/allthatbasket/CoachUI'));
 
 // Components
 import { TruthModeProvider } from './components/ui/TruthModeToggle';
@@ -993,6 +994,7 @@ const PageRenderer = ({ page, truthMode }) => {
     ProcessMap,
     AUTUSUniversal,
     ProcessMapV13,
+    CoachUI,
   };
 
   const Component = pageComponents[page];
@@ -1024,6 +1026,7 @@ const HASH_ROUTES = {
   '#process': { page: 'ProcessMap', role: 'consumer', standalone: true },
   '#universal': { page: 'AUTUSUniversal', role: 'c_level', standalone: true },
   '#worldmap': { page: 'ProcessMapV13', role: 'c_level', standalone: true },
+  '#coach': { page: 'CoachUI', role: 'optimus', standalone: true },
 };
 
 // ============================================
