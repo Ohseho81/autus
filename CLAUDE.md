@@ -49,6 +49,7 @@ Score = Trigger(0.3) + Capability(0.5) + Constraint(0.2)
 ## Agent Specs
 
 ### 📱 몰트봇 (P0 - Mobile Gateway)
+- **Channel**: t.me/autus_seho_bot (@autus_seho_bot)
 - Triggers: 모바일, 원격, 알림, 상태확인
 - Can: remote_trigger, notification, status_check
 - Cannot: file_access, code_execution

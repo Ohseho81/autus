@@ -54,6 +54,7 @@ const AUTUSUnified = lazy(() => import('./pages/allthatbasket/AUTUSUnified'));
 const AdminDashboard = lazy(() => import('./pages/allthatbasket/AdminDashboard'));
 const CoachDashboard = lazy(() => import('./pages/allthatbasket/CoachDashboard'));
 const PaymentManager = lazy(() => import('./pages/allthatbasket/PaymentManager'));
+const MakeupRequest = lazy(() => import('./pages/allthatbasket/MakeupRequest'));
 
 // ============================================
 // 🏠 역할 선택
@@ -1804,6 +1805,22 @@ export default function AllThatBasket() {
         </div>
       }>
         <PaymentManager />
+      </Suspense>
+    );
+  }
+
+  // #makeup 해시일 때 보충 신청 페이지 (학부모용)
+  if (hash === '#makeup' || hash.startsWith('#makeup?')) {
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-white/80">보충 신청 로딩중...</p>
+          </div>
+        </div>
+      }>
+        <MakeupRequest />
       </Suspense>
     );
   }

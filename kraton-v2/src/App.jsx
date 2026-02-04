@@ -65,6 +65,7 @@ const AllThatBasketApp = lazy(() => import('./pages/allthatbasket/AllThatBasketA
 const AutusAIPortal = lazy(() => import('./pages/autus-ai/index'));
 const ProcessMap = lazy(() => import('./pages/allthatbasket/ProcessMap'));
 const AUTUSUniversal = lazy(() => import('./pages/allthatbasket/AUTUSUniversal'));
+const ProcessMapV13 = lazy(() => import('./ProcessMapV13'));
 
 // Components
 import { TruthModeProvider } from './components/ui/TruthModeToggle';
@@ -197,6 +198,7 @@ const NAV_ITEMS = {
   // 👑 C-Level (결정자) - "결정만 한다. 과정·설계·자동화는 보이지 않는다."
   // ═══════════════════════════════════════════════════════════════
   c_level: [
+    { id: 'worldmap', label: 'World Map', icon: '🌟', page: 'ProcessMapV13', desc: 'AUTUS 통합 World Map' },
     { id: 'monopoly', label: 'Monopoly', icon: '👑', page: 'KratonMonopoly', desc: '3대 독점 현황' },
     { id: 'goals', label: '목표', icon: '🎯', page: 'GoalCascade', desc: '목표 캐스케이드' },
     { id: 'value', label: 'V-Index', icon: '💎', page: 'ValueDashboard', desc: '자산 가치' },
@@ -990,6 +992,7 @@ const PageRenderer = ({ page, truthMode }) => {
     AutusAIPortal,
     ProcessMap,
     AUTUSUniversal,
+    ProcessMapV13,
   };
 
   const Component = pageComponents[page];
@@ -1020,6 +1023,7 @@ const HASH_ROUTES = {
   '#dashboard': { page: 'LiveDashboard', role: 'consumer' },
   '#process': { page: 'ProcessMap', role: 'consumer', standalone: true },
   '#universal': { page: 'AUTUSUniversal', role: 'c_level', standalone: true },
+  '#worldmap': { page: 'ProcessMapV13', role: 'c_level', standalone: true },
 };
 
 // ============================================
