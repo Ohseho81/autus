@@ -11,8 +11,9 @@ const originalResolveRequest = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   // axios → 브라우저용 빌드로 고정 (crypto 미사용)
   if (moduleName === 'axios' || moduleName.startsWith('axios/')) {
+    const projectRoot = context.projectRoot || __dirname;
     const browserPath = path.join(
-      context.projectRoot,
+      projectRoot,
       'node_modules',
       'axios',
       'dist',
