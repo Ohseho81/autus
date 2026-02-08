@@ -70,10 +70,10 @@ export default function LoginScreen() {
               colors={[colors.safe.primary, colors.caution.primary]}
               style={styles.logoGradient}
             >
-              <Text style={styles.logoText}>A</Text>
+              <Text style={styles.logoText}>온</Text>
             </LinearGradient>
           </View>
-          <Text style={styles.appName}>AUTUS</Text>
+          <Text style={styles.appName}>온리쌤</Text>
           <Text style={styles.tagline}>관계 유지력의 물리학</Text>
         </View>
 

@@ -1,5 +1,5 @@
 /**
- * 🏀 올댓바스켓 - 강사 세션 + 영상 통합 플로우
+ * 온리쌤 - 강사 세션 + 영상 통합 플로우
  *
  * 핵심 컨셉:
  * 1. QR 출석 = 세션 시작 = 영상 업로드 활성화
@@ -563,7 +563,7 @@ const CoachSessionVideoFlow: React.FC = () => {
     <div style={styles.container}>
       {/* Header */}
       <header style={styles.header}>
-        <h1 style={styles.headerTitle}>🏀 올댓바스켓</h1>
+        <h1 style={styles.headerTitle}>온리쌤</h1>
         {session && session.status === 'active' && (
           <div style={{
             ...styles.sessionBadge,

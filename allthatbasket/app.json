@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "owner": "ohseho",
+    "name": "온리쌤",
+    "slug": "onlysam",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "onlysam",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0F0F1A"
+    },
+    "ios": {
+      "bundleIdentifier": "kr.onlysam.app",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "deploymentTarget": "13.4",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "QR 출석 및 수업 촬영을 위해 카메라 접근이 필요합니다.",
+        "NSMicrophoneUsageDescription": "영상 수업 녹화를 위해 마이크 접근이 필요합니다.",
+        "NSPhotoLibraryUsageDescription": "프로필 및 수업 자료 업로드를 위해 사진 라이브러리 접근이 필요합니다."
+      }
+    },
+    "android": {
+      "package": "kr.onlysam.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#0F0F1A"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "QR 출석 및 수업 촬영을 위해 카메라 접근이 필요합니다."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d26442da-4611-4851-bb0e-08a32b67caa7"
+      }
+    }
+  }
+}

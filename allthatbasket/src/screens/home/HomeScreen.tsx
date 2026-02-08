@@ -64,7 +64,7 @@ export default function HomeScreen() {
       <Header
         leftIcon="menu"
         onLeftPress={openDrawer}
-        title="AUTUS"
+        title="온리쌤"
         rightIcon="notifications-outline"
         onRightPress={navigateToNotifications}
         rightBadge={dashboard?.data?.urgent_alerts?.length}
