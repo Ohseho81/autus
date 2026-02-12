@@ -76,7 +76,7 @@ const DemoPage = lazy(() => import('./pages/DemoPage').then(m => ({ default: m.d
 // L7: AUTUS V2 (8개 뷰 시스템) ✨ NEW!
 const AUTUSV2 = lazy(() => import('./components/views/v2').then(m => ({ default: m.AUTUSV2Demo })));
 
-// L8: 올댓바스켓 (농구 학원) 🏀 NEW!
+// L8: 온리쌤 (농구 학원) 🏀 NEW!
 const AllThatBasketApp = lazy(() => import('./pages/allthatbasket/AllThatBasketApp').then(m => ({ default: m.default })));
 
 // L9: AUTUS CORE - 1-12-144 파이프라인 🏛️
@@ -84,6 +84,9 @@ const AutusCore = lazy(() => import('./pages/AutusCore'));
 
 // L10: 대치동 AI 어시스턴트 💬
 const DaechiChatPage = lazy(() => import('./pages/DaechiChatPage'));
+
+// L11: IOO Trace Viewer (감사추적)
+const TraceViewerPage = lazy(() => import('./pages/TraceViewerPage').then(m => ({ default: m.default })));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // View Types
@@ -126,7 +129,7 @@ const DaechiChatPage = lazy(() => import('./pages/DaechiChatPage'));
 // 'logs'       = 내 로그 페이지
 // 'macro'      = 거시 흐름 페이지
 //
-type View = 'transform' | 'trinity' | 'matrix' | 'engine' | 'cube' | 'unified' | 'map' | 'quantum' | 'smb' | 'ontology' | 'graph' | 'hexagon' | 'dashboard' | 'prediction' | 'cube72' | 'matrix72' | 'stress' | 'pressure' | 'learning' | 'simulator' | 'data' | 'mylearning' | 'work' | 'goals' | 'future' | 'logs' | 'macro' | 'system' | 'process' | 'blackhole' | 'bpmn' | 'nervous' | 'workflow' | 'zoom' | 'automation' | 'tasks' | 'integrations' | 'user' | 'admin' | 'mypage' | 'onboarding' | 'role' | 'academy' | 'demo' | 'v2' | 'allthatbasket' | 'core' | 'daechichat';
+type View = 'transform' | 'trinity' | 'matrix' | 'engine' | 'cube' | 'unified' | 'map' | 'quantum' | 'smb' | 'ontology' | 'graph' | 'hexagon' | 'dashboard' | 'prediction' | 'cube72' | 'matrix72' | 'stress' | 'pressure' | 'learning' | 'simulator' | 'data' | 'mylearning' | 'work' | 'goals' | 'future' | 'logs' | 'macro' | 'system' | 'process' | 'blackhole' | 'bpmn' | 'nervous' | 'workflow' | 'zoom' | 'automation' | 'tasks' | 'integrations' | 'user' | 'admin' | 'mypage' | 'onboarding' | 'role' | 'academy' | 'demo' | 'v2' | 'allthatbasket' | 'core' | 'daechichat' | 'trace';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Loading Fallback
@@ -145,7 +148,7 @@ const LoadingFallback = () => (
         </div>
       </div>
       {/* 텍스트 */}
-      <div className="text-cyan-400 font-semibold text-lg mb-2">AUTUS</div>
+      <div className="text-cyan-400 font-semibold text-lg mb-2">온리쌤</div>
       <div className="text-slate-500 text-sm">시스템을 준비하고 있습니다...</div>
     </div>
   </div>
@@ -189,7 +192,7 @@ function parseDeepLink(hash: string): DeepLinkState {
     });
   }
   
-  const validViews: View[] = ['transform', 'trinity', 'matrix', 'engine', 'cube', 'unified', 'map', 'quantum', 'ontology', 'graph', 'smb', 'hexagon', 'dashboard', 'prediction', 'cube72', 'matrix72', 'pressure', 'learning', 'simulator', 'data', 'mylearning', 'work', 'goals', 'future', 'logs', 'macro', 'system', 'process', 'blackhole', 'bpmn', 'nervous', 'workflow', 'zoom', 'automation', 'tasks', 'integrations', 'user', 'admin', 'mypage', 'onboarding', 'role', 'academy', 'demo', 'v2', 'allthatbasket', 'core', 'daechichat'];
+  const validViews: View[] = ['transform', 'trinity', 'matrix', 'engine', 'cube', 'unified', 'map', 'quantum', 'ontology', 'graph', 'smb', 'hexagon', 'dashboard', 'prediction', 'cube72', 'matrix72', 'pressure', 'learning', 'simulator', 'data', 'mylearning', 'work', 'goals', 'future', 'logs', 'macro', 'system', 'process', 'blackhole', 'bpmn', 'nervous', 'workflow', 'zoom', 'automation', 'tasks', 'integrations', 'user', 'admin', 'mypage', 'onboarding', 'role', 'academy', 'demo', 'v2', 'allthatbasket', 'core', 'daechichat', 'trace'];
   const validView = validViews.includes(view as View) ? (view as View) : 'transform';
   
   return { view: validView, nodeId, params };
@@ -361,7 +364,7 @@ function App() {
       case 'v2':
         return <AUTUSV2 />;
       
-      // L8: 올댓바스켓 (농구 학원) 🏀 NEW!
+      // L8: 온리쌤 (농구 학원) 🏀 NEW!
       case 'allthatbasket':
         return <AllThatBasketApp />;
       
@@ -372,7 +375,11 @@ function App() {
       // L10: 대치동 AI 어시스턴트 💬
       case 'daechichat':
         return <DaechiChatPage />;
-      
+
+      // L11: IOO Trace Viewer
+      case 'trace':
+        return <PageWrapper><TraceViewerPage /></PageWrapper>;
+
       default:
         return <PageWrapper><TransformDashboard /></PageWrapper>;
     }
@@ -430,7 +437,7 @@ function NavigationSidebar({
     { id: 'divider1', icon: '', label: '', color: '' },
     { id: 'daechichat', icon: '💬', label: '대치동 AI', color: '#06b6d4' },
     { id: 'core', icon: '🏛️', label: 'CORE 1-12-144', color: '#00f5ff' },
-    { id: 'allthatbasket', icon: '🏀', label: '올댓바스켓', color: '#FF6B35' },
+    { id: 'allthatbasket', icon: '🏀', label: '온리쌤', color: '#FF6B35' },
     { id: 'academy', icon: '🏫', label: '학원관리', color: '#8b5cf6' },
     { id: 'role', icon: '🎭', label: '역할별', color: '#f59e0b' },
 
@@ -450,6 +457,7 @@ function NavigationSidebar({
     { id: 'divider4', icon: '', label: '', color: '' },
     { id: 'demo', icon: '🎪', label: 'Demo', color: '#ec4899' },
     { id: 'admin', icon: '⚙️', label: '관리자', color: '#f59e0b' },
+    { id: 'trace', icon: '🔍', label: 'IOO추적', color: '#06b6d4' },
   ] as const;
 
   return (
@@ -464,7 +472,7 @@ function NavigationSidebar({
       <div className={`px-3 mb-4 flex items-center gap-2 ${isExpanded ? 'justify-start' : 'justify-center'}`}>
         <span className="text-2xl">⚡</span>
         <span className={`text-cyan-400 font-bold text-sm whitespace-nowrap transition-all duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
-          AUTUS
+          온리쌤
         </span>
       </div>
       

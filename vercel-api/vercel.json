@@ -12,7 +12,6 @@
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, X-Requested-With, Accept, Origin" },
         { "key": "Access-Control-Allow-Credentials", "value": "true" },
         { "key": "Access-Control-Max-Age", "value": "86400" },
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" },
         { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
@@ -21,6 +20,12 @@
     {
       "source": "/api/calendar",
       "destination": "/api/calendar"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/workers/action-queue",
+      "schedule": "* * * * *"
     }
   ]
 }
