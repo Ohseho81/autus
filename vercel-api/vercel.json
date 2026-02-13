@@ -26,6 +26,10 @@
     {
       "path": "/api/workers/action-queue",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/workers/risk-detection",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
