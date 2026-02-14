@@ -207,7 +207,7 @@ export async function PUT(req: NextRequest) {
       .single();
     
     if (!integration) {
-      console.warn(`No integration found for school_id: ${event.school_id}`);
+      logger.warn(`No integration found for school_id: ${event.school_id}`);
       return NextResponse.json({ ok: true, message: 'Ignored (no integration)' });
     }
     

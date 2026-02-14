@@ -199,7 +199,7 @@ async function sendRiskAlert(payload: NotificationPayload) {
       }),
     });
   } catch (e) {
-    console.warn('n8n webhook failed:', e);
+    logger.warn('n8n webhook failed:', e);
   }
   
   return NextResponse.json({

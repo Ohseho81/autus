@@ -6,7 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
-import { generateTraceId } from '../../../../lib/monitoring';
+import { generateTraceId, captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -163,10 +164,10 @@ async function logTrace(params: IOOTraceParams): Promise<void> {
   try {
     const { error } = await getSupabase().from('ioo_trace').insert(params);
     if (error) {
-      console.error('[RiskDetection] Failed to insert IOO trace:', error.message);
+      captureError(new Error(error.message), { context: 'RiskDetection.logTrace' });
     }
   } catch (err) {
-    console.error('[RiskDetection] IOO trace insert threw:', err);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'RiskDetection.logTrace' });
   }
 }
 
@@ -216,7 +217,7 @@ async function insertRiskFlag(
     .single();
 
   if (error) {
-    console.error('[RiskDetection] Failed to insert risk flag:', error.message);
+    captureError(new Error(error.message), { context: 'RiskDetection.insertRiskFlag' });
     await logTrace({
       trace_id: traceId,
       phase: 'OPERATION',
@@ -276,7 +277,7 @@ async function detectAbsentStreaks(traceId: string): Promise<number> {
     .order('marked_at', { ascending: true });
 
   if (error) {
-    console.error('[RiskDetection] Failed to query absences:', error.message);
+    captureError(new Error(error.message), { context: 'RiskDetection.detectAbsentStreaks' });
     await logTrace({
       trace_id: traceId,
       phase: 'OUTPUT',
@@ -395,7 +396,7 @@ async function detectOverduePayments(traceId: string): Promise<number> {
     .lt('due_date', overdueThreshold);
 
   if (error) {
-    console.error('[RiskDetection] Failed to query overdue invoices:', error.message);
+    captureError(new Error(error.message), { context: 'RiskDetection.detectOverduePayments' });
     await logTrace({
       trace_id: traceId,
       phase: 'OUTPUT',
@@ -501,7 +502,7 @@ async function detectLowAttendanceRate(traceId: string): Promise<number> {
     .order('student_id', { ascending: true });
 
   if (error) {
-    console.error('[RiskDetection] Failed to query attendance records:', error.message);
+    captureError(new Error(error.message), { context: 'RiskDetection.detectLowAttendanceRate' });
     await logTrace({
       trace_id: traceId,
       phase: 'OUTPUT',
@@ -656,7 +657,7 @@ async function enqueueEscalation(
       .insert(messageAction);
 
     if (msgError) {
-      console.error('[RiskDetection] Failed to enqueue SEND_MESSAGE:', msgError.message);
+      captureError(new Error(msgError.message), { context: 'RiskDetection.enqueueEscalation.SEND_MESSAGE' });
     } else {
       enqueued++;
     }
@@ -687,7 +688,7 @@ async function enqueueEscalation(
       .insert(consultAction);
 
     if (consultError) {
-      console.error('[RiskDetection] Failed to enqueue SCHEDULE_CONSULTATION:', consultError.message);
+      captureError(new Error(consultError.message), { context: 'RiskDetection.enqueueEscalation.SCHEDULE_CONSULTATION' });
     } else {
       enqueued++;
     }
@@ -718,7 +719,7 @@ async function enqueueEscalation(
       .insert(escalateAction);
 
     if (escError) {
-      console.error('[RiskDetection] Failed to enqueue ESCALATE_TO_OWNER:', escError.message);
+      captureError(new Error(escError.message), { context: 'RiskDetection.enqueueEscalation.ESCALATE_TO_OWNER' });
     } else {
       enqueued++;
     }
@@ -760,14 +761,14 @@ async function expireOldRiskFlags(traceId: string): Promise<number> {
     .select('id');
 
   if (error) {
-    console.error('[RiskDetection] Failed to expire old risk flags:', error.message);
+    captureError(new Error(error.message), { context: 'RiskDetection.expireOldRiskFlags' });
     return 0;
   }
 
   const expiredCount = data?.length ?? 0;
 
   if (expiredCount > 0) {
-    console.log(`[RiskDetection] Expired ${expiredCount} risk flag(s)`);
+    logger.info(`[RiskDetection] Expired ${expiredCount} risk flag(s)`);
     await logTrace({
       trace_id: traceId,
       phase: 'OPERATION',
@@ -851,7 +852,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       duration_ms: durationMs,
     });
 
-    console.log(
+    logger.info(
       `[RiskDetection] Cycle complete in ${durationMs}ms: ` +
       `${stats.total_new_flags} new flags, ` +
       `${stats.expired_flags} expired, ` +
@@ -867,7 +868,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (err) {
     const durationMs = Date.now() - startMs;
     const errorMessage = err instanceof Error ? err.message : String(err);
-    console.error('[RiskDetection] Fatal error:', errorMessage);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'RiskDetection.GET' });
 
     await logTrace({
       trace_id: traceId,

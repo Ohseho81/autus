@@ -65,7 +65,7 @@ async function checkInviteLimit(userId: string): Promise<InviteCheckResult> {
 
     if (error) {
       // 함수가 없으면 기본값으로 폴백
-      console.warn('can_invite function not found, using fallback:', error.message);
+      logger.warn('can_invite function not found, using fallback:', error.message);
       
       // 직접 쿼리
       const { data: user, error: userError } = await supabase

@@ -5,6 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 import {
   sendTelegramMessage,
   formatByTemplate,
@@ -85,10 +87,10 @@ async function logTrace(params: IOOTraceParams): Promise<void> {
   try {
     const { error } = await getSupabase().from('ioo_trace').insert(params);
     if (error) {
-      console.error('[Worker] Failed to insert IOO trace:', error.message);
+      captureError(new Error(error.message), { context: 'ActionQueueWorker.logTrace' });
     }
   } catch (err) {
-    console.error('[Worker] IOO trace insert threw:', err);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'ActionQueueWorker.logTrace' });
   }
 }
 
@@ -108,7 +110,7 @@ async function processMessage(action: ActionQueueRow): Promise<ActionResult> {
 
   // Graceful fallback: 토큰 또는 채팅 ID 미설정 시 기존 stub 동작 유지
   if (!process.env.TELEGRAM_BOT_TOKEN || !ownerChatId) {
-    console.log(
+    logger.info(
       `[Worker] Telegram not configured — would send ${String(template ?? 'unknown_template')} ` +
       `to ${String(phone ?? 'unknown_phone')} ` +
       `for student ${String(student_name ?? 'unknown')}`,
@@ -216,13 +218,13 @@ async function expireOldActions(): Promise<number> {
     .select('id');
 
   if (error) {
-    console.error('[Worker] Failed to expire old actions:', error.message);
+    captureError(new Error(error.message), { context: 'ActionQueueWorker.expireOldActions' });
     return 0;
   }
 
   const expiredCount = data?.length ?? 0;
   if (expiredCount > 0) {
-    console.log(`[Worker] Expired ${expiredCount} action(s)`);
+    logger.info(`[Worker] Expired ${expiredCount} action(s)`);
   }
   return expiredCount;
 }
@@ -241,7 +243,7 @@ async function fetchPendingActions(): Promise<ActionQueueRow[]> {
     .limit(10);
 
   if (error) {
-    console.error('[Worker] Failed to fetch pending actions:', error.message);
+    captureError(new Error(error.message), { context: 'ActionQueueWorker.fetchPendingActions' });
     return [];
   }
 
@@ -352,10 +354,9 @@ async function processActions(
       });
 
       failed++;
-      console.error(
-        `[Worker] Action ${action.id} (${action.action_type}) failed:`,
-        errorMessage,
-      );
+      captureError(err instanceof Error ? err : new Error(String(err)), {
+        context: `ActionQueueWorker.processAction.${action.action_type}`,
+      });
     }
   }
 
@@ -400,7 +401,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       stats.failed = failed;
     }
 
-    console.log(
+    logger.info(
       `[Worker] Cycle complete: ${stats.processed} processed, ` +
       `${stats.succeeded} succeeded, ${stats.failed} failed, ` +
       `${stats.expired} expired`,
@@ -409,7 +410,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(stats, { status: 200 });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
-    console.error('[Worker] Fatal error in action-queue worker:', errorMessage);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'ActionQueueWorker.GET' });
 
     return NextResponse.json(
       { error: errorMessage, ...stats },
