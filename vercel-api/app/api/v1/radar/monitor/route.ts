@@ -282,7 +282,7 @@ async function sendTelegramAlert(
     
     message += `\n━━━━━━━━━━━━━━━━━━━━━━\n`;
     message += `🕐 ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}\n`;
-    message += `🔗 [대시보드 열기](https://vercel-dfrncqgjm-ohsehos-projects.vercel.app)`;
+    message += `🔗 [대시보드 열기](${process.env.NEXT_PUBLIC_APP_URL || 'https://autus-ai.com'})`;
     
     // Telegram API 호출
     const response = await fetch(
