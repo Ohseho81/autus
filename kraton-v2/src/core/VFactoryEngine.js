@@ -470,7 +470,7 @@ export class VFactory {
     this.members.set('manager-1', { id: 'manager-1', name: '관리자1', roleId: 'manager' });
     this.members.set('producer-1', { id: 'producer-1', name: '코치1', roleId: 'producer' });
     this.members.set('producer-2', { id: 'producer-2', name: '코치2', roleId: 'producer' });
-    this.members.set('system-1', { id: 'system-1', name: 'AUTUS', roleId: 'system' });
+    this.members.set('system-1', { id: 'system-1', name: '온리쌤', roleId: 'system' });
   }
 
   _getMembersInRole(roleId) {

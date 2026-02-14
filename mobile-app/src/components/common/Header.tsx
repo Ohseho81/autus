@@ -28,7 +28,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  title = 'AUTUS',
+  title = '온리쌤',
   leftIcon,
   onLeftPress,
   rightIcon,

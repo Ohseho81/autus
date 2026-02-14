@@ -1,5 +1,5 @@
 /**
- * 올댓바스켓 Views Index
+ * 온리쌤 Views Index
  */
 
 export { default as StudentsView } from './StudentsView';

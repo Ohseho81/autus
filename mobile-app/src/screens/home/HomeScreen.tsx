@@ -1,7 +1,7 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * 🏠 HomeScreen - KRATON 스타일 메인 대시보드
- * AUTUS 2.0 - 학원 퇴원 방지 AI 플랫폼
+ * 온리쌤 - 학원 퇴원 방지 AI 플랫폼
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -64,7 +64,7 @@ export default function HomeScreen() {
       <Header
         leftIcon="menu"
         onLeftPress={openDrawer}
-        title="AUTUS"
+        title="온리쌤"
         rightIcon="notifications-outline"
         onRightPress={navigateToNotifications}
         rightBadge={dashboard?.data?.urgent_alerts?.length}

@@ -1,6 +1,6 @@
 /**
- * 올댓바스켓 Adapter v1
- * Maps academy events to AUTUS Fact/Decision
+ * 온리쌤 Adapter v1
+ * Maps academy events to 온리쌤 Fact/Decision
  * 
  * Mappings:
  * - attendance 체크 → Fact(attendance.present/absent)
@@ -53,7 +53,7 @@ export type ATBEvent = ATBAttendanceEvent | ATBPaymentEvent | ATBExceptionEvent;
 const SOURCE = 'allthatbasket';
 
 /**
- * Convert ATB event to AUTUS Fact
+ * Convert ATB event to 온리쌤 Fact
  */
 export function eventToFact(event: ATBEvent): Fact {
   switch (event.type) {

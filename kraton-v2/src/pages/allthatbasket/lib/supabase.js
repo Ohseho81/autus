@@ -1,5 +1,5 @@
 /**
- * 🏀 올댓바스켓 Supabase + MoltBot Brain 통합 클라이언트
+ * 온리쌤 Supabase + MoltBot Brain 통합 클라이언트
  */
 
 import { createClient } from '@supabase/supabase-js';

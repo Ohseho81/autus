@@ -122,7 +122,7 @@ import { AUTUSRuntime, useAUTUS } from './core';
 
 // 초기화
 await AUTUSRuntime.init({
-  appName: '올댓바스켓',
+  appName: '온리쌤',
   industry: 'education',
   vTarget: { monthly: 10000000 }
 });

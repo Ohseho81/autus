@@ -245,7 +245,7 @@ class AUTUSRuntimeClass {
 
     // 3. V-Factory 초기화
     this.vFactory = createVFactory({
-      name: config.appName || '올댓바스켓',
+      name: config.appName || '온리쌤',
       industry: config.industry || 'education',
       vTarget: config.vTarget || { monthly: 10000000, margin: 0.3 },
     });

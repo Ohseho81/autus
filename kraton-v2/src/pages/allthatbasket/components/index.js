@@ -1,5 +1,5 @@
 /**
- * 올댓바스켓 Components Index
+ * 온리쌤 Components Index
  */
 
 export { default as ParentAppDaechi } from './ParentAppDaechi';

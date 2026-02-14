@@ -1,5 +1,5 @@
 /**
- * 🏀 올댓바스켓 통합 서비스
+ * 온리쌤 통합 서비스
  *
  * - 출석 체크 CRUD
  * - 결제 관리
@@ -304,9 +304,9 @@ export const notificationAPI = {
   // 출석 알림
   async sendAttendanceAlert(studentName, parentPhone, status) {
     const messages = {
-      present: `[올댓바스켓] ${studentName} 학생이 출석했습니다. 🏀`,
-      absent: `[올댓바스켓] ${studentName} 학생이 오늘 결석입니다. 확인 부탁드립니다.`,
-      late: `[올댓바스켓] ${studentName} 학생이 지각했습니다.`,
+      present: `[온리쌤] ${studentName} 학생이 출석했습니다. 🏀`,
+      absent: `[온리쌤] ${studentName} 학생이 오늘 결석입니다. 확인 부탁드립니다.`,
+      late: `[온리쌤] ${studentName} 학생이 지각했습니다.`,
     };
 
     return this.send('attendance', parentPhone, {
@@ -322,7 +322,7 @@ export const notificationAPI = {
       studentName,
       amount,
       dueDate,
-      message: `[올댓바스켓] ${studentName} 학생 수강료 ${amount.toLocaleString()}원 납부 안내입니다. 마감: ${dueDate}`,
+      message: `[온리쌤] ${studentName} 학생 수강료 ${amount.toLocaleString()}원 납부 안내입니다. 마감: ${dueDate}`,
     });
   },
 
@@ -331,7 +331,7 @@ export const notificationAPI = {
     return this.send('overdue', parentPhone, {
       studentName,
       amount,
-      message: `[올댓바스켓] ${studentName} 학생 수강료 ${amount.toLocaleString()}원이 연체되었습니다. 빠른 납부 부탁드립니다.`,
+      message: `[온리쌤] ${studentName} 학생 수강료 ${amount.toLocaleString()}원이 연체되었습니다. 빠른 납부 부탁드립니다.`,
     });
   },
 
@@ -342,7 +342,7 @@ export const notificationAPI = {
       const result = await this.send('announcement', phone, {
         title,
         content,
-        message: `[올댓바스켓] ${title}\n${content}`,
+        message: `[온리쌤] ${title}\n${content}`,
       });
       results.push(result);
     }

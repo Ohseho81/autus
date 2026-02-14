@@ -27,7 +27,7 @@ export const TEMPLATES = {
   PAYMENT_REQUEST: {
     code: 'ATB_PAYMENT_001',
     title: '수강료 청구서',
-    template: `[올댓바스켓]
+    template: `[온리쌤]
 
 안녕하세요, #{학생명} 학생 학부모님.
 
@@ -46,7 +46,7 @@ export const TEMPLATES = {
   PAYMENT_REMINDER: {
     code: 'ATB_PAYMENT_002',
     title: '수강료 납부 안내',
-    template: `[올댓바스켓]
+    template: `[온리쌤]
 
 안녕하세요, #{학생명} 학생 학부모님.
 
@@ -64,7 +64,7 @@ export const TEMPLATES = {
   PAYMENT_COMPLETE: {
     code: 'ATB_PAYMENT_003',
     title: '결제 완료',
-    template: `[올댓바스켓]
+    template: `[온리쌤]
 
 #{학생명} 학생 #{월}월 수강료 결제가 완료되었습니다.
 
@@ -78,7 +78,7 @@ export const TEMPLATES = {
   ATTENDANCE_ABSENT: {
     code: 'ATB_ATTEND_001',
     title: '출석 확인',
-    template: `[올댓바스켓]
+    template: `[온리쌤]
 
 안녕하세요, #{학생명} 학생 학부모님.
 
@@ -92,7 +92,7 @@ export const TEMPLATES = {
   ATTENDANCE_ABSENT_WITH_MAKEUP: {
     code: 'ATB_ATTEND_002',
     title: '결석 알림 (보충 신청)',
-    template: `[올댓바스켓]
+    template: `[온리쌤]
 
 안녕하세요, #{학생명} 학생 학부모님.
 
@@ -113,7 +113,7 @@ export const TEMPLATES = {
   MAKEUP_APPROVED: {
     code: 'ATB_MAKEUP_001',
     title: '보충 수업 승인',
-    template: `[올댓바스켓]
+    template: `[온리쌤]
 
 #{학생명} 학생의 보충 수업이 확정되었습니다.
 
@@ -128,14 +128,14 @@ export const TEMPLATES = {
   MAKEUP_REJECTED: {
     code: 'ATB_MAKEUP_002',
     title: '보충 수업 불가',
-    template: `[올댓바스켓]
+    template: `[온리쌤]
 
 #{학생명} 학생의 보충 수업 신청이 어렵습니다.
 
 사유: #{거절사유}
 
 다른 일정을 원하시면 카카오톡으로 문의해주세요.
-올댓바스켓 드림`,
+온리쌤 드림`,
     buttons: [
       {
         type: 'WL',

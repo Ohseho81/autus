@@ -17,10 +17,10 @@ export const designPhase = {
   writePressRelease: (strategy: { name: string; id: string }): PressRelease => {
     const templates: Record<string, PressRelease> = {
       ai_growth_report: {
-        headline: '올댓바스켓, "AI 성장 리포트" 도입으로 고객 복귀율 2배 달성',
+        headline: '온리쌤, "AI 성장 리포트" 도입으로 고객 복귀율 2배 달성',
         subheadline: '업계 최초 AI 기반 개인화 성장 분석 서비스',
         date: 'YYYY-MM-DD',
-        body: `올댓바스켓이 AI 성장 리포트 서비스를 도입하여 휴면 고객 복귀율을 기존 15%에서 30%로 2배 향상시켰습니다.
+        body: `온리쌤이 AI 성장 리포트 서비스를 도입하여 휴면 고객 복귀율을 기존 15%에서 30%로 2배 향상시켰습니다.
 
 이 서비스는 각 회원의 출석 패턴, 실력 변화, 참여도를 AI가 분석하여 개인화된 성장 리포트를 제공합니다.
 
@@ -30,10 +30,10 @@ export const designPhase = {
         callToAction: '무료 성장 리포트 받기',
       },
       level_certification: {
-        headline: '올댓바스켓, 국내 최초 "농구 레벨 인증" 시스템 도입',
+        headline: '온리쌤, 국내 최초 "농구 레벨 인증" 시스템 도입',
         subheadline: '객관적 실력 평가로 재등록률 80% 달성',
         date: 'YYYY-MM-DD',
-        body: `올댓바스켓이 자체 개발한 농구 레벨 인증 시스템을 통해 재등록률을 60%에서 80%로 향상시켰습니다.
+        body: `온리쌤이 자체 개발한 농구 레벨 인증 시스템을 통해 재등록률을 60%에서 80%로 향상시켰습니다.
 
 이 시스템은 드리블, 슈팅, 패스, 게임 이해도 등 12개 항목을 체계적으로 평가합니다.
 
@@ -41,10 +41,10 @@ export const designPhase = {
         callToAction: '레벨 테스트 신청하기',
       },
       school_partnership: {
-        headline: '올댓바스켓, 지역 초등학교 10곳과 방과후 협력 체결',
+        headline: '온리쌤, 지역 초등학교 10곳과 방과후 협력 체결',
         subheadline: '학교 내 농구 교실로 신규 회원 200% 증가',
         date: 'YYYY-MM-DD',
-        body: `올댓바스켓이 지역 초등학교와 방과후 프로그램 협력을 통해 신규 가입이 3배 증가했습니다.
+        body: `온리쌤이 지역 초등학교와 방과후 프로그램 협력을 통해 신규 가입이 3배 증가했습니다.
 
 학교에서 먼저 체험한 후 정규반으로 전환하는 학생이 급증하고 있습니다.`,
         callToAction: '학교 협력 프로그램 문의',
@@ -52,10 +52,10 @@ export const designPhase = {
     };
 
     return templates[strategy.id] || {
-      headline: `올댓바스켓, "${strategy.name}" 도입으로 목표 달성`,
+      headline: `온리쌤, "${strategy.name}" 도입으로 목표 달성`,
       subheadline: '혁신적인 서비스로 고객 만족도 향상',
       date: 'YYYY-MM-DD',
-      body: `올댓바스켓이 ${strategy.name}을(를) 도입하여 핵심 목표를 달성했습니다.
+      body: `온리쌤이 ${strategy.name}을(를) 도입하여 핵심 목표를 달성했습니다.
 
 이 서비스는 [핵심 가치]를 제공하며, [차별화 포인트]로 경쟁사와 구별됩니다.
 
