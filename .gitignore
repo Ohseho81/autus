@@ -47,7 +47,7 @@ playwright-report/
 *.swp
 *.swo
 
-# Separate Projects / Submodules
+# Separate Projects / Submodules (nested git repos)
 clawdbot/
 kraton-unified/
 # kraton-v2/  # 배포에 필요하여 제거
@@ -115,3 +115,14 @@ students_insert.sql
 
 # 🔐 키 보관함
 .env.keys
+
+# Generated HTML/Notebooks (local only)
+*.html
+*.ipynb
+
+# Claude plugins (local only)
+*.plugin
+autus-supabase-uploader/
+
+# Legacy prototype (local only)
+mobile-app/
