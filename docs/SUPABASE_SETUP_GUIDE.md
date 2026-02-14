@@ -145,7 +145,7 @@ Project URL: https://YOUR_PROJECT_ID.supabase.co
              ↓
              n8n Supabase Credential의 "Host"에 입력
 
-service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+service_role key: YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE
                   ↓
                   n8n Supabase Credential의 "Service Role Key"에 입력
 ```

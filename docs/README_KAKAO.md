@@ -82,7 +82,7 @@ Python 스크립트 (kakao_notification.py)
 ## 🔧 설정 파일
 
 ### 카카오톡 API
-- **Access Token**: `ltdTE7vL...` (이미 설정됨)
+- **Access Token**: `YOUR_KAKAO_REST_API_TOKEN_HERE` (환경변수로 설정 필요)
 - **API URL**: `https://kapi.kakao.com/v2/api/talk/memo/default/send`
 
 ### Supabase
