@@ -45,8 +45,8 @@ interface RadarMonitorResponse {
 // Telegram Bot Config
 // ─────────────────────────────────────────────────────────────────────
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8064967196:AAHUf9LnhxFPcU34tDNlzNqEDzolTUQ6eUk';
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '6733089824';
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 
 // ─────────────────────────────────────────────────────────────────────
 // GET /api/v1/radar/monitor - 실시간 레이더 스캔
@@ -246,6 +246,10 @@ async function sendTelegramAlert(
   alerts: RiskAlert[], 
   summary: { critical: number; high: number; medium: number; totalAtRisk: number }
 ): Promise<{ sent: boolean; messageId?: number; error?: string }> {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    return { sent: false, error: 'Telegram credentials not configured' };
+  }
+
   try {
     const criticalAlerts = alerts.filter(a => a.riskLevel === 'critical');
     const highAlerts = alerts.filter(a => a.riskLevel === 'high');

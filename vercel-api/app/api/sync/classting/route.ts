@@ -496,9 +496,10 @@ function verifyWebhookSignature(body: string, signature: string | null): boolean
 }
 
 // Token encryption (simple for demo, use proper encryption in production)
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-change-me!';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '';
 
 function encryptToken(token: string): string {
+  if (!ENCRYPTION_KEY) throw new Error('ENCRYPTION_KEY not configured');
   const cipher = crypto.createCipheriv(
     'aes-256-cbc',
     crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32),
@@ -508,6 +509,7 @@ function encryptToken(token: string): string {
 }
 
 function decryptToken(encrypted: string): string {
+  if (!ENCRYPTION_KEY) throw new Error('ENCRYPTION_KEY not configured');
   try {
     const decipher = crypto.createDecipheriv(
       'aes-256-cbc',
