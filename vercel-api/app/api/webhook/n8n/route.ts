@@ -18,7 +18,7 @@ const corsHeaders = {
 };
 
 // Environment variables
-const N8N_WEBHOOK_SECRET = process.env.N8N_WEBHOOK_SECRET || 'autus-n8n-secret-2026';
+const N8N_WEBHOOK_SECRET = process.env.N8N_WEBHOOK_SECRET || '';
 
 // Webhook event types
 type WebhookEventType = 

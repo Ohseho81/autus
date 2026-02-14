@@ -23,7 +23,7 @@ function getSupabase() {
 }
 
 // n8n Webhook URL
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://your-n8n.com/webhook/autus-notify';
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || '';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 알림 타입

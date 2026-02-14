@@ -17,7 +17,7 @@ const corsHeaders = {
 };
 
 // n8n Webhook URL (환경변수로 설정)
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://n8n.autus.ai/webhook/autus-action';
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || '';
 
 // 실행 가능한 액션 타입 정의
 type ActionType = 
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     const timestamp = new Date().toISOString();
 
     // n8n이 설정되어 있으면 실제 실행
-    if (N8N_WEBHOOK_URL && N8N_WEBHOOK_URL !== 'https://n8n.autus.ai/webhook/autus-action') {
+    if (N8N_WEBHOOK_URL) {
       try {
         const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
           method: 'POST',
