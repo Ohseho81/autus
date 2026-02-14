@@ -5,15 +5,22 @@ students.csv → atb_students 테이블
 """
 
 import csv
-from datetime import datetime
-from supabase import create_client
+import os
 import sys
+from supabase import create_client
 
-# Supabase 설정
+# Supabase 설정 (온리쌤)
 SUPABASE_URL = "https://pphzvnaedmzcvpxjulti.supabase.co"
-SUPABASE_SERVICE_KEY = "your-supabase-service-role-key-here"
+SUPABASE_SERVICE_KEY = (
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    or os.getenv("SUPABASE_SERVICE_KEY")
+    or ""
+)
 
-# Supabase 클라이언트 생성
+if not SUPABASE_SERVICE_KEY:
+    print("❌ 환경 변수 필요: SUPABASE_SERVICE_ROLE_KEY 또는 SUPABASE_SERVICE_KEY")
+    sys.exit(1)
+
 supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 def parse_birth_year(birth_date_str):
@@ -44,7 +51,7 @@ def load_students_from_csv(csv_path):
                 'parent_phone': row['parent_phone'].strip() if row['parent_phone'] else None,
                 'school': row['school'].strip() if row['school'] and row['school'].strip() else None,
                 'birth_year': parse_birth_year(row['birth_date']),
-                'needs_shuttle': parse_shuttle(row['shuttle_required']),
+                'shuttle_required': parse_shuttle(row['shuttle_required']),
                 'status': row['status'].strip() if row['status'] else 'active'
             }
             students.append(student)
@@ -101,10 +108,16 @@ def check_existing_data():
         print(f"❌ 기존 데이터 확인 실패: {e}")
         return None
 
-def main():
+def main(csv_path: str = "students.csv", auto_yes: bool = False):
     print("\n" + "="*60)
     print("📚 온리쌤 학생 데이터 업로드 시스템")
     print("="*60)
+
+    def confirm(msg: str) -> bool:
+        if auto_yes:
+            print(msg + " y (auto)")
+            return True
+        return input(msg).lower() == "y"
 
     # 1. 기존 데이터 확인
     print("\n🔍 기존 데이터 확인 중...")
@@ -113,15 +126,14 @@ def main():
         print(f"   현재 atb_students 테이블: {existing_count}건")
 
         if existing_count > 0:
-            answer = input(f"\n⚠️  {existing_count}건의 기존 데이터가 있습니다. 계속 진행하시겠습니까? (y/n): ")
-            if answer.lower() != 'y':
+            if not confirm(f"\n⚠️  {existing_count}건의 기존 데이터가 있습니다. 계속 진행하시겠습니까? (y/n): "):
                 print("❌ 업로드 취소")
                 sys.exit(0)
 
     # 2. CSV 파일 로드
-    print("\n📂 students.csv 파일 로드 중...")
+    print(f"\n📂 {csv_path} 파일 로드 중...")
     try:
-        students = load_students_from_csv('students.csv')
+        students = load_students_from_csv(csv_path)
         print(f"   ✅ {len(students)}건 로드 완료")
     except Exception as e:
         print(f"   ❌ 파일 로드 실패: {e}")
@@ -133,8 +145,7 @@ def main():
         print(f"   {i}. {student['name']} - {student['parent_phone']} - {student['school'] or '학교미정'}")
 
     # 4. 업로드 확인
-    answer = input(f"\n✅ {len(students)}건의 데이터를 업로드하시겠습니까? (y/n): ")
-    if answer.lower() != 'y':
+    if not confirm(f"\n✅ {len(students)}건의 데이터를 업로드하시겠습니까? (y/n): "):
         print("❌ 업로드 취소")
         sys.exit(0)
 
@@ -149,5 +160,18 @@ def main():
     print(f"❌ 실패: {error}/{len(students)}건")
     print(f"{'='*60}\n")
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-y", "--yes",
+        action="store_true",
+        help="대화형 확인 없이 바로 업로드",
+    )
+    parser.add_argument(
+        "-f", "--csv",
+        default="students.csv",
+        help="CSV 파일 경로 (기본: students.csv)",
+    )
+    args = parser.parse_args()
+    main(csv_path=args.csv, auto_yes=args.yes)
