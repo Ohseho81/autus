@@ -4,7 +4,8 @@
 // ============================================
 
 import { NextResponse } from 'next/server';
-import { generateRequestId } from './monitoring';
+import { generateRequestId, captureError } from './monitoring';
+import { logger } from './logger';
 
 // ============================================
 // 기본 조직 ID (환경변수로 설정 가능)
@@ -149,7 +150,7 @@ export function serverErrorResponse(
 ): NextResponse<ApiResponse> {
   const reqId = requestId || generateRequestId();
   const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-  console.error(`[AUTUS API Error${context ? ` - ${context}` : ''}]`, error);
+  captureError(error instanceof Error ? error : new Error(String(error)), { context: `api-utils.serverErrorResponse${context ? ` - ${context}` : ''}` });
 
   return NextResponse.json(
     {
@@ -380,10 +381,10 @@ export function log(
       console.info(JSON.stringify(logEntry));
       break;
     case 'warn':
-      console.warn(JSON.stringify(logEntry));
+      logger.warn(message, context);
       break;
     case 'error':
-      console.error(JSON.stringify(logEntry));
+      logger.error(message, undefined, context);
       break;
   }
 }

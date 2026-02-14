@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '../lib/logger';
 
 const DEFAULT_ORG_ID = process.env.NEXT_PUBLIC_DEFAULT_ORG_ID || '';
 
@@ -599,7 +600,7 @@ export default function Home() {
         setRadarAlerts(data.data.alerts);
       }
     } catch (error) {
-      console.error('Radar fetch failed:', error);
+      logger.error('Radar fetch failed', { error: error instanceof Error ? error.message : String(error) });
     }
   }, []);
 
@@ -630,7 +631,7 @@ export default function Home() {
           setRadarAlerts(radarData.data.alerts);
         }
       } catch (error) {
-        console.error('Data fetch failed:', error);
+        logger.error('Data fetch failed', { error: error instanceof Error ? error.message : String(error) });
       } finally {
         setLoading(false);
       }

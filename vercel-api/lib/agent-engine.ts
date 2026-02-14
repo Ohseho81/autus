@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { generateUUID } from './api-utils';
+import { logger } from './logger';
 import {
   type ActionType,
   type ActionItem,
@@ -364,7 +365,7 @@ export function generateProofPack(data: {
   const signature = `AUTUS-v2.0-proof-sha256:${Buffer.from(JSON.stringify(data)).toString('base64').slice(0, 32)}`;
   
   // 실제로는 DB에 저장
-  console.log(`[Proof Pack] Generated: ${proofPackId}`);
+  logger.info(`[Proof Pack] Generated: ${proofPackId}`);
   
   return proofPackId;
 }

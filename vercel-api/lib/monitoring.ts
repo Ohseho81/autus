@@ -69,8 +69,16 @@ async function getSentry(): Promise<SentryInstance | null> {
 }
 
 // ============================================
-// Request ID Generator
+// ID Generators
 // ============================================
+
+/**
+ * Generate a prefixed trace ID for request/pipeline tracing
+ * e.g. generateTraceId('risk') → 'risk-1707849600000-a3f2b1'
+ */
+export function generateTraceId(prefix = 'trace'): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 /**
  * Generate a unique request ID using crypto
@@ -278,6 +286,7 @@ export async function setTag(key: string, value: string): Promise<void> {
 export default {
   captureError,
   captureMessage,
+  generateTraceId,
   generateRequestId,
   startTransaction,
   endTransaction,

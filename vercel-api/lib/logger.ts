@@ -293,4 +293,5 @@ const logger = {
 // Exports
 // ============================================
 
+export { logger };
 export default logger;

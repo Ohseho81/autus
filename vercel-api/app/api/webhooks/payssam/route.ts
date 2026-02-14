@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { generateTraceId } from '../../../../lib/monitoring';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -44,10 +45,6 @@ function getSupabase() {
 // -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
-
-function generateTraceId(): string {
-  return `pay-wh-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
 
 async function logTrace(params: IOOTraceParams): Promise<void> {
   try {
@@ -113,7 +110,7 @@ function verifySignaturePlaceholder(
 // -----------------------------------------------------------------------------
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const traceId = generateTraceId();
+  const traceId = generateTraceId('pay-wh');
   const startMs = Date.now();
 
   try {

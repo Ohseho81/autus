@@ -5,6 +5,7 @@
 
 import { db } from './supabase';
 import type { ActionType, AutomationLevel } from './types-agent';
+import { captureError } from './monitoring';
 
 // ─────────────────────────────────────────────────────────────────────
 // Types
@@ -139,7 +140,7 @@ async function enrichContext(userId: string, customerId?: string): Promise<Moltb
       avgVIndex: organisms.reduce((sum, o) => sum + o.value_v, 0) / organisms.length || 0,
     };
   } catch (error) {
-    console.error('Context enrichment failed:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'moltbot.enrichContext' });
   }
   
   return context;
@@ -285,7 +286,7 @@ export async function sendToMoltbot(request: MoltbotRequest): Promise<MoltbotRes
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Moltbot request failed:', errorMessage);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'moltbot.sendToMoltbot' });
     
     return {
       success: false,

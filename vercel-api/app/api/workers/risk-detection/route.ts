@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { generateTraceId } from '../../../../lib/monitoring';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -96,10 +97,6 @@ function getSupabase() {
 // -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
-
-function generateTraceId(): string {
-  return `risk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
 
 function todayDateString(): string {
   return new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -800,7 +797,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const traceId = generateTraceId();
+  const traceId = generateTraceId('risk');
   const startMs = Date.now();
 
   const stats: PipelineStats = {
