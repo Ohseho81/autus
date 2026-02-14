@@ -124,5 +124,23 @@ students_insert.sql
 *.plugin
 autus-supabase-uploader/
 
+# PII JSON Data (학생 명단 등 — 절대 커밋하지 말 것)
+**/students_data.json
+OUTPUT_*
+
+# Temporary setup/onboarding scripts (local only)
+auto_onboarding.py
+setup_and_upload.py
+setup_direct_ip.py
+upload_students.py
+upload_to_supabase.py
+upload_via_api.py
+CHECK_FILES.sh
+RUN_THIS.sh
+INSTALL.md
+SETUP_GUIDE.md
+ONBOARDING_COMPLETE.md
+START_HERE.md
+
 # Legacy prototype (local only)
 mobile-app/
