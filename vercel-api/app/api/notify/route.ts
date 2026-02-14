@@ -11,12 +11,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
-// Supabase Admin Client
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+// Supabase Admin Client (lazy via shared singleton)
+function getSupabase() {
+  try {
+    return getSupabaseAdmin();
+  } catch {
+    return null;
+  }
+}
 
 // n8n Webhook URL
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://your-n8n.com/webhook/autus-notify';
@@ -100,7 +104,8 @@ export async function POST(request: NextRequest) {
 
 async function sendNotification(payload: NotificationPayload) {
   const { type, recipient_id, title, message, data } = payload;
-  
+  const supabase = getSupabase();
+
   // DB에 알림 저장
   const notification = {
     id: `notif_${Date.now()}`,
@@ -152,7 +157,8 @@ async function sendNotification(payload: NotificationPayload) {
 
 async function sendRiskAlert(payload: NotificationPayload) {
   const { student_id, student_name, state, signals } = payload;
-  
+  const supabase = getSupabase();
+
   const alert = {
     id: `risk_${Date.now()}`,
     student_id,
@@ -167,7 +173,7 @@ async function sendRiskAlert(payload: NotificationPayload) {
   // DB에 위험 알림 저장
   if (supabase) {
     await supabase.from('risks').insert(alert);
-    
+
     // 관련 담당자에게 알림 전송
     await supabase.from('notifications').insert({
       id: `notif_${Date.now()}`,
@@ -207,7 +213,8 @@ async function sendRiskAlert(payload: NotificationPayload) {
 
 async function sendPaymentNotification(payload: NotificationPayload) {
   const { data } = payload;
-  
+  const supabase = getSupabase();
+
   const notification = {
     id: `notif_${Date.now()}`,
     type: 'payment',
@@ -234,7 +241,8 @@ async function sendPaymentNotification(payload: NotificationPayload) {
 
 async function sendAttendanceNotification(payload: NotificationPayload) {
   const { student_name, data } = payload;
-  
+  const supabase = getSupabase();
+
   const notification = {
     id: `notif_${Date.now()}`,
     type: 'attendance',
@@ -261,7 +269,8 @@ async function sendAttendanceNotification(payload: NotificationPayload) {
 
 async function broadcastNotification(payload: NotificationPayload) {
   const { role, title, message, data } = payload;
-  
+  const supabase = getSupabase();
+
   const notification = {
     id: `broadcast_${Date.now()}`,
     type: 'broadcast',
@@ -290,7 +299,8 @@ async function broadcastNotification(payload: NotificationPayload) {
 
 async function listNotifications(payload: NotificationPayload) {
   const { org_id, limit = 50 } = payload;
-  
+  const supabase = getSupabase();
+
   if (!supabase) {
     // Mock 데이터
     return NextResponse.json({

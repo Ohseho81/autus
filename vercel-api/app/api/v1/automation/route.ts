@@ -37,7 +37,7 @@ interface RoleStats {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const orgId = searchParams.get('org_id') || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+  const orgId = searchParams.get('org_id') || (process.env.DEFAULT_ORG_ID || '');
   const period = searchParams.get('period') || 'today'; // today, week, month
 
   try {
@@ -73,6 +73,8 @@ export async function GET(request: NextRequest) {
         data: getMockAutomationStats(),
         message: '자동화 통계 조회 (Mock)',
         meta: { period, orgId, isMock: true }
+      }, {
+        headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' }
       });
     }
 
@@ -89,6 +91,8 @@ export async function GET(request: NextRequest) {
         totalLogs: logs?.length || 0,
         timestamp: new Date().toISOString()
       }
+    }, {
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' }
     });
   } catch (error) {
     console.error('Automation stats error:', error);
@@ -97,6 +101,8 @@ export async function GET(request: NextRequest) {
       data: getMockAutomationStats(),
       message: '자동화 통계 조회 (Fallback)',
       meta: { isMock: true }
+    }, {
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' }
     });
   }
 }
@@ -113,7 +119,7 @@ export async function POST(request: NextRequest) {
       source = 'api', 
       action_type, 
       is_automated = true,
-      org_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+      org_id = (process.env.DEFAULT_ORG_ID || ''),
       metadata = {}
     } = body;
 

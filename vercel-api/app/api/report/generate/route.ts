@@ -11,18 +11,27 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import Anthropic from '@anthropic-ai/sdk';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
-// Supabase Client
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+// Supabase Client (lazy via shared singleton)
+function getSupabase() {
+  try {
+    return getSupabaseAdmin();
+  } catch {
+    return null;
+  }
+}
 
-// Claude API
-const anthropic = process.env.ANTHROPIC_API_KEY 
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  : null;
+// Claude API (lazy initialization to reduce cold start)
+let _anthropic: InstanceType<typeof import('@anthropic-ai/sdk').default> | null = null;
+function getAnthropic() {
+  if (!_anthropic) {
+    if (!process.env.ANTHROPIC_API_KEY) return null;
+    const Anthropic = require('@anthropic-ai/sdk').default;
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return _anthropic;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Types
@@ -208,6 +217,7 @@ async function generateReport(payload: ReportRequest) {
 
   // AI 인사이트 생성
   let aiInsights = '';
+  const anthropic = getAnthropic();
   if (anthropic) {
     try {
       const response = await anthropic.messages.create({
@@ -239,6 +249,7 @@ async function generateReport(payload: ReportRequest) {
     created_at: new Date().toISOString(),
   };
 
+  const supabase = getSupabase();
   if (supabase) {
     await supabase.from('reports').insert(reportRecord);
   }
@@ -257,6 +268,7 @@ async function generateReport(payload: ReportRequest) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function generateWeeklyVReport(period: { start: string; end: string }, orgId?: string) {
+  const supabase = getSupabase();
   if (!supabase) {
     return MOCK_DATA.weekly;
   }
@@ -382,6 +394,7 @@ async function generateMonthlyReport(period: { start: string; end: string }, org
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function generateStudentReport(studentId: string, period: { start: string; end: string }) {
+  const supabase = getSupabase();
   if (!supabase || !studentId) {
     return MOCK_DATA.student;
   }
@@ -446,6 +459,7 @@ async function generateStudentReport(studentId: string, period: { start: string;
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function generateRiskReport(orgId?: string) {
+  const supabase = getSupabase();
   if (!supabase) {
     return {
       total_at_risk: 8,
@@ -626,6 +640,7 @@ async function scheduleReport(payload: ReportRequest) {
     created_at: new Date().toISOString(),
   };
 
+  const supabase = getSupabase();
   if (supabase) {
     await supabase.from('report_schedules').insert(scheduleRecord);
   }
@@ -644,6 +659,7 @@ async function scheduleReport(payload: ReportRequest) {
 async function listReports(payload: ReportRequest) {
   const { limit = 20, org_id } = payload;
 
+  const supabase = getSupabase();
   if (!supabase) {
     return NextResponse.json({
       success: true,
@@ -686,6 +702,7 @@ async function downloadReport(payload: ReportRequest) {
     }, { status: 400 });
   }
 
+  const supabase = getSupabase();
   if (!supabase) {
     return NextResponse.json({
       success: true,

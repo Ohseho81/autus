@@ -8,15 +8,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
 
-// Supabase 클라이언트
-
-// Anthropic 클라이언트
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || '',
-});
+// Anthropic 클라이언트 (lazy initialization to reduce cold start)
+let _anthropic: InstanceType<typeof import('@anthropic-ai/sdk').default> | null = null;
+function getAnthropic() {
+  if (!_anthropic) {
+    const Anthropic = require('@anthropic-ai/sdk').default;
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' });
+  }
+  return _anthropic!;
+}
 
 // Physics 변수 추출을 위한 프롬프트
 const PHYSICS_EXTRACTION_PROMPT = `
@@ -175,7 +177,7 @@ function buildContextText(data: InteractionData): string {
 // Claude API로 물리 변수 추출
 async function extractPhysicsVector(contextText: string): Promise<PhysicsVector> {
   try {
-    const message = await anthropic.messages.create({
+    const message = await getAnthropic().messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 1024,
       messages: [

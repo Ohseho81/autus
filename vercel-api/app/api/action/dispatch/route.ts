@@ -5,16 +5,20 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
-import Anthropic from '@anthropic-ai/sdk';
 import { CardType, CardTone, CardDispatch, CardOutcome } from '@/lib/types-erp';
 
 // -----------------------------------------------------------------------------
-// Clients
+// Clients (lazy initialization to reduce cold start)
 // -----------------------------------------------------------------------------
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+let _anthropic: InstanceType<typeof import('@anthropic-ai/sdk').default> | null = null;
+function getAnthropic() {
+  if (!_anthropic) {
+    const Anthropic = require('@anthropic-ai/sdk').default;
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return _anthropic!;
+}
 
 // Lazy getSupabaseAdmin() getter
 const getSupabase = () => getSupabaseAdmin();
@@ -275,7 +279,7 @@ async function generateCardMessage(
 `.trim();
 
   try {
-    const response = await anthropic.messages.create({
+    const response = await getAnthropic().messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 300,
       messages: [{ role: 'user', content: prompt }],

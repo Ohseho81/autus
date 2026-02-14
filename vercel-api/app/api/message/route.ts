@@ -11,12 +11,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
-// Supabase Client
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+// Supabase Client (lazy via shared singleton)
+function getSupabase() {
+  try {
+    return getSupabaseAdmin();
+  } catch {
+    return null;
+  }
+}
 
 // 외부 서비스 설정
 const KAKAO_API_KEY = process.env.KAKAO_ALIMTALK_API_KEY || '';
@@ -199,6 +203,7 @@ async function sendMessage(payload: MessageRequest) {
   }
 
   // DB에 기록
+  const supabase = getSupabase();
   if (supabase) {
     await supabase.from('message_logs').insert({
       id: `msg_${Date.now()}`,
@@ -444,6 +449,7 @@ async function sendEmail(email: string, subject: string, content: string) {
 
 async function getMessageHistory(payload: MessageRequest) {
   const { limit = 50, org_id } = payload;
+  const supabase = getSupabase();
 
   if (!supabase) {
     return NextResponse.json({

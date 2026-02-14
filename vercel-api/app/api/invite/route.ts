@@ -8,7 +8,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
 
 // ─────────────────────────────────────────────────────────────────────
@@ -39,13 +39,12 @@ interface InviteLink {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Supabase Client
+// Supabase Client (lazy via shared singleton)
 // ─────────────────────────────────────────────────────────────────────
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+function getSupabase() {
+  return getSupabaseAdmin();
+}
 
 // ─────────────────────────────────────────────────────────────────────
 // Helper Functions
@@ -56,6 +55,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
  */
 async function checkInviteLimit(userId: string): Promise<InviteCheckResult> {
   try {
+    const supabase = getSupabase();
     // DB 함수 호출
     const { data, error } = await supabase.rpc('can_invite', {
       p_inviter_id: userId
@@ -226,6 +226,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. 초대자 역할 확인
+    const supabase = getSupabase();
     const { data: inviter, error: inviterError } = await supabase
       .from('org_members')
       .select('role')
@@ -335,6 +336,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // 1. 코드 유효성 검사
+    const supabase = getSupabase();
     const { data: invite, error: fetchError } = await supabase
       .from('approval_codes')
       .select('*')
@@ -454,6 +456,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 초대 코드 삭제 (발행자만 가능)
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from('approval_codes')
       .delete()

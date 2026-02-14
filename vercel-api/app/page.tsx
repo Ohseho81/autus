@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+const DEFAULT_ORG_ID = process.env.NEXT_PUBLIC_DEFAULT_ORG_ID || '';
+
 // ═══════════════════════════════════════════════════════════════════════════════
-// 🏛️ AUTUS Dashboard - Tesla Grade Business Intelligence
+// 온리쌤 Dashboard - Tesla Grade Business Intelligence
 // V = (T × M × s)^t
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -371,7 +373,7 @@ function RadarAlertPanel({ alerts, onRefresh }: { alerts: RiskAlert[]; onRefresh
 function FloatingChatWidget({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([
-    { role: 'assistant', content: '안녕하세요! 🏛️ AUTUS 크라톤입니다. 무엇을 도와드릴까요?' }
+    { role: 'assistant', content: '안녕하세요! 온리쌤 크라톤입니다. 무엇을 도와드릴까요?' }
   ]);
   const [loading, setLoading] = useState(false);
 
@@ -591,7 +593,7 @@ export default function Home() {
   // Radar 데이터 fetch
   const fetchRadar = useCallback(async () => {
     try {
-      const res = await fetch('/api/v1/radar/monitor?org_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11&notify=false');
+      const res = await fetch(`/api/v1/radar/monitor?org_id=${DEFAULT_ORG_ID}&notify=false`);
       const data = await res.json();
       if (data.success && data.data?.alerts) {
         setRadarAlerts(data.data.alerts);
@@ -607,9 +609,9 @@ export default function Home() {
       try {
         // 병렬 요청
         const [cockpitRes, automationRes, radarRes] = await Promise.all([
-          fetch('/api/v1/cockpit?org_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
-          fetch('/api/v1/automation?org_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11&period=today'),
-          fetch('/api/v1/radar/monitor?org_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11&notify=false')
+          fetch(`/api/v1/cockpit?org_id=${DEFAULT_ORG_ID}`),
+          fetch(`/api/v1/automation?org_id=${DEFAULT_ORG_ID}&period=today`),
+          fetch(`/api/v1/radar/monitor?org_id=${DEFAULT_ORG_ID}&notify=false`)
         ]);
         
         const cockpitData = await cockpitRes.json();
@@ -666,7 +668,7 @@ export default function Home() {
           marginBottom: '0.5rem',
           fontWeight: '700'
         }}>
-          🏛️ AUTUS
+          온리쌤
         </h1>
         <p style={{ fontSize: '1rem', color: '#888', letterSpacing: '0.1em' }}>
           Tesla Grade Business Intelligence

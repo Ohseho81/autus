@@ -11,12 +11,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 
-// Claude API Client
-const anthropic = process.env.ANTHROPIC_API_KEY 
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  : null;
+// Claude API Client (lazy initialization to reduce cold start)
+let _anthropic: InstanceType<typeof import('@anthropic-ai/sdk').default> | null = null;
+function getAnthropic() {
+  if (!_anthropic) {
+    if (!process.env.ANTHROPIC_API_KEY) return null;
+    const Anthropic = require('@anthropic-ai/sdk').default;
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return _anthropic;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Types
@@ -173,6 +178,7 @@ async function generateScript(payload: ScriptRequest) {
   const userPrompt = buildUserPrompt(scenario, student_name, parent_name, context, custom_prompt);
 
   // Claude API 호출
+  const anthropic = getAnthropic();
   if (anthropic) {
     try {
       const response = await anthropic.messages.create({

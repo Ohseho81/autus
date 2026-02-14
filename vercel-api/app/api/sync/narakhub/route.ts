@@ -241,73 +241,82 @@ async function syncStudentsToSupabase(
   let skipped = 0;
   const errors: { record_id?: string; message: string }[] = [];
   
+  // Validate all students first
+  const validStudents: StudentData[] = [];
   for (const student of students) {
+    const validation = validateStudentData(student);
+    if (!validation.valid) {
+      errors.push({ record_id: student.external_id, message: validation.errors.join(', ') });
+    } else {
+      validStudents.push(student);
+    }
+  }
+
+  // Batch lookup all existing students in a single query
+  const { data: existingStudents } = await getSupabaseAdmin()
+    .from('students')
+    .select('id, external_id, metadata')
+    .eq('academy_id', academyId)
+    .in('external_id', validStudents.map(s => s.external_id));
+
+  // Build lookup map
+  const existingMap = new Map(
+    (existingStudents || []).map(s => [s.external_id, s])
+  );
+
+  // Process in memory: separate into upsert records and skipped
+  const upsertRecords: any[] = [];
+  const upsertStudentsList: StudentData[] = [];
+
+  for (const student of validStudents) {
     try {
-      // Validate
-      const validation = validateStudentData(student);
-      if (!validation.valid) {
-        errors.push({ record_id: student.external_id, message: validation.errors.join(', ') });
-        continue;
-      }
-      
-      // Calculate risk
       const riskScore = calculateRiskScore(student);
       const riskBand = getRiskBand(riskScore);
-      
-      // Add risk to student data
+      const hash = hashStudentData(student);
+
+      const existing = existingMap.get(student.external_id);
+
+      if (existing && existing.metadata?.hash === hash) {
+        skipped++;
+        continue;
+      }
+
       const studentWithRisk = {
         ...student,
         risk_score: riskScore,
         risk_band: riskBand,
-        confidence_score: 0.75, // Default confidence for CSV data
+        confidence_score: 0.75,
+        metadata: { ...student.metadata, hash },
       };
-      
-      // Check existing
-      const { data: existing } = await getSupabaseAdmin()
-        .from('students')
-        .select('id, metadata')
-        .eq('academy_id', academyId)
-        .eq('external_id', student.external_id)
-        .single();
-      
-      const hash = hashStudentData(student);
-      
+
       if (existing) {
-        // Check if changed
-        if (existing.metadata?.hash === hash) {
-          skipped++;
-          continue;
-        }
-        
-        // Update
-        await getSupabaseAdmin()
-          .from('students')
-          .update({
-            ...studentWithRisk,
-            metadata: { ...student.metadata, hash },
-          })
-          .eq('id', existing.id);
-        
         updated++;
       } else {
-        // Insert
-        await getSupabaseAdmin()
-          .from('students')
-          .insert({
-            ...studentWithRisk,
-            metadata: { ...student.metadata, hash },
-          });
-        
         created++;
       }
-      
-      // Upsert signals
-      await upsertStudentSignals(academyId, student);
-      
+
+      upsertRecords.push(studentWithRisk);
+      upsertStudentsList.push(student);
       synced++;
     } catch (err: any) {
       errors.push({ record_id: student.external_id, message: err.message });
     }
+  }
+
+  // Batch upsert only changed records
+  if (upsertRecords.length > 0) {
+    const { error: upsertError } = await getSupabaseAdmin()
+      .from('students')
+      .upsert(upsertRecords, { onConflict: 'academy_id,external_id' });
+
+    if (upsertError) {
+      errors.push({ message: `Batch upsert failed: ${upsertError.message}` });
+    }
+  }
+
+  // Batch upsert signals for changed students
+  for (const student of upsertStudentsList) {
+    await upsertStudentSignals(academyId, student);
   }
   
   return {
