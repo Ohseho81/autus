@@ -13,7 +13,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
-import { setupCoworkCommands, pushNotification, COWORK_TASKS, enqueue } from './cowork-handler.js';
+import { setupCoworkCommands, COWORK_TASKS, enqueue } from './cowork-handler.js';
 import workflowAdapter from './workflow-handler.js';
 import {
   setupOrchestratorCommands,
@@ -343,7 +343,9 @@ bot.onText(/\/status/, async (msg) => {
   try {
     const brainHealth = await callBrainAPI('/api/moltbot/health');
     if (brainHealth) brainStatus = '✅ 온라인';
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[Status] Brain health check failed:', e?.message || e);
+  }
 
   const sbStatus = isSupabaseAvailable() ? '✅ 연결됨' : '❌ 미설정';
 

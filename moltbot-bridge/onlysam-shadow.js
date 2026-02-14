@@ -27,7 +27,10 @@ async function sendTimelineEvent(eventKey, studentName = null) {
       },
       body: JSON.stringify(body),
     });
-    const data = await res.json().catch(() => ({}));
+    const data = await res.json().catch((err) => {
+      console.warn('[OnlySam] JSON parse failed:', err?.message || err);
+      return {};
+    });
     if (!res.ok) {
       return { success: false, error: data.error || 'request_failed', message: data.message || res.statusText };
     }
