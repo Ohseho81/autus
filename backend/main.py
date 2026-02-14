@@ -54,10 +54,9 @@ VERSION = os.getenv("VERSION", "4.2.0")
 DATA_DIR = os.getenv("AUTUS_DATA_DIR", "./autus_data")
 
 # PostgreSQL
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://autus:autus@localhost:5432/autus"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+if not DATABASE_URL:
+    logger.warning("⚠️ DATABASE_URL 환경변수가 설정되지 않았습니다. DB 기능이 비활성화됩니다.")
 
 # Redis (선택)
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
@@ -81,11 +80,15 @@ async def init_db():
     global db_pool
     try:
         import asyncpg
+        if not DATABASE_URL:
+            logger.warning("⚠️ DATABASE_URL이 비어있음 - DB 건너뜀")
+            return False
         db_pool = await asyncpg.create_pool(
             DATABASE_URL,
-            min_size=2,
-            max_size=10,
-            command_timeout=60
+            min_size=5,
+            max_size=20,
+            command_timeout=30,
+            max_inactive_connection_lifetime=300,
         )
         logger.info("✅ PostgreSQL 연결 성공")
         return True
