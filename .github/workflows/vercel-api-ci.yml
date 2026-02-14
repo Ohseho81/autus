@@ -1,0 +1,162 @@
+# ============================================
+# AUTUS Vercel API CI
+# ============================================
+# Edge-First API - Claude + Supabase
+
+name: Vercel API CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'vercel-api/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vercel-api/**'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ============================================
+  # 1. TypeScript Check & Tests
+  # ============================================
+  typecheck-and-test:
+    name: ⌨️ TypeCheck & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./vercel-api
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: vercel-api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint || true
+
+      - name: Run tests
+        run: npm run test:run
+
+      - name: Generate coverage report
+        if: always()
+        run: npm run test:coverage || echo "Coverage report failed"
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: vercel-api/coverage/
+          retention-days: 7
+
+  # ============================================
+  # 2. Build Next.js
+  # ============================================
+  build:
+    name: 🏗️ Build Next.js
+    runs-on: ubuntu-latest
+    needs: [typecheck-and-test]
+    defaults:
+      run:
+        working-directory: ./vercel-api
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: vercel-api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      - name: Build summary
+        run: |
+          echo "## 🏗️ Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Next.js build completed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Build artifacts:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          du -sh .next/ >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # 3. Security Scan
+  # ============================================
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: [typecheck-and-test]
+    defaults:
+      run:
+        working-directory: ./vercel-api
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=moderate || true
+
+      - name: Check for vulnerable packages
+        run: |
+          echo "## 🔒 Security Audit" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          npm audit --json > audit.json || true
+          if [ -f audit.json ]; then
+            echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+            cat audit.json >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ============================================
+  # 4. Notify on Success (Main Branch Only)
+  # ============================================
+  notify:
+    name: 📱 몰트봇 알림
+    runs-on: ubuntu-latest
+    needs: [build, security-scan]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Telegram 알림
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
+              "text": "⌨️ Vercel API CI 완료!\n\n커밋: ${{ github.event.head_commit.message }}\nBy: ${{ github.actor }}",
+              "parse_mode": "HTML"
+            }' || echo "Telegram notification failed (continuing)"
