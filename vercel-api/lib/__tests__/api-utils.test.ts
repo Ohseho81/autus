@@ -321,7 +321,7 @@ describe('API Utils - Caching', () => {
     const parsed = await parseNextResponse(response);
 
     expect(parsed.data.data).toEqual(data);
-    expect(parsed.headers['cache-control']).toContain('max-age=120');
+    expect(parsed.headers['cache-control']).toContain('s-maxage=120');
     expect(parsed.headers['cache-control']).toContain('stale-while-revalidate=240');
   });
 

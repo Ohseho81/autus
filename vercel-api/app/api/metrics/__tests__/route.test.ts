@@ -256,12 +256,9 @@ describe('Metrics API - GET /api/metrics', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
-      const mockSupabase = createMockSupabaseClient({}, {
-        shouldError: true,
-        errorMessage: 'Database connection failed',
+      vi.mocked(getSupabaseAdmin).mockImplementation(() => {
+        throw new Error('Database connection failed');
       });
-
-      vi.mocked(getSupabaseAdmin).mockReturnValue(mockSupabase as any);
 
       const request = createMockNextRequest('/api/metrics', {
         searchParams: { type: 'database' },
@@ -276,11 +273,9 @@ describe('Metrics API - GET /api/metrics', () => {
     });
 
     it('should include fallback metrics on error', async () => {
-      const mockSupabase = createMockSupabaseClient({}, {
-        shouldError: true,
+      vi.mocked(getSupabaseAdmin).mockImplementation(() => {
+        throw new Error('Connection refused');
       });
-
-      vi.mocked(getSupabaseAdmin).mockReturnValue(mockSupabase as any);
 
       const request = createMockNextRequest('/api/metrics');
 
