@@ -57,7 +57,7 @@ name,parent_phone,birth_date,school,shuttle_required,status
 /**
  * 결과 메시지 포맷
  */
-function formatResult(inserted, updated, skipped, skippedReasons) {
+function formatResult(inserted, updated, skipped, dbErrors = []) {
   const total = inserted + updated + skipped.length;
   let msg = `✅ *학생 업로드 완료*
 
@@ -66,10 +66,24 @@ function formatResult(inserted, updated, skipped, skippedReasons) {
 🔄 업데이트: ${updated}명
 ⚠️ 건너뜀: ${skipped.length}명`;
 
+  if (dbErrors.length > 0) {
+    msg += `\n❌ DB 오류: ${dbErrors.length}건`;
+  }
+
   if (skipped.length > 0) {
     msg += '\n\n건너뜀 사유:';
     for (const { row, reason } of skipped) {
       msg += `\n- ${row}행: ${reason}`;
+    }
+  }
+
+  if (dbErrors.length > 0) {
+    msg += '\n\nDB 오류:';
+    for (const err of dbErrors.slice(0, 5)) {
+      msg += `\n- ${err}`;
+    }
+    if (dbErrors.length > 5) {
+      msg += `\n... 외 ${dbErrors.length - 5}건`;
     }
   }
 
@@ -195,6 +209,7 @@ export function setupStudentUploadCommands(bot) {
 
       let inserted = 0;
       let updated = 0;
+      const dbErrors = [];
 
       for (const row of validRows) {
         // 기존 학생 존재 여부 확인 (name + parent_phone)
@@ -218,7 +233,11 @@ export function setupStudentUploadCommands(bot) {
             })
             .eq('id', existing.id);
 
-          if (!error) updated++;
+          if (error) {
+            dbErrors.push(`${row.name}: 업데이트 실패 - ${error.message}`);
+          } else {
+            updated++;
+          }
         } else {
           // 신규 등록
           const { error } = await sb
@@ -234,11 +253,15 @@ export function setupStudentUploadCommands(bot) {
               risk_level: row.risk_level,
             });
 
-          if (!error) inserted++;
+          if (error) {
+            dbErrors.push(`${row.name}: 등록 실패 - ${error.message}`);
+          } else {
+            inserted++;
+          }
         }
       }
 
-      bot.sendMessage(chatId, formatResult(inserted, updated, skipped, []), { parse_mode: 'Markdown' });
+      bot.sendMessage(chatId, formatResult(inserted, updated, skipped, dbErrors), { parse_mode: 'Markdown' });
 
     } catch (err) {
       console.error('[UPLOAD] Error:', err);
