@@ -216,7 +216,8 @@ export async function POST(request: NextRequest) {
         const oldType = node.type;
         node.type = newType as NodeType;
         node.lambda = NODE_LAMBDA[newType as NodeType];
-        node.metadata = { ...node.metadata, typeChangeHistory: [...(node.metadata?.typeChangeHistory as any[] || []), { from: oldType, to: newType, reason, at: new Date().toISOString() }] };
+        const history = (node.metadata?.typeChangeHistory as Array<Record<string, string>> || []);
+        node.metadata = { ...node.metadata, typeChangeHistory: [...history, { from: oldType, to: newType, reason, at: new Date().toISOString() }] };
         node.updatedAt = new Date().toISOString();
         
         return successResponse({ node, change: { from: oldType, to: newType } }, 'Type changed');

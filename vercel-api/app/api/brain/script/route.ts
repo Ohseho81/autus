@@ -309,7 +309,7 @@ function parseScriptResponse(text: string): ScriptResponse {
   patterns.forEach(({ key, pattern }) => {
     const match = text.match(pattern);
     if (match) {
-      (sections as any)[key] = match[1].trim();
+      (sections as Record<string, unknown>)[key] = match[1].trim();
     }
   });
 

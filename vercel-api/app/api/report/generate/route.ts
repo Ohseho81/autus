@@ -355,7 +355,7 @@ async function generateWeeklyVReport(period: { start: string; end: string }, org
       churned: churned || 2,
     }),
     risk_students: riskStudents?.map(r => ({
-      name: (r.students as any)?.name || '알 수 없음',
+      name: (r.students as Record<string, unknown> | null)?.name as string || '알 수 없음',
       state: r.state,
       signals: r.signals || [],
       action: r.suggested_action || '상담 예정',
@@ -491,7 +491,7 @@ async function generateRiskReport(orgId?: string) {
       { state: 6, count: risks?.filter(r => r.state === 6).length || 0, label: 'CRITICAL' },
     ],
     students: risks?.map(r => ({
-      name: (r.students as any)?.name || '알 수 없음',
+      name: (r.students as Record<string, unknown> | null)?.name as string || '알 수 없음',
       state: r.state,
       signals: r.signals || [],
       probability: r.probability,
@@ -735,5 +735,5 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type') || 'weekly_v';
   
-  return generateReport({ action: 'generate', report_type: type as any });
+  return generateReport({ action: 'generate', report_type: type as 'weekly_v' | 'monthly_business' | 'student_progress' | 'risk_analysis' });
 }

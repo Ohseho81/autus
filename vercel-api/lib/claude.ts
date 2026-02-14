@@ -190,8 +190,8 @@ JSON 형식으로 응답:
       endpoint: '/api/brain/generateRewardCard',
       input_tokens: response.usage?.input_tokens || 0,
       output_tokens: response.usage?.output_tokens || 0,
-      cache_creation_input_tokens: (response.usage as any)?.cache_creation_input_tokens,
-      cache_read_input_tokens: (response.usage as any)?.cache_read_input_tokens,
+      cache_creation_input_tokens: (response.usage as Record<string, unknown>)?.cache_creation_input_tokens as number | undefined,
+      cache_read_input_tokens: (response.usage as Record<string, unknown>)?.cache_read_input_tokens as number | undefined,
       response_time_ms: responseTime
     });
 
@@ -260,8 +260,8 @@ ${typePrompts[request.type]}을 수행하고 결과를 JSON으로 반환해.
       endpoint: `/api/brain/analyzeData/${request.type}`,
       input_tokens: response.usage?.input_tokens || 0,
       output_tokens: response.usage?.output_tokens || 0,
-      cache_creation_input_tokens: (response.usage as any)?.cache_creation_input_tokens,
-      cache_read_input_tokens: (response.usage as any)?.cache_read_input_tokens,
+      cache_creation_input_tokens: (response.usage as Record<string, unknown>)?.cache_creation_input_tokens as number | undefined,
+      cache_read_input_tokens: (response.usage as Record<string, unknown>)?.cache_read_input_tokens as number | undefined,
       response_time_ms: responseTime
     });
 
@@ -415,8 +415,8 @@ JSON 형식으로 응답:
       endpoint: '/api/brain/generateDailyContent',
       input_tokens: response.usage?.input_tokens || 0,
       output_tokens: response.usage?.output_tokens || 0,
-      cache_creation_input_tokens: (response.usage as any)?.cache_creation_input_tokens,
-      cache_read_input_tokens: (response.usage as any)?.cache_read_input_tokens,
+      cache_creation_input_tokens: (response.usage as Record<string, unknown>)?.cache_creation_input_tokens as number | undefined,
+      cache_read_input_tokens: (response.usage as Record<string, unknown>)?.cache_read_input_tokens as number | undefined,
       response_time_ms: responseTime
     });
 

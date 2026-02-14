@@ -4,13 +4,14 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server';
-import moltbot, { 
-  sendToMoltbot, 
+import moltbot, {
+  sendToMoltbot,
   checkMoltbotHealth,
   analyzeChurnRisk,
   generateDailyBriefing,
-  type MoltbotRole 
+  type MoltbotRole
 } from '@/lib/moltbot';
+import type { ActionType } from '@/lib/types-agent';
 
 // ─────────────────────────────────────────────────────────────────────
 // Types
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
         }
 
         const response = await moltbot.executeAction(
-          actionType as any,
+          actionType as ActionType,
           actionParams,
           userId
         );

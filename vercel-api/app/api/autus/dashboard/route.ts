@@ -133,7 +133,7 @@ async function getSummary(orgId: string | null) {
     supabase
       .from('students')
       .select('*', { count: 'exact', head: true })
-      .eq(orgId ? 'org_id' : 'id', orgId || undefined as any),
+      .eq(orgId ? 'org_id' : 'id', orgId || ''),
 
     // 활성 학생 (State 1-4)
     supabase
@@ -246,7 +246,7 @@ async function getRisks(orgId: string | null) {
 
   return data?.map(r => ({
     id: r.id,
-    student_name: (r.students as any)?.name || '알 수 없음',
+    student_name: (r.students as Record<string, unknown> | null)?.name as string || '알 수 없음',
     state: r.state,
     probability: r.probability,
     signals: r.signals || [],
@@ -312,7 +312,7 @@ async function getTeacherStats(orgId: string | null) {
   return data?.map(t => ({
     id: t.id,
     name: t.name,
-    students: (t.students as any)?.length || 0,
+    students: (t.students as unknown[] | null)?.length || 0,
     avg_sigma: t.avg_sigma || 0.7,
     retention: t.retention_rate || 90,
   })) || MOCK_DATA.teachers;
