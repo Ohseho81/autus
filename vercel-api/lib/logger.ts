@@ -21,7 +21,7 @@ export interface LogEntry {
   level: LogLevel;
   message: string;
   requestId?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ============================================
@@ -76,7 +76,7 @@ const levelStyles = {
 // Core Logging Function
 // ============================================
 
-function log(level: LogLevel, message: string, meta?: Record<string, any>): void {
+function log(level: LogLevel, message: string, meta?: Record<string, unknown>): void {
   // Skip debug logs in production
   if (level === 'debug' && !isDevelopment) {
     return;
@@ -173,28 +173,28 @@ const logger = {
   /**
    * Debug level - only shown in development
    */
-  debug(message: string, meta?: Record<string, any>): void {
+  debug(message: string, meta?: Record<string, unknown>): void {
     log('debug', message, meta);
   },
 
   /**
    * Info level - general information
    */
-  info(message: string, meta?: Record<string, any>): void {
+  info(message: string, meta?: Record<string, unknown>): void {
     log('info', message, meta);
   },
 
   /**
    * Warning level - something unexpected but not critical
    */
-  warn(message: string, meta?: Record<string, any>): void {
+  warn(message: string, meta?: Record<string, unknown>): void {
     log('warn', message, meta);
   },
 
   /**
    * Error level - something went wrong
    */
-  error(message: string, error?: Error, meta?: Record<string, any>): void {
+  error(message: string, error?: Error, meta?: Record<string, unknown>): void {
     const errorMeta = error ? {
       error: {
         name: error.name,
@@ -210,15 +210,15 @@ const logger = {
   /**
    * Create a child logger with common metadata
    */
-  child(defaultMeta: Record<string, any>) {
+  child(defaultMeta: Record<string, unknown>) {
     return {
-      debug: (message: string, meta?: Record<string, any>) =>
+      debug: (message: string, meta?: Record<string, unknown>) =>
         logger.debug(message, { ...defaultMeta, ...meta }),
-      info: (message: string, meta?: Record<string, any>) =>
+      info: (message: string, meta?: Record<string, unknown>) =>
         logger.info(message, { ...defaultMeta, ...meta }),
-      warn: (message: string, meta?: Record<string, any>) =>
+      warn: (message: string, meta?: Record<string, unknown>) =>
         logger.warn(message, { ...defaultMeta, ...meta }),
-      error: (message: string, error?: Error, meta?: Record<string, any>) =>
+      error: (message: string, error?: Error, meta?: Record<string, unknown>) =>
         logger.error(message, error, { ...defaultMeta, ...meta }),
     };
   },
@@ -231,7 +231,7 @@ const logger = {
     path: string,
     statusCode: number,
     duration?: number,
-    meta?: Record<string, any>
+    meta?: Record<string, unknown>
   ): void {
     const level: LogLevel = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'info';
     const message = `${method} ${path} ${statusCode}`;
@@ -253,7 +253,7 @@ const logger = {
   dbQuery(
     query: string,
     duration?: number,
-    meta?: Record<string, any>
+    meta?: Record<string, unknown>
   ): void {
     log('debug', 'Database query executed', {
       db: {
@@ -272,7 +272,7 @@ const logger = {
     endpoint: string,
     statusCode?: number,
     duration?: number,
-    meta?: Record<string, any>
+    meta?: Record<string, unknown>
   ): void {
     const level: LogLevel = statusCode && statusCode >= 400 ? 'warn' : 'info';
     const message = `External API call: ${service} - ${endpoint}`;

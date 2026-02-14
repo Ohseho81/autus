@@ -86,7 +86,7 @@ export interface ReasonRequest {
     source?: string;
     currentTemperature?: number;
     previousTemperature?: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -113,7 +113,7 @@ export interface ActionItem {
   id: string;
   type: ActionType;
   description: string;
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   automationLevel: AutomationLevel;
   requiresApproval: boolean;
   approver?: string;
@@ -136,7 +136,7 @@ export interface DecideResponse {
 export interface VerifyRequest {
   decisionId: string;
   strategy: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 export interface SimilarCase {
@@ -149,7 +149,7 @@ export interface SimilarCase {
     finalTemperature?: number;
     strategy?: string;
     resultDate?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -204,7 +204,7 @@ export interface ExecutionResult {
   actionId: string;
   type?: ActionType;
   status: ExecutionStatus;
-  output?: Record<string, any>;
+  output?: Record<string, unknown>;
   error?: string;
 }
 
@@ -304,7 +304,7 @@ export interface StrategyTemplate {
   actions: Array<{
     type: ActionType;
     description: string;
-    params?: Record<string, any>;
+    params?: Record<string, unknown>;
   }>;
   expectedEffect: {
     temperatureChange: number;
