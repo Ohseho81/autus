@@ -5,6 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 import * as crypto from 'crypto';
 import { DataMapper, hashStudentData, validateStudentData } from '@/lib/data-mapper';
 import { 
@@ -92,7 +94,7 @@ export async function GET(req: NextRequest) {
     
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Classting sync error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-classting.get' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -173,7 +175,7 @@ export async function POST(req: NextRequest) {
     
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Classting POST error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-classting.post' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -194,7 +196,7 @@ export async function PUT(req: NextRequest) {
     
     const event: ClasstingWebhookEvent = JSON.parse(body);
     
-    console.log(`Classting webhook: ${event.event_type} for student ${event.student_id}`);
+    logger.info(`Classting webhook: ${event.event_type} for student ${event.student_id}`);
     
     // Get academy_id from school_id mapping
     const { data: integration } = await getSupabaseAdmin()
@@ -216,7 +218,7 @@ export async function PUT(req: NextRequest) {
     
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Webhook error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-classting.webhook' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -241,7 +243,7 @@ async function fetchClasstingStudents(
   
   if (!response.ok) {
     // If API fails, return demo data
-    console.log('Using demo Classting data');
+    logger.info('Using demo Classting data');
     return getDemoClasstingStudents();
   }
   
@@ -435,9 +437,9 @@ async function registerWebhook(
       }),
     });
     
-    console.log(`Webhook registered for academy ${academyId}`);
+    logger.info(`Webhook registered for academy ${academyId}`);
   } catch (err) {
-    console.error('Failed to register webhook:', err);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'sync-classting.register-webhook' });
   }
 }
 

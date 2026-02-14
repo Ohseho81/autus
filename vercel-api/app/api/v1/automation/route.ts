@@ -4,6 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '@/lib/monitoring';
+import { logger } from '@/lib/logger';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 // ─────────────────────────────────────────────────────────────────────
@@ -67,7 +69,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       // 테이블이 없으면 Mock 데이터 반환
-      console.log('Using mock data:', error.message);
+      logger.info('Using mock data:', error.message);
       return NextResponse.json({
         success: true,
         data: getMockAutomationStats(),
@@ -95,7 +97,7 @@ export async function GET(request: NextRequest) {
       headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' }
     });
   } catch (error) {
-    console.error('Automation stats error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'automation.GET' });
     return NextResponse.json({
       success: true,
       data: getMockAutomationStats(),
@@ -147,7 +149,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Failed to log automation:', error);
+      captureError(error instanceof Error ? error : new Error(String(error)), { context: 'automation.POST.log' });
       // 실패해도 성공 응답 (로깅 실패가 비즈니스 로직을 막으면 안됨)
       return NextResponse.json({
         success: true,
@@ -162,7 +164,7 @@ export async function POST(request: NextRequest) {
       message: '자동화 로그 기록 완료'
     });
   } catch (error) {
-    console.error('Automation log error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'automation.POST' });
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabase';
+import { captureError } from '../../../lib/monitoring';
 
 export const runtime = 'edge';
 
@@ -123,7 +124,7 @@ export async function GET(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Churn API Error:', error);
+    captureError(error, { context: 'churn.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -248,7 +249,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Churn API Error:', error);
+    captureError(error, { context: 'churn.POST' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }

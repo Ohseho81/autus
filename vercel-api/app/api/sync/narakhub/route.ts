@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
 import { parse } from 'csv-parse/sync';
 import { DataMapper, hashStudentData, validateStudentData, calculateRiskScore, getRiskBand } from '@/lib/data-mapper';
 import { StudentData, NarakhubCSVRow, SyncResult } from '@/lib/types-erp';
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
     
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Narakhub sync error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-narakhub.post' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -146,7 +147,7 @@ export async function GET(req: NextRequest) {
     
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Narakhub GET error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-narakhub.get' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -212,7 +213,7 @@ function parseNarakhubCSV(content: string): NarakhubCSVRow[] {
     })).filter((row: NarakhubCSVRow) => row.학생ID && row.학생명);
     
   } catch (error) {
-    console.error('CSV parse error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-narakhub.csv-parse' });
     return [];
   }
 }

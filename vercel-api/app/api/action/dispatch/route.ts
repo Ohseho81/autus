@@ -6,6 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
 import { CardType, CardTone, CardDispatch, CardOutcome } from '@/lib/types-erp';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 
 // -----------------------------------------------------------------------------
 // Clients (lazy initialization to reduce cold start)
@@ -143,7 +145,7 @@ export async function POST(req: NextRequest) {
     
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Dispatch error:', error);
+    captureError(error, { context: 'action-dispatch.POST' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -227,7 +229,7 @@ export async function PUT(req: NextRequest) {
     
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Outcome recording error:', error);
+    captureError(error, { context: 'action-dispatch.PUT' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -292,7 +294,7 @@ async function generateCardMessage(
       return content.text.trim();
     }
   } catch (error) {
-    console.error('Claude API error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'action-dispatch.generateCardMessage' });
   }
   
   // Fallback templates
@@ -332,7 +334,7 @@ function getTemplateMessage(student: Record<string, unknown>, cardType: CardType
 
 async function sendKakaoAlimtalk(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
   // In production, integrate with Bizm API
-  console.log(`[Kakao Alimtalk] To: ${phone}, Message: ${message.substring(0, 50)}...`);
+  logger.info(`[Kakao Alimtalk] To: ${phone}, Message: ${message.substring(0, 50)}...`);
   
   // Mock success
   return { success: true };
@@ -340,7 +342,7 @@ async function sendKakaoAlimtalk(phone: string, message: string): Promise<{ succ
 
 async function sendSMS(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
   // In production, integrate with Aligo API
-  console.log(`[SMS] To: ${phone}, Message: ${message.substring(0, 50)}...`);
+  logger.info(`[SMS] To: ${phone}, Message: ${message.substring(0, 50)}...`);
   
   // Mock success
   return { success: true };
@@ -348,7 +350,7 @@ async function sendSMS(phone: string, message: string): Promise<{ success: boole
 
 async function sendEmail(email: string, studentName: string, message: string): Promise<{ success: boolean; error?: string }> {
   // In production, integrate with SendGrid or similar
-  console.log(`[Email] To: ${email}, Subject: ${studentName} 학습 상황 안내`);
+  logger.info(`[Email] To: ${email}, Subject: ${studentName} 학습 상황 안내`);
   
   // Mock success
   return { success: true };
@@ -425,9 +427,9 @@ async function updateFeatureWeights(
         feature_weights: weights,
       }, { onConflict: 'academy_id' });
     
-    console.log(`[Self-Learning] Weights updated for academy ${academyId}:`, weights);
+    logger.info(`[Self-Learning] Weights updated for academy ${academyId}:`, weights);
     
   } catch (error) {
-    console.error('Failed to update feature weights:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'action-dispatch.updateFeatureWeights' });
   }
 }

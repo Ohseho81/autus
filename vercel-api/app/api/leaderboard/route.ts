@@ -4,6 +4,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
+import { captureError } from '../../../lib/monitoring';
+import { logger } from '../../../lib/logger';
 
 export const runtime = 'edge';
 
@@ -97,7 +99,7 @@ export async function GET(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Leaderboard Error:', error);
+    captureError(error, { context: 'leaderboard.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }

@@ -4,6 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '@/lib/monitoring';
+import { logger } from '@/lib/logger';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 // ─────────────────────────────────────────────────────────────────────
@@ -71,7 +73,7 @@ export async function GET(request: NextRequest) {
       .limit(20);
 
     if (error) {
-      console.log('Radar: Using mock data -', error.message);
+      logger.info('Radar: Using mock data -', error.message);
     }
 
     // 실제 데이터 변환
@@ -115,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Radar monitor error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'radar-monitor.handler' });
     
     // Fallback Mock 응답
     const mockAlerts = getMockAlerts();
@@ -307,7 +309,7 @@ async function sendTelegramAlert(
       return { sent: false, error: result.description };
     }
   } catch (error) {
-    console.error('Telegram send error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'radar-monitor.telegram' });
     return { sent: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }

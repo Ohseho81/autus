@@ -4,6 +4,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabase';
+import { captureError } from '../../../lib/monitoring';
+import { logger } from '../../../lib/logger';
 
 export const runtime = 'edge';
 
@@ -48,7 +50,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching pilots:', error);
+      captureError(error instanceof Error ? error : new Error(String(error)), { context: 'pilot.GET' });
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 500, headers: corsHeaders }
@@ -65,7 +67,7 @@ export async function GET(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Pilot API GET Error:', error);
+    captureError(error, { context: 'pilot.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -138,7 +140,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error inserting pilot:', error);
+      captureError(error instanceof Error ? error : new Error(String(error)), { context: 'pilot.POST.insert' });
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 500, headers: corsHeaders }
@@ -166,7 +168,7 @@ export async function POST(request: NextRequest) {
           })
         });
       } catch (e) {
-        console.error('Failed to notify n8n:', e);
+        captureError(e instanceof Error ? e : new Error(String(e)), { context: 'pilot.POST.n8n-notify' });
       }
     }
 
@@ -183,7 +185,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Pilot API POST Error:', error);
+    captureError(error, { context: 'pilot.POST' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }

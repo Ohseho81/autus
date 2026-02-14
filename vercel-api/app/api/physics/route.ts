@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
+import { captureError } from '../../../lib/monitoring';
 import { 
   calculateV, 
   calculateVGrowth, 
@@ -118,7 +119,7 @@ export async function GET(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Physics GET Error:', error);
+    captureError(error, { context: 'physics.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -285,7 +286,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Physics POST Error:', error);
+    captureError(error, { context: 'physics.POST' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }

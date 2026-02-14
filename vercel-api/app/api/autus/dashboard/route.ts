@@ -12,6 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '../../../../lib/monitoring';
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase Client
@@ -108,7 +109,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Dashboard API Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'dashboard.handler' });
     
     // 에러 시 Mock 데이터 반환
     return NextResponse.json({

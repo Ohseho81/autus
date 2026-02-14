@@ -5,6 +5,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { ai } from '@/lib/claude';
+import { captureError } from '../../../lib/monitoring';
+import { logger } from '../../../lib/logger';
 
 export const runtime = 'edge';
 
@@ -43,7 +45,7 @@ export async function GET(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Rewards GET Error:', error);
+    captureError(error, { context: 'rewards.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -153,7 +155,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Rewards POST Error:', error);
+    captureError(error, { context: 'rewards.POST' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }

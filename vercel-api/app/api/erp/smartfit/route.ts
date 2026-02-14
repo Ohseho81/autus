@@ -8,6 +8,7 @@
  */
 
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
 
 export const runtime = 'edge';
 
@@ -256,7 +257,7 @@ export async function POST(req: Request) {
     });
     
   } catch (error) {
-    console.error('SmartFit sync error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'smartfit.handler' });
     return Response.json({ 
       success: false, 
       error: error instanceof Error ? error.message : '데이터 처리 중 오류 발생' 

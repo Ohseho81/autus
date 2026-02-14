@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
 
 
 interface CalibrationResult {
@@ -137,7 +138,7 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Physics Calibration Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'audit-physics.handler' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

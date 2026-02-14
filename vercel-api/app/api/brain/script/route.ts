@@ -11,6 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '../../../../lib/monitoring';
 
 // Claude API Client (lazy initialization to reduce cold start)
 let _anthropic: InstanceType<typeof import('@anthropic-ai/sdk').default> | null = null;
@@ -157,7 +158,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
     }
   } catch (error) {
-    console.error('Script API Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'brain-script.POST' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -203,7 +204,7 @@ async function generateScript(payload: ScriptRequest) {
         model: 'claude-3-haiku',
       });
     } catch (e) {
-      console.error('Claude API Error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'brain-script.claudeAPI' });
       // 폴백: Mock 스크립트 반환
       return NextResponse.json({
         success: true,

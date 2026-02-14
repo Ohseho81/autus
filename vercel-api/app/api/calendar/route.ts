@@ -1,6 +1,7 @@
 // Next.js App Router - Google Calendar API
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
+import { captureError } from '../../../lib/monitoring';
 
 // Edge Runtime 비활성화 (googleapis가 Node.js 런타임 필요)
 // export const runtime = 'edge';
@@ -199,7 +200,7 @@ export async function GET(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Calendar API Error:', error);
+    captureError(error, { context: 'calendar.GET' });
     return jsonResponse({
       success: false,
       error: error.message,
@@ -266,7 +267,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Calendar API Error:', error);
+    captureError(error, { context: 'calendar.POST' });
     return jsonResponse({
       success: false,
       error: error.message,

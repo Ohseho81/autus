@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ai } from '@/lib/claude';
 import { db } from '@/lib/supabase';
+import { captureError } from '../../../lib/monitoring';
 
 export const runtime = 'edge';
 
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Brain API Error:', error);
+    captureError(error, { context: 'brain.POST' });
     return NextResponse.json(
       { success: false, error: error.message || 'Internal server error' },
       { status: 500, headers: corsHeaders }

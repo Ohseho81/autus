@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabase';
+import { captureError } from '../../../lib/monitoring';
 
 // Supabase 클라이언트
 
@@ -158,7 +159,7 @@ export async function GET(request: NextRequest) {
     }
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Time Value API GET error:', error);
+    captureError(error, { context: 'time-value.GET' });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -202,7 +203,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Time Value API POST error:', error);
+    captureError(error, { context: 'time-value.POST' });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
 
 // Anthropic 클라이언트 (lazy initialization to reduce cold start)
 let _anthropic: InstanceType<typeof import('@anthropic-ai/sdk').default> | null = null;
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
       .single();
     
     if (logError) {
-      console.error('Log insert error:', logError);
+      captureError(logError instanceof Error ? logError : new Error(String(logError)), { context: 'neural-vectorize.logInsert' });
     }
     
     // 4. physics_metrics 테이블 갱신
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Neural Pipeline Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'neural-vectorize.POST' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -201,7 +202,7 @@ async function extractPhysicsVector(contextText: string): Promise<PhysicsVector>
     return getDefaultPhysicsVector();
     
   } catch (error) {
-    console.error('Claude API Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'neural-vectorize.extractPhysicsVector' });
     return getDefaultPhysicsVector();
   }
 }

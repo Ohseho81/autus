@@ -4,6 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest } from 'next/server';
+import { captureError } from '@/lib/monitoring';
+import { logger } from '@/lib/logger';
 import {
   successResponse,
   errorResponse,
@@ -67,7 +69,7 @@ async function getSummary(orgId: string) {
       .eq('org_id', orgId);
 
     if (error || !customers || customers.length === 0) {
-      console.log('Cockpit: Using mock data -', error?.message || 'No data');
+      logger.info('Cockpit: Using mock data -', error?.message || 'No data');
       return getMockSummary();
     }
 
@@ -127,7 +129,7 @@ async function getSummary(orgId: string) {
     response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
     return response;
   } catch (error) {
-    console.error('Cockpit DB error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'cockpit.getSummary' });
     return getMockSummary();
   }
 }

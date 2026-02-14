@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { ERPSyncManager } from '@/lib/erp-sync-manager';
+import { captureError } from '../../../../lib/monitoring';
 
 // -----------------------------------------------------------------------------
 // POST: Sync all active integrations
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
     
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Sync all error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-all.post' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -85,7 +86,7 @@ export async function GET(req: NextRequest) {
     
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Get sync status error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-all.get' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }

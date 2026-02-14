@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { calculateEffectiveness, checkStandardQualification, calculateVGrowth } from '@/lib/physics';
+import { captureError } from '../../../lib/monitoring';
 
 export const runtime = 'edge';
 
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Consensus GET Error:', error);
+    captureError(error, { context: 'consensus.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -193,7 +194,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Consensus POST Error:', error);
+    captureError(error, { context: 'consensus.POST' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }

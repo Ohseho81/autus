@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '../../../lib/monitoring';
 import moltbot, {
   sendToMoltbot,
   checkMoltbotHealth,
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('Moltbot API error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'moltbot.handler' });
     return NextResponse.json(
       { 
         success: false, 

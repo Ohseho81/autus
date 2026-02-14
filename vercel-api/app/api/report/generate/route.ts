@@ -12,6 +12,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 
 // Supabase Client (lazy via shared singleton)
 function getSupabase() {
@@ -155,7 +157,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
     }
   } catch (error) {
-    console.error('Report API Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'report-generate.handler' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -232,7 +234,7 @@ async function generateReport(payload: ReportRequest) {
       const content = response.content[0];
       aiInsights = content.type === 'text' ? content.text : '';
     } catch (e) {
-      console.error('AI Insights error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'report-generate.ai-insights' });
     }
   }
 

@@ -12,6 +12,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { captureError } from '../../../lib/monitoring';
+import { logger } from '../../../lib/logger';
 
 // Supabase Admin Client (lazy via shared singleton)
 function getSupabase() {
@@ -90,7 +92,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
     }
   } catch (error) {
-    console.error('Notification API Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'notify.POST' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -353,7 +355,7 @@ async function sendKakaoAlimTalk(payload: NotificationPayload) {
     });
     return { success: true };
   } catch (error) {
-    console.error('Kakao AlimTalk error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'notify.sendKakaoAlimTalk' });
     return { success: false, error };
   }
 }
@@ -372,7 +374,7 @@ async function sendSMS(payload: NotificationPayload) {
     });
     return { success: true };
   } catch (error) {
-    console.error('SMS error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'notify.sendSMS' });
     return { success: false, error };
   }
 }
@@ -392,7 +394,7 @@ async function sendSlackMessage(payload: NotificationPayload) {
     });
     return { success: true };
   } catch (error) {
-    console.error('Slack error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'notify.sendSlackMessage' });
     return { success: false, error };
   }
 }
@@ -412,7 +414,7 @@ async function sendEmail(payload: NotificationPayload) {
     });
     return { success: true };
   } catch (error) {
-    console.error('Email error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'notify.sendEmail' });
     return { success: false, error };
   }
 }

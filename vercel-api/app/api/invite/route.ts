@@ -10,6 +10,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
+import { captureError } from '../../../lib/monitoring';
+import { logger } from '../../../lib/logger';
 
 // ─────────────────────────────────────────────────────────────────────
 // Types
@@ -111,7 +113,7 @@ async function checkInviteLimit(userId: string): Promise<InviteCheckResult> {
 
     return data as InviteCheckResult;
   } catch (err) {
-    console.error('checkInviteLimit error:', err);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'invite.checkInviteLimit' });
     return {
       allowed: false,
       direct: { current: 0, max: 12, remaining: 0 },
@@ -174,7 +176,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('GET /api/invite error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'invite.GET' });
     return NextResponse.json({
       success: false,
       error: 'Failed to check invite status'
@@ -278,7 +280,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError) {
-      console.error('Insert invite error:', insertError);
+      captureError(insertError instanceof Error ? insertError : new Error(String(insertError)), { context: 'invite.POST.insert' });
       return NextResponse.json({
         success: false,
         error: 'Failed to create invite'
@@ -311,7 +313,7 @@ export async function POST(request: NextRequest) {
       message: `초대 링크가 생성되었습니다. 남은 직접 초대: ${limitCheck.direct.remaining - 1}명`
     });
   } catch (error) {
-    console.error('POST /api/invite error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'invite.POST' });
     return NextResponse.json({
       success: false,
       error: 'Failed to create invite'
@@ -430,7 +432,7 @@ export async function PUT(request: NextRequest) {
       message: `${invite.target_role} 역할로 조직에 가입되었습니다.`
     });
   } catch (error) {
-    console.error('PUT /api/invite error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'invite.PUT' });
     return NextResponse.json({
       success: false,
       error: 'Failed to accept invite'
@@ -478,7 +480,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Invite cancelled successfully'
     });
   } catch (error) {
-    console.error('DELETE /api/invite error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'invite.DELETE' });
     return NextResponse.json({
       success: false,
       error: 'Failed to cancel invite'

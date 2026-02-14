@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabase';
+import { captureError } from '../../../lib/monitoring';
 
 
 // Semantic Hash 생성 (간단한 버전)
@@ -160,7 +161,7 @@ export async function POST(request: NextRequest) {
             bond_strength,
             ai_analysis: aiAnalysis,
           }),
-        }).catch(console.error);
+        }).catch((e: unknown) => captureError(e instanceof Error ? e : new Error(String(e)), { context: 'quick-tag.n8nWebhook' }));
       }
     }
 
@@ -174,7 +175,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Quick Tag error:', error);
+    captureError(error, { context: 'quick-tag.POST' });
     return NextResponse.json(
       { error: error.message },
       { status: 500 }
@@ -248,7 +249,7 @@ JSON 형식으로만 응답하세요.`,
       };
     }
   } catch (error) {
-    console.error('AI Analysis error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'quick-tag.analyzeVoiceInsight' });
     return null;
   }
 }

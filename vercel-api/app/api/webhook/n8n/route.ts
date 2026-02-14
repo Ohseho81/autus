@@ -7,6 +7,8 @@
 //
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
 
 export const runtime = 'edge';
@@ -87,7 +89,7 @@ export async function POST(request: NextRequest) {
     const isValid = await verifyWebhook(rawBody, signature, webhookSecret);
     
     if (!isValid) {
-      console.error('Webhook verification failed');
+      captureError(new Error('Webhook verification failed'), { context: 'n8n-webhook.verify' });
       return NextResponse.json(
         { success: false, error: 'Invalid signature or secret' },
         { status: 401, headers: corsHeaders }
@@ -123,7 +125,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Webhook Error:', error);
+    captureError(error, { context: 'n8n-webhook.handler' });
     
     // Dead Letter Queue에 저장
     if (payload) {
@@ -177,7 +179,7 @@ async function verifyWebhook(
       
       return signature === computedSignature || signature === `sha256=${computedSignature}`;
     } catch (e) {
-      console.error('HMAC verification error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'n8n-webhook.hmac_verify' });
       return false;
     }
   }
@@ -496,7 +498,7 @@ async function handleNewsAlert(data: Record<string, unknown>): Promise<Record<st
 
 // 커스텀 이벤트
 async function handleCustomEvent(data: Record<string, unknown>, source: string): Promise<Record<string, unknown>> {
-  console.log(`Custom event from ${source}:`, data);
+  logger.info(`Custom event from ${source}:`, data);
   return { 
     status: 'logged', 
     source,
@@ -507,7 +509,7 @@ async function handleCustomEvent(data: Record<string, unknown>, source: string):
 // Dead Letter Queue 저장
 async function saveToDeadLetterQueue(payload: WebhookPayload, errorMessage: string): Promise<void> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    console.error('Cannot save to DLQ: Supabase not configured');
+    captureError(new Error('Cannot save to DLQ: Supabase not configured'), { context: 'n8n-webhook.dlq' });
     return;
   }
 
@@ -524,6 +526,6 @@ async function saveToDeadLetterQueue(payload: WebhookPayload, errorMessage: stri
         status: 'pending'
       });
   } catch (e) {
-    console.error('Failed to save to DLQ:', e);
+    captureError(e instanceof Error ? e : new Error(String(e)), { context: 'n8n-webhook.dlq_save' });
   }
 }
