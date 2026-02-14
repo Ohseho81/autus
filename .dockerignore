@@ -49,5 +49,29 @@ dist/
 build/
 *.egg
 
-# Tests (optional - remove if you want tests in container)
-# tests/
+# Tests
+tests/
+*_test.py
+test_*.py
+
+# Documentation
+*.md
+docs/
+README*
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.circleci/
+.travis.yml
+
+# Frontend/Mobile (backend only)
+frontend/
+온리쌤/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover

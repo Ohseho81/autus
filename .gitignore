@@ -18,14 +18,15 @@ venv/
 
 # Archive (legacy code - 로컬 보관용)
 _archive/
+_archive_*/
 _legacy/
 
 # Environment
 .env
-.env.local
-.env.*.local
+.env.*
 !.env.sample
 !.env.example
+!.env.*.example
 
 # Database
 *.db
@@ -95,6 +96,16 @@ credentials.json
 *.pem
 *.key
 secrets/
+
+# PII Data (학생/결제/회원 데이터 — 절대 커밋하지 말 것)
+*.csv
+*.xlsx
+*.docx
+.~lock.*
+students_insert.sql
+
+# Expo local state
+**/.expo/
 
 # Large files
 *.zip
