@@ -68,7 +68,7 @@ function DesktopSidebar({ className }: { className: string }) {
         <span className="text-2xl">{roleConfig.icon}</span>
         {isExpanded && (
           <div>
-            <h1 className="font-bold text-lg">AUTUS</h1>
+            <h1 className="font-bold text-lg">온리쌤</h1>
             <p className="text-xs opacity-60">{roleConfig.nameKo}</p>
           </div>
         )}
@@ -135,7 +135,7 @@ function TabletNavigation({ className }: { className: string }) {
         {/* Logo */}
         <div className="flex items-center gap-2 mr-6">
           <span className="text-xl">{roleConfig.icon}</span>
-          <span className="font-bold">AUTUS</span>
+          <span className="font-bold">온리쌤</span>
         </div>
 
         {/* Navigation Items */}

@@ -67,11 +67,11 @@ export function NodeTooltip({ node, x, y }: Props) {
         <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-gray-700">
           <div>
             <div className="text-[10px] text-gray-500">Total Mass</div>
-            <div className="text-sm font-medium">{formatAmount(node.total_mass)}</div>
+            <div className="text-sm font-medium">{formatAmount(node.total_mass ?? 0)}</div>
           </div>
           <div>
             <div className="text-[10px] text-gray-500">Total Flow</div>
-            <div className="text-sm font-medium">{formatAmount(node.total_flow)}</div>
+            <div className="text-sm font-medium">{formatAmount(node.total_flow ?? 0)}</div>
           </div>
         </div>
 

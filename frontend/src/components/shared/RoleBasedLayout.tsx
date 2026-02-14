@@ -288,14 +288,14 @@ export function ResponsiveCard({
       classes.push(
         'bg-white/5',
         'border-white/10',
-        interactive && 'hover:bg-white/10 hover:border-white/20'
+        ...(interactive ? ['hover:bg-white/10 hover:border-white/20'] : [])
       );
     } else {
       classes.push(
         'bg-white',
         'border-slate-200',
         'shadow-sm',
-        interactive && 'hover:shadow-md hover:border-slate-300'
+        ...(interactive ? ['hover:shadow-md hover:border-slate-300'] : [])
       );
     }
 

@@ -287,7 +287,7 @@ self.addEventListener('push', (event) => {
   };
   
   event.waitUntil(
-    self.registration.showNotification(data.title || 'AUTUS', options)
+    self.registration.showNotification(data.title || '온리쌤', options)
   );
 });
 

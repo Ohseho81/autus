@@ -1,5 +1,5 @@
 /**
- * 올댓바스켓 컴포넌트 모듈
+ * 온리쌤 컴포넌트 모듈
  */
 
 export { default as ParentAppDaechi } from './ParentAppDaechi';

@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import React, { useMemo } from 'react';
+// @ts-expect-error deck.gl lacks type declarations
 import { PolygonLayer, TextLayer } from '@deck.gl/layers';
 import type { Cluster } from '../../hooks/useClusters';
 
@@ -64,7 +65,7 @@ export function useClusterLayers({
       return color as [number, number, number, number];
     },
     getLineWidth: (d: Cluster) => d.id === selectedClusterId ? 3 : 1,
-    onClick: ({ object }) => object && onClusterClick?.(object),
+    onClick: ({ object }: { object: Cluster }) => object && onClusterClick?.(object),
     updateTriggers: {
       getFillColor: [selectedClusterId],
       getLineColor: [selectedClusterId],

@@ -239,7 +239,7 @@ function Sidebar({ expanded, onToggle, activeNode, onNodeSelect }: SidebarProps)
     >
       <div className="h-16 flex items-center justify-center border-b border-gray-800">
         <span className="text-2xl">⬢</span>
-        {expanded && <span className="ml-2 font-bold text-lg">AUTUS</span>}
+        {expanded && <span className="ml-2 font-bold text-lg">온리쌤</span>}
       </div>
 
       <nav className="flex-1 py-4">

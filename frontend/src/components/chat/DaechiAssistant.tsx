@@ -71,7 +71,7 @@ const ACADEMY_DATABASE: Record<string, AcademyInfo> = {
   '대성학원': { id: 'ds', name: '대성학원', type: '종합', location: '대치동' },
   '강남대성': { id: 'gnds', name: '강남대성', type: '재수', location: '대치동' },
   '이투스': { id: 'etoos', name: '이투스247', type: '종합', location: '대치역' },
-  '올댓바스켓': { id: 'atb', name: '올댓바스켓', type: '농구', location: '강남구' },
+  '온리쌤': { id: 'atb', name: '온리쌤', type: '농구', location: '강남구' },
 };
 
 const MOCK_SCHEDULES: Record<string, ScheduleInfo[]> = {
@@ -222,7 +222,7 @@ const QuickActions: React.FC<{ onSelect: (text: string) => void }> = ({ onSelect
   const actions = [
     { icon: '🏫', label: '청담수학 연동해줘' },
     { icon: '📚', label: '대치영어 연동해줘' },
-    { icon: '🏀', label: '올댓바스켓 연동해줘' },
+    { icon: '🏀', label: '온리쌤 연동해줘' },
     { icon: '📅', label: '이번 주 스케줄 알려줘' },
   ];
   
@@ -355,7 +355,7 @@ const DaechiAssistant: React.FC<{
         content: '📅 이번 주 스케줄입니다:\n\n' +
           '• 월/수/금 14:00 - 청담수학 (서준)\n' +
           '• 화/목 16:00 - 대치영어 (서준)\n' +
-          '• 토 10:00 - 올댓바스켓 (민준)\n\n' +
+          '• 토 10:00 - 온리쌤 (민준)\n\n' +
           '다른 도움이 필요하시면 말씀해주세요!'
       });
       setState('idle');
@@ -366,7 +366,7 @@ const DaechiAssistant: React.FC<{
           '다음과 같이 말씀해보세요:\n' +
           '• "청담수학 연동해줘"\n' +
           '• "이번 주 스케줄 알려줘"\n' +
-          '• "올댓바스켓 추가해줘"'
+          '• "온리쌤 추가해줘"'
       });
       setState('idle');
     }

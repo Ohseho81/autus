@@ -284,7 +284,7 @@ function AlertItem({ alert, index }: { alert: Alert; index: number }) {
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}
-      className={`p-3 rounded-lg border-l-4 ${levelColors[alert.level]}`}
+      className={`p-3 rounded-lg border-l-4 ${levelColors[alert.level as keyof typeof levelColors]}`}
     >
       <div className="font-medium text-sm">{alert.title}</div>
       <div className="text-xs text-gray-500 mt-1">{alert.description}</div>

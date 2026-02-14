@@ -99,7 +99,7 @@ export default function MoneyFlowCube() {
       {/* 헤더 */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-white/5">
         <div className="flex items-center gap-4">
-          <span className="text-lg font-light tracking-wider">AUTUS</span>
+          <span className="text-lg font-light tracking-wider">온리쌤</span>
           <div className="h-4 w-px bg-white/20" />
           <span className="text-sm text-white/50">Money Flow Matrix</span>
           <span className="text-xs text-white/30 ml-2">72×72×72 = 373,248</span>

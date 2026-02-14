@@ -101,7 +101,7 @@ const Header: React.FC<HeaderProps> = ({ globalState, userRole, onSwitchRole }) 
             <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
               <Zap className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </div>
-            <span className="font-black text-white text-base md:text-lg">AUTUS</span>
+            <span className="font-black text-white text-base md:text-lg">온리쌤</span>
           </div>
           
           <motion.div 

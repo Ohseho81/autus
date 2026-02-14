@@ -1,6 +1,6 @@
 {
   "name": "AUTUS 학원 관리 시스템",
-  "short_name": "AUTUS",
+  "short_name": "온리쌤",
   "description": "Money Physics 엔진 기반의 통합 학원 관리 플랫폼",
   "start_url": "/",
   "display": "standalone",

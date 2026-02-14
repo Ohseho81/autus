@@ -172,17 +172,18 @@ export class VoiceRecognition {
       return;
     }
 
-    this.recognition = new SpeechRecognition();
-    this.recognition.lang = this.config.language;
-    this.recognition.continuous = this.config.continuous;
-    this.recognition.interimResults = this.config.interimResults;
-    this.recognition.maxAlternatives = this.config.maxAlternatives;
+    const recognition = new SpeechRecognition();
+    this.recognition = recognition;
+    recognition.lang = this.config.language;
+    recognition.continuous = this.config.continuous;
+    recognition.interimResults = this.config.interimResults;
+    recognition.maxAlternatives = this.config.maxAlternatives;
 
-    this.recognition.onstart = () => {
+    recognition.onstart = () => {
       this.setState('listening');
     };
 
-    this.recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const result = event.results[event.resultIndex];
       const transcript = result[0].transcript.trim();
       const confidence = result[0].confidence;
@@ -203,12 +204,12 @@ export class VoiceRecognition {
       }
     };
 
-    this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       this.setState('error');
       this.onError?.(event.error);
     };
 
-    this.recognition.onend = () => {
+    recognition.onend = () => {
       if (this.state === 'listening' && this.config.continuous) {
         // 자동 재시작
         this.recognition?.start();

@@ -140,11 +140,11 @@ export function SystemDashboard() {
                   <div className={`w-3 h-3 rounded-full ${getStatusColor(api.status)}`} />
                 </div>
               </div>
-              {api.data && (
+              {api.data ? (
                 <pre className="text-xs text-gray-500 overflow-hidden max-h-20">
-                  {JSON.stringify(api.data, null, 2).slice(0, 200)}...
+                  {JSON.stringify(api.data as Record<string, unknown>, null, 2).slice(0, 200)}...
                 </pre>
-              )}
+              ) : null}
             </div>
           ))}
         </div>

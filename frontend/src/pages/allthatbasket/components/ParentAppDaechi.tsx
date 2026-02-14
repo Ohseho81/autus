@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * 🏀 올댓바스켓 학부모 앱 - 대치동 스타일
+ * 온리쌤 학부모 앱 - 대치동 스타일
  * ═══════════════════════════════════════════════════════════════════════════════
  *
  * Design System:
@@ -122,7 +122,7 @@ const initialChatMessages: ChatMessage[] = [
   {
     id: '1',
     type: 'bot',
-    content: '안녕하세요! 올댓바스켓 몰트봇입니다 🏀\n무엇을 도와드릴까요?',
+    content: '안녕하세요! 온리쌤 몰트봇입니다 🏀\n무엇을 도와드릴까요?',
     timestamp: '10:00',
     quickReplies: ['수업 일정 확인', '결제 상태', '코치 상담 요청', '영상 보기'],
   },
@@ -234,7 +234,7 @@ const ParentAppDaechi: React.FC<ParentAppDaechiProps> = ({ onBack }) => {
             </button>
           )}
           <span className="text-2xl">🏀</span>
-          <span className="text-xl font-bold text-white">올댓바스켓</span>
+          <span className="text-xl font-bold text-white">온리쌤</span>
         </div>
 
         {/* Child Selector */}

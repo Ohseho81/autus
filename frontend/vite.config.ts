@@ -26,7 +26,7 @@ try {
     includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
     manifest: {
       name: 'AUTUS - Money Physics Engine',
-      short_name: 'AUTUS',
+      short_name: '온리쌤',
       description: '통합 비즈니스 자동화 플랫폼',
       theme_color: '#1a1a2e',
       background_color: '#0f0f23',
@@ -87,7 +87,14 @@ export default defineConfig({
   },
   build: {
     // 번들 크기 경고 임계값 (KB)
-    chunkSizeWarningLimit: 800,
+    chunkSizeWarningLimit: 1000,
+
+    // 빌드 타겟 (모던 브라우저 최적화)
+    target: 'es2020',
+    cssTarget: 'chrome80',
+
+    // 빌드 속도 최적화
+    reportCompressedSize: false,
     
     // 코드 스플리팅 설정
     rollupOptions: {
@@ -112,8 +119,10 @@ export default defineConfig({
           // 차트 라이브러리
           'vendor-charts': ['recharts'],
           
-          // 유틸리티
-          'vendor-utils': ['zustand', 'axios', 'framer-motion'],
+          // 유틸리티 (분리됨)
+          'vendor-state': ['zustand'],
+          'vendor-http': ['axios'],
+          'vendor-animation': ['framer-motion'],
           
           // 아이콘 (트리쉐이킹)
           'vendor-icons': ['lucide-react'],

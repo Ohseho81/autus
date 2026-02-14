@@ -149,7 +149,7 @@ export default function TrinityDashboard() {
       ═══════════════════════════════════════════════════════════════════ */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-white/5">
         <div className="flex items-center gap-4">
-          <span className="text-lg font-light tracking-wider">AUTUS</span>
+          <span className="text-lg font-light tracking-wider">온리쌤</span>
           <div className="h-4 w-px bg-white/20" />
           <span className="text-sm text-white/50">업무 최적화 엔진</span>
         </div>

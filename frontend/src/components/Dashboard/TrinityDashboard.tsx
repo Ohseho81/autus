@@ -275,7 +275,7 @@ export function TrinityDashboard() {
                 >
                   <span 
                     className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: HEALTH_COLORS[status] }}
+                    style={{ backgroundColor: HEALTH_COLORS[status as keyof typeof HEALTH_COLORS] }}
                   />
                   <div>
                     <p className="text-sm font-medium capitalize">{service}</p>

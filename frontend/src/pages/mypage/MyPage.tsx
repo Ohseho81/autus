@@ -524,7 +524,7 @@ export default function MyPage() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center font-bold">
               A
             </div>
-            <span className="text-xl font-semibold">AUTUS</span>
+            <span className="text-xl font-semibold">온리쌤</span>
           </a>
           <nav className="flex items-center gap-4">
             <a href="/dashboard" className="px-4 py-2 rounded-lg hover:bg-white/10 text-white/60">

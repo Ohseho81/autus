@@ -50,7 +50,7 @@ export function OwnerDashboard() {
             <span className="text-3xl">👑</span>
             <div>
               <h1 className="text-xl font-bold">오너 조종석</h1>
-              <p className="text-sm text-gray-500">AUTUS가 알아서 처리하고, 예외만 보고합니다</p>
+              <p className="text-sm text-gray-500">온리쌤이 알아서 처리하고, 예외만 보고합니다</p>
             </div>
           </div>
           

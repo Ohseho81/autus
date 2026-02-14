@@ -1,6 +1,6 @@
 {
-  "name": "AUTUS Daily OS",
-  "short_name": "AUTUS",
+  "name": "온리쌤 Daily OS",
+  "short_name": "온리쌤",
   "description": "Sovereign Decision Operating System",
   "version": "15.2.0",
   "start_url": "./index.html",
