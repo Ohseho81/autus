@@ -849,7 +849,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       phase: 'OUTPUT',
       actor: 'risk-detection-worker',
       action: 'pipeline_complete',
-      payload: stats as unknown as Record<string, unknown>,
+      payload: { ...stats },
       result: 'success',
       duration_ms: durationMs,
     });

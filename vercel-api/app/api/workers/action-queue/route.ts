@@ -288,7 +288,7 @@ async function processActions(
         .from('action_queue')
         .update({
           status: 'COMPLETED' as ActionStatus,
-          result: result as unknown as Record<string, unknown>,
+          result: result,
           processed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -302,7 +302,7 @@ async function processActions(
         action: action.action_type,
         target_type: 'action_queue',
         target_id: action.id,
-        payload: result as unknown as Record<string, unknown>,
+        payload: result,
         result: 'success',
         duration_ms: durationMs,
       });

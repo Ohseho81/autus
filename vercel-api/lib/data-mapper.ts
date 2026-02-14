@@ -185,19 +185,19 @@ export class DataMapper {
   /**
    * Map array of raw data based on provider
    */
-  mapBatch<T>(records: T[]): StudentData[] {
+  mapBatch(records: Array<ClasstingStudent | NarakhubCSVRow | TongtongCSVRow | ACA2000Row | SmartfitCSVRow>): StudentData[] {
     return records.map((record) => {
       switch (this.provider) {
         case 'classting':
-          return this.mapClassting(record as unknown as ClasstingStudent);
+          return this.mapClassting(record as ClasstingStudent);
         case 'narakhub':
-          return this.mapNarakhub(record as unknown as NarakhubCSVRow);
+          return this.mapNarakhub(record as NarakhubCSVRow);
         case 'tongtong':
-          return this.mapTongtong(record as unknown as TongtongCSVRow);
+          return this.mapTongtong(record as TongtongCSVRow);
         case 'aca2000':
-          return this.mapACA2000(record as unknown as ACA2000Row);
+          return this.mapACA2000(record as ACA2000Row);
         case 'smartfit':
-          return this.mapSmartfit(record as unknown as SmartfitCSVRow);
+          return this.mapSmartfit(record as SmartfitCSVRow);
         default:
           throw new Error(`Unknown provider: ${this.provider}`);
       }

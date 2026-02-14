@@ -15,9 +15,9 @@
 type SentryLevel = 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
 
 interface SentryInstance {
-  captureException: (error: Error, context?: Record<string, any>) => string;
+  captureException: (error: Error, context?: Record<string, unknown>) => string;
   captureMessage: (message: string, level?: SentryLevel) => string;
-  setContext: (name: string, context: Record<string, any>) => void;
+  setContext: (name: string, context: Record<string, unknown>) => void;
   setTag: (key: string, value: string) => void;
   setUser: (user: { id?: string; email?: string; username?: string }) => void;
 }
@@ -105,7 +105,7 @@ export function generateRequestId(): string {
  */
 export async function captureError(
   error: Error,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ): Promise<void> {
   const sentry = await getSentry();
 
@@ -141,7 +141,7 @@ export async function captureError(
 export async function captureMessage(
   message: string,
   level: 'info' | 'warning' | 'error' = 'info',
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ): Promise<void> {
   const sentry = await getSentry();
 
@@ -199,7 +199,7 @@ export function startTransaction(name: string, requestId?: string): string {
  */
 export async function endTransaction(
   transactionId: string,
-  data?: Record<string, any>
+  data?: Record<string, unknown>
 ): Promise<void> {
   const transaction = activeTransactions.get(transactionId);
   if (!transaction) {
