@@ -141,7 +141,8 @@ export async function POST(req: NextRequest) {
       error: sendResult.error,
     });
     
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Dispatch error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
@@ -224,7 +225,8 @@ export async function PUT(req: NextRequest) {
       message: 'Outcome recorded successfully',
     });
     
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Outcome recording error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }

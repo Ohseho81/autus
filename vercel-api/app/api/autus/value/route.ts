@@ -228,7 +228,8 @@ export async function GET(request: NextRequest) {
         formula: 'V = P × Λ × e^(σt)',
       },
     });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }
@@ -301,7 +302,8 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
     }
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

@@ -78,7 +78,8 @@ export async function POST(req: NextRequest) {
       data: result,
     });
     
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('V-Pulse error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
@@ -163,7 +164,8 @@ export async function GET(req: NextRequest) {
       },
     });
     
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('V-Pulse batch error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }

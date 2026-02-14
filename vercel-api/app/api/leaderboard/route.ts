@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
         formula: 'V = (M - T) × (1 + s)^t'
       }
     }, { status: 200, headers: corsHeaders });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -94,7 +95,8 @@ export async function GET(request: NextRequest) {
       { status: 400, headers: corsHeaders }
     );
 
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Leaderboard Error:', error);
     return NextResponse.json(
       { success: false, error: error.message },

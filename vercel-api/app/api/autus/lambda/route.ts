@@ -115,7 +115,8 @@ export async function POST(request: NextRequest) {
         interpretation: interpretLambda(lambda),
       },
     });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

@@ -172,7 +172,8 @@ export async function POST(request: NextRequest) {
       new_s_index: target_type === 'student' ? (50 + emotion_delta) : null,
     });
 
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Quick Tag error:', error);
     return NextResponse.json(
       { error: error.message },

@@ -85,7 +85,8 @@ export async function POST(req: NextRequest) {
       message: `Processed ${result.synced_records} students from Narakhub CSV`
     });
     
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Narakhub sync error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
@@ -143,7 +144,8 @@ export async function GET(req: NextRequest) {
       }
     });
     
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Narakhub GET error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }

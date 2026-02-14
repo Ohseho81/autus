@@ -160,7 +160,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'recalculate=true required' }, { status: 400 });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -228,7 +229,8 @@ export async function PATCH(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, data });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

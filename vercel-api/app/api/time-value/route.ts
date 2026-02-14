@@ -156,7 +156,8 @@ export async function GET(request: NextRequest) {
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Time Value API GET error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -199,7 +200,8 @@ export async function POST(request: NextRequest) {
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Time Value API POST error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

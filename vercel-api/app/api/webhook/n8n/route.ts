@@ -121,7 +121,8 @@ export async function POST(request: NextRequest) {
       }
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Webhook Error:', error);
     
     // Dead Letter Queue에 저장

@@ -121,7 +121,8 @@ export async function GET(request: NextRequest) {
       }
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Churn API Error:', error);
     return NextResponse.json(
       { success: false, error: error.message },
@@ -245,7 +246,8 @@ export async function POST(request: NextRequest) {
       { status: 400, headers: corsHeaders }
     );
 
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Churn API Error:', error);
     return NextResponse.json(
       { success: false, error: error.message },

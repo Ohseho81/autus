@@ -90,7 +90,8 @@ export async function GET(req: NextRequest) {
       message: `Synced ${result.synced_records} students from Classting`
     });
     
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Classting sync error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
@@ -170,7 +171,8 @@ export async function POST(req: NextRequest) {
       message: `Synced ${result.synced_records} students`
     });
     
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Classting POST error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
@@ -212,7 +214,8 @@ export async function PUT(req: NextRequest) {
     
     return NextResponse.json({ ok: true, message: 'Event processed' });
     
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Webhook error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }

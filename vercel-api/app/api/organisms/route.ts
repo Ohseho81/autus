@@ -79,7 +79,8 @@ export async function GET(request: NextRequest) {
       }))
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Organisms GET Error:', error);
     return NextResponse.json(
       { success: false, error: error.message },
@@ -176,7 +177,8 @@ export async function POST(request: NextRequest) {
       data
     }, { status: 201, headers: corsHeaders });
 
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Organisms POST Error:', error);
     return NextResponse.json(
       { success: false, error: error.message },
@@ -226,7 +228,8 @@ export async function PUT(request: NextRequest) {
       data: updated
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Organisms PUT Error:', error);
     return NextResponse.json(
       { success: false, error: error.message },

@@ -109,7 +109,8 @@ export async function GET(request: NextRequest) {
           calendarId,
           message: 'Google Calendar API connected',
         });
-      } catch (error: any) {
+      } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
         return jsonResponse({
           success: false,
           connected: false,
@@ -196,7 +197,8 @@ export async function GET(request: NextRequest) {
 
     return jsonResponse({ error: 'Invalid action' }, 400);
 
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Calendar API Error:', error);
     return jsonResponse({
       success: false,
@@ -262,7 +264,8 @@ export async function POST(request: NextRequest) {
       message: '일정이 생성되었습니다',
     });
 
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Calendar API Error:', error);
     return jsonResponse({
       success: false,
