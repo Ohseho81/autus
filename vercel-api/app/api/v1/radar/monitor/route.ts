@@ -54,7 +54,7 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '6733089824';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const orgId = searchParams.get('org_id') || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+  const orgId = searchParams.get('org_id') || (process.env.DEFAULT_ORG_ID || '');
   const notify = searchParams.get('notify') !== 'false'; // 기본값: true
   const threshold = parseFloat(searchParams.get('threshold') || '0.5'); // 이탈 확률 임계값
 
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
 
   // GET과 동일한 로직 실행
   const url = new URL(request.url);
-  url.searchParams.set('org_id', org_id || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+  url.searchParams.set('org_id', org_id || (process.env.DEFAULT_ORG_ID || ''));
   url.searchParams.set('notify', notify.toString());
 
   const getRequest = new NextRequest(url);
