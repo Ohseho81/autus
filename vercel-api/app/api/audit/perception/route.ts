@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
 }
 
 // 태그 관련성 분석
-function analyzeTagRelevance(logs: any[]) {
+function analyzeTagRelevance(logs: Array<Record<string, unknown>>) {
   const tagCounts: Record<string, number> = {};
   let totalTags = 0;
   let criticalTagCount = 0;
@@ -210,7 +210,7 @@ function analyzeTagRelevance(logs: any[]) {
 }
 
 // 벡터화 품질 분석
-function analyzeVectorizationQuality(logs: any[]) {
+function analyzeVectorizationQuality(logs: Array<Record<string, unknown>>) {
   let successfulExtractions = 0;
   const errorCounts: Record<string, number> = {};
   
@@ -244,7 +244,7 @@ function analyzeVectorizationQuality(logs: any[]) {
 }
 
 // Voice-to-Data 분석
-function analyzeVoiceToData(logs: any[]) {
+function analyzeVoiceToData(logs: Array<Record<string, unknown>>) {
   const voiceLogs = logs.filter(l => 
     l.raw_content?.includes('[음성 기록]') || 
     l.raw_content?.includes('voice_transcript')
@@ -276,7 +276,7 @@ function analyzeVoiceToData(logs: any[]) {
 }
 
 // 정제 점수 계산
-function calculateRefinementScore(logs: any[]) {
+function calculateRefinementScore(logs: Array<Record<string, unknown>>) {
   let sIndexCoverage = 0;
   let mScoreCoverage = 0;
   let bondCoverage = 0;
@@ -302,10 +302,10 @@ function calculateRefinementScore(logs: any[]) {
 
 // 데이터 품질 점수 계산
 function calculateDataQualityScore(
-  tagAnalysis: any,
-  vectorization: any,
-  voice: any,
-  refinement: any
+  tagAnalysis: AuditResult['tag_analysis'],
+  vectorization: AuditResult['vectorization_quality'],
+  voice: AuditResult['voice_to_data'],
+  refinement: AuditResult['refinement_score']
 ): number {
   const weights = {
     criticalTagRatio: 0.25,
@@ -325,10 +325,10 @@ function calculateDataQualityScore(
 
 // 개선 권장사항 생성
 function generateRecommendations(
-  tagAnalysis: any,
-  vectorization: any,
-  voice: any,
-  refinement: any
+  tagAnalysis: AuditResult['tag_analysis'],
+  vectorization: AuditResult['vectorization_quality'],
+  voice: AuditResult['voice_to_data'],
+  refinement: AuditResult['refinement_score']
 ): string[] {
   const recommendations: string[] = [];
   

@@ -186,8 +186,9 @@ export class ERPSyncManager {
         }
         
         synced++;
-      } catch (err: any) {
-        errors.push({ record_id: student.external_id, message: err.message });
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        errors.push({ record_id: student.external_id, message: error.message });
       }
     }
     

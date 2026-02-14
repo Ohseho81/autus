@@ -257,7 +257,7 @@ export async function POST(request: NextRequest) {
 }
 
 // AI 상담 스크립트 생성
-async function generateConsultationScript(student: any): Promise<string> {
+async function generateConsultationScript(student: Record<string, unknown>): Promise<string> {
   const riskFactors = [];
   
   if (student.attendance_rate < 80) {

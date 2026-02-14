@@ -237,8 +237,8 @@ export async function PUT(req: NextRequest) {
 // -----------------------------------------------------------------------------
 
 async function generateCardMessage(
-  student: any,
-  signals: any,
+  student: Record<string, unknown>,
+  signals: Record<string, unknown>,
   cardType: CardType,
   tone: CardTone
 ): Promise<string> {
@@ -299,7 +299,7 @@ async function generateCardMessage(
   return getTemplateMessage(student, cardType, tone);
 }
 
-function getTemplateMessage(student: any, cardType: CardType, tone: CardTone): string {
+function getTemplateMessage(student: Record<string, unknown>, cardType: CardType, tone: CardTone): string {
   const templates = {
     EMERGENCY: {
       calm: `[학원명] 안녕하세요, ${student.name} 학생 보호자님. 최근 학습 상태에 대해 중요한 말씀 드릴 것이 있어 연락드립니다. 편하신 시간에 상담 부탁드립니다.`,

@@ -197,7 +197,7 @@ function parseNarakhubCSV(content: string): NarakhubCSVRow[] {
     });
     
     // Map column names (handle variations)
-    return records.map((row: any) => ({
+    return records.map((row: Record<string, string>) => ({
       학생ID: row['학생ID'] || row['학생코드'] || row['student_id'] || row['ID'],
       학생명: row['학생명'] || row['이름'] || row['name'] || row['학생이름'],
       학년: row['학년'] || row['grade'] || '',
@@ -267,7 +267,7 @@ async function syncStudentsToSupabase(
   );
 
   // Process in memory: separate into upsert records and skipped
-  const upsertRecords: any[] = [];
+  const upsertRecords: Array<Record<string, unknown>> = [];
   const upsertStudentsList: StudentData[] = [];
 
   for (const student of validStudents) {
@@ -300,8 +300,9 @@ async function syncStudentsToSupabase(
       upsertRecords.push(studentWithRisk);
       upsertStudentsList.push(student);
       synced++;
-    } catch (err: any) {
-      errors.push({ record_id: student.external_id, message: err.message });
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      errors.push({ record_id: student.external_id, message: error.message });
     }
   }
 

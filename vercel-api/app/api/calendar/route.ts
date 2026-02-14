@@ -22,7 +22,7 @@ const corsHeaders: Record<string, string> = {
 };
 
 // CORS 지원 JSON 응답 헬퍼
-function jsonResponse(data: any, status = 200) {
+function jsonResponse(data: Record<string, unknown>, status = 200) {
   return NextResponse.json(data, { status, headers: corsHeaders });
 }
 
@@ -155,10 +155,10 @@ export async function GET(request: NextRequest) {
         orderBy: 'startTime',
       });
 
-      const busySlots = (response.data.items || []).map((event: any) => ({
-        start: event.start.dateTime || event.start.date,
-        end: event.end.dateTime || event.end.date,
-        title: event.summary,
+      const busySlots = (response.data.items || []).map((event) => ({
+        start: event.start?.dateTime || event.start?.date || '',
+        end: event.end?.dateTime || event.end?.date || '',
+        title: event.summary || '',
       }));
 
       // 기본 운영 시간 (09:00 - 21:00)
@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
         const slotEnd = new Date(slotStart);
         slotEnd.setMinutes(slotEnd.getMinutes() + slotDuration);
 
-        const isOccupied = busySlots.some((busy: any) => {
+        const isOccupied = busySlots.some((busy) => {
           const busyStart = new Date(busy.start);
           const busyEnd = new Date(busy.end);
           return slotStart < busyEnd && slotEnd > busyStart;
@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
       }, 400);
     }
 
-    const event: any = {
+    const event: Record<string, unknown> = {
       summary,
       description: description || '',
       start: {

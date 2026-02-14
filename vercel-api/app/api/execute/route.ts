@@ -126,7 +126,8 @@ export async function POST(request: NextRequest) {
           }
         }, { status: 200, headers: corsHeaders });
 
-      } catch (n8nError: any) {
+      } catch (n8nErr: unknown) {
+        const n8nError = n8nErr instanceof Error ? n8nErr : new Error(String(n8nErr));
         return NextResponse.json({
           success: false,
           error: 'n8n execution failed',
@@ -163,12 +164,12 @@ export async function POST(request: NextRequest) {
 }
 
 // 시뮬레이션 함수
-function simulateAction(actionType: ActionType, payload: any) {
-  const simulations: Record<ActionType, any> = {
+function simulateAction(actionType: ActionType, payload: Record<string, unknown>) {
+  const simulations: Record<ActionType, Record<string, unknown>> = {
     send_sms: {
       status: 'sent',
       recipient: payload.target || '010-****-****',
-      message_preview: (payload.message || '').substring(0, 20) + '...',
+      message_preview: (String(payload.message || '')).substring(0, 20) + '...',
       estimated_cost: 15,
       delivery_time: '1-3초'
     },
@@ -190,12 +191,12 @@ function simulateAction(actionType: ActionType, payload: any) {
     },
     generate_report: {
       status: 'generated',
-      report_type: payload.metadata?.type || 'weekly',
+      report_type: (payload.metadata as Record<string, unknown> | undefined)?.type || 'weekly',
       pages: 3
     },
     schedule_meeting: {
       status: 'scheduled',
-      datetime: payload.metadata?.datetime,
+      datetime: (payload.metadata as Record<string, unknown> | undefined)?.datetime,
       participants: 2
     },
     sync_data: {

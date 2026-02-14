@@ -166,7 +166,7 @@ async function getSummary(orgId: string | null) {
   const vData = vResult.data;
 
   const sigmaAvg = sigmaData?.length
-    ? sigmaData.reduce((sum: number, s: any) => sum + (s.sigma || 0), 0) / sigmaData.length
+    ? sigmaData.reduce((sum: number, s: Record<string, unknown>) => sum + ((s.sigma as number) || 0), 0) / sigmaData.length
     : 0.72;
 
   const mint = vData?.filter(v => v.type === 'revenue').reduce((s, v) => s + v.amount, 0) || 28500000;

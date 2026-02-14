@@ -343,7 +343,7 @@ async function getNodeLambda(orgId: string, nodeId: string | null) {
   });
 }
 
-async function updateNodeLambda(body: any) {
+async function updateNodeLambda(body: Record<string, unknown>) {
   const {
     org_id,
     node_id,
@@ -398,7 +398,7 @@ async function updateNodeLambda(body: any) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Relationship Sigma
 // ═══════════════════════════════════════════════════════════════════════════
-async function updateRelationshipSigma(body: any) {
+async function updateRelationshipSigma(body: Record<string, unknown>) {
   const {
     org_id,
     node_a_id,
@@ -470,7 +470,7 @@ async function updateRelationshipSigma(body: any) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Relationship Density
 // ═══════════════════════════════════════════════════════════════════════════
-async function updateRelationshipDensity(body: any) {
+async function updateRelationshipDensity(body: Record<string, unknown>) {
   const {
     org_id,
     node_a_id,
@@ -526,7 +526,7 @@ async function updateRelationshipDensity(body: any) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Time Activity
 // ═══════════════════════════════════════════════════════════════════════════
-async function recordTimeActivity(body: any) {
+async function recordTimeActivity(body: Record<string, unknown>) {
   const {
     org_id,
     node_id,
@@ -621,7 +621,7 @@ async function getRelationshipValues(orgId: string) {
   return NextResponse.json({ relationships: data || [] });
 }
 
-async function calculateAndSaveRelationshipValue(body: any) {
+async function calculateAndSaveRelationshipValue(body: Record<string, unknown>) {
   const { org_id, node_a_id, node_b_id } = body;
 
   // 방향 정렬
@@ -769,7 +769,7 @@ async function getOrgOmega(orgId: string) {
   });
 }
 
-async function updateOrgOmega(body: any) {
+async function updateOrgOmega(body: Record<string, unknown>) {
   const {
     org_id,
     total_revenue,
@@ -833,7 +833,7 @@ async function recalculateAllValues(orgId: string) {
   }
 
   let processed = 0;
-  const errors: any[] = [];
+  const errors: Array<{ relationship: Record<string, unknown>; error: string }> = [];
 
   for (const rel of relationships) {
     try {
@@ -843,8 +843,9 @@ async function recalculateAllValues(orgId: string) {
         node_b_id: rel.node_b_id,
       });
       processed++;
-    } catch (err: any) {
-      errors.push({ relationship: rel, error: err.message });
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      errors.push({ relationship: rel, error: error.message });
     }
   }
 

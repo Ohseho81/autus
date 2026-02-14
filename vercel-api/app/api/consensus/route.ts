@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       
       // 솔루션 통계 조회
       const ranking = await db.getSolutionRanking();
-      const solution = ranking.find((s: any) => s.solution_id === solution_id);
+      const solution = ranking.find((s: Record<string, unknown>) => s.solution_id === solution_id);
       
       if (!solution) {
         return NextResponse.json(

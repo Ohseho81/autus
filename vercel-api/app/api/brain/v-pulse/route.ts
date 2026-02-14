@@ -176,8 +176,8 @@ export async function GET(req: NextRequest) {
 // -----------------------------------------------------------------------------
 
 function calculateVPulse(
-  student: any,
-  signals: any,
+  student: Record<string, unknown>,
+  signals: Record<string, unknown>,
   weights: FeatureWeights
 ): VPulseOutput {
   const detectedSignals: VPulseOutput['signals'] = [];

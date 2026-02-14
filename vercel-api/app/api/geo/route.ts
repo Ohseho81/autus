@@ -200,7 +200,7 @@ function categorizeNews(text: string): string {
 }
 
 // 전략 분석
-function analyzeStrategicData(competitors: any[], apartments: any[], news: any[]) {
+function analyzeStrategicData(competitors: Array<Record<string, unknown>>, apartments: Array<Record<string, unknown>>, news: Array<Record<string, unknown>>) {
   const competitorCount = competitors.length;
   const avgCompetitorDensity = competitorCount / 4; // 2km 반경 기준
   

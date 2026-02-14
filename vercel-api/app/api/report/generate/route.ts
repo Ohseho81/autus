@@ -184,7 +184,7 @@ async function generateReport(payload: ReportRequest) {
     end: endDate.toISOString(),
   };
 
-  let reportData: any;
+  let reportData: Record<string, unknown>;
   let reportContent: string;
 
   switch (report_type) {
@@ -504,7 +504,7 @@ async function generateRiskReport(orgId?: string) {
 // 포맷터
 // ═══════════════════════════════════════════════════════════════════════════
 
-function formatWeeklyReport(data: any): string {
+function formatWeeklyReport(data: Record<string, unknown>): string {
   return `
 # 📊 주간 V-Report
 ## ${data.period}
@@ -520,17 +520,17 @@ function formatWeeklyReport(data: any): string {
 | 매출 | ${data.summary.revenue.toLocaleString()}원 | - |
 
 ### 🔔 주요 하이라이트
-${data.highlights.map((h: any) => `- ${h.type === 'positive' ? '✅' : h.type === 'warning' ? '⚠️' : 'ℹ️'} ${h.text}`).join('\n')}
+${data.highlights.map((h: { type: string; text: string }) => `- ${h.type === 'positive' ? '✅' : h.type === 'warning' ? '⚠️' : 'ℹ️'} ${h.text}`).join('\n')}
 
 ### 🚨 위험 학생 현황
-${data.risk_students.map((s: any) => `- **${s.name}** (State ${s.state}): ${s.signals.join(', ')} → ${s.action}`).join('\n')}
+${data.risk_students.map((s: { name: string; state: number; signals: string[]; action: string }) => `- **${s.name}** (State ${s.state}): ${s.signals.join(', ')} → ${s.action}`).join('\n')}
 
 ### 💡 권고 사항
 ${data.recommendations.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n')}
 `.trim();
 }
 
-function formatMonthlyReport(data: any): string {
+function formatMonthlyReport(data: Record<string, unknown>): string {
   return formatWeeklyReport(data) + `
 
 ### 📊 월간 트렌드
@@ -539,7 +539,7 @@ function formatMonthlyReport(data: any): string {
 `;
 }
 
-function formatStudentReport(data: any): string {
+function formatStudentReport(data: Record<string, unknown>): string {
   return `
 # 📚 학생 진도 리포트
 ## ${data.student_name} | ${data.period}
@@ -557,26 +557,26 @@ function formatStudentReport(data: any): string {
 - 변화: ${data.grades.change > 0 ? '+' : ''}${data.grades.change}점
 
 #### 과목별 성적
-${data.grades.subjects.map((s: any) => `- ${s.name}: ${s.score}점 (${s.change > 0 ? '+' : ''}${s.change})`).join('\n')}
+${data.grades.subjects.map((s: { name: string; score: number; change: number }) => `- ${s.name}: ${s.score}점 (${s.change > 0 ? '+' : ''}${s.change})`).join('\n')}
 
 ### 💬 선생님 코멘트
 ${data.teacher_comment}
 `.trim();
 }
 
-function formatRiskReport(data: any): string {
+function formatRiskReport(data: Record<string, unknown>): string {
   return `
 # 🚨 위험 학생 분석 리포트
 
 ### 📊 현황 요약
 - 총 위험 학생: ${data.total_at_risk}명
-${data.by_state.map((s: any) => `- State ${s.state} (${s.label}): ${s.count}명`).join('\n')}
+${data.by_state.map((s: { state: number; label: string; count: number }) => `- State ${s.state} (${s.label}): ${s.count}명`).join('\n')}
 
 ### 🔍 주요 위험 신호
-${data.common_signals?.map((s: any) => `- ${s.signal}: ${s.count}건`).join('\n') || '데이터 없음'}
+${data.common_signals?.map((s: { signal: string; count: number }) => `- ${s.signal}: ${s.count}건`).join('\n') || '데이터 없음'}
 
 ### 👤 학생별 현황
-${data.students.map((s: any) => `- **${s.name}** (State ${s.state}): ${s.signals?.join(', ') || '신호 없음'}`).join('\n')}
+${data.students.map((s: { name: string; state: number; signals?: string[] }) => `- **${s.name}** (State ${s.state}): ${s.signals?.join(', ') || '신호 없음'}`).join('\n')}
 `.trim();
 }
 
@@ -584,7 +584,7 @@ ${data.students.map((s: any) => `- **${s.name}** (State ${s.state}): ${s.signals
 // Helper Functions
 // ═══════════════════════════════════════════════════════════════════════════
 
-function generateHighlights(data: any) {
+function generateHighlights(data: { new_enrollments: number; at_risk: number; churned: number }) {
   const highlights = [];
   
   if (data.new_enrollments > 3) {
@@ -604,7 +604,7 @@ function generateHighlights(data: any) {
   return highlights;
 }
 
-function generateRecommendations(data: any) {
+function generateRecommendations(data: { at_risk: number }) {
   const recommendations = [];
   
   if (data.at_risk > 0) {

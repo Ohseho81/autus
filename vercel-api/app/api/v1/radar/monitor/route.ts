@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
 // Helper Functions
 // ─────────────────────────────────────────────────────────────────────
 
-function getFactors(customer: any): string[] {
+function getFactors(customer: Record<string, unknown>): string[] {
   const factors: string[] = [];
   
   if (customer.temperature < 30) factors.push('온도 위험 수준');
@@ -187,7 +187,7 @@ function getFactors(customer: any): string[] {
   return factors.length ? factors : ['복합 요인'];
 }
 
-function getRecommendedAction(customer: any): string {
+function getRecommendedAction(customer: Record<string, unknown>): string {
   if (customer.temperature < 30) {
     return '🚨 즉시 1:1 상담 필요 - 담당자에게 긴급 연락';
   }

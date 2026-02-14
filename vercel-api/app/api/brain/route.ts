@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let result: any;
+    let result: Record<string, unknown>;
 
     switch (action) {
       // 보상 카드 생성

@@ -47,7 +47,7 @@ function calculateSigmaFromResults(resultValue: number, inputValue: number): num
 }
 
 // 신뢰도 평가
-function assessConfidence(indicators: any): {
+function assessConfidence(indicators: Record<string, unknown>): {
   confidence: number;
   missing: string[];
   recommendation: string;

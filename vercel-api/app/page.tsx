@@ -127,7 +127,7 @@ function VIndexSimulator({ onSimulate }: { onSimulate: (v: number) => void }) {
     onSimulate(parseFloat(normalizedV));
   }, [V, normalizedV, onSimulate]);
   
-  const Slider = ({ label, value, setValue, min, max, step, unit, color }: any) => (
+  const Slider = ({ label, value, setValue, min, max, step, unit, color }: { label: string; value: number; setValue: (v: number) => void; min: number; max: number; step: number; unit: string; color: string }) => (
     <div style={{ marginBottom: '1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
         <span style={{ color: '#888', fontSize: '0.85rem' }}>{label}</span>
@@ -192,7 +192,7 @@ function VIndexSimulator({ onSimulate }: { onSimulate: (v: number) => void }) {
   );
 }
 
-function RoleCard({ role, onClick, isActive }: { role: any; onClick: () => void; isActive: boolean }) {
+function RoleCard({ role, onClick, isActive }: { role: { name: string; icon: string; color: string; description: string }; onClick: () => void; isActive: boolean }) {
   return (
     <button
       onClick={onClick}

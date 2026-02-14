@@ -36,7 +36,7 @@ interface WebhookPayload {
   event_type: WebhookEventType;
   source: string;           // n8n workflow name
   timestamp: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   metadata?: {
     workflow_id?: string;
     execution_id?: string;
@@ -192,7 +192,7 @@ async function verifyWebhook(
 }
 
 // 이벤트 타입별 처리
-async function processWebhookEvent(payload: WebhookPayload): Promise<any> {
+async function processWebhookEvent(payload: WebhookPayload): Promise<Record<string, unknown>> {
   const { event_type, data, source } = payload;
 
   switch (event_type) {
@@ -227,7 +227,7 @@ async function processWebhookEvent(payload: WebhookPayload): Promise<any> {
 }
 
 // ERP 데이터 동기화
-async function handleErpSync(data: any): Promise<any> {
+async function handleErpSync(data: Record<string, unknown>): Promise<Record<string, unknown>> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
@@ -270,7 +270,7 @@ async function handleErpSync(data: any): Promise<any> {
 }
 
 // 결제 완료 처리
-async function handlePaymentReceived(data: any): Promise<any> {
+async function handlePaymentReceived(data: Record<string, unknown>): Promise<Record<string, unknown>> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
@@ -309,7 +309,7 @@ async function handlePaymentReceived(data: any): Promise<any> {
 }
 
 // 미납 발생 처리
-async function handlePaymentOverdue(data: any): Promise<any> {
+async function handlePaymentOverdue(data: Record<string, unknown>): Promise<Record<string, unknown>> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
@@ -344,7 +344,7 @@ async function handlePaymentOverdue(data: any): Promise<any> {
 }
 
 // 출결 업데이트
-async function handleAttendanceUpdate(data: any): Promise<any> {
+async function handleAttendanceUpdate(data: Record<string, unknown>): Promise<Record<string, unknown>> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
@@ -379,7 +379,7 @@ async function handleAttendanceUpdate(data: any): Promise<any> {
 }
 
 // 성적 업데이트
-async function handleGradeUpdate(data: any): Promise<any> {
+async function handleGradeUpdate(data: Record<string, unknown>): Promise<Record<string, unknown>> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
@@ -414,7 +414,7 @@ async function handleGradeUpdate(data: any): Promise<any> {
 }
 
 // 퇴원 위험 알림
-async function handleChurnAlert(data: any): Promise<any> {
+async function handleChurnAlert(data: Record<string, unknown>): Promise<Record<string, unknown>> {
   // Claude API로 상담 스크립트 생성
   const claudeApiKey = process.env.CLAUDE_API_KEY;
   
@@ -442,7 +442,7 @@ async function handleChurnAlert(data: any): Promise<any> {
 }
 
 // 경쟁사 변화
-async function handleCompetitorChange(data: any): Promise<any> {
+async function handleCompetitorChange(data: Record<string, unknown>): Promise<Record<string, unknown>> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
@@ -469,7 +469,7 @@ async function handleCompetitorChange(data: any): Promise<any> {
 }
 
 // 뉴스 알림
-async function handleNewsAlert(data: any): Promise<any> {
+async function handleNewsAlert(data: Record<string, unknown>): Promise<Record<string, unknown>> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { status: 'skipped', reason: 'Supabase not configured' };
   }
@@ -495,7 +495,7 @@ async function handleNewsAlert(data: any): Promise<any> {
 }
 
 // 커스텀 이벤트
-async function handleCustomEvent(data: any, source: string): Promise<any> {
+async function handleCustomEvent(data: Record<string, unknown>, source: string): Promise<Record<string, unknown>> {
   console.log(`Custom event from ${source}:`, data);
   return { 
     status: 'logged', 
