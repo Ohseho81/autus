@@ -165,7 +165,7 @@ function analyzeTagRelevance(logs: Array<Record<string, unknown>>) {
   let irrelevantTagCount = 0;
   
   logs.forEach(log => {
-    const tags = log.tags || [];
+    const tags: string[] = Array.isArray(log.tags) ? log.tags : [];
     tags.forEach((tag: string) => {
       totalTags++;
       tagCounts[tag] = (tagCounts[tag] || 0) + 1;
