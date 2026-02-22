@@ -74,7 +74,7 @@ export async function recordGoalChange(
             to_text,
             student_name: parent.name
           },
-          'HIGH'
+          'URGENT'
         );
         logger.info('Parent notified of goal change', { parent_id: parent.id, student_id });
       }

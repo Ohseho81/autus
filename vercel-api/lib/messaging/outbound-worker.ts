@@ -1,8 +1,10 @@
+import { randomUUID } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 import { MessageOutbox, MessageStatus } from './types';
 import { processAndSendMessage } from './template-engine';
 
+const APP_ID = 'onlyssam';
 const BATCH_SIZE = 10;
 const MAX_RETRIES = 3;
 const RATE_LIMIT = 10; // per second
@@ -10,14 +12,14 @@ const BACKOFF_BASE_MS = 1000;
 
 export async function runOutboundWorker(): Promise<void> {
   logger.info('Starting outbound worker');
-  
+
   try {
     while (true) {
       const client = getSupabaseAdmin();
       const { data: messages, error: fetchError } = await client
         .from('message_outbox')
         .select('*')
-        .in('status', ['PENDING', 'FAILED'])
+        .in('status', ['pending', 'failed'])
         .or(`next_retry_at.is.null,next_retry_at.lte.${new Date().toISOString()}`)
         .order('priority', { ascending: false })
         .order('created_at', { ascending: true })
@@ -36,10 +38,15 @@ export async function runOutboundWorker(): Promise<void> {
         const startTime = Date.now();
         try {
           await sendKakaoMessage(message);
-          
+
           const { error: updateError } = await client
             .from('message_outbox')
-            .update({ status: 'SENT', sent_at: new Date().toISOString(), retry_count: message.retry_count })
+            .update({
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+              retry_count: message.retry_count,
+              updated_at: new Date().toISOString()
+            })
             .eq('id', message.id);
 
           if (updateError) throw updateError;
@@ -47,15 +54,15 @@ export async function runOutboundWorker(): Promise<void> {
           const { error: logError } = await client
             .from('message_log')
             .insert({
-              message_id: message.id,
+              message_id: message.message_id,
               event_type: 'DELIVERED',
               timestamp: new Date().toISOString(),
-              metadata: JSON.stringify({ org_id: message.org_id })
+              metadata: JSON.stringify({ tenant_id: message.tenant_id })
             });
 
           if (logError) throw logError;
 
-          logger.info('Message sent successfully', { message_id: message.id, org_id: message.org_id });
+          logger.info('Message sent successfully', { message_id: message.message_id, tenant_id: message.tenant_id });
         } catch (error) {
           const nextRetryCount = message.retry_count + 1;
           const backoffMs = BACKOFF_BASE_MS * Math.pow(2, message.retry_count);
@@ -64,28 +71,35 @@ export async function runOutboundWorker(): Promise<void> {
           if (nextRetryCount >= MAX_RETRIES) {
             const { error: deadLetterError } = await client
               .from('message_outbox')
-              .update({ status: 'DEAD_LETTER', last_error: String(error), retry_count: nextRetryCount })
+              .update({
+                status: 'cancelled',
+                failure_reason: String(error),
+                retry_count: nextRetryCount,
+                failed_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
               .eq('id', message.id);
 
             if (deadLetterError) logger.error('Failed to update dead letter status', deadLetterError);
             logger.error('Message failed max retries', error instanceof Error ? error : new Error(String(error)), {
-              message_id: message.id,
+              message_id: message.message_id,
               retry_count: nextRetryCount
             });
           } else {
             const { error: retryError } = await client
               .from('message_outbox')
-              .update({ 
-                status: 'FAILED', 
-                last_error: String(error), 
-                retry_count: nextRetryCount, 
-                next_retry_at: nextRetryAt.toISOString() 
+              .update({
+                status: 'failed',
+                failure_reason: String(error),
+                retry_count: nextRetryCount,
+                next_retry_at: nextRetryAt.toISOString(),
+                updated_at: new Date().toISOString()
               })
               .eq('id', message.id);
 
             if (retryError) logger.error('Failed to update retry status', retryError);
             logger.warn('Message send failed, scheduled retry', {
-              message_id: message.id,
+              message_id: message.message_id,
               retry_count: nextRetryCount,
               next_retry_at: nextRetryAt.toISOString()
             });
@@ -106,20 +120,20 @@ export async function runOutboundWorker(): Promise<void> {
 }
 
 export async function enqueueMessage(
-  org_id: string,
+  tenant_id: string,
   recipient_type: 'PARENT' | 'TEACHER' | 'DIRECTOR',
   recipient_id: string,
-  phone: string,
-  template_code: string,
-  payload: Record<string, unknown>,
-  priority: 'SAFETY' | 'HIGH' | 'NORMAL' | 'LOW' = 'NORMAL',
+  recipient_phone: string,
+  template_id: string,
+  variables: Record<string, unknown>,
+  priority: 'SAFETY' | 'URGENT' | 'NORMAL' | 'LOW' = 'NORMAL',
   customIdempotencyKey?: string
 ): Promise<string> {
-  const idempotency_key = customIdempotencyKey || `${org_id}:${recipient_id}:${template_code}:${Date.now()}`;
+  const idempotency_key = customIdempotencyKey || `${tenant_id}:${recipient_id}:${template_id}:${Date.now()}`;
 
   try {
     const client = getSupabaseAdmin();
-    
+
     const { data: existing } = await client
       .from('message_outbox')
       .select('id')
@@ -130,19 +144,25 @@ export async function enqueueMessage(
       return existing[0].id;
     }
 
+    const message_id = randomUUID();
+
     const { data: result, error } = await client
       .from('message_outbox')
       .insert({
-        org_id,
+        message_id,
+        app_id: APP_ID,
+        tenant_id,
+        channel: 'KAKAO',
         recipient_type,
         recipient_id,
-        phone,
-        template_code,
-        payload_json: payload,
+        recipient_phone,
+        template_id,
+        variables,
         idempotency_key,
-        status: 'PENDING',
+        status: 'pending',
         priority,
         retry_count: 0,
+        scheduled_send_at: new Date().toISOString(),
         created_at: new Date().toISOString()
       })
       .select('id');
@@ -150,14 +170,14 @@ export async function enqueueMessage(
     if (error) throw error;
     if (!result || result.length === 0) throw new Error('No result returned');
 
-    const message_id = result[0].id;
-    logger.info('Message enqueued', { message_id, org_id, recipient_id, template_code, priority });
-    return message_id;
+    const id = result[0].id;
+    logger.info('Message enqueued', { id, message_id, tenant_id, recipient_id, template_id, priority });
+    return id;
   } catch (error) {
     logger.error('Failed to enqueue message', error instanceof Error ? error : new Error(String(error)), {
-      org_id,
+      tenant_id,
       recipient_id,
-      template_code
+      template_id
     });
     throw error;
   }
@@ -165,20 +185,20 @@ export async function enqueueMessage(
 
 async function sendKakaoMessage(message: MessageOutbox): Promise<void> {
   logger.info('Sending Kakao message via template engine', {
-    message_id: message.id,
-    phone: message.phone,
-    template_code: message.template_code,
+    message_id: message.message_id,
+    recipient_phone: message.recipient_phone,
+    template_id: message.template_id,
   });
 
-  // Extract academy_id from org context
+  // Extract academy_id from tenant context
   const client = getSupabaseAdmin();
   let academy_id: string | null = null;
 
-  if (message.org_id) {
+  if (message.tenant_id) {
     const { data: academy } = await client
       .from('academies')
       .select('id, name, phone')
-      .eq('id', message.org_id)
+      .eq('id', message.tenant_id)
       .limit(1);
 
     if (academy && academy.length > 0) {
@@ -186,7 +206,7 @@ async function sendKakaoMessage(message: MessageOutbox): Promise<void> {
     }
   }
 
-  // Map template_code to template_key (MONTHLY_REPORT → REPORT, etc.)
+  // Map template_id to template_key (MONTHLY_REPORT → REPORT, etc.)
   const templateKeyMap: Record<string, string> = {
     'ATTEND': 'ATTEND',
     'SAFETY': 'SAFETY',
@@ -194,10 +214,10 @@ async function sendKakaoMessage(message: MessageOutbox): Promise<void> {
     'CONSENT': 'CONSENT',
     'GOAL': 'GOAL',
   };
-  const template_key = templateKeyMap[message.template_code] || message.template_code;
+  const template_key = templateKeyMap[message.template_id] || message.template_id;
 
-  // Build vars from payload_json + academy context
-  const payload = (message.payload_json || {}) as Record<string, unknown>;
+  // Build vars from variables + academy context
+  const payload = (message.variables || {}) as Record<string, unknown>;
   const vars: Record<string, string> = {};
   for (const [key, value] of Object.entries(payload)) {
     if (value !== null && value !== undefined) {
@@ -206,11 +226,11 @@ async function sendKakaoMessage(message: MessageOutbox): Promise<void> {
   }
 
   // Inject academy info if available
-  if (message.org_id) {
+  if (message.tenant_id) {
     const { data: academyData } = await client
       .from('academies')
       .select('name, phone')
-      .eq('id', message.org_id)
+      .eq('id', message.tenant_id)
       .limit(1);
 
     if (academyData && academyData.length > 0) {
@@ -224,7 +244,7 @@ async function sendKakaoMessage(message: MessageOutbox): Promise<void> {
     academy_id,
     template_key,
     vars,
-    message.phone
+    message.recipient_phone
   );
 
   if (!result.success) {
@@ -232,7 +252,7 @@ async function sendKakaoMessage(message: MessageOutbox): Promise<void> {
   }
 
   logger.info('Kakao message sent successfully', {
-    message_id: message.id,
+    message_id: message.message_id,
     template_key,
     academy_id,
   });

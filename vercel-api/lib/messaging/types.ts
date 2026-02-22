@@ -1,23 +1,38 @@
-export type MessageStatus = 'PENDING' | 'SENDING' | 'SENT' | 'FAILED' | 'DEAD_LETTER';
-export type MessagePriority = 'SAFETY' | 'HIGH' | 'NORMAL' | 'LOW';
+export type MessageStatus = 'pending' | 'sent' | 'failed' | 'cancelled';
+export type MessagePriority = 'SAFETY' | 'URGENT' | 'NORMAL' | 'LOW';
 export type RecipientType = 'PARENT' | 'TEACHER' | 'DIRECTOR';
 
 export interface MessageOutbox {
   id: string;
-  org_id: string;
+  message_id: string;           // NOT NULL - unique message identifier (e.g. uuid v4)
+  app_id: string;               // NOT NULL - application identifier (e.g. 'onlyssam')
+  tenant_id: string;            // was org_id
+  event_id: string | null;
+  decision_id: string | null;
+  rule_id: string | null;
+  channel: string | null;       // e.g. 'KAKAO'
   recipient_type: RecipientType;
   recipient_id: string;
-  phone: string;
-  template_code: string;
-  payload_json: Record<string, unknown>;
+  recipient_phone: string;      // was phone
+  recipient_email: string | null;
+  template_id: string;          // was template_code
+  variables: Record<string, unknown>;  // was payload_json
+  rendered_content: string | null;
   idempotency_key: string;
   status: MessageStatus;
   priority: MessagePriority;
   retry_count: number;
   next_retry_at: string | null;
-  last_error: string | null;
-  created_at: string;
   sent_at: string | null;
+  failed_at: string | null;
+  failure_reason: string | null; // was last_error
+  scheduled_send_at: string | null;
+  rate_limit_bucket: string | null;
+  external_message_id: string | null;
+  delivery_status: string | null;
+  delivery_confirmed_at: string | null;
+  created_at: string;
+  updated_at: string | null;
 }
 
 export type InboundResponseType = 'ATTEND' | 'ABSENT' | 'CONSENT' | 'SIGNATURE' | 'NONE';

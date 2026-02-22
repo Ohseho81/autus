@@ -127,14 +127,14 @@ async function handleConsentResponse(callback: InboundCallback): Promise<void> {
   const client = getSupabaseAdmin();
 
   try {
-    // Lookup org_id and recipient from original outbox message
+    // Lookup tenant_id and recipient from original outbox message
     const { data: outboxMsg } = await client
       .from('message_outbox')
-      .select('org_id, recipient_id')
+      .select('tenant_id, recipient_id')
       .eq('id', callback.message_id)
       .limit(1);
 
-    const org_id = outboxMsg?.[0]?.org_id || null;
+    const org_id = outboxMsg?.[0]?.tenant_id || null;
     const parent_id = outboxMsg?.[0]?.recipient_id || callback.user_phone || null;
 
     // Deactivate existing active consent of same type before inserting
@@ -177,14 +177,14 @@ async function handleSignatureResponse(callback: InboundCallback): Promise<void>
   const client = getSupabaseAdmin();
 
   try {
-    // Lookup org_id and recipient from original outbox message
+    // Lookup tenant_id and recipient from original outbox message
     const { data: outboxMsg } = await client
       .from('message_outbox')
-      .select('org_id, recipient_id')
+      .select('tenant_id, recipient_id')
       .eq('id', callback.message_id)
       .limit(1);
 
-    const org_id = outboxMsg?.[0]?.org_id || null;
+    const org_id = outboxMsg?.[0]?.tenant_id || null;
     const parent_id = outboxMsg?.[0]?.recipient_id || callback.user_phone || null;
 
     const { error } = await client

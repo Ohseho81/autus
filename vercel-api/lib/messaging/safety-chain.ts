@@ -33,7 +33,7 @@ export async function runSafetyChain(): Promise<void> {
       // Get message details
       const { data: msgData, error: msgError } = await client
         .from('message_outbox')
-        .select('org_id, recipient_id, phone')
+        .select('tenant_id, recipient_id, recipient_phone')
         .eq('id', messageId)
         .single();
 
@@ -54,9 +54,9 @@ export async function runSafetyChain(): Promise<void> {
 
       if (level) {
         await handleSafetyLevel(
-          msgData.org_id as string,
+          msgData.tenant_id as string,
           msgData.recipient_id as string,
-          msgData.phone as string,
+          msgData.recipient_phone as string,
           messageId,
           level
         );
@@ -145,7 +145,7 @@ async function handleSafetyLevel(
             director.phone as string,
             'GHOST_ABSENCE_ALERT',
             { student_id: recipient_id, original_message_id: message_id },
-            'HIGH'
+            'URGENT'
           );
         }
 
