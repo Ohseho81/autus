@@ -127,11 +127,32 @@ async function handleConsentResponse(callback: InboundCallback): Promise<void> {
   const client = getSupabaseAdmin();
 
   try {
+    // Lookup org_id and recipient from original outbox message
+    const { data: outboxMsg } = await client
+      .from('message_outbox')
+      .select('org_id, recipient_id')
+      .eq('id', callback.message_id)
+      .limit(1);
+
+    const org_id = outboxMsg?.[0]?.org_id || null;
+    const parent_id = outboxMsg?.[0]?.recipient_id || callback.user_phone || null;
+
+    // Deactivate existing active consent of same type before inserting
+    if (org_id && parent_id) {
+      await client
+        .from('consent_records')
+        .update({ is_active: false })
+        .eq('org_id', org_id)
+        .eq('parent_id', parent_id)
+        .eq('consent_type', 'SERVICE_TERMS')
+        .eq('is_active', true);
+    }
+
     const { error } = await client
       .from('consent_records')
       .insert({
-        org_id: null,
-        parent_id: callback.user_phone || null,
+        org_id,
+        parent_id,
         student_id: null,
         consent_type: 'SERVICE_TERMS',
         consent_version: '1.0',
@@ -141,7 +162,7 @@ async function handleConsentResponse(callback: InboundCallback): Promise<void> {
       });
 
     if (error) throw error;
-    logger.info('Consent recorded', { message_id: callback.message_id });
+    logger.info('Consent recorded', { message_id: callback.message_id, org_id });
   } catch (error) {
     logger.error('Failed to record consent', error instanceof Error ? error : new Error(String(error)), {
       message_id: callback.message_id
@@ -156,13 +177,23 @@ async function handleSignatureResponse(callback: InboundCallback): Promise<void>
   const client = getSupabaseAdmin();
 
   try {
+    // Lookup org_id and recipient from original outbox message
+    const { data: outboxMsg } = await client
+      .from('message_outbox')
+      .select('org_id, recipient_id')
+      .eq('id', callback.message_id)
+      .limit(1);
+
+    const org_id = outboxMsg?.[0]?.org_id || null;
+    const parent_id = outboxMsg?.[0]?.recipient_id || callback.user_phone || null;
+
     const { error } = await client
       .from('consent_records')
       .insert({
-        org_id: null,
-        parent_id: callback.user_phone || null,
+        org_id,
+        parent_id,
         student_id: null,
-        consent_type: 'SERVICE_TERMS',
+        consent_type: 'SIGNATURE',
         consent_version: '1.0',
         consented_at: callback.timestamp,
         channel: 'KAKAO',
@@ -170,7 +201,7 @@ async function handleSignatureResponse(callback: InboundCallback): Promise<void>
       });
 
     if (error) throw error;
-    logger.info('Signature recorded', { message_id: callback.message_id });
+    logger.info('Signature recorded', { message_id: callback.message_id, org_id });
   } catch (error) {
     logger.error('Failed to record signature', error instanceof Error ? error : new Error(String(error)), {
       message_id: callback.message_id

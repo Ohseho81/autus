@@ -111,9 +111,10 @@ export async function enqueueMessage(
   phone: string,
   template_code: string,
   payload: Record<string, unknown>,
-  priority: 'SAFETY' | 'HIGH' | 'NORMAL' | 'LOW' = 'NORMAL'
+  priority: 'SAFETY' | 'HIGH' | 'NORMAL' | 'LOW' = 'NORMAL',
+  customIdempotencyKey?: string
 ): Promise<string> {
-  const idempotency_key = `${org_id}:${recipient_id}:${template_code}:${Date.now()}`;
+  const idempotency_key = customIdempotencyKey || `${org_id}:${recipient_id}:${template_code}:${Date.now()}`;
 
   try {
     const client = getSupabaseAdmin();

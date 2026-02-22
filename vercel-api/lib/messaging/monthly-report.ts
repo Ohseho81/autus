@@ -61,6 +61,11 @@ export async function generateMonthlyReports(org_id: string): Promise<void> {
         const studentData = await gatherStudentData(org_id, student_id);
         const message = formatReportMessage(student_name, studentData);
 
+        // Idempotency: monthly_report:{student_id}:{YYYY-MM} prevents duplicate reports
+        const now = new Date();
+        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        const idempotencyKey = `monthly_report:${student_id}:${monthKey}`;
+
         await enqueueMessage(
           org_id,
           'PARENT',
@@ -72,7 +77,8 @@ export async function generateMonthlyReports(org_id: string): Promise<void> {
             student_name,
             ...studentData
           },
-          'NORMAL'
+          'NORMAL',
+          idempotencyKey
         );
 
         logger.info('Monthly report enqueued', { student_id, parent_id });
