@@ -30,6 +30,14 @@
     {
       "path": "/api/workers/risk-detection",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/messaging/worker",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/messaging/safety",
+      "schedule": "*/10 * * * *"
     }
   ]
 }
