@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import TruthModeToggle from '../../components/ui/TruthModeToggle';
+import { useStudents } from '../../hooks/useSupabaseData';
 
 // ============================================
 // KRATON DOPAMINE GARDEN
@@ -203,8 +204,8 @@ const DailyQuests = ({ truthMode }) => {
 // ============================================
 // STREAK CALENDAR
 // ============================================
-const StreakCalendar = ({ truthMode }) => {
-  const streak = 12;
+const StreakCalendar = ({ truthMode, streak: streakProp }) => {
+  const streak = streakProp || 12;
   const days = ['월', '화', '수', '목', '금', '토', '일'];
   const thisWeek = [true, true, true, true, true, false, false];
 
@@ -280,7 +281,34 @@ const StudentQuickActions = () => {
 // ============================================
 const DopamineGarden = () => {
   const [truthMode, setTruthMode] = useState(false);
-  const [totalPoints] = useState(1250);
+
+  // === Supabase Live Data ===
+  const { data: liveStudents, loading: studentsLoading, isLive } = useStudents();
+
+  // Derive gamification data from first student (student view = single student)
+  const studentData = useMemo(() => {
+    const fallback = { level: 12, currentXP: 750, nextLevelXP: 1000, totalPoints: 1250, streak: 12 };
+    if (!liveStudents || liveStudents.length === 0) return fallback;
+
+    const s = liveStudents[0]; // First student as the "current" student
+    const engagement = s.engagement_score || 70;
+    const skill = s.skill_score || 50;
+    const vIndex = s.vIndex || 1000;
+
+    // Calculate level from engagement_score (every 8 points = 1 level, min 1)
+    const level = Math.max(1, Math.floor(engagement / 8));
+    // XP from vIndex (normalized: vIndex % 1000 gives progress within level)
+    const currentXP = Math.round(vIndex % 1000);
+    const nextLevelXP = 1000;
+    // Total points from vIndex
+    const totalPoints = Math.round(vIndex);
+    // Streak estimate from engagement (higher engagement = longer streak)
+    const streak = Math.max(1, Math.floor(engagement / 7));
+
+    return { level, currentXP, nextLevelXP, totalPoints, streak };
+  }, [liveStudents]);
+
+  const { level, currentXP, nextLevelXP, totalPoints, streak: liveStreak } = studentData;
 
   return (
     <div className="min-h-screen bg-gray-950 text-white pb-20">
@@ -289,7 +317,15 @@ const DopamineGarden = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className={TOKENS.type.h1}>🌸 나의 정원</h1>
-            <p className={TOKENS.type.meta}>오늘도 성장하는 중!</p>
+            <p className={TOKENS.type.meta}>
+              오늘도 성장하는 중!
+              {isLive && (
+                <span className="ml-2 inline-flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                  <span className="text-emerald-400 text-[10px]">LIVE</span>
+                </span>
+              )}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="px-4 py-2 bg-yellow-600/20 rounded-xl border border-yellow-500/30">
@@ -310,10 +346,10 @@ const DopamineGarden = () => {
 
       {/* Main Content */}
       <main className="p-4 space-y-4">
-        <LevelProgress level={12} currentXP={750} nextLevelXP={1000} truthMode={truthMode} />
+        <LevelProgress level={level} currentXP={currentXP} nextLevelXP={nextLevelXP} truthMode={truthMode} />
         <StudentQuickActions />
         <DailyQuests truthMode={truthMode} />
-        <StreakCalendar truthMode={truthMode} />
+        <StreakCalendar truthMode={truthMode} streak={liveStreak} />
         <BadgeCollection truthMode={truthMode} />
       </main>
 

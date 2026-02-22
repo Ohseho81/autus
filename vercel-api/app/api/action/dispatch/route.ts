@@ -5,16 +5,22 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
-import Anthropic from '@anthropic-ai/sdk';
 import { CardType, CardTone, CardDispatch, CardOutcome } from '@/lib/types-erp';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 
 // -----------------------------------------------------------------------------
-// Clients
+// Clients (lazy initialization to reduce cold start)
 // -----------------------------------------------------------------------------
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+let _anthropic: InstanceType<typeof import('@anthropic-ai/sdk').default> | null = null;
+function getAnthropic() {
+  if (!_anthropic) {
+    const Anthropic = require('@anthropic-ai/sdk').default;
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return _anthropic!;
+}
 
 // Lazy getSupabaseAdmin() getter
 const getSupabase = () => getSupabaseAdmin();
@@ -137,8 +143,9 @@ export async function POST(req: NextRequest) {
       error: sendResult.error,
     });
     
-  } catch (error: any) {
-    console.error('Dispatch error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'action-dispatch.POST' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -220,8 +227,9 @@ export async function PUT(req: NextRequest) {
       message: 'Outcome recorded successfully',
     });
     
-  } catch (error: any) {
-    console.error('Outcome recording error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'action-dispatch.PUT' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -231,8 +239,8 @@ export async function PUT(req: NextRequest) {
 // -----------------------------------------------------------------------------
 
 async function generateCardMessage(
-  student: any,
-  signals: any,
+  student: Record<string, unknown>,
+  signals: Record<string, unknown>,
   cardType: CardType,
   tone: CardTone
 ): Promise<string> {
@@ -275,7 +283,7 @@ async function generateCardMessage(
 `.trim();
 
   try {
-    const response = await anthropic.messages.create({
+    const response = await getAnthropic().messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 300,
       messages: [{ role: 'user', content: prompt }],
@@ -286,14 +294,14 @@ async function generateCardMessage(
       return content.text.trim();
     }
   } catch (error) {
-    console.error('Claude API error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'action-dispatch.generateCardMessage' });
   }
   
   // Fallback templates
   return getTemplateMessage(student, cardType, tone);
 }
 
-function getTemplateMessage(student: any, cardType: CardType, tone: CardTone): string {
+function getTemplateMessage(student: Record<string, unknown>, cardType: CardType, tone: CardTone): string {
   const templates = {
     EMERGENCY: {
       calm: `[학원명] 안녕하세요, ${student.name} 학생 보호자님. 최근 학습 상태에 대해 중요한 말씀 드릴 것이 있어 연락드립니다. 편하신 시간에 상담 부탁드립니다.`,
@@ -326,7 +334,7 @@ function getTemplateMessage(student: any, cardType: CardType, tone: CardTone): s
 
 async function sendKakaoAlimtalk(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
   // In production, integrate with Bizm API
-  console.log(`[Kakao Alimtalk] To: ${phone}, Message: ${message.substring(0, 50)}...`);
+  logger.info(`[Kakao Alimtalk] To: ${phone}, Message: ${message.substring(0, 50)}...`);
   
   // Mock success
   return { success: true };
@@ -334,7 +342,7 @@ async function sendKakaoAlimtalk(phone: string, message: string): Promise<{ succ
 
 async function sendSMS(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
   // In production, integrate with Aligo API
-  console.log(`[SMS] To: ${phone}, Message: ${message.substring(0, 50)}...`);
+  logger.info(`[SMS] To: ${phone}, Message: ${message.substring(0, 50)}...`);
   
   // Mock success
   return { success: true };
@@ -342,7 +350,7 @@ async function sendSMS(phone: string, message: string): Promise<{ success: boole
 
 async function sendEmail(email: string, studentName: string, message: string): Promise<{ success: boolean; error?: string }> {
   // In production, integrate with SendGrid or similar
-  console.log(`[Email] To: ${email}, Subject: ${studentName} 학습 상황 안내`);
+  logger.info(`[Email] To: ${email}, Subject: ${studentName} 학습 상황 안내`);
   
   // Mock success
   return { success: true };
@@ -419,9 +427,9 @@ async function updateFeatureWeights(
         feature_weights: weights,
       }, { onConflict: 'academy_id' });
     
-    console.log(`[Self-Learning] Weights updated for academy ${academyId}:`, weights);
+    logger.info(`[Self-Learning] Weights updated for academy ${academyId}:`, weights);
     
   } catch (error) {
-    console.error('Failed to update feature weights:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'action-dispatch.updateFeatureWeights' });
   }
 }

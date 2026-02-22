@@ -2,18 +2,18 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'AUTUS FSD v2.0 - 학원 자동화 플랫폼',
+  title: '온리쌤 - 학원 자동화 플랫폼',
   description: 'Tesla FSD 스타일의 학원 운영 자동화 콘솔 - 6개 역할 멀티 콘솔',
-  applicationName: 'AUTUS',
-  keywords: ['학원', '자동화', '관리', 'ERP', 'LMS', '학원관리', 'AUTUS'],
-  authors: [{ name: 'AUTUS Team' }],
-  creator: 'AUTUS',
-  publisher: 'AUTUS',
+  applicationName: '온리쌤',
+  keywords: ['학원', '자동화', '관리', 'ERP', 'LMS', '학원관리', '온리쌤'],
+  authors: [{ name: '온리쌤 Team' }],
+  creator: '온리쌤',
+  publisher: '온리쌤',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'AUTUS',
+    title: '온리쌤',
     startupImage: [
       {
         url: '/splash/splash-640x1136.png',
@@ -38,14 +38,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    siteName: 'AUTUS',
-    title: 'AUTUS FSD v2.0 - 학원 자동화 플랫폼',
+    siteName: '온리쌤',
+    title: '온리쌤 - 학원 자동화 플랫폼',
     description: 'Tesla FSD 스타일의 학원 운영 자동화 콘솔',
     locale: 'ko_KR',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AUTUS FSD v2.0',
+    title: '온리쌤 - 학원 자동화 플랫폼',
     description: 'Tesla FSD 스타일의 학원 운영 자동화 콘솔',
   },
   icons: {
@@ -86,7 +86,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="AUTUS" />
+        <meta name="apple-mobile-web-app-title" content="온리쌤" />
         <meta name="msapplication-TileColor" content="#05050a" />
         <meta name="msapplication-tap-highlight" content="no" />
         

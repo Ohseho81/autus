@@ -111,7 +111,7 @@ function calculateOrgValue(orgId: string) {
         synergy_multiplier: Math.round(synergyMultiplier * 100) / 100,
       },
     };
-  }).filter(Boolean) as any[];
+  }).filter(Boolean) as Array<{ node_a: string; node_b: string; value_stu: number; details: Record<string, unknown> }>;
   
   // 총 가치
   const totalValueSTU = relationValues.reduce((sum, r) => sum + r.value_stu, 0);
@@ -228,7 +228,8 @@ export async function GET(request: NextRequest) {
         formula: 'V = P × Λ × e^(σt)',
       },
     });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }
@@ -301,7 +302,8 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
     }
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

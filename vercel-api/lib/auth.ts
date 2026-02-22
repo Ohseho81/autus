@@ -5,6 +5,7 @@
 
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { captureError } from './monitoring';
 
 // ============================================
 // 타입 정의
@@ -147,7 +148,7 @@ export async function getUserFromToken(request: NextRequest): Promise<AuthResult
 
     return { authenticated: true, user: authUser };
   } catch (error) {
-    console.error('[Auth Error]', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'auth.getUserFromToken' });
     return { authenticated: false, error: 'Authentication failed' };
   }
 }
@@ -199,7 +200,7 @@ export async function authenticateApiKey(request: NextRequest): Promise<AuthResu
       },
     };
   } catch (error) {
-    console.error('[API Key Auth Error]', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'auth.authenticateApiKey' });
     return { authenticated: false, error: 'API key authentication failed' };
   }
 }

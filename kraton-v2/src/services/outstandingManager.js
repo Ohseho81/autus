@@ -235,10 +235,10 @@ export async function runAutoReminders() {
 // ============================================
 async function sendParentReminder(record, level) {
   const messages = {
-    first: `[올댓바스켓] ${record.student_name} 학생 수강료 ${record.amount?.toLocaleString()}원 납부 안내입니다. 7일 경과되었습니다.`,
-    second: `[올댓바스켓] ${record.student_name} 학생 수강료 ${record.amount?.toLocaleString()}원 2차 안내입니다. 조속한 납부 부탁드립니다.`,
-    urgent: `[올댓바스켓] 긴급! ${record.student_name} 학생 수강료 ${record.amount?.toLocaleString()}원 미납 상태입니다.`,
-    critical: `[올댓바스켓] 최종 안내! ${record.student_name} 학생 수강료 30일 이상 미납입니다. 즉시 연락 바랍니다.`,
+    first: `[온리쌤] ${record.student_name} 학생 수강료 ${record.amount?.toLocaleString()}원 납부 안내입니다. 7일 경과되었습니다.`,
+    second: `[온리쌤] ${record.student_name} 학생 수강료 ${record.amount?.toLocaleString()}원 2차 안내입니다. 조속한 납부 부탁드립니다.`,
+    urgent: `[온리쌤] 긴급! ${record.student_name} 학생 수강료 ${record.amount?.toLocaleString()}원 미납 상태입니다.`,
+    critical: `[온리쌤] 최종 안내! ${record.student_name} 학생 수강료 30일 이상 미납입니다. 즉시 연락 바랍니다.`,
   };
 
   console.log(`[Alimtalk] ${level}: ${record.parent_phone || 'N/A'} → ${messages[level]}`);

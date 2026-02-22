@@ -13,11 +13,11 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
-import { setupCoworkCommands, pushNotification, COWORK_TASKS, enqueue } from './cowork-handler.js';
+import { setupCoworkCommands, COWORK_TASKS, enqueue } from './cowork-handler.js';
 import workflowAdapter from './workflow-handler.js';
-import { 
-  setupOrchestratorCommands, 
-  parseCommand, 
+import {
+  setupOrchestratorCommands,
+  parseCommand,
   formatActiveTasksList,
   detectSignal,
   scoreAgents,
@@ -25,6 +25,9 @@ import {
   formatRouting,
   AGENTS,
 } from './task-orchestrator.js';
+import { setupDataCommands, isAvailable as isSupabaseAvailable } from './supabase-queries.js';
+import { setupOnlysamShadowCommands, isOnlysamConfigured } from './onlysam-shadow.js';
+import { setupStudentUploadCommands } from './student-upload.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -149,6 +152,16 @@ bot.onText(/\/start/, (msg) => {
 /brain rules - 규칙 목록
 /brain student [ID] - 학생 상세
 
+*🗄️ Sovereign Ledger*
+/data today - 오늘 현황
+/data completion - 세션 완료율
+/data risk - 이탈 위험 학생
+/data vindex - V-Index 랭킹
+/data features - 기능별 사용량
+/data student [UUID] - 학생 상세
+/data report [UUID] - 학부모 리포트
+/data recent - 최근 활동
+
 *💻 개발 도구*
 /build - 프로젝트 빌드
 /deploy - Git Push + 배포
@@ -173,6 +186,17 @@ bot.onText(/\/start/, (msg) => {
 
 *📊 상태*
 /status - 전체 상태
+
+*📚 온리쌤 그림자 (7일 검증)*
+/수업시작 - 수업 시작
+/출석 [이름] - 출석
+/결석 [이름] - 결석
+/훈련전환 - 훈련 전환
+/사고 - 사고 기록
+/수업종료 - 수업 종료
+
+*📎 학생 관리*
+/upload\\_students - CSV 학생 일괄 등록
 
 💡 일반 메시지 → AI 응답
   `, { parse_mode: 'Markdown' });
@@ -319,7 +343,11 @@ bot.onText(/\/status/, async (msg) => {
   try {
     const brainHealth = await callBrainAPI('/api/moltbot/health');
     if (brainHealth) brainStatus = '✅ 온라인';
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[Status] Brain health check failed:', e?.message || e);
+  }
+
+  const sbStatus = isSupabaseAvailable() ? '✅ 연결됨' : '❌ 미설정';
 
   bot.sendMessage(chatId, `
 📊 *MoltBot v2 상태*
@@ -330,6 +358,9 @@ bot.onText(/\/status/, async (msg) => {
 
 *🧠 Brain:*
 ${brainStatus}
+
+*🗄️ Sovereign Ledger:*
+${sbStatus}
 
 *📂 경로:*
 ${AUTUS_DIR}
@@ -400,6 +431,16 @@ bot.onText(/\/help/, (msg) => {
 /brain rules - 규칙
 /brain student [ID] - 학생 상세
 
+🗄️ *Sovereign Ledger*
+/data today - 오늘 현황
+/data completion - 완료율
+/data risk - 이탈 위험
+/data vindex - V-Index 랭킹
+/data features - 기능 사용량
+/data student [UUID] - 학생 V-Index
+/data report [UUID] - 학부모 리포트
+/data recent - 최근 활동
+
 💻 *개발 도구*
 /build - 빌드
 /deploy - 배포
@@ -429,6 +470,12 @@ bot.onText(/\/help/, (msg) => {
 
 📊 *상태*
 /status - 전체 상태
+
+📚 *온리쌤 그림자*
+/수업시작 /출석 [이름] /결석 [이름] /훈련전환 /사고 /수업종료
+
+📎 *학생 관리*
+/upload\\_students - CSV 학생 일괄 등록
 
 💡 일반 메시지 → AI 응답
   `, { parse_mode: 'Markdown' });
@@ -491,6 +538,32 @@ log('🔄 Workflow 핸들러 연결됨');
 // ============================================
 setupOrchestratorCommands(bot, BRAIN_URL);
 log('🎯 Task Orchestrator 연결됨');
+
+// ============================================
+// Supabase Direct Query 설정
+// ============================================
+setupDataCommands(bot);
+if (isSupabaseAvailable()) {
+  log('🗄️ Supabase Sovereign Ledger: 연결됨');
+} else {
+  log('⚠️ Supabase 미설정 - /data 명령어 제한됨');
+}
+
+// ============================================
+// 온리쌤 그림자 운영 (몰트봇 → session_timelines)
+// ============================================
+setupOnlysamShadowCommands(bot);
+if (isOnlysamConfigured()) {
+  log('📚 온리쌤 그림자: /수업시작 /출석 /결석 /훈련전환 /사고 /수업종료');
+} else {
+  log('⚠️ 온리쌤 미설정 - ONLYSAM_SUPABASE_URL, ONLYSAM_SERVICE_KEY 또는 SUPABASE_* 사용');
+}
+
+// ============================================
+// Student CSV Upload
+// ============================================
+setupStudentUploadCommands(bot);
+log('📎 Student Upload: /upload_students');
 
 // ============================================
 // 시작

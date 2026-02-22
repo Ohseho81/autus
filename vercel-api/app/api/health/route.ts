@@ -95,9 +95,12 @@ export async function GET(request: NextRequest) {
       node_version: process.version,
       region: process.env.VERCEL_REGION || 'unknown'
     }
-  }, { 
+  }, {
     status: overallStatus === 'unhealthy' ? 503 : 200,
-    headers: corsHeaders 
+    headers: {
+      ...corsHeaders,
+      'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+    }
   });
 }
 

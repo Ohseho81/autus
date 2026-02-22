@@ -1,7 +1,7 @@
 {
   "name": "autus-ui-v1",
   "version": "1.0.0",
-  "description": "AUTUS Operating Board UI - Decision acceleration for Bezos-class builders",
+  "description": "온리쌤 Operating Board UI - Decision acceleration for Bezos-class builders",
   "type": "module",
   "scripts": {
     "dev": "vite",

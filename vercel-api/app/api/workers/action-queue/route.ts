@@ -5,6 +5,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
+import {
+  sendTelegramMessage,
+  formatByTemplate,
+  formatConsultation,
+  formatEscalation,
+} from '../../../../lib/telegram';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -34,6 +42,8 @@ interface ActionQueueRow {
 interface ActionResult {
   sent: boolean;
   reason: string;
+  channel?: string;
+  message_id?: number;
   would_send_to?: string;
   template?: string;
   student_name?: string;
@@ -77,10 +87,10 @@ async function logTrace(params: IOOTraceParams): Promise<void> {
   try {
     const { error } = await getSupabase().from('ioo_trace').insert(params);
     if (error) {
-      console.error('[Worker] Failed to insert IOO trace:', error.message);
+      captureError(new Error(error.message), { context: 'ActionQueueWorker.logTrace' });
     }
   } catch (err) {
-    console.error('[Worker] IOO trace insert threw:', err);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'ActionQueueWorker.logTrace' });
   }
 }
 
@@ -92,25 +102,80 @@ async function processMessage(action: ActionQueueRow): Promise<ActionResult> {
   const {
     phone,
     template,
-    variables,
     student_name,
     encounter_title,
   } = action.payload as Record<string, unknown>;
 
-  console.log(
-    `[Worker] Would send ${String(template ?? 'unknown_template')} ` +
-    `to ${String(phone ?? 'unknown_phone')} ` +
-    `for student ${String(student_name ?? 'unknown')}`,
+  const ownerChatId = process.env.TELEGRAM_OWNER_CHAT_ID;
+
+  // Graceful fallback: 토큰 또는 채팅 ID 미설정 시 기존 stub 동작 유지
+  if (!process.env.TELEGRAM_BOT_TOKEN || !ownerChatId) {
+    logger.info(
+      `[Worker] Telegram not configured — would send ${String(template ?? 'unknown_template')} ` +
+      `to ${String(phone ?? 'unknown_phone')} ` +
+      `for student ${String(student_name ?? 'unknown')}`,
+    );
+    return {
+      sent: false,
+      reason: 'telegram_not_configured',
+      would_send_to: typeof phone === 'string' ? phone : undefined,
+      template: typeof template === 'string' ? template : undefined,
+      student_name: typeof student_name === 'string' ? student_name : undefined,
+      encounter_title: typeof encounter_title === 'string' ? encounter_title : undefined,
+    };
+  }
+
+  const text = formatByTemplate(
+    typeof template === 'string' ? template : undefined,
+    action.payload,
   );
 
-  // Kakao alimtalk not yet approved -- log intent only
+  const result = await sendTelegramMessage(ownerChatId, text);
+
   return {
-    sent: false,
-    reason: 'kakao_not_approved',
-    would_send_to: typeof phone === 'string' ? phone : undefined,
+    sent: result.ok,
+    reason: result.ok ? 'telegram_sent' : (result.error_description ?? 'telegram_error'),
+    channel: 'telegram',
+    message_id: result.message_id,
     template: typeof template === 'string' ? template : undefined,
     student_name: typeof student_name === 'string' ? student_name : undefined,
     encounter_title: typeof encounter_title === 'string' ? encounter_title : undefined,
+  };
+}
+
+async function processConsultation(action: ActionQueueRow): Promise<ActionResult> {
+  const ownerChatId = process.env.TELEGRAM_OWNER_CHAT_ID;
+
+  if (!process.env.TELEGRAM_BOT_TOKEN || !ownerChatId) {
+    return { sent: false, reason: 'telegram_not_configured' };
+  }
+
+  const text = formatConsultation(action.payload);
+  const result = await sendTelegramMessage(ownerChatId, text);
+
+  return {
+    sent: result.ok,
+    reason: result.ok ? 'telegram_sent' : (result.error_description ?? 'telegram_error'),
+    channel: 'telegram',
+    message_id: result.message_id,
+  };
+}
+
+async function processEscalation(action: ActionQueueRow): Promise<ActionResult> {
+  const ownerChatId = process.env.TELEGRAM_OWNER_CHAT_ID;
+
+  if (!process.env.TELEGRAM_BOT_TOKEN || !ownerChatId) {
+    return { sent: false, reason: 'telegram_not_configured' };
+  }
+
+  const text = formatEscalation(action.payload);
+  const result = await sendTelegramMessage(ownerChatId, text);
+
+  return {
+    sent: result.ok,
+    reason: result.ok ? 'telegram_sent' : (result.error_description ?? 'telegram_error'),
+    channel: 'telegram',
+    message_id: result.message_id,
   };
 }
 
@@ -118,6 +183,10 @@ async function processAction(action: ActionQueueRow): Promise<ActionResult> {
   switch (action.action_type) {
     case 'SEND_MESSAGE':
       return processMessage(action);
+    case 'SCHEDULE_CONSULTATION':
+      return processConsultation(action);
+    case 'ESCALATE_TO_OWNER':
+      return processEscalation(action);
     default:
       throw new Error(`Unknown action type: ${action.action_type}`);
   }
@@ -149,13 +218,13 @@ async function expireOldActions(): Promise<number> {
     .select('id');
 
   if (error) {
-    console.error('[Worker] Failed to expire old actions:', error.message);
+    captureError(new Error(error.message), { context: 'ActionQueueWorker.expireOldActions' });
     return 0;
   }
 
   const expiredCount = data?.length ?? 0;
   if (expiredCount > 0) {
-    console.log(`[Worker] Expired ${expiredCount} action(s)`);
+    logger.info(`[Worker] Expired ${expiredCount} action(s)`);
   }
   return expiredCount;
 }
@@ -174,7 +243,7 @@ async function fetchPendingActions(): Promise<ActionQueueRow[]> {
     .limit(10);
 
   if (error) {
-    console.error('[Worker] Failed to fetch pending actions:', error.message);
+    captureError(new Error(error.message), { context: 'ActionQueueWorker.fetchPendingActions' });
     return [];
   }
 
@@ -221,7 +290,7 @@ async function processActions(
         .from('action_queue')
         .update({
           status: 'COMPLETED' as ActionStatus,
-          result: result as unknown as Record<string, unknown>,
+          result: result,
           processed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -235,7 +304,7 @@ async function processActions(
         action: action.action_type,
         target_type: 'action_queue',
         target_id: action.id,
-        payload: result as unknown as Record<string, unknown>,
+        payload: result,
         result: 'success',
         duration_ms: durationMs,
       });
@@ -285,10 +354,9 @@ async function processActions(
       });
 
       failed++;
-      console.error(
-        `[Worker] Action ${action.id} (${action.action_type}) failed:`,
-        errorMessage,
-      );
+      captureError(err instanceof Error ? err : new Error(String(err)), {
+        context: `ActionQueueWorker.processAction.${action.action_type}`,
+      });
     }
   }
 
@@ -333,7 +401,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       stats.failed = failed;
     }
 
-    console.log(
+    logger.info(
       `[Worker] Cycle complete: ${stats.processed} processed, ` +
       `${stats.succeeded} succeeded, ${stats.failed} failed, ` +
       `${stats.expired} expired`,
@@ -342,7 +410,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(stats, { status: 200 });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
-    console.error('[Worker] Fatal error in action-queue worker:', errorMessage);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'ActionQueueWorker.GET' });
 
     return NextResponse.json(
       { error: errorMessage, ...stats },

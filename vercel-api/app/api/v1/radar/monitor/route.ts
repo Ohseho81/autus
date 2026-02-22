@@ -4,6 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '@/lib/monitoring';
+import { logger } from '@/lib/logger';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 // ─────────────────────────────────────────────────────────────────────
@@ -45,8 +47,8 @@ interface RadarMonitorResponse {
 // Telegram Bot Config
 // ─────────────────────────────────────────────────────────────────────
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8064967196:AAHUf9LnhxFPcU34tDNlzNqEDzolTUQ6eUk';
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '6733089824';
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 
 // ─────────────────────────────────────────────────────────────────────
 // GET /api/v1/radar/monitor - 실시간 레이더 스캔
@@ -54,7 +56,7 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '6733089824';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const orgId = searchParams.get('org_id') || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+  const orgId = searchParams.get('org_id') || (process.env.DEFAULT_ORG_ID || '');
   const notify = searchParams.get('notify') !== 'false'; // 기본값: true
   const threshold = parseFloat(searchParams.get('threshold') || '0.5'); // 이탈 확률 임계값
 
@@ -71,7 +73,7 @@ export async function GET(request: NextRequest) {
       .limit(20);
 
     if (error) {
-      console.log('Radar: Using mock data -', error.message);
+      logger.info('Radar: Using mock data -', error.message);
     }
 
     // 실제 데이터 변환
@@ -115,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Radar monitor error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'radar-monitor.handler' });
     
     // Fallback Mock 응답
     const mockAlerts = getMockAlerts();
@@ -164,7 +166,7 @@ export async function POST(request: NextRequest) {
 
   // GET과 동일한 로직 실행
   const url = new URL(request.url);
-  url.searchParams.set('org_id', org_id || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+  url.searchParams.set('org_id', org_id || (process.env.DEFAULT_ORG_ID || ''));
   url.searchParams.set('notify', notify.toString());
 
   const getRequest = new NextRequest(url);
@@ -175,7 +177,7 @@ export async function POST(request: NextRequest) {
 // Helper Functions
 // ─────────────────────────────────────────────────────────────────────
 
-function getFactors(customer: any): string[] {
+function getFactors(customer: Record<string, unknown>): string[] {
   const factors: string[] = [];
   
   if (customer.temperature < 30) factors.push('온도 위험 수준');
@@ -187,7 +189,7 @@ function getFactors(customer: any): string[] {
   return factors.length ? factors : ['복합 요인'];
 }
 
-function getRecommendedAction(customer: any): string {
+function getRecommendedAction(customer: Record<string, unknown>): string {
   if (customer.temperature < 30) {
     return '🚨 즉시 1:1 상담 필요 - 담당자에게 긴급 연락';
   }
@@ -246,6 +248,10 @@ async function sendTelegramAlert(
   alerts: RiskAlert[], 
   summary: { critical: number; high: number; medium: number; totalAtRisk: number }
 ): Promise<{ sent: boolean; messageId?: number; error?: string }> {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    return { sent: false, error: 'Telegram credentials not configured' };
+  }
+
   try {
     const criticalAlerts = alerts.filter(a => a.riskLevel === 'critical');
     const highAlerts = alerts.filter(a => a.riskLevel === 'high');
@@ -278,7 +284,7 @@ async function sendTelegramAlert(
     
     message += `\n━━━━━━━━━━━━━━━━━━━━━━\n`;
     message += `🕐 ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}\n`;
-    message += `🔗 [대시보드 열기](https://vercel-dfrncqgjm-ohsehos-projects.vercel.app)`;
+    message += `🔗 [대시보드 열기](${process.env.NEXT_PUBLIC_APP_URL || 'https://autus-ai.com'})`;
     
     // Telegram API 호출
     const response = await fetch(
@@ -303,7 +309,7 @@ async function sendTelegramAlert(
       return { sent: false, error: result.description };
     }
   } catch (error) {
-    console.error('Telegram send error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'radar-monitor.telegram' });
     return { sent: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }

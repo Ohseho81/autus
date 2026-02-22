@@ -1,5 +1,6 @@
+headersOrigin = "config"
+redirectsOrigin = "config"
 plugins = []
-headers = []
 
 [functions]
 
@@ -10,10 +11,10 @@ publish = "/Users/oseho/Desktop/autus/frontend/deploy"
 publishOrigin = "config"
 commandOrigin = "config"
 base = "/Users/oseho/Desktop/autus/frontend/deploy"
-command = "echo 'No build needed'"
+command = "echo 'Static site ready'"
 
 [build.environment]
-NODE_VERSION = "18"
+NODE_VERSION = "20"
 
 [build.processing]
 
@@ -26,6 +27,27 @@ NODE_VERSION = "18"
 [build.processing.js]
 
 [build.services]
+
+[[headers]]
+for = "/js/*"
+
+[headers.values]
+Cache-Control = "public, max-age=3600"
+
+[[headers]]
+for = "/css/*"
+
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*"
+
+[headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.chart.js; connect-src 'self' https://pphzvnaedmzcvpxjulti.supabase.co wss://pphzvnaedmzcvpxjulti.supabase.co https://api.autus-ai.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:;"
 
 [[redirects]]
 from = "/dev-console"
@@ -112,10 +134,107 @@ force = false
 [redirects.headers]
 
 [[redirects]]
+from = "/sovereign"
+to = "/sovereign-live/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/sovereign-live"
+to = "/sovereign-live/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/sovereign-live/*"
+to = "/sovereign-live/:splat"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/daily-os"
+to = "/daily-os.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/team-view"
+to = "/team-view.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/automation"
+to = "/automation.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
 from = "/*"
 to = "/index.html"
 status = 200.0
 force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+Role = ["admin"]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/api/*"
+to = "https://api.autus-ai.com/api/:splat"
+status = 200.0
+force = true
 
 [redirects.query]
 

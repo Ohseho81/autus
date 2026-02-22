@@ -836,6 +836,8 @@
   </div>
   
   <script>
+// ═══ Supabase Init ═══
+async function initSupabaseDevConsole(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var a=await AutusDB.getAuditLogs({limit:30});console.log('[DevConsole] Audit logs:',a.data?a.data.length:0)}catch(e){console.warn('[DevConsole] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseDevConsole,200)});
     // ═══════════════════════════════════════════════════════════════
     // State
     // ═══════════════════════════════════════════════════════════════
@@ -2036,5 +2038,7 @@ print("AUTUS generated this code!")</div>
     }
   </script>
   </div><!-- end app-content -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

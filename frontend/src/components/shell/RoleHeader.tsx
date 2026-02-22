@@ -24,7 +24,7 @@ export function RoleHeader() {
           >
             A
           </div>
-          <span className="font-semibold text-lg hidden sm:inline">AUTUS</span>
+          <span className="font-semibold text-lg hidden sm:inline">온리쌤</span>
         </div>
 
         {/* Role Selector */}

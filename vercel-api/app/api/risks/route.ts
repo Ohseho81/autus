@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'No students found' }, { status: 404 });
       }
 
-      const processedResults: any[] = [];
+      const processedResults: Array<{ student_id: string; student_name: string; risk_score: number; priority: string }> = [];
 
       for (const student of students) {
         // 최근 30일 상호작용 로그 조회
@@ -160,7 +160,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'recalculate=true required' }, { status: 400 });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -175,7 +176,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'risk_id and action required' }, { status: 400 });
     }
 
-    const updates: any = {
+    const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
 
@@ -228,14 +229,15 @@ export async function PATCH(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, data });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 // R(t) 계산 함수
 function calculateRiskScore(
-  interactions: any[],
+  interactions: Array<Record<string, unknown>>,
   currentSatisfaction: number,
   alpha: number
 ): {
@@ -246,7 +248,7 @@ function calculateRiskScore(
   contributing_factors: Array<{ factor: string; weight: number; impact: number }>;
   predicted_churn_days: number;
   estimated_value: number;
-  auto_actuation: any[];
+  auto_actuation: Array<{ action: string; scheduled_at: Date; status: string }>;
 } {
   const now = Date.now();
   
@@ -326,7 +328,7 @@ function calculateRiskScore(
   const estimatedValue = monthlyTuition * Math.max(1, Math.ceil(predictedChurnDays / 30));
 
   // 자동 실행 예약
-  const autoActuation: any[] = [];
+  const autoActuation: Array<{ action: string; scheduled_at: Date; status: string }> = [];
   if (priority === 'CRITICAL') {
     autoActuation.push({
       action: '긍정 리포트 자동 발송',

@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStudents } from '../../hooks/useSupabaseData';
 
 // ============================================
 // MOCK DATA GENERATORS
@@ -484,12 +485,85 @@ const AIRecommendation = memo(function AIRecommendation({ student }) {
 // ============================================
 
 export default function RetentionForce() {
+  // === Supabase Live Data ===
+  const { data: liveStudents, loading: studentsLoading, isLive } = useStudents();
+
+  // Transform live students with engagement_score < 75 into at-risk format
+  const liveAtRiskStudents = useMemo(() => {
+    if (!liveStudents || liveStudents.length === 0) return null;
+    const atRisk = liveStudents
+      .filter(s => s.engagement_score < 75 || s.riskLevel !== 'normal')
+      .map(s => {
+        const engagement = s.engagement_score || 70;
+        const churnProb = Math.min(Math.max((100 - engagement) / 100, 0), 1);
+        const riskFactorsList = [];
+        if (engagement < 50) riskFactorsList.push('참여도 급감');
+        if (engagement < 65) riskFactorsList.push('동기 저하');
+        if ((s.parent_nps || 50) < 40) riskFactorsList.push('학부모 만족도 하락');
+        if ((s.game_performance || 50) < 40) riskFactorsList.push('성적 정체');
+        if ((s.skill_score || 50) < 40) riskFactorsList.push('실력 부진');
+        if (riskFactorsList.length === 0) riskFactorsList.push('관찰 필요');
+
+        return {
+          id: s.id || `STU-${Math.random().toString(36).substr(2, 4)}`,
+          name: s.name || '이름 없음',
+          grade: s.grade || '-',
+          teacher: '-',
+          joinDate: s.created_at || new Date().toISOString(),
+          monthsEnrolled: s.created_at
+            ? Math.max(1, Math.floor((Date.now() - new Date(s.created_at).getTime()) / (30 * 24 * 60 * 60 * 1000)))
+            : 6,
+          churnProb,
+          churnDays: Math.max(7, Math.round((engagement / 100) * 90)),
+          sIndex: engagement / 100,
+          sIndexTrend: engagement < 60 ? -0.15 : engagement < 75 ? -0.08 : -0.03,
+          lastContact: Math.round(Math.random() * 14) + 1,
+          absentCount: engagement < 50 ? 3 : engagement < 65 ? 1 : 0,
+          paymentStatus: 'normal',
+          riskFactors: riskFactorsList,
+          ltv: (s.vIndex || 1000) * 1000,
+          defenseStatus: s.riskLevel === 'critical' ? 'pending' : s.riskLevel === 'high' ? 'pending' : 'resolved',
+        };
+      })
+      .sort((a, b) => b.churnProb - a.churnProb);
+    return atRisk.length > 0 ? atRisk : null;
+  }, [liveStudents]);
+
+  // Compute live metrics from student data
+  const liveMetrics = useMemo(() => {
+    if (!liveStudents || liveStudents.length === 0) return null;
+    const atRiskList = liveStudents.filter(s => s.riskLevel !== 'normal');
+    const criticals = liveStudents.filter(s => s.riskLevel === 'critical' || s.riskLevel === 'high');
+    const avgEngagement = liveStudents.reduce((sum, s) => sum + (s.engagement_score || 70), 0) / liveStudents.length;
+    const totalLtv = atRiskList.reduce((sum, s) => sum + (s.vIndex || 1000) * 1000, 0);
+    return {
+      totalAtRisk: atRiskList.length,
+      criticalCount: criticals.length,
+      avgChurnProb: Math.max(0, (100 - avgEngagement) / 100),
+      monthlyChurnRate: criticals.length / Math.max(liveStudents.length, 1),
+      retentionRate: 1 - (criticals.length / Math.max(liveStudents.length, 1)),
+      savedThisMonth: Math.max(0, atRiskList.length - criticals.length),
+      ltvAtRisk: totalLtv,
+      defenseSuccessRate: 0.68,
+    };
+  }, [liveStudents]);
+
   const [students, setStudents] = useState(generateAtRiskStudents);
   const [strategies] = useState(generateDefenseStrategies);
   const [metrics] = useState(generateRetentionMetrics);
   const [history] = useState(generateDefenseHistory);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [filter, setFilter] = useState('all');
+
+  // Sync live data into local state when available
+  useEffect(() => {
+    if (liveAtRiskStudents) {
+      setStudents(liveAtRiskStudents);
+    }
+  }, [liveAtRiskStudents]);
+
+  // Use live metrics if available, otherwise fallback
+  const activeMetrics = liveMetrics || metrics;
 
   // Filter students
   const filteredStudents = useMemo(() => {
@@ -527,16 +601,22 @@ export default function RetentionForce() {
             <p className="text-gray-400 mt-1">이탈 방지 시스템 - 고객 유지 전선</p>
           </div>
           <div className="flex items-center gap-3">
+            {isLive && (
+              <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-emerald-400 text-xs font-medium">LIVE</span>
+              </div>
+            )}
             <div className="px-4 py-2 bg-emerald-500/20 border border-emerald-500/50 rounded-xl">
               <span className="text-emerald-400 font-medium">
-                이번 달 {metrics.savedThisMonth}명 방어 성공
+                이번 달 {activeMetrics.savedThisMonth}명 방어 성공
               </span>
             </div>
           </div>
         </div>
 
         {/* Metrics */}
-        <RetentionMetrics metrics={metrics} />
+        <RetentionMetrics metrics={activeMetrics} />
 
         {/* Main Content */}
         <div className="grid grid-cols-3 gap-6">
@@ -588,7 +668,7 @@ export default function RetentionForce() {
                 <span className="text-cyan-400">📊</span>
                 Retention Funnel
               </h3>
-              <RetentionFunnel metrics={metrics} />
+              <RetentionFunnel metrics={activeMetrics} />
             </div>
 
             {/* Student Detail */}

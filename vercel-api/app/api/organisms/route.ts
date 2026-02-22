@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { calculateV, summarizeState, recommendImpulse } from '@/lib/physics';
+import { captureError } from '@/lib/monitoring';
 
 export const runtime = 'edge';
 
@@ -79,8 +80,9 @@ export async function GET(request: NextRequest) {
       }))
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
-    console.error('Organisms GET Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'organisms.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -176,8 +178,9 @@ export async function POST(request: NextRequest) {
       data
     }, { status: 201, headers: corsHeaders });
 
-  } catch (error: any) {
-    console.error('Organisms POST Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'organisms.POST' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -226,8 +229,9 @@ export async function PUT(request: NextRequest) {
       data: updated
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
-    console.error('Organisms PUT Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'organisms.PUT' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }

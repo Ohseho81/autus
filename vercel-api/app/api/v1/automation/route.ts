@@ -4,6 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '@/lib/monitoring';
+import { logger } from '@/lib/logger';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 // ─────────────────────────────────────────────────────────────────────
@@ -37,7 +39,7 @@ interface RoleStats {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const orgId = searchParams.get('org_id') || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+  const orgId = searchParams.get('org_id') || (process.env.DEFAULT_ORG_ID || '');
   const period = searchParams.get('period') || 'today'; // today, week, month
 
   try {
@@ -67,12 +69,14 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       // 테이블이 없으면 Mock 데이터 반환
-      console.log('Using mock data:', error.message);
+      logger.info('Using mock data:', error.message);
       return NextResponse.json({
         success: true,
         data: getMockAutomationStats(),
         message: '자동화 통계 조회 (Mock)',
         meta: { period, orgId, isMock: true }
+      }, {
+        headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' }
       });
     }
 
@@ -89,14 +93,18 @@ export async function GET(request: NextRequest) {
         totalLogs: logs?.length || 0,
         timestamp: new Date().toISOString()
       }
+    }, {
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' }
     });
   } catch (error) {
-    console.error('Automation stats error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'automation.GET' });
     return NextResponse.json({
       success: true,
       data: getMockAutomationStats(),
       message: '자동화 통계 조회 (Fallback)',
       meta: { isMock: true }
+    }, {
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' }
     });
   }
 }
@@ -113,7 +121,7 @@ export async function POST(request: NextRequest) {
       source = 'api', 
       action_type, 
       is_automated = true,
-      org_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+      org_id = (process.env.DEFAULT_ORG_ID || ''),
       metadata = {}
     } = body;
 
@@ -141,7 +149,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Failed to log automation:', error);
+      captureError(error instanceof Error ? error : new Error(String(error)), { context: 'automation.POST.log' });
       // 실패해도 성공 응답 (로깅 실패가 비즈니스 로직을 막으면 안됨)
       return NextResponse.json({
         success: true,
@@ -156,7 +164,7 @@ export async function POST(request: NextRequest) {
       message: '자동화 로그 기록 완료'
     });
   } catch (error) {
-    console.error('Automation log error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'automation.POST' });
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

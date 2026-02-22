@@ -896,6 +896,8 @@
   </div>
   
   <script>
+// ═══ Supabase Init ═══
+async function initSupabaseSelfBuilder(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var r=await AutusDB.getAutomationRules();console.log('[SelfBuilder] Rules:',r.data?r.data.length:0)}catch(e){console.warn('[SelfBuilder] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseSelfBuilder,200)});
     // Data
     const missingFeatures = [
       { id: 1, name: 'Stage 1: Template Marketplace', desc: '247개 템플릿 라이브러리 + 검색/필터', impact: '+15점', selected: true },
@@ -994,5 +996,7 @@
     renderFeatures();
     renderLog();
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

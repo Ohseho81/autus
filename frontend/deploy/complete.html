@@ -301,7 +301,7 @@
     <header class="header">
       <div class="logo">
         <div class="logo-icon">🏛️</div>
-        <span class="logo-text">AUTUS</span>
+        <span class="logo-text">온리쌤</span>
         <span class="logo-badge">Complete v4.0</span>
       </div>
       
@@ -519,6 +519,8 @@
   </div>
 
 <script>
+// ═══ Supabase Init ═══
+async function initSupabaseComplete(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var[v,nodes,students,events]=await Promise.all([AutusDB.getVMetrics(),AutusDB.getNodes(),AutusDB.getStudentCount(),AutusDB.getEventCount()]);console.log('[Complete] V:',v?v.total_value:'N/A',', Nodes:',nodes.data?nodes.data.length:0,', Students:',students,', Events:',events);AutusDB.subscribe('v_engine_metrics','UPDATE',function(){initSupabaseComplete()})}catch(e){console.warn('[Complete] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseComplete,200)});
 // ═══════════════════════════════════════════════════════════════════════════════
 // AUTUS Complete System v4.0 - 6-Stage Closed Loop
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1064,5 +1066,7 @@ function init(){
 
 init();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

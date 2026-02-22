@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
 import { parse } from 'csv-parse/sync';
 import { DataMapper, hashStudentData, validateStudentData, calculateRiskScore, getRiskBand } from '@/lib/data-mapper';
 import { StudentData, NarakhubCSVRow, SyncResult } from '@/lib/types-erp';
@@ -85,8 +86,9 @@ export async function POST(req: NextRequest) {
       message: `Processed ${result.synced_records} students from Narakhub CSV`
     });
     
-  } catch (error: any) {
-    console.error('Narakhub sync error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-narakhub.post' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -143,8 +145,9 @@ export async function GET(req: NextRequest) {
       }
     });
     
-  } catch (error: any) {
-    console.error('Narakhub GET error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-narakhub.get' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -195,7 +198,7 @@ function parseNarakhubCSV(content: string): NarakhubCSVRow[] {
     });
     
     // Map column names (handle variations)
-    return records.map((row: any) => ({
+    return records.map((row: Record<string, string>) => ({
       학생ID: row['학생ID'] || row['학생코드'] || row['student_id'] || row['ID'],
       학생명: row['학생명'] || row['이름'] || row['name'] || row['학생이름'],
       학년: row['학년'] || row['grade'] || '',
@@ -210,7 +213,7 @@ function parseNarakhubCSV(content: string): NarakhubCSVRow[] {
     })).filter((row: NarakhubCSVRow) => row.학생ID && row.학생명);
     
   } catch (error) {
-    console.error('CSV parse error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-narakhub.csv-parse' });
     return [];
   }
 }
@@ -241,73 +244,83 @@ async function syncStudentsToSupabase(
   let skipped = 0;
   const errors: { record_id?: string; message: string }[] = [];
   
+  // Validate all students first
+  const validStudents: StudentData[] = [];
   for (const student of students) {
+    const validation = validateStudentData(student);
+    if (!validation.valid) {
+      errors.push({ record_id: student.external_id, message: validation.errors.join(', ') });
+    } else {
+      validStudents.push(student);
+    }
+  }
+
+  // Batch lookup all existing students in a single query
+  const { data: existingStudents } = await getSupabaseAdmin()
+    .from('students')
+    .select('id, external_id, metadata')
+    .eq('academy_id', academyId)
+    .in('external_id', validStudents.map(s => s.external_id));
+
+  // Build lookup map
+  const existingMap = new Map(
+    (existingStudents || []).map(s => [s.external_id, s])
+  );
+
+  // Process in memory: separate into upsert records and skipped
+  const upsertRecords: Array<Record<string, unknown>> = [];
+  const upsertStudentsList: StudentData[] = [];
+
+  for (const student of validStudents) {
     try {
-      // Validate
-      const validation = validateStudentData(student);
-      if (!validation.valid) {
-        errors.push({ record_id: student.external_id, message: validation.errors.join(', ') });
-        continue;
-      }
-      
-      // Calculate risk
       const riskScore = calculateRiskScore(student);
       const riskBand = getRiskBand(riskScore);
-      
-      // Add risk to student data
+      const hash = hashStudentData(student);
+
+      const existing = existingMap.get(student.external_id);
+
+      if (existing && existing.metadata?.hash === hash) {
+        skipped++;
+        continue;
+      }
+
       const studentWithRisk = {
         ...student,
         risk_score: riskScore,
         risk_band: riskBand,
-        confidence_score: 0.75, // Default confidence for CSV data
+        confidence_score: 0.75,
+        metadata: { ...student.metadata, hash },
       };
-      
-      // Check existing
-      const { data: existing } = await getSupabaseAdmin()
-        .from('students')
-        .select('id, metadata')
-        .eq('academy_id', academyId)
-        .eq('external_id', student.external_id)
-        .single();
-      
-      const hash = hashStudentData(student);
-      
+
       if (existing) {
-        // Check if changed
-        if (existing.metadata?.hash === hash) {
-          skipped++;
-          continue;
-        }
-        
-        // Update
-        await getSupabaseAdmin()
-          .from('students')
-          .update({
-            ...studentWithRisk,
-            metadata: { ...student.metadata, hash },
-          })
-          .eq('id', existing.id);
-        
         updated++;
       } else {
-        // Insert
-        await getSupabaseAdmin()
-          .from('students')
-          .insert({
-            ...studentWithRisk,
-            metadata: { ...student.metadata, hash },
-          });
-        
         created++;
       }
-      
-      // Upsert signals
-      await upsertStudentSignals(academyId, student);
-      
+
+      upsertRecords.push(studentWithRisk);
+      upsertStudentsList.push(student);
       synced++;
-    } catch (err: any) {
-      errors.push({ record_id: student.external_id, message: err.message });
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      errors.push({ record_id: student.external_id, message: error.message });
     }
+  }
+
+  // Batch upsert only changed records
+  if (upsertRecords.length > 0) {
+    const { error: upsertError } = await getSupabaseAdmin()
+      .from('students')
+      .upsert(upsertRecords, { onConflict: 'academy_id,external_id' });
+
+    if (upsertError) {
+      errors.push({ message: `Batch upsert failed: ${upsertError.message}` });
+    }
+  }
+
+  // Batch upsert signals for changed students
+  for (const student of upsertStudentsList) {
+    await upsertStudentSignals(academyId, student);
   }
   
   return {

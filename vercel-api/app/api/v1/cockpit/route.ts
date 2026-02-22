@@ -4,6 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest } from 'next/server';
+import { captureError } from '@/lib/monitoring';
+import { logger } from '@/lib/logger';
 import {
   successResponse,
   errorResponse,
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const endpoint = searchParams.get('endpoint') || 'summary';
-    const orgId = searchParams.get('org_id') || 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+    const orgId = searchParams.get('org_id') || process.env.DEFAULT_ORG_ID || '';
     
     switch (endpoint) {
       case 'summary':
@@ -67,7 +69,7 @@ async function getSummary(orgId: string) {
       .eq('org_id', orgId);
 
     if (error || !customers || customers.length === 0) {
-      console.log('Cockpit: Using mock data -', error?.message || 'No data');
+      logger.info('Cockpit: Using mock data -', error?.message || 'No data');
       return getMockSummary();
     }
 
@@ -123,9 +125,11 @@ async function getSummary(orgId: string) {
       },
     };
     
-    return successResponse(summary, '조종석 요약 조회 성공 (Live Data)');
+    const response = successResponse(summary, '조종석 요약 조회 성공 (Live Data)');
+    response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
+    return response;
   } catch (error) {
-    console.error('Cockpit DB error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'cockpit.getSummary' });
     return getMockSummary();
   }
 }
@@ -174,7 +178,9 @@ function getMockSummary() {
     alertSummary: { critical: riskCount, warning: warningCount, info: randomInt(3, 8) },
   };
   
-  return successResponse(summary, '조종석 요약 조회 (Mock)');
+  const response = successResponse(summary, '조종석 요약 조회 (Mock)');
+  response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
+  return response;
 }
 
 // ─────────────────────────────────────────────────────────────────────

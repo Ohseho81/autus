@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ai } from '@/lib/claude';
 import { db } from '@/lib/supabase';
+import { captureError } from '../../../lib/monitoring';
 
 export const runtime = 'edge';
 
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let result: any;
+    let result: Record<string, unknown>;
 
     switch (action) {
       // 보상 카드 생성
@@ -126,8 +127,9 @@ export async function POST(request: NextRequest) {
       { status: 200, headers: corsHeaders }
     );
 
-  } catch (error: any) {
-    console.error('Brain API Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'brain.POST' });
     return NextResponse.json(
       { success: false, error: error.message || 'Internal server error' },
       { status: 500, headers: corsHeaders }

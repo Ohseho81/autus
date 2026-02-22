@@ -8,8 +8,10 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
+import { captureError } from '../../../lib/monitoring';
+import { logger } from '../../../lib/logger';
 
 // ─────────────────────────────────────────────────────────────────────
 // Types
@@ -39,13 +41,12 @@ interface InviteLink {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Supabase Client
+// Supabase Client (lazy via shared singleton)
 // ─────────────────────────────────────────────────────────────────────
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+function getSupabase() {
+  return getSupabaseAdmin();
+}
 
 // ─────────────────────────────────────────────────────────────────────
 // Helper Functions
@@ -56,6 +57,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
  */
 async function checkInviteLimit(userId: string): Promise<InviteCheckResult> {
   try {
+    const supabase = getSupabase();
     // DB 함수 호출
     const { data, error } = await supabase.rpc('can_invite', {
       p_inviter_id: userId
@@ -63,7 +65,7 @@ async function checkInviteLimit(userId: string): Promise<InviteCheckResult> {
 
     if (error) {
       // 함수가 없으면 기본값으로 폴백
-      console.warn('can_invite function not found, using fallback:', error.message);
+      logger.warn('can_invite function not found, using fallback:', error.message);
       
       // 직접 쿼리
       const { data: user, error: userError } = await supabase
@@ -111,7 +113,7 @@ async function checkInviteLimit(userId: string): Promise<InviteCheckResult> {
 
     return data as InviteCheckResult;
   } catch (err) {
-    console.error('checkInviteLimit error:', err);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'invite.checkInviteLimit' });
     return {
       allowed: false,
       direct: { current: 0, max: 12, remaining: 0 },
@@ -174,7 +176,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('GET /api/invite error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'invite.GET' });
     return NextResponse.json({
       success: false,
       error: 'Failed to check invite status'
@@ -226,6 +228,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. 초대자 역할 확인
+    const supabase = getSupabase();
     const { data: inviter, error: inviterError } = await supabase
       .from('org_members')
       .select('role')
@@ -277,7 +280,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError) {
-      console.error('Insert invite error:', insertError);
+      captureError(insertError instanceof Error ? insertError : new Error(String(insertError)), { context: 'invite.POST.insert' });
       return NextResponse.json({
         success: false,
         error: 'Failed to create invite'
@@ -310,7 +313,7 @@ export async function POST(request: NextRequest) {
       message: `초대 링크가 생성되었습니다. 남은 직접 초대: ${limitCheck.direct.remaining - 1}명`
     });
   } catch (error) {
-    console.error('POST /api/invite error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'invite.POST' });
     return NextResponse.json({
       success: false,
       error: 'Failed to create invite'
@@ -335,6 +338,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // 1. 코드 유효성 검사
+    const supabase = getSupabase();
     const { data: invite, error: fetchError } = await supabase
       .from('approval_codes')
       .select('*')
@@ -428,7 +432,7 @@ export async function PUT(request: NextRequest) {
       message: `${invite.target_role} 역할로 조직에 가입되었습니다.`
     });
   } catch (error) {
-    console.error('PUT /api/invite error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'invite.PUT' });
     return NextResponse.json({
       success: false,
       error: 'Failed to accept invite'
@@ -454,6 +458,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 초대 코드 삭제 (발행자만 가능)
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from('approval_codes')
       .delete()
@@ -475,7 +480,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Invite cancelled successfully'
     });
   } catch (error) {
-    console.error('DELETE /api/invite error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'invite.DELETE' });
     return NextResponse.json({
       success: false,
       error: 'Failed to cancel invite'

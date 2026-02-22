@@ -1,0 +1,360 @@
+# ============================================================
+# AUTUS Domain Definition v2.0
+# OnlySSem (Basketball Academy Management)
+#
+# This file is the single source of truth for:
+# - Business entities and their relationships
+# - Outcome facts (S/A/TERMINAL tiers)
+# - Shadow requests (conditional promotion)
+# - Closed loops (measurable cycles)
+# - Processes (automated workflows)
+# - Connectors (external service integrations)
+# ============================================================
+
+meta:
+  name: "OnlySSem"
+  brand: "allthatbasket"
+  version: "2.0.0"
+  description: "AUTUS-powered basketball academy management"
+  supabase_project: "pphzvnaedmzcvpxjulti"
+  region: "ap-northeast-2"
+
+# ============================================================
+# ENTITIES - Core business objects
+# ============================================================
+entities:
+  student:
+    table: "atb_students"
+    label: "학생"
+    fields:
+      - { name: id, type: uuid, primary: true }
+      - { name: name, type: text, required: true }
+      - { name: grade, type: text }
+      - { name: school, type: text }
+      - { name: parent_name, type: text }
+      - { name: parent_phone, type: text }
+      - { name: engagement_score, type: integer, default: 70 }
+      - { name: skill_score, type: integer, default: 50 }
+      - { name: game_performance, type: integer, default: 50 }
+      - { name: parent_nps, type: integer, default: 50 }
+      - { name: v_index, type: float, computed: true }
+      - { name: risk_level, type: text, computed: true }
+      - { name: status, type: text, default: "active" }
+    relationships:
+      - { target: parent, type: "belongs_to", field: parent_phone }
+      - { target: coach, type: "assigned_to", via: class }
+    metrics:
+      v_index: "V = (M - T) * (1 + sigma)^t"
+      risk_level: "engagement < 40 ? critical : engagement < 60 ? high : engagement < 75 ? warning : normal"
+
+  parent:
+    table: "atb_parents"
+    label: "학부모"
+    fields:
+      - { name: id, type: uuid, primary: true }
+      - { name: name, type: text, required: true }
+      - { name: phone, type: text, required: true, unique: true }
+      - { name: kakao_id, type: text }
+      - { name: notification_channel, type: text, default: "kakao" }
+    relationships:
+      - { target: student, type: "has_many" }
+
+  coach:
+    table: "atb_coaches"
+    label: "코치"
+    fields:
+      - { name: id, type: uuid, primary: true }
+      - { name: name, type: text, required: true }
+      - { name: phone, type: text }
+      - { name: specialty, type: text }
+      - { name: hourly_rate, type: integer }
+      - { name: bonus_per_student, type: integer, default: 1000 }
+      - { name: status, type: text, default: "active" }
+    metrics:
+      ce: "closed_loops / total_hours"
+
+  class:
+    table: "atb_classes"
+    label: "수업"
+    fields:
+      - { name: id, type: uuid, primary: true }
+      - { name: name, type: text, required: true }
+      - { name: coach_id, type: uuid, ref: coach }
+      - { name: schedule, type: jsonb }
+      - { name: max_students, type: integer, default: 15 }
+      - { name: type, type: text, default: "regular" }
+
+  contract:
+    table: "atb_contracts"
+    label: "계약"
+    fields:
+      - { name: id, type: uuid, primary: true }
+      - { name: student_id, type: uuid, ref: student }
+      - { name: parent_id, type: uuid, ref: parent }
+      - { name: terms, type: jsonb }
+      - { name: status, type: text, default: "pending_signature" }
+      - { name: signed_at, type: timestamptz }
+      - { name: expires_at, type: timestamptz }
+    states: ["pending_signature", "active", "expiring", "expired", "terminated"]
+
+  invoice:
+    table: "atb_invoices"
+    label: "인보이스"
+    fields:
+      - { name: id, type: uuid, primary: true }
+      - { name: student_id, type: uuid, ref: student }
+      - { name: amount, type: integer }
+      - { name: discount_rate, type: float, default: 0 }
+      - { name: final_amount, type: integer }
+      - { name: status, type: text, default: "pending" }
+      - { name: due_date, type: date }
+      - { name: paid_at, type: timestamptz }
+    states: ["pending", "sent", "paid", "overdue", "failed"]
+
+# ============================================================
+# OUTCOMES - Irreversible customer facts (from outcome_rules.json)
+# ============================================================
+outcomes:
+  # S-Tier: Trigger processes immediately
+  renewal.failed:
+    tier: S
+    weight: -1.0
+    process: retention_process
+    urgency: critical
+    notify: [owner, admin]
+
+  attendance.drop:
+    tier: S
+    weight: -0.5
+    process: recovery_process
+    urgency: high
+    threshold: { key: consecutive_absence, value: 3, unit: "sessions" }
+    notify: [coach, admin]
+
+  notification.ignored:
+    tier: S
+    weight: -0.3
+    process: engagement_process
+    urgency: medium
+    threshold: { key: notification_ignore_days, value: 7, unit: "days" }
+    notify: [admin]
+
+  # A-Tier: Log only, no trigger
+  renewal.succeeded:
+    tier: A
+    weight: +1.0
+
+  attendance.normal:
+    tier: A
+    weight: +0.3
+
+  notification.read:
+    tier: A
+    weight: +0.2
+
+  # TERMINAL: Final state
+  churn.finalized:
+    tier: TERMINAL
+    weight: -2.0
+
+  teacher.changed:
+    tier: TERMINAL
+    weight: 0
+
+# ============================================================
+# SHADOWS - Reversible requests (from shadow_policy.json)
+# ============================================================
+shadows:
+  makeup.requested:
+    label: "보강 요청"
+    approval_rate: 70
+    auto_approve: "available_slot_exists"
+    authority: admin
+
+  schedule.change_requested:
+    label: "시간 변경"
+    approval_rate: 50
+    auto_approve: "target_slot_available"
+    auto_reject: "target_slot_full"
+    authority: admin
+
+  teacher.change_requested:
+    label: "강사 변경"
+    approval_rate: 30
+    authority: owner
+
+  discount.requested:
+    label: "할인 요청"
+    approval_rate: 15
+    auto_approve: "first_time_request"
+    auto_reject: "already_discounted"
+    authority: owner
+
+  refund.requested:
+    label: "환불 요청"
+    approval_rate: 100
+    authority: owner
+
+  complaint.general:
+    label: "일반 불만"
+    approval_rate: 5
+    authority: owner
+
+# ============================================================
+# LOOPS - Closed cycles (from synthesis_rules.json)
+# ============================================================
+loops:
+  attendance_loop:
+    id: L1
+    name: "출석 순환"
+    states: [scheduled, attended, next_scheduled]
+    close: attendance.normal
+    value: 0.3
+
+  recovery_loop:
+    id: L2
+    name: "결석 복귀"
+    states: [absent, notified, recovered]
+    open: attendance.drop
+    close: attendance.normal
+    timeout_days: 14
+    value: 0.5
+
+  notification_loop:
+    id: L3
+    name: "알림 반응"
+    states: [sent, read, responded]
+    open: notification.ignored
+    close: notification.read
+    timeout_days: 7
+    value: 0.2
+
+  renewal_loop:
+    id: L4
+    name: "재등록"
+    states: [expiring, notified, renewed]
+    open: renewal.failed
+    close: renewal.succeeded
+    timeout_days: 30
+    value: 1.0
+
+# ============================================================
+# PROCESSES - Automated workflows (from synthesis_rules.json)
+# ============================================================
+processes:
+  retention_process:
+    trigger: renewal.failed
+    steps:
+      - { action: send_reminder, delay_days: 0, channel: kakao }
+      - { action: call_attempt, delay_days: 3, channel: phone }
+      - { action: escalate_owner, delay_days: 7, channel: app }
+    success: renewal.succeeded
+    fail: churn.finalized
+    max_days: 14
+
+  recovery_process:
+    trigger: attendance.drop
+    steps:
+      - { action: send_concern, delay_days: 0, channel: kakao }
+      - { action: coach_contact, delay_days: 1, channel: phone }
+      - { action: offer_makeup, delay_days: 3, channel: kakao }
+    success: attendance.normal
+    fail: renewal.failed
+    max_days: 14
+
+  engagement_process:
+    trigger: notification.ignored
+    steps:
+      - { action: channel_switch, delay_days: 0, channel: sms }
+      - { action: personal_contact, delay_days: 3, channel: phone }
+    success: notification.read
+    fail: attendance.drop
+    max_days: 7
+
+# ============================================================
+# CONNECTORS - External service integrations
+# ============================================================
+connectors:
+  toss_payments:
+    type: payment
+    webhook: "/webhook-toss"
+    events: [payment.completed, payment.failed, payment.cancelled]
+    env_keys: [TOSS_CLIENT_KEY, TOSS_SECRET_KEY]
+
+  kakao_alimtalk:
+    type: notification
+    provider: solapi
+    webhook: "/webhook-kakao"
+    channels: [alimtalk, sms_fallback]
+    env_keys: [SOLAPI_API_KEY, SOLAPI_API_SECRET, SOLAPI_SENDER]
+
+  qr_scanner:
+    type: attendance
+    webhook: "/webhook-qr"
+    format: "ATB-{studentId}-{timestamp}"
+    dedup: true
+
+  google_calendar:
+    type: schedule
+    sync: bidirectional
+    env_keys: [GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_CALENDAR_ID]
+
+# ============================================================
+# THRESHOLDS - All numeric limits (from thresholds.json)
+# ============================================================
+thresholds:
+  consecutive_absence: { value: 3, unit: "sessions" }
+  notification_ignore_days: { value: 7, unit: "days" }
+  renewal_warning_days: { value: 30, unit: "days" }
+  renewal_critical_days: { value: 7, unit: "days" }
+  shadow_auto_archive_days: { value: 30 }
+  shadow_escalation_threshold: { value: 3 }
+  billing_discount_threshold: { value: 8, unit: "sessions", discount: 0.10 }
+  late_threshold_minutes: { value: 15 }
+
+# ============================================================
+# VELOCITY - Physics engine config
+# ============================================================
+velocity:
+  formula: "VV = sum(outcome.weight) / (time_days * CLF)"
+  clf:
+    formula: "density * age_variance * program_count"
+    ranges:
+      low: { max: 15 }
+      medium: { min: 15, max: 40 }
+      high: { min: 40 }
+  status:
+    green: { min: 0.5, label: "확장 가능", color: "#10B981" }
+    yellow: { min: -0.2, max: 0.5, label: "유지", color: "#F59E0B" }
+    red: { max: -0.2, label: "개선/Kill", color: "#EF4444" }
+
+# ============================================================
+# ROLES & PERMISSIONS
+# ============================================================
+roles:
+  owner:
+    label: "원장"
+    permissions: [approve_all, kill, view_vv, view_shadow, manage_contracts]
+  admin:
+    label: "관리자"
+    permissions: [approve_medium, escalate, view_clf, manage_billing]
+  coach:
+    label: "코치"
+    permissions: [view_session, record_attendance, upload_video]
+  parent:
+    label: "학부모"
+    permissions: [view_child, request_shadow, make_payment]
+
+# ============================================================
+# UI RULES
+# ============================================================
+ui:
+  max_buttons: 3
+  max_input_fields: 0
+  show_internal_metrics: false
+  theme:
+    primary: "#F97316"
+    success: "#10B981"
+    warning: "#F59E0B"
+    danger: "#EF4444"
+    dark: "#1F2937"

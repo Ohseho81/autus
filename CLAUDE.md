@@ -1,7 +1,7 @@
 # AUTUS 6-Agent Routing System
 
 ## Overview
-- **Type**: Multi-project (AUTUS, 올댓바스켓, K-Work)
+- **Type**: Multi-project (온리쌤, K-Work)
 - **Stack**: Next.js 14+ / FastAPI / PostgreSQL / Railway / Vercel
 - **Architecture**: Physics-based 48-node L0-L4 hierarchy
 - **Agent System**: 6-Layer Task Router

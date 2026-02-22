@@ -1,0 +1,82 @@
+{
+  "expo": {
+    "name": "ATB",
+    "slug": "ssam",
+    "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "atb",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D0D0D"
+    },
+    "assetBundlePatterns": [
+      "assets/**"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.allthatbasket.atb",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "출석 체크 및 스케줄 관리를 위해 QR 코드를 스캔합니다.",
+        "CFBundleDisplayName": "ATB",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D0D0D"
+      },
+      "package": "com.allthatbasket.atb",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "출석 체크 및 스케줄 관리를 위해 QR 코드를 스캔합니다."
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "autus",
+          "project": "onlysam"
+        }
+      ],
+      [
+        "expo-updates",
+        {
+          "username": "autus"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "dadd6a08-5e51-4251-a125-076b24759755"
+      }
+    },
+    "owner": "autus",
+    "updates": {
+      "url": "https://u.expo.dev/dadd6a08-5e51-4251-a125-076b24759755",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 3000
+    }
+  }
+}

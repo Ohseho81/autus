@@ -39,8 +39,8 @@ POST /auth/login
 {
   "success": true,
   "data": {
-    "accessToken": "eyJhbGciOiJIUzI1...",
-    "refreshToken": "eyJhbGciOiJIUzI1...",
+    "accessToken": "YOUR_ACCESS_TOKEN_HERE",
+    "refreshToken": "YOUR_REFRESH_TOKEN_HERE",
     "expiresIn": 3600,
     "user": {
       "id": "user_123",
@@ -62,7 +62,7 @@ POST /auth/refresh
 **Request:**
 ```json
 {
-  "refreshToken": "eyJhbGciOiJIUzI1..."
+  "refreshToken": "YOUR_REFRESH_TOKEN_HERE"
 }
 ```
 

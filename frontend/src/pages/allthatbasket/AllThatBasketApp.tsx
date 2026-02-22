@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * 🏀 올댓바스켓 (All That Basket) - 메인 앱
+ * 온리쌤 - 메인 앱
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -287,7 +287,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
           border: '1px solid rgba(255,107,53,0.3)',
         }}
       >
-        <h2 className="text-gray-400 mb-4">올댓바스켓 전체 V-Index</h2>
+        <h2 className="text-gray-400 mb-4">온리쌤 전체 V-Index</h2>
         <div className="flex justify-center">
           <VIndexGauge value={avgVIndex} size="lg" />
         </div>
@@ -478,7 +478,7 @@ const AllThatBasketApp: React.FC = () => {
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              🏀 올댓바스켓
+              온리쌤
             </h1>
             <p className="text-xs text-gray-400">
               {roleInfo.icon} {roleInfo.title}

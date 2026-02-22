@@ -4,6 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 // ─────────────────────────────────────────────────────────────────────
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
     //   return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     // }
 
-    console.log(`[Moltbot Webhook] Event: ${event}, Agent: ${agentId}`);
+    logger.info(`[Moltbot Webhook] Event: ${event}, Agent: ${agentId}`);
 
     const supabase = getSupabaseAdmin();
 
@@ -120,10 +122,10 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (error) {
-          console.error('Failed to create approval request:', error);
-          return NextResponse.json({ 
-            success: false, 
-            error: 'Failed to create approval request' 
+          captureError(error instanceof Error ? error : new Error(String(error)), { context: 'moltbot-webhook.approval_request' });
+          return NextResponse.json({
+            success: false,
+            error: 'Failed to create approval request'
           }, { status: 500 });
         }
 
@@ -149,7 +151,7 @@ export async function POST(request: NextRequest) {
           created_at: timestamp,
         });
 
-        console.error(`[Moltbot Error] Agent: ${agentId}, Error: ${data.error}`);
+        captureError(new Error(`[Moltbot Error] Agent: ${agentId}, Error: ${data.error}`), { context: 'moltbot-webhook.error_event' });
 
         return NextResponse.json({ 
           success: true, 
@@ -161,14 +163,14 @@ export async function POST(request: NextRequest) {
       // 알 수 없는 이벤트
       // ───────────────────────────────────────────────────────
       default:
-        console.warn(`Unknown Moltbot event: ${event}`);
+        logger.info(`Unknown Moltbot event: ${event}`);
         return NextResponse.json({ 
           success: true, 
           message: `Unknown event: ${event}` 
         });
     }
   } catch (error) {
-    console.error('Moltbot webhook error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'moltbot-webhook.handler' });
     return NextResponse.json(
       { 
         success: false, 

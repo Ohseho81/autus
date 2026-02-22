@@ -47,7 +47,7 @@ function calculateSigmaFromResults(resultValue: number, inputValue: number): num
 }
 
 // 신뢰도 평가
-function assessConfidence(indicators: any): {
+function assessConfidence(indicators: Record<string, unknown>): {
   confidence: number;
   missing: string[];
   recommendation: string;
@@ -208,7 +208,8 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
     }
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

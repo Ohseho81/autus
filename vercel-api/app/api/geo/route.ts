@@ -1,5 +1,6 @@
 // app/api/geo/route.ts - 지리 정보 API (네이버 연동)
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '../../../lib/monitoring';
 
 export const runtime = 'edge';
 
@@ -68,8 +69,9 @@ export async function GET(request: NextRequest) {
       data: result
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
-    console.error('Geo API Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'geo.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -115,8 +117,9 @@ export async function POST(request: NextRequest) {
       }
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
-    console.error('Geo API Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'geo.POST' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -198,7 +201,7 @@ function categorizeNews(text: string): string {
 }
 
 // 전략 분석
-function analyzeStrategicData(competitors: any[], apartments: any[], news: any[]) {
+function analyzeStrategicData(competitors: Array<Record<string, unknown>>, apartments: Array<Record<string, unknown>>, news: Array<Record<string, unknown>>) {
   const competitorCount = competitors.length;
   const avgCompetitorDensity = competitorCount / 4; // 2km 반경 기준
   

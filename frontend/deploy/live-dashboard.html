@@ -424,7 +424,7 @@
             <div class="logo">
                 <div class="logo-icon">◈</div>
                 <div>
-                    <div class="logo-text">AUTUS</div>
+                    <div class="logo-text">온리쌤</div>
                     <div class="logo-sub">LIVE DASHBOARD</div>
                 </div>
             </div>
@@ -511,117 +511,123 @@
         // AUTUS Live Dashboard - Vercel API Integration
         // ═══════════════════════════════════════════════════════════════════════
 
-        const API_BASE = 'https://api.autus-ai.com';
-        const USER_ID = '550e8400-e29b-41d4-a716-446655440001';
-
-        // Display API URL
-        document.getElementById('apiUrl').textContent = API_BASE;
-
         // Format money
         function formatMoney(value) {
+            if (!value && value !== 0) return '-';
+            value = parseFloat(value);
             if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
             if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
             return value.toFixed(0);
         }
 
-        // Load Organisms
+        // ═══ Supabase Direct: autus_nodes + autus_relationships ═══
         async function loadOrganisms() {
-            const container = document.getElementById('organismsContainer');
-            
-            try {
-                const response = await fetch(`${API_BASE}/api/organisms?userId=${USER_ID}`);
-                const result = await response.json();
+            var container = document.getElementById('organismsContainer');
 
-                if (!result.success || !result.data) {
-                    throw new Error(result.error || 'Failed to load');
-                }
+            // Supabase 직접 쿼리 시도
+            if (typeof AutusDB !== 'undefined' && AutusDB.isConnected()) {
+                try {
+                    var nodesResult = await AutusDB.getNodes();
+                    var relResult = await AutusDB.getRelationships();
+                    var vMetrics = await AutusDB.getVMetrics();
+                    var studentCount = await AutusDB.getStudentCount();
 
-                const organisms = result.data;
+                    var nodes = nodesResult.data || [];
+                    var rels = relResult.data || [];
 
-                // Update stats
-                document.getElementById('totalOrganisms').textContent = organisms.length;
-                
-                const totalV = organisms.reduce((sum, o) => sum + (parseFloat(o.value_v) || 0), 0);
-                document.getElementById('totalValue').textContent = formatMoney(totalV);
-                
-                const avgSynergy = organisms.reduce((sum, o) => sum + (parseFloat(o.synergy) || 0), 0) / organisms.length;
-                document.getElementById('avgSynergy').textContent = (avgSynergy * 100).toFixed(1) + '%';
-                
-                const stableCount = organisms.filter(o => o.status === 'stable').length;
-                document.getElementById('stableCount').textContent = stableCount;
+                    document.getElementById('totalOrganisms').textContent = nodes.length + ' nodes / ' + studentCount + ' students';
 
-                // Render organisms
-                if (organisms.length === 0) {
-                    container.innerHTML = '<div class="error">No organisms found</div>';
+                    // V-Engine 메트릭 표시
+                    if (vMetrics) {
+                        var m = parseFloat(vMetrics.minting) || 0;
+                        var t = parseFloat(vMetrics.taxation) || 0;
+                        var s = parseFloat(vMetrics.synergy) || 0;
+                        var V = (m - t) * Math.pow(1 + s, parseFloat(vMetrics.time_months) || 1);
+                        document.getElementById('totalValue').textContent = formatMoney(V);
+                        document.getElementById('avgSynergy').textContent = (s * 100).toFixed(1) + '%';
+                    }
+
+                    var stableCount = nodes.filter(function(n) { return n.lambda && parseFloat(n.lambda) >= 1.0; }).length;
+                    document.getElementById('stableCount').textContent = stableCount;
+
+                    if (nodes.length === 0) {
+                        container.innerHTML = '<div class="error">No nodes found in Supabase</div>';
+                        return;
+                    }
+
+                    // 노드 렌더링
+                    container.innerHTML = '<div class="organisms-table">' + nodes.map(function(node) {
+                        var lambda = parseFloat(node.lambda) || 0;
+                        var rel = rels.find(function(r) { return r.node_a_id === node.id || r.node_b_id === node.id; });
+                        var sigma = rel ? parseFloat(rel.sigma) || 0 : 0;
+                        var tTotal = rel ? parseFloat(rel.t_total) || 0 : 0;
+                        var aValue = rel ? parseFloat(rel.a_value) || 0 : 0;
+                        var status = lambda >= 2 ? 'optimal' : lambda >= 1 ? 'stable' : 'at_risk';
+                        var emoji = node.type === 'OWNER' ? '👑' : node.type === 'STAFF' ? '👤' : node.type === 'STUDENT' ? '🎓' : '🧬';
+
+                        return '<div class="organism-row">' +
+                            '<div class="org-avatar">' + emoji + '</div>' +
+                            '<div class="org-info"><h4>' + node.name + '</h4><p>' + node.type + '</p></div>' +
+                            '<div class="org-value">λ: ' + lambda.toFixed(1) + '<br><span style="color:var(--cyan)">T: ' + tTotal.toFixed(0) + '</span></div>' +
+                            '<div class="org-synergy">σ: ' + (sigma * 100).toFixed(1) + '%</div>' +
+                            '<div class="org-v">A: ' + formatMoney(aValue) + '</div>' +
+                            '<div><span class="status-chip ' + status + '">' + status + '</span></div>' +
+                        '</div>';
+                    }).join('') + '</div>';
+
+                    document.getElementById('apiUrl').textContent = 'Supabase Direct (LIVE)';
+                    console.log('[LiveDashboard] Loaded ' + nodes.length + ' nodes, ' + rels.length + ' relationships from Supabase');
                     return;
+                } catch (e) {
+                    console.warn('[LiveDashboard] Supabase failed, trying REST:', e.message);
                 }
-
-                container.innerHTML = `
-                    <div class="organisms-table">
-                        ${organisms.map(org => `
-                            <div class="organism-row">
-                                <div class="org-avatar">${org.emoji || '👤'}</div>
-                                <div class="org-info">
-                                    <h4>${org.name}</h4>
-                                    <p>${org.type}</p>
-                                </div>
-                                <div class="org-value">
-                                    M: ${formatMoney(org.mint)}<br>
-                                    <span style="color: var(--red);">T: ${formatMoney(org.tax)}</span>
-                                </div>
-                                <div class="org-synergy">s: ${(org.synergy * 100).toFixed(1)}%</div>
-                                <div class="org-v">V: ${formatMoney(org.value_v)}</div>
-                                <div>
-                                    <span class="status-chip ${org.status}">${org.status}</span>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-
-            } catch (error) {
-                console.error('Error loading organisms:', error);
-                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
             }
+
+            // Fallback: REST API
+            container.innerHTML = '<div class="error">Supabase 연결 대기 중...</div>';
         }
 
-        // Load Leaderboard
+        // Leaderboard: autus_nodes ORDER BY lambda DESC
         async function loadLeaderboard() {
-            const container = document.getElementById('leaderboardContainer');
-            
-            try {
-                const response = await fetch(`${API_BASE}/api/leaderboard`);
-                const result = await response.json();
+            var container = document.getElementById('leaderboardContainer');
 
-                if (!result.success || !result.data) {
-                    throw new Error(result.error || 'Failed to load');
-                }
+            if (typeof AutusDB !== 'undefined' && AutusDB.isConnected()) {
+                try {
+                    var result = await AutusDB.getNodes();
+                    var nodes = result.data || [];
 
-                // API returns data.entries array
-                const leaders = result.data.entries || result.data;
+                    if (nodes.length === 0) {
+                        container.innerHTML = '<div class="error">No nodes for leaderboard</div>';
+                        return;
+                    }
 
-                if (leaders.length === 0) {
-                    container.innerHTML = '<div class="error">No leaders found</div>';
+                    var sorted = nodes.sort(function(a, b) { return (parseFloat(b.lambda) || 0) - (parseFloat(a.lambda) || 0); });
+                    var rankClasses = ['gold', 'silver', 'bronze'];
+
+                    container.innerHTML = sorted.map(function(node, i) {
+                        var emoji = node.type === 'OWNER' ? '👑' : node.type === 'STAFF' ? '👤' : '🧬';
+                        return '<div class="leaderboard-item">' +
+                            '<div class="rank ' + (rankClasses[i] || '') + '">' + (i + 1) + '</div>' +
+                            '<div class="leader-info"><h4>' + emoji + ' ' + node.name + '</h4><p>' + node.type + ' • λ: ' + (parseFloat(node.lambda) || 0).toFixed(1) + '</p></div>' +
+                            '<div class="leader-v">' + (parseFloat(node.lambda) || 0).toFixed(2) + '</div>' +
+                        '</div>';
+                    }).join('');
                     return;
+                } catch (e) {
+                    console.warn('[Leaderboard] Supabase failed:', e.message);
                 }
-
-                const rankClasses = ['gold', 'silver', 'bronze'];
-
-                container.innerHTML = leaders.map((leader, i) => `
-                    <div class="leaderboard-item">
-                        <div class="rank ${rankClasses[i] || ''}">${i + 1}</div>
-                        <div class="leader-info">
-                            <h4>${leader.emoji || '👤'} ${leader.name}</h4>
-                            <p>${leader.type} • s: ${(leader.synergy * 100).toFixed(1)}%</p>
-                        </div>
-                        <div class="leader-v">${formatMoney(leader.value_v)}</div>
-                    </div>
-                `).join('');
-
-            } catch (error) {
-                console.error('Error loading leaderboard:', error);
-                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
             }
+            container.innerHTML = '<div class="error">Loading...</div>';
+        }
+
+        // Realtime 구독
+        function setupRealtime() {
+            if (typeof AutusDB === 'undefined' || !AutusDB.isConnected()) return;
+            AutusDB.subscribe('autus_nodes', 'UPDATE', function() { loadOrganisms(); });
+            AutusDB.subscribe('autus_relationships', 'UPDATE', function() { loadOrganisms(); });
+            AutusDB.subscribe('events', 'INSERT', function(payload) {
+                console.log('[Realtime] New event:', payload.new.event_type);
+            });
         }
 
         // Load all data
@@ -631,10 +637,17 @@
         }
 
         // Initialize
-        loadAllData();
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                loadAllData();
+                setupRealtime();
+            }, 200);
+        });
 
-        // Auto refresh every 30 seconds
+        // Auto refresh every 30 seconds (fallback)
         setInterval(loadAllData, 30000);
     </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

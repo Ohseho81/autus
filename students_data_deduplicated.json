@@ -1,0 +1,8673 @@
+[
+  {
+    "type": "student",
+    "name": "오은우",
+    "phone": "010-2048-6048",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "진은기",
+    "phone": "010-3213-7099",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한민기",
+    "phone": "010-9435-2704",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이민석",
+    "phone": "010-6228-7397",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강우진 (해외)",
+    "phone": "010-2281-1690",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "류재하",
+    "phone": "010-5397-4606",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "손지완 (형제)",
+    "phone": "010-7771-2071",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김우준 (선수반)",
+    "phone": "010-6263-2021",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "설영준",
+    "phone": "010-9489-5349",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "주재준",
+    "phone": "010-7277-8515",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "진민재",
+    "phone": "010-2060-8011",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이유겸",
+    "phone": "010-9497-8504",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이민재 (2011선수반)",
+    "phone": "010-9988-0227",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이지형 (선수반)",
+    "phone": "010-9761-3258",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최시훈",
+    "phone": "010-8753-0006",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "권지훈 (토_22:10)",
+    "phone": "010-4366-6287",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김주환 (토22:10)",
+    "phone": "010-9065-6616",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이준오",
+    "phone": "010-8914-4381",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김성진 (토_선수반)",
+    "phone": "010-3220-5374",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김대겸",
+    "phone": "010-8846-7770",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김건희",
+    "phone": "010-8848-1905",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민준 (11선수반_토)",
+    "phone": "010-3383-5533",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "진민웅",
+    "phone": "010-9958-4969",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서준혁",
+    "phone": "010-9036-4274",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박태윤 11선수반",
+    "phone": "010-9975-7434",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이윤수 (12선수반)",
+    "phone": "010-8867-3142",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황현준(마커스)",
+    "phone": "010-9805-0422",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "변석우",
+    "phone": "010-7184-2005",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서다니엘 12 휘문중",
+    "phone": "010-5482-0325",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김승현 (12선수)",
+    "phone": "010-8387-7829",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "오선우",
+    "phone": "010-2048-6048",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임하준",
+    "phone": "010-8737-0938",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "노현민 (선수반)",
+    "phone": "010-5522-5676",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "손정현",
+    "phone": "010-5333-3168",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김강현 (대표팀만 나오고있음)",
+    "phone": "010-8764-2825",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안서진 (일선수)",
+    "phone": "010-8625-8214",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "백승재",
+    "phone": "010-9509-0508",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "권성율",
+    "phone": "010-7173-1074",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "류재혁 (선수반)",
+    "phone": "010-9988-2331",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황준영 (선수반)",
+    "phone": "010-5135-8795",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "백규호",
+    "phone": "010-9001-8501",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정재이",
+    "phone": "010-4854-4421",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박시형 (선수반)",
+    "phone": "010-3299-8752",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임준형 (선수반)",
+    "phone": "010-8742-5790",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이지범",
+    "phone": "010-9156-7136",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김준영 (14선수반)",
+    "phone": "010-5240-6470",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이시후 (선수반)",
+    "phone": "010-7545-7533",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "허은호",
+    "phone": "010-4579-3117",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조승우 (선수반)",
+    "phone": "010-3597-7729",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장진우",
+    "phone": "010-4172-5480",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김선중",
+    "phone": "010-9061-0525",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "심유상 (22:10)",
+    "phone": "010-9006-8036",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "전민준(선수반)",
+    "phone": "010-4141-0301",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이승준(금_팀심)",
+    "phone": "010-8954-4033",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박연준 (선수반)",
+    "phone": "010-4743-1898",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조승민 (선수반)",
+    "phone": "010-3597-7729",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이지후 (선수반)",
+    "phone": "010-5221-4658",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이서율 (휴원_선수반)",
+    "phone": "010-9004-6930",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박찬민",
+    "phone": "010-4655-9604",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "심서윤 (휴원)",
+    "phone": "010-9313-7887",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서정규",
+    "phone": "010-7234-5060",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김재원 (금_선수반)",
+    "phone": "010-2773-6355",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김영찬",
+    "phone": "010-6202-2778",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "고도연",
+    "phone": "010-6863-1691",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강우찬",
+    "phone": "010-8881-7664",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍규영",
+    "phone": "010-9092-9056",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최시우 (선수반)",
+    "phone": "010-3349-8441",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유영조",
+    "phone": "010-6522-0478",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정준우 (13선수반)",
+    "phone": "010-3130-6008",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조현우 (선수반)",
+    "phone": "010-6327-8919",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이서진 (13선수반)",
+    "phone": "010-2322-1811",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "위건우 (클리퍼스)",
+    "phone": "010-2719-1454",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박서준 13 선수반",
+    "phone": "010-2081-8106",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "선수반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장율 (선수반)",
+    "phone": "010-6331-8596",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "성수호",
+    "phone": "010-9797-9952",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안서진 (토선수)",
+    "phone": "010-8981-7962",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "[ 선수반 (김용우 코치님) ]",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "진선호",
+    "phone": "010-5634-3273",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이지헌",
+    "phone": "010-3873-7867",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신범준 (고등선수)",
+    "phone": "010-3736-9147",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김강민 (고등선수)",
+    "phone": "010-8843-7693",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김연준 (09선수반)",
+    "phone": "010-2899-5865",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민준 (고등선수)",
+    "phone": "010-5245-2747",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김준서 (09선수반)",
+    "phone": "010-9165-2445",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임유찬",
+    "phone": "010-3615-4871",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김동욱 (09선수반)",
+    "phone": "010-6524-2858",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이노아",
+    "phone": "010-7617-1218",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이민성",
+    "phone": "010-3320-5196",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안지환",
+    "phone": "010-8780-7729",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조태성",
+    "phone": "010-2761-5015",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강현중, 강민웅",
+    "phone": "010-9596-7503",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "권택승",
+    "phone": "010-8870-4677",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이건우 (선수반)",
+    "phone": "010-8851-6167",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "선수반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이호석",
+    "phone": "010-9917-6540",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도영 (라이온스)",
+    "phone": "010-8893-3742",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민건 (워리어스)",
+    "phone": "010-8885-3368",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임정훈 (라이온스)",
+    "phone": "010-3655-0924",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김주영 (라이온스)",
+    "phone": "010-9065-6616",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김형준 (라이온스)",
+    "phone": "010-9134-7228",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재원11 (라이온스)",
+    "phone": "010-7200-6114",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "오도현",
+    "phone": "010-9464-8886",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최윤형",
+    "phone": "010-3223-0424",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이준하 (라이온스)",
+    "phone": "010-5301-7482",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이준우 (라이온스)",
+    "phone": "010-5221-4658",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이라운",
+    "phone": "010-8560-2022",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이서우 (라이온스)",
+    "phone": "010-4545-4425",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정대욱 (대원)",
+    "phone": "010-2355-4370",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조형우 (라이온스)",
+    "phone": "010-2330-1892",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김은우 (실전반)",
+    "phone": "010-4333-1012",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김시후 (레벨업)",
+    "phone": "010-4027-4010",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서유찬",
+    "phone": "010-8326-9074",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장은성 2:1",
+    "phone": "010-5202-7543",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황윤우",
+    "phone": "010-9016-1499",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김예성",
+    "phone": "010-9278-3700",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장지웅 15",
+    "phone": "010-5008-2125",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송승헌 (형제)",
+    "phone": "010-8755-6550",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안지후",
+    "phone": "010-4964-1611",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김상우 (라이징TS)",
+    "phone": "010-6213-5700",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이윤우 (라이징TS)",
+    "phone": "010-9807-2537",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이윤호 (라이징)",
+    "phone": "010-5633-7965",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김예준 (휴원)",
+    "phone": "010-9278-3700",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조우신 (라이징)",
+    "phone": "010-3219-2141",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유성윤",
+    "phone": "010-2935-0555",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "백지오",
+    "phone": "010-4012-1711",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김기현",
+    "phone": "010-9404-6711",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "금재현",
+    "phone": "010-8703-5473",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강민규",
+    "phone": "010-8978-4251",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한현후",
+    "phone": "010-8528-2327",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임지안",
+    "phone": "010-2081-3610",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도윤",
+    "phone": "010-3651-5970",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김성재 (TS스타즈)",
+    "phone": "010-3220-5374",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최승빈",
+    "phone": "010-3635-9424",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박민준 (TS스타즈)",
+    "phone": "010-7133-4160",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안동하",
+    "phone": "010-9066-4682",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김태린",
+    "phone": "010-9937-1475",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신효준",
+    "phone": "010-8705-0012",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조정우13",
+    "phone": "010-2792-4854",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조민성 (TS스타즈)",
+    "phone": "010-8892-6196",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유성민 (형제)",
+    "phone": "010-5117-4049",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유성호(형제)",
+    "phone": "010-5117-4049",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김준서 (TS스타즈)",
+    "phone": "010-3253-4501",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이정민 (TS)",
+    "phone": "010-3305-4977",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강민성 (워리어스)",
+    "phone": "010-9419-7323",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박라언",
+    "phone": "010-3705-0066",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이찬",
+    "phone": "010-9579-6007",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김동연",
+    "phone": "010-4124-5216",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민준 12",
+    "phone": "010-6294-1595",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지호 (실전)",
+    "phone": "010-9379-8816",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박승찬",
+    "phone": "010-6449-4519",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최이안 (남매)",
+    "phone": "010-6351-4052",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박강민",
+    "phone": "010-9880-3140",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤재희 (클로버)",
+    "phone": "010-4703-0428",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤세현",
+    "phone": "010-2935-2265",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송도윤",
+    "phone": "010-2295-3330",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민찬18",
+    "phone": "010-8858-9131",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박주선",
+    "phone": "010-4177-2993",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "전수호 (18)",
+    "phone": "010-2435-2080",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "학교팀",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "민경훈",
+    "phone": "010-4721-8047",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "노윤재 (클로버)",
+    "phone": "010-4792-7604",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김이안 (대표팀)",
+    "phone": "010-3951-3596",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신요한",
+    "phone": "010-9905-7680",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김서준 (클로버)",
+    "phone": "010-9992-6764",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김태한",
+    "phone": "010-9937-1475",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "주성민",
+    "phone": "010-3769-9192",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송채훈 (형제)",
+    "phone": "010-8755-6550",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이여음 (형제)",
+    "phone": "010-9390-5023",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박서준 (업템포)",
+    "phone": "010-7501-9744",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이승우(4,5실전)",
+    "phone": "010-9312-2287",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "전승현",
+    "phone": "010-9064-7106",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이서진 업템포",
+    "phone": "010-4783-2507",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김준영 (실전)",
+    "phone": "010-5498-5720",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "남승규",
+    "phone": "010-6415-6295",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이상경",
+    "phone": "010-9566-4042",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김래아",
+    "phone": "010-6230-1282",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문성아 (소녀시대)",
+    "phone": "010-9054-6536",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이준호 (소녀시대)",
+    "phone": "010-7585-1510",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조연서",
+    "phone": "010-9062-3762",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "구단아",
+    "phone": "010-6770-8424",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이선우 (테스트)",
+    "phone": "010-2701-2484",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안우리 (소녀시대)",
+    "phone": "010-4189-3123",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김시윤",
+    "phone": "010-2944-0529",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민지",
+    "phone": "010-4591-9077",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재아 (소녀시대)",
+    "phone": "010-3111-2475",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최서현",
+    "phone": "010-4798-3003",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "오연우",
+    "phone": "010-2048-6048",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "남지민",
+    "phone": "010-4267-8887",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조수아",
+    "phone": "010-8674-7609",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김주아",
+    "phone": "010-3362-9094",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "실전반"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장지웅 (SAIS)",
+    "phone": "010-2654-7456",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장지아",
+    "phone": "010-2654-7456",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이주호 (SAIS)",
+    "phone": "010-2995-9588",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍은재",
+    "phone": "010-9120-1025",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이예진 (SAIS)",
+    "phone": "010-8960-8609",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임조운",
+    "phone": "010-5789-8259",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임지윤 (SAIS)",
+    "phone": "010-5789-8259",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "허승현",
+    "phone": "010-6726-8388",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이정우 (SAIS)",
+    "phone": "010-9120-5388",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍예준15",
+    "phone": "010-4619-2780",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박근우 (형제)",
+    "phone": "010-3001-3899",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "손민준",
+    "phone": "010-9054-1030",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤준성 14",
+    "phone": "010-5608-1708",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김동욱14",
+    "phone": "010-9686-7985",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지우 SAIS",
+    "phone": "010-2128-2078",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "권재현",
+    "phone": "010-3890-0391",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍승의",
+    "phone": "010-9395-3618",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김원호 (SAIS)",
+    "phone": "010-5277-6336",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박준성 SAIS",
+    "phone": "010-5366-9909",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정재운",
+    "phone": "010-9121-5104",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김주원 SAIS",
+    "phone": "010-8575-1008",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이민준 SAIS",
+    "phone": "010-9193-6232",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문기찬",
+    "phone": "010-3283-4831",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정서우 (라이온스)",
+    "phone": "010-8725-2775",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "학교팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송하윤 (헬리오스)",
+    "phone": "010-3791-3907",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "맹무진 (헬리오스)",
+    "phone": "010-4856-1144",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이주원 (헬리오스)",
+    "phone": "010-3786-4170",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이대건 (헬리오스)",
+    "phone": "010-6339-0620",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이서빈 (헬리오스)",
+    "phone": "010-2871-5860",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정창건 (헬리오스)",
+    "phone": "010-6423-2302",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김태용 (대곡드래곤스) 휴원",
+    "phone": "010-7128-8412",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정의헌 (대곡드래곤스)",
+    "phone": "010-8850-4186",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황재승 (대곡드래곤스)",
+    "phone": "010-3563-9328",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김태율(드래곤스)",
+    "phone": "010-6278-6291",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도익 (주장_대곡드래곤스)",
+    "phone": "010-4304-8522",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이윤후 (대곡드래곤스)",
+    "phone": "010-9166-4555",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도훈 (대곡드래곤스)",
+    "phone": "010-4537-1345",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "오은찬 (대곡드래곤스)",
+    "phone": "010-5418-4687",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김원우 (대곡드래곤스)",
+    "phone": "010-2020-8102",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정재후 (대곡드래곤스)",
+    "phone": "010-9175-9713",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임건우 (대치썬더스)",
+    "phone": "010-8938-7965",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황상연 (대치썬더스)",
+    "phone": "010-7222-9151",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김주원 (대치썬더스)",
+    "phone": "010-8876-8711",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이윤수 (대치썬더스)",
+    "phone": "010-9352-9504",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이준하(대치썬더스)",
+    "phone": "010-8945-9830",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "심예준 (레빗)",
+    "phone": "010-6208-4053",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강윤구 (레빗)",
+    "phone": "010-6404-5555",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이기연 (레빗)",
+    "phone": "010-5273-1014",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이태규 (레빗)",
+    "phone": "010-4540-6960",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송준원 (레빗)",
+    "phone": "010-3171-1308",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "노하진 (레빗)",
+    "phone": "010-7100-8752",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "고준성",
+    "phone": "010-8964-8406",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이형후",
+    "phone": "010-9039-9075",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박주언",
+    "phone": "010-6393-2818",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이규민 (우촌팀)",
+    "phone": "010-3715-9991",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유이안",
+    "phone": "010-8630-3440",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이승준 (우촌팀)",
+    "phone": "010-8725-8623",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최영승 17",
+    "phone": "010-3993-7913",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "허준범 17",
+    "phone": "010-9507-0616",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황지완 17",
+    "phone": "010-4579-7547",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박서준 17(황지완팀)",
+    "phone": "010-2625-2639",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신호연 17",
+    "phone": "010-9127-8325",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "구도헌 (휘문2011)",
+    "phone": "010-5088-0948",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도현 (휘문2011)",
+    "phone": "010-9147-3433",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이민재",
+    "phone": "010-3787-8311",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정희주",
+    "phone": "010-6243-6170",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조윤성 (휘문2011)",
+    "phone": "010-4105-3804",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신재원",
+    "phone": "010-9743-1109",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재훈 (휘문2011)",
+    "phone": "010-8796-3727",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤라노 (클리퍼스)",
+    "phone": "010-3539-3332",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서찬호 (클리퍼스)",
+    "phone": "010-5307-9361",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문형주 (클리퍼스)",
+    "phone": "010-6279-5430",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최진혁 (한양불스)",
+    "phone": "010-6300-1031",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "지주한",
+    "phone": "010-8970-9529",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최한겸 (한양불스)",
+    "phone": "010-8832-6799",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "손영빈 (한양불스)",
+    "phone": "010-3105-3949",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "차승민 (8/10 합류 한양불스)",
+    "phone": "010-9117-4117",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "천종혁 (한양불스)",
+    "phone": "010-8556-9182",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김하준 (드리머스)",
+    "phone": "010-9526-0675",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "전진욱",
+    "phone": "010-9024-2552",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "허환",
+    "phone": "010-5670-8427",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한동윤 (드리머스)",
+    "phone": "010-5201-2173",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "양정우,양현우",
+    "phone": "010-3170-6083",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김아인",
+    "phone": "010-6202-1960",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이지후",
+    "phone": "010-4808-7858",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김시언",
+    "phone": "010-8772-2523",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한성준",
+    "phone": "010-3502-4589",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이태은 (한양)",
+    "phone": "010-2719-2102",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김왕제",
+    "phone": "010-7124-6453",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최정우",
+    "phone": "010-7173-1716",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이태훈",
+    "phone": "010-4032-3872",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "하도윤",
+    "phone": "010-8903-3337",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송선우",
+    "phone": "010-4738-0562",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문유준",
+    "phone": "010-2762-1951",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최규헌 (영훈고스트)",
+    "phone": "010-4385-3348",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이서율 (영훈고스트)",
+    "phone": "010-5435-1267",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "원지안",
+    "phone": "010-4127-5998",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "양건호 (영훈고스트)",
+    "phone": "010-2062-1516",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤진하 (영훈고스트)",
+    "phone": "010-8283-1226",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "남주원 (영훈고스트)",
+    "phone": "010-4204-1178",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤율 (영훈고스트)",
+    "phone": "010-2957-6703",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송시우 (영훈고스트)",
+    "phone": "010-6428-9984",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민서 (드림걸스)",
+    "phone": "010-5302-5962",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "연수지",
+    "phone": "010-2501-3133",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최지아",
+    "phone": "010-8962-2789",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김나예",
+    "phone": "010-2916-0826",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김나윤 (드림걸스)",
+    "phone": "010-2916-0826",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김서은 (대현걸스)",
+    "phone": "010-4041-5369",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박주현 (대현걸스)",
+    "phone": "010-3844-1008",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이주하 (대현걸스)",
+    "phone": "010-3595-7457",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이채율 (대현걸스)",
+    "phone": "010-4903-7923",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이서아",
+    "phone": "010-8895-4419",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송하경",
+    "phone": "010-2389-6939",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "오서율 (대현걸스)",
+    "phone": "010-4056-5107",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최예원 (대도43)",
+    "phone": "010-5416-3144",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이연수 (대도43)",
+    "phone": "010-9235-4715",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박엘리 (대도43)",
+    "phone": "010-3889-9279",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김현서 (대도43)",
+    "phone": "010-5392-0602",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이예림",
+    "phone": "010-4162-4648",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한예준",
+    "phone": "010-9092-6563",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한재윤",
+    "phone": "010-4204-7321",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이승현 (시현팀)",
+    "phone": "010-8909-0124",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍시현",
+    "phone": "010-9371-9544",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한주영 (시현팀)",
+    "phone": "010-9737-1030",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "팀수업"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이혁재",
+    "phone": "010-9476-4616",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민준BEK",
+    "phone": "010-9473-7993",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김태연",
+    "phone": "010-7106-8276",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박해인",
+    "phone": "010-9588-7743",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이준하",
+    "phone": "010-8868-2297",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정윤우 (개레)",
+    "phone": "010-9190-5913",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박제후",
+    "phone": "010-2438-0405",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도윤",
+    "phone": "010-3392-5446",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이인호",
+    "phone": "010-8873-0536",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박정원 (고등)",
+    "phone": "010-5330-1003",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강수현 (개레)",
+    "phone": "010-9811-1105",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유종현",
+    "phone": "010-9985-4158",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정서원",
+    "phone": "010-3620-9832",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김재후",
+    "phone": "010-7292-8484",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조예은",
+    "phone": "010-3425-2723",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문현준",
+    "phone": "010-8546-8422",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이도현",
+    "phone": "010-8770-4716",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지후 (화_오픈)",
+    "phone": "010-9110-9500",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이태리 (2월까지)",
+    "phone": "010-8872-0309",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장정호(형제)",
+    "phone": "010-9174-6536",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김승헌",
+    "phone": "010-9235-5443",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "권오제",
+    "phone": "010-2704-9057",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍현민",
+    "phone": "010-9013-9456",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이유주",
+    "phone": "010-9131-9848",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최민준 (30분수업)",
+    "phone": "010-3115-7014",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정시현",
+    "phone": "010-9063-5807",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박준서18 (개레)",
+    "phone": "010-8388-5542",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이정은",
+    "phone": "010-3205-3224",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "남시우",
+    "phone": "010-3706-7930",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재현 (1:1)",
+    "phone": "010-8556-4778",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장재희",
+    "phone": "010-9038-0151",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한유진",
+    "phone": "010-2234-3629",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김리우 (개레)",
+    "phone": "010-8320-4165",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박현준 브라이언",
+    "phone": "010-4477-8222",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박의진",
+    "phone": "010-5650-1504",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박상수",
+    "phone": "010-8670-4960",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "개인레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "허준원",
+    "phone": "010-4228-6792",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문가영",
+    "phone": "010-8980-8948",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "개인레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이현범",
+    "phone": "010-2371-2896",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임서준",
+    "phone": "010-8639-4633",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한정원",
+    "phone": "010-9285-4056",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최재이",
+    "phone": "010-7123-1762",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이승훈",
+    "phone": "010-4873-9945",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민우",
+    "phone": "010-9067-5343",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김태우",
+    "phone": "010-4526-0730",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김주원",
+    "phone": "010-8880-1289",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "개인레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이유찬 (타이타늄)",
+    "phone": "010-7157-0467",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이지형 (타이타늄)",
+    "phone": "010-8636-3242",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이윤형 (타이타늄)",
+    "phone": "010-8636-3242",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "나윤서 (타이타늄)",
+    "phone": "010-2586-6529",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "위하준 (남매)",
+    "phone": "010-4461-3883",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "곽서준",
+    "phone": "010-5188-4498",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김윤재 (2:1)",
+    "phone": "010-2554-0325",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민준 2:1",
+    "phone": "010-3765-2427",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김명재 2:1",
+    "phone": "010-9003-5496",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신동욱 (대치불스)",
+    "phone": "010-8966-9134",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "심관우 (대치불스)",
+    "phone": "010-6209-6379",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "곽민제 (대치불스)",
+    "phone": "010-2725-5071",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김건우 (대치불스)",
+    "phone": "010-3283-5813",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박은효",
+    "phone": "010-3708-7269",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박윤우13",
+    "phone": "010-9660-7688",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박우현13",
+    "phone": "010-9660-7688",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김이안 3:1",
+    "phone": "010-5278-4595",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박정혁",
+    "phone": "010-5410-2765",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "백인서 3:1",
+    "phone": "010-9130-8158",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "오택",
+    "phone": "010-4576-4715",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "배주원 (2:1)",
+    "phone": "010-3555-9577",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이지오 2:1",
+    "phone": "010-6530-0280",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박준태 (버저비터)",
+    "phone": "010-2205-7876",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임예현 (버저비터)",
+    "phone": "010-5160-2208",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재율 (버저비터)",
+    "phone": "010-4658-1128",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김윤호 (버저비터)",
+    "phone": "010-4233-7035",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김근영 (블랙드래곤즈)",
+    "phone": "010-3283-5813",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김규록 (블랙드래곤즈)",
+    "phone": "010-5246-0259",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황도영 (블랙드래곤즈)",
+    "phone": "010-4854-5122",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "두하진",
+    "phone": "010-8000-5148",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서인혁",
+    "phone": "010-8553-9970",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨",
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤지유",
+    "phone": "010-2288-0986",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서하연",
+    "phone": "010-8326-9074",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유지나 2:1",
+    "phone": "010-9151-3744",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송우주",
+    "phone": "010-9009-4255",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이유민 (형제)",
+    "phone": "010-8976-9296",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이원민 (형제)",
+    "phone": "010-8976-9296",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이주원 2:1",
+    "phone": "010-9027-5211",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이하율 (형제)",
+    "phone": "010-9254-2445",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이현욱",
+    "phone": "010-3121-0920",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "차수현",
+    "phone": "010-8937-8071",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최윤 (형제)",
+    "phone": "010-4180-4851",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최현 (형제)",
+    "phone": "010-4180-4851",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최정빈",
+    "phone": "010-9069-4022",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정진우",
+    "phone": "010-8696-0361",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍준우(형제)",
+    "phone": "010-3488-0771",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍승우(형제)",
+    "phone": "010-3488-0771",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍재원",
+    "phone": "010-9431-3390",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이서진 2:1",
+    "phone": "010-8959-8442",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박재성 3:1",
+    "phone": "010-9724-0827",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍준혁",
+    "phone": "010-3047-0432",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "그룹레슨"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송지효",
+    "phone": "010-9115-8087",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민승 (월_중등)",
+    "phone": "010-8742-6367",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정재윤",
+    "phone": "010-9021-1182",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "배가온",
+    "phone": "010-3660-7347",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장주하",
+    "phone": "010-2059-1024",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤선하17",
+    "phone": "010-8283-1226",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이병호",
+    "phone": "010-4147-2072",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조하은",
+    "phone": "010-9000-1574",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "양우성",
+    "phone": "010-9962-0230",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임태서",
+    "phone": "010-3298-2925",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "계민준 (휴원)",
+    "phone": "010-2907-3110",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍정진",
+    "phone": "010-2035-7960",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강민준 (월_오픈)",
+    "phone": "010-5307-8111",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이연우",
+    "phone": "010-2885-8211",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최정현",
+    "phone": "010-3874-9779",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이형우",
+    "phone": "010-9733-0207",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "[ 오픈팀 (화) ]",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장유진 (화_여중부)",
+    "phone": "010-4995-6233",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조한희",
+    "phone": "010-9086-8800",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조윤주 (여중부)",
+    "phone": "010-9645-5085",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지우 (화_여중부)",
+    "phone": "010-7119-1355",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안시후 (월_중등)",
+    "phone": "010-3974-2013",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김리강",
+    "phone": "010-3328-0755",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송우진",
+    "phone": "010-9246-0860",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍준표",
+    "phone": "010-7281-2684",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김준서 (형제)",
+    "phone": "010-6649-3552",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김동윤",
+    "phone": "010-4179-3842",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이윤재 (17)",
+    "phone": "010-4415-4391",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "양재원",
+    "phone": "010-3046-0416",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박태준",
+    "phone": "010-3477-0702",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김우현 (오픈)",
+    "phone": "010-4117-9154",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "노윤성",
+    "phone": "010-5275-0457",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김준원 (형제)",
+    "phone": "010-6649-3552",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정이안",
+    "phone": "010-4248-9947",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유준우",
+    "phone": "010-4352-4862",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문지후",
+    "phone": "010-9376-0041",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임제이",
+    "phone": "010-9133-0958",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신예준",
+    "phone": "010-4210-7761",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문서준 (업템포)",
+    "phone": "010-4768-1871",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최지성",
+    "phone": "010-8280-0409",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김재범",
+    "phone": "010-7319-8586",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재현",
+    "phone": "010-8935-9864",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "[ 오픈팀 (수) ]",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김광준",
+    "phone": "010-4706-0245",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "배주원",
+    "phone": "010-3150-5120",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김준헌",
+    "phone": "010-7495-3868",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박다안",
+    "phone": "010-6779-7854",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "노이준",
+    "phone": "010-6355-6263",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "허건",
+    "phone": "010-3315-6425",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김윤우(오픈)",
+    "phone": "010-8645-6376",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김한준",
+    "phone": "010-5870-0773",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박서우",
+    "phone": "010-4009-1001",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍유준",
+    "phone": "010-8881-7417",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송지호",
+    "phone": "010-4105-5859",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재율",
+    "phone": "010-2535-5462",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조준희",
+    "phone": "010-9955-1595",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "오성준",
+    "phone": "010-9054-7450",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정승민",
+    "phone": "010-6226-0994",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서정민",
+    "phone": "010-8988-4128",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정이준 (셔틀)",
+    "phone": "010-2671-1356",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이라임",
+    "phone": "010-8560-2022",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이시운",
+    "phone": "010-4056-1905",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "오현수",
+    "phone": "010-8767-4955",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한지우",
+    "phone": "010-2520-3163",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이지환 (수_오픈)",
+    "phone": "010-9944-0858",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박서준",
+    "phone": "010-2228-2101",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최연우 (수_오픈)",
+    "phone": "010-5415-2575",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이도훈 (수_중등)",
+    "phone": "010-6600-1006",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최석주",
+    "phone": "010-9953-3734",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박지후 (수_오픈)",
+    "phone": "010-9919-4005",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "[ 오픈팀 (목) ]",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민찬",
+    "phone": "010-8959-9420",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "전재형 2월까지",
+    "phone": "010-4185-1645",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한유건",
+    "phone": "010-2886-7887",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최여찬",
+    "phone": "010-2278-6129",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박지율",
+    "phone": "010-8946-2521",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최민성 2:1",
+    "phone": "010-9730-7958",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "민지후",
+    "phone": "010-3592-8028",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "여용재",
+    "phone": "010-7508-0806",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김제민",
+    "phone": "010-8719-1826",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "나현성",
+    "phone": "010-2642-9876",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이동헌",
+    "phone": "010-4699-6180",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문태준",
+    "phone": "010-6777-0467",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임정묵",
+    "phone": "010-8927-6257",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정하율",
+    "phone": "010-9303-3130",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김예건",
+    "phone": "010-8965-8451",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정하영",
+    "phone": "010-9159-2614",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "성수민",
+    "phone": "010-9797-9952",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송은호",
+    "phone": "010-2722-0522",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박채환",
+    "phone": "010-2284-5936",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최윤성 2:1",
+    "phone": "010-9730-7958",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신주호 (고등오픈)",
+    "phone": "010-2203-9526",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장성호 (고등오픈)",
+    "phone": "010-9174-6536",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "[ 오픈팀 (금) ]",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "권혁준",
+    "phone": "010-8850-0422",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "곽재훈",
+    "phone": "010-8967-7888",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "성세윤",
+    "phone": "010-7260-8483",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박유현",
+    "phone": "010-6319-5507",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조윤재",
+    "phone": "010-8939-4736",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이석준",
+    "phone": "010-3663-5590",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이윤재 (☆)",
+    "phone": "010-9884-3938",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장우혁",
+    "phone": "010-8884-1385",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한이준",
+    "phone": "010-8889-8650",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박민준",
+    "phone": "010-9453-8620",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "[ 오픈팀 (토) ]",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박휘",
+    "phone": "010-5282-7843",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이주원 (유치)",
+    "phone": "010-6264-0117",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신민호 비대면 주의",
+    "phone": "010-4116-5778",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김하율",
+    "phone": "010-9016-3002",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "배승언",
+    "phone": "010-7373-7902",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이승민",
+    "phone": "010-5011-9897",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김경모",
+    "phone": "010-2360-9530",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임지훈",
+    "phone": "010-9505-0519",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조재준",
+    "phone": "010-8987-3470",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김현성 (형제)",
+    "phone": "010-9506-9446",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안시후 (토_중등)",
+    "phone": "010-4964-1611",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안준현",
+    "phone": "010-6336-0308",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김재현 (토_중등)",
+    "phone": "010-5068-6510",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이윤수 (셔틀)",
+    "phone": "010-5394-5290",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "심민규",
+    "phone": "010-6227-4846",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최우현 (오픈)",
+    "phone": "010-9741-4587",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도현 (토_오픈)",
+    "phone": "010-3362-9094",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이원석 (쌍둥이)",
+    "phone": "010-2608-9441",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이원준 (쌍둥이)",
+    "phone": "010-2608-9441",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "노정원",
+    "phone": "010-4190-2756",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서지우 (시범)",
+    "phone": "010-4212-2263",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김서진 (체험)",
+    "phone": "010-9958-0423",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "지이완",
+    "phone": "010-6264-3321",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김정민",
+    "phone": "010-9209-3208",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "심재이",
+    "phone": "010-8739-3366",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍성윤",
+    "phone": "010-4708-1007",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한우진",
+    "phone": "010-2517-6900",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한유승",
+    "phone": "010-9890-1220",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김준영 (토16시)",
+    "phone": "010-7293-8855",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "오승원",
+    "phone": "010-7157-8418",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박찬영",
+    "phone": "010-7174-7113",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조승현",
+    "phone": "010-7939-4922",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박찬휘 (토오픈)",
+    "phone": "010-3635-2048",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김리우",
+    "phone": "010-9457-0643",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민재 (오픈)",
+    "phone": "010-2754-7466",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김윤재 (토오픈)",
+    "phone": "010-7507-6544",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정해담",
+    "phone": "010-2642-2820",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "현승명",
+    "phone": "010-9199-5737",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재윤",
+    "phone": "010-2039-1268",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "방선우",
+    "phone": "010-3233-2575",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김채원",
+    "phone": "010-8999-8209",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이서진 (토9오픈)",
+    "phone": "010-3537-0555",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "[ 오픈팀 (일) ]",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정시율",
+    "phone": "010-9497-8378",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이지후 (여초부)",
+    "phone": "010-9018-8001",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김규민(여)",
+    "phone": "010-7191-3708",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "주한솔",
+    "phone": "010-2481-5006",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김예나",
+    "phone": "010-9299-2134",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서정오",
+    "phone": "010-7406-2346",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "함이서",
+    "phone": "010-5547-2568",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재진 (7세)",
+    "phone": "010-3111-2475",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유하준",
+    "phone": "010-2345-0412",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "심지우",
+    "phone": "010-5609-3939",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이준수 (일_중등)",
+    "phone": "010-3792-5571",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이수환",
+    "phone": "010-2761-4055",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신지민",
+    "phone": "010-5777-8402",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김규인",
+    "phone": "010-5478-3473",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안지민",
+    "phone": "010-9920-5425",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "전동욱",
+    "phone": "010-9024-2552",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임환",
+    "phone": "010-9080-4165",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤지우",
+    "phone": "010-9283-0383",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이현구",
+    "phone": "010-4789-1957",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박민우 (형제)",
+    "phone": "010-3001-3899",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황지운",
+    "phone": "010-9411-6077",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김단우",
+    "phone": "010-3584-7157",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "함희우",
+    "phone": "010-8708-1127",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임찬묵",
+    "phone": "010-3246-4895",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강민호 (2018)",
+    "phone": "010-5420-0042",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박준후 (오픈)",
+    "phone": "010-7145-0427",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "우수안",
+    "phone": "010-4864-6318",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최준범 (형제)",
+    "phone": "010-4424-0882",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "고재후",
+    "phone": "010-2769-7100",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강연준",
+    "phone": "010-4517-5548",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍승준",
+    "phone": "010-3530-5467",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정은재",
+    "phone": "010-6761-4160",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이동진",
+    "phone": "010-6470-0287",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "구명진",
+    "phone": "010-9158-7933",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김현우 (일_오픈)",
+    "phone": "010-8551-0507",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이석현",
+    "phone": "010-3663-5590",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "두민호",
+    "phone": "010-9120-8642",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강민재 (쌍둥이)",
+    "phone": "010-2675-4631",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "우지운",
+    "phone": "010-4032-1201",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유지성",
+    "phone": "010-4821-1125",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도훈13",
+    "phone": "010-7557-1090",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이승언 (게이트)",
+    "phone": "010-4175-7004",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강동윤 (게이트)",
+    "phone": "010-3088-0645",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "오픈팀"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "권도현(위례)",
+    "phone": "010-2046-2756",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "고겸",
+    "phone": "010-6694-6987",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정태하",
+    "phone": "010-4051-2570",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이윤호 (위례)",
+    "phone": "010-6566-4765",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이시우(위례)",
+    "phone": "010-7200-1770",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최우혁",
+    "phone": "010-4612-9713",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍지범",
+    "phone": "010-2918-8690",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이찬용",
+    "phone": "010-3751-7712",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김태훈(위례)",
+    "phone": "010-8557-7094",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이찬유",
+    "phone": "010-8741-9413",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최시원",
+    "phone": "010-9329-9366",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최유이",
+    "phone": "010-7299-5757",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도윤(유아)",
+    "phone": "010-2504-8971",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유은종",
+    "phone": "010-8974-2656",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지오(유아)",
+    "phone": "010-9685-9098",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "마이안",
+    "phone": "010-9289-2698",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정이연",
+    "phone": "010-4388-8648",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장승헌",
+    "phone": "010-8745-8794",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이동헌 (위례16)",
+    "phone": "010-9188-1202",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박준서(위례)",
+    "phone": "010-3873-8495",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유선우(위례)",
+    "phone": "010-4019-3992",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이선우(15 위례초)",
+    "phone": "010-3081-2923",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "곽유준(위례)",
+    "phone": "010-9072-8487",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "곽유빈(위례)",
+    "phone": "010-9072-8487",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박진호",
+    "phone": "010-6613-2492",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김선우(위례)",
+    "phone": "010-7566-5419",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서아인",
+    "phone": "010-3302-6265",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임민제",
+    "phone": "010-3508-4237",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신율",
+    "phone": "010-3108-3499",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "원우진(퍼스트스텝)",
+    "phone": "010-9025-4377",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이지한 (위례)",
+    "phone": "010-3333-8385",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이준현",
+    "phone": "010-3339-6457",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "차정우",
+    "phone": "010-2740-3678",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "전찬웅",
+    "phone": "010-8811-3552",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "손승우",
+    "phone": "010-3269-4794",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도윤13(위례초)",
+    "phone": "010-6294-8504",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재용 (위례)",
+    "phone": "010-9049-8799",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송예준",
+    "phone": "010-9717-0769",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민준(13 위례초)",
+    "phone": "010-9089-9745",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이민준(위례)",
+    "phone": "010-5201-4733",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정현교",
+    "phone": "010-3528-8329",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "양채준",
+    "phone": "010-8622-5868",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "진유록",
+    "phone": "010-5270-9969",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지후 (위례 11)",
+    "phone": "010-8419-4919",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이예준(위례)",
+    "phone": "010-3869-3909",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박리암",
+    "phone": "010-8439-6035",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김시우(위례11)",
+    "phone": "010-5367-0095",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍성윤(위례)",
+    "phone": "010-4802-6603",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김홍찬",
+    "phone": "010-3907-0488",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황동욱",
+    "phone": "010-7373-5017",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박시우(플라잉워커)",
+    "phone": "010-8080-6821",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "[ 유영우 코치 ]",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최태정",
+    "phone": "010-8962-8263",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "고예준 (위례)",
+    "phone": "010-3677-2242",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "고윤",
+    "phone": "010-2765-8187",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최승영",
+    "phone": "010-3917-1594",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박민준(위례)",
+    "phone": "010-4938-3532",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조홍재",
+    "phone": "010-9301-0929",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이승하",
+    "phone": "010-2559-1784",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "전율",
+    "phone": "010-8881-1408",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이성준(위례초)",
+    "phone": "010-2808-3561",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이현서(위례)",
+    "phone": "010-6398-1582",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최윤우(위례)",
+    "phone": "010-9175-7955",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김찬형(위례초)",
+    "phone": "010-4162-1755",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "진유섬(퍼스트스텝)",
+    "phone": "010-5270-9969",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김진혁(퍼스트스텝)",
+    "phone": "010-2124-9713",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤중범(퍼스트스텝)",
+    "phone": "010-3300-6551",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "노규현(퍼스트스텝)",
+    "phone": "010-8595-0198",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "손지오(퍼스트스텝)",
+    "phone": "010-2622-3495",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박태윤(퍼스트스텝)",
+    "phone": "010-2635-3028",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지후(퍼스트스텝)",
+    "phone": "010-9257-4589",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유민후(퍼스트스텝)",
+    "phone": "010-9568-9422",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황대윤",
+    "phone": "010-5220-8014",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박유찬(위례)",
+    "phone": "010-9180-4882",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이승윤",
+    "phone": "010-8779-5600",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안유근",
+    "phone": "010-9797-3946",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍선우(위례)",
+    "phone": "010-7164-1105",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황선우",
+    "phone": "010-6301-5880",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김준희(위례)",
+    "phone": "010-2500-6756",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "안여준",
+    "phone": "010-5230-3378",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조정윤",
+    "phone": "010-2800-8471",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김준성14(위례)",
+    "phone": "010-5477-0012",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "고준우(위례)",
+    "phone": "010-9337-1227",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "고준영(위례)",
+    "phone": "010-9337-1227",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최지호(위례 14)",
+    "phone": "010-4759-3239",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최유정",
+    "phone": "010-8132-0962",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김민하(위례)",
+    "phone": "010-5246-9964",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지민",
+    "phone": "010-2769-7239",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "한승효(위례)",
+    "phone": "010-7372-2898",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장승우",
+    "phone": "010-4071-4200",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김하온",
+    "phone": "010-6561-6718",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "배찬율",
+    "phone": "010-3752-9597",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정우진",
+    "phone": "010-6212-3963",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "권담규",
+    "phone": "010-5316-0463",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이세준",
+    "phone": "010-2936-9144",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김겸율",
+    "phone": "010-4167-7965",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "엄시우(점프하이)",
+    "phone": "010-9253-8049",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정병준(점프하이)",
+    "phone": "010-9071-8290",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김찬우(점프하이)",
+    "phone": "010-4162-1755",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강현택(점프하이)",
+    "phone": "010-8914-2037",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김건호(점프하이)",
+    "phone": "010-3799-1496",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최민준 (위례)",
+    "phone": "010-3296-3159",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박성민",
+    "phone": "010-6275-4272",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신동현",
+    "phone": "010-5310-0927",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이동규",
+    "phone": "010-6639-9998",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도윤(SIS위례)",
+    "phone": "010-6275-9534",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤서진 (성인)",
+    "phone": "010-2771-3363",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "서대의 (성인반)",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이재원 (위례성인)",
+    "phone": "010-2274-2214",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이병탁",
+    "phone": "010-9613-8536",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최간수 (성인반)",
+    "phone": "010-7725-4274",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김현수(위례 성인)",
+    "phone": "010-6274-4047",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이일호",
+    "phone": "010-3211-2155",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정현규",
+    "phone": "010-8299-4190",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이형회(성인)",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이형희 (성인)",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "구회철",
+    "phone": "010-2615-8075",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김정훈 (성인)",
+    "phone": "010-8540-3065",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이세윤",
+    "phone": "010-2336-0397",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "남시율",
+    "phone": "010-3498-0855",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "하이안(골든바스켓)",
+    "phone": "010-8010-9446",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이시윤(골든바스켓)",
+    "phone": "010-7770-0800",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박지완(골든바스켓)",
+    "phone": "010-2932-6848",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "허지환(골든바스켓)",
+    "phone": "010-8814-8307",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이도윤(골든바스켓)",
+    "phone": "010-7454-1959",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최윤호(골든바스켓)",
+    "phone": "010-7746-9086",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이찬율(골든바스켓)",
+    "phone": "010-4039-1128",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신호용(골든바스켓)",
+    "phone": "010-9008-7790",
+    "status": "active",
+    "metadata": {
+      "needs_shuttle": true,
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박현수(골든바스켓)",
+    "phone": "010-2541-3843",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지호(17, 18)",
+    "phone": "010-4065-0925",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "[ 최준 코치 ]",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이강민(위너스)",
+    "phone": "010-3821-2936",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정건우(위너스)",
+    "phone": "010-8654-1516",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김하민(위너스)",
+    "phone": "010-5212-3405",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "조연우(위너스)",
+    "phone": "010-3141-4855",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "곽훈(위너스)",
+    "phone": "010-9032-3685",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍표(위너스)",
+    "phone": "010-2367-5492",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "윤서준(위너스)",
+    "phone": "010-3217-6846",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이준희 (위너스)",
+    "phone": "010-7766-9257",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "민준후(위너스)",
+    "phone": "010-6534-6250",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김도훈(위례)",
+    "phone": "010-8735-1718",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "신승인",
+    "phone": "010-8305-4828",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김건휘(위례)",
+    "phone": "010-5341-2126",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지환 (위례)",
+    "phone": "010-2275-7745",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "정보희",
+    "phone": "010-3252-5232",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이제헌",
+    "phone": "010-6543-3746",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박상혁",
+    "phone": "010-7232-2481",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김태규(위례)",
+    "phone": "010-4199-7043",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문지용",
+    "phone": "010-3236-5030",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "임수창",
+    "phone": "010-8975-1139",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김주혁",
+    "phone": "010-9098-3544",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이선(SIS)",
+    "phone": "010-2029-9192",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박이준",
+    "phone": "010-9637-8659",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "공이현(플라잉워커)",
+    "phone": "010-6212-0679",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박주한",
+    "phone": "010-5370-7594",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박서준(플라잉워커)",
+    "phone": "010-6349-1501",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "박규림(플라잉워커)",
+    "phone": "010-3402-6693",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "문하랑",
+    "phone": "010-5713-5146",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "유지훈(위례)",
+    "phone": "010-2357-9627",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "전지민",
+    "phone": "010-4046-8452",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "[위례 풋살 ]",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "장준혁",
+    "phone": "010-3279-1561",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김영우",
+    "phone": "010-9290-9526",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "홍유준(풋살)",
+    "phone": "010-6482-8764",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이수호(풋살)",
+    "phone": "010-8966-2486",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지호(풋살)",
+    "phone": "010-3799-1496",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "최주원",
+    "phone": "010-2226-4521",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "구연우",
+    "phone": "010-9084-6140",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김우현 (풋살)",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "강유준",
+    "phone": "010-7169-3994",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "김지후(유아풋살)",
+    "phone": "010-8932-3805",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "송정우 (풋살)",
+    "phone": "010-5386-0270",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이태오",
+    "phone": "010-7469-0321",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "오지후 (풋살)",
+    "phone": null,
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "권지혁",
+    "phone": "010-5172-4904",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "이서현(풋살)",
+    "phone": "010-9098-3898",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "배시윤",
+    "phone": "010-8921-7218",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "하현찬(풋살)",
+    "phone": "010-4332-7430",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "황리안",
+    "phone": "010-3070-7439",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  },
+  {
+    "type": "student",
+    "name": "손태빈",
+    "phone": "010-2071-1301",
+    "status": "active",
+    "metadata": {
+      "classes": [
+        "위례"
+      ]
+    }
+  }
+]

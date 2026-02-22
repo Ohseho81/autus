@@ -1065,6 +1065,8 @@
   </div>
   
   <script>
+// ═══ Supabase Init ═══
+async function initSupabaseBuilder(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var r=await AutusDB.getAutomationRules();var b=await AutusDB.getBlueprints();console.log('[Builder] Rules:',r.data?r.data.length:0,', Blueprints:',b.data?b.data.length:0)}catch(e){console.warn('[Builder] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseBuilder,200)});
     const missingFeatures = [
       { id: 1, name: 'Stage 1: Template Marketplace', desc: '247개 템플릿 라이브러리 + 검색/필터', impact: 15, selected: true, priority: 'P0' },
       { id: 2, name: 'Stage 6: Collective Intelligence', desc: '12,847 orgs 글로벌 네트워크 + Best Practices', impact: 15, selected: true, priority: 'P0' },
@@ -1270,5 +1272,7 @@
     renderFeatures();
     renderLog();
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

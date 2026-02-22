@@ -319,6 +319,8 @@
   </div>
 
   <script>
+// ═══ Supabase Init ═══
+async function initSupabaseSetup(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var org=await AutusDB.getOrganization();var students=await AutusDB.getStudentCount();console.log('[Setup] Org:',org?org.name:'N/A',', Students:',students)}catch(e){console.warn('[Setup] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseSetup,200)});
     const API_BASE = 'https://api.autus-ai.com';
     
     function log(message, type = 'info') {
@@ -417,5 +419,7 @@
     // 페이지 로드시 상태 확인
     checkStatus();
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

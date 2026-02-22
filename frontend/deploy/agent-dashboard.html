@@ -440,7 +440,7 @@
             <div class="logo">
                 <div class="logo-icon">🤖</div>
                 <div>
-                    <div class="logo-text">AUTUS</div>
+                    <div class="logo-text">온리쌤</div>
                     <div class="logo-sub">AGENT DASHBOARD</div>
                 </div>
             </div>
@@ -534,6 +534,8 @@
     <div class="toast" id="toast">메시지</div>
 
     <script>
+// ═══ Supabase Init ═══
+async function initSupabaseAgent(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var logs=await AutusDB.getAutomationLogs({limit:20});if(logs.data&&logs.data.length>0){console.log('[Agent] Loaded',logs.data.length,'automation logs from Supabase')}AutusDB.subscribe('automation_logs','INSERT',function(p){console.log('[Agent] New automation:',p.new.action_type)})}catch(e){console.warn('[Agent] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseAgent,200)});
         const API_BASE = 'https://api.autus-ai.com';
         let currentCard = null;
 
@@ -689,5 +691,7 @@
             }
         }
     </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

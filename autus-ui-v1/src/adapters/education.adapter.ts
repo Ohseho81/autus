@@ -1,7 +1,7 @@
 /**
- * 교육서비스업 어댑터 (올댓바스켓)
+ * 교육서비스업 어댑터 (온리쌤)
  * 
- * AUTUS Core Engine과 교육서비스업 도메인을 연결하는 어댑터
+ * 온리쌤 Core Engine과 교육서비스업 도메인을 연결하는 어댑터
  * - 용어 변환
  * - 지표 매핑
  * - 이벤트 템플릿
@@ -20,13 +20,13 @@ export const ADAPTER_CONFIG = {
   id: 'education_service',
   name: '교육서비스업',
   brandId: 'allthatbasket',
-  brandName: '올댓바스켓',
+  brandName: '온리쌤',
   industry: '교육서비스업',
   subCategory: '체육교육 (농구)',
   
   market: {
     growth: 0.05,        // 시장 연간 성장률 5%
-    companyGrowth: -0.03, // 올댓 성장률 -3%
+    companyGrowth: -0.03, // 온리쌤 성장률 -3%
     gap: -0.08,          // GAP -8%p
     status: 'WARNING' as const,
   },

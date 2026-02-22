@@ -12,6 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '../../../../lib/monitoring';
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase Client
@@ -108,7 +109,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Dashboard API Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'dashboard.handler' });
     
     // 에러 시 Mock 데이터 반환
     return NextResponse.json({
@@ -127,38 +128,47 @@ export async function GET(request: NextRequest) {
 async function getSummary(orgId: string | null) {
   if (!supabase) return MOCK_DATA.summary;
 
-  // 학생 수
-  const { count: totalStudents } = await supabase
-    .from('students')
-    .select('*', { count: 'exact', head: true })
-    .eq(orgId ? 'org_id' : 'id', orgId || undefined as any);
+  // Run all independent queries in parallel
+  const [totalResult, activeResult, riskResult, sigmaResult, vResult] = await Promise.all([
+    // 학생 수
+    supabase
+      .from('students')
+      .select('*', { count: 'exact', head: true })
+      .eq(orgId ? 'org_id' : 'id', orgId || ''),
 
-  // 활성 학생 (State 1-4)
-  const { count: activeStudents } = await supabase
-    .from('students')
-    .select('*', { count: 'exact', head: true })
-    .lte('state', 4);
+    // 활성 학생 (State 1-4)
+    supabase
+      .from('students')
+      .select('*', { count: 'exact', head: true })
+      .lte('state', 4),
 
-  // 위험 학생 (State 5-6)
-  const { count: atRiskStudents } = await supabase
-    .from('students')
-    .select('*', { count: 'exact', head: true })
-    .gte('state', 5);
+    // 위험 학생 (State 5-6)
+    supabase
+      .from('students')
+      .select('*', { count: 'exact', head: true })
+      .gte('state', 5),
 
-  // σ 평균
-  const { data: sigmaData } = await supabase
-    .from('students')
-    .select('sigma');
-  
-  const sigmaAvg = sigmaData?.length 
-    ? sigmaData.reduce((sum, s) => sum + (s.sigma || 0), 0) / sigmaData.length 
+    // σ 평균
+    supabase
+      .from('students')
+      .select('sigma'),
+
+    // V-Index 계산
+    supabase
+      .from('financial_transactions')
+      .select('type, amount')
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+  ]);
+
+  const totalStudents = totalResult.count;
+  const activeStudents = activeResult.count;
+  const atRiskStudents = riskResult.count;
+  const sigmaData = sigmaResult.data;
+  const vData = vResult.data;
+
+  const sigmaAvg = sigmaData?.length
+    ? sigmaData.reduce((sum: number, s: Record<string, unknown>) => sum + ((s.sigma as number) || 0), 0) / sigmaData.length
     : 0.72;
-
-  // V-Index 계산
-  const { data: vData } = await supabase
-    .from('financial_transactions')
-    .select('type, amount')
-    .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
   const mint = vData?.filter(v => v.type === 'revenue').reduce((s, v) => s + v.amount, 0) || 28500000;
   const tax = vData?.filter(v => v.type !== 'revenue').reduce((s, v) => s + v.amount, 0) || 18000000;
@@ -186,16 +196,19 @@ async function getStateDistribution(orgId: string | null) {
   const stateLabels = ['', 'OPTIMAL', 'STABLE', 'WATCH', 'ALERT', 'RISK', 'CRITICAL'];
   const distribution = [];
 
-  for (let state = 1; state <= 6; state++) {
-    const { count } = await supabase
-      .from('students')
-      .select('*', { count: 'exact', head: true })
-      .eq('state', state);
+  // Single query to get all students with state column, then count in JS
+  const { data: allStudents } = await supabase
+    .from('students')
+    .select('state');
 
+  const counts = new Map<number, number>();
+  (allStudents || []).forEach(s => counts.set(s.state, (counts.get(s.state) || 0) + 1));
+
+  for (let state = 1; state <= 6; state++) {
     distribution.push({
       state,
       label: stateLabels[state],
-      count: count || 0,
+      count: counts.get(state) || 0,
       percentage: 0, // 나중에 계산
     });
   }
@@ -234,7 +247,7 @@ async function getRisks(orgId: string | null) {
 
   return data?.map(r => ({
     id: r.id,
-    student_name: (r.students as any)?.name || '알 수 없음',
+    student_name: (r.students as Record<string, unknown> | null)?.name as string || '알 수 없음',
     state: r.state,
     probability: r.probability,
     signals: r.signals || [],
@@ -300,7 +313,7 @@ async function getTeacherStats(orgId: string | null) {
   return data?.map(t => ({
     id: t.id,
     name: t.name,
-    students: (t.students as any)?.length || 0,
+    students: (t.students as unknown[] | null)?.length || 0,
     avg_sigma: t.avg_sigma || 0.7,
     retention: t.retention_rate || 90,
   })) || MOCK_DATA.teachers;

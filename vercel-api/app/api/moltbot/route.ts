@@ -4,13 +4,15 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server';
-import moltbot, { 
-  sendToMoltbot, 
+import { captureError } from '../../../lib/monitoring';
+import moltbot, {
+  sendToMoltbot,
   checkMoltbotHealth,
   analyzeChurnRisk,
   generateDailyBriefing,
-  type MoltbotRole 
+  type MoltbotRole
 } from '@/lib/moltbot';
+import type { ActionType } from '@/lib/types-agent';
 
 // ─────────────────────────────────────────────────────────────────────
 // Types
@@ -110,7 +112,7 @@ export async function POST(request: NextRequest) {
         }
 
         const response = await moltbot.executeAction(
-          actionType as any,
+          actionType as ActionType,
           actionParams,
           userId
         );
@@ -127,7 +129,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('Moltbot API error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'moltbot.handler' });
     return NextResponse.json(
       { 
         success: false, 

@@ -4,6 +4,13 @@
 // ============================================
 
 import { NextResponse } from 'next/server';
+import { generateRequestId, captureError } from './monitoring';
+import { logger } from './logger';
+
+// ============================================
+// 기본 조직 ID (환경변수로 설정 가능)
+// ============================================
+export const DEFAULT_ORG_ID = process.env.DEFAULT_ORG_ID || '';
 
 // ============================================
 // 표준 API 응답 타입
@@ -77,8 +84,10 @@ export function isEnvConfigured(): boolean {
 export function successResponse<T>(
   data: T,
   message?: string,
-  status: number = 200
+  status: number = 200,
+  requestId?: string
 ): NextResponse<ApiResponse<T>> {
+  const reqId = requestId || generateRequestId();
   return NextResponse.json(
     {
       success: true,
@@ -87,9 +96,16 @@ export function successResponse<T>(
       meta: {
         timestamp: new Date().toISOString(),
         version: 'v1.0',
+        requestId: reqId,
       },
     },
-    { status, headers: CORS_HEADERS }
+    {
+      status,
+      headers: {
+        ...CORS_HEADERS,
+        'X-Request-ID': reqId,
+      }
+    }
   );
 }
 
@@ -99,8 +115,10 @@ export function successResponse<T>(
 export function errorResponse(
   error: string,
   status: number = 400,
-  data?: unknown
+  data?: unknown,
+  requestId?: string
 ): NextResponse<ApiResponse> {
+  const reqId = requestId || generateRequestId();
   return NextResponse.json(
     {
       success: false,
@@ -109,9 +127,16 @@ export function errorResponse(
       meta: {
         timestamp: new Date().toISOString(),
         version: 'v1.0',
+        requestId: reqId,
       },
     },
-    { status, headers: CORS_HEADERS }
+    {
+      status,
+      headers: {
+        ...CORS_HEADERS,
+        'X-Request-ID': reqId,
+      }
+    }
   );
 }
 
@@ -120,11 +145,13 @@ export function errorResponse(
  */
 export function serverErrorResponse(
   error: unknown,
-  context?: string
+  context?: string,
+  requestId?: string
 ): NextResponse<ApiResponse> {
+  const reqId = requestId || generateRequestId();
   const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-  console.error(`[AUTUS API Error${context ? ` - ${context}` : ''}]`, error);
-  
+  captureError(error instanceof Error ? error : new Error(String(error)), { context: `api-utils.serverErrorResponse${context ? ` - ${context}` : ''}` });
+
   return NextResponse.json(
     {
       success: false,
@@ -132,9 +159,16 @@ export function serverErrorResponse(
       meta: {
         timestamp: new Date().toISOString(),
         version: 'v1.0',
+        requestId: reqId,
       },
     },
-    { status: 500, headers: CORS_HEADERS }
+    {
+      status: 500,
+      headers: {
+        ...CORS_HEADERS,
+        'X-Request-ID': reqId,
+      }
+    }
   );
 }
 
@@ -152,26 +186,30 @@ export function optionsResponse(): NextResponse {
  * 인증 실패 응답
  */
 export function unauthorizedResponse(
-  message: string = 'Unauthorized'
+  message: string = 'Unauthorized',
+  requestId?: string
 ): NextResponse<ApiResponse> {
-  return errorResponse(message, 401);
+  return errorResponse(message, 401, undefined, requestId);
 }
 
 /**
  * Not Found 응답
  */
 export function notFoundResponse(
-  resource: string = 'Resource'
+  resource: string = 'Resource',
+  requestId?: string
 ): NextResponse<ApiResponse> {
-  return errorResponse(`${resource} not found`, 404);
+  return errorResponse(`${resource} not found`, 404, undefined, requestId);
 }
 
 /**
  * 유효성 검사 실패 응답
  */
 export function validationErrorResponse(
-  errors: Record<string, string>
+  errors: Record<string, string>,
+  requestId?: string
 ): NextResponse<ApiResponse> {
+  const reqId = requestId || generateRequestId();
   return NextResponse.json(
     {
       success: false,
@@ -180,9 +218,16 @@ export function validationErrorResponse(
       meta: {
         timestamp: new Date().toISOString(),
         version: 'v1.0',
+        requestId: reqId,
       },
     },
-    { status: 422, headers: CORS_HEADERS }
+    {
+      status: 422,
+      headers: {
+        ...CORS_HEADERS,
+        'X-Request-ID': reqId,
+      }
+    }
   );
 }
 
@@ -336,10 +381,74 @@ export function log(
       console.info(JSON.stringify(logEntry));
       break;
     case 'warn':
-      console.warn(JSON.stringify(logEntry));
+      logger.warn(message, context);
       break;
     case 'error':
-      console.error(JSON.stringify(logEntry));
+      logger.error(message, undefined, context);
       break;
+  }
+}
+
+// ============================================
+// Response Caching Helpers
+// ============================================
+
+/**
+ * GET 응답에 Cache-Control 헤더 추가
+ */
+export function cachedResponse<T>(
+  data: T,
+  message?: string,
+  options: { maxAge?: number; staleWhileRevalidate?: number; isPrivate?: boolean; requestId?: string } = {}
+): NextResponse<ApiResponse<T>> {
+  const { maxAge = 60, staleWhileRevalidate = 120, isPrivate = false, requestId } = options;
+  const reqId = requestId || generateRequestId();
+  const cacheControl = isPrivate
+    ? `private, max-age=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`
+    : `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`;
+
+  return NextResponse.json(
+    {
+      success: true,
+      data,
+      message,
+      meta: {
+        timestamp: new Date().toISOString(),
+        version: 'v1.0',
+        requestId: reqId,
+      },
+    },
+    {
+      status: 200,
+      headers: {
+        ...CORS_HEADERS,
+        'Cache-Control': cacheControl,
+        'X-Request-ID': reqId,
+      }
+    }
+  );
+}
+
+// ============================================
+// Simple In-Memory Cache
+// ============================================
+const memoryCache = new Map<string, { data: unknown; expires: number }>();
+
+export function getCached<T>(key: string): T | null {
+  const entry = memoryCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expires) {
+    memoryCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+export function setCache(key: string, data: unknown, ttlMs: number = 60000): void {
+  memoryCache.set(key, { data, expires: Date.now() + ttlMs });
+  // Prevent unbounded growth
+  if (memoryCache.size > 100) {
+    const oldest = memoryCache.keys().next().value;
+    if (oldest) memoryCache.delete(oldest);
   }
 }

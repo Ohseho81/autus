@@ -489,7 +489,7 @@
       <div class="sidebar-header">
         <div class="logo">
           <div class="logo-icon">A</div>
-          <span class="logo-text">AUTUS</span>
+          <span class="logo-text">온리쌤</span>
         </div>
       </div>
       
@@ -646,6 +646,8 @@
   </div>
 
   <script>
+// ═══ Supabase Init ═══
+async function initSupabaseTeam(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var s=await AutusDB.getStudents({limit:786});var c=await AutusDB.getCoaches();if(s.data&&s.data.length>0){var container=document.querySelector('.team-grid')||document.querySelector('main')||document.body;var html='<div style="padding:16px"><h3 style="color:#10b981;margin-bottom:12px">🏐 실제 학생 데이터 ('+s.data.length+'명)</h3>';s.data.slice(0,20).forEach(function(st){html+='<div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px"><span>'+st.name+'</span><span style="color:#9ca3af">'+(st.grade||'-')+'</span><span style="color:#10b981">'+(st.status||'active')+'</span></div>'});html+='<div style="color:#6b7280;font-size:11px;padding:8px">...외 '+(s.data.length-20)+'명</div></div>';container.insertAdjacentHTML('afterbegin',html)}console.log('[Team] Loaded',s.data?s.data.length:0,'students,',c.data?c.data.length:0,'coaches')}catch(e){console.warn('[Team] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseTeam,200)});
     const state = {
       selectedMember: null,
       members: [
@@ -757,5 +759,7 @@
     window.addEventListener('load', () => { renderTeamNodes(); renderTeamList(); });
     window.addEventListener('resize', () => { renderTeamNodes(); });
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

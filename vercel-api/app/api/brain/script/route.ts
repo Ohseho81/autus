@@ -11,12 +11,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { captureError } from '../../../../lib/monitoring';
 
-// Claude API Client
-const anthropic = process.env.ANTHROPIC_API_KEY 
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  : null;
+// Claude API Client (lazy initialization to reduce cold start)
+let _anthropic: InstanceType<typeof import('@anthropic-ai/sdk').default> | null = null;
+function getAnthropic() {
+  if (!_anthropic) {
+    if (!process.env.ANTHROPIC_API_KEY) return null;
+    const Anthropic = require('@anthropic-ai/sdk').default;
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return _anthropic;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Types
@@ -152,7 +158,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
     }
   } catch (error) {
-    console.error('Script API Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'brain-script.POST' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -173,6 +179,7 @@ async function generateScript(payload: ScriptRequest) {
   const userPrompt = buildUserPrompt(scenario, student_name, parent_name, context, custom_prompt);
 
   // Claude API 호출
+  const anthropic = getAnthropic();
   if (anthropic) {
     try {
       const response = await anthropic.messages.create({
@@ -197,7 +204,7 @@ async function generateScript(payload: ScriptRequest) {
         model: 'claude-3-haiku',
       });
     } catch (e) {
-      console.error('Claude API Error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'brain-script.claudeAPI' });
       // 폴백: Mock 스크립트 반환
       return NextResponse.json({
         success: true,
@@ -303,7 +310,7 @@ function parseScriptResponse(text: string): ScriptResponse {
   patterns.forEach(({ key, pattern }) => {
     const match = text.match(pattern);
     if (match) {
-      (sections as any)[key] = match[1].trim();
+      (sections as Record<string, unknown>)[key] = match[1].trim();
     }
   });
 

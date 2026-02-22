@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '../../../lib/monitoring';
 import { getSupabaseAdmin } from '../../../lib/supabase';
 
 const corsHeaders = {
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
     }, { headers: corsHeaders });
     
   } catch (error) {
-    console.error('Metrics Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'metrics.handler' });
     return NextResponse.json({
       success: false,
       error: 'Failed to collect metrics',

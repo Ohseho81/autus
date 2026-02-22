@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
 
 
 interface CalibrationResult {
@@ -137,7 +138,7 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Physics Calibration Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'audit-physics.handler' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -146,7 +147,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Confusion Matrix 계산
-function calculateConfusionMatrix(riskQueue: any[], outcomes: any[]) {
+function calculateConfusionMatrix(riskQueue: Array<Record<string, unknown>>, outcomes: Array<Record<string, unknown>>) {
   // 실제 이탈/컴플레인이 발생한 노드 ID
   const actualChurns = new Set(
     outcomes
@@ -195,7 +196,7 @@ function calculateConfusionMatrix(riskQueue: any[], outcomes: any[]) {
 }
 
 // Weight 분석 및 최적화
-function analyzeAndOptimizeWeights(riskQueue: any[], outcomes: any[]) {
+function analyzeAndOptimizeWeights(riskQueue: Array<Record<string, unknown>>, outcomes: Array<Record<string, unknown>>) {
   // 현재 가중치 (기본값)
   const currentWi = [1.0, 1.2, 1.4, 1.6, 1.8]; // 시간순 가중치
   const currentAlpha = 1.5; // 만족도 민감도
@@ -244,7 +245,7 @@ function analyzeAndOptimizeWeights(riskQueue: any[], outcomes: any[]) {
 }
 
 // Latency 분석
-function analyzeLatency(latencyLogs: any[]) {
+function analyzeLatency(latencyLogs: Array<Record<string, unknown>>) {
   if (latencyLogs.length === 0) {
     // Mock 데이터
     return {
@@ -283,7 +284,7 @@ function analyzeLatency(latencyLogs: any[]) {
 }
 
 // Priority별 정확도
-function calculatePriorityAccuracy(riskQueue: any[], outcomes: any[]) {
+function calculatePriorityAccuracy(riskQueue: Array<Record<string, unknown>>, outcomes: Array<Record<string, unknown>>) {
   const actualChurns = new Set(
     outcomes
       .filter(o => o.outcome_type === 'churn' || o.outcome_type === 'complaint')
@@ -324,7 +325,7 @@ function calculatePriorityAccuracy(riskQueue: any[], outcomes: any[]) {
 }
 
 // 최적 임계값 계산
-function calculateOptimalThresholds(riskQueue: any[], outcomes: any[]) {
+function calculateOptimalThresholds(riskQueue: Array<Record<string, unknown>>, outcomes: Array<Record<string, unknown>>) {
   // ROC 분석 기반 최적 임계값 (간소화)
   return {
     critical_threshold: 70,  // Risk Score >= 70 → CRITICAL
@@ -335,10 +336,10 @@ function calculateOptimalThresholds(riskQueue: any[], outcomes: any[]) {
 
 // 권장사항 생성
 function generateCalibrationRecommendations(
-  confusion: any,
-  weights: any,
-  latency: any,
-  priority: any
+  confusion: CalibrationResult['confusion_matrix'],
+  weights: CalibrationResult['weight_analysis'],
+  latency: CalibrationResult['latency_metrics'],
+  priority: CalibrationResult['priority_accuracy']
 ): string[] {
   const recommendations: string[] = [];
   
@@ -361,7 +362,7 @@ function generateCalibrationRecommendations(
   if (!latency.target_achieved) {
     recommendations.push(`⏱️ 지연 시간이 목표(0.5초)를 초과합니다. Claude API 호출 최적화가 필요합니다.`);
     
-    const bottleneck = latency.bottleneck_points.sort((a: any, b: any) => b.avg_ms - a.avg_ms)[0];
+    const bottleneck = latency.bottleneck_points.sort((a: { stage: string; avg_ms: number }, b: { stage: string; avg_ms: number }) => b.avg_ms - a.avg_ms)[0];
     recommendations.push(`🔍 병목 구간: ${bottleneck.stage} (평균 ${bottleneck.avg_ms}ms)`);
   }
   

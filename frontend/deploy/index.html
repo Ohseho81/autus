@@ -522,7 +522,7 @@
       <div class="header-top">
         <div class="logo">
           <div class="logo-icon">🏛️</div>
-          <span class="logo-text">AUTUS</span>
+          <span class="logo-text">온리쌤</span>
         </div>
         <div class="trust-badge">
           <span>Trust</span>
@@ -686,113 +686,247 @@
     let originalContent = '';
     const stats = { submits: 47, edits: 23, auto: 5, score: 127, trust: 72 };
 
-    // Handlers
+    // ═══ Supabase: 실데이터 로드 ═══
+    async function initSupabase() {
+      if (typeof AutusDB === 'undefined' || !AutusDB.isConnected()) return;
+      try {
+        // 학생 수, 이벤트 수에서 실제 통계 가져오기
+        const [studentCount, eventCount, vMetrics, autoLogs] = await Promise.all([
+          AutusDB.getStudentCount(),
+          AutusDB.getEventCount(),
+          AutusDB.getVMetrics(),
+          AutusDB.getAutomationLogs({ limit: 100 })
+        ]);
+
+        // 이벤트 카테고리별 카운트
+        const submitCount = await AutusDB.getEventCount({ event_type: 'suggestion_submit' });
+        const editCount = await AutusDB.getEventCount({ event_type: 'suggestion_edit' });
+        const autoCount = autoLogs.data ? autoLogs.data.length : 0;
+
+        stats.submits = submitCount || studentCount || stats.submits;
+        stats.edits = editCount || stats.edits;
+        stats.auto = autoCount || stats.auto;
+        stats.score = vMetrics ? Math.round(parseFloat(vMetrics.total_value) || 0) : stats.score;
+        stats.trust = vMetrics ? Math.min(100, Math.round(parseFloat(vMetrics.synergy) * 100) || 72) : stats.trust;
+        updateStats();
+
+        // 헤더에 실제 학생/이벤트 수 표시
+        var logoText = document.querySelector('.logo-text');
+        if (logoText && studentCount > 0) {
+          logoText.textContent = '온리쌤 (' + studentCount + '명)';
+        }
+
+        console.log('[AUTUS] Live data loaded: ' + studentCount + ' students, ' + eventCount + ' events');
+      } catch (e) {
+        console.warn('[AUTUS] Fallback to static data:', e.message);
+      }
+
+      // Realtime: 새 이벤트 구독
+      AutusDB.subscribe('events', 'INSERT', function(payload) {
+        var evt = payload.new;
+        if (evt.event_category === 'ai_suggestion' && evt.state_to === 'pending') {
+          addTaskCard(evt);
+        }
+        showToast('success', '🔔 실시간 이벤트', evt.event_type);
+      });
+    }
+
+    // 동적 태스크 카드 추가
+    function addTaskCard(evt) {
+      var container = document.getElementById('tasksContainer');
+      var div = document.createElement('div');
+      div.className = 'task-card';
+      div.dataset.taskId = evt.event_id;
+      div.dataset.streak = '0';
+      var p = evt.payload || {};
+      div.innerHTML = '<div class="task-body"><div class="task-header"><div>' +
+        '<div class="task-title">' + (p.title || evt.event_type) + '</div>' +
+        '<div class="task-meta"><span>' + AutusDB.timeAgo(evt.occurred_at) + '</span></div>' +
+        '</div></div>' +
+        '<div class="task-content"><strong>' + (p.summary || evt.entity_type) + '</strong>' + (p.detail || '') + '</div>' +
+        '<div class="action-buttons">' +
+        '<button class="action-btn discard" onclick="handleDiscard(\'' + evt.event_id + '\')">🗑️ 폐기</button>' +
+        '<button class="action-btn edit" onclick="handleEdit(\'' + evt.event_id + '\')">✏️ 수정</button>' +
+        '<button class="action-btn submit" onclick="handleSubmit(\'' + evt.event_id + '\')">🚀 제출</button>' +
+        '</div></div>';
+      container.prepend(div);
+      updateCount();
+    }
+
+    // 초기화
+    window.addEventListener('DOMContentLoaded', function() {
+      setTimeout(initSupabase, 100);
+    });
+
+    // ═══ 기존 핸들러 (+ Supabase 이벤트 기록) ═══
     function handleSubmit(id) {
-      const card = document.querySelector(`[data-task-id="${id}"]`);
+      const card = document.querySelector('[data-task-id="' + id + '"]');
+      if (!card) return;
       const streak = parseInt(card.dataset.streak) + 1;
-      
+
       stats.submits++;
       stats.score += 10;
       stats.trust = Math.min(100, stats.trust + 2);
       updateStats();
-      
+
+      // Supabase 이벤트 기록
+      if (typeof AutusDB !== 'undefined' && AutusDB.isConnected()) {
+        AutusDB.recordEvent({
+          event_type: 'suggestion_submit',
+          event_category: 'ai_suggestion',
+          entity_id: String(id),
+          entity_type: 'task',
+          state_from: 'pending',
+          state_to: 'submitted',
+          payload: { streak: streak, score_delta: 10 },
+          source: 'web_index'
+        });
+      }
+
       if (streak >= 3) {
         showToast('success', '🏆 3연속 성공!', '자동화 승격 가능');
         card.classList.add('gold');
       } else {
-        showToast('success', '✅ 제출 완료', `+10점 학습됨`);
+        showToast('success', '✅ 제출 완료', '+10점 학습됨');
       }
       card.dataset.streak = streak;
-      
-      setTimeout(() => {
+
+      setTimeout(function() {
         card.style.opacity = '0';
         card.style.transform = 'translateX(100px)';
-        setTimeout(() => { card.remove(); updateCount(); }, 300);
+        setTimeout(function() { card.remove(); updateCount(); }, 300);
       }, 1500);
     }
-    
+
     function handleEdit(id) {
       currentEditId = id;
-      const card = document.querySelector(`[data-task-id="${id}"]`);
+      const card = document.querySelector('[data-task-id="' + id + '"]');
+      if (!card) return;
       originalContent = card.querySelector('.task-content').innerText;
       document.getElementById('editArea').value = originalContent;
       document.getElementById('editModal').classList.add('active');
     }
-    
+
     function submitEdit() {
       const modified = document.getElementById('editArea').value;
       stats.edits++;
       stats.score += 5;
       stats.trust = Math.min(100, stats.trust + 1);
       updateStats();
-      
+
+      // Supabase 이벤트 기록
+      if (typeof AutusDB !== 'undefined' && AutusDB.isConnected()) {
+        AutusDB.recordEvent({
+          event_type: 'suggestion_edit',
+          event_category: 'ai_suggestion',
+          entity_id: String(currentEditId),
+          entity_type: 'task',
+          state_from: 'pending',
+          state_to: 'edited',
+          payload: { score_delta: 5 },
+          source: 'web_index'
+        });
+      }
+
       showToast('learning', '📚 학습 완료', '문체 선호도 반영됨');
       closeModal();
-      
-      const card = document.querySelector(`[data-task-id="${currentEditId}"]`);
-      card.querySelector('.task-content').innerText = modified;
+
+      const card = document.querySelector('[data-task-id="' + currentEditId + '"]');
+      if (card) card.querySelector('.task-content').innerText = modified;
     }
-    
+
     function closeModal() {
       document.getElementById('editModal').classList.remove('active');
       currentEditId = null;
     }
-    
+
     function handleDiscard(id) {
-      const card = document.querySelector(`[data-task-id="${id}"]`);
+      const card = document.querySelector('[data-task-id="' + id + '"]');
+      if (!card) return;
       card.classList.add('animate-shake');
       stats.score -= 5;
       updateStats();
-      
+
+      // Supabase 이벤트 기록
+      if (typeof AutusDB !== 'undefined' && AutusDB.isConnected()) {
+        AutusDB.recordEvent({
+          event_type: 'suggestion_discard',
+          event_category: 'ai_suggestion',
+          entity_id: String(id),
+          entity_type: 'task',
+          state_from: 'pending',
+          state_to: 'discarded',
+          payload: { score_delta: -5 },
+          source: 'web_index'
+        });
+      }
+
       showToast('blocked', '🚫 패턴 차단', '비슷한 제안 안 함');
-      
-      setTimeout(() => {
+
+      setTimeout(function() {
         card.style.opacity = '0';
         card.style.transform = 'scale(0.8)';
-        setTimeout(() => { card.remove(); updateCount(); }, 300);
+        setTimeout(function() { card.remove(); updateCount(); }, 300);
       }, 500);
     }
-    
+
     function handleAutoMode(id) {
       stats.auto++;
       stats.score += 20;
       updateStats();
-      
+
+      // Supabase 이벤트 기록
+      if (typeof AutusDB !== 'undefined' && AutusDB.isConnected()) {
+        AutusDB.recordEvent({
+          event_type: 'suggestion_automate',
+          event_category: 'ai_suggestion',
+          entity_id: String(id),
+          entity_type: 'task',
+          state_from: 'pending',
+          state_to: 'automated',
+          payload: { score_delta: 20 },
+          source: 'web_index'
+        });
+      }
+
       showToast('success', '🤖 자동화 승격!', '이제 자동 처리됩니다');
-      
-      const card = document.querySelector(`[data-task-id="${id}"]`);
-      setTimeout(() => {
+
+      const card = document.querySelector('[data-task-id="' + id + '"]');
+      if (!card) return;
+      setTimeout(function() {
         card.style.opacity = '0';
         card.style.transform = 'translateY(-50px)';
-        setTimeout(() => { card.remove(); updateCount(); }, 300);
+        setTimeout(function() { card.remove(); updateCount(); }, 300);
       }, 1500);
     }
-    
+
     function showToast(type, text, sub) {
       const toast = document.getElementById('toast');
-      toast.className = `toast ${type}`;
+      toast.className = 'toast ' + type;
       document.getElementById('toastText').textContent = text;
       document.getElementById('toastSub').textContent = sub;
-      document.getElementById('toastIcon').textContent = 
+      document.getElementById('toastIcon').textContent =
         type === 'success' ? '✨' : type === 'learning' ? '📚' : '🚫';
-      
+
       toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
+      setTimeout(function() { toast.classList.remove('show'); }, 3000);
     }
-    
+
     function updateStats() {
       document.getElementById('totalSubmits').textContent = stats.submits;
       document.getElementById('totalEdits').textContent = stats.edits;
       document.getElementById('autoTasks').textContent = stats.auto;
-      document.getElementById('learningScore').textContent = `+${stats.score}`;
-      document.getElementById('trustFill').style.width = `${stats.trust}%`;
-      document.getElementById('trustPercent').textContent = `${stats.trust}%`;
+      document.getElementById('learningScore').textContent = '+' + stats.score;
+      document.getElementById('trustFill').style.width = stats.trust + '%';
+      document.getElementById('trustPercent').textContent = stats.trust + '%';
     }
-    
+
     function updateCount() {
       const count = document.querySelectorAll('.task-card').length;
-      document.getElementById('taskCount').textContent = `${count}개`;
+      document.getElementById('taskCount').textContent = count + '개';
     }
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

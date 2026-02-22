@@ -14,6 +14,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './lib/supabase/auth';
+import { useVEngine, useStudents, useHudState, isSupabaseConfigured } from './hooks/useSupabaseData';
 
 // ============================================
 // LAZY LOADED PAGES
@@ -791,22 +792,44 @@ const LoginScreen = ({ onLogin }) => {
 // ============================================
 // GLOBAL HUD
 // ============================================
-const GlobalHUD = ({ 
-  role, 
-  currentPage, 
-  onPageChange, 
-  truthMode, 
+const GlobalHUD = ({
+  role,
+  currentPage,
+  onPageChange,
+  truthMode,
   onTruthModeToggle,
-  onLogout 
+  onLogout
 }) => {
-  const [systemState, setSystemState] = useState(2);
-  const [confidence, setConfidence] = useState(94.2);
-  const [vIndex, setVIndex] = useState(847);
   const [showNotifications, setShowNotifications] = useState(false);
-  
+
+  // 🔌 Supabase 실데이터
+  const { data: vEngine } = useVEngine();
+  const { data: students } = useStudents();
+  const { data: hudState } = useHudState();
+
+  // 실데이터 기반 V-Index 계산
+  const baseVIndex = vEngine
+    ? ((vEngine.minting - vEngine.taxation) * Math.pow(1 + vEngine.synergy, vEngine.time_months / 12)) / 1000000
+    : 847;
+
+  // 실데이터 기반 시스템 상태
+  const dangerCount = (students || []).filter(s => s.riskLevel === 'critical').length;
+  const warningCount = (students || []).filter(s => s.riskLevel === 'high' || s.riskLevel === 'warning').length;
+  const computedSystemState = hudState?.system_state || (dangerCount > 5 ? 5 : warningCount > 10 ? 4 : warningCount > 3 ? 3 : 2);
+
+  const [systemState, setSystemState] = useState(computedSystemState);
+  const [confidence, setConfidence] = useState(hudState?.confidence || 94.2);
+  const [vIndex, setVIndex] = useState(baseVIndex);
+
+  // 실데이터가 로드되면 업데이트
+  useEffect(() => {
+    if (vEngine) setVIndex(baseVIndex);
+    if (hudState?.confidence) setConfidence(hudState.confidence);
+    if (computedSystemState) setSystemState(computedSystemState);
+  }, [vEngine, hudState, baseVIndex, computedSystemState]);
+
   // 실시간 위험 알림 구독
   const { alerts } = useRealtimeRiskAlerts((alert) => {
-    // 새 위험 알림 시 알림 센터에 추가
     notificationService.add(TEMPLATES.riskAlert({
       id: alert.id,
       name: alert.student_name,

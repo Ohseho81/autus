@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
 
 
 // 환율 (실시간 연동 가능)
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('V-Consolidation Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'global-consolidate.POST' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

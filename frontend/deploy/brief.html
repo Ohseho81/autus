@@ -441,6 +441,8 @@
   </nav>
 
   <script>
+// ═══ Supabase Init ═══
+async function initSupabaseBrief(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var e=await AutusDB.getEvents({limit:10});var v=await AutusDB.getVMetrics();console.log('[Brief] Events:',e.data?e.data.length:0,', V:',v?v.total_value:'N/A')}catch(e){console.warn('[Brief] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseBrief,200)});
     const API_BASE = 'https://api.autus-ai.com';
     const USER_ID = 'default';
     
@@ -572,5 +574,7 @@
     setTodayDate();
     loadBrief();
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

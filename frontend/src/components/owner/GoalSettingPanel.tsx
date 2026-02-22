@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // 🎯 목표 설정 패널 (Goal Setting Panel)
-// 오너가 핵심 목표를 설정하면 AUTUS가 모든 것을 정렬
+// 오너가 핵심 목표를 설정하면 온리쌤이 모든 것을 정렬
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState } from 'react';
@@ -59,7 +59,7 @@ export function GoalSettingPanel({ goals = DEFAULT_GOALS, onSaveGoals }: GoalSet
             <span>🎯</span> 핵심 목표
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            목표를 설정하면 AUTUS가 모든 것을 정렬합니다
+            목표를 설정하면 온리쌤이 모든 것을 정렬합니다
           </p>
         </div>
         

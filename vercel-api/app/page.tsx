@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '../lib/logger';
+
+const DEFAULT_ORG_ID = process.env.NEXT_PUBLIC_DEFAULT_ORG_ID || '';
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// 🏛️ AUTUS Dashboard - Tesla Grade Business Intelligence
+// 온리쌤 Dashboard - Tesla Grade Business Intelligence
 // V = (T × M × s)^t
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -125,7 +128,7 @@ function VIndexSimulator({ onSimulate }: { onSimulate: (v: number) => void }) {
     onSimulate(parseFloat(normalizedV));
   }, [V, normalizedV, onSimulate]);
   
-  const Slider = ({ label, value, setValue, min, max, step, unit, color }: any) => (
+  const Slider = ({ label, value, setValue, min, max, step, unit, color }: { label: string; value: number; setValue: (v: number) => void; min: number; max: number; step: number; unit: string; color: string }) => (
     <div style={{ marginBottom: '1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
         <span style={{ color: '#888', fontSize: '0.85rem' }}>{label}</span>
@@ -190,7 +193,7 @@ function VIndexSimulator({ onSimulate }: { onSimulate: (v: number) => void }) {
   );
 }
 
-function RoleCard({ role, onClick, isActive }: { role: any; onClick: () => void; isActive: boolean }) {
+function RoleCard({ role, onClick, isActive }: { role: { name: string; icon: string; color: string; description: string }; onClick: () => void; isActive: boolean }) {
   return (
     <button
       onClick={onClick}
@@ -371,7 +374,7 @@ function RadarAlertPanel({ alerts, onRefresh }: { alerts: RiskAlert[]; onRefresh
 function FloatingChatWidget({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([
-    { role: 'assistant', content: '안녕하세요! 🏛️ AUTUS 크라톤입니다. 무엇을 도와드릴까요?' }
+    { role: 'assistant', content: '안녕하세요! 온리쌤 크라톤입니다. 무엇을 도와드릴까요?' }
   ]);
   const [loading, setLoading] = useState(false);
 
@@ -591,13 +594,13 @@ export default function Home() {
   // Radar 데이터 fetch
   const fetchRadar = useCallback(async () => {
     try {
-      const res = await fetch('/api/v1/radar/monitor?org_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11&notify=false');
+      const res = await fetch(`/api/v1/radar/monitor?org_id=${DEFAULT_ORG_ID}&notify=false`);
       const data = await res.json();
       if (data.success && data.data?.alerts) {
         setRadarAlerts(data.data.alerts);
       }
     } catch (error) {
-      console.error('Radar fetch failed:', error);
+      logger.error('Radar fetch failed', { error: error instanceof Error ? error.message : String(error) });
     }
   }, []);
 
@@ -607,9 +610,9 @@ export default function Home() {
       try {
         // 병렬 요청
         const [cockpitRes, automationRes, radarRes] = await Promise.all([
-          fetch('/api/v1/cockpit?org_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
-          fetch('/api/v1/automation?org_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11&period=today'),
-          fetch('/api/v1/radar/monitor?org_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11&notify=false')
+          fetch(`/api/v1/cockpit?org_id=${DEFAULT_ORG_ID}`),
+          fetch(`/api/v1/automation?org_id=${DEFAULT_ORG_ID}&period=today`),
+          fetch(`/api/v1/radar/monitor?org_id=${DEFAULT_ORG_ID}&notify=false`)
         ]);
         
         const cockpitData = await cockpitRes.json();
@@ -628,7 +631,7 @@ export default function Home() {
           setRadarAlerts(radarData.data.alerts);
         }
       } catch (error) {
-        console.error('Data fetch failed:', error);
+        logger.error('Data fetch failed', { error: error instanceof Error ? error.message : String(error) });
       } finally {
         setLoading(false);
       }
@@ -666,7 +669,7 @@ export default function Home() {
           marginBottom: '0.5rem',
           fontWeight: '700'
         }}>
-          🏛️ AUTUS
+          온리쌤
         </h1>
         <p style={{ fontSize: '1rem', color: '#888', letterSpacing: '0.1em' }}>
           Tesla Grade Business Intelligence

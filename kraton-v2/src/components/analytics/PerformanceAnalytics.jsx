@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStudents, useVEngine, useOrganization } from '../../hooks/useSupabaseData';
 
 // ============================================
 // MOCK DATA GENERATORS
@@ -383,12 +384,61 @@ const EfficiencyMetrics = memo(function EfficiencyMetrics({ metrics }) {
 // ============================================
 
 export default function PerformanceAnalytics() {
-  const [metrics] = useState(generateOverallMetrics);
+  // === Supabase Live Data ===
+  const { data: liveStudents, loading: studentsLoading, isLive } = useStudents();
+  const { data: vEngineData, loading: vEngineLoading } = useVEngine();
+  const { data: orgData, loading: orgLoading } = useOrganization();
+
+  const [mockMetrics] = useState(generateOverallMetrics);
   const [revenueData] = useState(generateRevenueData);
   const [departments] = useState(generateDepartmentPerformance);
   const [teachers] = useState(generateTeacherRanking);
-  const [kpis] = useState(generateKPIProgress);
+  const [mockKpis] = useState(generateKPIProgress);
   const [period, setPeriod] = useState('month');
+
+  // Compute real metrics from live student data
+  const metrics = useMemo(() => {
+    if (!liveStudents || liveStudents.length === 0) return mockMetrics;
+
+    const totalStudents = liveStudents.length;
+    const activeStudents = liveStudents.filter(s => s.status === 'active').length;
+    const avgEngagement = liveStudents.reduce((sum, s) => sum + (s.engagement_score || 70), 0) / totalStudents;
+    const avgNps = liveStudents.reduce((sum, s) => sum + (s.parent_nps || 50), 0) / totalStudents;
+    const warningStudents = liveStudents.filter(s => s.riskLevel === 'warning' || s.riskLevel === 'high').length;
+    const criticalStudents = liveStudents.filter(s => s.riskLevel === 'critical').length;
+    const totalVIndex = vEngineData?.total_value || liveStudents.reduce((sum, s) => sum + (s.vIndex || 0), 0);
+
+    return {
+      ...mockMetrics,
+      totalStudents,
+      newStudents: mockMetrics.newStudents, // keep mock for new/churned (no historical data)
+      churnedStudents: criticalStudents,
+      netGrowth: totalStudents - criticalStudents,
+      avgSIndex: avgEngagement / 100,
+      sIndexTrend: mockMetrics.sIndexTrend,
+      nps: Math.round(avgNps),
+      totalVIndex: totalVIndex,
+      vIndexGrowth: vEngineData?.synergy_change || mockMetrics.vIndexGrowth,
+    };
+  }, [liveStudents, vEngineData, mockMetrics]);
+
+  // Compute real KPIs from live data
+  const kpis = useMemo(() => {
+    if (!liveStudents || liveStudents.length === 0) return mockKpis;
+
+    const totalStudents = liveStudents.length;
+    const activeCount = liveStudents.filter(s => s.status === 'active').length;
+    const retentionRate = (activeCount / Math.max(totalStudents, 1)) * 100;
+    const avgEngagement = liveStudents.reduce((sum, s) => sum + (s.engagement_score || 70), 0) / totalStudents;
+
+    return [
+      { name: '월 매출', current: mockKpis[0].current, target: mockKpis[0].target, unit: 'M', progress: mockKpis[0].progress },
+      { name: '신규 등록', current: mockKpis[1].current, target: mockKpis[1].target, unit: '명', progress: mockKpis[1].progress },
+      { name: '유지율', current: Math.round(retentionRate), target: 95, unit: '%', progress: retentionRate / 95 },
+      { name: 's-Index', current: Math.round(avgEngagement), target: 80, unit: '%', progress: avgEngagement / 80 },
+      { name: '자동화율', current: mockKpis[4].current, target: mockKpis[4].target, unit: '%', progress: mockKpis[4].progress },
+    ];
+  }, [liveStudents, mockKpis]);
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">
@@ -403,6 +453,12 @@ export default function PerformanceAnalytics() {
             <p className="text-gray-400 mt-1">전체 성과 분석 대시보드</p>
           </div>
           <div className="flex items-center gap-2">
+            {isLive && (
+              <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-2 mr-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-emerald-400 text-xs font-medium">LIVE</span>
+              </div>
+            )}
             {['week', 'month', 'quarter', 'year'].map(p => (
               <button
                 key={p}

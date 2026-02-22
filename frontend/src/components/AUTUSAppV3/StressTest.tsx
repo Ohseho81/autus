@@ -232,7 +232,9 @@ class LaplacianEngine {
         top = node;
       }
     });
-    return top ? { id: top.id, name: top.name, pressure: top.pressure } : null;
+    if (!top) return null;
+    const result: Node = top;
+    return { id: result.id, name: result.name, pressure: result.pressure };
   }
   
   /**

@@ -1,5 +1,5 @@
 /**
- * 🏀 올댓바스켓 Brand Adapter
+ * 온리쌤 Brand Adapter
  *
  * Core는 불변, UI는 어댑터로 분리 (Shopify DNA)
  *
@@ -14,7 +14,7 @@
 
 export const BRAND = {
   id: 'allthatbasket',
-  name: '올댓바스켓',
+  name: '온리쌤',
   emoji: '🏀',
   colors: {
     primary: '#F97316',    // orange-500

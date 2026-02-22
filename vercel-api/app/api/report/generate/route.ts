@@ -11,18 +11,29 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import Anthropic from '@anthropic-ai/sdk';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 
-// Supabase Client
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+// Supabase Client (lazy via shared singleton)
+function getSupabase() {
+  try {
+    return getSupabaseAdmin();
+  } catch {
+    return null;
+  }
+}
 
-// Claude API
-const anthropic = process.env.ANTHROPIC_API_KEY 
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  : null;
+// Claude API (lazy initialization to reduce cold start)
+let _anthropic: InstanceType<typeof import('@anthropic-ai/sdk').default> | null = null;
+function getAnthropic() {
+  if (!_anthropic) {
+    if (!process.env.ANTHROPIC_API_KEY) return null;
+    const Anthropic = require('@anthropic-ai/sdk').default;
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return _anthropic;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Types
@@ -146,7 +157,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
     }
   } catch (error) {
-    console.error('Report API Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'report-generate.handler' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -175,7 +186,7 @@ async function generateReport(payload: ReportRequest) {
     end: endDate.toISOString(),
   };
 
-  let reportData: any;
+  let reportData: Record<string, unknown>;
   let reportContent: string;
 
   switch (report_type) {
@@ -208,6 +219,7 @@ async function generateReport(payload: ReportRequest) {
 
   // AI 인사이트 생성
   let aiInsights = '';
+  const anthropic = getAnthropic();
   if (anthropic) {
     try {
       const response = await anthropic.messages.create({
@@ -222,7 +234,7 @@ async function generateReport(payload: ReportRequest) {
       const content = response.content[0];
       aiInsights = content.type === 'text' ? content.text : '';
     } catch (e) {
-      console.error('AI Insights error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'report-generate.ai-insights' });
     }
   }
 
@@ -239,6 +251,7 @@ async function generateReport(payload: ReportRequest) {
     created_at: new Date().toISOString(),
   };
 
+  const supabase = getSupabase();
   if (supabase) {
     await supabase.from('reports').insert(reportRecord);
   }
@@ -257,6 +270,7 @@ async function generateReport(payload: ReportRequest) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function generateWeeklyVReport(period: { start: string; end: string }, orgId?: string) {
+  const supabase = getSupabase();
   if (!supabase) {
     return MOCK_DATA.weekly;
   }
@@ -343,7 +357,7 @@ async function generateWeeklyVReport(period: { start: string; end: string }, org
       churned: churned || 2,
     }),
     risk_students: riskStudents?.map(r => ({
-      name: (r.students as any)?.name || '알 수 없음',
+      name: (r.students as Record<string, unknown> | null)?.name as string || '알 수 없음',
       state: r.state,
       signals: r.signals || [],
       action: r.suggested_action || '상담 예정',
@@ -382,6 +396,7 @@ async function generateMonthlyReport(period: { start: string; end: string }, org
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function generateStudentReport(studentId: string, period: { start: string; end: string }) {
+  const supabase = getSupabase();
   if (!supabase || !studentId) {
     return MOCK_DATA.student;
   }
@@ -446,6 +461,7 @@ async function generateStudentReport(studentId: string, period: { start: string;
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function generateRiskReport(orgId?: string) {
+  const supabase = getSupabase();
   if (!supabase) {
     return {
       total_at_risk: 8,
@@ -477,7 +493,7 @@ async function generateRiskReport(orgId?: string) {
       { state: 6, count: risks?.filter(r => r.state === 6).length || 0, label: 'CRITICAL' },
     ],
     students: risks?.map(r => ({
-      name: (r.students as any)?.name || '알 수 없음',
+      name: (r.students as Record<string, unknown> | null)?.name as string || '알 수 없음',
       state: r.state,
       signals: r.signals || [],
       probability: r.probability,
@@ -490,7 +506,7 @@ async function generateRiskReport(orgId?: string) {
 // 포맷터
 // ═══════════════════════════════════════════════════════════════════════════
 
-function formatWeeklyReport(data: any): string {
+function formatWeeklyReport(data: Record<string, unknown>): string {
   return `
 # 📊 주간 V-Report
 ## ${data.period}
@@ -506,17 +522,17 @@ function formatWeeklyReport(data: any): string {
 | 매출 | ${data.summary.revenue.toLocaleString()}원 | - |
 
 ### 🔔 주요 하이라이트
-${data.highlights.map((h: any) => `- ${h.type === 'positive' ? '✅' : h.type === 'warning' ? '⚠️' : 'ℹ️'} ${h.text}`).join('\n')}
+${data.highlights.map((h: { type: string; text: string }) => `- ${h.type === 'positive' ? '✅' : h.type === 'warning' ? '⚠️' : 'ℹ️'} ${h.text}`).join('\n')}
 
 ### 🚨 위험 학생 현황
-${data.risk_students.map((s: any) => `- **${s.name}** (State ${s.state}): ${s.signals.join(', ')} → ${s.action}`).join('\n')}
+${data.risk_students.map((s: { name: string; state: number; signals: string[]; action: string }) => `- **${s.name}** (State ${s.state}): ${s.signals.join(', ')} → ${s.action}`).join('\n')}
 
 ### 💡 권고 사항
 ${data.recommendations.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n')}
 `.trim();
 }
 
-function formatMonthlyReport(data: any): string {
+function formatMonthlyReport(data: Record<string, unknown>): string {
   return formatWeeklyReport(data) + `
 
 ### 📊 월간 트렌드
@@ -525,7 +541,7 @@ function formatMonthlyReport(data: any): string {
 `;
 }
 
-function formatStudentReport(data: any): string {
+function formatStudentReport(data: Record<string, unknown>): string {
   return `
 # 📚 학생 진도 리포트
 ## ${data.student_name} | ${data.period}
@@ -543,26 +559,26 @@ function formatStudentReport(data: any): string {
 - 변화: ${data.grades.change > 0 ? '+' : ''}${data.grades.change}점
 
 #### 과목별 성적
-${data.grades.subjects.map((s: any) => `- ${s.name}: ${s.score}점 (${s.change > 0 ? '+' : ''}${s.change})`).join('\n')}
+${data.grades.subjects.map((s: { name: string; score: number; change: number }) => `- ${s.name}: ${s.score}점 (${s.change > 0 ? '+' : ''}${s.change})`).join('\n')}
 
 ### 💬 선생님 코멘트
 ${data.teacher_comment}
 `.trim();
 }
 
-function formatRiskReport(data: any): string {
+function formatRiskReport(data: Record<string, unknown>): string {
   return `
 # 🚨 위험 학생 분석 리포트
 
 ### 📊 현황 요약
 - 총 위험 학생: ${data.total_at_risk}명
-${data.by_state.map((s: any) => `- State ${s.state} (${s.label}): ${s.count}명`).join('\n')}
+${data.by_state.map((s: { state: number; label: string; count: number }) => `- State ${s.state} (${s.label}): ${s.count}명`).join('\n')}
 
 ### 🔍 주요 위험 신호
-${data.common_signals?.map((s: any) => `- ${s.signal}: ${s.count}건`).join('\n') || '데이터 없음'}
+${data.common_signals?.map((s: { signal: string; count: number }) => `- ${s.signal}: ${s.count}건`).join('\n') || '데이터 없음'}
 
 ### 👤 학생별 현황
-${data.students.map((s: any) => `- **${s.name}** (State ${s.state}): ${s.signals?.join(', ') || '신호 없음'}`).join('\n')}
+${data.students.map((s: { name: string; state: number; signals?: string[] }) => `- **${s.name}** (State ${s.state}): ${s.signals?.join(', ') || '신호 없음'}`).join('\n')}
 `.trim();
 }
 
@@ -570,7 +586,7 @@ ${data.students.map((s: any) => `- **${s.name}** (State ${s.state}): ${s.signals
 // Helper Functions
 // ═══════════════════════════════════════════════════════════════════════════
 
-function generateHighlights(data: any) {
+function generateHighlights(data: { new_enrollments: number; at_risk: number; churned: number }) {
   const highlights = [];
   
   if (data.new_enrollments > 3) {
@@ -590,7 +606,7 @@ function generateHighlights(data: any) {
   return highlights;
 }
 
-function generateRecommendations(data: any) {
+function generateRecommendations(data: { at_risk: number }) {
   const recommendations = [];
   
   if (data.at_risk > 0) {
@@ -626,6 +642,7 @@ async function scheduleReport(payload: ReportRequest) {
     created_at: new Date().toISOString(),
   };
 
+  const supabase = getSupabase();
   if (supabase) {
     await supabase.from('report_schedules').insert(scheduleRecord);
   }
@@ -644,6 +661,7 @@ async function scheduleReport(payload: ReportRequest) {
 async function listReports(payload: ReportRequest) {
   const { limit = 20, org_id } = payload;
 
+  const supabase = getSupabase();
   if (!supabase) {
     return NextResponse.json({
       success: true,
@@ -686,6 +704,7 @@ async function downloadReport(payload: ReportRequest) {
     }, { status: 400 });
   }
 
+  const supabase = getSupabase();
   if (!supabase) {
     return NextResponse.json({
       success: true,
@@ -718,5 +737,5 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type') || 'weekly_v';
   
-  return generateReport({ action: 'generate', report_type: type as any });
+  return generateReport({ action: 'generate', report_type: type as 'weekly_v' | 'monthly_business' | 'student_progress' | 'risk_analysis' });
 }

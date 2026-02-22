@@ -11,12 +11,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { captureError } from '@/lib/monitoring';
+import { logger } from '@/lib/logger';
 
-// Supabase Client
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+// Supabase Client (lazy via shared singleton)
+function getSupabase() {
+  try {
+    return getSupabaseAdmin();
+  } catch {
+    return null;
+  }
+}
 
 // 외부 서비스 설정
 const KAKAO_API_KEY = process.env.KAKAO_ALIMTALK_API_KEY || '';
@@ -137,7 +143,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
     }
   } catch (error) {
-    console.error('Message API Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'message.POST' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -199,6 +205,7 @@ async function sendMessage(payload: MessageRequest) {
   }
 
   // DB에 기록
+  const supabase = getSupabase();
   if (supabase) {
     await supabase.from('message_logs').insert({
       id: `msg_${Date.now()}`,
@@ -292,7 +299,7 @@ async function sendKakaoAlimTalk(phone: string, message: string, templateId?: st
         return { success: true, message_id: `kakao_${Date.now()}` };
       }
     } catch (e) {
-      console.error('Kakao AlimTalk error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'message.sendKakaoAlimTalk.n8n' });
     }
   }
 
@@ -316,12 +323,14 @@ async function sendKakaoAlimTalk(phone: string, message: string, templateId?: st
       const data = await response.json();
       return { success: response.ok, message_id: data.message_id || `kakao_${Date.now()}` };
     } catch (e) {
-      console.error('Kakao API error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'message.sendKakaoAlimTalk.kakaoApi' });
     }
   }
 
   // Mock 응답 (개발 환경)
-  console.log('📱 [Mock] Kakao AlimTalk:', { phone, message: message.substring(0, 50) + '...' });
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info('[Mock] Kakao AlimTalk', { phone, message: message.substring(0, 50) + '...' });
+  }
   return { success: true, message_id: `mock_kakao_${Date.now()}` };
 }
 
@@ -355,7 +364,7 @@ async function sendSMS(phone: string, message: string) {
       const data = await response.json();
       return { success: response.ok, message_id: data.groupId || `sms_${Date.now()}` };
     } catch (e) {
-      console.error('SMS API error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'message.sendSMS.solapi' });
     }
   }
 
@@ -373,12 +382,14 @@ async function sendSMS(phone: string, message: string) {
       });
       return { success: true, message_id: `n8n_sms_${Date.now()}` };
     } catch (e) {
-      console.error('n8n SMS error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'message.sendSMS.n8n' });
     }
   }
 
   // Mock 응답
-  console.log('📱 [Mock] SMS:', { phone, message: message.substring(0, 50) + '...' });
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info('[Mock] SMS', { phone, message: message.substring(0, 50) + '...' });
+  }
   return { success: true, message_id: `mock_sms_${Date.now()}` };
 }
 
@@ -410,7 +421,7 @@ async function sendEmail(email: string, subject: string, content: string) {
 
       return { success: response.ok, message_id: `email_${Date.now()}` };
     } catch (e) {
-      console.error('Email API error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'message.sendEmail.sendgrid' });
     }
   }
 
@@ -429,12 +440,14 @@ async function sendEmail(email: string, subject: string, content: string) {
       });
       return { success: true, message_id: `n8n_email_${Date.now()}` };
     } catch (e) {
-      console.error('n8n Email error:', e);
+      captureError(e instanceof Error ? e : new Error(String(e)), { context: 'message.sendEmail.n8n' });
     }
   }
 
   // Mock 응답
-  console.log('📧 [Mock] Email:', { email, subject });
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info('[Mock] Email', { email, subject });
+  }
   return { success: true, message_id: `mock_email_${Date.now()}` };
 }
 
@@ -444,6 +457,7 @@ async function sendEmail(email: string, subject: string, content: string) {
 
 async function getMessageHistory(payload: MessageRequest) {
   const { limit = 50, org_id } = payload;
+  const supabase = getSupabase();
 
   if (!supabase) {
     return NextResponse.json({

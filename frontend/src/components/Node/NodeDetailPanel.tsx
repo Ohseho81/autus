@@ -120,8 +120,8 @@ export function NodeDetailPanel({ node, onClose, onNavigate }: Props) {
 
       {/* 통계 */}
       <NodeStats
-        totalMass={node.total_mass}
-        totalFlow={node.total_flow}
+        totalMass={node.total_mass ?? 0}
+        totalFlow={node.total_flow ?? 0}
         inflows={flows.inflows}
         outflows={flows.outflows}
       />

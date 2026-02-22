@@ -649,6 +649,77 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // SUPABASE HYBRID (online→Supabase, offline→IndexedDB)
+    // ═══════════════════════════════════════════════════════════════
+    async function syncWithSupabase() {
+      if (typeof AutusDB === 'undefined' || !AutusDB.isConnected()) return;
+      try {
+        // V-Index 실데이터 로드
+        var vMetrics = await AutusDB.getVMetrics();
+        if (vMetrics) {
+          var m = parseFloat(vMetrics.minting) || state.M;
+          var t = parseFloat(vMetrics.taxation) || state.T;
+          var s = parseFloat(vMetrics.synergy) || state.s;
+          if (m !== state.M || t !== state.T || s !== state.s) {
+            state.M = m;
+            state.T = t;
+            state.s = s;
+            calculateV();
+            renderV();
+            console.log('[Sovereign] V synced from Supabase: M=' + m + ', T=' + t + ', s=' + s);
+          }
+        }
+
+        // decision_log에서 실제 결정 항목 가져오기
+        var dl = await AutusDB.getDecisionLog({ limit: 10 });
+        if (dl.data && dl.data.length > 0) {
+          console.log('[Sovereign] ' + dl.data.length + ' decisions from Supabase');
+        }
+
+        toast('☁️ Supabase 연동 완료');
+      } catch (e) {
+        console.warn('[Sovereign] Offline mode:', e.message);
+      }
+    }
+
+    // Accept/Reject 시 Supabase에도 이벤트 기록
+    var _origAccept = handleAccept;
+    handleAccept = async function() {
+      await _origAccept();
+      if (typeof AutusDB !== 'undefined' && AutusDB.isConnected()) {
+        var d = decisions[state.currentIndex - 1];
+        AutusDB.recordEvent({
+          event_type: 'sovereign_accept',
+          event_category: 'sovereign_decision',
+          entity_id: d ? d.id : 'unknown',
+          entity_type: 'decision',
+          state_from: 'pending',
+          state_to: 'accepted',
+          payload: { delta: d ? d.delta : 0, V: state.V },
+          source: 'sovereign_pwa'
+        });
+      }
+    };
+
+    var _origReject = handleReject;
+    handleReject = async function() {
+      await _origReject();
+      if (typeof AutusDB !== 'undefined' && AutusDB.isConnected()) {
+        var d = decisions[state.currentIndex - 1];
+        AutusDB.recordEvent({
+          event_type: 'sovereign_reject',
+          event_category: 'sovereign_decision',
+          entity_id: d ? d.id : 'unknown',
+          entity_type: 'decision',
+          state_from: 'pending',
+          state_to: 'rejected',
+          payload: { V: state.V },
+          source: 'sovereign_pwa'
+        });
+      }
+    };
+
+    // ═══════════════════════════════════════════════════════════════
     // INIT
     // ═══════════════════════════════════════════════════════════════
     async function init() {
@@ -656,9 +727,13 @@
       await loadState();
       calculateV();
       await render();
+      // Supabase 동기화 (비동기, 실패해도 오프라인 동작)
+      setTimeout(syncWithSupabase, 500);
     }
 
     init();
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-client.js"></script>
 </body>
 </html>

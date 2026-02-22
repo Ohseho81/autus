@@ -270,7 +270,7 @@ const SettingsPanel: React.FC<{
         {/* Info */}
         <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
           <div className="text-[10px] text-slate-400">
-            💡 <strong className="text-slate-300">Claude 3.5 Sonnet</strong>이 AUTUS에 최적화되어 있습니다.
+            💡 <strong className="text-slate-300">Claude 3.5 Sonnet</strong>이 온리쌤에 최적화되어 있습니다.
             코딩, UI 분석, 데이터 인사이트에서 최고 성능을 발휘합니다.
           </div>
         </div>
@@ -446,7 +446,7 @@ async function generateResponse(
   
   // 기본 응답
   return {
-    content: `안녕하세요! AUTUS AI 어시스턴트 **Kraton**입니다. 🦎
+    content: `안녕하세요! 온리쌤 AI 어시스턴트 **Kraton**입니다. 🦎
 
 다음과 같은 질문을 해보세요:
 - "오늘 현황 요약해줘"
@@ -575,7 +575,7 @@ export function MoltBot({ context, onNavigate }: MoltBotProps) {
     {
       id: 'welcome',
       role: 'assistant',
-      content: '안녕하세요! AUTUS AI 어시스턴트 **Kraton**입니다. 🦎\n\n무엇을 도와드릴까요?',
+      content: '안녕하세요! 온리쌤 AI 어시스턴트 **Kraton**입니다. 🦎\n\n무엇을 도와드릴까요?',
       timestamp: new Date(),
     },
   ]);

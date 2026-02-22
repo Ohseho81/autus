@@ -11,6 +11,7 @@
 
 import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStudents, useVEngine, useEvents } from '../../hooks/useSupabaseData';
 
 // ============================================
 // PHYSICS FORMULAS
@@ -462,10 +463,98 @@ const MoatIndicator = memo(function MoatIndicator() {
 // ============================================
 
 export default function KratonMonopoly() {
-  const [metrics] = useState(generateMonopolyMetrics);
+  // === Supabase Live Data ===
+  const { data: liveStudents, loading: studentsLoading, isLive } = useStudents();
+  const { data: vEngineData, loading: vEngineLoading } = useVEngine();
+  const { data: liveEvents, loading: eventsLoading } = useEvents({ limit: 10 });
+
+  const [mockMetrics] = useState(generateMonopolyMetrics);
+  const [mockInteractions] = useState(generateLiveInteractions);
   const [interactions, setInteractions] = useState(generateLiveInteractions);
-  const [predictions] = useState(generatePredictions);
+  const [mockPredictions] = useState(generatePredictions);
   const [globalFlow] = useState(generateGlobalFlow);
+
+  // Compute live monopoly metrics from student + vEngine data
+  const metrics = useMemo(() => {
+    if (!liveStudents || liveStudents.length === 0) return mockMetrics;
+
+    const totalStudents = liveStudents.length;
+    const atRiskStudents = liveStudents.filter(s => s.riskLevel !== 'normal');
+    const criticalStudents = liveStudents.filter(s => s.riskLevel === 'critical' || s.riskLevel === 'high');
+    const avgEngagement = liveStudents.reduce((sum, s) => sum + (s.engagement_score || 70), 0) / totalStudents;
+    const totalVIndex = liveStudents.reduce((sum, s) => sum + (s.vIndex || 0), 0);
+
+    return {
+      perception: {
+        dailyTags: totalStudents * 3 + Math.round(avgEngagement),
+        uniqueInsights: Math.round(totalStudents * 0.6),
+        psychSwitches: atRiskStudents.length,
+        dataQuality: Math.min(avgEngagement / 100, 0.99),
+      },
+      prediction: {
+        accuracy: vEngineData?.synergy || mockMetrics.prediction.accuracy,
+        prevented: Math.max(0, atRiskStudents.length - criticalStudents.length),
+        totalSaved: totalVIndex * 10,
+        activePredictions: criticalStudents.length,
+      },
+      pipeline: {
+        ...mockMetrics.pipeline,
+        krNodes: totalStudents,
+      },
+    };
+  }, [liveStudents, vEngineData, mockMetrics]);
+
+  // Transform live events into interaction feed format
+  const liveInteractionFeed = useMemo(() => {
+    if (!liveEvents || liveEvents.length === 0) return null;
+
+    return liveEvents.slice(0, 4).map((event, idx) => {
+      const minutesAgo = event.occurred_at
+        ? Math.floor((Date.now() - new Date(event.occurred_at).getTime()) / 60000)
+        : idx * 5;
+      const timeLabel = minutesAgo < 1 ? '방금' : minutesAgo < 60 ? `${minutesAgo}분 전` : `${Math.floor(minutesAgo / 60)}시간 전`;
+
+      return {
+        id: event.id || idx + 1,
+        time: timeLabel,
+        teacher: event.actor || '-',
+        student: event.target || event.subject || '-',
+        tags: [event.event_type || 'event'],
+        insight: event.description || event.event_type || 'AI 분석 중...',
+        risk: event.severity === 'high' ? 'high' : event.severity === 'medium' ? 'medium' : 'low',
+      };
+    });
+  }, [liveEvents]);
+
+  // Build live predictions from at-risk students
+  const predictions = useMemo(() => {
+    if (!liveStudents || liveStudents.length === 0) return mockPredictions;
+
+    const atRisk = liveStudents
+      .filter(s => s.riskLevel !== 'normal')
+      .slice(0, 5)
+      .map((s, idx) => {
+        const engagement = s.engagement_score || 70;
+        const riskScore = Math.min(Math.max((100 - engagement) / 100, 0), 1);
+        return {
+          id: `PRED-${String(idx + 1).padStart(3, '0')}`,
+          student: s.name || '이름 없음',
+          riskScore,
+          daysToChurn: Math.max(7, Math.round((engagement / 100) * 90)),
+          shadowAction: s.riskLevel === 'critical' ? '긍정 리포트 발송 예정' :
+                        s.riskLevel === 'high' ? '할인 프로모션 준비' : '담당 변경 검토',
+          status: s.riskLevel === 'critical' ? 'critical' : s.riskLevel === 'high' ? 'warning' : 'watch',
+        };
+      });
+    return atRisk.length > 0 ? atRisk : mockPredictions;
+  }, [liveStudents, mockPredictions]);
+
+  // Sync live interactions into state when available
+  useEffect(() => {
+    if (liveInteractionFeed) {
+      setInteractions(liveInteractionFeed);
+    }
+  }, [liveInteractionFeed]);
 
   // Handle new tag
   const handleNewTag = useCallback((data) => {
@@ -494,6 +583,12 @@ export default function KratonMonopoly() {
             <p className="text-gray-400 mt-1">독점 체제 - 인지 · 판단 · 구조</p>
           </div>
           <div className="flex items-center gap-2">
+            {isLive && (
+              <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-emerald-400 text-xs font-medium">LIVE</span>
+              </div>
+            )}
             <motion.div
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity }}

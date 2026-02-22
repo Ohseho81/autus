@@ -5,6 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { generateTraceId, captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -45,18 +47,14 @@ function getSupabase() {
 // Helpers
 // -----------------------------------------------------------------------------
 
-function generateTraceId(): string {
-  return `pay-wh-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 async function logTrace(params: IOOTraceParams): Promise<void> {
   try {
     const { error } = await getSupabase().from('ioo_trace').insert(params);
     if (error) {
-      console.error('[PayssomWebhook] Failed to insert IOO trace:', error.message);
+      captureError(new Error(error.message), { context: 'PayssomWebhook.logTrace' });
     }
   } catch (err) {
-    console.error('[PayssomWebhook] IOO trace insert threw:', err);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'PayssomWebhook.logTrace' });
   }
 }
 
@@ -93,7 +91,7 @@ function verifySignaturePlaceholder(
 
   // If no secret configured, allow in development but warn
   if (!secret) {
-    console.warn('[PayssomWebhook] PAYSSAM_WEBHOOK_SECRET not set -- skipping verification');
+    logger.warn('[PayssomWebhook] PAYSSAM_WEBHOOK_SECRET not set -- skipping verification');
     return { valid: true, reason: 'no_secret_configured' };
   }
 
@@ -104,7 +102,7 @@ function verifySignaturePlaceholder(
 
   // Placeholder: accept any non-empty signature when secret is configured
   // This will be replaced with cryptographic verification
-  console.warn('[PayssomWebhook] Using placeholder signature check -- replace before production');
+  logger.warn('[PayssomWebhook] Using placeholder signature check -- replace before production');
   return { valid: true, reason: 'placeholder_check' };
 }
 
@@ -113,7 +111,7 @@ function verifySignaturePlaceholder(
 // -----------------------------------------------------------------------------
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const traceId = generateTraceId();
+  const traceId = generateTraceId('pay-wh');
   const startMs = Date.now();
 
   try {
@@ -180,7 +178,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (findError || !invoice) {
       const errorMsg = findError?.message ?? 'Invoice not found';
-      console.error('[PayssomWebhook] Invoice lookup failed:', errorMsg);
+      captureError(new Error(errorMsg), { context: 'PayssomWebhook.findInvoice' });
 
       await logTrace({
         trace_id: traceId,
@@ -218,7 +216,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .eq('id', invoice.id);
 
     if (updateError) {
-      console.error('[PayssomWebhook] Invoice update failed:', updateError.message);
+      captureError(new Error(updateError.message), { context: 'PayssomWebhook.updateInvoice' });
 
       await logTrace({
         trace_id: traceId,
@@ -284,11 +282,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .select('id');
 
       if (resolveError) {
-        console.error('[PayssomWebhook] Failed to resolve risk flags:', resolveError.message);
+        captureError(new Error(resolveError.message), { context: 'PayssomWebhook.resolveRiskFlags' });
       } else {
         const resolvedCount = resolvedFlags?.length ?? 0;
         if (resolvedCount > 0) {
-          console.log(
+          logger.info(
             `[PayssomWebhook] Resolved ${resolvedCount} overdue_payment risk flag(s) ` +
             `for student ${invoice.student_id}`,
           );
@@ -311,7 +309,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // --- Step 7: Return 200 ---
-    console.log(
+    logger.info(
       `[PayssomWebhook] Processed callback for invoice ${payload.invoice_id} ` +
       `(status=${payload.status}) in ${durationMs}ms`,
     );
@@ -329,7 +327,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (err) {
     const durationMs = Date.now() - startMs;
     const errorMessage = err instanceof Error ? err.message : String(err);
-    console.error('[PayssomWebhook] Unhandled error:', errorMessage);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'PayssomWebhook.POST' });
 
     await logTrace({
       trace_id: traceId,

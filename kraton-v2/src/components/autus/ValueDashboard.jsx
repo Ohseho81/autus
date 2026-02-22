@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useVEngine, useAutusNodes } from '../../hooks/useSupabaseData';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Mock Data
@@ -236,31 +237,87 @@ function FormulaDisplay() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export default function ValueDashboard({ orgId = 'demo' }) {
-  const [data, setData] = useState(MOCK_DATA);
-  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
-  
-  useEffect(() => {
-    // API 연동 활성화
-    fetchData();
-    const interval = setInterval(fetchData, 60000);
-    return () => clearInterval(interval);
-  }, [orgId]);
-  
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/autus/value?org_id=${orgId}`);
-      const result = await response.json();
-      if (result.success) {
-        setData(result.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch value data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
+  // Supabase hooks
+  const { data: vEngineData, loading: vLoading, isLive: vLive } = useVEngine();
+  const { nodes: liveNodes, relationships: liveRelationships, loading: nodesLoading, isLive: nodesLive } = useAutusNodes();
+
+  const isLoading = vLoading || nodesLoading;
+  const isLive = vLive || nodesLive;
+
+  // Build data from Supabase or fallback to MOCK_DATA
+  const data = useMemo(() => {
+    const hasVEngine = vEngineData && vEngineData.total_value !== undefined;
+    const hasNodes = liveNodes && liveNodes.length > 0;
+    const hasRelations = liveRelationships && liveRelationships.length > 0;
+
+    return {
+      overview: hasVEngine ? {
+        total_value_stu: (vEngineData.total_value || 0) / 27674,
+        total_value_krw: vEngineData.total_value || 0,
+        node_count: hasNodes ? liveNodes.length : MOCK_DATA.overview.node_count,
+        relation_count: hasRelations ? liveRelationships.length : MOCK_DATA.overview.relation_count,
+        omega: 27674,
+      } : MOCK_DATA.overview,
+      averages: hasNodes ? {
+        lambda: liveNodes.reduce((sum, n) => sum + (n.lambda || 0), 0) / (liveNodes.length || 1),
+        sigma: hasRelations
+          ? liveRelationships.reduce((sum, r) => sum + (r.sigma || 0), 0) / (liveRelationships.length || 1)
+          : MOCK_DATA.averages.sigma,
+        density: hasRelations
+          ? liveRelationships.reduce((sum, r) => sum + (r.density || 0), 0) / (liveRelationships.length || 1)
+          : MOCK_DATA.averages.density,
+      } : MOCK_DATA.averages,
+      top_nodes: hasNodes
+        ? liveNodes
+            .sort((a, b) => (b.total_value_stu || 0) - (a.total_value_stu || 0))
+            .slice(0, 5)
+            .map(n => ({
+              node_id: n.id || n.node_id,
+              name: n.name || 'Unknown',
+              role: n.role || 'student',
+              lambda: n.lambda || 1.0,
+              total_value_stu: n.total_value_stu || 0,
+              relation_count: n.relation_count || 0,
+            }))
+        : MOCK_DATA.top_nodes,
+      top_relations: hasRelations
+        ? liveRelationships
+            .filter(r => (r.sigma || 0) >= 0)
+            .sort((a, b) => (b.value_stu || 0) - (a.value_stu || 0))
+            .slice(0, 5)
+            .map(r => ({
+              node_a_name: r.node_a_name || 'Node A',
+              node_b_name: r.node_b_name || 'Node B',
+              value_stu: r.value_stu || 0,
+              value_krw: r.value_krw || 0,
+              components: {
+                sigma: r.sigma || 0,
+                density: r.density || 0,
+                synergy_multiplier: r.synergy_multiplier || 1.0,
+              },
+            }))
+        : MOCK_DATA.top_relations,
+      risk_relations: hasRelations
+        ? liveRelationships
+            .filter(r => (r.sigma || 0) < 0)
+            .sort((a, b) => (a.sigma || 0) - (b.sigma || 0))
+            .slice(0, 5)
+            .map(r => ({
+              node_a_name: r.node_a_name || 'Node A',
+              node_b_name: r.node_b_name || 'Node B',
+              value_stu: r.value_stu || 0,
+              value_krw: r.value_krw || 0,
+              components: {
+                sigma: r.sigma || 0,
+                density: r.density || 0,
+                synergy_multiplier: r.synergy_multiplier || 1.0,
+              },
+            }))
+        : MOCK_DATA.risk_relations,
+    };
+  }, [vEngineData, liveNodes, liveRelationships]);
   
   const tabs = [
     { id: 'overview', label: '개요', icon: '📊' },
@@ -269,7 +326,7 @@ export default function ValueDashboard({ orgId = 'demo' }) {
     { id: 'formula', label: '수식', icon: '📐' },
   ];
   
-  if (isLoading && !data) {
+  if (isLoading && !vEngineData && (!liveNodes || liveNodes.length === 0)) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
@@ -293,6 +350,7 @@ export default function ValueDashboard({ orgId = 'demo' }) {
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3">
             🏛️ AUTUS Value
+            {isLive && <span className="text-xs font-normal bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full">🟢 LIVE</span>}
           </h1>
           <p className="text-gray-500 mt-1 font-mono text-sm">
             V = P × Λ × e^(σt)

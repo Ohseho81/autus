@@ -69,31 +69,34 @@ export class ERPSyncManager {
    */
   async syncAll(): Promise<SyncResult[]> {
     const integrations = await this.getIntegrations();
-    const results: SyncResult[] = [];
-    
-    for (const integration of integrations) {
-      try {
-        const result = await this.syncProvider(integration.provider as ERPProvider);
-        results.push(result);
-      } catch (error: any) {
-        results.push({
-          academy_id: this.academyId,
-          provider: integration.provider as ERPProvider,
-          status: 'error',
-          total_records: 0,
-          synced_records: 0,
-          created_records: 0,
-          updated_records: 0,
-          skipped_records: 0,
-          failed_records: 0,
-          started_at: new Date().toISOString(),
-          completed_at: new Date().toISOString(),
-          errors: [{ message: error.message }],
-        });
+
+    // Run all provider syncs in parallel instead of sequentially
+    const settled = await Promise.allSettled(
+      integrations.map(integration =>
+        this.syncProvider(integration.provider as ERPProvider)
+      )
+    );
+
+    return settled.map((outcome, i) => {
+      if (outcome.status === 'fulfilled') {
+        return outcome.value;
       }
-    }
-    
-    return results;
+      const error = outcome.reason;
+      return {
+        academy_id: this.academyId,
+        provider: integrations[i].provider as ERPProvider,
+        status: 'error' as const,
+        total_records: 0,
+        synced_records: 0,
+        created_records: 0,
+        updated_records: 0,
+        skipped_records: 0,
+        failed_records: 0,
+        started_at: new Date().toISOString(),
+        completed_at: new Date().toISOString(),
+        errors: [{ message: error?.message || 'Unknown error' }],
+      };
+    });
   }
   
   /**
@@ -183,8 +186,9 @@ export class ERPSyncManager {
         }
         
         synced++;
-      } catch (err: any) {
-        errors.push({ record_id: student.external_id, message: err.message });
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        errors.push({ record_id: student.external_id, message: error.message });
       }
     }
     

@@ -266,7 +266,7 @@
     <header class="top-header">
       <div class="logo">
         <div class="logo-icon">A</div>
-        <span>AUTUS</span>
+        <span>온리쌤</span>
   </div>
       <div class="header-title">📊 Dashboard</div>
       <div class="header-right">
@@ -374,6 +374,72 @@
     </div>
   
   <script>
+    // ═══ Supabase: 실데이터 로드 ═══
+    async function initSupabaseDashboard() {
+      if (typeof AutusDB === 'undefined' || !AutusDB.isConnected()) return;
+      try {
+        const [vMetrics, nodes, auditLogs, students] = await Promise.all([
+          AutusDB.getVMetrics(),
+          AutusDB.getNodes(),
+          AutusDB.getAuditLogs({ limit: 10 }),
+          AutusDB.getStudentCount()
+        ]);
+
+        // KPI 카드 업데이트
+        if (vMetrics) {
+          var m = parseFloat(vMetrics.minting) || 0;
+          var t = parseFloat(vMetrics.taxation) || 0;
+          var s = parseFloat(vMetrics.synergy) || 0;
+          var risk = t > 0 ? (t / (m + t)).toFixed(2) : '0.00';
+          var entropy = (1 - s).toFixed(2);
+          var pressure = (t / Math.max(m, 1)).toFixed(2);
+          var flow = s.toFixed(2);
+
+          document.querySelector('#spark1').closest('.kpi-card').querySelector('.kpi-value').textContent = risk;
+          document.querySelector('#spark2').closest('.kpi-card').querySelector('.kpi-value').textContent = entropy;
+          document.querySelector('#spark3').closest('.kpi-card').querySelector('.kpi-value').textContent = pressure;
+          document.querySelector('#spark4').closest('.kpi-card').querySelector('.kpi-value').textContent = flow;
+        }
+
+        // Planet Performance: autus_nodes 실데이터
+        if (nodes.data && nodes.data.length > 0) {
+          var nodeColors = ['#00D4AA', '#00B4D8', '#FFB800', '#FF4757', '#9B59B6'];
+          document.getElementById('planetGrid').innerHTML = nodes.data.map(function(n, i) {
+            var val = parseFloat(n.lambda) || 0;
+            var pct = Math.min(100, val * 20);
+            var color = nodeColors[i % nodeColors.length];
+            return '<div class="planet-row">' +
+              '<div class="planet-dot" style="background:' + color + ';box-shadow:0 0 8px ' + color + '"></div>' +
+              '<span class="planet-name">' + n.name + ' (' + n.type + ')</span>' +
+              '<div class="planet-bar"><div class="planet-bar-fill" style="width:' + pct + '%;background:' + color + '"></div></div>' +
+              '<span class="planet-value" style="color:' + color + '">λ=' + val + '</span>' +
+            '</div>';
+          }).join('');
+        }
+
+        // Activity: audit_logs 실데이터
+        if (auditLogs.data && auditLogs.data.length > 0) {
+          document.getElementById('activityList').innerHTML = auditLogs.data.map(function(a) {
+            var icon = a.action_type === 'INSERT' ? '✅' : a.action_type === 'UPDATE' ? '🔄' : '⚠️';
+            var type = a.action_type === 'INSERT' ? 'success' : 'warning';
+            return '<div class="activity-item">' +
+              '<div class="activity-icon ' + type + '">' + icon + '</div>' +
+              '<div class="activity-content">' +
+                '<div class="activity-title">' + (a.action_type || 'Event') + '</div>' +
+                '<div class="activity-desc">' + (a.role || '') + '</div>' +
+              '</div>' +
+              '<span class="activity-time">' + AutusDB.timeAgo(a.created_at) + '</span>' +
+            '</div>';
+          }).join('');
+        }
+
+        console.log('[Dashboard] Live data: ' + students + ' students, ' + (nodes.data ? nodes.data.length : 0) + ' nodes');
+      } catch (e) {
+        console.warn('[Dashboard] Fallback to static:', e.message);
+      }
+    }
+    window.addEventListener('DOMContentLoaded', function() { setTimeout(initSupabaseDashboard, 200); });
+
     // Sparkline Charts
     const sparkConfig = {
       type: 'line',
@@ -485,5 +551,7 @@
       </div>
     `).join('');
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

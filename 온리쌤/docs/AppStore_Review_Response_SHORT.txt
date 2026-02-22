@@ -1,0 +1,122 @@
+Dear App Review Team,
+
+Thank you for your feedback on ATB (All That Business). We have addressed all issues identified in your review:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GUIDELINE 2.3.3 - IPAD SCREENSHOTS
+✅ RESOLVED: New iPad screenshots will be uploaded within 24 hours showing the app running natively on iPad Air 11-inch (M3).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GUIDELINE 2.3.6 - AGE RATING
+✅ RESOLVED: Age Rating updated to "None" for both Parental Controls and Age Assurance. ATB is designed for professional use by educators and service providers (18+).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GUIDELINE 2.1 - "10회 충전하기" PURCHASE
+
+Q: How do users purchase "10회 충전하기"?
+
+A: "10회 충전하기" means "10-session package" in Korean. Users purchase this through:
+
+1. IN-APP PURCHASE (IAP) - For digital content
+   - Session credits (10-session packages)
+   - Premium analytics features
+   - Video storage upgrades
+
+2. EXTERNAL BILLING - For physical services
+   - Actual coaching/counseling sessions delivered offline
+   - Following Apple's policies for service providers
+
+Compliance:
+✅ Digital features → Apple IAP (30% commission)
+✅ Physical services → External billing (permitted)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GUIDELINE 2.1 - BUSINESS MODEL DETAILS
+
+1. WHO ARE THE USERS?
+   - Service Providers: Coaches, counselors, instructors (18+)
+   - Consumers: Parents, clients receiving services
+   - Administrators: Business owners (18+)
+
+2. WHERE CAN USERS PURCHASE?
+   IN-APP (via IAP):
+   - Session credit packages
+   - Premium subscriptions ($9.99/month)
+   - Advanced features
+
+   EXTERNAL (outside app):
+   - Physical coaching/counseling services
+   - Monthly service contracts
+   - Equipment and materials
+
+3. WHAT CONTENT CAN USERS ACCESS?
+   From IAP:
+   - Session credits (remaining balance)
+   - Premium analytics
+   - Attendance records
+   - Progress reports
+   - Training videos
+
+   From External Purchase:
+   - Active service contracts
+   - Scheduled appointments
+   - Physical session history
+
+4. WHAT'S UNLOCKED WITHOUT IAP?
+   FREE CORE FEATURES:
+   - User registration (no fee)
+   - Basic attendance tracking
+   - Schedule viewing
+   - Session booking (with existing credits)
+   - Progress viewing
+   - Notifications
+
+   PREMIUM (Require IAP):
+   - Advanced analytics
+   - Bulk data export
+   - Unlimited video storage
+   - API access
+
+   PHYSICAL SERVICES (No IAP):
+   - Actual coaching/counseling sessions
+   - In-person attendance
+   - Facility usage
+
+5. HOW DO USERS GET ACCOUNTS?
+   ✅ FREE REGISTRATION:
+   - Download ATB from App Store
+   - Register with phone number (SMS verification)
+   - No payment required
+   - All core features available immediately
+
+   OPTIONAL PURCHASES:
+   - Session packages via IAP
+   - Premium subscription via IAP
+   - Service contracts via external billing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUSINESS MODEL SUMMARY:
+
+ATB is a B2B2C SaaS platform for education service providers.
+
+REVENUE STREAMS:
+✅ Digital content/features → Apple IAP (30% to Apple)
+✅ Physical services → External billing (no IAP involved)
+
+COMPLIANCE:
+✅ Clear separation between digital and physical offerings
+✅ No IAP circumvention
+✅ Following Apple guidelines for service provider apps
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+We're committed to full compliance with App Store guidelines. Please let us know if you need any additional information.
+
+Best regards,
+AUTUS Team
+stiger0720@gmail.com

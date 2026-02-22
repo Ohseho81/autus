@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStudents, useSupabaseQuery } from '../../hooks/useSupabaseData';
 
 // ============================================
 // MOCK DATA GENERATORS
@@ -490,12 +491,112 @@ const QuickActions = memo(function QuickActions({ onAction }) {
 // ============================================
 
 export default function PrincipalConsole() {
+  // Supabase hooks
+  const { data: students, loading: studentsLoading, isLive: studentsLive } = useStudents();
+  const { data: coaches, loading: coachesLoading, isLive: coachesLive } = useSupabaseQuery('atb_coaches', {
+    select: '*',
+    fallback: [],
+  });
+
+  const isLive = studentsLive || coachesLive;
+
+  // Transform students into alerts
+  const liveAlerts = useMemo(() => {
+    if (!students || students.length === 0) return null;
+    const alertStudents = students.filter(s => s.riskLevel === 'warning' || s.riskLevel === 'high' || s.riskLevel === 'critical');
+    if (alertStudents.length === 0) return null;
+
+    return alertStudents.map((s, idx) => {
+      const priorityMap = { critical: 'critical', high: 'high', warning: 'medium' };
+      const typeMap = {
+        critical: 'churn_risk',
+        high: 'satisfaction_drop',
+        warning: 'parent_concern',
+      };
+      return {
+        id: `ALT-LIVE-${s.id || idx}`,
+        type: typeMap[s.riskLevel] || 'satisfaction_drop',
+        priority: priorityMap[s.riskLevel] || 'medium',
+        title: s.riskLevel === 'critical' ? '즉시 개입 필요' :
+               s.riskLevel === 'high' ? '만족도 급락' : '모니터링 필요',
+        message: `${s.name} - 참여도 ${s.engagement_score || 0}%, V-Index ${s.vIndex || 0}`,
+        target: { type: 'student', name: s.name || `Student`, id: s.id || `STU-${idx}` },
+        teacher: { name: '담당미정', id: 'TCH-000' },
+        metrics: {
+          sIndex: (s.engagement_score || 70) / 100,
+          churnProb: s.riskLevel === 'critical' ? 0.78 : s.riskLevel === 'high' ? 0.45 : 0.20,
+          daysToChurn: s.riskLevel === 'critical' ? 14 : s.riskLevel === 'high' ? 45 : 90,
+        },
+        suggestedAction: s.riskLevel === 'critical'
+          ? '48시간 내 학부모 상담 전화 필수'
+          : '담당 선생님 면담 및 수업 방식 조정',
+        createdAt: new Date(Date.now() - (idx * 1000 * 60 * 30)).toISOString(),
+        status: 'open',
+      };
+    });
+  }, [students]);
+
+  // Transform students into today stats
+  const liveTodayStats = useMemo(() => {
+    if (!students || students.length === 0) return null;
+    const active = students.filter(s => s.status === 'active');
+    const avgEngagement = active.length > 0
+      ? active.reduce((sum, s) => sum + (s.engagement_score || 70), 0) / active.length
+      : 72;
+    const warningCount = students.filter(s => s.riskLevel === 'warning' || s.riskLevel === 'high' || s.riskLevel === 'critical').length;
+    const totalVIndex = students.reduce((sum, s) => sum + (s.vIndex || 0), 0);
+
+    return {
+      totalStudents: students.length,
+      attendanceRate: 0.94,
+      avgSIndex: avgEngagement / 100,
+      activeAlerts: warningCount,
+      resolvedToday: 0,
+      upcomingCalls: 4,
+      vIndexToday: totalVIndex,
+      vIndexDelta: 0.08,
+    };
+  }, [students]);
+
+  // Transform coaches into teacher status
+  const liveTeachers = useMemo(() => {
+    if (!coaches || coaches.length === 0) return null;
+    return coaches.map(c => ({
+      id: c.id || c.coach_id || 'TCH-000',
+      name: c.name || 'Unknown',
+      status: c.status || 'available',
+      students: c.student_count || 0,
+      avgS: (c.avg_satisfaction || 70) / 100,
+      alerts: c.alert_count || 0,
+    }));
+  }, [coaches]);
+
+  // Use live data when available, fallback to mock
   const [alerts, setAlerts] = useState(generateAlerts);
-  const [todayStats] = useState(generateTodayStats);
-  const [teachers] = useState(generateTeacherStatus);
+  const [todayStats, setTodayStats] = useState(generateTodayStats);
+  const [teachers, setTeachers] = useState(generateTeacherStatus);
   const [scheduledCalls] = useState(generateScheduledCalls);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [filter, setFilter] = useState('all');
+
+  // Sync live data into state when available
+  useEffect(() => {
+    if (liveAlerts && liveAlerts.length > 0) {
+      setAlerts(liveAlerts);
+    }
+  }, [liveAlerts]);
+
+  useEffect(() => {
+    if (liveTodayStats) {
+      setTodayStats(liveTodayStats);
+    }
+  }, [liveTodayStats]);
+
+  useEffect(() => {
+    if (liveTeachers && liveTeachers.length > 0) {
+      setTeachers(liveTeachers);
+    }
+  }, [liveTeachers]);
 
   // Filter alerts
   const filteredAlerts = useMemo(() => {
@@ -540,6 +641,7 @@ export default function PrincipalConsole() {
             <h1 className="text-2xl font-bold text-white flex items-center gap-3">
               <span className="text-3xl">👔</span>
               Principal Console
+              {isLive && <span className="text-xs font-normal bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full">🟢 LIVE</span>}
             </h1>
             <p className="text-gray-400 mt-1">관리자 위험 알림 대시보드</p>
           </div>

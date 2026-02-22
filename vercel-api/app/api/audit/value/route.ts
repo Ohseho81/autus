@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
 
 // Dynamic route - prevents static generation error
 export const dynamic = 'force-dynamic';
@@ -139,7 +140,7 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('V-Curve Validation Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'audit-value.handler' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -369,14 +370,14 @@ async function calculateValueMetrics(days: number) {
 }
 
 // V-Index 정확도 계산
-function calculateVIndexAccuracy(sync: any): number {
+function calculateVIndexAccuracy(sync: ValidationResult['v_index_sync']): number {
   if (sync.sync_status === 'SYNCHRONIZED') return 100;
   if (sync.sync_status === 'MINOR_DRIFT') return Math.round(100 - sync.variance_percentage);
   return Math.round(Math.max(0, 100 - sync.variance_percentage * 2));
 }
 
 // 동기화 상태 판정
-function determineSyncHealth(sync: any, global: any): string {
+function determineSyncHealth(sync: ValidationResult['v_index_sync'], global: ValidationResult['global_integration']): string {
   const issues = [];
   if (sync.sync_status === 'MAJOR_DRIFT') issues.push('V-Index 불일치');
   if (!global.korea.connected) issues.push('한국 연결 끊김');
@@ -388,7 +389,7 @@ function determineSyncHealth(sync: any, global: any): string {
 }
 
 // 보안 점수 계산
-function calculateSecurityScore(security: any): number {
+function calculateSecurityScore(security: ValidationResult['security_audit']): number {
   let score = 100;
   if (security.pii_exposure_risk === 'HIGH') score -= 30;
   else if (security.pii_exposure_risk === 'MEDIUM') score -= 15;
@@ -400,10 +401,10 @@ function calculateSecurityScore(security: any): number {
 
 // 권장사항 생성
 function generateValueRecommendations(
-  sync: any,
-  global: any,
-  automation: any,
-  security: any
+  sync: ValidationResult['v_index_sync'],
+  global: ValidationResult['global_integration'],
+  automation: ValidationResult['automation_analysis'],
+  security: ValidationResult['security_audit']
 ): string[] {
   const recommendations: string[] = [];
   
@@ -424,8 +425,8 @@ function generateValueRecommendations(
   
   // 자동화 관련
   automation.bottleneck_workflows
-    .filter((w: any) => w.avg_execution_ms > 3000 || w.failure_rate > 0.05)
-    .forEach((w: any) => {
+    .filter((w) => w.avg_execution_ms > 3000 || w.failure_rate > 0.05)
+    .forEach((w) => {
       recommendations.push(`🔧 워크플로우 '${w.name}' 최적화 필요: ${w.recommendation}`);
     });
   

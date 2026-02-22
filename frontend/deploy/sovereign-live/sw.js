@@ -1,5 +1,5 @@
-const CACHE = 'autus-v152-cardless';
-const ASSETS = ['./', './index.html', './manifest.json'];
+const CACHE = 'autus-v152-supabase';
+const ASSETS = ['./', './index.html', './manifest.json', '../js/supabase-client.js', 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));

@@ -449,6 +449,8 @@
   <div class="toast" id="toast"></div>
 
   <script>
+// ═══ Supabase Init ═══
+async function initSupabaseIntegrations(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var org=await AutusDB.getOrganization();console.log('[Integrations] Org:',org?org.name:'N/A')}catch(e){console.warn('[Integrations] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseIntegrations,200)});
     const API_BASE = 'https://api.autus-ai.com';
     const USER_ID = 'default';
     
@@ -730,5 +732,7 @@
     loadDataTypes();
     loadData();
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

@@ -32,13 +32,10 @@ except ImportError:
 
 
 # 환경 변수
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://autus:autus@localhost:5432/autus"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 # SQLAlchemy 설정
-if SQLALCHEMY_AVAILABLE:
+if SQLALCHEMY_AVAILABLE and DATABASE_URL:
     engine = create_engine(DATABASE_URL, echo=False)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base = declarative_base()

@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../lib/supabase';
+import { captureError } from '../../../lib/monitoring';
 
 export const runtime = 'edge';
 
@@ -121,8 +122,9 @@ export async function GET(request: NextRequest) {
       }
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
-    console.error('Churn API Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'churn.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -245,8 +247,9 @@ export async function POST(request: NextRequest) {
       { status: 400, headers: corsHeaders }
     );
 
-  } catch (error: any) {
-    console.error('Churn API Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'churn.POST' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -255,7 +258,7 @@ export async function POST(request: NextRequest) {
 }
 
 // AI 상담 스크립트 생성
-async function generateConsultationScript(student: any): Promise<string> {
+async function generateConsultationScript(student: Record<string, unknown>): Promise<string> {
   const riskFactors = [];
   
   if (student.attendance_rate < 80) {

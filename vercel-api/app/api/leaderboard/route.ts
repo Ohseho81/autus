@@ -4,6 +4,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
+import { captureError } from '../../../lib/monitoring';
+import { logger } from '../../../lib/logger';
 
 export const runtime = 'edge';
 
@@ -42,7 +44,8 @@ export async function POST(request: NextRequest) {
         formula: 'V = (M - T) × (1 + s)^t'
       }
     }, { status: 200, headers: corsHeaders });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -94,8 +97,9 @@ export async function GET(request: NextRequest) {
       { status: 400, headers: corsHeaders }
     );
 
-  } catch (error: any) {
-    console.error('Leaderboard Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'leaderboard.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }

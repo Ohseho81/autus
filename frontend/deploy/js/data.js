@@ -443,7 +443,7 @@ function generateNav(activePage) {
         <header class="nav-header">
             <a href="index.html" class="logo">
                 <div class="logo-icon">A</div>
-                <span class="logo-text">AUTUS</span>
+                <span class="logo-text">온리쌤</span>
             </a>
             
             <nav class="nav-links">

@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native builds
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+android/
+ios/
+
+# Metro
+.metro-health-check*
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# Local env files
+.env
+.env.*
+!.env.*.example
+!.env.example
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts
+*.aab
+*.apk
+*.ipa
+
+# Supabase local
+supabase/.temp/
+
+# Claude
+.claude/
+
+# PII Data (학생/결제/회원 데이터 — 절대 커밋하지 말 것)
+*.csv
+*.xlsx
+*.docx
+students_insert.sql

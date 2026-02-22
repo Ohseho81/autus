@@ -9,11 +9,6 @@ export * from './UI';
 export * from './BPMN';
 export * from './Process';
 
-// Legacy exports - _legacy 경로에서 가져옴
+// Legacy exports - only active components remain
 export { FSDNavigation } from './_legacy/FSD';
 export { ThemeToggle } from './_legacy/Theme';
-
-// Canvas3D, Effects, WorkFlow는 _legacy에 있음 - 필요시 직접 import
-// export * from './_legacy/Canvas3D';
-// export * from './_legacy/Effects';
-// export * from './_legacy/WorkFlow';

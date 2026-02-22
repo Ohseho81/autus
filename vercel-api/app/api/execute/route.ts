@@ -7,6 +7,8 @@
 //
 
 import { NextRequest, NextResponse } from 'next/server';
+import { captureError } from '../../../lib/monitoring';
+import { logger } from '../../../lib/logger';
 
 export const runtime = 'edge';
 
@@ -17,7 +19,7 @@ const corsHeaders = {
 };
 
 // n8n Webhook URL (환경변수로 설정)
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://n8n.autus.ai/webhook/autus-action';
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || '';
 
 // 실행 가능한 액션 타입 정의
 type ActionType = 
@@ -95,7 +97,7 @@ export async function POST(request: NextRequest) {
     const timestamp = new Date().toISOString();
 
     // n8n이 설정되어 있으면 실제 실행
-    if (N8N_WEBHOOK_URL && N8N_WEBHOOK_URL !== 'https://n8n.autus.ai/webhook/autus-action') {
+    if (N8N_WEBHOOK_URL) {
       try {
         const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
           method: 'POST',
@@ -126,7 +128,8 @@ export async function POST(request: NextRequest) {
           }
         }, { status: 200, headers: corsHeaders });
 
-      } catch (n8nError: any) {
+      } catch (n8nErr: unknown) {
+        const n8nError = n8nErr instanceof Error ? n8nErr : new Error(String(n8nErr));
         return NextResponse.json({
           success: false,
           error: 'n8n execution failed',
@@ -152,8 +155,9 @@ export async function POST(request: NextRequest) {
       }
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
-    console.error('Execute API Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'execute.POST' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -162,12 +166,12 @@ export async function POST(request: NextRequest) {
 }
 
 // 시뮬레이션 함수
-function simulateAction(actionType: ActionType, payload: any) {
-  const simulations: Record<ActionType, any> = {
+function simulateAction(actionType: ActionType, payload: Record<string, unknown>) {
+  const simulations: Record<ActionType, Record<string, unknown>> = {
     send_sms: {
       status: 'sent',
       recipient: payload.target || '010-****-****',
-      message_preview: (payload.message || '').substring(0, 20) + '...',
+      message_preview: (String(payload.message || '')).substring(0, 20) + '...',
       estimated_cost: 15,
       delivery_time: '1-3초'
     },
@@ -189,12 +193,12 @@ function simulateAction(actionType: ActionType, payload: any) {
     },
     generate_report: {
       status: 'generated',
-      report_type: payload.metadata?.type || 'weekly',
+      report_type: (payload.metadata as Record<string, unknown> | undefined)?.type || 'weekly',
       pages: 3
     },
     schedule_meeting: {
       status: 'scheduled',
-      datetime: payload.metadata?.datetime,
+      datetime: (payload.metadata as Record<string, unknown> | undefined)?.datetime,
       participants: 2
     },
     sync_data: {

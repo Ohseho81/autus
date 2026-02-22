@@ -426,7 +426,7 @@
             <div class="logo">
                 <div class="logo-icon">⚖️</div>
                 <div>
-                    <div class="logo-text">AUTUS</div>
+                    <div class="logo-text">온리쌤</div>
                     <div class="logo-sub">CONSENSUS ENGINE</div>
                 </div>
             </div>
@@ -512,6 +512,8 @@
     </div>
 
     <script>
+// ═══ Supabase Init ═══
+async function initSupabaseConsensus(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var r=await AutusDB.getUsageLogs({limit:50});if(r.data&&r.data.length>0){var sols={};r.data.forEach(function(l){if(!sols[l.solution_id])sols[l.solution_id]={name:l.solution_id,task:l.task_id,count:0,eff:0,vg:0};sols[l.solution_id].count++;sols[l.solution_id].eff+=parseFloat(l.effectiveness_score)||0;sols[l.solution_id].vg+=parseFloat(l.v_growth)||0});console.log('[Consensus] Loaded',Object.keys(sols).length,'solutions from Supabase')}AutusDB.subscribe('usage_logs','INSERT',function(){initSupabaseConsensus()})}catch(e){console.warn('[Consensus] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseConsensus,200)});
         // ═══════════════════════════════════════════════════════════════════════
         // AUTUS Consensus Dashboard
         // ═══════════════════════════════════════════════════════════════════════
@@ -650,5 +652,7 @@
 
         init();
     </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

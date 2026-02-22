@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { calculateEffectiveness, checkStandardQualification, calculateVGrowth } from '@/lib/physics';
+import { captureError } from '../../../lib/monitoring';
 
 export const runtime = 'edge';
 
@@ -43,8 +44,9 @@ export async function GET(request: NextRequest) {
       }
     }, { status: 200, headers: corsHeaders });
 
-  } catch (error: any) {
-    console.error('Consensus GET Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'consensus.GET' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }
@@ -151,7 +153,7 @@ export async function POST(request: NextRequest) {
       
       // 솔루션 통계 조회
       const ranking = await db.getSolutionRanking();
-      const solution = ranking.find((s: any) => s.solution_id === solution_id);
+      const solution = ranking.find((s: Record<string, unknown>) => s.solution_id === solution_id);
       
       if (!solution) {
         return NextResponse.json(
@@ -190,8 +192,9 @@ export async function POST(request: NextRequest) {
       { status: 400, headers: corsHeaders }
     );
 
-  } catch (error: any) {
-    console.error('Consensus POST Error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'consensus.POST' });
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500, headers: corsHeaders }

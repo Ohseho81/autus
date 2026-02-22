@@ -600,6 +600,8 @@
   </div>
 
   <script>
+// ═══ Supabase Init ═══
+async function initSupabaseDailyOS(){if(typeof AutusDB==='undefined'||!AutusDB.isConnected())return;try{var v=await AutusDB.getVMetrics();var d=await AutusDB.getDecisionLog({limit:10});if(v){console.log('[DailyOS] V-Metrics: M='+v.minting+', T='+v.taxation+', s='+v.synergy)}if(d.data)console.log('[DailyOS] Decisions:',d.data.length)}catch(e){console.warn('[DailyOS] Fallback:',e.message)}}window.addEventListener('DOMContentLoaded',function(){setTimeout(initSupabaseDailyOS,200)});
     const state = {
       score: 73,
       index: 0,
@@ -717,5 +719,7 @@
       if (e.key === 'Escape') exitExplore();
     });
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
 </body>
 </html>

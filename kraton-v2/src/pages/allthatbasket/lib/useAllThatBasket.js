@@ -1,5 +1,5 @@
 /**
- * 🏀 올댓바스켓 통합 관리 Hook
+ * 온리쌤 통합 관리 Hook
  * 수납/출석 일체화 + AUTUS V-Index/Risk Engine
  */
 

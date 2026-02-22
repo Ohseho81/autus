@@ -5,6 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 import * as crypto from 'crypto';
 import { DataMapper, hashStudentData, validateStudentData } from '@/lib/data-mapper';
 import { 
@@ -90,8 +92,9 @@ export async function GET(req: NextRequest) {
       message: `Synced ${result.synced_records} students from Classting`
     });
     
-  } catch (error: any) {
-    console.error('Classting sync error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-classting.get' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -170,8 +173,9 @@ export async function POST(req: NextRequest) {
       message: `Synced ${result.synced_records} students`
     });
     
-  } catch (error: any) {
-    console.error('Classting POST error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-classting.post' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -192,7 +196,7 @@ export async function PUT(req: NextRequest) {
     
     const event: ClasstingWebhookEvent = JSON.parse(body);
     
-    console.log(`Classting webhook: ${event.event_type} for student ${event.student_id}`);
+    logger.info(`Classting webhook: ${event.event_type} for student ${event.student_id}`);
     
     // Get academy_id from school_id mapping
     const { data: integration } = await getSupabaseAdmin()
@@ -203,7 +207,7 @@ export async function PUT(req: NextRequest) {
       .single();
     
     if (!integration) {
-      console.warn(`No integration found for school_id: ${event.school_id}`);
+      logger.warn(`No integration found for school_id: ${event.school_id}`);
       return NextResponse.json({ ok: true, message: 'Ignored (no integration)' });
     }
     
@@ -212,8 +216,9 @@ export async function PUT(req: NextRequest) {
     
     return NextResponse.json({ ok: true, message: 'Event processed' });
     
-  } catch (error: any) {
-    console.error('Webhook error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'sync-classting.webhook' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -238,7 +243,7 @@ async function fetchClasstingStudents(
   
   if (!response.ok) {
     // If API fails, return demo data
-    console.log('Using demo Classting data');
+    logger.info('Using demo Classting data');
     return getDemoClasstingStudents();
   }
   
@@ -341,8 +346,9 @@ async function syncStudentsToSupabase(
       }
       
       synced++;
-    } catch (err: any) {
-      errors.push({ record_id: student.external_id, message: err.message });
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      errors.push({ record_id: student.external_id, message: error.message });
     }
   }
   
@@ -431,9 +437,9 @@ async function registerWebhook(
       }),
     });
     
-    console.log(`Webhook registered for academy ${academyId}`);
+    logger.info(`Webhook registered for academy ${academyId}`);
   } catch (err) {
-    console.error('Failed to register webhook:', err);
+    captureError(err instanceof Error ? err : new Error(String(err)), { context: 'sync-classting.register-webhook' });
   }
 }
 
@@ -496,9 +502,10 @@ function verifyWebhookSignature(body: string, signature: string | null): boolean
 }
 
 // Token encryption (simple for demo, use proper encryption in production)
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-change-me!';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '';
 
 function encryptToken(token: string): string {
+  if (!ENCRYPTION_KEY) throw new Error('ENCRYPTION_KEY not configured');
   const cipher = crypto.createCipheriv(
     'aes-256-cbc',
     crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32),
@@ -508,6 +515,7 @@ function encryptToken(token: string): string {
 }
 
 function decryptToken(encrypted: string): string {
+  if (!ENCRYPTION_KEY) throw new Error('ENCRYPTION_KEY not configured');
   try {
     const decipher = crypto.createDecipheriv(
       'aes-256-cbc',

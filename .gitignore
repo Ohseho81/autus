@@ -18,14 +18,15 @@ venv/
 
 # Archive (legacy code - 로컬 보관용)
 _archive/
+_archive_*/
 _legacy/
 
 # Environment
 .env
-.env.local
-.env.*.local
+.env.*
 !.env.sample
 !.env.example
+!.env.*.example
 
 # Database
 *.db
@@ -46,7 +47,7 @@ playwright-report/
 *.swp
 *.swo
 
-# Separate Projects / Submodules
+# Separate Projects / Submodules (nested git repos)
 clawdbot/
 kraton-unified/
 # kraton-v2/  # 배포에 필요하여 제거
@@ -96,6 +97,16 @@ credentials.json
 *.key
 secrets/
 
+# PII Data (학생/결제/회원 데이터 — 절대 커밋하지 말 것)
+*.csv
+*.xlsx
+*.docx
+.~lock.*
+students_insert.sql
+
+# Expo local state
+**/.expo/
+
 # Large files
 *.zip
 *.tar.gz
@@ -104,3 +115,35 @@ secrets/
 
 # 🔐 키 보관함
 .env.keys
+
+# Generated HTML/Notebooks (local only)
+*.html
+*.ipynb
+
+# Claude plugins (local only)
+*.plugin
+autus-supabase-uploader/
+
+# PII JSON Data (학생 명단 등 — 절대 커밋하지 말 것)
+**/students_data.json
+OUTPUT_*
+
+# Temporary setup/onboarding scripts (local only)
+auto_onboarding.py
+setup_and_upload.py
+setup_direct_ip.py
+upload_students.py
+upload_to_supabase.py
+upload_via_api.py
+CHECK_FILES.sh
+RUN_THIS.sh
+INSTALL.md
+SETUP_GUIDE.md
+ONBOARDING_COMPLETE.md
+START_HERE.md
+
+# Legacy prototype (local only)
+mobile-app/
+
+# Local Netlify folder
+.netlify

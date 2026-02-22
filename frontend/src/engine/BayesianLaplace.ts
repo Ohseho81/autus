@@ -415,7 +415,7 @@ export class BayesianLaplace {
   ): {
     predictions: CoreState[];
     learningResults: LearningResult[];
-    finalAccuracy: ReturnType<typeof this.analyzeAccuracy>;
+    finalAccuracy: { overallMSE: number; byNode: Record<string, { mse: number; bias: number; count: number }>; trend: 'improving' | 'stable' | 'degrading' };
   } {
     const predictions: CoreState[] = [initial];
     const learningResults: LearningResult[] = [];

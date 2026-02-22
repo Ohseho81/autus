@@ -11,12 +11,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
+import { logger } from '../../../../lib/logger';
 
-// Supabase Client
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+// Supabase Client (lazy via shared singleton)
+function getSupabase() {
+  try {
+    return getSupabaseAdmin();
+  } catch {
+    return null;
+  }
+}
 
 // n8n Webhook
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || '';
@@ -87,7 +93,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
     }
   } catch (error) {
-    console.error('Active Shield Error:', error);
+    captureError(error instanceof Error ? error : new Error(String(error)), { context: 'shield-activate.POST' });
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -116,6 +122,7 @@ async function activateShield(payload: ShieldRequest) {
     custom_message,
   } = payload;
 
+  const supabase = getSupabase();
   const shieldId = `shield_${Date.now()}`;
   const actions: ShieldAction[] = [];
   const timestamp = new Date().toISOString();
@@ -358,7 +365,7 @@ Active Shield가 자동 발동되었습니다.`;
 
 async function deactivateShield(payload: ShieldRequest) {
   const { risk_id } = payload;
-  
+
   if (!risk_id) {
     return NextResponse.json({
       success: false,
@@ -366,6 +373,7 @@ async function deactivateShield(payload: ShieldRequest) {
     }, { status: 400 });
   }
 
+  const supabase = getSupabase();
   if (supabase) {
     await supabase.from('active_shields').update({
       status: 'resolved',
@@ -392,6 +400,7 @@ async function deactivateShield(payload: ShieldRequest) {
 async function getShieldStatus(payload: ShieldRequest) {
   const { student_id, risk_id } = payload;
 
+  const supabase = getSupabase();
   if (!supabase) {
     return NextResponse.json({
       success: true,
@@ -427,6 +436,7 @@ async function getShieldStatus(payload: ShieldRequest) {
 async function getShieldHistory(payload: ShieldRequest) {
   const { student_id } = payload;
 
+  const supabase = getSupabase();
   if (!supabase) {
     // Mock 데이터
     return NextResponse.json({

@@ -4,8 +4,9 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStudents, useEvents, useSupabaseQuery } from '../../hooks/useSupabaseData';
 
 // ============================================
 // DESIGN TOKENS
@@ -28,34 +29,77 @@ const TOKENS = {
 };
 
 // ============================================
-// MOCK DATA
+// SUPABASE DATA HOOK (실데이터 우선, fallback 지원)
 // ============================================
-const MOCK_CHILD = {
-  id: 'STU001',
-  name: '김민수',
-  grade: '고2',
-  school: '서울고등학교',
-  class: 'A반',
-  currentState: 2,
-  vIndex: 847,
-  avatar: '👨‍🎓',
-  teacher: '박선생님',
-  subjects: ['국어', '영어', '수학'],
+function useParentData() {
+  const { data: students, isLive } = useStudents({ limit: 1 });
+  const { data: eventsRaw } = useEvents({ limit: 10 });
+  const { data: paymentsRaw } = useSupabaseQuery('payments', { fallback: [], limit: 5, order: { column: 'created_at', ascending: false } });
+  const { data: consultationsRaw } = useSupabaseQuery('consultations', { fallback: [], limit: 5, order: { column: 'created_at', ascending: false } });
+
+  // 첫 번째 학생을 "내 아이"로 사용 (실서비스에서는 auth 기반 필터)
+  const student = students?.[0];
+
+  const child = student ? {
+    id: student.id,
+    name: student.name,
+    grade: student.grade || '미지정',
+    school: student.school || '',
+    class: student.position || '',
+    currentState: student.stateLabel?.state || 2,
+    vIndex: student.vIndex || 847,
+    avatar: '👨‍🎓',
+    teacher: '코치',
+    subjects: ['배구'],
+  } : FALLBACK_CHILD;
+
+  const recentActivity = (eventsRaw || []).slice(0, 4).map(e => ({
+    date: e.occurred_at ? timeAgo(e.occurred_at) : '',
+    action: e.event_type?.split('.').pop()?.replace(/_/g, ' ') || '활동',
+    detail: e.event_category || '',
+    icon: e.event_type?.includes('attendance') ? '✅' : e.event_type?.includes('payment') ? '💳' : '📝',
+  }));
+
+  const payments = paymentsRaw?.length > 0 ? paymentsRaw.map(p => ({
+    id: p.id,
+    month: p.billing_month || '',
+    amount: p.amount || 0,
+    status: p.status || 'pending',
+    paidAt: p.paid_at,
+    dueDate: p.due_date,
+  })) : FALLBACK_PAYMENTS;
+
+  const consultations = consultationsRaw?.length > 0 ? consultationsRaw.map(c => ({
+    id: c.id,
+    date: c.scheduled_at || c.created_at,
+    teacher: c.counselor_name || '코치',
+    topic: c.topic || c.type || '상담',
+    status: c.status || 'scheduled',
+  })) : FALLBACK_CONSULTATIONS;
+
+  return { child, recentActivity, payments, consultations, isLive };
+}
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+  if (days === 0) return '오늘';
+  if (days === 1) return '어제';
+  return `${days}일 전`;
+}
+
+// FALLBACK DATA (Supabase 미연결 시)
+const FALLBACK_CHILD = {
+  id: 'STU001', name: '김민수', grade: '고2', school: '서울고등학교', class: 'A반',
+  currentState: 2, vIndex: 847, avatar: '👨‍🎓', teacher: '박선생님', subjects: ['국어', '영어', '수학'],
 };
 
-const MOCK_RECENT_ACTIVITY = [
-  { date: '오늘', action: '출석', detail: '정상 출석', icon: '✅' },
-  { date: '어제', action: '테스트', detail: '수학 92점', icon: '📝' },
-  { date: '2일 전', action: '카드 획득', detail: '노력왕 카드', icon: '🎁' },
-  { date: '3일 전', action: '출석', detail: '정상 출석', icon: '✅' },
-];
-
-const MOCK_PAYMENTS = [
+const FALLBACK_PAYMENTS = [
   { id: 'PAY001', month: '2024년 1월', amount: 450000, status: 'paid', paidAt: '2024-01-05' },
   { id: 'PAY002', month: '2024년 2월', amount: 450000, status: 'pending', dueDate: '2024-02-05' },
 ];
 
-const MOCK_CONSULTATIONS = [
+const FALLBACK_CONSULTATIONS = [
   { id: 'CON001', date: '2024-01-15', teacher: '박선생님', topic: '학습 상담', status: 'completed' },
   { id: 'CON002', date: '2024-02-01', teacher: '박선생님', topic: '진로 상담', status: 'scheduled' },
 ];
@@ -371,12 +415,12 @@ const ConsultationModal = memo(function ConsultationModal({ isOpen, onClose, onS
 // ============================================
 export default function ParentPortal() {
   const [showConsultModal, setShowConsultModal] = useState(false);
-  
+  const { child, recentActivity, payments, consultations, isLive } = useParentData();
+
   const handleConsultationSubmit = (data) => {
     console.log('Consultation request:', data);
-    // TODO: Submit to backend
   };
-  
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       {/* Header */}
@@ -387,25 +431,28 @@ export default function ParentPortal() {
         </div>
         <div className="text-right">
           <p className="text-gray-400 text-sm">환영합니다</p>
-          <p className="text-white font-medium">김민수 학부모님</p>
+          <p className="text-white font-medium">{child.name} 학부모님</p>
+          {isLive && <p className="text-emerald-500/60 text-xs">🟢 LIVE</p>}
         </div>
       </div>
-      
+
       {/* Child Status */}
-      <ChildStatusCard child={MOCK_CHILD} />
-      
+      <ChildStatusCard child={child} />
+
       {/* Main Grid */}
       <div className="grid grid-cols-3 gap-6">
         {/* Left Column */}
         <div className="col-span-2 space-y-6">
-          <RecentActivity activities={MOCK_RECENT_ACTIVITY} />
-          <PaymentSection payments={MOCK_PAYMENTS} />
+          <RecentActivity activities={recentActivity.length > 0 ? recentActivity : [
+            { date: '오늘', action: '출석', detail: '정상 출석', icon: '✅' },
+          ]} />
+          <PaymentSection payments={payments} />
         </div>
-        
+
         {/* Right Column */}
         <div className="space-y-6">
-          <ConsultationSection 
-            consultations={MOCK_CONSULTATIONS}
+          <ConsultationSection
+            consultations={consultations}
             onRequestNew={() => setShowConsultModal(true)}
           />
           <QuickActions />

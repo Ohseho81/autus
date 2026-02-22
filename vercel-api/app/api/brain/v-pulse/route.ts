@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '../../../../lib/supabase';
+import { captureError } from '../../../../lib/monitoring';
 import {
   VPulseInput,
   VPulseOutput,
@@ -78,8 +79,9 @@ export async function POST(req: NextRequest) {
       data: result,
     });
     
-  } catch (error: any) {
-    console.error('V-Pulse error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'v-pulse.POST' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -163,8 +165,9 @@ export async function GET(req: NextRequest) {
       },
     });
     
-  } catch (error: any) {
-    console.error('V-Pulse batch error:', error);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    captureError(error, { context: 'v-pulse.GET' });
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
@@ -174,8 +177,8 @@ export async function GET(req: NextRequest) {
 // -----------------------------------------------------------------------------
 
 function calculateVPulse(
-  student: any,
-  signals: any,
+  student: Record<string, unknown>,
+  signals: Record<string, unknown>,
   weights: FeatureWeights
 ): VPulseOutput {
   const detectedSignals: VPulseOutput['signals'] = [];
