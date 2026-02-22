@@ -38,7 +38,7 @@ jobs:
       # ─────────────────────────────────────────────────────────────────────────
       - name: 📢 Slack Notification
         if: ${{ vars.SLACK_ENABLED == 'true' && secrets.SLACK_WEBHOOK_URL }}
-        uses: slackapi/slack-github-action@v1.26.0
+        uses: slackapi/slack-github-action@v2
         with:
           payload: |
             {
