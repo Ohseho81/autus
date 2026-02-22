@@ -5,3 +5,4 @@ export * from './safety-chain';
 export * from './consent-handler';
 export * from './goal-change-handler';
 export * from './monthly-report';
+export * from './template-engine';

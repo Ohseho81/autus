@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 import { MessageOutbox, MessageStatus } from './types';
+import { processAndSendMessage } from './template-engine';
 
 const BATCH_SIZE = 10;
 const MAX_RETRIES = 3;
@@ -163,16 +164,76 @@ export async function enqueueMessage(
 }
 
 async function sendKakaoMessage(message: MessageOutbox): Promise<void> {
-  // Placeholder for Kakao API integration
-  logger.info('Sending Kakao message', {
+  logger.info('Sending Kakao message via template engine', {
     message_id: message.id,
     phone: message.phone,
-    template_code: message.template_code
+    template_code: message.template_code,
   });
 
-  // TODO: Integrate with Kakao API
-  // Example: await kakaoClient.sendAlimtalk(message.phone, message.template_code, message.payload_json);
-  
-  // Simulate a successful send
-  return Promise.resolve();
+  // Extract academy_id from org context
+  const client = getSupabaseAdmin();
+  let academy_id: string | null = null;
+
+  if (message.org_id) {
+    const { data: academy } = await client
+      .from('academies')
+      .select('id, name, phone')
+      .eq('id', message.org_id)
+      .limit(1);
+
+    if (academy && academy.length > 0) {
+      academy_id = academy[0].id as string;
+    }
+  }
+
+  // Map template_code to template_key (MONTHLY_REPORT → REPORT, etc.)
+  const templateKeyMap: Record<string, string> = {
+    'ATTEND': 'ATTEND',
+    'SAFETY': 'SAFETY',
+    'MONTHLY_REPORT': 'REPORT',
+    'CONSENT': 'CONSENT',
+    'GOAL': 'GOAL',
+  };
+  const template_key = templateKeyMap[message.template_code] || message.template_code;
+
+  // Build vars from payload_json + academy context
+  const payload = (message.payload_json || {}) as Record<string, unknown>;
+  const vars: Record<string, string> = {};
+  for (const [key, value] of Object.entries(payload)) {
+    if (value !== null && value !== undefined) {
+      vars[key] = String(value);
+    }
+  }
+
+  // Inject academy info if available
+  if (message.org_id) {
+    const { data: academyData } = await client
+      .from('academies')
+      .select('name, phone')
+      .eq('id', message.org_id)
+      .limit(1);
+
+    if (academyData && academyData.length > 0) {
+      vars['학원명'] = academyData[0].name as string;
+      vars['학원전화번호'] = (academyData[0].phone as string) || '';
+    }
+  }
+
+  // Full pipeline: loadVariant → renderTemplate → buildPayload → sendKakao
+  const result = await processAndSendMessage(
+    academy_id,
+    template_key,
+    vars,
+    message.phone
+  );
+
+  if (!result.success) {
+    throw new Error(`Kakao send failed: ${result.error}`);
+  }
+
+  logger.info('Kakao message sent successfully', {
+    message_id: message.id,
+    template_key,
+    academy_id,
+  });
 }
