@@ -103,11 +103,17 @@ async def get_cockpit_summary(org_id: str = Query(...), db: Client = Depends(get
 
 @router.get("/map/customers")
 async def get_map_customers(org_id: str = Query(...), db: Client = Depends(get_supabase)):
-    """고객 위치 분포"""
-    result = db.table("customers").select("id, name, location, customer_temperatures(temperature, zone)").eq("org_id", org_id).execute()
+    """고객 위치 분포 (customer_temperatures 없으면 기본값 50/normal 반환)"""
+    try:
+        result = db.table("customers").select("id, name, location, customer_temperatures(temperature, zone)").eq("org_id", org_id).execute()
+    except Exception:
+        try:
+            result = db.table("customers").select("id, name, location").eq("org_id", org_id).execute()
+        except Exception:
+            return []
     customers = []
     for c in (result.data or []):
-        loc = c.get("location", {})
+        loc = c.get("location", {}) or {}
         temp = c.get("customer_temperatures", [{}])[0] if c.get("customer_temperatures") else {}
         if loc.get("lat") and loc.get("lng"):
             customers.append({"id": c["id"], "name": c["name"], "lat": loc["lat"], "lng": loc["lng"], "temp": float(temp.get("temperature", 50)), "zone": temp.get("zone", "normal")})
@@ -238,13 +244,16 @@ async def get_heartbeat_resonance(org_id: str = Query(...), db: Client = Depends
 
 @router.get("/microscope/{customer_id}")
 async def get_microscope_detail(customer_id: str, db: Client = Depends(get_supabase)):
-    """고객 상세 정보"""
+    """고객 상세 정보 (customer_temperatures 없으면 기본값 반환)"""
     customer = db.table("customers").select("*, users!executor_id(id, name), payer:users!payer_id(id, name, phone)").eq("id", customer_id).single().execute()
     if not customer.data:
         raise HTTPException(status_code=404, detail="Customer not found")
     
     c = customer.data
-    temp = db.table("customer_temperatures").select("*").eq("customer_id", customer_id).single().execute()
+    try:
+        temp = db.table("customer_temperatures").select("*").eq("customer_id", customer_id).single().execute()
+    except Exception:
+        temp = type("Result", (), {"data": None})()
     tsel_factors = db.table("tsel_factors").select("*").eq("customer_id", customer_id).execute()
     sigma_factors = db.table("sigma_factors").select("*").eq("customer_id", customer_id).execute()
     voices = db.table("voices").select("*").eq("customer_id", customer_id).order("created_at", desc=True).limit(5).execute()
@@ -284,8 +293,15 @@ async def get_microscope_detail(customer_id: str, db: Client = Depends(get_supab
 
 @router.get("/network/graph")
 async def get_network_graph(org_id: str = Query(...), db: Client = Depends(get_supabase)):
-    """관계망 그래프"""
-    customers = db.table("customers").select("id, name, customer_temperatures(temperature, zone)").eq("org_id", org_id).execute()
+    """관계망 그래프 (customer_temperatures 없으면 기본값 50/normal)"""
+    try:
+        customers = db.table("customers").select("id, name, customer_temperatures(temperature, zone)").eq("org_id", org_id).execute()
+    except Exception:
+        try:
+            cust_res = db.table("customers").select("id, name").eq("org_id", org_id).execute()
+            customers = type("Res", (), {"data": [{"id": x["id"], "name": x["name"], "customer_temperatures": None} for x in (cust_res.data or [])]})()
+        except Exception:
+            return {"nodes": [], "edges": []}
     relationships = db.table("customer_relationships").select("*").eq("org_id", org_id).execute()
     
     nodes = [{"id": c["id"], "name": c["name"], "temp": float(c.get("customer_temperatures", [{}])[0].get("temperature", 50)) if c.get("customer_temperatures") else 50, "zone": c.get("customer_temperatures", [{}])[0].get("zone", "normal") if c.get("customer_temperatures") else "normal"} for c in (customers.data or [])]

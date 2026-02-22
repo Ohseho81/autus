@@ -257,7 +257,8 @@ async function generateCardMessage(
     OPPORTUNITY: '학생의 성장 기회를 축하하고 격려하는 메시지',
   };
   
-  const signalContext = signals?.recent_signals?.join(', ') || '특별한 신호 없음';
+  const recentSignals = signals?.recent_signals;
+  const signalContext = Array.isArray(recentSignals) ? recentSignals.join(', ') : '특별한 신호 없음';
   
   const prompt = `
 학원 관리 시스템에서 학부모에게 보낼 메시지를 작성해주세요.
