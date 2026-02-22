@@ -16,6 +16,24 @@
       }
     }
   ],
+  "crons": [
+    {
+      "path": "/api/kakao/worker",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/pre-attendance",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/consultation-trigger",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/monthly-report",
+      "schedule": "0 10 28-31 * *"
+    }
+  ],
   "routes": [
     { "src": "/api/(.*)", "dest": "vercel-api/api/$1" },
     { "src": "/assets/(.*)", "dest": "kraton-v2/assets/$1" },
