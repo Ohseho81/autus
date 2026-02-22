@@ -40,7 +40,7 @@ jobs:
       
       - name: Slack 알림 - 배포 완료
         if: success()
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v2
         with:
           payload: |
             {
