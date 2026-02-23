@@ -17,6 +17,16 @@ interface ResultLog {
   created_at?: string;
 }
 
+interface ProofInfo {
+  id: string;
+  leaf_hash: string;
+  anchor_id: string | null;
+  proof_anchors: {
+    tx_hash: string | null;
+    anchored_at: string | null;
+  } | null;
+}
+
 const STAGES = [
   { key: 'motivation', emoji: '🔥', label: '동기부여', color: 'bg-red-500', lightColor: 'bg-red-50', textColor: 'text-red-700' },
   { key: 'basic', emoji: '📚', label: '기초', color: 'bg-orange-500', lightColor: 'bg-orange-50', textColor: 'text-orange-700' },
@@ -28,6 +38,7 @@ const STAGES = [
 export default function ResultPage() {
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<ResultLog | null>(null);
+  const [proof, setProof] = useState<ProofInfo | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -56,6 +67,27 @@ export default function ResultPage() {
       const data = await res.json();
       if (!data || data.length === 0) throw new Error('결과를 찾을 수 없습니다.');
       setResult(data[0]);
+
+      // Proof 조회 (result_logs.id → proof_records.report_id)
+      if (data[0]?.id) {
+        try {
+          const proofRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/proof_records?report_id=eq.${data[0].id}&select=id,leaf_hash,anchor_id,proof_anchors(tx_hash,anchored_at)`,
+            {
+              headers: {
+                apikey: ANON_KEY,
+                Authorization: `Bearer ${ANON_KEY}`,
+              },
+            }
+          );
+          const proofData = await proofRes.json();
+          if (proofData?.length > 0) {
+            setProof(proofData[0]);
+          }
+        } catch {
+          // proof 조회 실패해도 결과 표시에는 영향 없음
+        }
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : '결과를 불러올 수 없습니다.');
     } finally {
@@ -91,6 +123,53 @@ export default function ResultPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-sm mx-auto space-y-4">
+        {/* Proof Badge */}
+        {proof && (
+          <a
+            href={`/verify?hash=${proof.leaf_hash}`}
+            className="block no-underline"
+          >
+            <div className={`rounded-2xl shadow-sm p-4 flex items-center justify-between ${
+              proof.proof_anchors?.tx_hash
+                ? 'bg-emerald-50 border border-emerald-200'
+                : proof.anchor_id
+                ? 'bg-amber-50 border border-amber-200'
+                : 'bg-blue-50 border border-blue-200'
+            }`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                  proof.proof_anchors?.tx_hash
+                    ? 'bg-emerald-100 text-emerald-600'
+                    : proof.anchor_id
+                    ? 'bg-amber-100 text-amber-600'
+                    : 'bg-blue-100 text-blue-600'
+                }`}>
+                  {proof.proof_anchors?.tx_hash ? '🛡️' : proof.anchor_id ? '⏳' : '📋'}
+                </div>
+                <div>
+                  <p className={`text-sm font-semibold ${
+                    proof.proof_anchors?.tx_hash
+                      ? 'text-emerald-700'
+                      : proof.anchor_id
+                      ? 'text-amber-700'
+                      : 'text-blue-700'
+                  }`}>
+                    {proof.proof_anchors?.tx_hash
+                      ? '검증됨'
+                      : proof.anchor_id
+                      ? '기록됨'
+                      : '처리 중'}
+                  </p>
+                  <p className="text-[10px] text-gray-400 font-mono">
+                    {proof.leaf_hash.slice(0, 8)}...{proof.leaf_hash.slice(-6)}
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs text-gray-400">검증 상세 &rarr;</span>
+            </div>
+          </a>
+        )}
+
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <h1 className="text-lg font-bold text-gray-900 mb-1">수업 결과</h1>
