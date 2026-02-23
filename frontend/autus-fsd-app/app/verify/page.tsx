@@ -1,23 +1,29 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, DragEvent } from 'react';
 
 /**
  * /verify — 검증 가능한 리포트 페이지
  *
  * 기능:
- * 1. 리포트 ID 또는 leaf_hash 입력
- * 2. proof_records에서 해시 조회
- * 3. proof_anchors에서 merkle_root + tx_hash 확인
- * 4. "검증 완료 ✅" or "검증 실패 ❌" 표시
+ * 1. 리포트 파일(JSON) 드래그앤드롭 업로드 → proof_payload 재생성 → leaf_hash 계산
+ * 2. 리포트 ID 또는 leaf_hash 직접 입력
+ * 3. proof_records에서 해시 조회
+ * 4. proof_anchors에서 merkle_root + tx_hash 확인
+ * 5. "검증 완료 ✅" or "검증 실패 ❌" 표시
  *
  * ⚠️ 외부 공개 여부 TBD — 코드는 미리 구현
+ *
+ * 브랜딩 원칙:
+ * ❌ "블록체인" → ✅ "검증 가능한 리포트"
+ * ❌ "온체인"   → ✅ "위변조 방지 기록"
  */
 
 const SUPABASE_URL = 'https://pphzvnaedmzcvpxjulti.supabase.co';
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 type VerifyStep = 'idle' | 'verifying' | 'success' | 'anchored' | 'failed' | 'error';
+type InputMode = 'file' | 'manual';
 
 interface ProofRecord {
   id: string;
@@ -44,14 +50,99 @@ interface ProofRecord {
   } | null;
 }
 
+// ============================================================
+// leaf_hash 재계산 (클라이언트 사이드)
+// proof-generator와 동일 알고리즘: canonical JSON → SHA-256
+// ============================================================
+async function computeLeafHash(payload: Record<string, any>): Promise<string> {
+  const canonical = JSON.stringify(payload, Object.keys(payload).sort());
+  const data = new TextEncoder().encode(canonical);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 export default function VerifyPage() {
   const [input, setInput] = useState('');
   const [inputType, setInputType] = useState<'report_id' | 'leaf_hash'>('leaf_hash');
+  const [inputMode, setInputMode] = useState<InputMode>('file');
   const [step, setStep] = useState<VerifyStep>('idle');
   const [record, setRecord] = useState<ProofRecord | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [fileName, setFileName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const verify = useCallback(async () => {
+  // 파일에서 proof_payload 추출 → leaf_hash 재계산 → DB 조회
+  const verifyFromFile = useCallback(async (file: File) => {
+    setStep('verifying');
+    setRecord(null);
+    setErrorMsg('');
+    setFileName(file.name);
+
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+
+      // proof_payload 추출: 파일이 payload 자체이거나, proof_payload 키를 포함
+      const payload = json.proof_payload || json;
+
+      // 필수 필드 검증
+      if (!payload.schema_version || !payload.tenant_id_hash || !payload.period) {
+        throw new Error('유효한 증명 데이터가 아닙니다. schema_version, tenant_id_hash, period 필드가 필요합니다.');
+      }
+
+      // leaf_hash 재계산
+      const computedHash = await computeLeafHash(payload);
+
+      // DB에서 조회
+      await lookupProof(`leaf_hash=eq.${computedHash}`);
+    } catch (err: any) {
+      if (err.message?.includes('JSON')) {
+        setStep('error');
+        setErrorMsg('JSON 파일 형식이 올바르지 않습니다.');
+      } else {
+        setStep('error');
+        setErrorMsg(err.message || '파일 검증 중 오류가 발생했습니다.');
+      }
+    }
+  }, []);
+
+  // DB 조회 공통 함수
+  const lookupProof = useCallback(async (queryParam: string) => {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/proof_records?${queryParam}&select=*,proof_anchors(merkle_root,tx_hash,anchor_date,anchored_at)`,
+      {
+        headers: {
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`,
+        },
+      }
+    );
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+
+    if (!data || data.length === 0) {
+      setStep('failed');
+      setErrorMsg('해당 해시에 대한 증명 기록을 찾을 수 없습니다.');
+      return;
+    }
+
+    const proof = data[0] as ProofRecord;
+    setRecord(proof);
+
+    if (proof.proof_anchors?.tx_hash) {
+      setStep('anchored');
+    } else {
+      setStep('success');
+    }
+  }, []);
+
+  // 수동 입력으로 검증
+  const verifyManual = useCallback(async () => {
     if (!input.trim()) return;
 
     setStep('verifying');
@@ -59,51 +150,42 @@ export default function VerifyPage() {
     setErrorMsg('');
 
     try {
-      // proof_records 조회 (proof_anchors JOIN)
       const param = inputType === 'leaf_hash'
         ? `leaf_hash=eq.${input.trim()}`
         : `report_id=eq.${input.trim()}`;
 
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/proof_records?${param}&select=*,proof_anchors(merkle_root,tx_hash,anchor_date,anchored_at)`,
-        {
-          headers: {
-            'apikey': ANON_KEY,
-            'Authorization': `Bearer ${ANON_KEY}`,
-          },
-        }
-      );
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const data = await res.json();
-
-      if (!data || data.length === 0) {
-        setStep('failed');
-        setErrorMsg('해당 해시에 대한 증명 기록을 찾을 수 없습니다.');
-        return;
-      }
-
-      const proof = data[0] as ProofRecord;
-      setRecord(proof);
-
-      // 앵커링 상태 확인
-      if (proof.proof_anchors?.tx_hash) {
-        setStep('anchored');
-      } else {
-        setStep('success');
-      }
+      await lookupProof(param);
     } catch (err: any) {
       setStep('error');
       setErrorMsg(err.message || '검증 중 오류가 발생했습니다.');
     }
-  }, [input, inputType]);
+  }, [input, inputType, lookupProof]);
+
+  // 드래그앤드롭 핸들러
+  const handleDragOver = (e: DragEvent) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = (e: DragEvent) => { e.preventDefault(); setIsDragging(false); };
+  const handleDrop = (e: DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file && (file.name.endsWith('.json') || file.type === 'application/json')) {
+      verifyFromFile(file);
+    } else {
+      setErrorMsg('JSON 파일만 지원합니다.');
+      setStep('error');
+    }
+  };
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) verifyFromFile(file);
+  };
 
   const resetState = () => {
     setStep('idle');
     setInput('');
     setRecord(null);
     setErrorMsg('');
+    setFileName('');
   };
 
   return (
@@ -118,45 +200,114 @@ export default function VerifyPage() {
           </p>
         </div>
 
-        {/* 입력 */}
+        {/* 입력 모드 선택 + 입력 영역 */}
         {(step === 'idle' || step === 'failed' || step === 'error') && (
           <div className="space-y-4">
-            {/* 입력 타입 선택 */}
+            {/* 모드 토글: 파일 / 수동 */}
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
-                onClick={() => setInputType('leaf_hash')}
+                onClick={() => setInputMode('file')}
                 className={`flex-1 py-2 text-sm rounded-md transition-all ${
-                  inputType === 'leaf_hash'
+                  inputMode === 'file'
                     ? 'bg-white shadow text-blue-600 font-medium'
                     : 'text-gray-500'
                 }`}
               >
-                Leaf Hash
+                파일 검증
               </button>
               <button
-                onClick={() => setInputType('report_id')}
+                onClick={() => setInputMode('manual')}
                 className={`flex-1 py-2 text-sm rounded-md transition-all ${
-                  inputType === 'report_id'
+                  inputMode === 'manual'
                     ? 'bg-white shadow text-blue-600 font-medium'
                     : 'text-gray-500'
                 }`}
               >
-                Report ID
+                직접 입력
               </button>
             </div>
 
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={
-                inputType === 'leaf_hash'
-                  ? 'SHA-256 해시값을 입력하세요'
-                  : 'Report UUID를 입력하세요'
-              }
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              onKeyDown={(e) => e.key === 'Enter' && verify()}
-            />
+            {/* 파일 드래그앤드롭 */}
+            {inputMode === 'file' && (
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+                  isDragging
+                    ? 'border-blue-400 bg-blue-50'
+                    : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <div className="text-3xl mb-2">{isDragging ? '📂' : '📄'}</div>
+                <p className="text-sm font-medium text-gray-700">
+                  {isDragging ? '여기에 놓으세요' : '리포트 파일을 드래그하거나 클릭하세요'}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  JSON 형식 지원 (.json)
+                </p>
+                <p className="text-[10px] text-gray-300 mt-2">
+                  파일 내용은 서버에 전송되지 않습니다. 해시만 비교합니다.
+                </p>
+              </div>
+            )}
+
+            {/* 수동 입력 */}
+            {inputMode === 'manual' && (
+              <>
+                <div className="flex bg-gray-50 rounded-lg p-1">
+                  <button
+                    onClick={() => setInputType('leaf_hash')}
+                    className={`flex-1 py-1.5 text-xs rounded-md transition-all ${
+                      inputType === 'leaf_hash'
+                        ? 'bg-white shadow text-blue-600 font-medium'
+                        : 'text-gray-500'
+                    }`}
+                  >
+                    Leaf Hash
+                  </button>
+                  <button
+                    onClick={() => setInputType('report_id')}
+                    className={`flex-1 py-1.5 text-xs rounded-md transition-all ${
+                      inputType === 'report_id'
+                        ? 'bg-white shadow text-blue-600 font-medium'
+                        : 'text-gray-500'
+                    }`}
+                  >
+                    Report ID
+                  </button>
+                </div>
+
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={
+                    inputType === 'leaf_hash'
+                      ? 'SHA-256 해시값을 입력하세요'
+                      : 'Report UUID를 입력하세요'
+                  }
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onKeyDown={(e) => e.key === 'Enter' && verifyManual()}
+                />
+
+                <button
+                  onClick={verifyManual}
+                  disabled={!input.trim()}
+                  className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+                >
+                  검증하기
+                </button>
+              </>
+            )}
 
             {/* 에러 메시지 */}
             {(step === 'failed' || step === 'error') && errorMsg && (
@@ -168,14 +319,6 @@ export default function VerifyPage() {
                 {step === 'failed' ? '❌ ' : '⚠️ '}{errorMsg}
               </div>
             )}
-
-            <button
-              onClick={verify}
-              disabled={!input.trim()}
-              className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
-            >
-              검증하기
-            </button>
           </div>
         )}
 
@@ -184,6 +327,9 @@ export default function VerifyPage() {
           <div className="text-center py-8 space-y-4">
             <div className="animate-spin text-4xl">🔍</div>
             <p className="text-gray-600 text-sm">증명 기록을 검색하고 있습니다...</p>
+            {fileName && (
+              <p className="text-xs text-gray-400">파일: {fileName}</p>
+            )}
           </div>
         )}
 
@@ -202,7 +348,7 @@ export default function VerifyPage() {
 
             <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
               <p className="text-xs text-yellow-700">
-                ⏳ 블록체인 앵커링 대기 중입니다. 일일 배치 처리 후 완전 검증됩니다.
+                ⏳ 위변조 방지 기록 대기 중입니다. 일일 배치 처리 후 완전 검증됩니다.
               </p>
             </div>
 
@@ -219,7 +365,7 @@ export default function VerifyPage() {
               <div className="text-5xl">🛡️</div>
               <h2 className="text-lg font-bold text-green-700">검증 완료</h2>
               <p className="text-xs text-gray-500">
-                이 리포트는 블록체인에 기록되어 위변조가 불가능합니다
+                이 리포트는 위변조 방지 시스템에 기록되어 무결성이 보장됩니다
               </p>
             </div>
 
@@ -228,7 +374,7 @@ export default function VerifyPage() {
             {/* 앵커 정보 */}
             {record.proof_anchors && (
               <div className="bg-indigo-50 rounded-xl p-4 space-y-2 border border-indigo-200">
-                <h3 className="text-sm font-semibold text-indigo-800">블록체인 앵커</h3>
+                <h3 className="text-sm font-semibold text-indigo-800">검증 앵커</h3>
                 <InfoRow label="앵커 일자" value={record.proof_anchors.anchor_date} />
                 <InfoRow
                   label="Merkle Root"
