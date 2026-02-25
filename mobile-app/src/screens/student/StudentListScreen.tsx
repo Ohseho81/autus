@@ -44,6 +44,7 @@ export default function StudentListScreen() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['students', filter, search],
     queryFn: () => api.getStudents({ filter, search }),
+    staleTime: 60 * 1000,
   });
 
   const students: Student[] = data?.data?.students || [];

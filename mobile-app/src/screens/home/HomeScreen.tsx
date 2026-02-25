@@ -29,10 +29,10 @@ import { StatCard, AlertCard, VIndexCard, QuickActionButton } from '../../compon
 export default function HomeScreen() {
   const navigation = useNavigation();
 
-  // Fetch dashboard data
   const { data: dashboard, isLoading, refetch } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => api.getDashboardSummary(),
+    staleTime: 30 * 1000,
   });
 
   const openDrawer = () => {
@@ -185,10 +185,22 @@ export default function HomeScreen() {
               color={colors.safe.primary}
             />
             <QuickActionButton
+              icon="checkmark-done-circle"
+              label="스마트 출석"
+              onPress={() => navigation.navigate('SmartAttendance' as never)}
+              color={colors.success.primary}
+            />
+            <QuickActionButton
+              icon="scan"
+              label="QR 출석"
+              onPress={() => navigation.navigate('QRScanner' as never)}
+              color={colors.caution.primary}
+            />
+            <QuickActionButton
               icon="chatbubble-ellipses"
               label="상담 예약"
-              onPress={() => navigation.navigate('Consultation' as never)}
-              color={colors.success.primary}
+              onPress={() => navigation.navigate('ConsultationCreate' as never)}
+              color={colors.safe.primary}
             />
             <QuickActionButton
               icon="document-text"

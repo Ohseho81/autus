@@ -1,12 +1,14 @@
 /**
- * 온리쌤 Mobile API Service — Supabase Direct
- * 실제 DB 스키마 칼럼명 반영 (organization_id / org_id 혼재)
- *
- * organization_id: students, consultations, notifications, payments, lesson_slots
- * org_id: contracts, customer_temperatures, invoices, ops_action_queue_v02,
- *         org_settings, retention_events, attendance
+ * 온리쌤 Mobile API Service — Supabase Direct + autus-ai.com
+ * Supabase atb_* (학생 802명 등) + autus-ai.com Cloud API fallback
  */
+import Constants from 'expo-constants';
 import { supabase, DEFAULT_ORG_ID } from '../lib/supabase';
+import { autusHealth, autusCockpit, AUTUS_API_URL, fetchMobileApi } from '../lib/autusApi';
+
+export { AUTUS_API_URL };
+
+const USE_CLOUD_FIRST = process.env.EXPO_PUBLIC_USE_AUTUS_API !== 'false';
 
 class ApiService {
   private get orgId() {
@@ -18,8 +20,19 @@ class ApiService {
   // ==========================================
 
   async getDashboardSummary() {
-    // atb_* 스키마 (올댓바스켓/온리쌤) - 기본 사용
-    // EXPO_PUBLIC_USE_ATB_SCHEMA=false 일 때만 기존 students 스키마 시도
+    if (USE_CLOUD_FIRST) {
+      const r = await fetchMobileApi<{
+        total_students: number;
+        today_present: number;
+        today_attendance_total: number;
+        overdue_amount: number;
+        at_risk_count: number;
+        urgent_alerts?: unknown[];
+      }>(`/v1/mobile/dashboard?org_id=${encodeURIComponent(this.orgId)}`);
+      if (r.success && r.data) {
+        return { data: { ...r.data, urgent_alerts: r.data.urgent_alerts ?? [] } };
+      }
+    }
     const useLegacy = process.env.EXPO_PUBLIC_USE_ATB_SCHEMA === 'false';
     if (!useLegacy) return this.getDashboardSummaryAtb();
 
@@ -105,20 +118,17 @@ class ApiService {
     }
     try {
       let students: Array<{ enrollment_status?: string; attendance_rate?: number; total_outstanding?: number; risk_score?: number }> = [];
-      const { data: dash } = await supabase.from('atb_student_dashboard').select('*');
-      if (dash?.length) students = dash;
-      else {
-        const { data: raw } = await supabase.from('atb_students').select('enrollment_status, attendance_rate, total_outstanding');
-        students = raw || [];
+      // atb_students 우선 (뷰 미생성/에러 시에도 동작)
+      const { data: raw, error } = await supabase.from('atb_students').select('enrollment_status, attendance_rate, total_outstanding, risk_score');
+      if (!error && raw?.length) {
+        students = raw.map((s: any) => ({ ...s, risk_score: s.risk_score ?? 0, attendance_rate: s.attendance_rate ?? 100 }));
+      } else {
+        const { data: dash } = await supabase.from('atb_student_dashboard').select('*');
+        if (dash?.length) students = dash;
       }
 
       const currentMonth = new Date().toISOString().slice(0, 7);
-      const { data: payments } = await supabase
-        .from('atb_monthly_payments')
-        .select('*')
-        .eq('month', currentMonth)
-        .maybeSingle();
-
+      const { data: payments } = await supabase.from('atb_monthly_payments').select('*').eq('month', currentMonth).maybeSingle();
       const { data: attendance } = await supabase.from('atb_today_attendance').select('*');
 
       const todayPresent = attendance?.reduce((s: number, c: { present_count?: number }) => s + (c.present_count || 0), 0) || 0;
@@ -176,7 +186,27 @@ class ApiService {
     page?: number;
     limit?: number;
   }) {
-    // atb_* 스키마 기본 사용 (EXPO_PUBLIC_USE_ATB_SCHEMA=false 일 때만 기존 스키마)
+    if (USE_CLOUD_FIRST) {
+      const q = new URLSearchParams({ org_id: this.orgId });
+      if (params?.search) q.set('search', params.search);
+      if (params?.page != null) q.set('page', String(params.page));
+      if (params?.limit != null) q.set('limit', String(params.limit));
+      const r = await fetchMobileApi<{ students: Array<{ id: string; name: string; grade?: string; risk_score?: number }> }>(
+        `/v1/mobile/students?${q.toString()}`
+      );
+      if (r.success && r.data?.students) {
+        let list = r.data.students;
+        if (params?.filter && params.filter !== 'all') {
+          list = list.filter((s) => {
+            const risk = s.risk_score ?? 0;
+            if (params.filter === 'at_risk') return risk >= 70;
+            if (params.filter === 'warning') return risk >= 40 && risk < 70;
+            return risk < 40;
+          });
+        }
+        return { data: { students: list } };
+      }
+    }
     const useLegacy = process.env.EXPO_PUBLIC_USE_ATB_SCHEMA === 'false';
     if (!useLegacy) return this.getStudentsAtb(params);
 
@@ -237,15 +267,16 @@ class ApiService {
   }) {
     if (!supabase) return { data: { students: [] } };
     try {
-      const { data: dash } = await supabase.from('atb_student_dashboard').select('*').order('name');
-      let rows = dash || [];
+      // atb_students 우선 (뷰 미생성 시에도 동작)
+      const { data: raw, error } = await supabase.from('atb_students').select('*').order('name');
+      let rows = !error && raw ? raw.map((s: any) => ({
+        ...s,
+        risk_score: s.risk_score ?? 0,
+        attendance_rate: s.attendance_rate ?? 100,
+      })) : [];
       if (rows.length === 0) {
-        const { data: raw } = await supabase.from('atb_students').select('*').order('name');
-        rows = (raw || []).map((s: any) => ({
-          ...s,
-          risk_score: s.risk_score ?? 0,
-          attendance_rate: s.attendance_rate ?? 0,
-        }));
+        const { data: dash } = await supabase.from('atb_student_dashboard').select('*').order('name');
+        if (dash?.length) rows = dash;
       }
       return { data: { students: this.mapAtbStudents(rows, params) } };
     } catch (e) {
@@ -368,11 +399,117 @@ class ApiService {
   }
 
   // ==========================================
-  // Attendance (attendance 테이블, org_id)
+  // Attendance (atb_attendance 우선, 레거시 attendance fallback)
   // ==========================================
 
   async getAttendance(params?: { date?: string; student_id?: string }) {
-    let query = supabase
+    if (USE_CLOUD_FIRST) {
+      const date = params?.date || new Date().toISOString().split('T')[0];
+      const r = await fetchMobileApi<{ records: unknown[]; summary: Record<string, number> }>(
+        `/v1/mobile/attendance?org_id=${encodeURIComponent(this.orgId)}&date=${date}`
+      );
+      if (r.success && r.data) {
+        return { data: r.data };
+      }
+    }
+    const useLegacy = process.env.EXPO_PUBLIC_USE_ATB_SCHEMA === 'false';
+    if (!useLegacy && supabase) return this.getAttendanceAtb(params);
+    return this.getAttendanceLegacy(params);
+  }
+
+  private async getAttendanceAtb(params?: { date?: string; student_id?: string }) {
+    const targetDate = params?.date || new Date().toISOString().split('T')[0];
+    const dow = new Date(targetDate).getDay();
+
+    let studentIds: string[] = [];
+    let studentMap = new Map<string, string>();
+
+    const { data: classes } = await supabase!
+      .from('atb_classes')
+      .select('id')
+      .eq('day_of_week', dow)
+      .eq('is_active', true);
+    const classIds = (classes || []).map((c: { id: string }) => c.id);
+
+    if (classIds.length > 0) {
+      const { data: enrollments } = await supabase!
+        .from('atb_enrollments')
+        .select('student_id')
+        .eq('status', 'active')
+        .in('class_id', classIds);
+      studentIds = [...new Set((enrollments || []).map((e: { student_id: string }) => e.student_id))];
+      if (studentIds.length > 0 && studentIds.length <= 100) {
+        const { data: enrolStudents } = await supabase!
+          .from('atb_students')
+          .select('id, name')
+          .in('id', studentIds);
+        const list = enrolStudents || [];
+        studentMap = new Map(list.map((s: { id: string; name: string }) => [s.id, s.name]));
+      }
+    }
+
+    // 폴백: 수업·등록이 없으면 전체 학생 (802명). .in() URL 한도 회피로 select 전체 후 사용
+    if (studentIds.length === 0) {
+      const { data: allStudents } = await supabase!
+        .from('atb_students')
+        .select('id, name')
+        .limit(2000);
+      const list = allStudents || [];
+      studentIds = list.map((s: { id: string; name: string }) => s.id);
+      studentMap = new Map(list.map((s: { id: string; name: string }) => [s.id, s.name]));
+    }
+
+    if (studentIds.length === 0) {
+      return { data: { records: [], summary: { present: 0, absent: 0, late: 0, excused: 0, total: 0 } } };
+    }
+
+    if (studentMap.size === 0) {
+      const idSet = new Set(studentIds);
+      const { data: students } = await supabase!
+        .from('atb_students')
+        .select('id, name')
+        .limit(2000);
+      const list = (students || []).filter((s: { id: string }) => idSet.has(s.id));
+      studentMap = new Map(list.map((s: { id: string; name: string }) => [s.id, s.name]));
+    }
+
+    const idSet = new Set(studentIds);
+    const { data: attendanceAll } = await supabase!
+      .from('atb_attendance')
+      .select('student_id, status')
+      .eq('date', targetDate);
+    const attendance = (attendanceAll || []).filter((a: { student_id: string }) => idSet.has(a.student_id));
+
+    const order: ('present' | 'late' | 'excused' | 'absent')[] = ['present', 'late', 'excused', 'absent'];
+    const statusByStudent = new Map<string, 'present' | 'absent' | 'late' | 'excused'>();
+    for (const a of attendance || []) {
+      const s = (['present', 'absent', 'late', 'excused'].includes((a as { status: string }).status)
+        ? (a as { status: string }).status
+        : 'absent') as 'present' | 'absent' | 'late' | 'excused';
+      const id = (a as { student_id: string }).student_id;
+      const prev = statusByStudent.get(id);
+      if (!prev || order.indexOf(s) < order.indexOf(prev)) statusByStudent.set(id, s);
+    }
+
+    const records = studentIds.map((studentId) => ({
+      student_id: studentId,
+      student_name: studentMap.get(studentId) || '알 수 없음',
+      status: (statusByStudent.get(studentId) || 'absent') as 'present' | 'absent' | 'late' | 'excused',
+    }));
+
+    const summary = {
+      present: records.filter((r) => r.status === 'present').length,
+      absent: records.filter((r) => r.status === 'absent').length,
+      late: records.filter((r) => r.status === 'late').length,
+      excused: records.filter((r) => r.status === 'excused').length,
+      total: records.length,
+    };
+
+    return { data: { records, summary } };
+  }
+
+  private async getAttendanceLegacy(params?: { date?: string; student_id?: string }) {
+    let query = supabase!
       .from('attendance')
       .select('*, students!inner(name)')
       .eq('org_id', this.orgId)
@@ -386,7 +523,19 @@ class ApiService {
     }
 
     const { data } = await query.limit(100);
-    return { data: { records: data || [] } };
+    const records = (data || []).map((r: { student_id: string; status: string; students?: { name: string } }) => ({
+      student_id: r.student_id,
+      student_name: (r.students as { name: string })?.name || '알 수 없음',
+      status: r.status,
+    }));
+    const summary = {
+      present: records.filter((r) => r.status === 'present').length,
+      absent: records.filter((r) => r.status === 'absent').length,
+      late: records.filter((r) => r.status === 'late').length,
+      excused: records.filter((r) => r.status === 'excused').length,
+      total: records.length,
+    };
+    return { data: { records, summary } };
   }
 
   async recordAttendance(record: {
@@ -395,7 +544,53 @@ class ApiService {
     status: 'present' | 'absent' | 'late' | 'excused';
     note?: string;
   }) {
-    const { data, error } = await supabase
+    if (USE_CLOUD_FIRST) {
+      const r = await fetchMobileApi<{ ok?: boolean }>('/v1/mobile/attendance', {
+        method: 'POST',
+        body: JSON.stringify({
+          org_id: this.orgId,
+          student_id: record.student_id,
+          date: record.date,
+          status: record.status,
+        }),
+      });
+      if (r.success) return { data: { ok: true } };
+    }
+    const useLegacy = process.env.EXPO_PUBLIC_USE_ATB_SCHEMA === 'false';
+    if (!useLegacy && supabase) return this.recordAttendanceAtb(record);
+    return this.recordAttendanceLegacy(record);
+  }
+
+  private async recordAttendanceAtb(record: {
+    student_id: string;
+    date: string;
+    status: 'present' | 'absent' | 'late' | 'excused';
+  }) {
+    // atb_attendance는 attendance 뷰 → attendance 테이블에 직접 기록 (org_id 기반)
+    const { error } = await supabase!
+      .from('attendance')
+      .upsert(
+        {
+          org_id: this.orgId,
+          student_id: record.student_id,
+          session_date: record.date,
+          status: record.status,
+          check_in_time: record.status === 'present' ? new Date().toISOString() : null,
+          check_in_method: 'manual',
+        },
+        { onConflict: 'student_id,session_date' }
+      );
+    if (error) throw error;
+    return { data: { ok: true } };
+  }
+
+  private async recordAttendanceLegacy(record: {
+    student_id: string;
+    date: string;
+    status: 'present' | 'absent' | 'late' | 'excused';
+    note?: string;
+  }) {
+    const { data, error } = await supabase!
       .from('attendance')
       .insert({
         student_id: record.student_id,
@@ -477,6 +672,7 @@ class ApiService {
   // ==========================================
 
   async getConsultations(params?: { student_id?: string; type?: string }) {
+    if (!supabase) return { data: { consultations: [] } };
     let query = supabase
       .from('consultations')
       .select('*')
@@ -488,6 +684,48 @@ class ApiService {
 
     const { data } = await query.limit(50);
     return { data: { consultations: data || [] } };
+  }
+
+  async getConsultation(consultationId: string) {
+    if (!supabase) return { data: null };
+    const { data, error } = await supabase
+      .from('consultations')
+      .select('*, students(id, name, grade)')
+      .eq('id', consultationId)
+      .eq('organization_id', this.orgId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return { data: null };
+
+    const student = data.students as { id: string; name: string; grade: string } | null;
+    return {
+      data: {
+        id: data.id,
+        student_id: data.student_id,
+        student_name: student?.name || '알 수 없음',
+        student_grade: student?.grade || '',
+        type: data.type,
+        content: data.content,
+        result: data.result,
+        follow_up: data.follow_up || [],
+        created_at: data.created_at,
+      },
+    };
+  }
+
+  async updateConsultation(consultationId: string, updates: { result?: string; status?: string }) {
+    if (!supabase) return { data: null };
+    const { data, error } = await supabase
+      .from('consultations')
+      .update(updates)
+      .eq('id', consultationId)
+      .eq('organization_id', this.orgId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data };
   }
 
   async createConsultation(record: {
@@ -798,6 +1036,50 @@ class ApiService {
       .limit(50);
 
     return { data: { scores: data || [] } };
+  }
+
+  // ==========================================
+  // autus-ai.com Cloud API
+  // ==========================================
+
+  async getAutusHealth() {
+    return autusHealth();
+  }
+
+  async getAutusCockpit(orgId?: string) {
+    return autusCockpit(orgId || this.orgId);
+  }
+
+  /** 연결 진단: autus-ai.com API 우선, 실패 시 Supabase 직접 */
+  async diagnoseSupabase(): Promise<{ ok: boolean; count?: number; error?: string }> {
+    if (USE_CLOUD_FIRST) {
+      const r = await fetchMobileApi<{ total_students?: number }>(`/v1/mobile/dashboard?org_id=${encodeURIComponent(this.orgId)}`);
+      if (r.success && r.data) {
+        return { ok: true, count: r.data.total_students };
+      }
+    }
+    const extra = Constants.expoConfig?.extra as { supabaseUrl?: string; supabaseAnonKey?: string } | undefined;
+    const baseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || extra?.supabaseUrl || '';
+    const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || extra?.supabaseAnonKey || '';
+    if (!baseUrl || !anonKey) return { ok: false, error: 'env 미설정' };
+    try {
+      const res = await fetch(`${baseUrl}/rest/v1/atb_students?select=id`, {
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+          Prefer: 'count=exact',
+        },
+      });
+      const countHeader = res.headers.get('content-range');
+      const totalMatch = countHeader?.match(/\/(\d+)$/);
+      const total = totalMatch ? parseInt(totalMatch[1], 10) : undefined;
+      const data = await res.json();
+      if (Array.isArray(data)) return { ok: true, count: total ?? data.length };
+      if (data.message) return { ok: false, error: data.message };
+      return { ok: false, error: `HTTP ${res.status}` };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+    }
   }
 }
 

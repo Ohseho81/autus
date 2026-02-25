@@ -1,8 +1,57 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
-import { InboundCallback, InboundResponseType } from './types';
+import { InboundCallback } from './types';
 
 const DEDUP_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+/** P1: 사전 출석 학부모 응답 → atb_attendance 동기화 */
+async function syncToAtbAttendance(
+  client: ReturnType<typeof getSupabaseAdmin>,
+  studentId: string,
+  sessionDate: string,
+  status: 'present' | 'absent'
+): Promise<void> {
+  try {
+    const dow = new Date(sessionDate).getDay();
+    const { data: classes } = await client
+      .from('atb_classes')
+      .select('id')
+      .eq('day_of_week', dow)
+      .eq('is_active', true);
+
+    const classIds = (classes || []).map((c: { id: string }) => c.id);
+    if (classIds.length === 0) return;
+
+    const { data: enrollments } = await client
+      .from('atb_enrollments')
+      .select('class_id')
+      .eq('student_id', studentId)
+      .eq('status', 'active')
+      .in('class_id', classIds);
+
+    const targetClassIds = (enrollments || []).map((e: { class_id: string }) => e.class_id);
+
+    for (const classId of targetClassIds) {
+      const { error } = await client.from('atb_attendance').upsert(
+        {
+          student_id: studentId,
+          class_id: classId,
+          date: sessionDate,
+          status,
+          check_in_time: status === 'present' ? new Date().toISOString() : null,
+        },
+        { onConflict: 'student_id,class_id,date' }
+      );
+      if (error) {
+        logger.warn('atb_attendance sync failed', { studentId, classId, error: String(error) });
+      } else {
+        logger.info('atb_attendance synced', { studentId, classId, status });
+      }
+    }
+  } catch (e) {
+    logger.warn('syncToAtbAttendance error', { studentId, sessionDate, error: String(e) });
+  }
+}
 
 export async function handleInboundCallback(callback: InboundCallback): Promise<void> {
   logger.info('Handling inbound callback', {
@@ -75,7 +124,7 @@ async function handleAttendanceResponse(callback: InboundCallback): Promise<void
   const client = getSupabaseAdmin();
 
   try {
-    const { error } = await client
+    const { data: updated } = await client
       .from('attendance_confirmations')
       .upsert({
         message_id: callback.message_id,
@@ -83,9 +132,14 @@ async function handleAttendanceResponse(callback: InboundCallback): Promise<void
         confirmed_at: callback.timestamp
       }, {
         onConflict: 'message_id'
-      });
+      })
+      .select('student_id, session_date')
+      .limit(1)
+      .single();
 
-    if (error) throw error;
+    if (updated?.student_id && updated?.session_date) {
+      await syncToAtbAttendance(client, updated.student_id, String(updated.session_date).slice(0, 10), 'present');
+    }
     logger.info('Attendance recorded', { message_id: callback.message_id });
   } catch (error) {
     logger.error('Failed to record attendance', error instanceof Error ? error : new Error(String(error)), {
@@ -101,7 +155,7 @@ async function handleAbsenceResponse(callback: InboundCallback): Promise<void> {
   const client = getSupabaseAdmin();
 
   try {
-    const { error } = await client
+    const { data: updated } = await client
       .from('attendance_confirmations')
       .upsert({
         message_id: callback.message_id,
@@ -109,9 +163,14 @@ async function handleAbsenceResponse(callback: InboundCallback): Promise<void> {
         confirmed_at: callback.timestamp
       }, {
         onConflict: 'message_id'
-      });
+      })
+      .select('student_id, session_date')
+      .limit(1)
+      .single();
 
-    if (error) throw error;
+    if (updated?.student_id && updated?.session_date) {
+      await syncToAtbAttendance(client, updated.student_id, String(updated.session_date).slice(0, 10), 'absent');
+    }
     logger.info('Absence recorded', { message_id: callback.message_id });
   } catch (error) {
     logger.error('Failed to record absence', error instanceof Error ? error : new Error(String(error)), {
@@ -119,6 +178,40 @@ async function handleAbsenceResponse(callback: InboundCallback): Promise<void> {
     });
     throw error;
   }
+}
+
+/**
+ * P1: pre-attendance 토큰 기반 응답 처리 (GET /api/kakao/callback?token=xxx&action=attend|absent)
+ */
+export async function handleTokenAttendanceResponse(token: string, action: 'attend' | 'absent'): Promise<{ student_id?: string; session_date?: string } | null> {
+  const client = getSupabaseAdmin();
+  const status = action === 'attend' ? 'ATTENDED' : 'ABSENT';
+
+  const { data: row } = await client
+    .from('attendance_confirmations')
+    .select('id, student_id, session_date')
+    .eq('response_token', token)
+    .maybeSingle();
+
+  if (!row?.student_id || !row?.session_date) {
+    logger.warn('Token attendance: no confirmation found', { token });
+    return null;
+  }
+
+  const { error } = await client
+    .from('attendance_confirmations')
+    .update({ status, confirmed_at: new Date().toISOString() })
+    .eq('id', row.id);
+
+  if (error) {
+    logger.error('Token attendance update failed', { token, error: String(error) });
+    return null;
+  }
+
+  const sessionDate = String(row.session_date).slice(0, 10);
+  await syncToAtbAttendance(client, row.student_id, sessionDate, action === 'attend' ? 'present' : 'absent');
+  logger.info('Token attendance synced', { student_id: row.student_id, action });
+  return { student_id: row.student_id, session_date: sessionDate };
 }
 
 async function handleConsentResponse(callback: InboundCallback): Promise<void> {

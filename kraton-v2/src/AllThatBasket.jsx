@@ -55,6 +55,7 @@ const AdminDashboard = lazy(() => import('./pages/allthatbasket/AdminDashboard')
 const CoachDashboard = lazy(() => import('./pages/allthatbasket/CoachDashboard'));
 const PaymentManager = lazy(() => import('./pages/allthatbasket/PaymentManager'));
 const MakeupRequest = lazy(() => import('./pages/allthatbasket/MakeupRequest'));
+const AllThatBasketAppV2 = lazy(() => import('./pages/allthatbasket/AllThatBasketAppV2'));
 
 // ============================================
 // 🏠 역할 선택
@@ -1304,6 +1305,14 @@ function ParentView() {
 export default function AllThatBasket() {
   const { state } = useStore();
   const [hash, setHash] = useState(window.location.hash.toLowerCase());
+  const [pathname, setPathname] = useState(window.location.pathname);
+
+  // pathname 변경 감지 (뒤로가기/앞으로가기)
+  useEffect(() => {
+    const handlePopState = () => setPathname(window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // 해시 변경 감지
   useEffect(() => {
@@ -1313,6 +1322,22 @@ export default function AllThatBasket() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // /onlyssam/* pathname → 원장 대시보드 (근본 원인 해결)
+  if (pathname === '/onlyssam' || pathname === '/onlyssam/director' || pathname.startsWith('/onlyssam/')) {
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#0F0F1A]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">원장 대시보드 로딩중...</p>
+          </div>
+        </div>
+      }>
+        <AllThatBasketAppV2 />
+      </Suspense>
+    );
+  }
 
   // #process 해시일 때 ProcessMap 렌더링
   if (hash === '#process') {

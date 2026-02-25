@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { handleInboundCallback } from '@/lib/messaging';
+import { handleInboundCallback, handleTokenAttendanceResponse } from '@/lib/messaging';
 import { logger } from '@/lib/logger';
+
+/** GET: pre-attendance [참석]/[결석] 웹링크 클릭 (token, action) */
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const { searchParams } = new URL(request.url);
+  const token = searchParams.get('token');
+  const action = searchParams.get('action');
+
+  if (!token || !action || !['attend', 'absent'].includes(action)) {
+    return NextResponse.redirect(
+      `${process.env.NEXT_PUBLIC_APP_URL || 'https://autus-ai.com'}/attend?error=invalid`
+    );
+  }
+
+  const result = await handleTokenAttendanceResponse(token, action as 'attend' | 'absent');
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://autus-ai.com';
+  if (result) {
+    return NextResponse.redirect(`${base}/attend?done=1&action=${action}`);
+  }
+  return NextResponse.redirect(`${base}/attend?error=notfound`);
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {

@@ -22,7 +22,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, typography, borderRadius } from '../../utils/theme';
 import Header from '../../components/common/Header';
 import { GlassCard } from '../../components/common';
-import { api } from '../../services/api';
+import { api, AUTUS_API_URL } from '../../services/api';
+import { isSupabaseConfigured } from '../../lib/supabase';
 
 interface SettingsItem {
   key: string;
@@ -44,6 +45,18 @@ export default function SettingsScreen() {
     queryFn: () => api.getNotificationSettings(),
   });
 
+  const { data: autusHealth } = useQuery({
+    queryKey: ['autusHealth'],
+    queryFn: () => api.getAutusHealth(),
+    staleTime: 60_000,
+  });
+
+  const [diagnoseResult, setDiagnoseResult] = useState<string | null>(null);
+  const diagnoseSupabase = async () => {
+    const r = await api.diagnoseSupabase();
+    setDiagnoseResult(r.ok ? `연결됨 (학생 ${r.count ?? '?'}명)` : `실패: ${r.error}`);
+  };
+
   const [pushEnabled, setPushEnabled] = useState(notificationSettings?.data?.push_enabled ?? true);
   const [riskAlert, setRiskAlert] = useState(notificationSettings?.data?.risk_alert ?? true);
   const [paymentAlert, setPaymentAlert] = useState(notificationSettings?.data?.payment_alert ?? true);
@@ -61,6 +74,15 @@ export default function SettingsScreen() {
         { text: '취소', style: 'cancel' },
         { text: '로그아웃', style: 'destructive', onPress: () => api.logout() },
       ]
+    );
+  };
+
+  const handleConnectionTest = async () => {
+    const r = await api.diagnoseSupabase();
+    Alert.alert(
+      r.ok ? '연결됨' : '연결 실패',
+      r.ok ? `Supabase 연결 정상\n학생 ${r.count ?? '?'}명` : r.error,
+      [{ text: '확인' }]
     );
   };
 
@@ -184,6 +206,35 @@ export default function SettingsScreen() {
       />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* 시스템 · 연결 상태 (맨 위 배치) */}
+        <GlassCard style={styles.connectionCard}>
+          <Text style={styles.connectionTitle}>시스템 · 연결 상태</Text>
+          <View style={styles.connectionRow}>
+            <Ionicons
+              name={isSupabaseConfigured() ? 'checkmark-circle' : 'close-circle'}
+              size={18}
+              color={isSupabaseConfigured() ? colors.safe.primary : colors.danger.primary}
+            />
+            <Text style={styles.connectionText}>Supabase</Text>
+          </View>
+          <View style={styles.connectionRow}>
+            <Ionicons
+              name={autusHealth?.ok ? 'checkmark-circle' : 'close-circle'}
+              size={18}
+              color={autusHealth?.ok ? colors.safe.primary : colors.danger.primary}
+            />
+            <Text style={styles.connectionText}>autus-ai.com</Text>
+          </View>
+          <TouchableOpacity style={styles.diagnoseButton} onPress={diagnoseSupabase}>
+            <Text style={styles.diagnoseButtonText}>Supabase 연결 테스트</Text>
+          </TouchableOpacity>
+          {diagnoseResult && (
+            <Text style={[styles.connectionUrl, diagnoseResult.includes('실패') && { color: colors.danger.primary }]}>
+              {diagnoseResult}
+            </Text>
+          )}
+        </GlassCard>
+
         {/* Profile Card */}
         <TouchableOpacity
           onPress={() => navigation.navigate('ProfileSettings' as never)}
@@ -240,6 +291,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   scrollView: { flex: 1 },
   profileCard: { margin: spacing[4] },
+  connectionCard: { marginHorizontal: spacing[4], marginBottom: spacing[4] },
+  connectionTitle: { fontSize: typography.fontSize.sm, fontWeight: '600', color: colors.textMuted, marginBottom: spacing[2] },
+  connectionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[2], marginBottom: spacing[1] },
+  connectionText: { fontSize: typography.fontSize.sm, color: colors.text },
+  diagnoseButton: { marginTop: spacing[2], paddingVertical: spacing[2], paddingHorizontal: spacing[3], backgroundColor: colors.safe.bg, borderRadius: borderRadius.md, alignSelf: 'flex-start' },
+  diagnoseButtonText: { fontSize: typography.fontSize.sm, color: colors.safe.primary, fontWeight: '500' },
+  connectionUrl: { fontSize: typography.fontSize.xs, color: colors.textDim, marginTop: spacing[2] },
   profileRow: { flexDirection: 'row', alignItems: 'center' },
   profileAvatar: { width: 56, height: 56, borderRadius: 28, overflow: 'hidden' },
   avatarGradient: { flex: 1, justifyContent: 'center', alignItems: 'center' },

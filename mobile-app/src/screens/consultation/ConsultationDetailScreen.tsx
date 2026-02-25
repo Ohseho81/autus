@@ -5,7 +5,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -25,6 +26,7 @@ import { colors, spacing, typography, borderRadius } from '../../utils/theme';
 import Header from '../../components/common/Header';
 import { GlassCard } from '../../components/common';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import { api } from '../../services/api';
 
 type ConsultationDetailRouteProp = RouteProp<RootStackParamList, 'ConsultationDetail'>;
 
@@ -63,37 +65,33 @@ export default function ConsultationDetailScreen() {
   const route = useRoute<ConsultationDetailRouteProp>();
   const { consultationId } = route.params;
 
-  const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [consultation, setConsultation] = useState<ConsultationData | null>(null);
   const [resultNote, setResultNote] = useState('');
 
-  useEffect(() => {
-    // TODO: Fetch consultation data
-    setTimeout(() => {
-      setConsultation({
-        id: consultationId,
-        studentId: '1',
-        studentName: '김민수',
-        studentGrade: '중2',
-        type: 'regular',
-        status: 'completed',
-        date: '2024-01-15',
-        time: '14:00',
+  const { data: apiData, isLoading } = useQuery({
+    queryKey: ['consultation', consultationId],
+    queryFn: () => api.getConsultation(consultationId),
+  });
+
+  const raw = apiData?.data;
+  const consultation: ConsultationData | null = raw
+    ? {
+        id: raw.id,
+        studentId: raw.student_id,
+        studentName: raw.student_name,
+        studentGrade: raw.student_grade,
+        type: (raw.type as ConsultationData['type']) || 'regular',
+        status: raw.result ? 'completed' : 'scheduled',
+        date: raw.created_at?.slice(0, 10) || '',
+        time: raw.created_at?.slice(11, 16) || '',
         duration: '30분',
-        topic: '학습 진도 상담',
-        note: '수학 진도 점검 필요',
-        result: '현재 수학 진도는 양호함. 다만 도형 단원에서 어려움을 겪고 있어 추가 보충이 필요함.',
-        followUpActions: [
-          '도형 기초 개념 복습 과제 제공',
-          '2주 후 진도 재점검',
-          '학부모 추가 상담 예약',
-        ],
-        parentAttended: true,
-      });
-      setIsLoading(false);
-    }, 500);
-  }, [consultationId]);
+        topic: raw.content || '',
+        note: raw.content || '',
+        result: raw.result,
+        followUpActions: Array.isArray(raw.follow_up) ? raw.follow_up : [],
+        parentAttended: false,
+      }
+    : null;
 
   const handleComplete = () => {
     if (!resultNote.trim()) {
@@ -109,9 +107,13 @@ export default function ConsultationDetailScreen() {
         {
           text: '완료',
           onPress: () => {
-            setConsultation(prev => prev ? { ...prev, status: 'completed', result: resultNote } : null);
-            setIsEditing(false);
-            Alert.alert('완료', '상담이 완료되었습니다.');
+            updateMutation.mutate({ result: resultNote }, {
+              onSuccess: () => {
+                setIsEditing(false);
+                Alert.alert('완료', '상담이 완료되었습니다.');
+              },
+              onError: () => Alert.alert('오류', '상담 완료 처리에 실패했습니다.'),
+            });
           }
         },
       ]
@@ -128,8 +130,10 @@ export default function ConsultationDetailScreen() {
           text: '취소하기',
           style: 'destructive',
           onPress: () => {
-            setConsultation(prev => prev ? { ...prev, status: 'cancelled' } : null);
-            Alert.alert('완료', '상담이 취소되었습니다.');
+            updateMutation.mutate({ status: 'cancelled' }, {
+              onSuccess: () => Alert.alert('완료', '상담이 취소되었습니다.'),
+              onError: () => Alert.alert('오류', '취소 처리에 실패했습니다.'),
+            });
           }
         },
       ]

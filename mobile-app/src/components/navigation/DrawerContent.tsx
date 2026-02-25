@@ -28,7 +28,10 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { name: '홈', icon: 'home', route: 'MainTabs' },
+  { name: '스마트 출석', icon: 'checkmark-done-circle', route: 'SmartAttendance' },
   { name: '출석 관리', icon: 'calendar', route: 'Attendance' },
+  { name: 'QR 출석', icon: 'scan', route: 'QRScanner' },
+  { name: '강사 QR', icon: 'person', route: 'CoachScanner' },
   { name: '수납 관리', icon: 'card', route: 'Payments' },
   { name: '위험 관리', icon: 'warning', route: 'Risk' },
   { name: '설정', icon: 'settings', route: 'Settings' },

@@ -57,6 +57,8 @@ import LessonRegistrationScreen from '../screens/lesson/LessonRegistrationScreen
 import SmartAttendanceScreen from '../screens/lesson/SmartAttendanceScreen';
 import LessonChatScreen from '../screens/lesson/LessonChatScreen';
 import LessonFeedbackScreen from '../screens/feedback/LessonFeedbackScreen';
+import QRScannerScreen from '../screens/attendance/QRScannerScreen';
+import CoachScannerScreen from '../screens/coach/CoachScannerScreen';
 
 // Type Definitions
 export type AuthStackParamList = {
@@ -204,8 +206,10 @@ function DrawerNavigator() {
       }}
     >
       <Drawer.Screen name="MainTabs" component={MainTabs} />
-      <Drawer.Screen name="SmartAttendance" component={SmartAttendanceScreen} />
+      <Drawer.Screen name="SmartAttendance" component={SmartAttendanceScreen} options={{ title: '스마트 출석' }} />
       <Drawer.Screen name="Attendance" component={AttendanceScreen} />
+      <Drawer.Screen name="QRScanner" component={QRScannerScreen} options={{ title: 'QR 출석' }} />
+      <Drawer.Screen name="CoachScanner" component={CoachScannerScreen} options={{ title: '강사 QR' }} />
       <Drawer.Screen name="Payments" component={PaymentScreen} />
       <Drawer.Screen name="Risk" component={RiskScreen} />
       <Drawer.Screen name="Consultations" component={ConsultationListScreen} />
