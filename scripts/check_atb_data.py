@@ -8,10 +8,36 @@ atb_* 테이블 데이터 현황 확인
 import os
 import sys
 
-SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("VITE_SUPABASE_URL") or "https://pphzvnaedmzcvpxjulti.supabase.co"
+def _load_env_file(path: str) -> None:
+    """Load KEY=value from .env file. mobile-app load uses forced set to override .env placeholders."""
+    try:
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        full = os.path.join(base, path) if not os.path.isabs(path) else path
+        use_default = "mobile-app" not in path  # .env는 setdefault, mobile-app은 force
+        with open(full, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    k, v = k.strip(), v.strip().strip("'\"").strip()
+                    if v and (use_default or len(v) > 100):  # JWT 100자 이상이면 실제 키
+                        if use_default:
+                            os.environ.setdefault(k, v)
+                        else:
+                            os.environ[k] = v
+    except OSError:
+        pass
+
+# mobile-app/.env 우선 (EXPO 키), .env는 나중에 (템플릿값 덮어쓰기 방지)
+for p in ["mobile-app/.env", ".env"]:
+    _load_env_file(p)
+
+SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("VITE_SUPABASE_URL") or os.getenv("EXPO_PUBLIC_SUPABASE_URL") or "https://pphzvnaedmzcvpxjulti.supabase.co"
+# EXPO_PUBLIC_ (mobile-app) 우선, VITE_/SUPABASE_ 순
 SUPABASE_KEY = (
     os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     or os.getenv("SUPABASE_SERVICE_KEY")
+    or os.getenv("EXPO_PUBLIC_SUPABASE_ANON_KEY")  # mobile-app/.env
     or os.getenv("SUPABASE_ANON_KEY")
     or os.getenv("VITE_SUPABASE_ANON_KEY")
 )
@@ -25,6 +51,7 @@ except ImportError:
 if not SUPABASE_KEY or "본인" in (SUPABASE_KEY or "") or len(SUPABASE_KEY or "") < 50:
     print("❌ 환경변수 필요: SUPABASE_SERVICE_ROLE_KEY 또는 VITE_SUPABASE_ANON_KEY")
     print("   Supabase Dashboard → Settings → API 에서 anon public / service_role 키 복사")
+    print("   수동 실행: source mobile-app/.env && python3 scripts/check_atb_data.py")
     sys.exit(1)
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
