@@ -16,19 +16,21 @@ Vercel Dashboard → 프로젝트 → **Settings** → **Environment Variables**
 ### kraton-v2 빌드용 (필수)
 | 변수명 | 값 | 적용 환경 |
 |--------|-----|----------|
-| `VITE_SUPABASE_URL` | `https://dcobyicibvhpwcjqkmgw.supabase.co` | Production, Preview |
+| `VITE_SUPABASE_URL` | `https://pphzvnaedmzcvpxjulti.supabase.co` | Production, Preview |
 | `VITE_SUPABASE_ANON_KEY` | Supabase Anon Key (공개 키) | Production, Preview |
+
+> ✅ atb_* 데이터(학생 802명 등)가 **pphzvnaedmzcvpxjulti** 프로젝트에 있음
 
 ### vercel-api용 (선택 - API에서 DB 접근 시)
 | 변수명 | 값 | 적용 환경 |
 |--------|-----|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://dcobyicibvhpwcjqkmgw.supabase.co` | Production, Preview |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://pphzvnaedmzcvpxjulti.supabase.co` | Production, Preview |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Anon Key | Production, Preview |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service Role Key (비공개, 서버 전용) | Production, Preview |
 
 ## 3. Supabase 키 확인
 
-1. [Supabase Dashboard](https://supabase.com/dashboard) → 프로젝트 `dcobyicibvhpwcjqkmgw` (Ohseho81's Project) 선택
+1. [Supabase Dashboard](https://supabase.com/dashboard) → 프로젝트 `pphzvnaedmzcvpxjulti` 선택
 2. **Settings** → **API**
 3. **Project URL**: `VITE_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL`에 입력
 4. **anon public**: `VITE_SUPABASE_ANON_KEY` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`에 입력
@@ -45,6 +47,8 @@ Vercel Dashboard → 프로젝트 → **Settings** → **Environment Variables**
 배포 완료 후:
 - autus-ai.com 접속 → 올댓바스켓/온리쌤 화면에서 KPI·학생 데이터 표시되는지 확인
 - API 헬스체크: `https://autus-ai.com/api/health/supabase` (설정되어 있다면)
+
+**"등록된 학생이 없습니다" / KPI 0 표시 시** → [SUPABASE_연동_진단.md](./SUPABASE_연동_진단.md) 참고
 
 ## 6. 배포 실행 (선택)
 

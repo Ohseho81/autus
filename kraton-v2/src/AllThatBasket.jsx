@@ -18,7 +18,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
-import { useStore, selectors } from './store.jsx';
+import { useStore, selectors, isSupabaseConnected } from './store.jsx';
 
 // Lazy load ProcessMap for hash routing
 const ProcessMap = lazy(() => import('./pages/allthatbasket/ProcessMap'));
@@ -973,7 +973,12 @@ function CoachView() {
               ))}
               {myStudents.length === 0 && (
                 <div className="bg-gray-50 rounded-xl p-6 text-center text-gray-400">
-                  등록된 학생이 없습니다
+                  <p>등록된 학생이 없습니다</p>
+                  {isSupabaseConnected() && (
+                    <p className="text-xs mt-2 text-amber-600">
+                      Supabase 연결됨 · DB에 데이터가 없으면 docs/SUPABASE_연동_진단.md 참고
+                    </p>
+                  )}
                 </div>
               )}
             </div>

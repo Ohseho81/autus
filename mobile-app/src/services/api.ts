@@ -18,10 +18,10 @@ class ApiService {
   // ==========================================
 
   async getDashboardSummary() {
-    const useAtb = process.env.EXPO_PUBLIC_USE_ATB_SCHEMA === 'true';
-
-    // atb_* 스키마 (올댓바스켓/온리쌤) - 우선 사용
-    if (useAtb) return this.getDashboardSummaryAtb();
+    // atb_* 스키마 (올댓바스켓/온리쌤) - 기본 사용
+    // EXPO_PUBLIC_USE_ATB_SCHEMA=false 일 때만 기존 students 스키마 시도
+    const useLegacy = process.env.EXPO_PUBLIC_USE_ATB_SCHEMA === 'false';
+    if (!useLegacy) return this.getDashboardSummaryAtb();
 
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -90,6 +90,19 @@ class ApiService {
   }
 
   private async getDashboardSummaryAtb() {
+    if (!supabase) {
+      return {
+        data: {
+          total_students: 0,
+          today_present: 0,
+          today_attendance_total: 0,
+          overdue_amount: 0,
+          at_risk_count: 0,
+          v_index: 0,
+          urgent_alerts: [],
+        },
+      };
+    }
     try {
       let students: Array<{ enrollment_status?: string; attendance_rate?: number; total_outstanding?: number; risk_score?: number }> = [];
       const { data: dash } = await supabase.from('atb_student_dashboard').select('*');
@@ -163,8 +176,9 @@ class ApiService {
     page?: number;
     limit?: number;
   }) {
-    const useAtb = process.env.EXPO_PUBLIC_USE_ATB_SCHEMA === 'true';
-    if (useAtb) return this.getStudentsAtb(params);
+    // atb_* 스키마 기본 사용 (EXPO_PUBLIC_USE_ATB_SCHEMA=false 일 때만 기존 스키마)
+    const useLegacy = process.env.EXPO_PUBLIC_USE_ATB_SCHEMA === 'false';
+    if (!useLegacy) return this.getStudentsAtb(params);
 
     let query = supabase
       .from('students')
@@ -221,6 +235,7 @@ class ApiService {
     limit?: number;
     page?: number;
   }) {
+    if (!supabase) return { data: { students: [] } };
     try {
       const { data: dash } = await supabase.from('atb_student_dashboard').select('*').order('name');
       let rows = dash || [];

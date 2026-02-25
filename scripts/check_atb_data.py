@@ -9,7 +9,12 @@ import os
 import sys
 
 SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("VITE_SUPABASE_URL") or "https://pphzvnaedmzcvpxjulti.supabase.co"
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+SUPABASE_KEY = (
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    or os.getenv("SUPABASE_SERVICE_KEY")
+    or os.getenv("SUPABASE_ANON_KEY")
+    or os.getenv("VITE_SUPABASE_ANON_KEY")
+)
 
 try:
     from supabase import create_client
@@ -17,8 +22,9 @@ except ImportError:
     print("❌ supabase 패키지 필요: pip install supabase")
     sys.exit(1)
 
-if not SUPABASE_KEY:
-    print("❌ 환경변수 필요: SUPABASE_SERVICE_ROLE_KEY 또는 SUPABASE_ANON_KEY")
+if not SUPABASE_KEY or "본인" in SUPABASE_KEY or len(SUPABASE_KEY) < 50:
+    print("❌ 환경변수 필요: SUPABASE_SERVICE_ROLE_KEY 또는 VITE_SUPABASE_ANON_KEY")
+    print("   Supabase Dashboard → Settings → API 에서 anon public / service_role 키 복사")
     sys.exit(1)
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)

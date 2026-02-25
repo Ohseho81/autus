@@ -10,7 +10,12 @@ import os
 import sys
 
 SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("VITE_SUPABASE_URL") or "https://pphzvnaedmzcvpxjulti.supabase.co"
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_SERVICE_KEY")
+SUPABASE_KEY = (
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    or os.getenv("SUPABASE_SERVICE_KEY")
+    or os.getenv("SUPABASE_ANON_KEY")
+    or os.getenv("VITE_SUPABASE_ANON_KEY")
+)
 
 try:
     from supabase import create_client
@@ -19,7 +24,7 @@ except ImportError:
     sys.exit(1)
 
 if not SUPABASE_KEY:
-    print("❌ 환경변수 필요: SUPABASE_SERVICE_ROLE_KEY")
+    print("❌ 환경변수 필요: SUPABASE_SERVICE_ROLE_KEY 또는 VITE_SUPABASE_ANON_KEY")
     sys.exit(1)
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -43,11 +48,14 @@ def load_json(path: str):
         return json.load(f)
 
 def upload_coaches(coaches: list, academy_id=None) -> dict:
-    """강사 업로드 → id 매핑 반환"""
-    inserted = supabase.table("atb_coaches").insert([
-        {**c, "academy_id": academy_id} if isinstance(c, dict) else c
-        for c in coaches
-    ]).execute()
+    """강사 업로드 → id 매핑 반환 (academy_id는 스키마에 있으면 포함)"""
+    rows = []
+    for c in coaches:
+        row = {"name": c["name"], "phone": c.get("phone"), "role": c.get("role", "coach")}
+        if academy_id:
+            row["academy_id"] = academy_id
+        rows.append(row)
+    inserted = supabase.table("atb_coaches").insert(rows).execute()
     return {i: r["id"] for i, r in enumerate(inserted.data)}
 
 def upload_classes(classes: list, coach_ids: dict, academy_id=None) -> int:
