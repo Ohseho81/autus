@@ -10,15 +10,22 @@ echo "║  📊 Supabase 연동 설정                    ║"
 echo "╚═══════════════════════════════════════════╝"
 
 # .env 로드
-if [ -f .env ]; then
-  set -a
-  source .env
-  set +a
-fi
+[ -f .env ] && set -a && source .env && set +a
+[ -f mobile-app/.env ] && set -a && source mobile-app/.env && set +a
+# EXPO_PUBLIC_* 우선 (mobile-app/.env) → check_atb_data.py가 VITE_* 사용
+export VITE_SUPABASE_URL="${EXPO_PUBLIC_SUPABASE_URL:-$VITE_SUPABASE_URL}"
+export VITE_SUPABASE_ANON_KEY="${EXPO_PUBLIC_SUPABASE_ANON_KEY:-$VITE_SUPABASE_ANON_KEY}"
 
 echo ""
 echo "1️⃣ atb_* 데이터 현황 확인..."
-python3 scripts/check_atb_data.py || true
+KEY="${EXPO_PUBLIC_SUPABASE_ANON_KEY:-$VITE_SUPABASE_ANON_KEY}"
+URL="${EXPO_PUBLIC_SUPABASE_URL:-$VITE_SUPABASE_URL}"
+# 디버그: KEY/URL이 있으면 사용 (sandbox에서 변수 숨김 방지)
+if [ -n "$KEY" ] && [ ${#KEY} -gt 50 ] && [[ "$URL" == https://* ]]; then
+  VITE_SUPABASE_URL="$URL" VITE_SUPABASE_ANON_KEY="$KEY" python3 scripts/check_atb_data.py || true
+else
+  python3 scripts/check_atb_data.py || true
+fi
 
 echo ""
 echo "2️⃣ 강사/수업 업로드 (SERVICE_ROLE_KEY 필요)..."
