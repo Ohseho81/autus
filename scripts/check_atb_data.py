@@ -22,7 +22,7 @@ except ImportError:
     print("❌ supabase 패키지 필요: pip install supabase")
     sys.exit(1)
 
-if not SUPABASE_KEY or "본인" in SUPABASE_KEY or len(SUPABASE_KEY) < 50:
+if not SUPABASE_KEY or "본인" in (SUPABASE_KEY or "") or len(SUPABASE_KEY or "") < 50:
     print("❌ 환경변수 필요: SUPABASE_SERVICE_ROLE_KEY 또는 VITE_SUPABASE_ANON_KEY")
     print("   Supabase Dashboard → Settings → API 에서 anon public / service_role 키 복사")
     sys.exit(1)
