@@ -37,6 +37,17 @@ R = TSEL 기반 관계지수
 
 ---
 
+## 📖 문서
+
+| 문서 | 용도 |
+|------|------|
+| [QUICKSTART](QUICKSTART.md) | 빠른 시작 |
+| [SETUP](SETUP.md) | 설치·환경 설정 |
+| [CURSOR_QUICKSTART](CURSOR_QUICKSTART.md) | Cursor 개발 |
+| [FOLDER_STRUCTURE](FOLDER_STRUCTURE.md) | 폴더 구조 |
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -113,7 +124,7 @@ autus/
 │   ├── supabase/            # 스킬 트래킹, 게이미피케이션
 │   └── preview/             # UI 프리뷰
 │
-├── kraton-v2/               # KRATON Design System v2
+├── vercel-api/              # Next.js API + 온리쌤 대시보드
 ├── docs/                    # Documentation (28 files)
 ├── n8n/                     # N8N Workflows (20 files)
 ├── scripts/                 # Automation Scripts

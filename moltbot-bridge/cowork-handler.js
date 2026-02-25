@@ -58,7 +58,7 @@ export const COWORK_TASKS = {
   // 개발 관련
   'build': {
     name: '프로젝트 빌드',
-    command: `cd ${AUTUS_DIR}/kraton-v2 && npm run build`,
+    command: `cd ${AUTUS_DIR}/vercel-api && npm run build`,
     timeout: 120000,
     category: 'dev',
   },

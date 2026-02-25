@@ -3,7 +3,9 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -15,16 +17,16 @@
     "declaration": false,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "include": [
     "moltbot-brain/**/*.js",
     "moltbot-bridge/**/*.js",
-    "kraton-v2/**/*.js",
-    "kraton-v2/**/*.jsx",
-    "kraton-v2/**/*.ts",
-    "kraton-v2/**/*.tsx"
+    "vercel-api/**/*.ts",
+    "vercel-api/**/*.tsx"
   ],
   "exclude": [
     "node_modules",

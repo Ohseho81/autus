@@ -5,8 +5,7 @@
   ],
   "deno.disablePaths": [
     "./moltbot-brain",
-    "./moltbot-bridge",
-    "./kraton-v2"
+    "./moltbot-bridge"
   ],
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,

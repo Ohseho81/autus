@@ -10,12 +10,12 @@ on:
     branches: [main, develop]
     paths:
       - 'frontend/**'
-      - 'kraton-v2/**'
+      - 'vercel-api/**'
   pull_request:
     branches: [main]
     paths:
       - 'frontend/**'
-      - 'kraton-v2/**'
+      - 'vercel-api/**'
 
 env:
   NODE_VERSION: '20'

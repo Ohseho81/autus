@@ -3,7 +3,7 @@
 ## 현재 상태
 ✅ 환경 변수 설정 완료
 ✅ SQL 스키마 준비 완료 (`EXECUTE_THIS.sql`)
-✅ 업로드 스크립트 준비 완료 (`scripts/upload_students_fixed.py`)
+✅ 업로드 스크립트 준비 완료 (`scripts/upload/upload_students.py`)
 ✅ 학생 데이터 준비 완료 (`students.csv` - 781명)
 
 ---
@@ -39,7 +39,7 @@ cat EXECUTE_THIS.sql
 
 터미널에서 실행:
 ```bash
-python3 scripts/upload_students_fixed.py
+python3 scripts/upload/upload_students.py
 ```
 
 ### 예상 출력:

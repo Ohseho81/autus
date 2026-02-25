@@ -3,41 +3,16 @@
   "version": 2,
   "regions": ["icn1"],
   "builds": [
-    {
-      "src": "vercel-api/package.json",
-      "use": "@vercel/next"
-    },
-    {
-      "src": "kraton-v2/package.json",
-      "use": "@vercel/static-build",
-      "config": { 
-        "distDir": "dist",
-        "outputDirectory": "dist"
-      }
-    }
+    {"src": "vercel-api/package.json", "use": "@vercel/next"}
   ],
   "crons": [
-    {
-      "path": "/api/kakao/worker",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/pre-attendance",
-      "schedule": "*/30 * * * *"
-    },
-    {
-      "path": "/api/cron/consultation-trigger",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/monthly-report",
-      "schedule": "0 10 28-31 * *"
-    }
+    {"path": "/api/kakao/worker", "schedule": "*/5 * * * *"},
+    {"path": "/api/cron/pre-attendance", "schedule": "*/30 * * * *"},
+    {"path": "/api/cron/consultation-trigger", "schedule": "0 9 * * *"},
+    {"path": "/api/cron/monthly-report", "schedule": "0 10 28-31 * *"}
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "vercel-api/api/$1" },
-    { "src": "/assets/(.*)", "dest": "kraton-v2/assets/$1" },
-    { "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|json))", "dest": "kraton-v2/$1" },
-    { "src": "/(.*)", "dest": "kraton-v2/index.html" }
+    {"src": "/api/(.*)", "dest": "vercel-api/api/$1"},
+    {"src": "/(.*)", "dest": "vercel-api/$1"}
   ]
 }

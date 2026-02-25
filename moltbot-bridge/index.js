@@ -373,7 +373,7 @@ bot.onText(/\/build/, (msg) => {
   log(`[BUILD] Requested by ${msg.from.username}`);
   bot.sendMessage(chatId, '🔨 빌드 시작...');
 
-  exec(`cd ${AUTUS_DIR}/kraton-v2 && npm run build 2>&1 | tail -20`, (error, stdout) => {
+  exec(`cd ${AUTUS_DIR}/vercel-api && npm run build 2>&1 | tail -20`, (error, stdout) => {
     if (error && !stdout.includes('built in')) {
       bot.sendMessage(chatId, `❌ 빌드 실패!\n\n\`\`\`\n${stdout.slice(-800)}\n\`\`\``, { parse_mode: 'Markdown' });
       return;

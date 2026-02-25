@@ -20,7 +20,11 @@ def _load_env_file(path: str) -> None:
                 if line and not line.startswith("#") and "=" in line:
                     k, v = line.split("=", 1)
                     k, v = k.strip(), v.strip().strip("'\"").strip()
-                    if v and (use_default or len(v) > 100):  # JWT 100자 이상이면 실제 키
+                    # mobile-app: 모든 비어있지 않은 값 로드 (URL 포함)
+                    # .env: placeholder 제외 (JWT 100자 이상이거나 your-project 없을 때만)
+                    is_mobile = "mobile-app" in path
+                    is_placeholder = "your-project" in v or (len(v) < 100 and "eyJ" in v)
+                    if v and (is_mobile or (use_default and not is_placeholder)):
                         if use_default:
                             os.environ.setdefault(k, v)
                         else:
@@ -32,14 +36,19 @@ def _load_env_file(path: str) -> None:
 for p in ["mobile-app/.env", ".env"]:
     _load_env_file(p)
 
-SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("VITE_SUPABASE_URL") or os.getenv("EXPO_PUBLIC_SUPABASE_URL") or "https://pphzvnaedmzcvpxjulti.supabase.co"
-# EXPO_PUBLIC_ (mobile-app) 우선, VITE_/SUPABASE_ 순
+SUPABASE_URL = (
+    os.getenv("SUPABASE_URL")
+    or os.getenv("VITE_SUPABASE_URL")
+    or os.getenv("EXPO_PUBLIC_SUPABASE_URL")
+    or "https://pphzvnaedmzcvpxjulti.supabase.co"
+)
+# mobile-app/.env에서 로드한 EXPO/VITE 우선 (상속 env의 placeholder 덮어쓰기)
 SUPABASE_KEY = (
-    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-    or os.getenv("SUPABASE_SERVICE_KEY")
-    or os.getenv("EXPO_PUBLIC_SUPABASE_ANON_KEY")  # mobile-app/.env
-    or os.getenv("SUPABASE_ANON_KEY")
+    os.getenv("EXPO_PUBLIC_SUPABASE_ANON_KEY")  # mobile-app/.env
     or os.getenv("VITE_SUPABASE_ANON_KEY")
+    or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    or os.getenv("SUPABASE_SERVICE_KEY")
+    or os.getenv("SUPABASE_ANON_KEY")
 )
 
 try:
@@ -98,7 +107,16 @@ def main():
     except Exception as e:
         print(f"   ⚠️ 조회 실패: {e}")
 
-    # 3. 요약
+    # 3. 뷰 존재 확인
+    print("\n🔹 뷰 (Views)")
+    for v in ["atb_student_dashboard", "atb_today_attendance", "atb_monthly_payments"]:
+        try:
+            r = supabase.table(v).select("*").limit(1).execute()
+            print(f"   {v}: ✅ OK")
+        except Exception as e:
+            print(f"   {v}: ❌ {e}")
+
+    # 4. 요약
     print("\n" + "="*60)
     if students > 0 and classes > 0 and coaches > 0:
         print("✅ 앱 데이터 + 강사별 수업 업로드 완료")
@@ -107,7 +125,7 @@ def main():
         print("   → scripts/upload_coaches_classes.py 실행")
     else:
         print("⚠️ 데이터 없음. 업로드 필요")
-        print("   - 학생: scripts/upload_students_to_supabase.py")
+        print("   - 학생: scripts/upload/upload_students.py")
         print("   - 강사/수업: scripts/upload_coaches_classes.py")
     print("="*60 + "\n")
 

@@ -1,6 +1,6 @@
 /**
  * 온리쌤 Supabase 데이터 연동
- * kraton-v2 올댓바스켓 자료·기능 전달
+ * 온리쌤 (이전 kraton-v2 통합)
  */
 
 import { getSupabase } from './supabase';

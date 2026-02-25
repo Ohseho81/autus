@@ -24,8 +24,8 @@
 /*         → kraton-v2/index.html (Vite SPA)
 ```
 
-- 경로 `/onlyssam`, `/onlyssam/director` 등은 모두 **kraton-v2**의 `index.html`로 라우팅됨.
-- kraton-v2는 **해시 기반 라우팅**만 사용:
+- 경로 `/onlyssam`, `/onlyssam/director` 등은 **vercel-api** (Next.js)로 라우팅됨.
+- (이전) kraton-v2는 해시 기반 라우팅 사용 → 2026-02 kraton 제거, vercel-api로 통합.
   - `#allthatbasket`, `#autus-ai`, `#coach`, `#dashboard` 등
   - **pathname 기반** `/onlyssam/*` 처리는 코드에 없음.
 
@@ -109,7 +109,7 @@
 ## 5. 해결 완료 (2026-02-25)
 
 **구현 내용:**
-- `kraton-v2/src/AllThatBasket.jsx`에 pathname 기반 라우팅 추가
+- vercel-api app/onlyssam/director/page.tsx → / 리다이렉트 (kraton 제거 후)
 - `pathname === '/onlyssam'` 또는 `pathname.startsWith('/onlyssam/')`일 때 `AllThatBasketAppV2` 렌더링
 - `popstate` 리스너로 브라우저 뒤로가기/앞으로가기 지원
 
