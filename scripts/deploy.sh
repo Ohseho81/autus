@@ -30,15 +30,11 @@ git add -A
 git commit -m "deploy: $(date +%Y%m%d-%H%M%S)" || true
 git push origin main
 
-# 3. Supabase Edge Functions 배포 (선택)
+# 3. Supabase Edge Functions 배포 (선택 - supabase link 필요)
 if command -v supabase &> /dev/null; then
     echo ""
     echo "☁️  3/4. Supabase Functions 배포..."
-    cd supabase
-    supabase functions deploy attendance-chain --no-verify-jwt
-    supabase functions deploy payment-webhook --no-verify-jwt
-    supabase functions deploy moltbot-brain --no-verify-jwt
-    cd ..
+    (cd supabase && supabase functions deploy attendance-chain --no-verify-jwt) || echo "   (supabase link 미설정, Functions 건너뜀)"
 else
     echo ""
     echo "⚠️  3/4. Supabase CLI 없음, Functions 배포 건너뜀"

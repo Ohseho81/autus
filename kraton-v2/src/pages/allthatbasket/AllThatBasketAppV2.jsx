@@ -14,9 +14,10 @@
  * - 메모이제이션
  */
 
-import React, { useState, useCallback, useMemo, lazy, Suspense } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import { Home, Users, QrCode, AlertTriangle, Menu, X, Bell } from 'lucide-react';
 import useAllThatBasket from './lib/useAllThatBasket';
+import { statsAPI } from './lib/supabase';
 
 // Lazy load views (속도 최적화)
 const StudentsView = lazy(() => import('./views/StudentsView'));
@@ -101,11 +102,18 @@ const StatCard = React.memo(({ label, value, color = '#FF6B35' }) => (
 ));
 
 // ============================================
-// 홈 뷰 (간소화)
+// 홈 뷰 (간소화) - Supabase KPI 연동
 // ============================================
 const HomeView = React.memo(({ data, onNavigate }) => {
   const { students, getAtRiskStudents } = data;
+  const [dashboardStats, setDashboardStats] = useState(null);
   const atRisk = useMemo(() => getAtRiskStudents(), [getAtRiskStudents]);
+
+  useEffect(() => {
+    statsAPI.getDashboard().then(({ data: stats }) => {
+      if (stats) setDashboardStats(stats);
+    });
+  }, []);
 
   const status = useMemo(() => {
     if (atRisk.length >= 3) return 'critical';
@@ -121,10 +129,20 @@ const HomeView = React.memo(({ data, onNavigate }) => {
         <StatusBadge level={status} />
       </div>
 
+      {/* Supabase KPI 카드 */}
+      {dashboardStats && (
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard label="이번달 매출" value={`${((dashboardStats.monthlyCollected || 0) / 10000).toFixed(0)}만원`} color="#10B981" />
+          <StatCard label="미수금" value={`${((dashboardStats.totalOutstanding || 0) / 10000).toFixed(0)}만원`} color="#EF4444" />
+          <StatCard label="신규 학생" value={`${dashboardStats.newStudentsThisMonth ?? 0}명`} color="#3B82F6" />
+          <StatCard label="오늘 출석율" value={`${dashboardStats.todayAttendanceRate ?? 0}%`} color="#8B5CF6" />
+        </div>
+      )}
+
       <div className="grid grid-cols-3 gap-3">
         <StatCard label="재원생" value={students.length} />
         <StatCard label="위험" value={atRisk.length} color="#EF4444" />
-        <StatCard label="금주 수업" value={12} color="#3B82F6" />
+        <StatCard label="이탈 위험" value={dashboardStats?.atRiskCount ?? atRisk.length} color="#F59E0B" />
       </div>
 
       {/* 위험 선수 */}

@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, typography, borderRadius } from '../../utils/theme';
 import { GlassCard } from '../../components/common';
 import Header from '../../components/common/Header';
+import { useAuthStore } from '../../store/authStore';
 
 export default function RegisterScreen() {
   const navigation = useNavigation();
@@ -64,13 +65,22 @@ export default function RegisterScreen() {
     else navigation.goBack();
   };
 
+  const { signUp, isLoading: authLoading } = useAuthStore();
+  const [error, setError] = useState('');
+
   const handleRegister = async () => {
+    if (password !== confirmPassword) {
+      setError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
     setIsLoading(true);
-    // TODO: Implement registration
-    setTimeout(() => {
-      setIsLoading(false);
-      navigation.navigate('Login' as never);
-    }, 2000);
+    setError('');
+    const result = await signUp(email, password, ownerName);
+    setIsLoading(false);
+    if (result.error) {
+      setError(result.error);
+    }
+    // Auth state change will auto-navigate
   };
 
   const renderStep = () => {

@@ -1,33 +1,42 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# 🏛️ AUTUS CONSTITUTION v1.0 — 불변 헌법
+# 🏛️ AUTUS CONSTITUTION v2.0 — 운영 헌법
 # ═══════════════════════════════════════════════════════════════════════════════
 #
 # 이 문서는 AUTUS 시스템의 핵심 원칙을 정의합니다.
-# ⚠️ 이 파일의 내용은 절대 변경할 수 없습니다.
-# SHA-256: [자동 생성됨]
+# v2.0: 2026-02-23 — 현실 인프라에 맞게 개정
+# v1.0: 2026-01-13 — 초기 제정
 #
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ## 📜 제1조: 데이터 주권 (Data Sovereignty)
 
-1. **Zero-Cloud**: 모든 사용자 데이터는 로컬에 저장된다
-2. **No PII Collection**: 개인 식별 정보를 수집하지 않는다
+1. **Cloud-Managed**: 사용자 데이터는 Supabase(PostgreSQL) + RLS로 조직 단위 격리 저장한다
+2. **No PII Leak**: 개인 식별 정보는 암호화 저장하며, 외부 유출하지 않는다
 3. **User Ownership**: 데이터의 소유권은 100% 사용자에게 있다
 4. **Export Freedom**: 사용자는 언제든 모든 데이터를 내보낼 수 있다
 
+> **v1→v2 변경**: "Zero-Cloud(로컬 전용)" → "Cloud-Managed(RLS 격리)"
+> 사유: SaaS 제품 특성상 클라우드 DB가 운영/확장에 필수. 데이터 주권은 RLS + Export로 보장.
+
 ## 📜 제2조: 자산 공식 (Value Formula)
 
+### 이론 공식 (장기 목표)
 ```
-V = (M - T) × (1 + s)^t
+V = P × Λ × e^(σt)
 
-- V: 자산 (Value)
-- M: Mint (생성된 가치)
-- T: Tax (소모된 비용)
-- s: Synergy (협업 계수, 0 ≤ s ≤ 1)
-- t: Time (시간)
+P = 관계 밀도 (0~1)
+Λ = 상호 시간가치 (λ_A × t_A→B + λ_B × t_B→A)
+σ = 시너지 계수 (-1~+1)
+t = 관계 지속 기간
+```
+
+### 실행 공식 (현재 MVP)
+```
+V = Base × (Motions - Threats) × (1 + 상호지수 × Relations)^t
 ```
 
 이 공식은 AUTUS의 모든 가치 계산의 기반이다.
+코드 수정 시 이론 공식 기준으로 수렴할 것.
 
 ## 📜 제3조: 물리 엔진 (Physics Engine)
 
@@ -74,34 +83,42 @@ T4 Normal   : 일반 노드 (회색)
 Ghost       : 비활성 노드 (검정)
 ```
 
-## 📜 제5조: 암호화 (Encryption)
+## 📜 제5조: 보안 (Security)
 
-1. **AES-256-GCM**: 모든 P2P 전송에 적용
-2. **SHA-256**: 블록 해시 체인
-3. **Local Key**: 암호화 키는 사용자 기기에만 저장
+1. **RLS Isolation**: 모든 테이블은 org_id 기반 Row-Level Security 적용
+2. **JWT Auth**: Clerk → HS256 JWT → Supabase PostgREST 인증 체인
+3. **Service Role 분리**: 서버 측 작업만 service_role 키 사용
+4. **Append-Only Audit**: 감사 로그는 INSERT 전용 (UPDATE/DELETE 금지)
+
+> **v1→v2 변경**: "AES-256-GCM + 로컬 키 저장" → "RLS + JWT + Service Role 분리"
+> 사유: SaaS 환경에서 실제 작동하는 보안 모델로 전환.
 
 ## 📜 제6조: Immutable Ledger
 
-1. 모든 결정은 블록체인 형태로 기록된다
-2. 한번 기록된 블록은 삭제/수정 불가
-3. 각 블록은 이전 블록의 해시를 포함한다
+1. 모든 이벤트는 canonical_events 테이블에 append-only로 기록된다
+2. 한번 기록된 이벤트는 삭제/수정 불가 (DELETE/UPDATE 금지)
+3. 이벤트 체인은 시간순 무결성을 유지한다
 
 ```
-Block = {
-  hash: SHA-256(prev_hash + timestamp + type + payload),
-  prev_hash: string,
-  timestamp: ISO-8601,
-  type: 'decision' | 'sync' | 'genesis',
-  payload: object
+Event = {
+  id: UUID,
+  event_type: string,
+  payload: JSONB,
+  created_at: TIMESTAMPTZ,
+  org_id: UUID
 }
 ```
 
-## 📜 제7조: P2P 원칙
+> **v1→v2 변경**: "블록체인 해시 체인" → "PostgreSQL append-only 테이블"
+> 사유: 현재 규모에서 블록체인은 과도. 동일한 불변성을 DB 정책으로 달성.
 
-1. **Direct Connection**: 중앙 서버 없이 기기 간 직접 연결
-2. **QR Handshake**: 3초 내 연결 완료
-3. **BLE Discovery**: 근거리 자동 탐색
-4. **Proof Pack**: 검증 가능한 데이터 패키지 교환
+## 📜 제7조: 멀티 프로덕트 원칙 (Multi-Product)
+
+1. **Shared Core**: AUTUS Physics Engine, V-Index, Event Ledger는 모든 프로덕트가 공유한다
+2. **Domain Isolation**: 각 프로덕트(온리쌤, 뷰티 등)는 독립 테이블 접두사를 가진다
+3. **Factory Pattern**: 새 프로덕트는 AUTUS 코어 위에 도메인 설정만으로 생성 가능해야 한다
+
+> **v2.0 신설**: v1에 없던 조항. 실제로 온리쌤/뷰티/올댓바스켓 등 복수 프로덕트 운영 중이므로 원칙 필요.
 
 ## 📜 제8조: 관찰자 모드 (Observer Mode)
 
@@ -115,16 +132,21 @@ Block = {
 2. 사용자는 시스템 동작을 검증할 수 있다
 3. 외부 감사를 허용한다
 
-## 📜 제10조: 불변성 선언
+## 📜 제10조: 개정 절차
 
-**이 헌법은 AUTUS의 근본 원칙을 정의한다.**
-**어떠한 상황에서도 이 원칙들은 변경될 수 없다.**
-**새로운 기능은 이 헌법을 준수해야만 추가될 수 있다.**
+1. 이 헌법은 AUTUS의 근본 원칙을 정의한다
+2. **개정은 가능하나, 반드시 변경 사유와 이전 버전을 기록한다**
+3. 물리 엔진(제3조)과 관찰자 모드(제8조)는 불변이다
+4. 새로운 기능은 이 헌법의 정신을 준수해야만 추가될 수 있다
+
+> **v1→v2 변경**: "절대 불변" → "개정 가능, 변경 이력 필수"
+> 사유: 실제 운영하면서 인프라가 진화함. 원칙의 정신은 유지하되 구현 방식은 현실에 맞춰야 함.
 
 ---
 
-**서명**: AUTUS Genesis Block
-**일시**: 2026-01-13T00:00:00.000Z
-**해시**: AUTUS_CONSTITUTION_V1_IMMUTABLE
+**서명**: AUTUS Constitution v2.0
+**초기 제정**: 2026-01-13T00:00:00.000Z
+**v2.0 개정**: 2026-02-23
+**개정 사유**: 클라우드 인프라 현실 반영, 멀티 프로덕트 원칙 추가, 개정 절차 명시
 
 ═══════════════════════════════════════════════════════════════════════════════

@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
+import { sendTelegramMessage } from '@/lib/telegram';
 import { MessageOutbox, MessageStatus } from './types';
 import { processAndSendMessage } from './template-engine';
 
@@ -85,6 +86,8 @@ export async function runOutboundWorker(): Promise<void> {
               message_id: message.message_id,
               retry_count: nextRetryCount
             });
+
+            await notifyDeadLetter(message, String(error));
           } else {
             const { error: retryError } = await client
               .from('message_outbox')
@@ -180,6 +183,23 @@ export async function enqueueMessage(
       template_id
     });
     throw error;
+  }
+}
+
+async function notifyDeadLetter(message: MessageOutbox, failureReason: string): Promise<void> {
+  const chatId = process.env.TELEGRAM_OWNER_CHAT_ID;
+  if (!chatId) {
+    logger.warn('TELEGRAM_OWNER_CHAT_ID not set, skipping dead-letter notification');
+    return;
+  }
+
+  const text = `🔴 *Dead-letter 알림* (3회 실패)
+템플릿: ${message.template_id}
+수신: ${message.recipient_phone}
+원인: ${failureReason.slice(0, 200)}`;
+  const result = await sendTelegramMessage(chatId, text);
+  if (!result.ok) {
+    logger.warn('Failed to send dead-letter Telegram', { error: result.error_description });
   }
 }
 

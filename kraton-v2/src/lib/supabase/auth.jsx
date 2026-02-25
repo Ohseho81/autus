@@ -118,6 +118,41 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // 최초 로그인 시 프로필 생성 (OAuth 카카오/구글/깃헙)
+  const ensureProfile = useCallback(async (user) => {
+    if (!supabase || !user) return null;
+
+    const meta = user.user_metadata || {};
+    const name = meta.full_name || meta.name || meta.user_name || meta.nickname || user.email?.split('@')[0] || '사용자';
+    const avatarUrl = meta.avatar_url || meta.profile_image;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert(
+          {
+            id: user.id,
+            name: String(name).slice(0, 100),
+            ...(avatarUrl && { avatar_url: avatarUrl }),
+            role: 'coach',
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'id', ignoreDuplicates: false }
+        )
+        .select()
+        .single();
+
+      if (error) {
+        console.warn('[Auth] 프로필 생성/갱신 실패 (RLS 또는 스키마 확인):', error);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('[Auth] ensureProfile:', err);
+      return null;
+    }
+  }, []);
+
   // 초기 세션 확인
   useEffect(() => {
     const initAuth = async () => {
@@ -136,7 +171,10 @@ export function AuthProvider({ children }) {
         
         if (session?.user) {
           setUser(session.user);
-          const profileData = await fetchProfile(session.user.id);
+          let profileData = await fetchProfile(session.user.id);
+          if (!profileData) {
+            profileData = await ensureProfile(session.user);
+          }
           setProfile(profileData);
           if (profileData?.role && ROLES[profileData.role]) {
             setRole(ROLES[profileData.role]);
@@ -160,7 +198,10 @@ export function AuthProvider({ children }) {
           
           if (session?.user) {
             setUser(session.user);
-            const profileData = await fetchProfile(session.user.id);
+            let profileData = await fetchProfile(session.user.id);
+            if (!profileData) {
+              profileData = await ensureProfile(session.user);
+            }
             setProfile(profileData);
             if (profileData?.role && ROLES[profileData.role]) {
               setRole(ROLES[profileData.role]);
@@ -175,7 +216,7 @@ export function AuthProvider({ children }) {
 
       return () => subscription.unsubscribe();
     }
-  }, [fetchProfile]);
+  }, [fetchProfile, ensureProfile]);
 
   // 로그인 (이메일/비밀번호)
   const signIn = useCallback(async (email, password) => {

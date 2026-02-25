@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
+import { createReportPage } from '@/lib/notion';
 import { enqueueMessage } from './outbound-worker';
 import { checkConsent } from './consent-handler';
 
@@ -59,12 +60,32 @@ export async function generateMonthlyReports(org_id: string): Promise<void> {
 
       try {
         const studentData = await gatherStudentData(org_id, student_id);
-        const message = formatReportMessage(student_name, studentData);
-
-        // Idempotency: monthly_report:{student_id}:{YYYY-MM} prevents duplicate reports
+        const fullMessage = formatReportMessage(student_name, studentData);
         const now = new Date();
         const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         const idempotencyKey = `monthly_report:${student_id}:${monthKey}`;
+
+        let reportLink = '';
+        const notionResult = await createReportPage(
+          `${student_name}님 ${monthKey} 성장 리포트`,
+          fullMessage
+        );
+        if (notionResult.url) {
+          reportLink = notionResult.url;
+          logger.info('Report saved to Notion', { student_id, url: reportLink });
+        }
+
+        const variables: Record<string, unknown> = {
+          student_id,
+          student_name,
+          ...studentData,
+        };
+        if (reportLink) {
+          variables.report_link = reportLink;
+          variables.report_content = `${student_name}님의 ${monthKey} 성장 리포트가 준비되었습니다. 아래 버튼에서 자세한 내용을 확인해주세요.`;
+        } else {
+          variables.report_content = fullMessage;
+        }
 
         await enqueueMessage(
           org_id,
@@ -72,16 +93,12 @@ export async function generateMonthlyReports(org_id: string): Promise<void> {
           parent_id,
           phone,
           'MONTHLY_REPORT',
-          {
-            student_id,
-            student_name,
-            ...studentData
-          },
+          variables,
           'NORMAL',
           idempotencyKey
         );
 
-        logger.info('Monthly report enqueued', { student_id, parent_id });
+        logger.info('Monthly report enqueued', { student_id, parent_id, hasReportLink: !!reportLink });
       } catch (error) {
         logger.error('Failed to generate report for student', error instanceof Error ? error : new Error(String(error)), {
           student_id,

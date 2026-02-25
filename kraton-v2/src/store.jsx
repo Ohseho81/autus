@@ -8,7 +8,7 @@
  */
 
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import { supabase, isSupabaseConnected } from './pages/allthatbasket/lib/supabase.js';
+import { supabase, isSupabaseConnected, statsAPI } from './pages/allthatbasket/lib/supabase.js';
 import { attendanceAPI, paymentAPI, notificationAPI } from './services/allthatbasket.js';
 
 // ============================================
@@ -46,6 +46,9 @@ const initialState = {
   // UI 상태
   loading: false,
   error: null,
+
+  // 대시보드 KPI (Supabase statsAPI)
+  dashboardStats: null, // { monthlyCollected, totalOutstanding, newStudentsThisMonth, todayAttendanceRate, ... }
 };
 
 // ============================================
@@ -85,6 +88,9 @@ const ActionTypes = {
 
   // 인사이트 생성
   GENERATE_INSIGHTS: 'GENERATE_INSIGHTS',
+
+  // 대시보드 KPI
+  SET_DASHBOARD_STATS: 'SET_DASHBOARD_STATS',
 
   // 출석 관리
   CHECK_IN: 'CHECK_IN',
@@ -264,6 +270,11 @@ function reducer(state, action) {
       return { ...state, insights: action.payload };
     }
 
+    // 대시보드 KPI (Supabase 연동)
+    case ActionTypes.SET_DASHBOARD_STATS: {
+      return { ...state, dashboardStats: action.payload };
+    }
+
     // 출석 체크인
     case ActionTypes.CHECK_IN: {
       const { studentId, attendance } = action.payload;
@@ -410,18 +421,23 @@ export function StoreProvider({ children }) {
           console.error('[Store] 학생 로드 실패:', studentsError);
         }
 
-        // 학생 데이터 변환 (실제 스키마 매핑)
-        // engagement_score → attendanceRate, status → status
-        const students = (studentsRaw || []).map(s => ({
-          id: s.id,
-          name: s.name,
-          class: s.grade || '미배정',
-          status: s.status === 'warning' ? 'warning' : s.engagement_score < 60 ? 'danger' : 'active',
-          attendanceRate: s.engagement_score || 70, // engagement_score를 출석률로 사용
-          skillScore: s.skill_score || 50,
-          position: s.position,
-          parentPhone: s.parent_phone,
-        }));
+        // 학생 데이터 변환 (실제 스키마 매핑 - atb_students)
+        // attendance_rate, enrollment_status, total_outstanding
+        const students = (studentsRaw || []).map(s => {
+          const rate = Number(s.attendance_rate ?? s.engagement_score ?? 70);
+          const status = s.enrollment_status === 'withdrawn' ? 'danger'
+            : rate >= 80 ? 'active' : rate >= 60 ? 'warning' : 'danger';
+          return {
+            id: s.id,
+            name: s.name,
+            class: s.grade || '미배정',
+            status,
+            attendanceRate: rate,
+            total_outstanding: s.total_outstanding ?? 0,
+            parentPhone: s.parent_phone,
+            enrollment_date: s.enrollment_date,
+          };
+        });
 
         // 수업 데이터
         const classes = (classesRaw || []).map(c => ({
@@ -455,6 +471,12 @@ export function StoreProvider({ children }) {
           approvals: approvals.length,
         });
 
+        // 대시보드 KPI 로드 (Supabase)
+        const { data: dashboardStats } = await statsAPI.getDashboard();
+        if (dashboardStats) {
+          dispatch({ type: ActionTypes.SET_DASHBOARD_STATS, payload: dashboardStats });
+        }
+
         dispatch({
           type: ActionTypes.LOAD_DATA,
           payload: {
@@ -486,6 +508,10 @@ export function StoreProvider({ children }) {
 
     // Fallback: 로컬 더미 데이터 (하지만 상태 관리는 실제로 동작)
     console.log('[Store] 로컬 더미 데이터 사용');
+    const { data: fallbackStats } = await statsAPI.getDashboard();
+    if (fallbackStats) {
+      dispatch({ type: ActionTypes.SET_DASHBOARD_STATS, payload: fallbackStats });
+    }
     dispatch({
       type: ActionTypes.LOAD_DATA,
       payload: {

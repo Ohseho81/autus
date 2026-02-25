@@ -127,7 +127,7 @@ export default function useAllThatBasket() {
       const { data, error } = await supabase
         .from('atb_classes')
         .select('*')
-        .eq('status', 'active')
+        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;

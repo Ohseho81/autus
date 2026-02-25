@@ -468,49 +468,92 @@ export const statsAPI = {
   async getDashboard() {
     if (!supabase) return { data: null, error: 'Supabase not connected' };
 
-    // 학생 통계
-    const { data: students } = await supabase
-      .from('atb_student_dashboard')
-      .select('*');
+    try {
+      // atb_student_dashboard 뷰 (없으면 atb_students로 폴백)
+      let students = [];
+      const { data: dashboardStudents } = await supabase
+        .from('atb_student_dashboard')
+        .select('*');
+      if (dashboardStudents?.length) {
+        students = dashboardStudents;
+      } else {
+        const { data: rawStudents } = await supabase
+          .from('atb_students')
+          .select('id, enrollment_status, attendance_rate, total_outstanding, enrollment_date, created_at');
+        students = (rawStudents || []).map(s => ({
+          ...s,
+          attendance_rate: Number(s.attendance_rate ?? 100),
+          total_outstanding: Number(s.total_outstanding ?? 0),
+        }));
+      }
 
-    // 이번 달 결제 통계
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const { data: payments } = await supabase
-      .from('atb_monthly_payments')
-      .select('*')
-      .eq('month', currentMonth)
-      .single();
+      // 이번 달 결제 (maybeSingle: 해당 월 없어도 에러 없음)
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const { data: payments } = await supabase
+        .from('atb_monthly_payments')
+        .select('*')
+        .eq('month', currentMonth)
+        .maybeSingle();
 
-    // 오늘 출석 통계
-    const { data: attendance } = await supabase
-      .from('atb_today_attendance')
-      .select('*');
+      // 오늘 출석 뷰 (해당 요일 수업 없으면 빈 배열)
+      const { data: attendance } = await supabase
+        .from('atb_today_attendance')
+        .select('*');
 
-    const totalStudents = students?.length || 0;
-    const activeStudents = students?.filter(s => s.enrollment_status === 'active').length || 0;
-    const avgAttendance = totalStudents > 0
-      ? Math.round(students.reduce((sum, s) => sum + (s.attendance_rate || 100), 0) / totalStudents)
-      : 100;
-    const totalOutstanding = students?.reduce((sum, s) => sum + (s.total_outstanding || 0), 0) || 0;
-    const atRiskCount = students?.filter(s => (s.risk_score || 0) > 30).length || 0;
+      const totalStudents = students?.length || 0;
+      const activeStudents = students?.filter(s => s.enrollment_status === 'active').length || 0;
+      const avgAttendance = totalStudents > 0
+        ? Math.round(students.reduce((sum, s) => sum + (s.attendance_rate || 100), 0) / totalStudents)
+        : 0;
+      const totalOutstanding = students?.reduce((sum, s) => sum + (s.total_outstanding || 0), 0) || 0;
+      const atRiskCount = students?.filter(s => (s.risk_score || 0) > 30).length || 0;
 
-    const todayPresent = attendance?.reduce((sum, c) => sum + (c.present_count || 0), 0) || 0;
-    const todayTotal = attendance?.reduce((sum, c) => sum + (c.total_students || 0), 0) || 0;
+      // 이번 달 신규 학생 (enrollment_date 기준)
+      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+      const newStudentsThisMonth = students?.filter(s => {
+        const d = s.enrollment_date || s.created_at;
+        return d && String(d).slice(0, 10) >= startOfMonth;
+      }).length || 0;
 
-    return {
-      data: {
-        totalStudents,
-        activeStudents,
-        avgAttendance,
-        totalOutstanding,
-        atRiskCount,
-        monthlyCollected: payments?.collected_amount || 0,
-        monthlyTarget: payments?.total_amount || 0,
-        todayPresent,
-        todayTotal,
-      },
-      error: null,
-    };
+      const todayPresent = attendance?.reduce((sum, c) => sum + (c.present_count || 0), 0) || 0;
+      const todayTotal = attendance?.reduce((sum, c) => sum + (c.total_students || 0), 0) || 0;
+      const todayAttendanceRate = todayTotal > 0 ? Math.round((todayPresent / todayTotal) * 100) : 0;
+
+      return {
+        data: {
+          totalStudents,
+          activeStudents,
+          avgAttendance,
+          totalOutstanding,
+          atRiskCount,
+          newStudentsThisMonth,
+          monthlyCollected: payments?.collected_amount || 0,
+          monthlyTarget: payments?.total_amount || 0,
+          todayPresent,
+          todayTotal,
+          todayAttendanceRate,
+        },
+        error: null,
+      };
+    } catch (e) {
+      console.error('[statsAPI.getDashboard]', e);
+      return {
+        data: {
+          totalStudents: 0,
+          activeStudents: 0,
+          avgAttendance: 0,
+          totalOutstanding: 0,
+          atRiskCount: 0,
+          newStudentsThisMonth: 0,
+          monthlyCollected: 0,
+          monthlyTarget: 0,
+          todayPresent: 0,
+          todayTotal: 0,
+          todayAttendanceRate: 0,
+        },
+        error: String(e?.message || e),
+      };
+    }
   },
 
   // MoltBot Brain 대시보드

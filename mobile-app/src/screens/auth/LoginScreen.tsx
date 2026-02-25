@@ -22,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, spacing, typography, borderRadius } from '../../utils/theme';
 import { GlassCard } from '../../components/common';
-import { api } from '../../services/api';
+import { useAuthStore } from '../../store/authStore';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -30,8 +30,9 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const { signIn, isLoading } = useAuthStore();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -39,17 +40,12 @@ export default function LoginScreen() {
       return;
     }
 
-    setIsLoading(true);
     setError('');
-
-    try {
-      await api.login(email, password);
-      // Navigation will be handled by auth state change
-    } catch (err: any) {
-      setError(err.message || '로그인에 실패했습니다.');
-    } finally {
-      setIsLoading(false);
+    const result = await signIn(email, password);
+    if (result.error) {
+      setError(result.error);
     }
+    // Navigation handled by auth state in AppNavigator
   };
 
   return (

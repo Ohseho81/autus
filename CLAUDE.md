@@ -1,10 +1,13 @@
 # AUTUS 6-Agent Routing System
 
 ## Overview
-- **Type**: Multi-project (온리쌤, K-Work)
-- **Stack**: Next.js 14+ / FastAPI / PostgreSQL / Railway / Vercel
+- **Type**: Multi-product Platform
+- **Products**: 온리쌤(학원), 뷰티(미용실), 올댓바스켓(체육학원), 숙제(sw_*), 시설관리(zf_*)
+- **Stack**: Next.js 14+ / FastAPI / PostgreSQL / Supabase / Vercel
 - **Architecture**: Physics-based 48-node L0-L4 hierarchy
 - **Agent System**: 6-Layer Task Router
+- **DB**: Supabase `pphzvnaedmzcvpxjulti` (121 tables, 27 Edge Functions)
+- **Current Focus**: 온리쌤 안정화 → 뷰티 스펙 정리
 
 ---
 
@@ -103,10 +106,30 @@ Score = Trigger(0.3) + Capability(0.5) + Constraint(0.2)
 
 ## AUTUS Context
 
-### V-Index
+### V-Index (이중 공식 체계)
+
+**이론 공식 (AUTUS_SPEC — 장기/학술용)**
+```
+V = P × Λ × e^(σt)
+
+P = 관계 밀도 (0~1)
+Λ = 상호 시간가치 (λ_A × t_A→B + λ_B × t_B→A)
+σ = 시너지 계수 (-1~+1)
+t = 관계 지속 기간
+```
+
+**실행 공식 (Dashboard/MVP — 현재 코드 기준)**
 ```
 V = Base × (Motions - Threats) × (1 + 상호지수 × Relations)^t
+
+Base = 노드 기본 가치
+Motions = 9가지 가치 이동 합산
+Threats = 위협 요소 (이탈, 미수금 등)
 ```
+
+> 두 공식은 같은 모델의 다른 해상도.
+> 이론 공식은 관계 단위(edge), 실행 공식은 노드 단위(node) 집계.
+> 코드 수정 시 이론 공식 기준으로 수렴할 것.
 
 ### Data Flow
 OAuth → Event Ledger → Physics Engine → V-Index → Dashboard → 몰트봇

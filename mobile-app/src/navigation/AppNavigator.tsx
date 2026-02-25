@@ -5,8 +5,8 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -266,13 +266,26 @@ function AppStack() {
 }
 
 // Root Navigator
+import { useAuthStore } from '../store/authStore';
+
 export default function AppNavigator() {
-  // TODO: Add auth state management (e.g., using Context or Zustand)
-  const isAuthenticated = true; // For now, always authenticated for testing
+  const { session, isReady, initialize } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, []);
+
+  if (!isReady) {
+    return (
+      <View style={[styles.tabBar, { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.safe.primary} />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer theme={KratonTheme}>
-      {isAuthenticated ? <AppStack /> : <AuthNavigator />}
+      {session ? <AppStack /> : <AuthNavigator />}
     </NavigationContainer>
   );
 }

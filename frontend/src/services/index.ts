@@ -12,3 +12,6 @@ export { default as localStorage } from './LocalStorage';
 // Supabase (클라우드)
 export * from './supabase';
 export { default as supabase } from './supabase';
+
+// 온리쌤 (atb_* Supabase 데이터)
+export * from './onlyssam';

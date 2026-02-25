@@ -4,17 +4,18 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home, Users, Calendar, Trophy, MessageCircle,
   Settings, Bell, ChevronRight, TrendingUp, TrendingDown,
   User, LogOut, Menu, X, Target, Award, Zap, Youtube,
-  Video, Smartphone, QrCode
+  Video, Smartphone, QrCode, DollarSign
 } from 'lucide-react';
 import { ALL_THAT_BASKET_CONFIG } from '../../config/allthatbasket';
 import YouTubeView from './YouTubeView';
 import { ParentAppDaechi, CoachVideoFlow } from './components';
+import { getDashboardStats, fetchStudents, fetchClasses, type DashboardStats, type StudentRow, type ClassRow } from '../../services/onlyssam';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Types
@@ -48,8 +49,20 @@ const MOCK_STUDENTS: Student[] = [
 const MOCK_CLASSES = [
   { id: 'a', name: 'A반 (주니어)', students: 3, schedule: '월/수/금 16:00', avgVIndex: 76 },
   { id: 'b', name: 'B반 (키즈)', students: 2, schedule: '화/목 16:00', avgVIndex: 80 },
-  { id: 'elite', name: '엘리트반', students: 0, schedule: '토/일 10:00', avgVIndex: 0 },
 ];
+
+function toStudent(s: StudentRow): Student {
+  const v = Number(s.attendance_rate ?? s.v_index ?? 70);
+  return {
+    id: s.id,
+    name: s.name,
+    class: s.grade || '미배정',
+    vIndex: v,
+    trend: 'stable' as const,
+    position: '-',
+    attendance: v,
+  };
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Components
@@ -198,18 +211,49 @@ const StatCard: React.FC<{
 // Views
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Home View (Owner/Manager)
+// Home View (Owner/Manager) - Supabase 실데이터 연동
 interface HomeViewProps {
   onNavigate?: (view: ViewType) => void;
+  dashboardStats?: DashboardStats | null;
+  students?: Student[];
 }
 
-const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
-  const avgVIndex = Math.round(MOCK_STUDENTS.reduce((sum, s) => sum + s.vIndex, 0) / MOCK_STUDENTS.length);
-  const atRiskCount = MOCK_STUDENTS.filter(s => s.vIndex < 70).length;
+const HomeView: React.FC<HomeViewProps> = ({ onNavigate, dashboardStats, students: propStudents }) => {
+  const students = propStudents?.length ? propStudents : MOCK_STUDENTS;
+  const avgVIndex = students.length
+    ? Math.round(students.reduce((sum, s) => sum + s.vIndex, 0) / students.length)
+    : 0;
+  const atRiskCount = students.filter(s => s.vIndex < 70).length;
 
   return (
     <div className="space-y-6">
-      {/* 🆕 역할별 앱 바로가기 */}
+      {/* KPI 카드 - Supabase 실데이터 */}
+      {dashboardStats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard
+            title="이번달 매출"
+            value={`${((dashboardStats.monthlyCollected || 0) / 10000).toFixed(0)}만원`}
+            icon={<DollarSign size={24} className="text-green-400" />}
+          />
+          <StatCard
+            title="미수금"
+            value={`${((dashboardStats.totalOutstanding || 0) / 10000).toFixed(0)}만원`}
+            icon={<Bell size={24} className="text-red-400" />}
+          />
+          <StatCard
+            title="신규 학생"
+            value={`${dashboardStats.newStudentsThisMonth ?? 0}명`}
+            icon={<Users size={24} className="text-blue-400" />}
+          />
+          <StatCard
+            title="오늘 출석율"
+            value={`${dashboardStats.todayAttendanceRate ?? 0}%`}
+            icon={<Calendar size={24} className="text-purple-400" />}
+          />
+        </div>
+      )}
+
+      {/* 역할별 앱 바로가기 */}
       <div className="grid grid-cols-2 gap-3">
         <motion.button
           whileHover={{ scale: 1.02 }}
@@ -259,17 +303,15 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
           title="전체 V-Index"
           value={avgVIndex}
           icon={<Zap size={24} className="text-orange-400" />}
-          trend="up"
-          trendValue="+3.2%"
         />
         <StatCard
           title="총 재원생"
-          value={MOCK_STUDENTS.length}
+          value={students.length}
           icon={<Users size={24} className="text-orange-400" />}
         />
         <StatCard
           title="주의 필요"
-          value={atRiskCount}
+          value={dashboardStats?.atRiskCount ?? atRiskCount}
           icon={<Bell size={24} className="text-orange-400" />}
         />
         <StatCard
@@ -326,7 +368,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
           주의가 필요한 선수
         </h3>
         <div className="space-y-3">
-          {MOCK_STUDENTS.filter(s => s.vIndex < 75).map(student => (
+          {students.filter(s => s.vIndex < 75).map(student => (
             <StudentCard key={student.id} student={student} />
           ))}
         </div>
@@ -335,27 +377,40 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
   );
 };
 
-// Students View
-const StudentsView: React.FC = () => (
+// Students View - Supabase 실데이터
+const StudentsView: React.FC<{ students?: Student[] }> = ({ students: propStudents }) => {
+  const students = propStudents?.length ? propStudents : MOCK_STUDENTS;
+  return (
   <div className="space-y-4">
     <div className="flex items-center justify-between">
       <h2 className="text-xl font-bold text-white">전체 선수</h2>
-      <span className="text-gray-400">{MOCK_STUDENTS.length}명</span>
+      <span className="text-gray-400">{students.length}명</span>
     </div>
     <div className="space-y-3">
-      {MOCK_STUDENTS.map(student => (
+      {students.map(student => (
         <StudentCard key={student.id} student={student} />
       ))}
     </div>
   </div>
-);
+  );
+};
 
-// Classes View
-const ClassesView: React.FC = () => (
+// Classes View - Supabase 실데이터
+interface ClassDisplay {
+  id: string;
+  name: string;
+  students?: number;
+  schedule?: string;
+  avgVIndex?: number;
+}
+
+const ClassesView: React.FC<{ classes?: ClassDisplay[] }> = ({ classes: propClasses }) => {
+  const classes = propClasses?.length ? propClasses : MOCK_CLASSES;
+  return (
   <div className="space-y-4">
     <h2 className="text-xl font-bold text-white">수업 관리</h2>
     <div className="space-y-3">
-      {MOCK_CLASSES.map(cls => (
+      {classes.map(cls => (
         <motion.div
           key={cls.id}
           whileHover={{ scale: 1.02 }}
@@ -368,11 +423,11 @@ const ClassesView: React.FC = () => (
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-white">{cls.name}</h3>
-              <p className="text-sm text-gray-400">{cls.schedule}</p>
+              <p className="text-sm text-gray-400">{cls.schedule ?? '-'}</p>
             </div>
             <div className="text-right">
-              <p className="text-orange-400 font-bold">{cls.students}명</p>
-              {cls.avgVIndex > 0 && (
+              <p className="text-orange-400 font-bold">{cls.students ?? 0}명</p>
+              {cls.avgVIndex && cls.avgVIndex > 0 && (
                 <p className="text-xs text-gray-500">평균 V: {cls.avgVIndex}</p>
               )}
             </div>
@@ -381,7 +436,8 @@ const ClassesView: React.FC = () => (
       ))}
     </div>
   </div>
-);
+  );
+};
 
 // Missions View
 const MissionsView: React.FC = () => {
@@ -418,6 +474,31 @@ const AllThatBasketApp: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('home');
   const [currentRole, setCurrentRole] = useState<RoleType>('owner');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [classes, setClasses] = useState<ClassDisplay[]>([]);
+
+  const loadData = useCallback(async () => {
+    const [statsRes, studentsRaw, classesRaw] = await Promise.all([
+      getDashboardStats(),
+      fetchStudents(),
+      fetchClasses(),
+    ]);
+    if (statsRes.data) setDashboardStats(statsRes.data);
+    if (studentsRaw.length) setStudents(studentsRaw.map(toStudent));
+    if (classesRaw.length) {
+      setClasses(classesRaw.map((c) => ({
+        id: c.id,
+        name: c.name,
+        schedule: c.start_time ? `${c.start_time}` : undefined,
+        students: c.max_students,
+      })));
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const { branding, roles } = ALL_THAT_BASKET_CONFIG;
   const roleInfo = roles[currentRole];
@@ -437,9 +518,9 @@ const AllThatBasketApp: React.FC = () => {
 
   const renderView = () => {
     switch (currentView) {
-      case 'home': return <HomeView onNavigate={setCurrentView} />;
-      case 'students': return <StudentsView />;
-      case 'classes': return <ClassesView />;
+      case 'home': return <HomeView onNavigate={setCurrentView} dashboardStats={dashboardStats} students={students} />;
+      case 'students': return <StudentsView students={students} />;
+      case 'classes': return <ClassesView classes={classes} />;
       case 'missions': return <MissionsView />;
       case 'videos': return <YouTubeView />;
       case 'parent-app': return <ParentAppDaechi onBack={() => setCurrentView('home')} />;

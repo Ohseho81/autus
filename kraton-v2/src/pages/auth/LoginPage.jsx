@@ -113,6 +113,7 @@ const EmailLoginForm = memo(function EmailLoginForm({ onSubmit, loading, error }
 // ============================================
 const OAuthButtons = memo(function OAuthButtons({ onOAuth, loading }) {
   const providers = [
+    { id: 'kakao', name: '카카오', icon: '💬', primary: true },
     { id: 'google', name: 'Google', icon: '🔵' },
     { id: 'github', name: 'GitHub', icon: '⚫' },
   ];
@@ -124,10 +125,13 @@ const OAuthButtons = memo(function OAuthButtons({ onOAuth, loading }) {
           key={provider.id}
           onClick={() => onOAuth(provider.id)}
           disabled={loading}
-          className="w-full py-3 px-4 rounded-lg bg-gray-800 border border-gray-700
-            text-gray-300 font-medium hover:bg-gray-700 transition-all duration-200
+          className={`w-full py-3 px-4 rounded-lg border transition-all duration-200
             flex items-center justify-center gap-2
-            disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled:opacity-50 disabled:cursor-not-allowed
+            ${provider.primary
+              ? 'bg-[#FEE500] border-[#FEE500] text-[#191919] hover:bg-[#fdd835]'
+              : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+            }`}
         >
           <span>{provider.icon}</span>
           <span>{provider.name}로 계속하기</span>

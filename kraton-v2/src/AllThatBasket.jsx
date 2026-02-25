@@ -306,6 +306,34 @@ function OwnerView() {
         {/* 대시보드 */}
         {activeTab === 'dashboard' && (
           <>
+            {/* KPI 카드 - Supabase 연동 */}
+            {state.dashboardStats && (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                  <div className="bg-green-50 rounded-2xl p-4 border border-green-100">
+                    <p className="text-2xl font-bold text-green-700">{((state.dashboardStats.monthlyCollected || 0) / 10000).toFixed(0)}만원</p>
+                    <p className="text-xs text-green-600 mt-1">이번달 매출</p>
+                  </div>
+                  <div className="bg-red-50 rounded-2xl p-4 border border-red-100">
+                    <p className="text-2xl font-bold text-red-700">{((state.dashboardStats.totalOutstanding || 0) / 10000).toFixed(0)}만원</p>
+                    <p className="text-xs text-red-600 mt-1">미수금</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+                    <p className="text-2xl font-bold text-blue-700">{state.dashboardStats.newStudentsThisMonth ?? 0}명</p>
+                    <p className="text-xs text-blue-600 mt-1">신규 학생</p>
+                  </div>
+                  <div className="bg-purple-50 rounded-2xl p-4 border border-purple-100">
+                    <p className="text-2xl font-bold text-purple-700">{state.dashboardStats.todayAttendanceRate ?? 0}%</p>
+                    <p className="text-xs text-purple-600 mt-1">오늘 출석율</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-4 text-sm text-gray-600">
+                  <span>직원 {state.staff?.length ?? 0}명</span>
+                  <span>·</span>
+                  <span>이탈 위험 {state.dashboardStats.atRiskCount ?? 0}명</span>
+                </div>
+              </>
+            )}
             <div className="grid grid-cols-3 gap-3 mb-6">
               <StatusCard status="normal" count={stats.normal} label="정상" subtitle="80% 이상" />
               <StatusCard status="warning" count={stats.warning} label="경고" subtitle="60-80%" />
